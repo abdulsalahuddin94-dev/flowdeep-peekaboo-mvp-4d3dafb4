@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
+
 import { pipelineItems, resources } from "@/lib/mock-data";
 import { useProjects, useNotifications } from "@/lib/projects-store";
 import { supabase } from "@/integrations/supabase/client";

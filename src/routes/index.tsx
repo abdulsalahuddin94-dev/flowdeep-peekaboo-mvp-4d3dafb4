@@ -8,10 +8,11 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   ArrowUpRight, AlertTriangle, CheckCircle2, Clock, TrendingUp,
-  Activity, Users, DollarSign, GanttChartSquare, Bell, Inbox, Sparkles,
+  Activity, Users, DollarSign, GanttChartSquare, Bell, Inbox, Sparkles, Plus,
 } from "lucide-react";
 import { milestones, pipelineItems, risks, resources, type Rag } from "@/lib/mock-data";
 import { useProjects, useNotifications, useResourceRequests } from "@/lib/projects-store";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   component: Dashboard,

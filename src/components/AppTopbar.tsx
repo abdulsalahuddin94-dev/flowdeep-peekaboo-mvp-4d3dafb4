@@ -238,8 +238,6 @@ export function AppTopbar() {
   );
 }
 
-import { Switch } from "@/components/ui/switch";
-
 function ThemeToggle() {
   const [dark, setDark] = useState(() => {
     const stored = localStorage.getItem("ds02-theme");

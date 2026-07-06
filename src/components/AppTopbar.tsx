@@ -173,23 +173,8 @@ export function AppTopbar() {
           </DialogContent>
         </Dialog>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="sm" className="gap-1 bg-accent text-accent-foreground hover:bg-accent/90">
-              <Plus className="h-4 w-4" /> Quick Create
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Create…</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => toast.success("Business Case draft created")}>Business Case</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => toast.success("New project initiated")}>Project</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => toast.success("Risk logged")}>Risk</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => toast.success("Issue logged")}>Issue</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => toast.success("RFI drafted")}>RFI / RFP</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => toast.success("Change Request opened")}>Change Request</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+
+
 
         <Sheet onOpenChange={(o) => { if (o) markAllRead(); }}>
           <SheetTrigger asChild>

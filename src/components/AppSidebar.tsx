@@ -1,8 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Building2, Handshake, Target, GitBranch, Users,
-  DollarSign, AlertTriangle, HardHat, BarChart3, Settings,
-  LogOut, HelpCircle, ChevronLeft,
+  LayoutDashboard, Building2, Handshake, Target, Users,
+  DollarSign, LogOut, ChevronLeft,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -21,19 +20,13 @@ import { cn } from "@/lib/utils";
 const main = [
   { title: "Dashboard",         url: "/",                icon: LayoutDashboard },
   { title: "Portfolio",         url: "/portfolio",       icon: Target },
-  { title: "Pipeline",          url: "/pipeline",        icon: GitBranch, badge: 6 },
-  { title: "Risk & Issues",     url: "/risks",           icon: AlertTriangle, badge: 3, badgeTone: "red" as const },
   { title: "Resources",         url: "/resources",       icon: Users },
   { title: "Clients & Vendors", url: "/clients-vendors", icon: Handshake },
-  { title: "Procurement",       url: "/procurement",     icon: HardHat },
   { title: "Financials",        url: "/financials",      icon: DollarSign },
-  { title: "Reports",           url: "/reports",         icon: BarChart3 },
   { title: "Organization",      url: "/organization",    icon: Building2 },
 ];
 
-const mgmt = [
-  { title: "Settings", url: "/settings", icon: Settings },
-];
+const mgmt = [];
 
 const allItems = [...main, ...mgmt];
 
@@ -118,12 +111,6 @@ export function AppSidebar() {
       {/* Footer */}
       <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
         <SidebarMenu className="gap-3">
-          <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Help & Docs" className="h-10 rounded-lg px-3 text-sm">
-              <HelpCircle className="h-5 w-5 shrink-0" />
-              {!collapsed && <span>Help & Docs</span>}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Logout" className="h-10 rounded-lg px-3 text-sm">
               <LogOut className="h-5 w-5 shrink-0" />

@@ -7,10 +7,10 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  ArrowUpRight, AlertTriangle, CheckCircle2, Clock, TrendingUp,
+  ArrowUpRight, CheckCircle2, Clock, TrendingUp,
   Activity, Users, DollarSign, GanttChartSquare, Bell, Inbox, Sparkles, Plus,
 } from "lucide-react";
-import { milestones, pipelineItems, risks, resources, type Rag } from "@/lib/mock-data";
+import { milestones, resources, type Rag } from "@/lib/mock-data";
 import { useProjects, useNotifications, useResourceRequests } from "@/lib/projects-store";
 import { toast } from "sonner";
 
@@ -18,8 +18,8 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
   head: () => ({
     meta: [
-      { title: "Dashboard — Nexus PMO" },
-      { name: "description", content: "Role-adaptive PMO dashboard: portfolio health, approvals, risks, capacity, schedule." },
+      { title: "Dashboard — Nexus PMO MVP" },
+      { name: "description", content: "Role-adaptive PMO dashboard: portfolio health, capacity, resources, financials." },
     ],
   }),
 });
@@ -69,13 +69,11 @@ function Dashboard() {
 const QUICK_CREATE_BY_ROLE: Record<Role, { label: string; toast: string }[]> = {
   Executive: [
     { label: "Executive Report", toast: "Executive report drafted" },
-    { label: "Strategic Initiative", toast: "Strategic initiative created" },
-    { label: "Board Update", toast: "Board update drafted" },
+    { label: "Portfolio Review", toast: "Portfolio review scheduled" },
   ],
   Director: [
     { label: "Business Case", toast: "Business Case draft created" },
     { label: "Project", toast: "New project initiated" },
-    { label: "Change Request", toast: "Change Request opened" },
     { label: "Portfolio Review", toast: "Portfolio review scheduled" },
   ],
   "Resource Mgr": [
@@ -86,20 +84,16 @@ const QUICK_CREATE_BY_ROLE: Record<Role, { label: string; toast: string }[]> = {
   PM: [
     { label: "Project", toast: "New project initiated" },
     { label: "Milestone", toast: "Milestone added" },
-    { label: "Risk", toast: "Risk logged" },
-    { label: "Issue", toast: "Issue logged" },
     { label: "Status Update", toast: "Status update drafted" },
   ],
   Finance: [
     { label: "Budget Request", toast: "Budget request created" },
     { label: "Invoice", toast: "Invoice drafted" },
     { label: "Forecast", toast: "Forecast created" },
-    { label: "PO / Procurement", toast: "PO drafted" },
   ],
   "Team Member": [
     { label: "Timesheet Entry", toast: "Timesheet entry added" },
     { label: "Task Update", toast: "Task update logged" },
-    { label: "Issue", toast: "Issue logged" },
   ],
 };
 
@@ -211,7 +205,6 @@ function DirectorView() {
   const { resourceRequests } = useResourceRequests();
   const pendingReqs = resourceRequests.filter((r) => r.status === "Pending").length;
   const overAllocated = resources.filter((r) => r.util > 100).length;
-  const topRisks = [...risks].sort((a, b) => b.score - a.score).slice(0, 4);
 
   return (
     <div className="grid grid-cols-12 gap-4">
@@ -230,10 +223,9 @@ function DirectorView() {
         <div className="mt-5">
           <HealthBar counts={s.counts} total={s.total} />
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-3 text-xs">
+        <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
           <MiniStat icon={<Activity className="h-3.5 w-3.5" />} label="Avg progress" value={`${s.avgProgress}%`} />
           <MiniStat icon={<TrendingUp className="h-3.5 w-3.5" />} label="On-track trend" value="▼ 6% · 8w" tone="amber" />
-          <MiniStat icon={<AlertTriangle className="h-3.5 w-3.5" />} label="Open risks" value={String(risks.length)} tone="red" />
         </div>
       </Tile>
 
@@ -252,75 +244,11 @@ function DirectorView() {
         </Link>
       </Tile>
 
-      {/* Approval queue */}
-      <Tile className="col-span-12 md:col-span-6 lg:col-span-4" eyebrow="Approval Queue" right={
-        <Link to="/pipeline" className="text-xs text-accent hover:underline">View all</Link>
-      }>
-        <ul className="space-y-2">
-          {/* Pipeline approvals */}
-          {pipelineItems.filter((p) => p.stage === "Under Review" || p.stage === "Submitted").slice(0, 2).map((p) => (
-            <li key={p.id} className="rounded-md border border-border bg-background/30 p-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-foreground">{p.title}</div>
-                  <div className="mt-0.5 text-[11px] text-muted-foreground">{p.id} · {p.pillar} · {p.roi} ROI</div>
-                </div>
-                <span className="num-mono shrink-0 rounded bg-accent-dim px-1.5 py-0.5 text-[10px] text-accent">{p.score}</span>
-              </div>
-              <div className="mt-2 flex items-center gap-2">
-                <Button size="sm" className="h-7 bg-accent text-accent-foreground hover:bg-accent/90">Approve</Button>
-                <Button size="sm" variant="outline" className="h-7">Review</Button>
-              </div>
-            </li>
-          ))}
-
-          {/* Milestone approvals - show pending approvals for current user */}
-          {[
-            { name: "UAT Sign-off", project: "ERP Upgrade", approvers: 2, pending: true },
-            { name: "Production cutover", project: "Customer Portal v3", approvers: 1, pending: true },
-          ].slice(0, 1).map((m) => (
-            <li key={m.name} className="rounded-md border border-accent/20 bg-accent-dim/20 p-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-foreground">{m.name}</div>
-                  <div className="mt-0.5 text-[11px] text-muted-foreground">{m.project} · Milestone approval</div>
-                </div>
-                <span className="shrink-0 rounded border border-accent/40 bg-accent/10 px-1.5 py-0.5 text-[10px] text-accent font-medium">
-                  {m.approvers} approvers
-                </span>
-              </div>
-              <div className="mt-2 flex items-center gap-2">
-                <Button size="sm" className="h-7 bg-accent text-accent-foreground hover:bg-accent/90">Approve</Button>
-                <Button size="sm" variant="outline" className="h-7">Review project</Button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </Tile>
-
-      {/* Top risks */}
-      <Tile className="col-span-12 md:col-span-6 lg:col-span-4" eyebrow="Top Risks" right={
-        <Link to="/risks" className="text-xs text-accent hover:underline">RAID</Link>
-      }>
-        <ul className="space-y-2">
-          {topRisks.map((r) => (
-            <li key={r.id} className="flex items-start gap-3 rounded-md border border-border bg-background/30 p-2.5">
-              <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${r.score >= 16 ? "bg-rag-red pulse-dot" : r.score >= 12 ? "bg-rag-amber" : "bg-rag-blue"}`} />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm text-foreground">{r.title}</div>
-                <div className="text-[11px] text-muted-foreground">{r.project} · {r.owner}</div>
-              </div>
-              <span className="num-mono shrink-0 text-xs text-muted-foreground">{r.score}</span>
-            </li>
-          ))}
-        </ul>
-      </Tile>
 
       {/* Action items */}
       <Tile className="col-span-12 lg:col-span-4" eyebrow="My Action Items" right={<Inbox className="h-4 w-4 text-muted-foreground" />}>
         <ul className="space-y-2 text-sm">
           <li className="flex items-center gap-2 text-foreground"><CheckCircle2 className="h-4 w-4 text-accent" /> Approve BC-018 <span className="ml-auto text-xs text-muted-foreground">2d</span></li>
-          <li className="flex items-center gap-2 text-foreground"><AlertTriangle className="h-4 w-4 text-rag-red" /> Escalation: ERP UAT <span className="ml-auto text-xs text-rag-red">1d</span></li>
           <li className="flex items-center gap-2 text-foreground"><TrendingUp className="h-4 w-4 text-rag-amber" /> Review Q3 forecast <span className="ml-auto text-xs text-muted-foreground">4d</span></li>
           <li className="flex items-center gap-2 text-foreground"><Clock className="h-4 w-4 text-muted-foreground" /> Board prep deck <span className="ml-auto text-xs text-muted-foreground">6d</span></li>
           <li className="flex items-center gap-2 text-foreground"><Users className="h-4 w-4 text-accent" /> {pendingReqs} resource requests pending <span className="ml-auto text-xs text-muted-foreground">today</span></li>
@@ -437,16 +365,12 @@ function ExecutiveView() {
         <div className="mt-1 text-xs text-muted-foreground">of ${s.budgetTotal.toFixed(0)}M · {s.budgetPct}%</div>
         <Progress value={s.budgetPct} className="mt-3 h-1.5" />
       </Tile>
-      <Tile className="col-span-12 md:col-span-3" eyebrow="Risk Score">
-        <div className="text-4xl font-medium num-mono text-rag-red">7.2</div>
-        <div className="mt-1 text-xs text-muted-foreground">{risks.filter((r) => r.score >= 16).length} critical risks</div>
-      </Tile>
       <Tile className="col-span-12 md:col-span-3" eyebrow="Avg Progress">
         <div className="text-4xl font-medium num-mono text-foreground">{s.avgProgress}%</div>
         <div className="mt-1 text-xs text-muted-foreground">Across {s.total} projects</div>
       </Tile>
 
-      <Tile className="col-span-12 lg:col-span-7" eyebrow="Portfolio Mix by Stage">
+      <Tile className="col-span-12 lg:col-span-12" eyebrow="Portfolio Mix by Stage">
         <div className="space-y-2.5">
           {byStage.map((b) => (
             <div key={b.st}>
@@ -460,18 +384,6 @@ function ExecutiveView() {
             </div>
           ))}
         </div>
-      </Tile>
-
-      <Tile className="col-span-12 lg:col-span-5" eyebrow="Top Pipeline Bets" right={<Link to="/pipeline" className="text-xs text-accent hover:underline">All</Link>}>
-        <ul className="space-y-2 text-sm">
-          {[...pipelineItems].sort((a, b) => b.score - a.score).slice(0, 4).map((p) => (
-            <li key={p.id} className="flex items-center gap-2 rounded-md border border-border bg-background/30 p-2.5">
-              <span className="num-mono rounded bg-accent-dim px-1.5 py-0.5 text-[10px] text-accent">{p.score}</span>
-              <span className="min-w-0 flex-1 truncate text-foreground">{p.title}</span>
-              <span className="text-xs text-muted-foreground">{p.roi}</span>
-            </li>
-          ))}
-        </ul>
       </Tile>
     </div>
   );
@@ -545,10 +457,9 @@ function ResourceView() {
 function PMView() {
   const { projects } = useProjects();
   const mine = projects.slice(0, 5);
-  const openRisks = risks.filter((r) => r.status === "Open").length;
   return (
     <div className="grid grid-cols-12 gap-4">
-      <Tile className="col-span-12 lg:col-span-8" eyebrow="My Projects">
+      <Tile className="col-span-12 lg:col-span-12" eyebrow="My Projects">
         <ul className="space-y-2">
           {mine.map((p) => (
             <Link key={p.id} to="/portfolio/$projectId" params={{ projectId: p.id }}
@@ -561,17 +472,6 @@ function PMView() {
               <div className="hidden w-40 md:block"><Progress value={p.progress} className="h-1.5" /></div>
               <span className="num-mono w-10 text-right text-xs text-muted-foreground">{p.progress}%</span>
             </Link>
-          ))}
-        </ul>
-      </Tile>
-
-      <Tile className="col-span-12 lg:col-span-4" eyebrow={`Open RAID (${openRisks})`}>
-        <ul className="space-y-2 text-sm">
-          {risks.slice(0, 5).map((r) => (
-            <li key={r.id} className="flex items-start gap-2">
-              <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${r.score >= 16 ? "bg-rag-red pulse-dot" : "bg-rag-amber"}`} />
-              <span className="text-foreground">{r.title}</span>
-            </li>
           ))}
         </ul>
       </Tile>

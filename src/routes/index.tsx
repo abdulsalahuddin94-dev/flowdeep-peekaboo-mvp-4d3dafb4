@@ -52,12 +52,82 @@ function Dashboard() {
         }
       />
 
+      <QuickCreate role={role} />
+
       {role === "Executive" && <ExecutiveView />}
       {role === "Director" && <DirectorView />}
       {role === "Resource Mgr" && <ResourceView />}
       {role === "PM" && <PMView />}
       {role === "Finance" && <FinanceView />}
       {role === "Team Member" && <TeamMemberView />}
+    </div>
+  );
+}
+
+// ── Quick Create (role-aware) ──────────────────────────────────────────────────
+
+const QUICK_CREATE_BY_ROLE: Record<Role, { label: string; toast: string }[]> = {
+  Executive: [
+    { label: "Executive Report", toast: "Executive report drafted" },
+    { label: "Strategic Initiative", toast: "Strategic initiative created" },
+    { label: "Board Update", toast: "Board update drafted" },
+  ],
+  Director: [
+    { label: "Business Case", toast: "Business Case draft created" },
+    { label: "Project", toast: "New project initiated" },
+    { label: "Change Request", toast: "Change Request opened" },
+    { label: "Portfolio Review", toast: "Portfolio review scheduled" },
+  ],
+  "Resource Mgr": [
+    { label: "Resource Request", toast: "Resource request created" },
+    { label: "Assignment", toast: "Assignment drafted" },
+    { label: "Capacity Plan", toast: "Capacity plan created" },
+  ],
+  PM: [
+    { label: "Project", toast: "New project initiated" },
+    { label: "Milestone", toast: "Milestone added" },
+    { label: "Risk", toast: "Risk logged" },
+    { label: "Issue", toast: "Issue logged" },
+    { label: "Status Update", toast: "Status update drafted" },
+  ],
+  Finance: [
+    { label: "Budget Request", toast: "Budget request created" },
+    { label: "Invoice", toast: "Invoice drafted" },
+    { label: "Forecast", toast: "Forecast created" },
+    { label: "PO / Procurement", toast: "PO drafted" },
+  ],
+  "Team Member": [
+    { label: "Timesheet Entry", toast: "Timesheet entry added" },
+    { label: "Task Update", toast: "Task update logged" },
+    { label: "Issue", toast: "Issue logged" },
+  ],
+};
+
+function QuickCreate({ role }: { role: Role }) {
+  const items = QUICK_CREATE_BY_ROLE[role] ?? [];
+  return (
+    <div className="glass-card mb-4 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Plus className="h-4 w-4 text-accent" /> Quick Create
+          </div>
+          <div className="text-[11px] text-muted-foreground">Shortcuts available for your role · {role}</div>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {items.map((it) => (
+          <Button
+            key={it.label}
+            size="sm"
+            variant="outline"
+            className="gap-1 border-border/60 hover:border-accent/60 hover:text-accent"
+            onClick={() => toast.success(it.toast)}
+          >
+            <Plus className="h-3.5 w-3.5" /> {it.label}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 }

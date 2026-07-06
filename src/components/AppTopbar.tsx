@@ -224,6 +224,7 @@ export function AppTopbar() {
 
 function ThemeToggle() {
   const [dark, setDark] = useState(() => {
+    if (typeof window === "undefined") return true;
     const stored = localStorage.getItem("ds02-theme");
     // default to dark mode (right side)
     return stored !== "light";

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Bell, Plus, Search, Command as CmdIcon, Briefcase, Users, Zap } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";

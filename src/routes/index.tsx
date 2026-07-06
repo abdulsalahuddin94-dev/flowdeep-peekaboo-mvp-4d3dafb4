@@ -121,7 +121,7 @@ function QuickCreate({ role }: { role: Role }) {
             key={it.label}
             size="sm"
             variant="outline"
-            className="gap-1 border-border/60 hover:border-accent/60 hover:text-accent"
+            className="gap-1 border-border/60 bg-transparent text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/40"
             onClick={() => toast.success(it.toast)}
           >
             <Plus className="h-3.5 w-3.5" /> {it.label}

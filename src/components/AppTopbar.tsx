@@ -238,16 +238,14 @@ export function AppTopbar() {
   );
 }
 
-function ThemeToggle() {
-  const [dark, setDark] = useState(false);
+import { Switch } from "@/components/ui/switch";
 
-  useEffect(() => {
+function ThemeToggle() {
+  const [dark, setDark] = useState(() => {
     const stored = localStorage.getItem("ds02-theme");
-    if (stored === "dark") {
-      document.documentElement.setAttribute("data-theme", "dark");
-      setDark(true);
-    }
-  }, []);
+    // default to dark mode (right side)
+    return stored !== "light";
+  });
 
   useEffect(() => {
     if (dark) {
@@ -259,14 +257,12 @@ function ThemeToggle() {
     }
   }, [dark]);
 
-  function toggle() {
-    setDark(!dark);
-  }
-
   return (
-    <Button variant="outline" size="sm" onClick={toggle} className="h-8 w-8 p-0" title={dark ? "Switch to Light Mode" : "Switch to Dark Mode"}>
-      {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-    </Button>
+    <div className="flex items-center gap-2">
+      <span className={`text-xs ${!dark ? "text-foreground font-medium" : "text-muted-foreground"}`}>Light</span>
+      <Switch checked={dark} onCheckedChange={setDark} />
+      <span className={`text-xs ${dark ? "text-foreground font-medium" : "text-muted-foreground"}`}>Dark</span>
+    </div>
   );
 }
 

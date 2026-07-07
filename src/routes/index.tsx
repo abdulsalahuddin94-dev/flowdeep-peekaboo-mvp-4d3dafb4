@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge, RagDot } from "@/components/RagBadge";
@@ -29,8 +29,6 @@ type Role = typeof ROLES[number];
 
 function Dashboard() {
   const [role, setRole] = useState<Role>("Director");
-  const [rrOpen, setRrOpen] = useState(false);
-  const navigate = useNavigate();
 
   return (
     <div>
@@ -54,77 +52,12 @@ function Dashboard() {
         }
       />
 
-      <QuickCreate role={role} onResourceRequestOpen={() => setRrOpen(true)} />
-
       {role === "Executive" && <ExecutiveView />}
       {role === "Director" && <DirectorView />}
-      {role === "Resource Mgr" && <ResourceView rrOpen={rrOpen} onRrOpenChange={setRrOpen} />}
+      {role === "Resource Mgr" && <ResourceView />}
       {role === "PM" && <PMView />}
       {role === "Finance" && <FinanceView />}
       {role === "Team Member" && <TeamMemberView />}
-    </div>
-  );
-}
-
-// ── Quick Create (role-aware) ──────────────────────────────────────────────────
-
-type QuickCreateAction = { label: string; action: "business-case" | "project" | "resource-request" };
-
-const QUICK_CREATE_BY_ROLE: Record<Role, QuickCreateAction[]> = {
-  Executive: [],
-  Director: [
-    { label: "Business Case", action: "business-case" },
-    { label: "Project", action: "project" },
-  ],
-  "Resource Mgr": [
-    { label: "Resource Request", action: "resource-request" },
-  ],
-  PM: [
-    { label: "Project", action: "project" },
-  ],
-  Finance: [],
-  "Team Member": [],
-};
-
-function QuickCreate({ role, onResourceRequestOpen }: { role: Role; onResourceRequestOpen?: () => void }) {
-  const navigate = useNavigate();
-  const items = QUICK_CREATE_BY_ROLE[role] ?? [];
-
-  function handleAction(action: string) {
-    if (action === "business-case") {
-      navigate({ to: "/portfolio", search: { tab: "bc" } });
-    } else if (action === "project") {
-      navigate({ to: "/portfolio" });
-    } else if (action === "resource-request") {
-      onResourceRequestOpen?.();
-    }
-  }
-
-  if (items.length === 0) return null;
-
-  return (
-    <div className="glass-card mb-4 p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <Plus className="h-4 w-4 text-accent" /> Quick Create
-          </div>
-          <div className="text-[11px] text-muted-foreground">Shortcuts available for your role · {role}</div>
-        </div>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {items.map((it) => (
-          <Button
-            key={it.label}
-            size="sm"
-            variant="outline"
-            className="gap-1 border-border/60 bg-transparent text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/40"
-            onClick={() => handleAction(it.action)}
-          >
-            <Plus className="h-3.5 w-3.5" /> {it.label}
-          </Button>
-        ))}
-      </div>
     </div>
   );
 }
@@ -394,9 +327,8 @@ function ExecutiveView() {
 
 // ── Resource Mgr view ──────────────────────────────────────────────────────────
 
-function ResourceView({ rrOpen, onRrOpenChange }: { rrOpen?: boolean; onRrOpenChange?: (open: boolean) => void }) {
-  const { resourceRequests, addResourceRequest } = useResourceRequests();
-  const { projects: projectList } = useProjects();
+function ResourceView() {
+  const { resourceRequests } = useResourceRequests();
   const pending = resourceRequests.filter((r) => r.status === "Pending");
   const over = resources.filter((r) => r.util > 100);
   return (
@@ -452,33 +384,6 @@ function ResourceView({ rrOpen, onRrOpenChange }: { rrOpen?: boolean; onRrOpenCh
           ))}
         </ul>
       </Tile>
-
-      {/* Resource Request Dialog from Quick Create */}
-      {rrOpen && projectList.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-sm rounded-lg bg-background p-6 shadow-lg">
-            <h2 className="text-lg font-semibold text-foreground">Quick Resource Request</h2>
-            <p className="mt-1 text-xs text-muted-foreground">Select a project to submit a resource request</p>
-            <div className="mt-4 space-y-3">
-              {projectList.slice(0, 5).map((p) => (
-                <Button
-                  key={p.id}
-                  variant="outline"
-                  className="w-full justify-start text-left text-sm"
-                  onClick={() => {
-                    // Navigate to project and open request dialog there
-                    onRrOpenChange?.(false);
-                    // (In a full implementation, this would navigate to the project page with the request dialog open)
-                  }}
-                >
-                  {p.name}
-                </Button>
-              ))}
-            </div>
-            <Button variant="ghost" className="mt-4 w-full text-xs" onClick={() => onRrOpenChange?.(false)}>Cancel</Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

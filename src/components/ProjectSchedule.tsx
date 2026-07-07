@@ -272,8 +272,8 @@ export function ProjectSchedule({
 }) {
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);
-  const [visibleCols, setVisibleCols] = useState<Set<ColKey>>(
-    () => new Set<ColKey>(["type", "start", "end", "assignee", "status", "progress", "dep"]),
+  const [visibleCols] = useState<Set<ColKey>>(
+    () => new Set<ColKey>(["type", "start", "end", "owner", "assignee", "status", "progress", "dep", "roles", "payment"]),
   );
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(items.map(i => i.name)));
   const [leftPct, setLeftPct] = useState(48);
@@ -862,33 +862,6 @@ export function ProjectSchedule({
             <Switch id="health" checked={healthHighlight} onCheckedChange={setHealthHighlight} />
             <Label htmlFor="health" className="text-xs text-muted-foreground">Schedule health</Label>
           </div>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1 text-xs">
-                <Columns3 className="h-3.5 w-3.5" />Columns
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Show columns</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {COLUMNS.map(c => (
-                <DropdownMenuCheckboxItem
-                  key={c.key}
-                  checked={visibleCols.has(c.key)}
-                  onCheckedChange={(v) => {
-                    setVisibleCols(prev => {
-                      const next = new Set(prev);
-                      if (v) next.add(c.key); else next.delete(c.key);
-                      return next;
-                    });
-                  }}
-                >
-                  {c.label}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
 
           {onImport && (
             <>

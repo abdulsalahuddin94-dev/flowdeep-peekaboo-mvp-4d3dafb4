@@ -248,7 +248,7 @@ function DirectorView() {
       {/* Action items */}
       <Tile className="col-span-12 lg:col-span-4" eyebrow="My Action Items" right={<Inbox className="h-4 w-4 text-muted-foreground" />}>
         <ul className="space-y-2 text-sm">
-          <li className="flex items-center gap-2 text-foreground"><CheckCircle2 className="h-4 w-4 text-accent" /> Approve BC-018 <span className="ml-auto text-xs text-muted-foreground">2d</span></li>
+          <li className="flex items-center gap-2 text-foreground"><CheckCircle2 className="h-4 w-4 text-accent" /> Review 2 business cases <span className="ml-auto text-xs text-muted-foreground">2d</span></li>
           <li className="flex items-center gap-2 text-foreground"><TrendingUp className="h-4 w-4 text-rag-amber" /> Review Q3 forecast <span className="ml-auto text-xs text-muted-foreground">4d</span></li>
           <li className="flex items-center gap-2 text-foreground"><Clock className="h-4 w-4 text-muted-foreground" /> Board prep deck <span className="ml-auto text-xs text-muted-foreground">6d</span></li>
           <li className="flex items-center gap-2 text-foreground"><Users className="h-4 w-4 text-accent" /> {pendingReqs} resource requests pending <span className="ml-auto text-xs text-muted-foreground">today</span></li>

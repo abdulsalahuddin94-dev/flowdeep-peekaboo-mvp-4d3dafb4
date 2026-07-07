@@ -41,7 +41,7 @@ export const Route = createFileRoute("/portfolio/$projectId")({
 
 const TABS = [
   "Overview", "Project Charter", "Project Schedule", "Team & Allocation", "Financials",
-  "Risks & Issues", "Status Reports", "Procurement", "Business Trips", "Stakeholders", "Lessons Learned",
+  "Project Risks", "Status Reports", "Procurement", "Business Trips", "Stakeholders", "Lessons Learned",
 ];
 
 const PLANNING_STAGES = [
@@ -241,7 +241,7 @@ function ProjectDetail() {
           { l: "Budget", v: `$${project.budgetUsed.toFixed(2)}M / $${project.budgetTotal.toFixed(1)}M` },
           { l: "Variance", v: "+4%", c: "text-rag-amber" },
           { l: "End date", v: project.endDate },
-          { l: "Open RAID", v: project.risks + project.issues, c: "text-rag-red" },
+          { l: "Open Risks", v: project.risks + project.issues, c: "text-rag-red" },
         ].map((k) => (
           <div key={k.l} className="glass-card p-3">
             <div className="label-eyebrow">{k.l}</div>
@@ -525,7 +525,7 @@ function ProjectDetail() {
           <FinancialsTab project={project} />
         </TabsContent>
 
-        <TabsContent value="Risks & Issues" className="mt-5">
+        <TabsContent value="Project Risks" className="mt-5">
           <RisksTab project={project} />
         </TabsContent>
 
@@ -606,7 +606,7 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
     budget:      `$${project.budgetTotal.toFixed(1)}M`,
     constraints: "Must comply with procurement policy. Key milestones cannot slip beyond 30 days without board approval.",
     assumptions: "Stakeholder availability confirmed. No major regulatory changes expected during delivery.",
-    risks:       `${project.risks} open risks logged in RAID register. Top risk: vendor delivery delay.`,
+    risks:       `${project.risks} open risks logged in Project Risks tab. Top risk: vendor delivery delay.`,
     successCriteria: "Go-live achieved by target date. User acceptance ≥ 85%. Budget variance < 5%.",
   });
 
@@ -839,7 +839,7 @@ function OverviewTab({ project }: { project: typeof projects[number] }) {
 
       <div className="space-y-4">
         <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Open RAID Items</div>
+          <div className="label-eyebrow mb-4">Open Project Risks</div>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-lg border border-rag-amber/30 bg-rag-amber/10 p-5 text-center">
               <div className="num-mono text-3xl font-medium text-rag-amber">{project.risks}</div>
@@ -2302,7 +2302,7 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
         ))}
       </div>
       <div className="flex items-center justify-between">
-        <div className="label-eyebrow">RAID register</div>
+        <div className="label-eyebrow">Project Risks & Issues</div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">

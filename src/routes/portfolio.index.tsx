@@ -498,12 +498,10 @@ function BusinessCasesTab() {
 
 function StageBadge({ stage }: { stage: string }) {
   const map: Record<string, string> = {
-    "Approved": "border-rag-green/40 bg-rag-green/10 text-rag-green",
-    "Under Review": "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
     "Submitted": "border-rag-blue/40 bg-rag-blue/10 text-rag-blue",
-    "Deferred": "border-rag-grey/40 bg-rag-grey/10 text-rag-grey",
+    "Under Review": "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
+    "Approved": "border-rag-green/40 bg-rag-green/10 text-rag-green",
     "Rejected": "border-rag-red/40 bg-rag-red/10 text-rag-red",
-    "Revision Requested": "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
   };
   return <Badge variant="outline" className={map[stage] ?? ""}>{stage}</Badge>;
 }
@@ -693,7 +691,7 @@ function NewBusinessCaseDialog() {
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Submit Business Case</DialogTitle>
-          <DialogDescription>This will enter the Pipeline for scoring and approval routing.</DialogDescription>
+          <DialogDescription>This will be reviewed by the Portfolio Director for approval.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2"><Label>Project name</Label><Input placeholder="e.g. Predictive Maintenance Platform" /></div>

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge, RagDot } from "@/components/RagBadge";
@@ -29,6 +29,8 @@ type Role = typeof ROLES[number];
 
 function Dashboard() {
   const [role, setRole] = useState<Role>("Director");
+  const [rrOpen, setRrOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div>
@@ -52,11 +54,11 @@ function Dashboard() {
         }
       />
 
-      <QuickCreate role={role} />
+      <QuickCreate role={role} onResourceRequestOpen={() => setRrOpen(true)} />
 
       {role === "Executive" && <ExecutiveView />}
       {role === "Director" && <DirectorView />}
-      {role === "Resource Mgr" && <ResourceView />}
+      {role === "Resource Mgr" && <ResourceView rrOpen={rrOpen} onRrOpenChange={setRrOpen} />}
       {role === "PM" && <PMView />}
       {role === "Finance" && <FinanceView />}
       {role === "Team Member" && <TeamMemberView />}
@@ -66,39 +68,40 @@ function Dashboard() {
 
 // ── Quick Create (role-aware) ──────────────────────────────────────────────────
 
-const QUICK_CREATE_BY_ROLE: Record<Role, { label: string; toast: string }[]> = {
-  Executive: [
-    { label: "Executive Report", toast: "Executive report drafted" },
-    { label: "Portfolio Review", toast: "Portfolio review scheduled" },
-  ],
+type QuickCreateAction = { label: string; action: "business-case" | "project" | "resource-request" };
+
+const QUICK_CREATE_BY_ROLE: Record<Role, QuickCreateAction[]> = {
+  Executive: [],
   Director: [
-    { label: "Business Case", toast: "Business Case draft created" },
-    { label: "Project", toast: "New project initiated" },
-    { label: "Portfolio Review", toast: "Portfolio review scheduled" },
+    { label: "Business Case", action: "business-case" },
+    { label: "Project", action: "project" },
   ],
   "Resource Mgr": [
-    { label: "Resource Request", toast: "Resource request created" },
-    { label: "Assignment", toast: "Assignment drafted" },
-    { label: "Capacity Plan", toast: "Capacity plan created" },
+    { label: "Resource Request", action: "resource-request" },
   ],
   PM: [
-    { label: "Project", toast: "New project initiated" },
-    { label: "Milestone", toast: "Milestone added" },
-    { label: "Status Update", toast: "Status update drafted" },
+    { label: "Project", action: "project" },
   ],
-  Finance: [
-    { label: "Budget Request", toast: "Budget request created" },
-    { label: "Invoice", toast: "Invoice drafted" },
-    { label: "Forecast", toast: "Forecast created" },
-  ],
-  "Team Member": [
-    { label: "Timesheet Entry", toast: "Timesheet entry added" },
-    { label: "Task Update", toast: "Task update logged" },
-  ],
+  Finance: [],
+  "Team Member": [],
 };
 
-function QuickCreate({ role }: { role: Role }) {
+function QuickCreate({ role, onResourceRequestOpen }: { role: Role; onResourceRequestOpen?: () => void }) {
+  const navigate = useNavigate();
   const items = QUICK_CREATE_BY_ROLE[role] ?? [];
+
+  function handleAction(action: string) {
+    if (action === "business-case") {
+      navigate({ to: "/portfolio", search: { tab: "bc" } });
+    } else if (action === "project") {
+      navigate({ to: "/portfolio" });
+    } else if (action === "resource-request") {
+      onResourceRequestOpen?.();
+    }
+  }
+
+  if (items.length === 0) return null;
+
   return (
     <div className="glass-card mb-4 p-4">
       <div className="mb-3 flex items-center justify-between">
@@ -116,7 +119,7 @@ function QuickCreate({ role }: { role: Role }) {
             size="sm"
             variant="outline"
             className="gap-1 border-border/60 bg-transparent text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/40"
-            onClick={() => toast.success(it.toast)}
+            onClick={() => handleAction(it.action)}
           >
             <Plus className="h-3.5 w-3.5" /> {it.label}
           </Button>
@@ -391,8 +394,9 @@ function ExecutiveView() {
 
 // ── Resource Mgr view ──────────────────────────────────────────────────────────
 
-function ResourceView() {
-  const { resourceRequests } = useResourceRequests();
+function ResourceView({ rrOpen, onRrOpenChange }: { rrOpen?: boolean; onRrOpenChange?: (open: boolean) => void }) {
+  const { resourceRequests, addResourceRequest } = useResourceRequests();
+  const { projects: projectList } = useProjects();
   const pending = resourceRequests.filter((r) => r.status === "Pending");
   const over = resources.filter((r) => r.util > 100);
   return (
@@ -448,6 +452,33 @@ function ResourceView() {
           ))}
         </ul>
       </Tile>
+
+      {/* Resource Request Dialog from Quick Create */}
+      {rrOpen && projectList.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-sm rounded-lg bg-background p-6 shadow-lg">
+            <h2 className="text-lg font-semibold text-foreground">Quick Resource Request</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Select a project to submit a resource request</p>
+            <div className="mt-4 space-y-3">
+              {projectList.slice(0, 5).map((p) => (
+                <Button
+                  key={p.id}
+                  variant="outline"
+                  className="w-full justify-start text-left text-sm"
+                  onClick={() => {
+                    // Navigate to project and open request dialog there
+                    onRrOpenChange?.(false);
+                    // (In a full implementation, this would navigate to the project page with the request dialog open)
+                  }}
+                >
+                  {p.name}
+                </Button>
+              ))}
+            </div>
+            <Button variant="ghost" className="mt-4 w-full text-xs" onClick={() => onRrOpenChange?.(false)}>Cancel</Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

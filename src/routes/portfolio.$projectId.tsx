@@ -2293,6 +2293,9 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-md border border-accent/20 bg-accent-dim/20 px-4 py-3 text-xs text-accent">
+        Project-level risks and issues. Log concerns that impact this project's timeline, budget, or scope.
+      </div>
       <div className="grid gap-3 md:grid-cols-4">
         {kpis.map((k) => (
           <div key={k.l} className="glass-card p-4">

@@ -213,7 +213,7 @@ function DirectorView() {
       </Tile>
 
       {/* Notifications */}
-      <Tile className="col-span-12 lg:col-span-5" eyebrow="Recent Activity" right={
+      <Tile className="col-span-12" eyebrow="Recent Activity" right={
         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
           <Bell className="h-3.5 w-3.5" /> {unreadCount} unread
         </span>

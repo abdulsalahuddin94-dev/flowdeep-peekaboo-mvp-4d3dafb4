@@ -26,7 +26,7 @@ const main = [
   { title: "Organization",      url: "/organization",    icon: Building2 },
 ];
 
-const mgmt = [];
+const mgmt: typeof main = [];
 
 const allItems = [...main, ...mgmt];
 

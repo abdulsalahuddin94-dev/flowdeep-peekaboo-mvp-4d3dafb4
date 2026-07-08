@@ -157,8 +157,8 @@ function FinancialsPage() {
               ["Refinery Expansion", "Civil phase complete", "Sep 22", "$22.0M", "$8.0M", "$4.2M", 65, "Partial", "75d"],
               ["Salesforce Migration", "Hypercare exit", "Jul 22", "$2.0M", "$0.9M", "$0.1M", 90, "Paid", "0d"],
             ].map((r) => {
-              const pct = r[7] as number;
-              const daysNum = parseInt((r[9] as string).replace(/[^\d-]/g, ''));
+              const pct = r[6] as number;
+              const daysNum = parseInt((r[8] as string).replace(/[^\d-]/g, ''));
               const daysStatus = daysNum < 0 ? "text-rag-red" : daysNum < 7 ? "text-rag-amber" : "text-rag-green";
               return (
                 <TableRow key={r[0] as string} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
@@ -178,14 +178,14 @@ function FinancialsPage() {
                   </TableCell>
                   <TableCell className="text-xs">
                     <span className={`inline-block px-2 py-1 rounded text-[11px] font-medium ${
-                      (r[8] as string).includes("Paid") ? "bg-rag-green/20 text-rag-green" :
-                      (r[8] as string).includes("Invoiced") ? "bg-rag-amber/20 text-rag-amber" :
+                      (r[7] as string).includes("Paid") ? "bg-rag-green/20 text-rag-green" :
+                      (r[7] as string).includes("Invoiced") ? "bg-rag-amber/20 text-rag-amber" :
                       "bg-secondary/40 text-muted-foreground"
                     }`}>
-                      {r[8]}
+                      {r[7]}
                     </span>
                   </TableCell>
-                  <TableCell className={`num-mono text-xs font-medium ${daysStatus}`}>{r[9]}</TableCell>
+                  <TableCell className={`num-mono text-xs font-medium ${daysStatus}`}>{r[8]}</TableCell>
                 </TableRow>
               );
             })}</TableBody>

@@ -314,7 +314,7 @@ function ProjectListView({ items, onOpen }: { items: Project[]; onOpen: (p: Proj
         </TableRow></TableHeader>
         <TableBody>
           {items.map((p) => (
-            <TableRow key={p.id} onClick={() = className="bg-[#1D1D23] hover:bg-[#252530] border-0"> onOpen(p)} className="cursor-pointer hover:bg-accent-dim/40">
+            <TableRow key={p.id} onClick={() => onOpen(p)} className="cursor-pointer bg-[#1D1D23] hover:bg-[#252530] border-0">
               <TableCell><RagDot rag={p.rag} /></TableCell>
               <TableCell className="font-medium text-foreground">{p.name}</TableCell>
               <TableCell className="text-muted-foreground">{p.businessLine}</TableCell>

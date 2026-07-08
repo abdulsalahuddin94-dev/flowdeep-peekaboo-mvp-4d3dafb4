@@ -68,7 +68,7 @@ function FinancialsPage() {
             </Select>
           </div>
           <Table>
-            <TableHeader><TableRow>
+            <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Business Line</TableHead><TableHead>Revenue</TableHead><TableHead>Budget</TableHead>
               <TableHead>Spent</TableHead><TableHead>Burn</TableHead><TableHead>Variance</TableHead><TableHead>Margin</TableHead>
             </TableRow></TableHeader>
@@ -78,7 +78,7 @@ function FinancialsPage() {
               const revenue = p.budgetTotal * 1.15;
               const margin = ((revenue - p.budgetUsed) / revenue) * 100;
               return (
-                <TableRow key={p.id}>
+                <TableRow key={p.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                   <TableCell className="font-medium text-foreground">{p.name}</TableCell>
                   <TableCell className="text-muted-foreground">{p.businessLine}</TableCell>
                   <TableCell className="num-mono">${revenue.toFixed(2)}M</TableCell>
@@ -116,7 +116,7 @@ function FinancialsPage() {
           <div className="glass-card p-5 md:col-span-2">
             <div className="label-eyebrow mb-3">Breakdown by business line</div>
             <Table>
-              <TableHeader><TableRow><TableHead>Business Line</TableHead><TableHead>CapEx</TableHead><TableHead>OpEx</TableHead><TableHead>Total</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Business Line</TableHead><TableHead>CapEx</TableHead><TableHead>OpEx</TableHead><TableHead>Total</TableHead></TableRow></TableHeader>
               <TableBody>{[
                 ["Software Solutions", 6.2, 4.1], ["EPC", 22.4, 6.8], ["Consultation", 1.1, 3.2], ["Maintenance", 4.0, 5.8],
               ].map(([bl, c, o]) => (
@@ -128,14 +128,14 @@ function FinancialsPage() {
 
         <TabsContent value="cr" className="mt-5">
           <Table>
-            <TableHeader><TableRow><TableHead>CR</TableHead><TableHead>Project</TableHead><TableHead>Type</TableHead><TableHead>Impact</TableHead><TableHead>Stage</TableHead><TableHead /></TableRow></TableHeader>
+            <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>CR</TableHead><TableHead>Project</TableHead><TableHead>Type</TableHead><TableHead>Impact</TableHead><TableHead>Stage</TableHead><TableHead /></TableRow></TableHeader>
             <TableBody>{[
               { id: "CR-2026-014", p: "ERP Upgrade", t: "Scope", i: "+$120K · +3w", s: "Approved", c: "green" },
               { id: "CR-2026-013", p: "ERP Upgrade", t: "Schedule", i: "-1w", s: "Rejected", c: "red" },
               { id: "CR-2026-012", p: "Refinery Expansion", t: "Budget", i: "+$1.4M", s: "Pending Finance", c: "amber" },
               { id: "CR-2026-011", p: "Security Hardening", t: "Resource", i: "+2 FTE", s: "Pending Director", c: "amber" },
             ].map((r) => (
-              <TableRow key={r.id}>
+              <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="num-mono text-xs">{r.id}</TableCell>
                 <TableCell className="font-medium">{r.p}</TableCell>
                 <TableCell><Badge variant="outline" className="border-border bg-secondary/40">{r.t}</Badge></TableCell>
@@ -150,14 +150,14 @@ function FinancialsPage() {
         <TabsContent value="rev" className="mt-5 glass-card p-5">
           <div className="label-eyebrow mb-3">Milestone-linked revenue · FY2026</div>
           <Table>
-            <TableHeader><TableRow><TableHead>Project</TableHead><TableHead>Milestone</TableHead><TableHead>Due</TableHead><TableHead>Recognised</TableHead><TableHead>Pending</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Project</TableHead><TableHead>Milestone</TableHead><TableHead>Due</TableHead><TableHead>Recognised</TableHead><TableHead>Pending</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
             <TableBody>{[
               ["ERP Upgrade", "UAT Sign-off", "Jun 15", "$0.4M", "$0.8M", "amber"],
               ["Customer Portal v3", "Production cutover", "Aug 30", "$0.6M", "$0.2M", "green"],
               ["Refinery Expansion", "Civil phase complete", "Sep 22", "$8.0M", "$4.2M", "amber"],
               ["Salesforce Migration", "Hypercare exit", "Jul 22", "$0.9M", "$0.1M", "green"],
             ].map((r) => (
-              <TableRow key={r[0] as string}>
+              <TableRow key={r[0] as string} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="font-medium">{r[0]}</TableCell><TableCell>{r[1]}</TableCell>
                 <TableCell className="text-xs">{r[2]}</TableCell>
                 <TableCell className="num-mono">{r[3]}</TableCell>

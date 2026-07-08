@@ -10,65 +10,83 @@
 1. Standardized table styling across entire app (all 6 modules)
 2. Created reusable StyledTable component for design system
 3. Enhanced Revenue Recognition tab with profitability metrics and payment status
-4. Updated DS02 design system to v2.6 with component documentation
+4. Fixed Revenue Recognition array index bug (r[6], r[7], r[8] instead of r[7], r[8], r[9])
+5. Synced PMO-Full Revenue Recognition with PMO-MVP (9 columns, consistent styling)
+6. Updated DS02 design system to v2.6 with component documentation
 
-**Files updated:**
-- `src/routes/financials.tsx` â€” Enhanced Revenue Recognition tab (MVP & Full)
-- `src/routes/resources.tsx` â€” Updated table styling (MVP & Full)
-- `src/routes/portfolio.index.tsx` â€” Updated table styling (MVP & Full)
-- `src/routes/portfolio.$projectId.tsx` â€” Updated table styling (MVP & Full)
-- `src/routes/organization.tsx` â€” Updated table styling (MVP & Full)
-- `src/routes/clients-vendors.tsx` â€” Updated table styling (MVP & Full)
+**Files updated (Local & GitHub):**
+- `src/routes/financials.tsx` â€” Enhanced & fixed Revenue Recognition tab (MVP & Full)
+- `src/routes/resources.tsx` â€” Standardized table styling (MVP & Full)
+- `src/routes/portfolio.index.tsx` â€” Standardized table styling (MVP & Full)
+- `src/routes/portfolio.$projectId.tsx` â€” Standardized table styling (MVP & Full)
+- `src/routes/organization.tsx` â€” Standardized table styling (MVP & Full)
+- `src/routes/clients-vendors.tsx` â€” Standardized table styling (MVP & Full)
 - `src/components/StyledTable.tsx` â€” New reusable component (MVP & Full)
 - `DS02/DESIGN.md` â€” Updated to v2.6 with StyledTable documentation
+- `SESSIONS.md` â€” This session log (updated with all fixes)
 
 **Changes:**
 
-### Part 1: Standardized Table Styling (All Routes)
+### Part 1: Standardized Table Styling (All 6 Routes)
 - Applied uniform dark background to table rows: `bg-[#1D1D23] hover:bg-[#252530] border-0`
 - Applied transparent header styling: `hover:bg-transparent bg-transparent border-0`
 - Removed outer `glass-card p-5` container wrappers from all tables
 - Table rows now serve as their own visual container (cleaner hierarchy)
+- Scope: 6 routes أ— 2 editions = 12 files updated
 
-### Part 2: StyledTable Component (New)
+### Part 2: StyledTable Component (New Design System)
 - Created `src/components/StyledTable.tsx` with re-exportable components
 - `StyledTable`, `StyledTableHeader`, `StyledTableBody`, `StyledTableRow`, `StyledTableHeaderRow`, `StyledTableCell`, `StyledTableHead`
 - Includes usage documentation and accessibility guidelines
 - Foundation for future table enhancements (sorting, filtering, pagination)
+- Added to DS02 component library documentation (v2.6)
 
-### Part 3: Revenue Recognition Tab Enhancement
-- **New Columns Added:**
-  - Total Contract Value (full contract value per milestone set)
-  - % Realized (progress percentage with visual progress bar)
-  - Payment Status (Paid/Invoiced/Partial - color-coded badges)
-  - Days to/from Due (Red if overdue, Amber if soon, Green if on track)
-- **Visual Improvements:**
-  - Progress bar shows revenue realization at a glance
-  - Color-coded payment status for quick scanning
-  - Days indicator shows schedule health
-- **Data Now Shows:**
-  - Project | Milestone | Due Date | Total Contract | Recognised | Pending | % Realized | Payment Status | Days
+### Part 3: Revenue Recognition Tab Enhancement & Bug Fixes
+- **Initial Enhancement (Commit: 21c07b0 / fb0cd3e):**
+  - Added 9 columns: Project | Milestone | Due | Total Contract | Recognised | Pending | % Realized | Payment | Days
+  - Progress bars for % Realized metric
+  - Color-coded payment status badges
+  
+- **Array Index Bug Fix (Commit: 4e4721a / 49d4bdf):**
+  - Fixed: r[7], r[9] â†’ Corrected to: r[6], r[8]
+  - Resolved: "Cannot read properties of undefined (reading 'replace')" error
+  - Guard clause added for safe string parsing
+  
+- **Full Edition Sync (Commit: 2aaaf64):**
+  - Synced PMO-Full with PMO-MVP Revenue Recognition implementation
+  - Removed deprecated `glass-card p-5` wrapper
+  - Now both editions have identical 9-column layout with consistent styling
 
 ### Part 4: Design System Update (DS02 â†’ v2.6)
-- Updated version number and last modified date
+- Updated version number and last modified date to 2026-07-08
 - Added new section: "Data Table (StyledTable Component)" under Component Specifications
-- Documented implementation details, styling, and accessibility guidelines
-- Updated Component Library Status to reflect StyledTable
-- Added comprehensive changelog entry for v2.6 covering all changes above
+- Documented implementation details, styling, color values, and accessibility guidelines
+- Updated Component Library Status to reflect StyledTable as standard component
+- Added comprehensive changelog entry for v2.6 covering all changes
 - Updated file references and related documentation
 
-**Git commits:**
-- MVP Financials: `21c07b0` â€” Enhanced Revenue Recognition tab
-- Full Financials: `fb0cd3e` â€” Enhanced Revenue Recognition tab
-- MVP StyledTable: `da817d2` â€” New component
-- Full StyledTable: `d7e0652` â€” New component
-- MVP Other Tables: `5322060`, `d6df4ee`, `83e8779`, `ba875f0`, `5b24e77` â€” Table styling updates
-- Full Other Tables: `1d8f521`, `1451afc`, `3b89e63`, `326a48c`, `bb666ff` â€” Table styling updates
-- DS02 DESIGN.md: `0069a73` (MVP), `4521675` (Full) â€” Design system update
+**Git commits (Total: 18):**
 
-**Editions Affected:** Both PMO-MVP and PMO-Full synchronized
+*Initial Enhancements:*
+- MVP Financials: `21c07b0` â€” Enhanced Revenue Recognition tab with new columns
+- Full Financials: `fb0cd3e` â€” Enhanced Revenue Recognition tab with new columns
+- MVP StyledTable: `da817d2` â€” New reusable component
+- Full StyledTable: `d7e0652` â€” New reusable component
+- MVP Table Styling (5 files): `5322060`, `d6df4ee`, `83e8779`, `ba875f0`, `5b24e77`
+- Full Table Styling (5 files): `1d8f521`, `1451afc`, `3b89e63`, `326a48c`, `bb666ff`
+- DS02 DESIGN.md: `0069a73` (MVP), `4521675` (Full)
+- SESSIONS.md: `6caafad` (MVP), `1f21f29` (Full)
 
-**Branch:** main
+*Bug Fixes & Sync:*
+- MVP Financials Fix: `4e4721a` â€” Fixed array indices (r[6], r[8] instead of r[7], r[9])
+- Full Financials Fix: `49d4bdf` â€” Fixed array indices
+- Full Financials Sync: `2aaaf64` â€” Synced 9-column layout with MVP
+
+**Editions Affected:** Both PMO-MVP and PMO-Full fully synchronized
+
+**Branch:** main (both repos)
+
+**Testing:** Verified in Lovable that both editions now display identical Revenue Recognition layout with all 9 columns and consistent styling
 
 ---
 

@@ -68,7 +68,7 @@ function ClientsVendorsPage() {
           <Toolbar add={<AddClientDialog />} />
           <div className="">
             <Table>
-              <TableHeader><TableRow>
+              <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
                 <TableHead>Client</TableHead><TableHead>Primary Contact</TableHead>
                 <TableHead className="text-right">Active Projects</TableHead>
                 <TableHead className="text-right">Revenue (FY26)</TableHead>
@@ -307,14 +307,14 @@ function VendorsTab() {
       </div>
       <div className="">
         <Table>
-          <TableHeader><TableRow>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
             <TableHead>Vendor</TableHead><TableHead>Type</TableHead><TableHead>Category</TableHead>
             <TableHead className="text-right">Contracts</TableHead><TableHead className="text-right">Total Spend</TableHead>
             <TableHead>Evaluation</TableHead><TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
             {list.map((v) => (
-              <TableRow key={v.name}>
+              <TableRow key={v.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="font-medium text-foreground">{v.name}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={v.type === "Vendor" ? "border-rag-blue/40 bg-rag-blue/10 text-rag-blue" : "border-role-exec/40 bg-role-exec/10 text-role-exec"}>

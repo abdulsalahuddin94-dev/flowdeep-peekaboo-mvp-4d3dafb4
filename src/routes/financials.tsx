@@ -12,7 +12,7 @@ import { useState } from "react";
 
 export const Route = createFileRoute("/financials")({
   component: FinancialsPage,
-  head: () => ({ meta: [{ title: "Financials — Nexus PMO" }, { name: "description", content: "Portfolio-wide budgets, CAPEX/OPEX split, change requests and milestone-linked revenue recognition." }] }),
+  head: () => ({ meta: [{ title: "Financials â€” Nexus PMO" }, { name: "description", content: "Portfolio-wide budgets, CAPEX/OPEX split, change requests and milestone-linked revenue recognition." }] }),
 });
 
 function FinancialsPage() {
@@ -113,14 +113,14 @@ function FinancialsPage() {
               <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-role-director" />OpEx 36%</span>
             </div>
           </div>
-          <div className="glass-card p-5 md:col-span-2">
+          <div className="md:col-span-2">
             <div className="label-eyebrow mb-3">Breakdown by business line</div>
             <Table>
               <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Business Line</TableHead><TableHead>CapEx</TableHead><TableHead>OpEx</TableHead><TableHead>Total</TableHead></TableRow></TableHeader>
               <TableBody>{[
                 ["Software Solutions", 6.2, 4.1], ["EPC", 22.4, 6.8], ["Consultation", 1.1, 3.2], ["Maintenance", 4.0, 5.8],
               ].map(([bl, c, o]) => (
-                <TableRow key={bl as string}><TableCell>{bl}</TableCell><TableCell className="num-mono">${c}M</TableCell><TableCell className="num-mono">${o}M</TableCell><TableCell className="num-mono">${((c as number) + (o as number)).toFixed(1)}M</TableCell></TableRow>
+                <TableRow key={bl as string} className="bg-[#1D1D23] hover:bg-[#252530] border-0"><TableCell>{bl}</TableCell><TableCell className="num-mono">${c}M</TableCell><TableCell className="num-mono">${o}M</TableCell><TableCell className="num-mono">${((c as number) + (o as number)).toFixed(1)}M</TableCell></TableRow>
               ))}</TableBody>
             </Table>
           </div>
@@ -130,7 +130,7 @@ function FinancialsPage() {
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>CR</TableHead><TableHead>Project</TableHead><TableHead>Type</TableHead><TableHead>Impact</TableHead><TableHead>Stage</TableHead><TableHead /></TableRow></TableHeader>
             <TableBody>{[
-              { id: "CR-2026-014", p: "ERP Upgrade", t: "Scope", i: "+$120K · +3w", s: "Approved", c: "green" },
+              { id: "CR-2026-014", p: "ERP Upgrade", t: "Scope", i: "+$120K آ· +3w", s: "Approved", c: "green" },
               { id: "CR-2026-013", p: "ERP Upgrade", t: "Schedule", i: "-1w", s: "Rejected", c: "red" },
               { id: "CR-2026-012", p: "Refinery Expansion", t: "Budget", i: "+$1.4M", s: "Pending Finance", c: "amber" },
               { id: "CR-2026-011", p: "Security Hardening", t: "Resource", i: "+2 FTE", s: "Pending Director", c: "amber" },
@@ -147,8 +147,8 @@ function FinancialsPage() {
           </Table>
         </TabsContent>
 
-        <TabsContent value="rev" className="mt-5 glass-card p-5">
-          <div className="label-eyebrow mb-3">Milestone-linked revenue · FY2026</div>
+        <TabsContent value="rev" className="mt-5">
+          <div className="label-eyebrow mb-4">Milestone-linked revenue آ· FY2026</div>
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Project</TableHead><TableHead>Milestone</TableHead><TableHead>Due</TableHead><TableHead>Recognised</TableHead><TableHead>Pending</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
             <TableBody>{[

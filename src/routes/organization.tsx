@@ -40,14 +40,14 @@ function OrganizationPage() {
             cta={<AddBusinessLineDialog />} />
           <div className="">
             <Table>
-              <TableHeader><TableRow>
+              <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
                 <TableHead>Name</TableHead><TableHead>Description</TableHead>
                 <TableHead className="text-right">Active Projects</TableHead>
                 <TableHead>Color</TableHead><TableHead className="w-24" />
               </TableRow></TableHeader>
               <TableBody>
                 {businessLines.map((b) => (
-                  <TableRow key={b.name}>
+                  <TableRow key={b.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                     <TableCell className="font-medium text-foreground">{b.name}</TableCell>
                     <TableCell className="text-muted-foreground">{b.description}</TableCell>
                     <TableCell className="text-right num-mono">{b.projects}</TableCell>
@@ -65,13 +65,13 @@ function OrganizationPage() {
             cta={<AddDepartmentDialog />} />
           <div className="">
             <Table>
-              <TableHeader><TableRow>
+              <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
                 <TableHead>Department</TableHead><TableHead>Parent</TableHead><TableHead>Head</TableHead>
                 <TableHead className="text-right">Members</TableHead><TableHead className="w-24" />
               </TableRow></TableHeader>
               <TableBody>
                 {departments.map((d) => (
-                  <TableRow key={d.name}>
+                  <TableRow key={d.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                     <TableCell className="font-medium text-foreground">{d.name}</TableCell>
                     <TableCell className="text-muted-foreground">{d.parent}</TableCell>
                     <TableCell>{d.head}</TableCell>

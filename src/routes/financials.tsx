@@ -151,41 +151,41 @@ function FinancialsPage() {
           <div className="label-eyebrow mb-4">Milestone-linked revenue آ· FY2026</div>
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Project</TableHead><TableHead>Milestone</TableHead><TableHead>Due</TableHead><TableHead>Total Contract</TableHead><TableHead>Recognised</TableHead><TableHead>Pending</TableHead><TableHead>% Realized</TableHead><TableHead>Payment</TableHead><TableHead>Days</TableHead></TableRow></TableHeader>
-            <TableBody>{[
-              ["ERP Upgrade", "UAT Sign-off", "Jun 15", "$10.0M", "$0.4M", "$0.8M", 33, "Invoiced", "+5d"],
-              ["Customer Portal v3", "Production cutover", "Aug 30", "$6.0M", "$0.6M", "$0.2M", 75, "Paid", "25d"],
-              ["Refinery Expansion", "Civil phase complete", "Sep 22", "$22.0M", "$8.0M", "$4.2M", 65, "Partial", "75d"],
-              ["Salesforce Migration", "Hypercare exit", "Jul 22", "$2.0M", "$0.9M", "$0.1M", 90, "Paid", "0d"],
-            ].map((r) => {
-              const pct = r[6] as number;
-              const daysNum = parseInt((r[8] as string).replace(/[^\d-]/g, ''));
+            <TableBody>{([
+              { project: "ERP Upgrade", milestone: "UAT Sign-off", due: "Jun 15", contract: "$10.0M", recognised: "$0.4M", pending: "$0.8M", pct: 33, payment: "Invoiced", days: "+5d" },
+              { project: "Customer Portal v3", milestone: "Production cutover", due: "Aug 30", contract: "$6.0M", recognised: "$0.6M", pending: "$0.2M", pct: 75, payment: "Paid", days: "25d" },
+              { project: "Refinery Expansion", milestone: "Civil phase complete", due: "Sep 22", contract: "$22.0M", recognised: "$8.0M", pending: "$4.2M", pct: 65, payment: "Partial", days: "75d" },
+              { project: "Salesforce Migration", milestone: "Hypercare exit", due: "Jul 22", contract: "$2.0M", recognised: "$0.9M", pending: "$0.1M", pct: 90, payment: "Paid", days: "0d" },
+            ]).map((r) => {
+              const daysNum = parseInt(String(r.days ?? "").replace(/[^\d-]/g, ''), 10);
               const daysStatus = daysNum < 0 ? "text-rag-red" : daysNum < 7 ? "text-rag-amber" : "text-rag-green";
+              const payment = r.payment ?? "";
               return (
-                <TableRow key={r[0] as string} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                  <TableCell className="font-medium">{r[0]}</TableCell>
-                  <TableCell className="text-sm">{r[1]}</TableCell>
-                  <TableCell className="text-xs">{r[2]}</TableCell>
-                  <TableCell className="num-mono font-medium">{r[3]}</TableCell>
-                  <TableCell className="num-mono text-accent">{r[4]}</TableCell>
-                  <TableCell className="num-mono">{r[5]}</TableCell>
+                <TableRow key={r.project} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                  <TableCell className="font-medium">{r.project}</TableCell>
+                  <TableCell className="text-sm">{r.milestone}</TableCell>
+                  <TableCell className="text-xs">{r.due}</TableCell>
+                  <TableCell className="num-mono font-medium">{r.contract}</TableCell>
+                  <TableCell className="num-mono text-accent">{r.recognised}</TableCell>
+                  <TableCell className="num-mono">{r.pending}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <div className="w-16 h-1.5 bg-secondary/40 rounded-full overflow-hidden">
-                        <div className="h-full bg-accent" style={{ width: `${pct}%` }} />
+                        <div className="h-full bg-accent" style={{ width: `${r.pct}%` }} />
                       </div>
-                      <span className="num-mono text-xs">{pct}%</span>
+                      <span className="num-mono text-xs">{r.pct}%</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-xs">
                     <span className={`inline-block px-2 py-1 rounded text-[11px] font-medium ${
-                      (r[7] as string).includes("Paid") ? "bg-rag-green/20 text-rag-green" :
-                      (r[7] as string).includes("Invoiced") ? "bg-rag-amber/20 text-rag-amber" :
+                      payment.includes("Paid") ? "bg-rag-green/20 text-rag-green" :
+                      payment.includes("Invoiced") ? "bg-rag-amber/20 text-rag-amber" :
                       "bg-secondary/40 text-muted-foreground"
                     }`}>
-                      {r[7]}
+                      {payment}
                     </span>
                   </TableCell>
-                  <TableCell className={`num-mono text-xs font-medium ${daysStatus}`}>{r[8]}</TableCell>
+                  <TableCell className={`num-mono text-xs font-medium ${daysStatus}`}>{r.days}</TableCell>
                 </TableRow>
               );
             })}</TableBody>

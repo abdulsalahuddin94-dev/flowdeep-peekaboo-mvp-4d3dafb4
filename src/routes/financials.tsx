@@ -150,21 +150,45 @@ function FinancialsPage() {
         <TabsContent value="rev" className="mt-5">
           <div className="label-eyebrow mb-4">Milestone-linked revenue آ· FY2026</div>
           <Table>
-            <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Project</TableHead><TableHead>Milestone</TableHead><TableHead>Due</TableHead><TableHead>Recognised</TableHead><TableHead>Pending</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Project</TableHead><TableHead>Milestone</TableHead><TableHead>Due</TableHead><TableHead>Total Contract</TableHead><TableHead>Recognised</TableHead><TableHead>Pending</TableHead><TableHead>% Realized</TableHead><TableHead>Payment</TableHead><TableHead>Days</TableHead></TableRow></TableHeader>
             <TableBody>{[
-              ["ERP Upgrade", "UAT Sign-off", "Jun 15", "$0.4M", "$0.8M", "amber"],
-              ["Customer Portal v3", "Production cutover", "Aug 30", "$0.6M", "$0.2M", "green"],
-              ["Refinery Expansion", "Civil phase complete", "Sep 22", "$8.0M", "$4.2M", "amber"],
-              ["Salesforce Migration", "Hypercare exit", "Jul 22", "$0.9M", "$0.1M", "green"],
-            ].map((r) => (
-              <TableRow key={r[0] as string} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                <TableCell className="font-medium">{r[0]}</TableCell><TableCell>{r[1]}</TableCell>
-                <TableCell className="text-xs">{r[2]}</TableCell>
-                <TableCell className="num-mono">{r[3]}</TableCell>
-                <TableCell className="num-mono">{r[4]}</TableCell>
-                <TableCell><span className={`inline-block h-2 w-2 rounded-full bg-rag-${r[5]}`} /></TableCell>
-              </TableRow>
-            ))}</TableBody>
+              ["ERP Upgrade", "UAT Sign-off", "Jun 15", "$10.0M", "$0.4M", "$0.8M", 33, "Invoiced", "+5d"],
+              ["Customer Portal v3", "Production cutover", "Aug 30", "$6.0M", "$0.6M", "$0.2M", 75, "Paid", "25d"],
+              ["Refinery Expansion", "Civil phase complete", "Sep 22", "$22.0M", "$8.0M", "$4.2M", 65, "Partial", "75d"],
+              ["Salesforce Migration", "Hypercare exit", "Jul 22", "$2.0M", "$0.9M", "$0.1M", 90, "Paid", "0d"],
+            ].map((r) => {
+              const pct = r[7] as number;
+              const daysNum = parseInt((r[9] as string).replace(/[^\d-]/g, ''));
+              const daysStatus = daysNum < 0 ? "text-rag-red" : daysNum < 7 ? "text-rag-amber" : "text-rag-green";
+              return (
+                <TableRow key={r[0] as string} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                  <TableCell className="font-medium">{r[0]}</TableCell>
+                  <TableCell className="text-sm">{r[1]}</TableCell>
+                  <TableCell className="text-xs">{r[2]}</TableCell>
+                  <TableCell className="num-mono font-medium">{r[3]}</TableCell>
+                  <TableCell className="num-mono text-accent">{r[4]}</TableCell>
+                  <TableCell className="num-mono">{r[5]}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 h-1.5 bg-secondary/40 rounded-full overflow-hidden">
+                        <div className="h-full bg-accent" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="num-mono text-xs">{pct}%</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    <span className={`inline-block px-2 py-1 rounded text-[11px] font-medium ${
+                      (r[8] as string).includes("Paid") ? "bg-rag-green/20 text-rag-green" :
+                      (r[8] as string).includes("Invoiced") ? "bg-rag-amber/20 text-rag-amber" :
+                      "bg-secondary/40 text-muted-foreground"
+                    }`}>
+                      {r[8]}
+                    </span>
+                  </TableCell>
+                  <TableCell className={`num-mono text-xs font-medium ${daysStatus}`}>{r[9]}</TableCell>
+                </TableRow>
+              );
+            })}</TableBody>
           </Table>
         </TabsContent>
       </Tabs>

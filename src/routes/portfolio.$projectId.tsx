@@ -269,6 +269,7 @@ function ProjectDetail() {
         <TabsContent value="Project Schedule" className="mt-5">
           <ProjectSchedule
             items={useMemo(() => computeDerivedSchedule(milestones, resourceRequests), [milestones, resourceRequests])}
+            resourceList={resourcePool}
             onProgressClick={(name, kind) => {
               const derived = computeDerivedSchedule(milestones, resourceRequests);
               const hasChildren = derived.some((d) => d.parent === name);

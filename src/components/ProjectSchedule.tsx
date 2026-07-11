@@ -258,6 +258,7 @@ export function ProjectSchedule({
   onDeleteItem,
   onProgressClick,
   onDependencyClick,
+  resourceList = [],
 }: {
   items: ScheduleItem[];
   AddItemSlot?: React.ReactNode;
@@ -269,6 +270,7 @@ export function ProjectSchedule({
   onDeleteItem?: (name: string) => void;
   onProgressClick?: (name: string, kind: ItemKind) => void;
   onDependencyClick?: (name: string) => void;
+  resourceList?: Array<{ name: string; role?: string; dept?: string }>;
 }) {
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);
@@ -312,6 +314,14 @@ export function ProjectSchedule({
       return next;
     });
   }, [items]);
+
+  // Auto-set first milestone to approval-required
+  useEffect(() => {
+    const firstMilestone = items.find(i => i.kind === "Milestone");
+    if (firstMilestone && !firstMilestone.requiresApproval) {
+      onItemPatch?.(firstMilestone.name, { requiresApproval: true });
+    }
+  }, [items, onItemPatch]);
 
   // Build tree: top-level = items with no parent matching another item's name.
   const nameSet = useMemo(() => new Set(items.map(i => i.name)), [items]);
@@ -1015,11 +1025,22 @@ export function ProjectSchedule({
                     )}
                     {colVisible("owner") && (
                       <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.owner }}>
-                        <EditableText
-                          value={item.owner}
-                          editable={editable}
-                          onCommit={(v) => patch(item.name, { owner: v })}
-                        />
+                        {editable ? (
+                          <Select value={item.owner} onValueChange={(v) => patch(item.name, { owner: v })}>
+                            <SelectTrigger className="h-8 border-0 bg-transparent w-full">
+                              <SelectValue placeholder="Select owner" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {resourceList.map((r) => (
+                                <SelectItem key={r.name} value={r.name}>
+                                  {r.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className="text-sm text-foreground truncate">{item.owner || "—"}</span>
+                        )}
                       </div>
                     )}
                     {colVisible("assignee") && (
@@ -1128,7 +1149,13 @@ export function ProjectSchedule({
                     )}
                     {colVisible("roles") && (
                       <div className="flex items-center gap-1 overflow-hidden border-l border-border/60 px-3" style={{ width: widths.roles }}>
-                        {item.roles.length === 0 ? (
+                        {editable && item.roles.length > 0 ? (
+                          <RolesCell
+                            item={item}
+                            onUpdate={(roles) => patch(item.name, { roles })}
+                            onRequestRole={(role) => onRequestSkill?.(item.name, role)}
+                          />
+                        ) : item.roles.length === 0 ? (
                           <span className="text-muted-foreground">—</span>
                         ) : (
                           <span className="truncate text-[10px] text-muted-foreground">
@@ -1731,6 +1758,123 @@ function DateRangeCell({
 }
 
 // ── Assignee cell: name pill / Waiting / request skill popover ──────────────
+// ── RolesCell: Edit roles with approval workflow ──────────────────────────────
+function RolesCell({
+  item,
+  onUpdate,
+  onRequestRole,
+}: {
+  item: ScheduleItem;
+  onUpdate: (roles: RoleReq[]) => void;
+  onRequestRole: (role: RoleReq) => void;
+}) {
+  const [editOpen, setEditOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<RoleReq | null>(null);
+  const [newRole, setNewRole] = useState("");
+  const [newLevel, setNewLevel] = useState<RoleReq["skill"]>("Mid");
+  const [newFte, setNewFte] = useState("1");
+
+  const handleRemoveRole = (role: RoleReq) => {
+    const updated = item.roles.filter(r => r.role !== role.role);
+    onUpdate(updated);
+  };
+
+  const handleEditRole = (oldRole: RoleReq) => {
+    setSelectedRole(oldRole);
+    setNewRole(oldRole.role);
+    setNewLevel(oldRole.skill);
+    setNewFte(String(oldRole.fte));
+    setEditOpen(true);
+  };
+
+  const handleSubmit = () => {
+    if (!selectedRole || !newRole.trim()) return;
+
+    // Remove old role
+    const withoutOld = item.roles.filter(r => r.role !== selectedRole.role);
+
+    // Add request for new role
+    onRequestRole({ role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 });
+
+    // Update list
+    onUpdate(withoutOld);
+
+    setEditOpen(false);
+    setSelectedRole(null);
+    setNewRole("");
+    setNewLevel("Mid");
+    setNewFte("1");
+  };
+
+  return (
+    <div className="flex items-center gap-1">
+      <div className="truncate text-[10px] text-muted-foreground flex-1">
+        {item.roles.map(r => `${r.role} (${r.fte})`).join(", ")}
+      </div>
+      <Popover open={editOpen} onOpenChange={setEditOpen}>
+        <PopoverTrigger asChild>
+          <button className="shrink-0 rounded p-1 hover:bg-secondary text-muted-foreground hover:text-foreground">
+            <Pencil className="h-3 w-3" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-3" align="start">
+          <div className="space-y-3">
+            <div className="text-xs font-medium">Edit Roles</div>
+            {selectedRole && (
+              <>
+                <p className="text-[10px] text-muted-foreground">
+                  Removing "{selectedRole.role}" and requesting replacement
+                </p>
+                <div className="space-y-2">
+                  <div>
+                    <Label className="text-[10px] uppercase">New Role</Label>
+                    <Input value={newRole} onChange={(e) => setNewRole(e.target.value)} placeholder="e.g. Senior Dev" className="h-8 text-xs" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-[10px] uppercase">Level</Label>
+                      <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
+                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {(["Junior", "Mid", "Senior", "Lead"] as const).map((s) => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-[10px] uppercase">FTE</Label>
+                      <Input type="number" min={0.1} step={0.1} value={newFte} onChange={(e) => setNewFte(e.target.value)} className="h-8 text-xs num-mono" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditOpen(false); setSelectedRole(null); }}>Cancel</Button>
+                  <Button size="sm" className="h-7 text-xs" disabled={!newRole.trim()} onClick={handleSubmit}>
+                    <CheckCircle2 className="mr-1 h-3 w-3" /> Submit
+                  </Button>
+                </div>
+              </>
+            )}
+            {!selectedRole && (
+              <div className="space-y-1">
+                {item.roles.map((r) => (
+                  <div key={r.role} className="flex items-center justify-between rounded bg-secondary/30 p-2 text-xs">
+                    <span>{r.role} ({r.skill}, {r.fte})</span>
+                    <button onClick={() => handleEditRole(r)} className="text-muted-foreground hover:text-foreground">
+                      <Pencil className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
 function AssigneeCell({
   item,
   editable,

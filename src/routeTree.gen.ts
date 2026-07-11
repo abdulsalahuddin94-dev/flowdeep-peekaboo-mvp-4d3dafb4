@@ -9,13 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as RolesRouteImport } from './routes/roles'
-import { Route as RisksRouteImport } from './routes/risks'
 import { Route as ResourcesRouteImport } from './routes/resources'
-import { Route as ReportsRouteImport } from './routes/reports'
-import { Route as ProcurementRouteImport } from './routes/procurement'
-import { Route as PipelineRouteImport } from './routes/pipeline'
 import { Route as OrganizationRouteImport } from './routes/organization'
 import { Route as FinancialsRouteImport } from './routes/financials'
 import { Route as ClientsVendorsRouteImport } from './routes/clients-vendors'
@@ -24,39 +18,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortfolioIndexRouteImport } from './routes/portfolio.index'
 import { Route as PortfolioProjectIdRouteImport } from './routes/portfolio.$projectId'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RolesRoute = RolesRouteImport.update({
-  id: '/roles',
-  path: '/roles',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RisksRoute = RisksRouteImport.update({
-  id: '/risks',
-  path: '/risks',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ResourcesRoute = ResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReportsRoute = ReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProcurementRoute = ProcurementRouteImport.update({
-  id: '/procurement',
-  path: '/procurement',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PipelineRoute = PipelineRouteImport.update({
-  id: '/pipeline',
-  path: '/pipeline',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrganizationRoute = OrganizationRouteImport.update({
@@ -101,13 +65,7 @@ export interface FileRoutesByFullPath {
   '/clients-vendors': typeof ClientsVendorsRoute
   '/financials': typeof FinancialsRoute
   '/organization': typeof OrganizationRoute
-  '/pipeline': typeof PipelineRoute
-  '/procurement': typeof ProcurementRoute
-  '/reports': typeof ReportsRoute
   '/resources': typeof ResourcesRoute
-  '/risks': typeof RisksRoute
-  '/roles': typeof RolesRoute
-  '/settings': typeof SettingsRoute
   '/portfolio/$projectId': typeof PortfolioProjectIdRoute
   '/portfolio/': typeof PortfolioIndexRoute
 }
@@ -117,13 +75,7 @@ export interface FileRoutesByTo {
   '/clients-vendors': typeof ClientsVendorsRoute
   '/financials': typeof FinancialsRoute
   '/organization': typeof OrganizationRoute
-  '/pipeline': typeof PipelineRoute
-  '/procurement': typeof ProcurementRoute
-  '/reports': typeof ReportsRoute
   '/resources': typeof ResourcesRoute
-  '/risks': typeof RisksRoute
-  '/roles': typeof RolesRoute
-  '/settings': typeof SettingsRoute
   '/portfolio/$projectId': typeof PortfolioProjectIdRoute
   '/portfolio': typeof PortfolioIndexRoute
 }
@@ -134,13 +86,7 @@ export interface FileRoutesById {
   '/clients-vendors': typeof ClientsVendorsRoute
   '/financials': typeof FinancialsRoute
   '/organization': typeof OrganizationRoute
-  '/pipeline': typeof PipelineRoute
-  '/procurement': typeof ProcurementRoute
-  '/reports': typeof ReportsRoute
   '/resources': typeof ResourcesRoute
-  '/risks': typeof RisksRoute
-  '/roles': typeof RolesRoute
-  '/settings': typeof SettingsRoute
   '/portfolio/$projectId': typeof PortfolioProjectIdRoute
   '/portfolio/': typeof PortfolioIndexRoute
 }
@@ -152,13 +98,7 @@ export interface FileRouteTypes {
     | '/clients-vendors'
     | '/financials'
     | '/organization'
-    | '/pipeline'
-    | '/procurement'
-    | '/reports'
     | '/resources'
-    | '/risks'
-    | '/roles'
-    | '/settings'
     | '/portfolio/$projectId'
     | '/portfolio/'
   fileRoutesByTo: FileRoutesByTo
@@ -168,13 +108,7 @@ export interface FileRouteTypes {
     | '/clients-vendors'
     | '/financials'
     | '/organization'
-    | '/pipeline'
-    | '/procurement'
-    | '/reports'
     | '/resources'
-    | '/risks'
-    | '/roles'
-    | '/settings'
     | '/portfolio/$projectId'
     | '/portfolio'
   id:
@@ -184,13 +118,7 @@ export interface FileRouteTypes {
     | '/clients-vendors'
     | '/financials'
     | '/organization'
-    | '/pipeline'
-    | '/procurement'
-    | '/reports'
     | '/resources'
-    | '/risks'
-    | '/roles'
-    | '/settings'
     | '/portfolio/$projectId'
     | '/portfolio/'
   fileRoutesById: FileRoutesById
@@ -201,66 +129,18 @@ export interface RootRouteChildren {
   ClientsVendorsRoute: typeof ClientsVendorsRoute
   FinancialsRoute: typeof FinancialsRoute
   OrganizationRoute: typeof OrganizationRoute
-  PipelineRoute: typeof PipelineRoute
-  ProcurementRoute: typeof ProcurementRoute
-  ReportsRoute: typeof ReportsRoute
   ResourcesRoute: typeof ResourcesRoute
-  RisksRoute: typeof RisksRoute
-  RolesRoute: typeof RolesRoute
-  SettingsRoute: typeof SettingsRoute
   PortfolioProjectIdRoute: typeof PortfolioProjectIdRoute
   PortfolioIndexRoute: typeof PortfolioIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/roles': {
-      id: '/roles'
-      path: '/roles'
-      fullPath: '/roles'
-      preLoaderRoute: typeof RolesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/risks': {
-      id: '/risks'
-      path: '/risks'
-      fullPath: '/risks'
-      preLoaderRoute: typeof RisksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/resources': {
       id: '/resources'
       path: '/resources'
       fullPath: '/resources'
       preLoaderRoute: typeof ResourcesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reports': {
-      id: '/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof ReportsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/procurement': {
-      id: '/procurement'
-      path: '/procurement'
-      fullPath: '/procurement'
-      preLoaderRoute: typeof ProcurementRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pipeline': {
-      id: '/pipeline'
-      path: '/pipeline'
-      fullPath: '/pipeline'
-      preLoaderRoute: typeof PipelineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/organization': {
@@ -321,26 +201,10 @@ const rootRouteChildren: RootRouteChildren = {
   ClientsVendorsRoute: ClientsVendorsRoute,
   FinancialsRoute: FinancialsRoute,
   OrganizationRoute: OrganizationRoute,
-  PipelineRoute: PipelineRoute,
-  ProcurementRoute: ProcurementRoute,
-  ReportsRoute: ReportsRoute,
   ResourcesRoute: ResourcesRoute,
-  RisksRoute: RisksRoute,
-  RolesRoute: RolesRoute,
-  SettingsRoute: SettingsRoute,
   PortfolioProjectIdRoute: PortfolioProjectIdRoute,
   PortfolioIndexRoute: PortfolioIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

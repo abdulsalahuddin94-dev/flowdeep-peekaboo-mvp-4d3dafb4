@@ -405,7 +405,7 @@ function ProjectDetail() {
               <div className="">
                 <Table>
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className="hover:bg-transparent bg-transparent border-0">
                       <TableHead>Role</TableHead><TableHead>FTE</TableHead><TableHead>Skill level</TableHead>
                       <TableHead>Period</TableHead><TableHead>Sourcing</TableHead><TableHead>Status</TableHead>
                     </TableRow>
@@ -418,7 +418,7 @@ function ProjectDetail() {
                       { r: "Security Reviewer",  f: 0.5, sk: "Senior", p: "Aug",     src: "Subcontract", s: "green", sl: "Confirmed" },
                       { r: "Change Manager",     f: 0.5, sk: "Mid",    p: "Sep",     src: "Internal",  s: "amber", sl: "Pending" },
                     ].map((m) => (
-                      <TableRow key={m.r}>
+                      <TableRow key={m.r} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                         <TableCell className="font-medium text-foreground">{m.r}</TableCell>
                         <TableCell className="num-mono">{m.f}</TableCell>
                         <TableCell>{m.sk}</TableCell>
@@ -446,14 +446,14 @@ function ProjectDetail() {
               <div className="">
                 <Table>
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className="hover:bg-transparent bg-transparent border-0">
                       <TableHead>Member</TableHead><TableHead>Role</TableHead>
                       <TableHead>Allocation %</TableHead><TableHead>Period</TableHead><TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {teamMembers.map((m) => (
-                      <TableRow key={m.n}>
+                      <TableRow key={m.n} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                         <TableCell className="font-medium">{m.n}</TableCell>
                         <TableCell>{m.r}</TableCell>
                         <TableCell>
@@ -1302,9 +1302,9 @@ function BusinessTripsTab({ pm }: { pm: string }) {
       </div>
       <div className="">
         <Table>
-          <TableHeader><TableRow><TableHead>Trip</TableHead><TableHead>Purpose</TableHead><TableHead>Destination</TableHead><TableHead>Dates</TableHead><TableHead>Travelers</TableHead><TableHead>Cost</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Trip</TableHead><TableHead>Purpose</TableHead><TableHead>Destination</TableHead><TableHead>Dates</TableHead><TableHead>Travelers</TableHead><TableHead>Cost</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
           <TableBody>{trips.map((r) => (
-            <TableRow key={r.id}>
+            <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
               <TableCell className="font-medium text-foreground">{r.id}</TableCell>
               <TableCell>{r.purpose}</TableCell>
               <TableCell>{r.dest}</TableCell>
@@ -1407,7 +1407,7 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
         </div>
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Milestone</TableHead>
               <TableHead>Revenue event</TableHead>
               <TableHead className="text-right">Planned ($M)</TableHead>
@@ -1418,7 +1418,7 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
           </TableHeader>
           <TableBody>
             {revEntries.map((r) => (
-              <TableRow key={r.ms}>
+              <TableRow key={r.ms} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="font-medium text-foreground">{r.ms}</TableCell>
                 <TableCell className="text-muted-foreground">{r.evt}</TableCell>
                 <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
@@ -2373,9 +2373,9 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
       </div>
       <div className="">
         <Table>
-          <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Score</TableHead><TableHead>Owner</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>ID</TableHead><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Score</TableHead><TableHead>Owner</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
           <TableBody>{items.map((r) => (
-            <TableRow key={r.id}>
+            <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
               <TableCell className="num-mono text-xs">{r.id}</TableCell>
               <TableCell className="font-medium">{r.title}</TableCell>
               <TableCell>{r.kind}</TableCell>
@@ -2593,7 +2593,7 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
         </div>
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Package</TableHead><TableHead>Scope</TableHead><TableHead>Est. Value</TableHead>
               <TableHead>RFP</TableHead><TableHead>Status</TableHead><TableHead>Actions</TableHead>
             </TableRow>
@@ -2601,7 +2601,7 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
           <TableBody>
             {packages.map((pkg) => (
               <Fragment key={pkg.id}>
-                <TableRow>
+                <TableRow className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                   <TableCell className="font-medium text-foreground">{pkg.id}</TableCell>
                   <TableCell>{pkg.scope}</TableCell>
                   <TableCell className="num-mono">{pkg.est}</TableCell>
@@ -2685,9 +2685,9 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
           <Link to="/procurement" className="text-xs text-accent hover:underline">Open Procurement module →</Link>
         </div>
         <Table>
-          <TableHeader><TableRow><TableHead>Contract</TableHead><TableHead>Vendor</TableHead><TableHead>Value</TableHead><TableHead>End</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Contract</TableHead><TableHead>Vendor</TableHead><TableHead>Value</TableHead><TableHead>End</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
           <TableBody>{contracts.map((c) => (
-            <TableRow key={c.id}>
+            <TableRow key={c.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
               <TableCell className="num-mono text-xs text-accent">{c.id}</TableCell>
               <TableCell>{c.vendor}</TableCell>
               <TableCell className="num-mono">{c.value}</TableCell>
@@ -2701,9 +2701,9 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
       <div className="">
         <div className="px-4 py-3 border-b border-border label-eyebrow">Open RFPs</div>
         <Table>
-          <TableHeader><TableRow><TableHead>RFP</TableHead><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Due</TableHead><TableHead>Bidders</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>RFP</TableHead><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Due</TableHead><TableHead>Bidders</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
           <TableBody>{rfps.map((r) => (
-            <TableRow key={r.id}>
+            <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
               <TableCell className="num-mono text-xs text-accent">{r.id}</TableCell>
               <TableCell>{r.title}</TableCell>
               <TableCell>{r.type}</TableCell>
@@ -2798,9 +2798,9 @@ function StakeholdersTab() {
 
       <div className="">
         <Table>
-          <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Org</TableHead><TableHead>Influence</TableHead><TableHead>Interest</TableHead><TableHead>Strategy</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Name</TableHead><TableHead>Org</TableHead><TableHead>Influence</TableHead><TableHead>Interest</TableHead><TableHead>Strategy</TableHead></TableRow></TableHeader>
           <TableBody>{items.map((s) => (
-            <TableRow key={s.name}>
+            <TableRow key={s.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
               <TableCell className="font-medium">{s.name}</TableCell>
               <TableCell>{s.org}</TableCell>
               <TableCell className={colorFor(s.influence)}>{s.influence}</TableCell>

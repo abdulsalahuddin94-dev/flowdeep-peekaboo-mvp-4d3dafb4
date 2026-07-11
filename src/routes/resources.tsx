@@ -121,14 +121,14 @@ function ResourcesPage() {
         <TabsContent value="people" className="mt-5">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="hover:bg-transparent bg-transparent border-0">
                 <TableHead>Member</TableHead><TableHead>Role</TableHead><TableHead>Department</TableHead>
                 <TableHead>Capacity / wk</TableHead><TableHead>Utilization</TableHead><TableHead>Projects</TableHead><TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
               {pool.map((r) => (
-                <TableRow key={r.name}>
+                <TableRow key={r.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                   <TableCell className="font-medium text-foreground">
                     <div className="flex items-center gap-2">
                       <Avatar className="h-7 w-7">
@@ -169,7 +169,7 @@ function ResourcesPage() {
           <div className="label-eyebrow mb-3">Forward manpower plan · next quarter</div>
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="hover:bg-transparent bg-transparent border-0">
                 <TableHead>Role</TableHead><TableHead>Demand (FTE)</TableHead>
                 <TableHead>Supply</TableHead><TableHead>Gap</TableHead><TableHead>Action</TableHead>
               </TableRow>
@@ -183,7 +183,7 @@ function ResourcesPage() {
               ].map((row) => {
                 const gap = row.d - row.s;
                 return (
-                  <TableRow key={row.r}>
+                  <TableRow key={row.r} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                     <TableCell>{row.r}</TableCell>
                     <TableCell className="num-mono">{row.d}</TableCell>
                     <TableCell className="num-mono">{row.s}</TableCell>

@@ -218,10 +218,10 @@ const COLUMNS = [
   { key: "end",      label: "End",         w: 100 },
   { key: "owner",    label: "Owner",       w: 110 },
   { key: "assignee", label: "Assignee",    w: 130 },
+  { key: "roles",    label: "Roles",       w: 180 },
   { key: "status",   label: "Status",      w: 110 },
   { key: "progress", label: "% Complete",  w: 180 },
   { key: "dep",      label: "Depends on",  w: 110 },
-  { key: "roles",    label: "Roles",       w: 180 },
   { key: "payment",  label: "Payment link",w: 160 },
 ] as const;
 type ColKey = typeof COLUMNS[number]["key"];

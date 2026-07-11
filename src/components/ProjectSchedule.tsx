@@ -1050,6 +1050,16 @@ export function ProjectSchedule({
                           editable={editable}
                           onCommit={(v) => patch(item.name, { assignee: v || undefined })}
                           onRequestSkill={(role) => onRequestSkill?.(item.name, role)}
+                          onSwap={(otherName) => {
+                            const other = items.find(i => i.name === otherName);
+                            if (!other) return;
+                            const a = item.assignee;
+                            const b = other.assignee;
+                            patch(item.name, { assignee: b });
+                            patch(other.name, { assignee: a });
+                            toast.success(`Swapped ${a ?? "—"} ↔ ${b ?? "—"}`);
+                          }}
+                          siblings={items.filter(i => i.parent && i.parent === item.parent && i.name !== item.name && !!i.assignee && i.assignee.toLowerCase() !== "waiting").map(i => i.name)}
                         />
                       </div>
                     )}

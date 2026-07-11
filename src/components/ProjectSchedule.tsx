@@ -26,7 +26,7 @@ import {
 import {
   ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Trash2, Upload, UserPlus } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, PanelLeftClose, PanelLeftOpen, Pencil, Plus, ShieldCheck, Trash2, Upload, UserPlus } from "lucide-react";
 import { RagBadge } from "@/components/RagBadge";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -139,6 +139,23 @@ export type ItemKind = "Milestone" | "Task";
 export type MilestoneType = "start" | "finish";
 export type Rag = "green" | "amber" | "red" | "blue" | "grey";
 export type RoleReq = { role: string; skill: "Junior" | "Mid" | "Senior" | "Lead"; fte: number };
+const ROLE_OPTIONS: readonly string[] = [
+  "Business Analyst",
+  "Solution Architect",
+  "UX Designer",
+  "Backend Dev",
+  "Frontend Dev",
+  "Integration Dev",
+  "Data Engineer",
+  "QA Engineer",
+  "QA Lead",
+  "DevOps Engineer",
+  "Security Lead",
+  "Performance Engineer",
+  "Support Lead",
+  "Trainer",
+  "Project Manager",
+] as const;
 export type PaymentLink = { kind: "None" | "Client Revenue" | "Package Cost"; amount: string; packageId?: string };
 export type ApprovalStatus = "approved" | "pending" | "rejected";
 export type Approver = { id: string; name: string; role: string; department: string; status?: "approved" | "pending" | "rejected" };
@@ -218,10 +235,10 @@ const COLUMNS = [
   { key: "end",      label: "End",         w: 100 },
   { key: "owner",    label: "Owner",       w: 110 },
   { key: "assignee", label: "Assignee",    w: 130 },
+  { key: "roles",    label: "Roles",       w: 180 },
   { key: "status",   label: "Status",      w: 110 },
   { key: "progress", label: "% Complete",  w: 180 },
   { key: "dep",      label: "Depends on",  w: 110 },
-  { key: "roles",    label: "Roles",       w: 180 },
   { key: "payment",  label: "Payment link",w: 160 },
 ] as const;
 type ColKey = typeof COLUMNS[number]["key"];
@@ -997,6 +1014,15 @@ export function ProjectSchedule({
                         className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOff ? "text-rag-red" : isRisk ? "text-rag-amber" : ""}`}
                         onCommit={(v) => v && v !== item.name && patch(item.name, { name: v })}
                       />
+                      {item.requiresApproval && (
+                        <span
+                          title="Requires approval to reach 100%"
+                          className="shrink-0 inline-flex items-center gap-1 rounded-full border border-rag-amber/50 bg-rag-amber/10 px-1.5 py-[1px] text-[9px] font-medium uppercase tracking-wide text-rag-amber"
+                        >
+                          <ShieldCheck className="h-2.5 w-2.5" />
+                          Approval
+                        </span>
+                      )}
                     </div>
                     {colVisible("type") && (
                       <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.type }}>
@@ -1050,6 +1076,16 @@ export function ProjectSchedule({
                           editable={editable}
                           onCommit={(v) => patch(item.name, { assignee: v || undefined })}
                           onRequestSkill={(role) => onRequestSkill?.(item.name, role)}
+                          onSwap={(otherName) => {
+                            const other = items.find(i => i.name === otherName);
+                            if (!other) return;
+                            const a = item.assignee;
+                            const b = other.assignee;
+                            patch(item.name, { assignee: b });
+                            patch(other.name, { assignee: a });
+                            toast.success(`Swapped ${a ?? "—"} ↔ ${b ?? "—"}`);
+                          }}
+                          siblings={items.filter(i => i.parent && i.parent === item.parent && i.name !== item.name && !!i.assignee && i.assignee.toLowerCase() !== "waiting").map(i => i.name)}
                         />
                       </div>
                     )}
@@ -1828,11 +1864,18 @@ function RolesCell({
                 <div className="space-y-2">
                   <div>
                     <Label className="text-[10px] uppercase">New Role</Label>
-                    <Input value={newRole} onChange={(e) => setNewRole(e.target.value)} placeholder="e.g. Senior Dev" className="h-8 text-xs" />
+                    <Select value={newRole} onValueChange={setNewRole}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a role" /></SelectTrigger>
+                      <SelectContent>
+                        {ROLE_OPTIONS.map((r) => (
+                          <SelectItem key={r} value={r}>{r}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <Label className="text-[10px] uppercase">Level</Label>
+                      <Label className="text-[10px] uppercase">Experience Level</Label>
                       <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
                         <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -1851,7 +1894,7 @@ function RolesCell({
                 <div className="flex gap-2 justify-end">
                   <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditOpen(false); setSelectedRole(null); }}>Cancel</Button>
                   <Button size="sm" className="h-7 text-xs" disabled={!newRole.trim()} onClick={handleSubmit}>
-                    <CheckCircle2 className="mr-1 h-3 w-3" /> Submit
+                    <CheckCircle2 className="mr-1 h-3 w-3" /> Submit Request
                   </Button>
                 </div>
               </>
@@ -1880,16 +1923,21 @@ function AssigneeCell({
   editable,
   onCommit,
   onRequestSkill,
+  onSwap,
+  siblings = [],
 }: {
   item: ScheduleItem;
   editable: boolean;
   onCommit: (v: string) => void;
   onRequestSkill: (role: RoleReq) => void;
+  onSwap?: (otherName: string) => void;
+  siblings?: string[];
 }) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState("");
   const [skill, setSkill] = useState<RoleReq["skill"]>("Mid");
   const [fte, setFte] = useState("1");
+  const [dragOver, setDragOver] = useState(false);
 
   const a = item.assignee?.trim();
   const isWaiting = a?.toLowerCase() === "waiting";
@@ -1917,9 +1965,27 @@ function AssigneeCell({
   if (!isEmpty) {
     return (
       <button
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData("text/x-task-name", item.name);
+          e.dataTransfer.effectAllowed = "move";
+        }}
+        onDragOver={(e) => {
+          const from = e.dataTransfer.types.includes("text/x-task-name");
+          if (!from) return;
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          const src = e.dataTransfer.getData("text/x-task-name");
+          if (src && src !== item.name && siblings.includes(src)) onSwap?.(src);
+        }}
         onClick={() => onCommit("")}
-        title="Click to clear"
-        className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] text-foreground hover:bg-accent/20"
+        title="Drag onto a sibling's assignee to swap · Click to clear"
+        className={`inline-flex cursor-grab active:cursor-grabbing items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] text-foreground hover:bg-accent/20 ${dragOver ? "border-accent bg-accent/25 ring-1 ring-accent" : "border-accent/30 bg-accent/10"}`}
       >
         <span className="h-1.5 w-1.5 rounded-full bg-accent" />
         <span className="truncate">{a}</span>

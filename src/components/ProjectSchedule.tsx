@@ -1838,11 +1838,18 @@ function RolesCell({
                 <div className="space-y-2">
                   <div>
                     <Label className="text-[10px] uppercase">New Role</Label>
-                    <Input value={newRole} onChange={(e) => setNewRole(e.target.value)} placeholder="e.g. Senior Dev" className="h-8 text-xs" />
+                    <Select value={newRole} onValueChange={setNewRole}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a role" /></SelectTrigger>
+                      <SelectContent>
+                        {ROLE_OPTIONS.map((r) => (
+                          <SelectItem key={r} value={r}>{r}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <Label className="text-[10px] uppercase">Level</Label>
+                      <Label className="text-[10px] uppercase">Experience Level</Label>
                       <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
                         <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -1861,7 +1868,7 @@ function RolesCell({
                 <div className="flex gap-2 justify-end">
                   <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditOpen(false); setSelectedRole(null); }}>Cancel</Button>
                   <Button size="sm" className="h-7 text-xs" disabled={!newRole.trim()} onClick={handleSubmit}>
-                    <CheckCircle2 className="mr-1 h-3 w-3" /> Submit
+                    <CheckCircle2 className="mr-1 h-3 w-3" /> Submit Request
                   </Button>
                 </div>
               </>

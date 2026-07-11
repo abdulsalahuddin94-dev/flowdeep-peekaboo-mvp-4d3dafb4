@@ -1089,6 +1089,23 @@ export function ProjectSchedule({
                         />
                       </div>
                     )}
+                    {colVisible("roles") && (
+                      <div className="flex items-center gap-1 overflow-hidden border-l border-border/60 px-3" style={{ width: widths.roles }}>
+                        {editable && item.roles.length > 0 ? (
+                          <RolesCell
+                            item={item}
+                            onUpdate={(roles) => patch(item.name, { roles })}
+                            onRequestRole={(role) => onRequestSkill?.(item.name, role)}
+                          />
+                        ) : item.roles.length === 0 ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : (
+                          <span className="truncate text-[10px] text-muted-foreground">
+                            {item.roles.map(r => `${r.role} (${r.fte})`).join(", ")}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {colVisible("status") && (
                       <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.status }}>
                         {editable ? (
@@ -1181,23 +1198,6 @@ export function ProjectSchedule({
                               : `${item.dependencies.length} Dependencies`
                             : item.dep || "—"}
                         </button>
-                      </div>
-                    )}
-                    {colVisible("roles") && (
-                      <div className="flex items-center gap-1 overflow-hidden border-l border-border/60 px-3" style={{ width: widths.roles }}>
-                        {editable && item.roles.length > 0 ? (
-                          <RolesCell
-                            item={item}
-                            onUpdate={(roles) => patch(item.name, { roles })}
-                            onRequestRole={(role) => onRequestSkill?.(item.name, role)}
-                          />
-                        ) : item.roles.length === 0 ? (
-                          <span className="text-muted-foreground">—</span>
-                        ) : (
-                          <span className="truncate text-[10px] text-muted-foreground">
-                            {item.roles.map(r => `${r.role} (${r.fte})`).join(", ")}
-                          </span>
-                        )}
                       </div>
                     )}
                     {colVisible("payment") && (

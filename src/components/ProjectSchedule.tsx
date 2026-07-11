@@ -1014,6 +1014,15 @@ export function ProjectSchedule({
                         className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOff ? "text-rag-red" : isRisk ? "text-rag-amber" : ""}`}
                         onCommit={(v) => v && v !== item.name && patch(item.name, { name: v })}
                       />
+                      {item.requiresApproval && (
+                        <span
+                          title="Requires approval to reach 100%"
+                          className="shrink-0 inline-flex items-center gap-1 rounded-full border border-rag-amber/50 bg-rag-amber/10 px-1.5 py-[1px] text-[9px] font-medium uppercase tracking-wide text-rag-amber"
+                        >
+                          <ShieldCheck className="h-2.5 w-2.5" />
+                          Approval
+                        </span>
+                      )}
                     </div>
                     {colVisible("type") && (
                       <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.type }}>

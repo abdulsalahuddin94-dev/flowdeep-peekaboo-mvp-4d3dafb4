@@ -139,6 +139,23 @@ export type ItemKind = "Milestone" | "Task";
 export type MilestoneType = "start" | "finish";
 export type Rag = "green" | "amber" | "red" | "blue" | "grey";
 export type RoleReq = { role: string; skill: "Junior" | "Mid" | "Senior" | "Lead"; fte: number };
+const ROLE_OPTIONS: readonly string[] = [
+  "Business Analyst",
+  "Solution Architect",
+  "UX Designer",
+  "Backend Dev",
+  "Frontend Dev",
+  "Integration Dev",
+  "Data Engineer",
+  "QA Engineer",
+  "QA Lead",
+  "DevOps Engineer",
+  "Security Lead",
+  "Performance Engineer",
+  "Support Lead",
+  "Trainer",
+  "Project Manager",
+] as const;
 export type PaymentLink = { kind: "None" | "Client Revenue" | "Package Cost"; amount: string; packageId?: string };
 export type ApprovalStatus = "approved" | "pending" | "rejected";
 export type Approver = { id: string; name: string; role: string; department: string; status?: "approved" | "pending" | "rejected" };

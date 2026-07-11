@@ -1890,16 +1890,21 @@ function AssigneeCell({
   editable,
   onCommit,
   onRequestSkill,
+  onSwap,
+  siblings = [],
 }: {
   item: ScheduleItem;
   editable: boolean;
   onCommit: (v: string) => void;
   onRequestSkill: (role: RoleReq) => void;
+  onSwap?: (otherName: string) => void;
+  siblings?: string[];
 }) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState("");
   const [skill, setSkill] = useState<RoleReq["skill"]>("Mid");
   const [fte, setFte] = useState("1");
+  const [dragOver, setDragOver] = useState(false);
 
   const a = item.assignee?.trim();
   const isWaiting = a?.toLowerCase() === "waiting";
@@ -1927,9 +1932,27 @@ function AssigneeCell({
   if (!isEmpty) {
     return (
       <button
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.setData("text/x-task-name", item.name);
+          e.dataTransfer.effectAllowed = "move";
+        }}
+        onDragOver={(e) => {
+          const from = e.dataTransfer.types.includes("text/x-task-name");
+          if (!from) return;
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          const src = e.dataTransfer.getData("text/x-task-name");
+          if (src && src !== item.name && siblings.includes(src)) onSwap?.(src);
+        }}
         onClick={() => onCommit("")}
-        title="Click to clear"
-        className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2 py-0.5 text-[11px] text-foreground hover:bg-accent/20"
+        title="Drag onto a sibling's assignee to swap · Click to clear"
+        className={`inline-flex cursor-grab active:cursor-grabbing items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] text-foreground hover:bg-accent/20 ${dragOver ? "border-accent bg-accent/25 ring-1 ring-accent" : "border-accent/30 bg-accent/10"}`}
       >
         <span className="h-1.5 w-1.5 rounded-full bg-accent" />
         <span className="truncate">{a}</span>

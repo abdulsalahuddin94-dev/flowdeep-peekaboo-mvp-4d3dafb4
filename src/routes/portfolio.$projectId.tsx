@@ -565,7 +565,26 @@ function ProjectDetail() {
         scopeMilestone={progressScope}
         items={computeDerivedSchedule(milestones, resourceRequests)}
         onSetProgress={(name, progress) =>
-          setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, progress } : m)))
+          setMilestones((prev) => {
+            const updated = prev.map((m) => (m.name === name ? { ...m, progress } : m));
+            if (progress >= 100) return updated;
+            // If reducing a task below 100%, revert any approved/pending ancestor milestone.
+            const byName = new Map(updated.map((i) => [i.name, i]));
+            const seen = new Set<string>();
+            let cur = byName.get(name);
+            const toReset: string[] = [];
+            while (cur?.parent && !seen.has(cur.parent)) {
+              const p = byName.get(cur.parent);
+              if (!p) break;
+              if (p.requiresApproval && (p.approvalStatus === "approved" || p.approvalStatus === "pending")) {
+                toReset.push(p.name);
+              }
+              seen.add(cur.parent);
+              cur = p;
+            }
+            if (!toReset.length) return updated;
+            return updated.map((m) => (toReset.includes(m.name) ? { ...m, approvalStatus: undefined } : m));
+          })
         }
         onRequestApproval={(name) =>
           setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, approvalStatus: "pending" } : m)))
@@ -1101,6 +1120,52 @@ function ProgressUpdateDialog({
   const needsApproval = !!current?.requiresApproval && draftPct >= 100 && current?.approvalStatus !== "approved";
   const isPending = current?.approvalStatus === "pending";
 
+  // Find the ancestor milestone (if any) that requires approval for `current`.
+  const approvalMilestone = useMemo(() => {
+    if (!current) return null as Milestone | null;
+    const byName = new Map(items.map((i) => [i.name, i]));
+    let cur: Milestone | undefined = current;
+    const seen = new Set<string>();
+    while (cur?.parent && !seen.has(cur.parent)) {
+      const p = byName.get(cur.parent);
+      if (!p) break;
+      if (p.requiresApproval) return p;
+      seen.add(cur.parent);
+      cur = p;
+    }
+    return null;
+  }, [current, items]);
+
+  // Every leaf task that rolls up into that milestone.
+  const approvalLeaves = useMemo(() => {
+    if (!approvalMilestone) return [] as Milestone[];
+    const byName = new Map(items.map((i) => [i.name, i]));
+    const isDesc = (name: string) => {
+      let c = byName.get(name);
+      const seen = new Set<string>();
+      while (c?.parent && !seen.has(c.parent)) {
+        if (c.parent === approvalMilestone.name) return true;
+        seen.add(c.parent);
+        c = byName.get(c.parent);
+      }
+      return false;
+    };
+    return allLeaves.filter((l) => isDesc(l.name));
+  }, [approvalMilestone, items, allLeaves]);
+
+  // Would every child task be at 100% once we save the current draft?
+  const allChildrenAt100 = useMemo(() => {
+    if (!approvalMilestone || !current || approvalLeaves.length === 0) return false;
+    return approvalLeaves.every((l) => {
+      const p = l.name === current.name ? draftPct : (l.progress ?? 0);
+      return p >= 100;
+    });
+  }, [approvalMilestone, approvalLeaves, current, draftPct]);
+
+  const msApproved = approvalMilestone?.approvalStatus === "approved";
+  const msPending = approvalMilestone?.approvalStatus === "pending";
+  const showSendApprovalBtn = !!approvalMilestone && allChildrenAt100 && !msApproved && !msPending;
+
   function save() {
     if (!current) return;
     if (needsApproval) {
@@ -1109,6 +1174,13 @@ function ProgressUpdateDialog({
     }
     onSetProgress(current.name, draftPct);
     toast.success(`Progress updated — ${current.name} → ${draftPct}%`);
+  }
+
+  function saveAndRequestApproval() {
+    if (!current || !approvalMilestone) return;
+    onSetProgress(current.name, draftPct);
+    onRequestApproval(approvalMilestone.name);
+    toast.success(`Approval requests sent for ${approvalMilestone.name}`);
   }
 
   return (
@@ -1190,21 +1262,31 @@ function ProgressUpdateDialog({
               onChange={(e) => setDraftPct(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
             />
             <div className="flex flex-col gap-2">
-              <Button
-                onClick={save}
-                disabled={!current || isPending || needsApproval}
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
-              >
-                Save update
-              </Button>
-              {needsApproval && current && !isPending && (
-                <Button variant="outline" onClick={() => { onRequestApproval(current.name); toast.success("Approval requested"); }}>
-                  Request approval
+              {msApproved ? (
+                <div className="flex items-center justify-center gap-2 rounded-md border border-rag-green/50 bg-rag-green/10 px-3 py-2 text-sm font-medium text-rag-green">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Approved
+                </div>
+              ) : showSendApprovalBtn ? (
+                <Button
+                  onClick={saveAndRequestApproval}
+                  disabled={!current}
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  Send Approval Requests
+                </Button>
+              ) : (
+                <Button
+                  onClick={save}
+                  disabled={!current || isPending || needsApproval}
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  Save update
                 </Button>
               )}
-              {isPending && current && (
-                <Button variant="outline" onClick={() => { onApprove(current.name); toast.success("Approval granted"); }}>
-                  Mark as approved
+              {msPending && approvalMilestone && (
+                <Button variant="outline" onClick={() => { onApprove(approvalMilestone.name); toast.success("Approval granted"); }}>
+                  Mark milestone as approved
                 </Button>
               )}
             </div>

@@ -122,7 +122,7 @@ function ProjectDetail() {
     { name: "Discovery & Requirements", kind: "Task", startDate: "2025-04-15", endDate: "2025-05-16", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "Package Cost", packageId: "PKG-DSC", amount: "$80K" }, progress: 100, parent: "Discovery Sign-off", weightScore: 8 },
     { name: "Stakeholder workshops", kind: "Task", startDate: "2025-04-15", endDate: "2025-04-25", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 100, parent: "Discovery & Requirements", assignee: "Sara Al-Rashid", weightScore: 5 },
     { name: "Requirements doc", kind: "Task", startDate: "2025-04-28", endDate: "2025-05-12", owner: "Sara Al-Rashid", rag: "green", dep: "Stakeholder workshops", roles: [{ role: "Business Analyst", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 100, parent: "Discovery & Requirements", assignee: "John Smith", weightScore: 5 },
-    { name: "Discovery Sign-off", kind: "Milestone", startDate: "2025-05-16", endDate: "2025-05-16", owner: "Sara Al-Rashid", rag: "green", dep: "Discovery & Requirements", roles: [], payment: { kind: "Client Revenue", amount: "$120K" }, progress: 100, assignee: "Sara Al-Rashid", milestoneType: "finish", requiresApproval: true, approvalStatus: "pending", approvers: [{ id: "u-ahmed", name: "Ahmed Al-Mansouri", role: "Portfolio Director", department: "Executive" }, { id: "u-layla", name: "Layla Mahmoud", role: "Sponsor", department: "Growth" }] },
+    { name: "Discovery Sign-off", kind: "Milestone", startDate: "2025-05-16", endDate: "2025-05-16", owner: "Sara Al-Rashid", rag: "green", dep: "Discovery & Requirements", roles: [], payment: { kind: "Client Revenue", amount: "$120K" }, progress: 100, assignee: "Sara Al-Rashid", milestoneType: "finish", requiresApproval: true, approvers: [{ id: "u-ahmed", name: "Ahmed Al-Mansouri", role: "Portfolio Director", department: "Executive" }, { id: "u-layla", name: "Layla Mahmoud", role: "Sponsor", department: "Growth" }] },
 
     // ── Phase 2: Design — at risk (amber), mixed assignee states ────────────
     { name: "Solution Design", kind: "Task", startDate: "2025-05-19", endDate: "2025-06-27", owner: "Mei Chen", rag: "amber", dep: "Discovery Sign-off", roles: [{ role: "Solution Architect", skill: "Senior", fte: 1 }], payment: { kind: "Package Cost", packageId: "PKG-DSN", amount: "$150K" }, progress: 70, parent: "Design Approved", weightScore: 8 },
@@ -1117,9 +1117,6 @@ function ProgressUpdateDialog({
 
   const current = leaves.find((t) => t.name === selected);
   const currentPlanned = current ? computePlannedProgress(current.startDate, current.endDate) : 0;
-  const needsApproval = !!current?.requiresApproval && draftPct >= 100 && current?.approvalStatus !== "approved";
-  const isPending = current?.approvalStatus === "pending";
-
   // Find the ancestor milestone (if any) that requires approval for `current`.
   const approvalMilestone = useMemo(() => {
     if (!current) return null as Milestone | null;
@@ -1168,10 +1165,6 @@ function ProgressUpdateDialog({
 
   function save() {
     if (!current) return;
-    if (needsApproval) {
-      toast.error("This task requires approval before it can be marked 100% complete.");
-      return;
-    }
     onSetProgress(current.name, draftPct);
     toast.success(`Progress updated — ${current.name} → ${draftPct}%`);
   }
@@ -1283,7 +1276,7 @@ function ProgressUpdateDialog({
               ) : (
                 <Button
                   onClick={save}
-                  disabled={!current || needsApproval}
+                  disabled={!current}
                   className="bg-accent text-accent-foreground hover:bg-accent/90"
                 >
                   Save update
@@ -1924,7 +1917,7 @@ function AddMilestoneDialog({
         milestoneType,
         requiresApproval,
         approvers: requiresApproval ? approvers : undefined,
-        approvalStatus: requiresApproval ? "pending" : undefined,
+        approvalStatus: undefined,
       });
     }
 

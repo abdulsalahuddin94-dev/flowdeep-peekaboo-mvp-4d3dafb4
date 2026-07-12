@@ -1083,7 +1083,20 @@ export function ProjectSchedule({
                     )}
                     {colVisible("roles") && (
                       <div className="flex items-center gap-1 overflow-hidden border-l border-border/60 px-3" style={{ width: widths.roles }}>
-                        {editable && item.roles.length > 0 ? (
+                        {(() => {
+                          const a = item.assignee?.trim();
+                          const isWaiting = a?.toLowerCase() === "waiting";
+                          const assigneeRole = a && !isWaiting
+                            ? resourceList.find(r => r.name.toLowerCase() === a.toLowerCase())?.role
+                            : undefined;
+                          if (assigneeRole) {
+                            return (
+                              <span className="truncate text-[11px] text-foreground/80" title={assigneeRole}>
+                                {assigneeRole}
+                              </span>
+                            );
+                          }
+                          return editable && item.roles.length > 0 ? (
                           <RolesCell
                             item={item}
                             onUpdate={(roles) => patch(item.name, { roles })}
@@ -1095,7 +1108,8 @@ export function ProjectSchedule({
                           <span className="truncate text-[10px] text-muted-foreground">
                             {item.roles.map(r => `${r.role} (${r.fte})`).join(", ")}
                           </span>
-                        )}
+                          );
+                        })()}
                       </div>
                     )}
                     {colVisible("status") && (
@@ -1936,7 +1950,6 @@ function AssigneeCell({
   const a = item.assignee?.trim();
   const isWaiting = a?.toLowerCase() === "waiting";
   const isEmpty = !a;
-  const assigneeRole = a ? resourceList.find(r => r.name.toLowerCase() === a.toLowerCase())?.role : undefined;
 
   if (!editable) {
     if (isEmpty) return <span className="text-muted-foreground">—</span>;
@@ -1946,12 +1959,7 @@ function AssigneeCell({
           Waiting
         </Badge>
       );
-    return (
-      <div className="flex min-w-0 flex-col leading-tight">
-        <span className="truncate text-foreground/90">{a}</span>
-        {assigneeRole && <span className="truncate text-[10px] text-muted-foreground">{assigneeRole}</span>}
-      </div>
-    );
+    return <span className="truncate text-foreground/90">{a}</span>;
   }
 
   if (isWaiting) {
@@ -1964,7 +1972,6 @@ function AssigneeCell({
 
   if (!isEmpty) {
     return (
-      <div className="flex min-w-0 flex-col items-start gap-0.5">
       <button
         draggable
         onDragStart={(e) => {
@@ -1991,8 +1998,6 @@ function AssigneeCell({
         <span className="h-1.5 w-1.5 rounded-full bg-accent" />
         <span className="truncate">{a}</span>
       </button>
-      {assigneeRole && <span className="truncate pl-2 text-[10px] text-muted-foreground">{assigneeRole}</span>}
-      </div>
     );
   }
 

@@ -1136,7 +1136,6 @@ export function ProjectSchedule({
                       const planned = computePlannedProgress(item.startDate, item.endDate);
                       const actual = item.progress ?? 0;
                       const isMs = item.kind === "Milestone";
-                      const approvalPending = item.requiresApproval && item.approvalStatus === "pending";
                       const canClick = !!onProgressClick;
                       return (
                         <div
@@ -1176,11 +1175,6 @@ export function ProjectSchedule({
                               <span className="num-mono w-8 shrink-0 text-right text-[10px] text-rag-blue">{planned}%</span>
                             </div>
                           </div>
-                          {approvalPending && (
-                            <span className="shrink-0 rounded border border-rag-amber/40 bg-rag-amber/10 px-1 py-[1px] text-[9px] uppercase tracking-wide text-rag-amber">
-                              Appr
-                            </span>
-                          )}
                         </div>
 
                       );

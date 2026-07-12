@@ -1077,6 +1077,7 @@ export function ProjectSchedule({
                             toast.success(`Swapped ${a ?? "—"} ↔ ${b ?? "—"}`);
                           }}
                           siblings={items.filter(i => i.parent && i.parent === item.parent && i.name !== item.name && !!i.assignee && i.assignee.toLowerCase() !== "waiting").map(i => i.name)}
+                          resourceList={resourceList}
                         />
                       </div>
                     )}

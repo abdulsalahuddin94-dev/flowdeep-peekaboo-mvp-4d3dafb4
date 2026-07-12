@@ -565,7 +565,26 @@ function ProjectDetail() {
         scopeMilestone={progressScope}
         items={computeDerivedSchedule(milestones, resourceRequests)}
         onSetProgress={(name, progress) =>
-          setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, progress } : m)))
+          setMilestones((prev) => {
+            const updated = prev.map((m) => (m.name === name ? { ...m, progress } : m));
+            if (progress >= 100) return updated;
+            // If reducing a task below 100%, revert any approved/pending ancestor milestone.
+            const byName = new Map(updated.map((i) => [i.name, i]));
+            const seen = new Set<string>();
+            let cur = byName.get(name);
+            const toReset: string[] = [];
+            while (cur?.parent && !seen.has(cur.parent)) {
+              const p = byName.get(cur.parent);
+              if (!p) break;
+              if (p.requiresApproval && (p.approvalStatus === "approved" || p.approvalStatus === "pending")) {
+                toReset.push(p.name);
+              }
+              seen.add(cur.parent);
+              cur = p;
+            }
+            if (!toReset.length) return updated;
+            return updated.map((m) => (toReset.includes(m.name) ? { ...m, approvalStatus: undefined } : m));
+          })
         }
         onRequestApproval={(name) =>
           setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, approvalStatus: "pending" } : m)))

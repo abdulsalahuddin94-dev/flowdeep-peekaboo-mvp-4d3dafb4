@@ -1163,8 +1163,8 @@ function ProgressUpdateDialog({
   }, [approvalMilestone, approvalLeaves, current, draftPct]);
 
   const msApproved = approvalMilestone?.approvalStatus === "approved";
-  const msPending = approvalMilestone?.approvalStatus === "pending";
-  const showSendApprovalBtn = !!approvalMilestone && allChildrenAt100 && !msApproved && !msPending;
+  const msPending = approvalMilestone?.approvalStatus === "pending" && allChildrenAt100;
+  const showSendApprovalBtn = !!approvalMilestone && allChildrenAt100 && !msApproved && approvalMilestone.approvalStatus !== "pending";
 
   function save() {
     if (!current) return;
@@ -1273,7 +1273,7 @@ function ProgressUpdateDialog({
                   disabled={!current}
                   className="bg-accent text-accent-foreground hover:bg-accent/90"
                 >
-                  Send Approval Requests
+                  Save and Send Approval Request
                 </Button>
               ) : msPending ? (
                 <div className="flex items-center justify-center gap-2 rounded-md border border-rag-amber/50 bg-rag-amber/10 px-3 py-2 text-sm font-medium text-rag-amber">
@@ -1283,15 +1283,10 @@ function ProgressUpdateDialog({
               ) : (
                 <Button
                   onClick={save}
-                  disabled={!current || isPending || needsApproval}
+                  disabled={!current || needsApproval}
                   className="bg-accent text-accent-foreground hover:bg-accent/90"
                 >
                   Save update
-                </Button>
-              )}
-              {msPending && approvalMilestone && (
-                <Button variant="outline" onClick={() => { onApprove(approvalMilestone.name); toast.success("Approval granted"); }}>
-                  Mark milestone as approved
                 </Button>
               )}
             </div>

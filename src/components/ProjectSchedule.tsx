@@ -1077,6 +1077,7 @@ export function ProjectSchedule({
                             toast.success(`Swapped ${a ?? "—"} ↔ ${b ?? "—"}`);
                           }}
                           siblings={items.filter(i => i.parent && i.parent === item.parent && i.name !== item.name && !!i.assignee && i.assignee.toLowerCase() !== "waiting").map(i => i.name)}
+                          resourceList={resourceList}
                         />
                       </div>
                     )}
@@ -1916,6 +1917,7 @@ function AssigneeCell({
   onRequestSkill,
   onSwap,
   siblings = [],
+  resourceList = [],
 }: {
   item: ScheduleItem;
   editable: boolean;
@@ -1923,6 +1925,7 @@ function AssigneeCell({
   onRequestSkill: (role: RoleReq) => void;
   onSwap?: (otherName: string) => void;
   siblings?: string[];
+  resourceList?: Array<{ name: string; role?: string; dept?: string }>;
 }) {
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState("");
@@ -1933,6 +1936,7 @@ function AssigneeCell({
   const a = item.assignee?.trim();
   const isWaiting = a?.toLowerCase() === "waiting";
   const isEmpty = !a;
+  const assigneeRole = a ? resourceList.find(r => r.name.toLowerCase() === a.toLowerCase())?.role : undefined;
 
   if (!editable) {
     if (isEmpty) return <span className="text-muted-foreground">—</span>;
@@ -1942,7 +1946,12 @@ function AssigneeCell({
           Waiting
         </Badge>
       );
-    return <span className="truncate text-foreground/90">{a}</span>;
+    return (
+      <div className="flex min-w-0 flex-col leading-tight">
+        <span className="truncate text-foreground/90">{a}</span>
+        {assigneeRole && <span className="truncate text-[10px] text-muted-foreground">{assigneeRole}</span>}
+      </div>
+    );
   }
 
   if (isWaiting) {
@@ -1955,6 +1964,7 @@ function AssigneeCell({
 
   if (!isEmpty) {
     return (
+      <div className="flex min-w-0 flex-col items-start gap-0.5">
       <button
         draggable
         onDragStart={(e) => {
@@ -1981,6 +1991,8 @@ function AssigneeCell({
         <span className="h-1.5 w-1.5 rounded-full bg-accent" />
         <span className="truncate">{a}</span>
       </button>
+      {assigneeRole && <span className="truncate pl-2 text-[10px] text-muted-foreground">{assigneeRole}</span>}
+      </div>
     );
   }
 

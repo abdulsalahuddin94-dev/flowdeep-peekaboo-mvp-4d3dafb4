@@ -1083,7 +1083,20 @@ export function ProjectSchedule({
                     )}
                     {colVisible("roles") && (
                       <div className="flex items-center gap-1 overflow-hidden border-l border-border/60 px-3" style={{ width: widths.roles }}>
-                        {editable && item.roles.length > 0 ? (
+                        {(() => {
+                          const a = item.assignee?.trim();
+                          const isWaiting = a?.toLowerCase() === "waiting";
+                          const assigneeRole = a && !isWaiting
+                            ? resourceList.find(r => r.name.toLowerCase() === a.toLowerCase())?.role
+                            : undefined;
+                          if (assigneeRole) {
+                            return (
+                              <span className="truncate text-[11px] text-foreground/80" title={assigneeRole}>
+                                {assigneeRole}
+                              </span>
+                            );
+                          }
+                          return editable && item.roles.length > 0 ? (
                           <RolesCell
                             item={item}
                             onUpdate={(roles) => patch(item.name, { roles })}
@@ -1095,7 +1108,8 @@ export function ProjectSchedule({
                           <span className="truncate text-[10px] text-muted-foreground">
                             {item.roles.map(r => `${r.role} (${r.fte})`).join(", ")}
                           </span>
-                        )}
+                          );
+                        })()}
                       </div>
                     )}
                     {colVisible("status") && (

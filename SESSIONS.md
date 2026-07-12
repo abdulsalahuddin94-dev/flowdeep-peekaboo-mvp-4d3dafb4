@@ -4,6 +4,19 @@
 
 ---
 
+## Session 42 — 2026-07-12
+
+**What was done:**
+1. Fixed the milestone approval progress CTA flow.
+2. `Waiting for the Approval` now appears only after clicking `Save and Send Approval Request`.
+3. New/edit milestone approval setup no longer starts in pending state automatically.
+4. Verified in preview that entering 100% shows `Save and Send Approval Request` and does not show waiting first.
+
+**Files updated:**
+- `src/routes/portfolio.$projectId.tsx` — Approval state initialization and progress dialog CTA logic.
+
+---
+
 ## Session 41 â€” 2026-07-08
 
 **What was done:** 

@@ -26,7 +26,7 @@ import {
 import {
   ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, PanelLeftClose, PanelLeftOpen, Pencil, Plus, ShieldCheck, Trash2, Upload, UserPlus } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Trash2, Upload, UserPlus } from "lucide-react";
 import { RagBadge } from "@/components/RagBadge";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";

@@ -332,13 +332,7 @@ export function ProjectSchedule({
     });
   }, [items]);
 
-  // Auto-set first milestone to approval-required
-  useEffect(() => {
-    const firstMilestone = items.find(i => i.kind === "Milestone");
-    if (firstMilestone && !firstMilestone.requiresApproval) {
-      onItemPatch?.(firstMilestone.name, { requiresApproval: true });
-    }
-  }, [items, onItemPatch]);
+  // Approval requirement is set explicitly via the Create/Edit dialog only.
 
   // Build tree: top-level = items with no parent matching another item's name.
   const nameSet = useMemo(() => new Set(items.map(i => i.name)), [items]);

@@ -233,7 +233,7 @@ const COLUMNS = [
   { key: "type",     label: "Type",        w: 90 },
   { key: "start",    label: "Start",       w: 100 },
   { key: "end",      label: "End",         w: 100 },
-  { key: "owner",    label: "Owner",       w: 110 },
+  { key: "owner",    label: "Owner",       w: 150 },
   { key: "assignee", label: "Assignee",    w: 130 },
   { key: "roles",    label: "Roles",       w: 180 },
   { key: "status",   label: "Status",      w: 110 },

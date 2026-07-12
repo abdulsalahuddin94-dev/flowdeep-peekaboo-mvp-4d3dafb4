@@ -1266,7 +1266,7 @@ function ProgressUpdateDialog({
                   disabled={!current}
                   className="bg-accent text-accent-foreground hover:bg-accent/90"
                 >
-                  Save and Send Approval Request
+                  Save & Send Approval Request
                 </Button>
               ) : msPending ? (
                 <div className="flex items-center justify-center gap-2 rounded-md border border-rag-amber/50 bg-rag-amber/10 px-3 py-2 text-sm font-medium text-rag-amber">

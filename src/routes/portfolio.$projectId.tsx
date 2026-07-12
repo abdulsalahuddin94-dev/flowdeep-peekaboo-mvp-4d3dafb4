@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, ArrowUpRight } from "lucide-react";
+import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, ArrowUpRight, Clock } from "lucide-react";
 import type { Rag } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
@@ -1275,6 +1275,11 @@ function ProgressUpdateDialog({
                 >
                   Send Approval Requests
                 </Button>
+              ) : msPending ? (
+                <div className="flex items-center justify-center gap-2 rounded-md border border-rag-amber/50 bg-rag-amber/10 px-3 py-2 text-sm font-medium text-rag-amber">
+                  <Clock className="h-4 w-4" />
+                  Waiting for the Approval
+                </div>
               ) : (
                 <Button
                   onClick={save}

@@ -364,71 +364,59 @@ function ProjectDetail() {
 
 
         <TabsContent value="Project Schedule" className="mt-5">
-          {/* Version Selector & Edit Controls */}
-          <div className="mb-6 flex items-center justify-between rounded-lg border border-border bg-secondary/30 p-4">
-            <div className="flex items-center gap-4">
-              <div className="text-sm">
-                <div className="label-eyebrow">Project Schedule</div>
-                <div className="mt-1 flex items-center gap-2">
-                  <span className="font-medium text-foreground">Current Version:</span>
-                  <Select value={selectedBaselineVersion} onValueChange={(v) => {
-                    setSelectedBaselineVersion(v);
-                    setPlanEditMode("view");
-                  }}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="latest">Latest (v{projectBaselineVersions.length}) ⭐</SelectItem>
-                      {projectBaselineVersions.map((v) => (
-                        <SelectItem key={v.version} value={`v${v.version}`}>
-                          v{v.version} · {v.createdAt}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            {isViewingCurrent && (
-              <div className="flex gap-2">
-                {planEditMode === "view" && (
+          <ProjectSchedule
+            headerSlot={
+              <div className="flex items-center gap-2">
+                <Select value={selectedBaselineVersion} onValueChange={(v) => {
+                  setSelectedBaselineVersion(v);
+                  setPlanEditMode("view");
+                }}>
+                  <SelectTrigger className="h-8 w-52 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="latest">Current Version (v{projectBaselineVersions.length}) ⭐</SelectItem>
+                    {projectBaselineVersions.slice(0, -1).map((v) => (
+                      <SelectItem key={v.version} value={`v${v.version}`}>
+                        v{v.version} · {v.createdAt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isViewingCurrent && planEditMode === "view" && (
                   <Button
+                    size="sm"
                     onClick={() => setPlanEditMode("editing")}
-                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                    className="h-8 bg-accent text-accent-foreground hover:bg-accent/90 text-xs"
                   >
                     ✎ Change Plan
                   </Button>
                 )}
-                {planEditMode === "editing" && (
+                {isViewingCurrent && planEditMode === "editing" && (
                   <Button
-                    onClick={() => {
-                      setCrDialogOpen(true);
-                      setPlanEditMode("pending");
-                    }}
-                    className="bg-rag-amber text-white hover:bg-rag-amber/90"
+                    size="sm"
+                    onClick={() => setCrDialogOpen(true)}
+                    className="h-8 bg-rag-amber text-white hover:bg-rag-amber/90 text-xs"
                   >
                     📤 Send Change Request
                   </Button>
                 )}
-                {planEditMode === "pending" && (
-                  <Button disabled className="bg-rag-blue text-white">
-                    ⏳ Waiting For Approval
-                  </Button>
+                {isViewingCurrent && planEditMode === "pending" && (
+                  <Badge className="border-rag-blue/40 bg-rag-blue/10 text-rag-blue text-xs">⏳ Waiting For Approval</Badge>
+                )}
+                {!isViewingCurrent && (
+                  <Badge variant="outline" className="text-xs text-muted-foreground">📖 View Only</Badge>
                 )}
               </div>
-            )}
-
-            {!isViewingCurrent && (
-              <div className="flex items-center gap-2 rounded-md border border-border/50 bg-background/50 px-3 py-2">
-                <span className="text-xs text-muted-foreground">📖 View Only — Historical Version</span>
-              </div>
-            )}
-          </div>
-
-          <ProjectSchedule
-            items={useMemo(() => computeDerivedSchedule(milestones, resourceRequests), [milestones, resourceRequests])}
+            }
+            items={useMemo(() => {
+              if (!isViewingCurrent) {
+                const vNum = parseInt(selectedBaselineVersion.slice(1));
+                const v = projectBaselineVersions.find((x) => x.version === vNum);
+                if (v) return computeDerivedSchedule(v.snapshot as Milestone[], resourceRequests);
+              }
+              return computeDerivedSchedule(milestones, resourceRequests);
+            }, [milestones, resourceRequests, isViewingCurrent, selectedBaselineVersion, projectBaselineVersions])}
             resourceList={resourcePool}
             onProgressClick={(name, kind) => {
               const derived = computeDerivedSchedule(milestones, resourceRequests);

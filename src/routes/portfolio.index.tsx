@@ -10,7 +10,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X } from "lucide-react";
+import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Check, ChevronRight } from "lucide-react";
 import { projects, pipelineItems, type Project, type Rag } from "@/lib/mock-data";
 import { useProjects, useCalendars } from "@/lib/projects-store";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/portfolio/")({
   component: PortfolioPage,
@@ -537,7 +538,7 @@ const PM_LIST = ["Sara Al-Rashid", "John Smith", "Mei Chen", "Omar Haddad", "Pri
 function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
   const { calendars } = useCalendars();
   const [open, setOpen] = useState(false);
-  const [projectType, setProjectType] = useState<"capital" | "commercial">("capital");
+  const [projectType, setProjectType] = useState<"capital" | "commercial" | null>(null);
   const [name, setName] = useState("");
   const [businessLine, setBusinessLine] = useState("Software Solutions");
   const [department, setDepartment] = useState("Engineering");
@@ -550,7 +551,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
   const [tagsInput, setTagsInput] = useState("");
   const [calendarId, setCalendarId] = useState<string>(calendars[0]?.id ?? "");
 
-  function reset() { setName(""); setBudget(""); setRevenue(""); setEndDate(""); setTagsInput(""); setProjectType("capital"); }
+  function reset() { setName(""); setBudget(""); setRevenue(""); setEndDate(""); setTagsInput(""); setProjectType(null); }
 
   function handleCreate() {
     if (!name.trim()) { toast.error("Project name is required"); return; }
@@ -594,20 +595,19 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
           <DialogTitle>New Project</DialogTitle>
           <DialogDescription>Create a project directly in the portfolio. For new initiatives requiring approval, use Submit Business Case instead.</DialogDescription>
         </DialogHeader>
+        {!projectType ? (
+          <ProjectTypePicker onPick={(t) => setProjectType(t)} />
+        ) : (
+        <>
         <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
-            <Label>Project Type</Label>
-            <div className="mt-1 flex gap-4">
-              {[
-                { value: "capital" as const, label: "Capital / Internal" },
-                { value: "commercial" as const, label: "Commercial / External" },
-              ].map((type) => (
-                <label key={type.value} className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="projectType" value={type.value} checked={projectType === type.value} onChange={(e) => setProjectType(e.target.value as typeof projectType)} className="cursor-pointer" />
-                  <span className="text-sm">{type.label}</span>
-                </label>
-              ))}
+          <div className="col-span-2 flex items-center justify-between rounded-md border border-border bg-secondary/20 px-3 py-2">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground">Type:</span>
+              <Badge variant="outline" className="border-accent/40 bg-accent-dim text-accent">
+                {projectType === "capital" ? "Capital / Internal" : "Commercial / External"}
+              </Badge>
             </div>
+            <Button variant="ghost" size="sm" onClick={() => setProjectType(null)}>← Change type</Button>
           </div>
           <div className="col-span-2">
             <Label>Project name *</Label>
@@ -701,8 +701,70 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
           <Button variant="outline" onClick={() => { reset(); setOpen(false); }}>Cancel</Button>
           <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleCreate}>Create Project</Button>
         </DialogFooter>
+        </>
+        )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ProjectTypePicker({ onPick }: { onPick: (t: "capital" | "commercial") => void }) {
+  const cards = [
+    {
+      key: "capital" as const,
+      label: "Capital / Internal",
+      blurb: "Internally-funded initiatives, transformation projects, infra upgrades, R&D.",
+      icon: Building2,
+      bullets: ["Strategic alignment", "CAPEX/OPEX tracking", "Internal sponsor & DoA"],
+      color: "text-accent",
+      ring: "ring-accent/40",
+    },
+    {
+      key: "commercial" as const,
+      label: "Commercial / External",
+      blurb: "Client engagements, delivery projects, third-party bids won.",
+      icon: Briefcase,
+      bullets: ["Client & revenue profile", "Margin & payment terms", "Delivery SLA & risk"],
+      color: "text-rag-blue",
+      ring: "ring-rag-blue/40",
+    },
+  ];
+  return (
+    <div className="pt-2">
+      <p className="mb-4 text-sm text-muted-foreground">Choose the type of project to tailor the intake form.</p>
+      <div className="grid gap-4 md:grid-cols-2">
+        {cards.map((c) => {
+          const Icon = c.icon;
+          return (
+            <button
+              key={c.key}
+              onClick={() => onPick(c.key)}
+              className={cn("glass-card group p-5 text-left transition hover:ring-2", c.ring)}
+            >
+              <div className="flex items-center gap-3">
+                <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/50", c.color)}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-base font-medium text-foreground">{c.label}</div>
+                  <div className="text-xs text-muted-foreground">{c.blurb}</div>
+                </div>
+              </div>
+              <ul className="mt-4 space-y-1.5 text-xs text-muted-foreground">
+                {c.bullets.map((b) => (
+                  <li key={b} className="flex items-center gap-2">
+                    <Check className={cn("h-3 w-3", c.color)} />{b}
+                  </li>
+                ))}
+              </ul>
+              <div className={cn("mt-4 inline-flex items-center text-xs font-medium opacity-0 transition group-hover:opacity-100", c.color)}>
+                Continue <ChevronRight className="ml-1 h-3 w-3" />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

@@ -1228,17 +1228,17 @@ export function ProjectSchedule({
                   </div>
                     </ContextMenuTrigger>
                     <ContextMenuContent className="w-48">
-                      {onAddSubtask && (
+                      {!restricted && onAddSubtask && (
                         <ContextMenuItem onSelect={() => onAddSubtask(item.name)}>
                           <Plus className="mr-2 h-3.5 w-3.5" /> Add subtask
                         </ContextMenuItem>
                       )}
-                      {onEditItem && (
+                      {!restricted && onEditItem && (
                         <ContextMenuItem onSelect={() => onEditItem(item.name)}>
                           <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
                         </ContextMenuItem>
                       )}
-                      {onDeleteItem && (
+                      {!restricted && onDeleteItem && (
                         <>
                           <ContextMenuSeparator />
                           <ContextMenuItem
@@ -1248,6 +1248,11 @@ export function ProjectSchedule({
                             <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
                           </ContextMenuItem>
                         </>
+                      )}
+                      {restricted && (
+                        <ContextMenuItem disabled className="text-xs text-muted-foreground">
+                          Click "Change Plan" to edit
+                        </ContextMenuItem>
                       )}
                     </ContextMenuContent>
                   </ContextMenu>

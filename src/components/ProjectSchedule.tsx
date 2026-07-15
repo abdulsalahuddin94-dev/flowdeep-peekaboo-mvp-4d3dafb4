@@ -744,7 +744,9 @@ export function ProjectSchedule({
   function colVisible(k: ColKey) { return visibleCols.has(k); }
 
   // Inline edit helpers
-  const editable = !!onItemPatch;
+  const canPatch = !!onItemPatch;
+  const editable = canPatch && !restricted;
+  const assigneeEditable = canPatch;
   const ragOptions: Rag[] = ["blue", "amber", "green", "red", "grey"];
   function patch(name: string, p: Partial<ScheduleItem>) { onItemPatch?.(name, p); }
 

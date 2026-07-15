@@ -866,8 +866,12 @@ export function ProjectSchedule({
       {/* Top action bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-3">
         <div className="flex items-center gap-3">
-          <div className="label-eyebrow">Project Schedule</div>
-          <Badge variant="outline" className="border-border bg-secondary/40">{items.length} items</Badge>
+          {headerSlot ?? (
+            <>
+              <div className="label-eyebrow">Project Schedule</div>
+              <Badge variant="outline" className="border-border bg-secondary/40">{items.length} items</Badge>
+            </>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <ToggleGroup

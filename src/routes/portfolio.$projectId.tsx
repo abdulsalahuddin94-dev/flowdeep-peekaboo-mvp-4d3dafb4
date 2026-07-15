@@ -594,10 +594,13 @@ function ProjectDetail() {
           <ChangeRequestDialog
             open={crDialogOpen}
             onOpenChange={setCrDialogOpen}
-            milestone={milestones.find((m) => m.baseline && m.baseline.isLocked)}
+            baselineSnapshot={projectBaselineVersions[projectBaselineVersions.length - 1]?.snapshot as Milestone[] | undefined}
+            currentMilestones={milestones}
+            baselineVersion={projectBaselineVersions.length}
             onSubmit={(cr) => {
               setChangeRequests((prev) => [...prev, cr]);
               setCrDialogOpen(false);
+              setPlanEditMode("pending");
               toast.success(`Change Request ${cr.id} submitted for approval`);
             }}
           />

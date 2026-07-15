@@ -199,6 +199,9 @@ function ProjectDetail() {
   const [crApprovalDialogOpen, setCrApprovalDialogOpen] = useState(false);
   const [selectedCrForApproval, setSelectedCrForApproval] = useState<string | undefined>(undefined);
   const [selectedBaselineVersion, setSelectedBaselineVersion] = useState<string>("latest");
+  const [planEditMode, setPlanEditMode] = useState<"view" | "editing" | "pending">("view");
+  const isViewingCurrent = selectedBaselineVersion === "latest";
+  const isEditingAllowed = isViewingCurrent && planEditMode === "editing";
 
   // Initialize sample baseline versions on component mount
   useEffect(() => {
@@ -361,6 +364,69 @@ function ProjectDetail() {
 
 
         <TabsContent value="Project Schedule" className="mt-5">
+          {/* Version Selector & Edit Controls */}
+          <div className="mb-6 flex items-center justify-between rounded-lg border border-border bg-secondary/30 p-4">
+            <div className="flex items-center gap-4">
+              <div className="text-sm">
+                <div className="label-eyebrow">Project Schedule</div>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="font-medium text-foreground">Current Version:</span>
+                  <Select value={selectedBaselineVersion} onValueChange={(v) => {
+                    setSelectedBaselineVersion(v);
+                    setPlanEditMode("view");
+                  }}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="latest">Latest (v{projectBaselineVersions.length}) ⭐</SelectItem>
+                      {projectBaselineVersions.map((v) => (
+                        <SelectItem key={v.version} value={`v${v.version}`}>
+                          v{v.version} · {v.createdAt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {isViewingCurrent && (
+              <div className="flex gap-2">
+                {planEditMode === "view" && (
+                  <Button
+                    onClick={() => setPlanEditMode("editing")}
+                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                  >
+                    ✎ Change Plan
+                  </Button>
+                )}
+                {planEditMode === "editing" && (
+                  <Button
+                    onClick={() => {
+                      setCrDialogOpen(true);
+                      setPlanEditMode("pending");
+                    }}
+                    className="bg-rag-amber text-white hover:bg-rag-amber/90"
+                  >
+                    📤 Send Change Request
+                  </Button>
+                )}
+                {planEditMode === "pending" && (
+                  <Button disabled className="bg-rag-blue text-white">
+                    ⏳ Waiting For Approval
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {!isViewingCurrent && (
+              <div className="flex items-center gap-2 rounded-md border border-border/50 bg-background/50 px-3 py-2">
+                <span className="text-xs text-muted-foreground">📖 View Only — Historical Version</span>
+              </div>
+            )}
+          </div>
+
           <ProjectSchedule
             items={useMemo(() => computeDerivedSchedule(milestones, resourceRequests), [milestones, resourceRequests])}
             resourceList={resourcePool}
@@ -376,10 +442,18 @@ function ProjectDetail() {
               }
               setPlanningProgressOpen(true);
             }}
-            onItemPatch={(name, patch) =>
-              setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, ...patch } as Milestone : m)))
-            }
+            onItemPatch={(name, patch) => {
+              if (!isEditingAllowed) {
+                toast.error("📖 View Only — Click 'Change Plan' to edit");
+                return;
+              }
+              setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, ...patch } as Milestone : m)));
+            }}
             onRequestSkill={(name, role) => {
+              if (!isEditingAllowed) {
+                toast.error("📖 View Only — Click 'Change Plan' to edit");
+                return;
+              }
               const id = addResourceRequest({
                 project: project.name,
                 role: role.role,
@@ -421,9 +495,25 @@ function ProjectDetail() {
               const asMilestones = imported.map((it) => ({ ...it }) as Milestone);
               setMilestones((prev) => (mode === "replace" ? asMilestones : [...prev, ...asMilestones]));
             }}
-            onAddSubtask={(parentName) => setCtxDialog({ mode: "subtask", parent: parentName })}
-            onEditItem={(name) => setCtxDialog({ mode: "edit", name })}
+            onAddSubtask={(parentName) => {
+              if (!isEditingAllowed) {
+                toast.error("📖 View Only — Click 'Change Plan' to edit");
+                return;
+              }
+              setCtxDialog({ mode: "subtask", parent: parentName });
+            }}
+            onEditItem={(name) => {
+              if (!isEditingAllowed) {
+                toast.error("📖 View Only — Click 'Change Plan' to edit");
+                return;
+              }
+              setCtxDialog({ mode: "edit", name });
+            }}
             onDeleteItem={(name) => {
+              if (!isEditingAllowed) {
+                toast.error("📖 View Only — Click 'Change Plan' to edit");
+                return;
+              }
               setMilestones((prev) => {
                 // cascade-delete: remove the item and any descendant whose parent chain leads to it
                 const toRemove = new Set<string>([name]);
@@ -615,8 +705,9 @@ function ProjectDetail() {
                     : cr
                 )
               );
+              setPlanEditMode("view");
               setCrApprovalDialogOpen(false);
-              toast.success("Change Request approved");
+              toast.success("✅ Change Request approved! Back to Change Plan mode");
             }}
             onReject={(reason) => {
               setChangeRequests((prev) =>

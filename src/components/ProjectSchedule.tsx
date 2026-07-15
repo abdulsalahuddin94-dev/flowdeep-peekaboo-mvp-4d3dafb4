@@ -1073,7 +1073,7 @@ export function ProjectSchedule({
                       <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.assignee }}>
                         <AssigneeCell
                           item={item}
-                          editable={editable}
+                          editable={assigneeEditable}
                           onCommit={(v) => patch(item.name, { assignee: v || undefined })}
                           onRequestSkill={(role) => onRequestSkill?.(item.name, role)}
                           onSwap={(otherName) => {

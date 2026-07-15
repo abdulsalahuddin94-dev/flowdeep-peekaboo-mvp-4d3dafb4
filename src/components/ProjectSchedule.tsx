@@ -1197,9 +1197,10 @@ export function ProjectSchedule({
                     {colVisible("dep") && (
                       <div className="flex items-center border-l border-border/60 px-3 text-muted-foreground overflow-hidden" style={{ width: widths.dep }}>
                         <button
-                          onClick={() => onDependencyClick?.(item.name)}
-                          className="text-xs text-accent hover:underline cursor-pointer truncate max-w-full"
-                          title="Click to manage dependencies"
+                          onClick={() => !restricted && onDependencyClick?.(item.name)}
+                          disabled={restricted}
+                          className={`text-xs truncate max-w-full ${restricted ? "text-muted-foreground cursor-default" : "text-accent hover:underline cursor-pointer"}`}
+                          title={restricted ? "Locked — use Change Plan to edit dependencies" : "Click to manage dependencies"}
                         >
                           {item.dependencies && item.dependencies.length > 0
                             ? item.dependencies.length === 1

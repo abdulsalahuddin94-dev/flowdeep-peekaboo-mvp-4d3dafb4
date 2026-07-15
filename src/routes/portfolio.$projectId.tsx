@@ -566,10 +566,37 @@ function ProjectDetail() {
         items={computeDerivedSchedule(milestones, resourceRequests)}
         onSetProgress={(name, progress) =>
           setMilestones((prev) => {
-            const updated = prev.map((m) => (m.name === name ? { ...m, progress } : m));
+            let updated = prev.map((m) => (m.name === name ? { ...m, progress } : m));
+
+            // Auto-rollup: recalculate parent progress from children
+            const byName = new Map(updated.map((i) => [i.name, i]));
+            const changed = new Set<string>([name]);
+            let hasChanges = true;
+            while (hasChanges) {
+              hasChanges = false;
+              for (const m of updated) {
+                if (m.kind === "Milestone" && !changed.has(m.name)) {
+                  const children = updated.filter((c) => c.parent === m.name && c.kind === "Task");
+                  if (children.length > 0) {
+                    let totalW = 0, wa = 0;
+                    for (const c of children) {
+                      const w = Math.max(0, c.weightScore ?? 1);
+                      totalW += w;
+                      wa += w * (c.progress ?? 0);
+                    }
+                    const newProgress = totalW ? Math.round(wa / totalW) : 0;
+                    if (newProgress !== m.progress) {
+                      updated = updated.map((x) => (x.name === m.name ? { ...x, progress: newProgress } : x));
+                      changed.add(m.name);
+                      hasChanges = true;
+                    }
+                  }
+                }
+              }
+            }
+
             if (progress >= 100) return updated;
             // If reducing a task below 100%, revert any approved/pending ancestor milestone.
-            const byName = new Map(updated.map((i) => [i.name, i]));
             const seen = new Set<string>();
             let cur = byName.get(name);
             const toReset: string[] = [];
@@ -1649,6 +1676,10 @@ type Milestone = {
   approvalStatus?: "approved" | "pending" | "rejected";
   approvers?: { id: string; name: string; role: string; department: string }[];
   dependencies?: any[];
+  /** Baseline snapshot — locked version after approval. Milestone only. */
+  baseline?: { version: number; createdAt: string; baselineStart: string; baselineEnd: string; baselineProgress: number; isLocked: boolean };
+  /** Version history for change requests. */
+  versions?: Array<{ version: number; createdAt: string; change?: string; approvedBy?: string }>;
 };
 
 type Trip = { id: string; purpose: string; dest: string; dates: string; travelers: string; cost: string; rag: Rag; status: string };
@@ -2923,15 +2954,25 @@ const COST_COLORS: Record<string, string> = {
 };
 function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
   const [open, setOpen] = useState(false);
-  const [cat, setCat] = useState(""); const [budget, setBudget] = useState(""); const [actual, setActual] = useState("");
+  const [cat, setCat] = useState("");
+  const [budget, setBudget] = useState("");
+  const [actual, setActual] = useState("");
+  const [desc, setDesc] = useState("");
+  const [type, setType] = useState<"internal" | "third-party">("internal");
+  const [capex, setCapex] = useState<"capex" | "opex">("opex");
+  const [linkType, setLinkType] = useState<"fixed" | "milestone">("fixed");
+  const [linkDate, setLinkDate] = useState("");
+
   function submit() {
     if (!cat.trim() || !budget) { toast.error("Category and budget are required"); return; }
     const b = parseFloat(budget); const a = parseFloat(actual || "0");
     if (isNaN(b)) { toast.error("Budget must be a number"); return; }
     onAdd({ c: cat.trim(), b, a: isNaN(a) ? 0 : a, color: COST_COLORS[cat] ?? "bg-muted-foreground" });
     toast.success("Cost entry added");
-    setOpen(false); setCat(""); setBudget(""); setActual("");
+    setOpen(false);
+    setCat(""); setBudget(""); setActual(""); setDesc(""); setType("internal"); setCapex("opex"); setLinkType("fixed"); setLinkDate("");
   }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -2939,24 +2980,69 @@ function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
           <Plus className="mr-1 h-3.5 w-3.5" />Add Cost
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-sm">
-        <DialogHeader><DialogTitle>Add Cost Entry</DialogTitle></DialogHeader>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Cost Entry</DialogTitle>
+          <DialogDescription>Enter detailed cost information with breakdown and classification.</DialogDescription>
+        </DialogHeader>
         <div className="grid gap-3">
           <div>
             <Label>Category</Label>
             <Select value={cat} onValueChange={setCat}>
               <SelectTrigger><SelectValue placeholder="Select category…" /></SelectTrigger>
               <SelectContent>
-                {["Labour", "Hardware", "Software", "Business trips", "Contingency", "Other"].map((c) => (
+                {["Staff", "Services", "Insurance", "Business Trips", "Contracts", "Other"].map((c) => (
                   <SelectItem key={c} value={c}>{c}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+          <div>
+            <Label>Description</Label>
+            <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Senior developer contract" />
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <div><Label>Budget ($M)</Label><Input type="number" min={0} step={0.01} value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="0.50" /></div>
             <div><Label>Actual ($M)</Label><Input type="number" min={0} step={0.01} value={actual} onChange={(e) => setActual(e.target.value)} placeholder="0.00" /></div>
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label>Type</Label>
+              <Select value={type} onValueChange={(v) => setType(v as typeof type)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="internal">Internal</SelectItem>
+                  <SelectItem value="third-party">Third-party</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Classification</Label>
+              <Select value={capex} onValueChange={(v) => setCapex(v as typeof capex)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="capex">CapEx</SelectItem>
+                  <SelectItem value="opex">OpEx</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <Label>Link to</Label>
+            <Select value={linkType} onValueChange={(v) => setLinkType(v as typeof linkType)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="fixed">Fixed Date</SelectItem>
+                <SelectItem value="milestone">Milestone (Dynamic)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {linkType === "fixed" && (
+            <div><Label>Due Date</Label><Input type="date" value={linkDate} onChange={(e) => setLinkDate(e.target.value)} /></div>
+          )}
+          {linkType === "milestone" && (
+            <div><Label>Milestone Name</Label><Input value={linkDate} onChange={(e) => setLinkDate(e.target.value)} placeholder="e.g. Design Approved" /></div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

@@ -169,6 +169,7 @@ function ProjectDetail() {
   const [crDialogOpen, setCrDialogOpen] = useState(false);
   const [crApprovalDialogOpen, setCrApprovalDialogOpen] = useState(false);
   const [selectedCrForApproval, setSelectedCrForApproval] = useState<string | undefined>(undefined);
+  const [selectedBaselineVersion, setSelectedBaselineVersion] = useState<string>("latest");
   const currentStage = PLANNING_STAGES.find((s) => s.state === "active") ?? PLANNING_STAGES[0];
   const planningDone = PLANNING_CHECKLIST.filter((c) => c.done).length;
   return (
@@ -370,6 +371,78 @@ function ProjectDetail() {
             initialKind={ctxDialog?.mode === "subtask" ? "Task" : undefined}
             editingItem={ctxDialog?.mode === "edit" ? (milestones.find((m) => m.name === ctxDialog.name) ?? null) : null}
           />
+
+          {/* Baseline Version History Viewer */}
+          {(() => {
+            const lockedMilestone = milestones.find((m) => m.baseline && m.baseline.isLocked);
+            if (!lockedMilestone || !lockedMilestone.versions || lockedMilestone.versions.length === 0) return null;
+
+            return (
+              <div className="mt-8 space-y-4 border-t border-border pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="label-eyebrow">Baseline Versions — {lockedMilestone.name}</div>
+                  <Select value={selectedBaselineVersion} onValueChange={setSelectedBaselineVersion}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="latest">Latest (v{lockedMilestone.versions.length})</SelectItem>
+                      {lockedMilestone.versions.map((v, i) => (
+                        <SelectItem key={i} value={`v${v.version}`}>
+                          v{v.version} · {v.createdAt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {(() => {
+                  const versionNum = selectedBaselineVersion === "latest" ? lockedMilestone.versions.length : parseInt(selectedBaselineVersion.slice(1));
+                  const version = lockedMilestone.versions.find((v) => v.version === versionNum);
+                  const snapshot = version?.snapshot || [];
+
+                  return (
+                    <div className="rounded-lg border border-border/50 bg-secondary/20 p-4">
+                      <div className="mb-4 flex items-center justify-between">
+                        <div>
+                          <div className="font-medium text-foreground">v{versionNum} · {version?.createdAt}</div>
+                          <div className="text-xs text-muted-foreground">Created by {version?.approvedBy || "System"}</div>
+                        </div>
+                        {selectedBaselineVersion === "latest" && (
+                          <Badge className="bg-rag-green/10 text-rag-green border border-rag-green/40">Current</Badge>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        {snapshot.length > 0 ? (
+                          snapshot.map((item) => (
+                            <div key={item.name} className="flex items-center justify-between rounded border border-border/30 bg-background/40 p-3 text-sm">
+                              <div className="flex-1">
+                                <div className="font-medium text-foreground">
+                                  {item.kind === "Milestone" ? "◆" : "▢"} {item.name}
+                                </div>
+                                <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                                  <span>{item.startDate} to {item.endDate}</span>
+                                  <span className="num-mono">{item.progress ?? 0}%</span>
+                                </div>
+                              </div>
+                              <div className="ml-3 flex items-center gap-2">
+                                <Progress value={item.progress ?? 0} className="h-1.5 w-20" />
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="py-4 text-center text-xs text-muted-foreground">
+                            No snapshot data for this version
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            );
+          })()}
 
           {/* Change Requests Section */}
           <div className="mt-8 space-y-4 border-t border-border pt-6">
@@ -1301,13 +1374,17 @@ function ProgressUpdateDialog({
 
   function createBaseline() {
     if (!approvalMilestone) return;
+    const versionNumber = (approvalMilestone.versions?.length ?? 0) + 1;
+    const derived = computeDerivedSchedule(milestones, resourceRequests);
+    const snapshotMilestones = derived.filter((m) => m.name === approvalMilestone.name || m.parent === approvalMilestone.name);
+
     setMilestones((prev) =>
       prev.map((m) =>
         m.name === approvalMilestone.name
           ? {
               ...m,
               baseline: {
-                version: (m.versions?.length ?? 0) + 1,
+                version: versionNumber,
                 createdAt: new Date().toISOString().split('T')[0],
                 baselineStart: m.startDate,
                 baselineEnd: m.endDate,
@@ -1316,13 +1393,18 @@ function ProgressUpdateDialog({
               },
               versions: [
                 ...(m.versions ?? []),
-                { version: (m.versions?.length ?? 0) + 1, createdAt: new Date().toISOString().split('T')[0], approvedBy: "Current User" }
+                {
+                  version: versionNumber,
+                  createdAt: new Date().toISOString().split('T')[0],
+                  approvedBy: "Current User",
+                  snapshot: snapshotMilestones
+                }
               ]
             }
           : m
       )
     );
-    toast.success(`Baseline v${(approvalMilestone.versions?.length ?? 0) + 1} created & locked`);
+    toast.success(`Baseline v${versionNumber} created & locked`);
   }
 
   function requestChangeRequest() {

@@ -277,6 +277,7 @@ export function ProjectSchedule({
   onDependencyClick,
   resourceList = [],
   headerSlot,
+  restricted = false,
 }: {
   items: ScheduleItem[];
   AddItemSlot?: React.ReactNode;
@@ -290,6 +291,12 @@ export function ProjectSchedule({
   onDependencyClick?: (name: string) => void;
   resourceList?: Array<{ name: string; role?: string; dept?: string }>;
   headerSlot?: React.ReactNode;
+  /**
+   * When true, only Progress Update and Assignee edits are allowed.
+   * All other inline edits (name, dates, owner, roles, status, dependencies,
+   * Gantt drag, right-click add/edit/delete) are hidden or read-only.
+   */
+  restricted?: boolean;
 }) {
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);

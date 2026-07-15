@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -1283,10 +1283,10 @@ function ProgressUpdateDialog({
                     <span className="text-muted-foreground">Assignee:</span>
                     <span className="text-foreground">{current.assignee || "—"}</span>
                   </div>
-                  {current.dependsOn && (
+                  {current.dep && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Depends on:</span>
-                      <span className="text-foreground">{current.dependsOn}</span>
+                      <span className="text-foreground">{current.dep}</span>
                     </div>
                   )}
                   {current.parent && (

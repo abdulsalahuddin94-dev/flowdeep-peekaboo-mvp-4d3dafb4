@@ -919,6 +919,13 @@ function ProjectDetail() {
         initialTaskName={progressInitial}
         scopeMilestone={progressScope}
         items={computeDerivedSchedule(milestones, resourceRequests)}
+        projectBaseline={projectBaseline}
+        setProjectBaseline={setProjectBaseline}
+        projectBaselineVersions={projectBaselineVersions}
+        setProjectBaselineVersions={setProjectBaselineVersions}
+        milestones={milestones}
+        resourceRequests={resourceRequests}
+        setCrDialogOpen={setCrDialogOpen}
         onSetProgress={(name, progress) =>
           setMilestones((prev) => {
             let updated = prev.map((m) => (m.name === name ? { ...m, progress } : m));

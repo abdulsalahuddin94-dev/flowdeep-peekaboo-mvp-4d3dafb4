@@ -418,6 +418,7 @@ function ProjectDetail() {
               return computeDerivedSchedule(milestones, resourceRequests);
             }, [milestones, resourceRequests, isViewingCurrent, selectedBaselineVersion, projectBaselineVersions])}
             resourceList={resourcePool}
+            restricted={!isEditingAllowed}
             onProgressClick={(name, kind) => {
               const derived = computeDerivedSchedule(milestones, resourceRequests);
               const hasChildren = derived.some((d) => d.parent === name);
@@ -431,8 +432,13 @@ function ProjectDetail() {
               setPlanningProgressOpen(true);
             }}
             onItemPatch={(name, patch) => {
-              if (!isEditingAllowed) {
-                toast.error("📖 View Only — Click 'Change Plan' to edit");
+              // Only Progress Update and Assignee changes/swaps are allowed
+              // without opening the Change Plan flow. Everything else needs approval.
+              const keys = Object.keys(patch);
+              const isAssigneeOnly = keys.length > 0 && keys.every((k) => k === "assignee");
+              const isProgressOnly = keys.length > 0 && keys.every((k) => k === "progress" || k === "approvalStatus");
+              if (!isEditingAllowed && !isAssigneeOnly && !isProgressOnly) {
+                toast.error("Locked — click 'Change Plan' to edit");
                 return;
               }
               setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, ...patch } as Milestone : m)));

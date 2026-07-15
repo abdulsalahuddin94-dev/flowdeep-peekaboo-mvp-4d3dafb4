@@ -205,7 +205,7 @@ function ProjectDetail() {
 
   // Initialize sample baseline versions on component mount
   useEffect(() => {
-    if (projectBaselineVersions.length === 0) {
+    if (projectBaselineVersions.length === 0 && milestones.length > 0) {
       const versions = [
         {
           version: 1,
@@ -260,7 +260,7 @@ function ProjectDetail() {
         snapshot: versions[3].snapshot,
       });
     }
-  }, []);
+  }, [milestones]);
 
   const currentStage = PLANNING_STAGES.find((s) => s.state === "active") ?? PLANNING_STAGES[0];
   const planningDone = PLANNING_CHECKLIST.filter((c) => c.done).length;

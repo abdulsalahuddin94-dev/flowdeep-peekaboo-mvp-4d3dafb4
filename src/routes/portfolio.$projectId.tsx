@@ -919,6 +919,13 @@ function ProjectDetail() {
         initialTaskName={progressInitial}
         scopeMilestone={progressScope}
         items={computeDerivedSchedule(milestones, resourceRequests)}
+        projectBaseline={projectBaseline}
+        setProjectBaseline={setProjectBaseline}
+        projectBaselineVersions={projectBaselineVersions}
+        setProjectBaselineVersions={setProjectBaselineVersions}
+        milestones={milestones}
+        resourceRequests={resourceRequests}
+        setCrDialogOpen={setCrDialogOpen}
         onSetProgress={(name, progress) =>
           setMilestones((prev) => {
             let updated = prev.map((m) => (m.name === name ? { ...m, progress } : m));
@@ -1436,6 +1443,8 @@ const SEED_PACKAGES: TenderPackage[] = [
 // ── Progress Update dialog (shown when the Progress KPI is clicked) ─────────
 function ProgressUpdateDialog({
   open, onOpenChange, items, onSetProgress, onRequestApproval, onApprove, initialTaskName, scopeMilestone,
+  projectBaseline, setProjectBaseline, projectBaselineVersions, setProjectBaselineVersions,
+  milestones, resourceRequests, setCrDialogOpen,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -1445,6 +1454,13 @@ function ProgressUpdateDialog({
   onApprove: (name: string) => void;
   initialTaskName?: string;
   scopeMilestone?: string;
+  projectBaseline: { version: number; createdAt: string; isLocked: boolean; snapshot: Milestone[] } | null;
+  setProjectBaseline: React.Dispatch<React.SetStateAction<{ version: number; createdAt: string; isLocked: boolean; snapshot: Milestone[] } | null>>;
+  projectBaselineVersions: Array<{ version: number; createdAt: string; snapshot: Milestone[] }>;
+  setProjectBaselineVersions: React.Dispatch<React.SetStateAction<Array<{ version: number; createdAt: string; snapshot: Milestone[] }>>>;
+  milestones: Milestone[];
+  resourceRequests: ResourceRequest[];
+  setCrDialogOpen: (v: boolean) => void;
 }) {
   // All leaf tasks (no children)
   const allLeaves = useMemo(

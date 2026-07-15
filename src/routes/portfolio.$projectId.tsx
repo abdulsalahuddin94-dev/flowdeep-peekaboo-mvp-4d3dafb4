@@ -1203,6 +1203,38 @@ function ProgressUpdateDialog({
     toast.success(`Approval requests sent for ${approvalMilestone.name}`);
   }
 
+  function createBaseline() {
+    if (!approvalMilestone) return;
+    setMilestones((prev) =>
+      prev.map((m) =>
+        m.name === approvalMilestone.name
+          ? {
+              ...m,
+              baseline: {
+                version: (m.versions?.length ?? 0) + 1,
+                createdAt: new Date().toISOString().split('T')[0],
+                baselineStart: m.startDate,
+                baselineEnd: m.endDate,
+                baselineProgress: m.progress ?? 0,
+                isLocked: true,
+              },
+              versions: [
+                ...(m.versions ?? []),
+                { version: (m.versions?.length ?? 0) + 1, createdAt: new Date().toISOString().split('T')[0], approvedBy: "Current User" }
+              ]
+            }
+          : m
+      )
+    );
+    toast.success(`Baseline v${(approvalMilestone.versions?.length ?? 0) + 1} created & locked`);
+  }
+
+  function requestChangeRequest() {
+    if (!approvalMilestone || !approvalMilestone.baseline) return;
+    toast.info("Change Request form opened");
+    // CR dialog would open here
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
@@ -1309,10 +1341,31 @@ function ProgressUpdateDialog({
               onChange={(e) => setDraftPct(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
             />
             <div className="flex flex-col gap-2">
-              {msApproved ? (
+              {msApproved && !approvalMilestone?.baseline ? (
+                <Button
+                  onClick={createBaseline}
+                  className="bg-rag-green text-white hover:bg-rag-green/90"
+                >
+                  ✓ Create Baseline (Lock Schedule)
+                </Button>
+              ) : approvalMilestone?.baseline ? (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-center gap-2 rounded-md border border-rag-green/50 bg-rag-green/10 px-3 py-2 text-sm font-medium text-rag-green">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Baseline v{approvalMilestone.baseline.version} (Locked)
+                  </div>
+                  <Button
+                    onClick={requestChangeRequest}
+                    variant="outline"
+                    className="border-accent text-accent hover:bg-accent-dim"
+                  >
+                    + Request Change (v{(approvalMilestone.baseline.version ?? 0) + 1})
+                  </Button>
+                </div>
+              ) : msApproved ? (
                 <div className="flex items-center justify-center gap-2 rounded-md border border-rag-green/50 bg-rag-green/10 px-3 py-2 text-sm font-medium text-rag-green">
                   <CheckCircle2 className="h-4 w-4" />
-                  Approved
+                  Approved (awaiting baseline)
                 </div>
               ) : showSendApprovalBtn ? (
                 <Button
@@ -1330,10 +1383,10 @@ function ProgressUpdateDialog({
               ) : (
                 <Button
                   onClick={save}
-                  disabled={!current}
+                  disabled={!current || approvalMilestone?.baseline?.isLocked}
                   className="bg-accent text-accent-foreground hover:bg-accent/90"
                 >
-                  Save update
+                  {approvalMilestone?.baseline?.isLocked ? "🔒 Schedule Locked" : "Save update"}
                 </Button>
               )}
             </div>

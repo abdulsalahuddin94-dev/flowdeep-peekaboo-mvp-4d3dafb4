@@ -32,6 +32,8 @@ function OrganizationPage() {
           <TabsTrigger value="business-lines">Business Types</TabsTrigger>
           <TabsTrigger value="departments">Departments</TabsTrigger>
           <TabsTrigger value="tags">Tags & Classifications</TabsTrigger>
+          <TabsTrigger value="cost-categories">Cost Categories</TabsTrigger>
+          <TabsTrigger value="job-roles">Job Roles</TabsTrigger>
           <TabsTrigger value="calendars">Calendars</TabsTrigger>
         </TabsList>
 
@@ -86,6 +88,14 @@ function OrganizationPage() {
 
         <TabsContent value="tags" className="mt-5">
           <TagsTab />
+        </TabsContent>
+
+        <TabsContent value="cost-categories" className="mt-5">
+          <CostCategoriesTab />
+        </TabsContent>
+
+        <TabsContent value="job-roles" className="mt-5">
+          <JobRolesTab />
         </TabsContent>
 
         <TabsContent value="calendars" className="mt-5">
@@ -445,6 +455,173 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button className="bg-accent text-accent-foreground" onClick={save}>{isEdit ? "Save changes" : "Create Calendar"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CostCategoriesTab() {
+  const [categories, setCategories] = useState([
+    { id: "staff", name: "Staff", number: "CC-001" },
+    { id: "services", name: "Services", number: "CC-002" },
+    { id: "insurance", name: "Insurance", number: "CC-003" },
+    { id: "business-trips", name: "Business Trips", number: "CC-004" },
+    { id: "contracts", name: "Contracts", number: "CC-005" },
+  ]);
+
+  return (
+    <>
+      <SectionHeader
+        title="Cost Categories"
+        desc="Standard organizational cost classifications used across projects. Each category has a unique cost center identifier."
+        cta={<AddCostCategoryDialog onAdd={(cat) => setCategories([...categories, cat])} />}
+      />
+      <div className="">
+        <Table>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
+            <TableHead>Category Name</TableHead>
+            <TableHead>Cost Center ID</TableHead>
+            <TableHead className="text-right">Usage</TableHead>
+            <TableHead className="w-24" />
+          </TableRow></TableHeader>
+          <TableBody>
+            {categories.map((c) => (
+              <TableRow key={c.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                <TableCell className="font-medium text-foreground">{c.name}</TableCell>
+                <TableCell className="num-mono text-muted-foreground">{c.number}</TableCell>
+                <TableCell className="text-right text-xs text-muted-foreground">— projects</TableCell>
+                <TableCell><RowActions /></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
+  );
+}
+
+function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: any) => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [number, setNumber] = useState("");
+
+  function save() {
+    const trimmed = name.trim();
+    const numTrimmed = number.trim();
+    if (!trimmed || !numTrimmed) { toast.error("Name and ID are required"); return; }
+    onAdd({ id: `cat-${Date.now()}`, name: trimmed, number: numTrimmed });
+    toast.success(`Cost Category "${trimmed}" created`);
+    setName("");
+    setNumber("");
+    setOpen(false);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Category</Button></DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New Cost Category</DialogTitle>
+          <DialogDescription>Define a cost classification and its cost center identifier for tracking expenses.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>Category Name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Staff, Services, Insurance" />
+          </div>
+          <div>
+            <Label>Cost Center ID</Label>
+            <Input value={number} onChange={(e) => setNumber(e.target.value)} placeholder="e.g. CC-001" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button className="bg-accent text-accent-foreground" onClick={save}>Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function JobRolesTab() {
+  const [roles, setRoles] = useState([
+    { id: "ba", title: "Business Analyst" },
+    { id: "sa", title: "Solution Architect" },
+    { id: "ux", title: "UX Designer" },
+    { id: "be", title: "Backend Developer" },
+    { id: "fe", title: "Frontend Developer" },
+    { id: "int", title: "Integration Developer" },
+    { id: "de", title: "Data Engineer" },
+    { id: "qa", title: "QA Engineer" },
+    { id: "qal", title: "QA Lead" },
+    { id: "devops", title: "DevOps Engineer" },
+    { id: "sec", title: "Security Lead" },
+    { id: "perf", title: "Performance Engineer" },
+    { id: "sup", title: "Support Lead" },
+    { id: "tr", title: "Trainer" },
+    { id: "pm", title: "Project Manager" },
+  ]);
+
+  return (
+    <>
+      <SectionHeader
+        title="Job Roles Definition"
+        desc="Define standard job titles and roles used during project planning. Assign roles to tasks before allocating specific resources."
+        cta={<AddJobRoleDialog onAdd={(role) => setRoles([...roles, role])} />}
+      />
+      <div className="">
+        <Table>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
+            <TableHead>Role Title</TableHead>
+            <TableHead className="text-right">Usage in Projects</TableHead>
+            <TableHead className="w-24" />
+          </TableRow></TableHeader>
+          <TableBody>
+            {roles.map((r) => (
+              <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                <TableCell className="font-medium text-foreground">{r.title}</TableCell>
+                <TableCell className="text-right text-xs text-muted-foreground">— tasks</TableCell>
+                <TableCell><RowActions /></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
+  );
+}
+
+function AddJobRoleDialog({ onAdd }: { onAdd: (role: any) => void }) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+
+  function save() {
+    const trimmed = title.trim();
+    if (!trimmed) { toast.error("Role title is required"); return; }
+    onAdd({ id: `role-${Date.now()}`, title: trimmed });
+    toast.success(`Job Role "${trimmed}" created`);
+    setTitle("");
+    setOpen(false);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Role</Button></DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New Job Role</DialogTitle>
+          <DialogDescription>Define a job title that can be assigned to tasks during project planning.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>Role Title</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Data Engineer, Cloud Architect" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button className="bg-accent text-accent-foreground" onClick={save}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

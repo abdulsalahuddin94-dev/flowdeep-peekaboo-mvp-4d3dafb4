@@ -239,7 +239,7 @@ const COLUMNS = [
   { key: "status",   label: "Status",      w: 110 },
   { key: "progress", label: "% Complete",  w: 180 },
   { key: "dep",      label: "Depends on",  w: 110 },
-  { key: "payment",  label: "Payment link",w: 160 },
+  { key: "payment",  label: "Financial Link",w: 160 },
 ] as const;
 type ColKey = typeof COLUMNS[number]["key"];
 type WidthKey = ColKey | "name";

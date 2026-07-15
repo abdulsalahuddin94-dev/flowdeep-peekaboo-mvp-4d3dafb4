@@ -1211,16 +1211,16 @@ function ProgressUpdateDialog({
             }}>
               <SelectTrigger><SelectValue placeholder="Choose a task…" /></SelectTrigger>
               <SelectContent className="max-h-72">
-                {leaves.map((t) => (
+                {leaves.filter((t) => current?.parent ? t.parent === current.parent : true).map((t) => (
                   <SelectItem key={t.name} value={t.name}>
-                    {t.name}{t.parent ? ` — ${t.parent}` : ""}
+                    {t.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {current && (
-              <div className="mt-1 rounded-md border border-border bg-secondary/20 p-3">
-                <div className="mb-1 flex items-center justify-between">
+              <div className="mt-1 rounded-md border border-border bg-secondary/20 p-3 space-y-2">
+                <div className="flex items-center justify-between">
                   <div className="text-sm font-medium text-foreground">{current.name}</div>
                   {current.requiresApproval && (
                     <span className={`rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
@@ -1234,13 +1234,40 @@ function ProgressUpdateDialog({
                     </span>
                   )}
                 </div>
-                <div className="mb-2 text-[11px] text-muted-foreground">
-                  {current.startDate} → {current.endDate} · Assignee {current.assignee || "—"}
-                </div>
                 <PlanVsActualBar actual={current.progress ?? 0} planned={currentPlanned} />
-                <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                   <span>Actual <span className="num-mono text-foreground">{current.progress ?? 0}%</span></span>
                   <span>Planned <span className="num-mono text-foreground">{currentPlanned}%</span></span>
+                </div>
+                <div className="border-t border-border/50 pt-2 space-y-1 text-[11px]">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Start:</span>
+                    <span className="text-foreground">{current.startDate}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">End:</span>
+                    <span className="text-foreground">{current.endDate}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Owner:</span>
+                    <span className="text-foreground">{current.owner || "—"}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Assignee:</span>
+                    <span className="text-foreground">{current.assignee || "—"}</span>
+                  </div>
+                  {current.dependsOn && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Depends on:</span>
+                      <span className="text-foreground">{current.dependsOn}</span>
+                    </div>
+                  )}
+                  {current.parent && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Parent:</span>
+                      <span className="text-foreground">{current.parent}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1290,28 +1317,6 @@ function ProgressUpdateDialog({
           </div>
         </div>
 
-        {/* Milestones read-only */}
-        {!scopeMilestone && milestoneItems.length > 0 && (
-          <div className="rounded-md border border-border">
-            <div className="border-b border-border bg-secondary/30 px-3 py-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-              Milestones (auto-rolled)
-            </div>
-            <div className="max-h-48 overflow-auto">
-              {milestoneItems.map((m) => {
-                const p = computePlannedProgress(m.startDate, m.endDate);
-                return (
-                  <div key={m.name} className="flex items-center gap-3 border-b border-border/60 px-3 py-2 last:border-b-0">
-                    <div className="flex-1 truncate text-sm text-foreground">{m.name}</div>
-                    <div className="w-40"><PlanVsActualBar actual={m.progress ?? 0} planned={p} /></div>
-                    <div className="num-mono w-24 text-right text-[11px] text-muted-foreground">
-                      {m.progress ?? 0}% / {p}%
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
@@ -2190,7 +2195,7 @@ function AddMilestoneDialog({
 
           {kind === "Task" && (
             <div className="rounded-md border border-border p-3 space-y-2">
-              <Label className="text-sm">Payment link</Label>
+              <Label className="text-sm">Financial Link</Label>
               <p className="text-xs text-muted-foreground">Connect this task to a client revenue event or a working-package (contract) payment milestone.</p>
               <div className="grid grid-cols-2 gap-2">
                 <div>

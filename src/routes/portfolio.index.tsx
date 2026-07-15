@@ -537,6 +537,7 @@ const PM_LIST = ["Sara Al-Rashid", "John Smith", "Mei Chen", "Omar Haddad", "Pri
 function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
   const { calendars } = useCalendars();
   const [open, setOpen] = useState(false);
+  const [projectType, setProjectType] = useState<"capital" | "commercial">("capital");
   const [name, setName] = useState("");
   const [businessLine, setBusinessLine] = useState("Software Solutions");
   const [department, setDepartment] = useState("Engineering");
@@ -545,20 +546,22 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
   const [stage, setStage] = useState<Project["stage"]>("Initiation");
   const [endDate, setEndDate] = useState("");
   const [budget, setBudget] = useState("");
+  const [revenue, setRevenue] = useState("");
   const [tagsInput, setTagsInput] = useState("");
   const [calendarId, setCalendarId] = useState<string>(calendars[0]?.id ?? "");
 
-  function reset() { setName(""); setBudget(""); setEndDate(""); setTagsInput(""); }
+  function reset() { setName(""); setBudget(""); setRevenue(""); setEndDate(""); setTagsInput(""); setProjectType("capital"); }
 
   function handleCreate() {
     if (!name.trim()) { toast.error("Project name is required"); return; }
     const avatar = pm.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+    const finalClient = projectType === "capital" ? "Internal" : client;
     const newProject: Project = {
       id: `p-${Date.now()}`,
       name: name.trim(),
       businessLine,
       department,
-      client,
+      client: finalClient,
       pm,
       pmAvatar: avatar,
       progress: 0,
@@ -592,6 +595,20 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
           <DialogDescription>Create a project directly in the portfolio. For new initiatives requiring approval, use Submit Business Case instead.</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3">
+          <div className="col-span-2">
+            <Label>Project Type</Label>
+            <div className="mt-1 flex gap-4">
+              {[
+                { value: "capital" as const, label: "Capital / Internal" },
+                { value: "commercial" as const, label: "Commercial / External" },
+              ].map((type) => (
+                <label key={type.value} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="projectType" value={type.value} checked={projectType === type.value} onChange={(e) => setProjectType(e.target.value as typeof projectType)} className="cursor-pointer" />
+                  <span className="text-sm">{type.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
           <div className="col-span-2">
             <Label>Project name *</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. ERP Integration Phase 2" />
@@ -627,17 +644,19 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <Label>Client</Label>
-            <Select value={client} onValueChange={setClient}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Internal">Internal</SelectItem>
-                <SelectItem value="ACME Energy">ACME Energy</SelectItem>
-                <SelectItem value="Northwind Logistics">Northwind Logistics</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {projectType === "commercial" && (
+            <div>
+              <Label>Client</Label>
+              <Select value={client} onValueChange={setClient}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACME Energy">ACME Energy</SelectItem>
+                  <SelectItem value="Northwind Logistics">Northwind Logistics</SelectItem>
+                  <SelectItem value="Global Tech">Global Tech</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label>Stage</Label>
             <Select value={stage} onValueChange={(v) => setStage(v as Project["stage"])}>
@@ -657,6 +676,12 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
             <Label>Budget total ($M)</Label>
             <Input type="number" min="0" step="0.1" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="e.g. 2.5" />
           </div>
+          {projectType === "commercial" && (
+            <div>
+              <Label>Expected Revenue ($M)</Label>
+              <Input type="number" min="0" step="0.1" value={revenue} onChange={(e) => setRevenue(e.target.value)} placeholder="e.g. 3.0" />
+            </div>
+          )}
           <div className="col-span-2">
             <Label>Working Calendar</Label>
             <Select value={calendarId} onValueChange={setCalendarId}>

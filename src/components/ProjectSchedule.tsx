@@ -276,6 +276,7 @@ export function ProjectSchedule({
   onProgressClick,
   onDependencyClick,
   resourceList = [],
+  headerSlot,
 }: {
   items: ScheduleItem[];
   AddItemSlot?: React.ReactNode;
@@ -288,6 +289,7 @@ export function ProjectSchedule({
   onProgressClick?: (name: string, kind: ItemKind) => void;
   onDependencyClick?: (name: string) => void;
   resourceList?: Array<{ name: string; role?: string; dept?: string }>;
+  headerSlot?: React.ReactNode;
 }) {
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);

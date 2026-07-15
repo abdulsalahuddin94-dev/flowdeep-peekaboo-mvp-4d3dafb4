@@ -123,6 +123,24 @@ function ProjectDetail() {
     isLocked: boolean;
     snapshot: Milestone[];
   } | null>(null);
+
+  // Initialize with sample baseline versions for demo
+  const initializeBaselineVersions = (): Array<{
+    version: number;
+    createdAt: string;
+    snapshot: Milestone[];
+  }> => {
+    const sampleVersions = [
+      { version: 1, createdAt: "2025-04-15", daysShift: 0 },
+      { version: 2, createdAt: "2025-05-01", daysShift: 16 },
+      { version: 3, createdAt: "2025-05-20", daysShift: 35 },
+      { version: 4, createdAt: "2025-06-10", daysShift: 56 },
+    ];
+
+    // Will be populated after milestones are initialized
+    return [];
+  };
+
   const [projectBaselineVersions, setProjectBaselineVersions] = useState<Array<{
     version: number;
     createdAt: string;
@@ -181,6 +199,66 @@ function ProjectDetail() {
   const [crApprovalDialogOpen, setCrApprovalDialogOpen] = useState(false);
   const [selectedCrForApproval, setSelectedCrForApproval] = useState<string | undefined>(undefined);
   const [selectedBaselineVersion, setSelectedBaselineVersion] = useState<string>("latest");
+
+  // Initialize sample baseline versions on component mount
+  useEffect(() => {
+    if (projectBaselineVersions.length === 0) {
+      const versions = [
+        {
+          version: 1,
+          createdAt: "2025-04-15",
+          snapshot: milestones.map((m) => ({
+            ...m,
+            progress: m.kind === "Milestone" ? 0 : m.name.includes("Discovery") ? 100 : 0,
+          })),
+        },
+        {
+          version: 2,
+          createdAt: "2025-05-01",
+          snapshot: milestones.map((m) => ({
+            ...m,
+            progress:
+              m.kind === "Milestone" ? 0 :
+              m.name.includes("Discovery") ? 100 :
+              m.name.includes("Design") ? 50 : 0,
+          })),
+        },
+        {
+          version: 3,
+          createdAt: "2025-05-20",
+          snapshot: milestones.map((m) => ({
+            ...m,
+            progress:
+              m.kind === "Milestone" ? 0 :
+              m.name.includes("Discovery") ? 100 :
+              m.name.includes("Design") ? 100 :
+              m.name.includes("Build") ? 30 : 0,
+          })),
+        },
+        {
+          version: 4,
+          createdAt: "2025-06-10",
+          snapshot: milestones.map((m) => ({
+            ...m,
+            progress:
+              m.kind === "Milestone" ? 0 :
+              m.name.includes("Discovery") ? 100 :
+              m.name.includes("Design") ? 100 :
+              m.name.includes("Build") ? 60 :
+              m.name.includes("Testing") ? 10 : 0,
+          })),
+        },
+      ];
+      setProjectBaselineVersions(versions);
+      setProjectBaseline({
+        version: 4,
+        createdAt: "2025-06-10",
+        isLocked: true,
+        snapshot: versions[3].snapshot,
+      });
+    }
+  }, []);
+
   const currentStage = PLANNING_STAGES.find((s) => s.state === "active") ?? PLANNING_STAGES[0];
   const planningDone = PLANNING_CHECKLIST.filter((c) => c.done).length;
   return (
@@ -409,15 +487,26 @@ function ProjectDetail() {
                 const snapshot = version?.snapshot || [];
 
                 return (
-                  <div className="rounded-lg border border-border/50 bg-secondary/20 p-4">
-                    <div className="mb-4 flex items-center justify-between">
+                  <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 space-y-4">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium text-foreground">v{versionNum} · {version?.createdAt}</div>
-                        <div className="text-xs text-muted-foreground">Complete schedule snapshot</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-foreground">v{versionNum} · {version?.createdAt}</span>
+                          {selectedBaselineVersion === "latest" && (
+                            <Badge className="bg-rag-green/10 text-rag-green border border-rag-green/40 text-xs">⭐ Latest</Badge>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">Complete schedule snapshot for client review</div>
                       </div>
-                      {selectedBaselineVersion === "latest" && (
-                        <Badge className="bg-rag-green/10 text-rag-green border border-rag-green/40">Current Active</Badge>
-                      )}
+                      <div className="text-right">
+                        <div className="text-sm font-mono text-muted-foreground">
+                          {(() => {
+                            const completed = snapshot.filter((s) => s.kind !== "Milestone" && (s.progress ?? 0) === 100).length;
+                            const total = snapshot.filter((s) => s.kind !== "Milestone").length;
+                            return `${completed}/${total} tasks done`;
+                          })()}
+                        </div>
+                      </div>
                     </div>
 
                     <div className="space-y-2 max-h-96 overflow-y-auto">

@@ -165,6 +165,10 @@ function ProjectDetail() {
   const [dependencyOpen, setDependencyOpen] = useState(false);
   const [selectedItemForDep, setSelectedItemForDep] = useState<string | undefined>(undefined);
   const [gateData, setGateData] = useState<GateStage[]>(INITIAL_GATE_DATA);
+  const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>([]);
+  const [crDialogOpen, setCrDialogOpen] = useState(false);
+  const [crApprovalDialogOpen, setCrApprovalDialogOpen] = useState(false);
+  const [selectedCrForApproval, setSelectedCrForApproval] = useState<string | undefined>(undefined);
   const currentStage = PLANNING_STAGES.find((s) => s.state === "active") ?? PLANNING_STAGES[0];
   const planningDone = PLANNING_CHECKLIST.filter((c) => c.done).length;
   return (
@@ -365,6 +369,98 @@ function ProjectDetail() {
             initialParent={ctxDialog?.mode === "subtask" ? ctxDialog.parent : undefined}
             initialKind={ctxDialog?.mode === "subtask" ? "Task" : undefined}
             editingItem={ctxDialog?.mode === "edit" ? (milestones.find((m) => m.name === ctxDialog.name) ?? null) : null}
+          />
+
+          {/* Change Requests Section */}
+          <div className="mt-8 space-y-4 border-t border-border pt-6">
+            <div className="label-eyebrow">{changeRequests.length} Change Requests</div>
+            {changeRequests.length === 0 ? (
+              <div className="glass-card p-6 text-center text-sm text-muted-foreground">
+                No change requests yet. Create a baseline to enable change request workflow.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {changeRequests.map((cr) => (
+                  <div key={cr.id} className="flex items-center justify-between rounded-lg border border-border bg-secondary/30 p-4">
+                    <div className="flex-1">
+                      <div className="font-medium text-foreground">{cr.id} · {cr.summary}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        Submitted by {cr.submittedBy} · {cr.createdAt}
+                      </div>
+                      {cr.changes && cr.changes.length > 0 && (
+                        <div className="mt-2 text-xs">
+                          <div className="text-muted-foreground">Changes:</div>
+                          {cr.changes.map((c, i) => (
+                            <div key={i} className="ml-2 text-muted-foreground">
+                              • {c.field}: {c.oldValue} → {c.newValue}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="ml-4 flex flex-col items-end gap-2">
+                      <Badge variant="outline" className={
+                        cr.status === "pending" ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber" :
+                        cr.status === "approved" ? "border-rag-green/40 bg-rag-green/10 text-rag-green" :
+                        cr.status === "rejected" ? "border-rag-red/40 bg-rag-red/10 text-rag-red" :
+                        "border-border bg-secondary text-muted-foreground"
+                      }>{cr.status}</Badge>
+                      {cr.status === "pending" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-accent text-accent hover:bg-accent-dim"
+                          onClick={() => { setSelectedCrForApproval(cr.id); setCrApprovalDialogOpen(true); }}
+                        >
+                          Review
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* CR Dialog */}
+          <ChangeRequestDialog
+            open={crDialogOpen}
+            onOpenChange={setCrDialogOpen}
+            milestone={milestones.find((m) => m.baseline && m.baseline.isLocked)}
+            onSubmit={(cr) => {
+              setChangeRequests((prev) => [...prev, cr]);
+              setCrDialogOpen(false);
+              toast.success(`Change Request ${cr.id} submitted for approval`);
+            }}
+          />
+
+          {/* CR Approval Dialog */}
+          <ChangeRequestApprovalDialog
+            open={crApprovalDialogOpen}
+            onOpenChange={setCrApprovalDialogOpen}
+            changeRequest={changeRequests.find((cr) => cr.id === selectedCrForApproval)}
+            onApprove={(reason) => {
+              setChangeRequests((prev) =>
+                prev.map((cr) =>
+                  cr.id === selectedCrForApproval
+                    ? { ...cr, status: "approved" as const, approvedAt: new Date().toISOString().split('T')[0], approvedBy: "Current User", approvalReason: reason }
+                    : cr
+                )
+              );
+              setCrApprovalDialogOpen(false);
+              toast.success("Change Request approved");
+            }}
+            onReject={(reason) => {
+              setChangeRequests((prev) =>
+                prev.map((cr) =>
+                  cr.id === selectedCrForApproval
+                    ? { ...cr, status: "rejected" as const, rejectedAt: new Date().toISOString().split('T')[0], rejectionReason: reason }
+                    : cr
+                )
+              );
+              setCrApprovalDialogOpen(false);
+              toast.error("Change Request rejected");
+            }}
           />
 
         </TabsContent>
@@ -1231,8 +1327,7 @@ function ProgressUpdateDialog({
 
   function requestChangeRequest() {
     if (!approvalMilestone || !approvalMilestone.baseline) return;
-    toast.info("Change Request form opened");
-    // CR dialog would open here
+    setCrDialogOpen(true);
   }
 
   return (
@@ -3441,6 +3536,283 @@ function LessonsTab({ project }: { project: typeof projects[number] }) {
         </div>
       )}
     </div>
+  );
+}
+
+// ── Change Request Dialog ───────────────────────────────────────────────────────
+interface ChangeRequest {
+  id: string;
+  summary: string;
+  changes: Array<{ field: string; oldValue: string; newValue: string }>;
+  reason: string;
+  submittedBy: string;
+  createdAt: string;
+  status: "pending" | "approved" | "rejected";
+  approvedBy?: string;
+  approvedAt?: string;
+  approvalReason?: string;
+  rejectionReason?: string;
+  rejectedAt?: string;
+}
+
+function ChangeRequestDialog({
+  open,
+  onOpenChange,
+  milestone,
+  onSubmit,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  milestone?: any;
+  onSubmit: (cr: ChangeRequest) => void;
+}) {
+  const [summary, setSummary] = useState("");
+  const [reason, setReason] = useState("");
+  const [newStartDate, setNewStartDate] = useState("");
+  const [newEndDate, setNewEndDate] = useState("");
+
+  function handleSubmit() {
+    if (!summary.trim() || !reason.trim()) {
+      toast.error("Summary and reason are required");
+      return;
+    }
+
+    const changes: ChangeRequest["changes"] = [];
+    if (newStartDate && milestone?.startDate !== newStartDate) {
+      changes.push({ field: "Start Date", oldValue: milestone?.startDate || "—", newValue: newStartDate });
+    }
+    if (newEndDate && milestone?.endDate !== newEndDate) {
+      changes.push({ field: "End Date", oldValue: milestone?.endDate || "—", newValue: newEndDate });
+    }
+
+    if (changes.length === 0) {
+      toast.error("Please specify at least one change");
+      return;
+    }
+
+    const crId = `CR-${String(Date.now()).slice(-6)}`;
+    const cr: ChangeRequest = {
+      id: crId,
+      summary: summary.trim(),
+      changes,
+      reason: reason.trim(),
+      submittedBy: "Current User",
+      createdAt: new Date().toISOString().split('T')[0],
+      status: "pending",
+    };
+
+    onSubmit(cr);
+    setSummary("");
+    setReason("");
+    setNewStartDate("");
+    setNewEndDate("");
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Submit Change Request (v{(milestone?.baseline?.version ?? 0) + 1})</DialogTitle>
+          <DialogDescription>
+            Describe what needs to change and why. Changes will be sent to approvers for review.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {milestone && (
+            <div className="rounded-md border border-border/50 bg-secondary/20 p-3 text-sm">
+              <div className="font-medium text-foreground">{milestone.name}</div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                Current: {milestone.startDate} to {milestone.endDate}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <Label className="text-xs">Summary of change</Label>
+            <Input
+              placeholder="e.g., Extend timeline due to resource constraints"
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">New start date (optional)</Label>
+              <Input
+                type="date"
+                value={newStartDate}
+                onChange={(e) => setNewStartDate(e.target.value)}
+              />
+              {milestone && <p className="mt-1 text-[10px] text-muted-foreground">Current: {milestone.startDate}</p>}
+            </div>
+            <div>
+              <Label className="text-xs">New end date (optional)</Label>
+              <Input
+                type="date"
+                value={newEndDate}
+                onChange={(e) => setNewEndDate(e.target.value)}
+              />
+              {milestone && <p className="mt-1 text-[10px] text-muted-foreground">Current: {milestone.endDate}</p>}
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs">Reason for change</Label>
+            <Textarea
+              rows={3}
+              placeholder="Explain why this change is needed..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSubmit}>
+            Submit Change Request
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ChangeRequestApprovalDialog({
+  open,
+  onOpenChange,
+  changeRequest,
+  onApprove,
+  onReject,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  changeRequest?: ChangeRequest;
+  onApprove: (reason: string) => void;
+  onReject: (reason: string) => void;
+}) {
+  const [approvalReason, setApprovalReason] = useState("");
+  const [mode, setMode] = useState<"review" | "approve" | "reject">("review");
+
+  function handleApprove() {
+    if (!approvalReason.trim()) {
+      toast.error("Approval reason is required");
+      return;
+    }
+    onApprove(approvalReason);
+    setApprovalReason("");
+    setMode("review");
+  }
+
+  function handleReject() {
+    if (!approvalReason.trim()) {
+      toast.error("Rejection reason is required");
+      return;
+    }
+    onReject(approvalReason);
+    setApprovalReason("");
+    setMode("review");
+  }
+
+  if (!changeRequest) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{changeRequest.id} · Approval Review</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="rounded-md border border-border/50 bg-secondary/20 p-3">
+            <div className="font-medium text-foreground">{changeRequest.summary}</div>
+            <div className="mt-2 text-xs text-muted-foreground">{changeRequest.reason}</div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-sm font-medium">Changes Proposed:</div>
+            {changeRequest.changes.map((c, i) => (
+              <div key={i} className="flex items-center justify-between rounded border border-border/30 bg-background/30 p-2 text-xs">
+                <span className="text-muted-foreground">{c.field}</span>
+                <div className="flex items-center gap-2 font-mono">
+                  <span className="text-muted-foreground">{c.oldValue}</span>
+                  <span className="text-muted-foreground">→</span>
+                  <span className="text-accent">{c.newValue}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-xs text-muted-foreground">
+            Submitted by {changeRequest.submittedBy} on {changeRequest.createdAt}
+          </div>
+
+          {mode === "review" && (
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                className="flex-1 bg-rag-green text-white hover:bg-rag-green/90"
+                onClick={() => setMode("approve")}
+              >
+                <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Approve
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 border-rag-red/40 text-rag-red hover:bg-rag-red/10"
+                onClick={() => setMode("reject")}
+              >
+                <XCircle className="mr-1 h-3.5 w-3.5" /> Reject
+              </Button>
+            </div>
+          )}
+
+          {mode !== "review" && (
+            <div className="space-y-2 rounded-md border border-accent/20 bg-accent-dim/20 p-3">
+              <Label className="text-xs">
+                {mode === "approve" ? "Approval notes (optional)" : "Reason for rejection (required)"}
+              </Label>
+              <Textarea
+                rows={2}
+                value={approvalReason}
+                onChange={(e) => setApprovalReason(e.target.value)}
+                placeholder={mode === "approve" ? "Add any notes..." : "Explain why this CR cannot be approved..."}
+              />
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => setMode("review")} className="flex-1">
+                  Back
+                </Button>
+                {mode === "approve" ? (
+                  <Button
+                    size="sm"
+                    className="flex-1 bg-rag-green text-white hover:bg-rag-green/90"
+                    onClick={handleApprove}
+                  >
+                    Confirm Approval
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="flex-1 bg-rag-red text-white hover:bg-rag-red/90"
+                    onClick={handleReject}
+                  >
+                    Confirm Rejection
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {mode === "review" && (
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          </DialogFooter>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 

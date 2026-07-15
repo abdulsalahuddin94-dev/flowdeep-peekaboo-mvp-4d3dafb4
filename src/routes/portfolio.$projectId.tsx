@@ -364,71 +364,59 @@ function ProjectDetail() {
 
 
         <TabsContent value="Project Schedule" className="mt-5">
-          {/* Version Selector & Edit Controls */}
-          <div className="mb-6 flex items-center justify-between rounded-lg border border-border bg-secondary/30 p-4">
-            <div className="flex items-center gap-4">
-              <div className="text-sm">
-                <div className="label-eyebrow">Project Schedule</div>
-                <div className="mt-1 flex items-center gap-2">
-                  <span className="font-medium text-foreground">Current Version:</span>
-                  <Select value={selectedBaselineVersion} onValueChange={(v) => {
-                    setSelectedBaselineVersion(v);
-                    setPlanEditMode("view");
-                  }}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="latest">Latest (v{projectBaselineVersions.length}) ⭐</SelectItem>
-                      {projectBaselineVersions.map((v) => (
-                        <SelectItem key={v.version} value={`v${v.version}`}>
-                          v{v.version} · {v.createdAt}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            {isViewingCurrent && (
-              <div className="flex gap-2">
-                {planEditMode === "view" && (
+          <ProjectSchedule
+            headerSlot={
+              <div className="flex items-center gap-2">
+                <Select value={selectedBaselineVersion} onValueChange={(v) => {
+                  setSelectedBaselineVersion(v);
+                  setPlanEditMode("view");
+                }}>
+                  <SelectTrigger className="h-8 w-52 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="latest">Current Version (v{projectBaselineVersions.length}) ⭐</SelectItem>
+                    {projectBaselineVersions.slice(0, -1).map((v) => (
+                      <SelectItem key={v.version} value={`v${v.version}`}>
+                        v{v.version} · {v.createdAt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isViewingCurrent && planEditMode === "view" && (
                   <Button
+                    size="sm"
                     onClick={() => setPlanEditMode("editing")}
-                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                    className="h-8 bg-accent text-accent-foreground hover:bg-accent/90 text-xs"
                   >
                     ✎ Change Plan
                   </Button>
                 )}
-                {planEditMode === "editing" && (
+                {isViewingCurrent && planEditMode === "editing" && (
                   <Button
-                    onClick={() => {
-                      setCrDialogOpen(true);
-                      setPlanEditMode("pending");
-                    }}
-                    className="bg-rag-amber text-white hover:bg-rag-amber/90"
+                    size="sm"
+                    onClick={() => setCrDialogOpen(true)}
+                    className="h-8 bg-rag-amber text-white hover:bg-rag-amber/90 text-xs"
                   >
                     📤 Send Change Request
                   </Button>
                 )}
-                {planEditMode === "pending" && (
-                  <Button disabled className="bg-rag-blue text-white">
-                    ⏳ Waiting For Approval
-                  </Button>
+                {isViewingCurrent && planEditMode === "pending" && (
+                  <Badge className="border-rag-blue/40 bg-rag-blue/10 text-rag-blue text-xs">⏳ Waiting For Approval</Badge>
+                )}
+                {!isViewingCurrent && (
+                  <Badge variant="outline" className="text-xs text-muted-foreground">📖 View Only</Badge>
                 )}
               </div>
-            )}
-
-            {!isViewingCurrent && (
-              <div className="flex items-center gap-2 rounded-md border border-border/50 bg-background/50 px-3 py-2">
-                <span className="text-xs text-muted-foreground">📖 View Only — Historical Version</span>
-              </div>
-            )}
-          </div>
-
-          <ProjectSchedule
-            items={useMemo(() => computeDerivedSchedule(milestones, resourceRequests), [milestones, resourceRequests])}
+            }
+            items={useMemo(() => {
+              if (!isViewingCurrent) {
+                const vNum = parseInt(selectedBaselineVersion.slice(1));
+                const v = projectBaselineVersions.find((x) => x.version === vNum);
+                if (v) return computeDerivedSchedule(v.snapshot as Milestone[], resourceRequests);
+              }
+              return computeDerivedSchedule(milestones, resourceRequests);
+            }, [milestones, resourceRequests, isViewingCurrent, selectedBaselineVersion, projectBaselineVersions])}
             resourceList={resourcePool}
             onProgressClick={(name, kind) => {
               const derived = computeDerivedSchedule(milestones, resourceRequests);
@@ -551,84 +539,6 @@ function ProjectDetail() {
             editingItem={ctxDialog?.mode === "edit" ? (milestones.find((m) => m.name === ctxDialog.name) ?? null) : null}
           />
 
-          {/* Project Baseline Version History Viewer */}
-          {projectBaselineVersions.length > 0 && (
-            <div className="mt-8 space-y-4 border-t border-border pt-6">
-              <div className="flex items-center justify-between">
-                <div className="label-eyebrow">📊 Project Baseline Versions — {project.name}</div>
-                <Select value={selectedBaselineVersion} onValueChange={setSelectedBaselineVersion}>
-                  <SelectTrigger className="w-56">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="latest">Latest (v{projectBaselineVersions.length})</SelectItem>
-                    {projectBaselineVersions.map((v) => (
-                      <SelectItem key={v.version} value={`v${v.version}`}>
-                        v{v.version} · {v.createdAt}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {(() => {
-                const versionNum = selectedBaselineVersion === "latest" ? projectBaselineVersions.length : parseInt(selectedBaselineVersion.slice(1));
-                const version = projectBaselineVersions.find((v) => v.version === versionNum);
-                const snapshot = version?.snapshot || [];
-
-                return (
-                  <div className="rounded-lg border border-border/50 bg-secondary/20 p-4 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-foreground">v{versionNum} · {version?.createdAt}</span>
-                          {selectedBaselineVersion === "latest" && (
-                            <Badge className="bg-rag-green/10 text-rag-green border border-rag-green/40 text-xs">⭐ Latest</Badge>
-                          )}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">Complete schedule snapshot for client review</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-mono text-muted-foreground">
-                          {(() => {
-                            const completed = snapshot.filter((s) => s.kind !== "Milestone" && (s.progress ?? 0) === 100).length;
-                            const total = snapshot.filter((s) => s.kind !== "Milestone").length;
-                            return `${completed}/${total} tasks done`;
-                          })()}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 max-h-96 overflow-y-auto">
-                      {snapshot.length > 0 ? (
-                        snapshot.map((item) => (
-                          <div key={item.name} className="flex items-center justify-between rounded border border-border/30 bg-background/40 p-3 text-sm">
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-foreground">
-                                {item.kind === "Milestone" ? "◆" : "▢"} {item.name}
-                              </div>
-                              <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                                <span>{item.startDate} → {item.endDate}</span>
-                                <span className="num-mono font-mono">{item.progress ?? 0}%</span>
-                              </div>
-                            </div>
-                            <div className="ml-3 flex items-center gap-2 shrink-0">
-                              <Progress value={item.progress ?? 0} className="h-1.5 w-16" />
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="py-4 text-center text-xs text-muted-foreground">
-                          No schedule data in this version
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-
           {/* Change Requests Section */}
           <div className="mt-8 space-y-4 border-t border-border pt-6">
             <div className="label-eyebrow">{changeRequests.length} Change Requests</div>
@@ -684,10 +594,13 @@ function ProjectDetail() {
           <ChangeRequestDialog
             open={crDialogOpen}
             onOpenChange={setCrDialogOpen}
-            milestone={milestones.find((m) => m.baseline && m.baseline.isLocked)}
+            baselineSnapshot={projectBaselineVersions[projectBaselineVersions.length - 1]?.snapshot as Milestone[] | undefined}
+            currentMilestones={milestones}
+            baselineVersion={projectBaselineVersions.length}
             onSubmit={(cr) => {
               setChangeRequests((prev) => [...prev, cr]);
               setCrDialogOpen(false);
+              setPlanEditMode("pending");
               toast.success(`Change Request ${cr.id} submitted for approval`);
             }}
           />
@@ -3810,120 +3723,107 @@ interface ChangeRequest {
 function ChangeRequestDialog({
   open,
   onOpenChange,
-  milestone,
+  baselineSnapshot,
+  currentMilestones,
+  baselineVersion,
   onSubmit,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  milestone?: any;
+  baselineSnapshot?: Milestone[];
+  currentMilestones: Milestone[];
+  baselineVersion: number;
   onSubmit: (cr: ChangeRequest) => void;
 }) {
-  const [summary, setSummary] = useState("");
-  const [reason, setReason] = useState("");
-  const [newStartDate, setNewStartDate] = useState("");
-  const [newEndDate, setNewEndDate] = useState("");
+  const changes = useMemo(() => {
+    const out: Array<{ item: string; field: string; oldValue: string; newValue: string }> = [];
+    if (!baselineSnapshot) return out;
+    const baseByName = new Map(baselineSnapshot.map((m) => [m.name, m]));
+    const curByName = new Map(currentMilestones.map((m) => [m.name, m]));
+    const trackedFields: Array<{ key: keyof Milestone; label: string }> = [
+      { key: "startDate", label: "Start Date" },
+      { key: "endDate", label: "End Date" },
+      { key: "owner", label: "Owner" },
+      { key: "assignee", label: "Assignee" },
+      { key: "dep", label: "Depends On" },
+    ];
+    for (const cur of currentMilestones) {
+      const base = baseByName.get(cur.name);
+      if (!base) {
+        out.push({ item: cur.name, field: "Item", oldValue: "—", newValue: "Added" });
+        continue;
+      }
+      for (const f of trackedFields) {
+        const o = (base as any)[f.key] ?? "";
+        const n = (cur as any)[f.key] ?? "";
+        if (String(o) !== String(n)) {
+          out.push({ item: cur.name, field: f.label, oldValue: String(o) || "—", newValue: String(n) || "—" });
+        }
+      }
+    }
+    for (const base of baselineSnapshot) {
+      if (!curByName.has(base.name)) {
+        out.push({ item: base.name, field: "Item", oldValue: "Existed", newValue: "Removed" });
+      }
+    }
+    return out;
+  }, [baselineSnapshot, currentMilestones]);
 
   function handleSubmit() {
-    if (!summary.trim() || !reason.trim()) {
-      toast.error("Summary and reason are required");
-      return;
-    }
-
-    const changes: ChangeRequest["changes"] = [];
-    if (newStartDate && milestone?.startDate !== newStartDate) {
-      changes.push({ field: "Start Date", oldValue: milestone?.startDate || "—", newValue: newStartDate });
-    }
-    if (newEndDate && milestone?.endDate !== newEndDate) {
-      changes.push({ field: "End Date", oldValue: milestone?.endDate || "—", newValue: newEndDate });
-    }
-
     if (changes.length === 0) {
-      toast.error("Please specify at least one change");
+      toast.error("No changes detected — edit the schedule first");
       return;
     }
-
     const crId = `CR-${String(Date.now()).slice(-6)}`;
     const cr: ChangeRequest = {
       id: crId,
-      summary: summary.trim(),
-      changes,
-      reason: reason.trim(),
+      summary: `${changes.length} change${changes.length === 1 ? "" : "s"} to schedule`,
+      changes: changes.map((c) => ({ field: `${c.item} · ${c.field}`, oldValue: c.oldValue, newValue: c.newValue })),
+      reason: "—",
       submittedBy: "Current User",
-      createdAt: new Date().toISOString().split('T')[0],
+      createdAt: new Date().toISOString().split("T")[0],
       status: "pending",
     };
-
     onSubmit(cr);
-    setSummary("");
-    setReason("");
-    setNewStartDate("");
-    setNewEndDate("");
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Submit Change Request (v{(milestone?.baseline?.version ?? 0) + 1})</DialogTitle>
+          <DialogTitle>Review Change Request (v{baselineVersion + 1})</DialogTitle>
           <DialogDescription>
-            Describe what needs to change and why. Changes will be sent to approvers for review.
+            Summary of edits vs Current Version (v{baselineVersion}). Confirm to send for approval.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {milestone && (
-            <div className="rounded-md border border-border/50 bg-secondary/20 p-3 text-sm">
-              <div className="font-medium text-foreground">{milestone.name}</div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                Current: {milestone.startDate} to {milestone.endDate}
+        <div className="max-h-[420px] space-y-2 overflow-y-auto rounded-md border border-border/50 bg-secondary/20 p-3">
+          {changes.length === 0 ? (
+            <div className="py-6 text-center text-sm text-muted-foreground">
+              No changes detected. Edit the schedule first.
+            </div>
+          ) : (
+            changes.map((c, i) => (
+              <div key={i} className="rounded border border-border/40 bg-background/40 p-3 text-sm">
+                <div className="font-medium text-foreground">{c.item}</div>
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                  <span className="text-muted-foreground">{c.field}:</span>
+                  <span className="rounded bg-rag-red/10 px-1.5 py-0.5 text-rag-red line-through">{c.oldValue}</span>
+                  <span className="text-muted-foreground">→</span>
+                  <span className="rounded bg-rag-green/10 px-1.5 py-0.5 text-rag-green">{c.newValue}</span>
+                </div>
               </div>
-            </div>
+            ))
           )}
-
-          <div>
-            <Label className="text-xs">Summary of change</Label>
-            <Input
-              placeholder="e.g., Extend timeline due to resource constraints"
-              value={summary}
-              onChange={(e) => setSummary(e.target.value)}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs">New start date (optional)</Label>
-              <Input
-                type="date"
-                value={newStartDate}
-                onChange={(e) => setNewStartDate(e.target.value)}
-              />
-              {milestone && <p className="mt-1 text-[10px] text-muted-foreground">Current: {milestone.startDate}</p>}
-            </div>
-            <div>
-              <Label className="text-xs">New end date (optional)</Label>
-              <Input
-                type="date"
-                value={newEndDate}
-                onChange={(e) => setNewEndDate(e.target.value)}
-              />
-              {milestone && <p className="mt-1 text-[10px] text-muted-foreground">Current: {milestone.endDate}</p>}
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-xs">Reason for change</Label>
-            <Textarea
-              rows={3}
-              placeholder="Explain why this change is needed..."
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-            />
-          </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSubmit}>
+          <Button
+            className="bg-accent text-accent-foreground hover:bg-accent/90"
+            onClick={handleSubmit}
+            disabled={changes.length === 0}
+          >
             Submit Change Request
           </Button>
         </DialogFooter>

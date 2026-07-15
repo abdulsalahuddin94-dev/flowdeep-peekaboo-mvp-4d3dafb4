@@ -276,6 +276,7 @@ export function ProjectSchedule({
   onProgressClick,
   onDependencyClick,
   resourceList = [],
+  headerSlot,
 }: {
   items: ScheduleItem[];
   AddItemSlot?: React.ReactNode;
@@ -288,6 +289,7 @@ export function ProjectSchedule({
   onProgressClick?: (name: string, kind: ItemKind) => void;
   onDependencyClick?: (name: string) => void;
   resourceList?: Array<{ name: string; role?: string; dept?: string }>;
+  headerSlot?: React.ReactNode;
 }) {
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);
@@ -864,8 +866,12 @@ export function ProjectSchedule({
       {/* Top action bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-3">
         <div className="flex items-center gap-3">
-          <div className="label-eyebrow">Project Schedule</div>
-          <Badge variant="outline" className="border-border bg-secondary/40">{items.length} items</Badge>
+          {headerSlot ?? (
+            <>
+              <div className="label-eyebrow">Project Schedule</div>
+              <Badge variant="outline" className="border-border bg-secondary/40">{items.length} items</Badge>
+            </>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <ToggleGroup

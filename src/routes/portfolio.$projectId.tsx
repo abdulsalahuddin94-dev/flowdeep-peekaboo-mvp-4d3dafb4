@@ -764,12 +764,17 @@ function ProjectDetail() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Discard changes?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  You have unsaved edits to the schedule. Exiting Change Plan mode will discard them.
+                  You'll lose {planChangeCount} unsaved change{planChangeCount === 1 ? "" : "s"} to the schedule. This cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Keep Editing</AlertDialogCancel>
-                <AlertDialogAction onClick={discardAndExit}>Discard Changes</AlertDialogAction>
+                <AlertDialogCancel autoFocus>Keep Editing</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={discardAndExit}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Discard Changes
+                </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

@@ -205,6 +205,15 @@ function ProjectDetail() {
   const isEditingAllowed = isViewingCurrent && planEditMode === "editing";
   const [cancelEditDialogOpen, setCancelEditDialogOpen] = useState(false);
   const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(null);
+  const [compareVersionOpen, setCompareVersionOpen] = useState(false);
+
+  // Demo version authors (in a real app, comes from CR history)
+  const versionAuthors: Record<number, string> = {
+    1: "Sara Al-Rashid",
+    2: "Mei Chen",
+    3: "Sara Al-Rashid",
+    4: "John Smith",
+  };
 
   const planChangeCount = useMemo(() => {
     if (!editBaselineSnapshot) return 0;
@@ -499,14 +508,28 @@ function ProjectDetail() {
                   setPlanEditMode("view");
                   setEditBaselineSnapshot(null);
                 }}>
-                  <SelectTrigger className="h-8 w-52 text-xs">
+                  <SelectTrigger className="h-8 w-64 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="latest">Current Version (v{projectBaselineVersions.length}) ⭐</SelectItem>
+                    <SelectItem value="latest">
+                      <div className="flex flex-col leading-tight">
+                        <span>Current Version (v{projectBaselineVersions.length}) ⭐</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {projectBaselineVersions[projectBaselineVersions.length - 1]?.createdAt}
+                          {" · by "}
+                          {versionAuthors[projectBaselineVersions.length] ?? "—"}
+                        </span>
+                      </div>
+                    </SelectItem>
                     {projectBaselineVersions.slice(0, -1).map((v) => (
                       <SelectItem key={v.version} value={`v${v.version}`}>
-                        v{v.version} · {v.createdAt}
+                        <div className="flex flex-col leading-tight">
+                          <span>v{v.version}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {v.createdAt} · by {versionAuthors[v.version] ?? "—"}
+                          </span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -551,7 +574,17 @@ function ProjectDetail() {
                   <Badge className="border-rag-blue/40 bg-rag-blue/10 text-rag-blue text-xs">⏳ Waiting For Approval</Badge>
                 )}
                 {!isViewingCurrent && (
-                  <Badge variant="outline" className="text-xs text-muted-foreground">📖 View Only</Badge>
+                  <>
+                    <Badge variant="outline" className="text-xs text-muted-foreground">📖 View Only</Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCompareVersionOpen(true)}
+                      className="h-8 text-xs"
+                    >
+                      Compare with Current
+                    </Button>
+                  </>
                 )}
               </div>
             }
@@ -594,6 +627,7 @@ function ProjectDetail() {
                 toast.error("📖 View Only — Click 'Change Plan' to edit");
                 return;
               }
+              const prevAssignee = milestones.find((m) => m.name === name)?.assignee;
               const id = addResourceRequest({
                 project: project.name,
                 role: role.role,
@@ -612,7 +646,26 @@ function ProjectDetail() {
                     : m,
                 ),
               );
-              toast.success("Skill request sent to Resources");
+              toast.success("Skill request sent to Resources", {
+                description: `${role.skill} ${role.role} · ${role.fte} FTE`,
+                action: {
+                  label: "Undo",
+                  onClick: () => {
+                    setMilestones((prev) =>
+                      prev.map((m) =>
+                        m.name === name
+                          ? {
+                              ...m,
+                              assignee: prevAssignee,
+                              resourceRequestIds: (m.resourceRequestIds ?? []).filter((x) => x !== id),
+                            }
+                          : m,
+                      ),
+                    );
+                    toast.success("Request cancelled — assignee restored");
+                  },
+                },
+              });
             }}
             onDependencyClick={(name) => {
               setSelectedItemForDep(name);
@@ -756,6 +809,19 @@ function ProjectDetail() {
               setEditBaselineSnapshot(null);
               toast.success(`Change Request ${cr.id} submitted for approval`);
             }}
+          />
+
+          {/* Compare versions Dialog */}
+          <VersionCompareDialog
+            open={compareVersionOpen}
+            onOpenChange={setCompareVersionOpen}
+            fromLabel={`v${parseInt(selectedBaselineVersion.replace(/^v/, "")) || projectBaselineVersions.length}`}
+            toLabel={`Current (v${projectBaselineVersions.length})`}
+            fromSnapshot={
+              (projectBaselineVersions.find((v) => `v${v.version}` === selectedBaselineVersion)?.snapshot as Milestone[] | undefined) ??
+              (projectBaselineVersions[projectBaselineVersions.length - 1]?.snapshot as Milestone[] | undefined)
+            }
+            toSnapshot={milestones}
           />
 
           {/* Cancel Edit Confirmation */}
@@ -1780,6 +1846,47 @@ function ProgressUpdateDialog({
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+            {approvalMilestone && (
+              <div className="mt-2 rounded-md border border-border bg-secondary/10 p-3">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-medium text-foreground">
+                    Approvers · {approvalMilestone.name}
+                  </span>
+                  <span className={`rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
+                    approvalMilestone.approvalStatus === "approved" ? "border-rag-green/40 bg-rag-green/10 text-rag-green"
+                    : approvalMilestone.approvalStatus === "pending" ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber"
+                    : "border-border bg-secondary text-muted-foreground"
+                  }`}>
+                    {approvalMilestone.approvalStatus === "approved" ? "Approved"
+                      : approvalMilestone.approvalStatus === "pending" ? "Pending"
+                      : "Not requested"}
+                  </span>
+                </div>
+                {(approvalMilestone.approvers ?? []).length === 0 ? (
+                  <div className="mt-1.5 text-[11px] text-muted-foreground">No approvers assigned.</div>
+                ) : (
+                  <ul className="mt-2 space-y-1.5">
+                    {(approvalMilestone.approvers ?? []).map((a) => {
+                      const s = approvalMilestone.approvalStatus;
+                      const label = s === "approved" ? "Approved" : s === "pending" ? "Pending" : "Not requested";
+                      const tone = s === "approved" ? "text-rag-green" : s === "pending" ? "text-rag-amber" : "text-muted-foreground";
+                      return (
+                        <li key={a.id} className="flex items-center justify-between text-[11px]">
+                          <span className="text-foreground">
+                            {a.name}
+                            <span className="ml-1 text-muted-foreground">· {a.role}{a.department ? ` · ${a.department}` : ""}</span>
+                          </span>
+                          <span className={`inline-flex items-center gap-1 ${tone}`}>
+                            {s === "approved" && <Check className="h-3 w-3" />}
+                            {label}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </div>
             )}
           </div>
@@ -3870,6 +3977,90 @@ function LessonsTab({ project }: { project: typeof projects[number] }) {
         </div>
       )}
     </div>
+  );
+}
+
+function VersionCompareDialog({
+  open, onOpenChange, fromLabel, toLabel, fromSnapshot, toSnapshot,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  fromLabel: string;
+  toLabel: string;
+  fromSnapshot?: Milestone[];
+  toSnapshot: Milestone[];
+}) {
+  const grouped = useMemo(() => {
+    const out = new Map<string, Array<{ field: string; oldValue: string; newValue: string }>>();
+    if (!fromSnapshot) return Array.from(out.entries());
+    const baseByName = new Map(fromSnapshot.map((m) => [m.name, m]));
+    const curByName = new Map(toSnapshot.map((m) => [m.name, m]));
+    const fmt = (v: any): string => {
+      if (v == null || v === "") return "—";
+      if (Array.isArray(v)) return v.length === 0 ? "—" : v.map((x: any) => x.name ?? x.role ?? String(x)).join(", ");
+      if (typeof v === "boolean") return v ? "Yes" : "No";
+      if (typeof v === "object") return JSON.stringify(v);
+      return String(v);
+    };
+    const fields: Array<{ key: keyof Milestone; label: string }> = [
+      { key: "startDate", label: "Start Date" },
+      { key: "endDate", label: "End Date" },
+      { key: "owner", label: "Owner" },
+      { key: "assignee", label: "Assignee" },
+      { key: "dep", label: "Depends On" },
+      { key: "rag", label: "RAG" },
+      { key: "progress", label: "Progress" },
+      { key: "weightScore", label: "Weight" },
+      { key: "requiresApproval", label: "Requires Approval" },
+    ];
+    const push = (item: string, field: string, oldV: string, newV: string) => {
+      if (!out.has(item)) out.set(item, []);
+      out.get(item)!.push({ field, oldValue: oldV, newValue: newV });
+    };
+    for (const cur of toSnapshot) {
+      const base = baseByName.get(cur.name);
+      if (!base) { push(cur.name, "Item", "—", "Added"); continue; }
+      for (const f of fields) {
+        const o = (base as any)[f.key];
+        const n = (cur as any)[f.key];
+        if (JSON.stringify(o ?? null) !== JSON.stringify(n ?? null)) {
+          push(cur.name, f.label, fmt(o), fmt(n));
+        }
+      }
+    }
+    for (const base of fromSnapshot) if (!curByName.has(base.name)) push(base.name, "Item", "Existed", "Removed");
+    return Array.from(out.entries());
+  }, [fromSnapshot, toSnapshot]);
+  const total = grouped.reduce((s, [, l]) => s + l.length, 0);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>
+            Compare {fromLabel} → {toLabel}
+            {total > 0 && (
+              <Badge variant="outline" className="ml-2 border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
+                {total} change{total === 1 ? "" : "s"} · {grouped.length} item{grouped.length === 1 ? "" : "s"}
+              </Badge>
+            )}
+          </DialogTitle>
+          <DialogDescription>
+            Read-only diff between the selected version and the current plan.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="max-h-[420px] space-y-2 overflow-y-auto rounded-md border border-border/50 bg-secondary/20 p-3">
+          {total === 0 ? (
+            <div className="py-6 text-center text-sm text-muted-foreground">No differences between these versions.</div>
+          ) : (
+            grouped.map(([item, list]) => <GroupedChangeItem key={item} item={item} changes={list} />)
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

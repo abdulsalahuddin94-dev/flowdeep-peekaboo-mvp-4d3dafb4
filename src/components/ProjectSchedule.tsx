@@ -1065,7 +1065,12 @@ export function ProjectSchedule({
                             </SelectContent>
                           </Select>
                         ) : (
-                          <span className="text-sm text-foreground truncate">{item.owner || "—"}</span>
+                          <span
+                            className="text-sm text-foreground truncate"
+                            title={restricted ? "🔒 Locked — click Change Plan to edit owner" : undefined}
+                          >
+                            {item.owner || "—"}
+                          </span>
                         )}
                       </div>
                     )}
@@ -1675,7 +1680,10 @@ function EditableText({
 
   if (!editable) {
     return (
-      <span className={`truncate ${className ?? ""}`}>
+      <span
+        className={`truncate ${className ?? ""}`}
+        title="🔒 Locked — click Change Plan to edit"
+      >
         {value || <span className="text-muted-foreground">{placeholder ?? "—"}</span>}
       </span>
     );
@@ -1737,7 +1745,7 @@ function DateRangeCell({
 
   if (!editable) {
     return (
-      <span className="truncate">
+      <span className="truncate" title="🔒 Locked — click Change Plan to edit dates">
         {display || <span className="text-muted-foreground">—</span>}
       </span>
     );

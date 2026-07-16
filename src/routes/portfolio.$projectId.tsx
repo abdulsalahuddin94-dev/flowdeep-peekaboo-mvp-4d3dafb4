@@ -429,21 +429,31 @@ function ProjectDetail() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setPlanEditMode("editing")}
+                    onClick={enterEditMode}
                     className="h-8 text-xs"
                   >
                     ✎ Change Plan
                   </Button>
                 )}
                 {isViewingCurrent && planEditMode === "editing" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCrDialogOpen(true)}
-                    className="h-8 text-xs"
-                  >
-                    Send Change Request
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCrDialogOpen(true)}
+                      className="h-8 text-xs"
+                    >
+                      Send Change Request
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={requestExitEditMode}
+                      className="h-8 text-xs text-muted-foreground"
+                    >
+                      Cancel
+                    </Button>
+                  </>
                 )}
                 {isViewingCurrent && planEditMode === "pending" && (
                   <Badge className="border-rag-blue/40 bg-rag-blue/10 text-rag-blue text-xs">⏳ Waiting For Approval</Badge>

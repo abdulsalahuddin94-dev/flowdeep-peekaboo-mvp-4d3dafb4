@@ -41,7 +41,8 @@ export const Route = createFileRoute("/portfolio/$projectId")({
 
 const TABS = [
   "Overview", "Project Charter", "Project Schedule", "Team & Allocation", "Financials",
-  "Project Risks", "Status Reports", "Procurement", "Business Trips", "Stakeholders", "Lessons Learned",
+  "Risks & Issues", "Documents", "Status Reports", "Change Requests",
+  "Procurement", "Business Trips", "Stakeholders", "Lessons Learned",
 ];
 
 const PLANNING_STAGES = [
@@ -338,7 +339,7 @@ function ProjectDetail() {
           { l: "Budget", v: `$${project.budgetUsed.toFixed(2)}M / $${project.budgetTotal.toFixed(1)}M` },
           { l: "Variance", v: "+4%", c: "text-rag-amber" },
           { l: "End date", v: project.endDate },
-          { l: "Open Risks", v: project.risks + project.issues, c: "text-rag-red" },
+          { l: "Open RAID", v: project.risks + project.issues, c: "text-rag-red" },
         ].map((k) => (
           <div key={k.l} className="glass-card p-3">
             <div className="label-eyebrow">{k.l}</div>
@@ -881,8 +882,12 @@ function ProjectDetail() {
           <FinancialsTab project={project} />
         </TabsContent>
 
-        <TabsContent value="Project Risks" className="mt-5">
+        <TabsContent value="Risks & Issues" className="mt-5">
           <RisksTab project={project} />
+        </TabsContent>
+
+        <TabsContent value="Documents" className="mt-5">
+          <DocumentsTab />
         </TabsContent>
 
         <TabsContent value="Status Reports" className="mt-5">
@@ -894,6 +899,10 @@ function ProjectDetail() {
             onExternalOpenChange={setReportOpen}
             onRagChange={(rag) => { updateProject(project.id, { rag }); addNotification({ tone: rag === "red" ? "red" : rag === "amber" ? "amber" : "green", title: `${project.name} status updated to ${rag === "red" ? "Off-Track" : rag === "amber" ? "At Risk" : "On Track"}`, time: "Just now" }); }}
           />
+        </TabsContent>
+
+        <TabsContent value="Change Requests" className="mt-5">
+          <ChangeRequestsTab project={project} />
         </TabsContent>
 
         <TabsContent value="Procurement" className="mt-5">
@@ -1008,7 +1017,7 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
     budget:      `$${project.budgetTotal.toFixed(1)}M`,
     constraints: "Must comply with procurement policy. Key milestones cannot slip beyond 30 days without board approval.",
     assumptions: "Stakeholder availability confirmed. No major regulatory changes expected during delivery.",
-    risks:       `${project.risks} open risks logged in Project Risks tab. Top risk: vendor delivery delay.`,
+    risks:       `${project.risks} open risks logged in RAID register. Top risk: vendor delivery delay.`,
     successCriteria: "Go-live achieved by target date. User acceptance ≥ 85%. Budget variance < 5%.",
   });
 
@@ -1241,7 +1250,7 @@ function OverviewTab({ project }: { project: typeof projects[number] }) {
 
       <div className="space-y-4">
         <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Open Project Risks</div>
+          <div className="label-eyebrow mb-4">Open RAID Items</div>
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-lg border border-rag-amber/30 bg-rag-amber/10 p-5 text-center">
               <div className="num-mono text-3xl font-medium text-rag-amber">{project.risks}</div>
@@ -1499,6 +1508,7 @@ function ProgressUpdateDialog({
 
   const current = leaves.find((t) => t.name === selected);
   const currentPlanned = current ? computePlannedProgress(current.startDate, current.endDate) : 0;
+
   // Find the ancestor milestone (if any) that requires approval for `current`.
   const approvalMilestone = useMemo(() => {
     if (!current) return null as Milestone | null;
@@ -1544,6 +1554,8 @@ function ProgressUpdateDialog({
   const msApproved = approvalMilestone?.approvalStatus === "approved";
   const msPending = approvalMilestone?.approvalStatus === "pending" && allChildrenAt100;
   const showSendApprovalBtn = !!approvalMilestone && allChildrenAt100 && !msApproved && approvalMilestone.approvalStatus !== "pending";
+  const needsApproval = !!current?.requiresApproval && draftPct >= 100 && current?.approvalStatus !== "approved";
+  const isPending = current?.approvalStatus === "pending";
 
   function save() {
     if (!current) return;
@@ -1664,10 +1676,10 @@ function ProgressUpdateDialog({
                     <span className="text-muted-foreground">Assignee:</span>
                     <span className="text-foreground">{current.assignee || "—"}</span>
                   </div>
-                  {current.dep && (
+                  {current.dependencies && current.dependencies.length > 0 && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Depends on:</span>
-                      <span className="text-foreground">{current.dep}</span>
+                      <span className="text-foreground">{current.dependencies.map((d) => d.predecessor).join(", ")}</span>
                     </div>
                   )}
                   {current.parent && (
@@ -2072,7 +2084,9 @@ type RevEntry = { ms: string; evt: string; plan: number; date: string; s: string
 type GateItem = { task: string; role: string; done: boolean };
 type GateStage = { name: string; items: GateItem[] };
 type RaidItem = { id: string; title: string; kind: "Risk" | "Issue"; score: number; owner: string; status: string; rag: Rag };
+type DocItem = { name: string; category: string; size: string; when: string };
 type StatusReport = { week: number; by: string; when: string; rag: Rag; text: string };
+type ChangeReq = { id: string; title: string; impact: string; timeline: string; budget: string; decision: "Under review" | "Approved" | "Rejected" };
 type Stakeholder = { name: string; org: string; influence: "High" | "Medium" | "Low"; interest: "High" | "Medium" | "Low"; strategy: string };
 type Lesson = { tag: string; text: string; by: string; when: string };
 
@@ -2790,7 +2804,8 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
   return (
     <div className="space-y-4">
       <div className="rounded-md border border-accent/20 bg-accent-dim/20 px-4 py-3 text-xs text-accent">
-        Project-level risks and issues. Log concerns that impact this project's timeline, budget, or scope.
+        <div className="font-medium">Project-level Risks & Issues</div>
+        <div className="mt-1">View enterprise-wide Risk & Issues in the <Link to="/risks" className="underline hover:text-accent/80">Risk & Issues module</Link> for portfolio-wide RAID management.</div>
       </div>
       <div className="grid gap-3 md:grid-cols-4">
         {kpis.map((k) => (
@@ -2801,7 +2816,7 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
         ))}
       </div>
       <div className="flex items-center justify-between">
-        <div className="label-eyebrow">Project Risks & Issues</div>
+        <div className="label-eyebrow">RAID register</div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
@@ -2885,6 +2900,89 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
   );
 }
 
+// ── Documents tab ─────────────────────────────────────────────────────────────
+function DocumentsTab() {
+  const [docs, setDocs] = useState<DocItem[]>([
+    { name: "Project Charter v3.pdf", category: "Charter", size: "2.4 MB", when: "May 10" },
+    { name: "Risk Register.xlsx", category: "RAID", size: "0.8 MB", when: "May 12" },
+    { name: "Vendor Contract — Oracle Consulting.pdf", category: "Contract", size: "1.1 MB", when: "May 15" },
+    { name: "Test Plan v2.docx", category: "QA", size: "0.6 MB", when: "May 17" },
+    { name: "Steering Committee Deck — May.pdf", category: "Governance", size: "5.2 MB", when: "May 20" },
+  ]);
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("General");
+  const [uploading, setUploading] = useState(false);
+
+  function upload() {
+    if (!name.trim()) { toast.error("Document name is required"); return; }
+    setUploading(true);
+    setTimeout(() => {
+      setDocs((prev) => [{ name: name.trim(), category, size: "—", when: "Just now" }, ...prev]);
+      toast.success("Document uploaded");
+      setUploading(false); setOpen(false); setName(""); setCategory("General");
+    }, 800);
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="label-eyebrow">Repository · {docs.length} files</div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+              <Upload className="mr-1 h-4 w-4" />Upload Document
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader><DialogTitle>Upload Document</DialogTitle></DialogHeader>
+            <div className="rounded-lg border-2 border-dashed border-border/60 bg-secondary/20 p-6 text-center">
+              <FileUp className="mx-auto h-8 w-8 text-muted-foreground" />
+              <div className="mt-2 text-sm text-foreground">Drag &amp; drop a file here, or browse</div>
+              <div className="mt-1 text-xs text-muted-foreground">PDF, DOCX, XLSX, PNG · up to 20 MB</div>
+            </div>
+            <div className="grid gap-3">
+              <div><Label>Document name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Steering Deck — Jun" /></div>
+              <div>
+                <Label>Category</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["Charter", "RAID", "Contract", "QA", "Governance", "Finance", "Design", "General"].map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={upload} disabled={uploading}>
+                {uploading ? "Uploading…" : "Upload"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+      <div className="glass-card p-5">
+        <ul className="divide-y divide-border text-sm">
+          {docs.map((d) => (
+            <li key={d.name + d.when} className="flex items-center justify-between py-2">
+              <span className="flex items-center gap-2 text-foreground"><FileText className="h-4 w-4 text-accent" />{d.name}</span>
+              <span className="flex items-center gap-3 text-xs text-muted-foreground">
+                <Badge variant="outline" className="border-border bg-secondary/40">{d.category}</Badge>
+                <span>{d.size}</span>
+                <span>{d.when}</span>
+                <Button size="icon" variant="ghost" className="h-7 w-7"><Download className="h-3.5 w-3.5" /></Button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 // ── Status Reports tab ────────────────────────────────────────────────────────
 function StatusReportsTab({
   project, reports, setReports, externalOpen, onExternalOpenChange, onRagChange,
@@ -2957,6 +3055,84 @@ function StatusReportsTab({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+// ── Change Requests tab ───────────────────────────────────────────────────────
+function ChangeRequestsTab({ project: _project }: { project: typeof projects[number] }) {
+  const [crs, setCrs] = useState<ChangeReq[]>([
+    { id: "CR-014", title: "Add data warehouse layer", impact: "Adds BI capacity", timeline: "+3 weeks", budget: "+$120K", decision: "Approved" },
+    { id: "CR-013", title: "Reduce UAT to one week", impact: "Risk + quality concern", timeline: "-1 week", budget: "$0", decision: "Rejected" },
+    { id: "CR-012", title: "Add 2 QA engineers", impact: "Faster test cycles", timeline: "0", budget: "+$60K", decision: "Under review" },
+  ]);
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState(""); const [impact, setImpact] = useState("");
+  const [timeline, setTimeline] = useState(""); const [budget, setBudget] = useState("");
+
+  function submit() {
+    if (!title.trim()) { toast.error("Title is required"); return; }
+    const id = `CR-${String(15 + crs.length).padStart(3, "0")}`;
+    setCrs((prev) => [{ id, title: title.trim(), impact: impact || "—", timeline: timeline || "0", budget: budget || "$0", decision: "Under review" }, ...prev]);
+    toast.success(`${id} submitted for review`);
+    setOpen(false); setTitle(""); setImpact(""); setTimeline(""); setBudget("");
+  }
+
+  const ragOf = (d: ChangeReq["decision"]): Rag => d === "Approved" ? "green" : d === "Rejected" ? "red" : "amber";
+  const kpis = [
+    { l: "Under Review", v: crs.filter((c) => c.decision === "Under review").length, c: "text-rag-amber" },
+    { l: "Approved", v: crs.filter((c) => c.decision === "Approved").length, c: "text-rag-green" },
+    { l: "Rejected", v: crs.filter((c) => c.decision === "Rejected").length, c: "text-rag-red" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 md:grid-cols-3">
+        {kpis.map((k) => (
+          <div key={k.l} className="glass-card p-4">
+            <div className="label-eyebrow">{k.l}</div>
+            <div className={`mt-1 text-lg font-medium num-mono ${k.c}`}>{k.v}</div>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="label-eyebrow">Change requests</div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />New Change Request</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader><DialogTitle>New Change Request</DialogTitle></DialogHeader>
+            <div className="grid gap-3">
+              <div><Label>Title</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Add reporting module" /></div>
+              <div><Label>Impact description</Label><Textarea rows={3} value={impact} onChange={(e) => setImpact(e.target.value)} /></div>
+              <div className="grid grid-cols-2 gap-2">
+                <div><Label>Timeline delta</Label><Input value={timeline} onChange={(e) => setTimeline(e.target.value)} placeholder="+2 weeks" /></div>
+                <div><Label>Budget delta</Label><Input value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="+$50K" /></div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Submit Request</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+      <div className="">
+        <Table>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>CR</TableHead><TableHead>Title</TableHead><TableHead>Impact</TableHead><TableHead>Timeline</TableHead><TableHead>Budget</TableHead><TableHead>Decision</TableHead></TableRow></TableHeader>
+          <TableBody>{crs.map((r) => (
+            <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+              <TableCell className="num-mono text-xs">{r.id}</TableCell>
+              <TableCell>{r.title}</TableCell>
+              <TableCell className="text-xs text-muted-foreground max-w-[240px] truncate">{r.impact}</TableCell>
+              <TableCell className="num-mono text-xs">{r.timeline}</TableCell>
+              <TableCell className="num-mono text-xs">{r.budget}</TableCell>
+              <TableCell><RagBadge rag={ragOf(r.decision)} label={r.decision} /></TableCell>
+            </TableRow>
+          ))}</TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

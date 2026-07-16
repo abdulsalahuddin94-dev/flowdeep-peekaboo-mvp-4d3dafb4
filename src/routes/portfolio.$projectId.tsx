@@ -3496,6 +3496,14 @@ function StakeholdersTab() {
     { name: "IT Steering", org: "Internal", influence: "Medium", interest: "High", strategy: "Keep informed" },
     { name: "Finance Board", org: "Internal", influence: "High", interest: "Low", strategy: "Inform monthly" },
   ]);
+  const stkBaseline = useTabBaseline({
+    scope: "stakeholders",
+    label: "Stakeholders",
+    current: items,
+    onCommit: (s) => setItems(s),
+  });
+  const displayStk = (stkBaseline.viewedSnapshot as Stakeholder[] | null) ?? items;
+  const canEdit = stkBaseline.canEdit;
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(""); const [org, setOrg] = useState("");
   const [influence, setInfluence] = useState<"High" | "Medium" | "Low">("Medium");

@@ -627,6 +627,7 @@ function ProjectDetail() {
                 toast.error("📖 View Only — Click 'Change Plan' to edit");
                 return;
               }
+              const prevAssignee = milestones.find((m) => m.name === name)?.assignee;
               const id = addResourceRequest({
                 project: project.name,
                 role: role.role,
@@ -645,7 +646,26 @@ function ProjectDetail() {
                     : m,
                 ),
               );
-              toast.success("Skill request sent to Resources");
+              toast.success("Skill request sent to Resources", {
+                description: `${role.skill} ${role.role} · ${role.fte} FTE`,
+                action: {
+                  label: "Undo",
+                  onClick: () => {
+                    setMilestones((prev) =>
+                      prev.map((m) =>
+                        m.name === name
+                          ? {
+                              ...m,
+                              assignee: prevAssignee,
+                              resourceRequestIds: (m.resourceRequestIds ?? []).filter((x) => x !== id),
+                            }
+                          : m,
+                      ),
+                    );
+                    toast.success("Request cancelled — assignee restored");
+                  },
+                },
+              });
             }}
             onDependencyClick={(name) => {
               setSelectedItemForDep(name);

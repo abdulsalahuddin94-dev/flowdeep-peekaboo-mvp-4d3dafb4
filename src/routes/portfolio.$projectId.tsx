@@ -385,9 +385,10 @@ function ProjectDetail() {
                 </Select>
                 {isViewingCurrent && planEditMode === "view" && (
                   <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => setPlanEditMode("editing")}
-                    className="h-8 bg-accent text-accent-foreground hover:bg-accent/90 text-xs"
+                    className="h-8 text-xs"
                   >
                     ✎ Change Plan
                   </Button>

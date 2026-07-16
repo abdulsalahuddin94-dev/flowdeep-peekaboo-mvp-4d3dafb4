@@ -24,6 +24,18 @@ import { toast } from "sonner";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress } from "@/components/ProjectSchedule";
 void ProjectGantt;
+import { BaselineShell, type BaselineVersion, type DiffRow, type BaselineApprover } from "@/components/BaselineShell";
+
+// Shared approvers pool used by non-schedule baseline tabs. Kept small and
+// realistic for demo.
+const BASELINE_APPROVERS: BaselineApprover[] = [
+  { id: "u-sara",   name: "Sara Al-Rashid", role: "Director · Engineering" },
+  { id: "u-john",   name: "John Smith",     role: "Project Manager · IT" },
+  { id: "u-mei",    name: "Mei Chen",       role: "Security Lead" },
+  { id: "u-aisha",  name: "Aisha Khoury",   role: "Portfolio Director" },
+  { id: "u-ahmad",  name: "Ahmad Al-Farsi", role: "Executive Sponsor" },
+  { id: "u-finance",name: "Finance Manager (approver)", role: "Finance" },
+];
 
 export const Route = createFileRoute("/portfolio/$projectId")({
   component: ProjectDetail,
@@ -897,47 +909,7 @@ function ProjectDetail() {
             </TabsList>
 
             <TabsContent value="manpower-plan" className="mt-4 space-y-4">
-              <div className="grid gap-3 md:grid-cols-4">
-                {[
-                  { l: "Roles requested", v: "5" },
-                  { l: "Confirmed", v: "4", c: "text-rag-green" },
-                  { l: "Pending", v: "1", c: "text-rag-amber" },
-                  { l: "Total FTE", v: "5.5" },
-                ].map((k) => (
-                  <div key={k.l} className="glass-card p-4">
-                    <div className="label-eyebrow">{k.l}</div>
-                    <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent bg-transparent border-0">
-                      <TableHead>Role</TableHead><TableHead>FTE</TableHead><TableHead>Skill level</TableHead>
-                      <TableHead>Period</TableHead><TableHead>Sourcing</TableHead><TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {[
-                      { r: "Solution Architect", f: 1.0, sk: "Senior", p: "Jun–Sep", src: "Internal", s: "green", sl: "Confirmed" },
-                      { r: "QA Engineer",        f: 2.0, sk: "Mid",    p: "Jul–Sep", src: "Internal",  s: "green", sl: "Confirmed" },
-                      { r: "Integration Dev",    f: 1.5, sk: "Mid",    p: "Jun–Aug", src: "Internal",  s: "green", sl: "Confirmed" },
-                      { r: "Security Reviewer",  f: 0.5, sk: "Senior", p: "Aug",     src: "Subcontract", s: "green", sl: "Confirmed" },
-                      { r: "Change Manager",     f: 0.5, sk: "Mid",    p: "Sep",     src: "Internal",  s: "amber", sl: "Pending" },
-                    ].map((m) => (
-                      <TableRow key={m.r} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                        <TableCell className="font-medium text-foreground">{m.r}</TableCell>
-                        <TableCell className="num-mono">{m.f}</TableCell>
-                        <TableCell>{m.sk}</TableCell>
-                        <TableCell>{m.p}</TableCell>
-                        <TableCell className="text-muted-foreground">{m.src}</TableCell>
-                        <TableCell><RagBadge rag={m.s as any} label={m.sl} /></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <ManpowerPlanBaseline pmName={project.pm} />
             </TabsContent>
 
             <TabsContent value="team-members" className="mt-4 space-y-3">
@@ -1155,10 +1127,23 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 // ── Project Charter tab ───────────────────────────────────────────────────────
 function CharterTab({ project }: { project: typeof projects[number] }) {
-  const [editMode, setEditMode] = useState(false);
   const [approved, setApproved] = useState(project.stage !== "Initiation");
 
-  const [fields, setFields] = useState({
+  const CHARTER_FIELD_LABELS: Record<string, string> = {
+    objective: "Objective",
+    scope: "Scope",
+    sponsor: "Sponsor",
+    pm: "Project Manager",
+    startDate: "Start Date",
+    endDate: "End Date",
+    budget: "Approved Budget",
+    constraints: "Constraints",
+    assumptions: "Assumptions",
+    risks: "Key risks",
+    successCriteria: "Success Criteria",
+  };
+
+  const initialFields = {
     objective:   `Deliver ${project.name} on time and within budget, achieving the agreed scope for ${project.client ?? project.department}.`,
     scope:       `In scope: full delivery of ${project.name} across all defined workstreams.\nOut of scope: ongoing operations, post-go-live support beyond 90 days.`,
     sponsor:     "Executive Director, " + project.department,
@@ -1170,34 +1155,105 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
     assumptions: "Stakeholder availability confirmed. No major regulatory changes expected during delivery.",
     risks:       `${project.risks} open risks logged in Project Risks tab. Top risk: vendor delivery delay.`,
     successCriteria: "Go-live achieved by target date. User acceptance ≥ 85%. Budget variance < 5%.",
-  });
+  };
+  type CharterFields = typeof initialFields;
 
-  function patch(key: keyof typeof fields, val: string) {
-    setFields((prev) => ({ ...prev, [key]: val }));
+  // Snapshots per version + current baseline (last version)
+  const [versions, setVersions] = useState<Array<BaselineVersion & { snapshot: CharterFields }>>([
+    { version: 1, createdAt: "2026-03-10", author: "John Smith",     snapshot: { ...initialFields, objective: initialFields.objective + " (initial draft)" } },
+    { version: 2, createdAt: "2026-04-02", author: "Sara Al-Rashid", snapshot: { ...initialFields, budget: `$${(project.budgetTotal * 0.9).toFixed(1)}M` } },
+    { version: 3, createdAt: "2026-05-08", author: "Aisha Khoury",   snapshot: initialFields },
+  ]);
+
+  const [activeVersion, setActiveVersion] = useState<string>("latest");
+  const [editMode, setEditMode] = useState<"viewing" | "editing">("viewing");
+  const [draft, setDraft] = useState<CharterFields>(initialFields);
+  const baseline = versions[versions.length - 1].snapshot;
+  const isLatest = activeVersion === "latest";
+
+  // Fields to display: draft when editing, baseline when viewing latest, historical snapshot otherwise
+  const displayed: CharterFields = isLatest
+    ? (editMode === "editing" ? draft : baseline)
+    : (versions.find((v) => `v${v.version}` === activeVersion)?.snapshot ?? baseline);
+
+  const diff: DiffRow[] = useMemo(() => {
+    const rows: DiffRow[] = [];
+    (Object.keys(initialFields) as Array<keyof CharterFields>).forEach((k) => {
+      if (draft[k] !== baseline[k]) {
+        rows.push({
+          group: CHARTER_FIELD_LABELS[k as string] ?? String(k),
+          field: "Value",
+          from: baseline[k],
+          to: draft[k],
+        });
+      }
+    });
+    return rows;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, baseline]);
+
+  function patch(key: keyof CharterFields, val: string) {
+    setDraft((prev) => ({ ...prev, [key]: val }));
   }
 
-  function Field({ label, fieldKey, multiline = false }: { label: string; fieldKey: keyof typeof fields; multiline?: boolean }) {
+  function enterEdit() {
+    setDraft({ ...baseline });
+    setEditMode("editing");
+  }
+  function cancelEdit() {
+    setDraft({ ...baseline });
+    setEditMode("viewing");
+  }
+  function submitCR(_approvers: BaselineApprover[]) {
+    setVersions((prev) => [...prev, {
+      version: prev[prev.length - 1].version + 1,
+      createdAt: new Date().toISOString().slice(0, 10),
+      author: project.pm,
+      snapshot: { ...draft },
+    }]);
+    setEditMode("viewing");
+  }
+
+  const editing = editMode === "editing" && isLatest;
+
+  function Field({ label, fieldKey, multiline = false }: { label: string; fieldKey: keyof CharterFields; multiline?: boolean }) {
+    const value = displayed[fieldKey];
     return (
       <div className="space-y-1">
         <div className="label-eyebrow">{label}</div>
-        {editMode ? (
+        {editing ? (
           multiline
-            ? <Textarea value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm min-h-[64px]" rows={3} />
-            : <Input value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm" />
+            ? <Textarea value={draft[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm min-h-[64px]" rows={3} />
+            : <Input value={draft[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm" />
         ) : (
-          <p className="text-sm text-foreground whitespace-pre-line">{fields[fieldKey]}</p>
+          <p className="text-sm text-foreground whitespace-pre-line">{value}</p>
         )}
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
+    <BaselineShell
+      tabKey="charter"
+      title="Project Charter"
+      versions={versions.map(({ version, createdAt, author }) => ({ version, createdAt, author }))}
+      activeVersion={activeVersion}
+      onChangeVersion={setActiveVersion}
+      editMode={editMode}
+      onEnterEdit={enterEdit}
+      onCancelEdit={cancelEdit}
+      hasDraftChanges={diff.length > 0}
+      changeCount={diff.length}
+      diff={diff}
+      approversPool={BASELINE_APPROVERS}
+      onSubmitChangeRequest={submitCR}
+    >
+      <div className="space-y-5">
       {/* Header bar */}
       <div className="glass-card flex items-center justify-between px-5 py-4">
         <div>
           <h2 className="text-base font-medium text-foreground">Project Charter — {project.name}</h2>
-          <p className="text-xs text-muted-foreground">Version 1.0 · {project.department} · {project.businessLine}</p>
+          <p className="text-xs text-muted-foreground">Baseline v{versions[versions.length - 1].version} · {project.department} · {project.businessLine}</p>
         </div>
         <div className="flex items-center gap-2">
           <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
@@ -1214,10 +1270,6 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
               Approve Charter
             </Button>
           )}
-          <Button size="sm" variant="outline" className="text-xs"
-            onClick={() => { setEditMode((e) => !e); if (editMode) toast.success("Charter saved"); }}>
-            {editMode ? "Save" : "Edit"}
-          </Button>
         </div>
       </div>
 
@@ -1289,7 +1341,8 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </BaselineShell>
   );
 }
 
@@ -2031,7 +2084,85 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null },
     { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null },
   ]);
+
+  // Baseline versioning of cost categories (budget line "b" values)
+  type FinSnapshot = { costs: CostEntry[] };
+  const [finVersions, setFinVersions] = useState<Array<BaselineVersion & { snapshot: FinSnapshot }>>(() => {
+    const initial = [
+      { c: "Labour",            b: 1.20, a: 0.84, color: "bg-rag-green" },
+      { c: "Hardware",          b: 0.90, a: 0.62, color: "bg-rag-blue" },
+      { c: "Software licenses", b: 0.40, a: 0.31, color: "bg-accent" },
+      { c: "Business trips",    b: 0.10, a: 0.07, color: "bg-rag-amber" },
+      { c: "Contingency",       b: 0.60, a: 0.26, color: "bg-muted-foreground" },
+    ];
+    return [
+      { version: 1, createdAt: "2026-03-05", author: "Finance Manager (approver)", snapshot: { costs: initial.map((e) => ({ ...e, b: +(e.b * 0.85).toFixed(2) })) } },
+      { version: 2, createdAt: "2026-04-12", author: "John Smith",                 snapshot: { costs: initial.map((e) => ({ ...e, b: +(e.b * 0.95).toFixed(2) })) } },
+      { version: 3, createdAt: "2026-05-20", author: "Sara Al-Rashid",             snapshot: { costs: initial } },
+    ];
+  });
+  const finBaseline = finVersions[finVersions.length - 1].snapshot;
+  const [finActive, setFinActive] = useState("latest");
+  const [finEditMode, setFinEditMode] = useState<"viewing" | "editing">("viewing");
+  const [finDraft, setFinDraft] = useState<FinSnapshot>({ costs: finBaseline.costs.map((c) => ({ ...c })) });
+  const finIsLatest = finActive === "latest";
+
+  const finDisplayed: FinSnapshot = finIsLatest
+    ? (finEditMode === "editing" ? finDraft : finBaseline)
+    : (finVersions.find((v) => `v${v.version}` === finActive)?.snapshot ?? finBaseline);
+
+  const finDiff: DiffRow[] = useMemo(() => {
+    const rows: DiffRow[] = [];
+    const baseMap = new Map(finBaseline.costs.map((c) => [c.c, c]));
+    const draftMap = new Map(finDraft.costs.map((c) => [c.c, c]));
+    finDraft.costs.forEach((d) => {
+      const b = baseMap.get(d.c);
+      if (!b) {
+        rows.push({ group: d.c, field: "Line", from: "—", to: `Baseline $${d.b.toFixed(2)}M`, kind: "added" });
+      } else if (b.b !== d.b) {
+        rows.push({ group: d.c, field: "Baseline budget", from: `$${b.b.toFixed(2)}M`, to: `$${d.b.toFixed(2)}M` });
+      }
+    });
+    finBaseline.costs.forEach((b) => {
+      if (!draftMap.has(b.c)) rows.push({ group: b.c, field: "Line", from: `Baseline $${b.b.toFixed(2)}M`, to: "—", kind: "removed" });
+    });
+    return rows;
+  }, [finDraft, finBaseline]);
+
+  function finEnterEdit() { setFinDraft({ costs: finBaseline.costs.map((c) => ({ ...c })) }); setFinEditMode("editing"); }
+  function finCancelEdit() { setFinDraft({ costs: finBaseline.costs.map((c) => ({ ...c })) }); setFinEditMode("viewing"); }
+  function finSubmitCR(_a: BaselineApprover[]) {
+    setFinVersions((prev) => [...prev, {
+      version: prev[prev.length - 1].version + 1,
+      createdAt: new Date().toISOString().slice(0, 10),
+      author: project.pm,
+      snapshot: { costs: finDraft.costs.map((c) => ({ ...c })) },
+    }]);
+    // Also propagate to live cost entries
+    setCostEntries(finDraft.costs.map((c) => ({ ...c })));
+    setFinEditMode("viewing");
+  }
+  const finEditing = finEditMode === "editing" && finIsLatest;
+
+  // What we render: use displayed for cost bars (versioned), forecast/revenue stay unversioned demo data
+  const displayedCosts = finDisplayed.costs;
+
   return (
+    <BaselineShell
+      tabKey="financials"
+      title="Financials Baseline"
+      versions={finVersions.map(({ version, createdAt, author }) => ({ version, createdAt, author }))}
+      activeVersion={finActive}
+      onChangeVersion={setFinActive}
+      editMode={finEditMode}
+      onEnterEdit={finEnterEdit}
+      onCancelEdit={finCancelEdit}
+      hasDraftChanges={finDiff.length > 0}
+      changeCount={finDiff.length}
+      diff={finDiff}
+      approversPool={BASELINE_APPROVERS}
+      onSubmitChangeRequest={finSubmitCR}
+    >
     <div className="space-y-4">
       <div className="grid gap-3 md:grid-cols-4">
         {[
@@ -2051,16 +2182,34 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
         <div className="glass-card p-5">
           <div className="mb-3 flex items-center justify-between">
             <div className="label-eyebrow">Cost categories</div>
-            <AddCostDialog onAdd={(e) => setCostEntries((prev) => [...prev, e])} />
+            {finEditing && (
+              <AddCostDialog onAdd={(e) => setFinDraft((prev) => ({ costs: [...prev.costs, e] }))} />
+            )}
           </div>
           <div className="space-y-3">
-            {costEntries.map((r) => {
+            {displayedCosts.map((r, idx) => {
               const pct = Math.round((r.a / r.b) * 100);
               return (
                 <div key={r.c}>
                   <div className="mb-1 flex justify-between text-sm">
                     <span className="text-foreground">{r.c}</span>
-                    <span className="num-mono text-xs text-muted-foreground">${r.a.toFixed(2)}M / ${r.b.toFixed(2)}M</span>
+                    {finEditing ? (
+                      <span className="flex items-center gap-1 num-mono text-xs text-muted-foreground">
+                        ${r.a.toFixed(2)}M /
+                        <Input
+                          type="number" step="0.05" min={0}
+                          value={r.b}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setFinDraft((prev) => ({ costs: prev.costs.map((c, i) => i === idx ? { ...c, b: val } : c) }));
+                          }}
+                          className="h-6 w-20 text-xs num-mono"
+                        />
+                        M
+                      </span>
+                    ) : (
+                      <span className="num-mono text-xs text-muted-foreground">${r.a.toFixed(2)}M / ${r.b.toFixed(2)}M</span>
+                    )}
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/50">
                     <div className={`h-full ${r.color}`} style={{ width: `${pct}%` }} />
@@ -2127,6 +2276,7 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
         </Table>
       </div>
     </div>
+    </BaselineShell>
   );
 }
 
@@ -4574,5 +4724,165 @@ function DependencyDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ─── Manpower Plan Baseline ─────────────────────────────────────────────────
+
+type ManpowerRow = {
+  r: string; f: number; sk: "Junior" | "Mid" | "Senior" | "Lead";
+  p: string; src: "Internal" | "Subcontract" | "External"; s: Rag; sl: string;
+};
+
+function ManpowerPlanBaseline({ pmName }: { pmName: string }) {
+  const initialRows: ManpowerRow[] = [
+    { r: "Solution Architect", f: 1.0, sk: "Senior", p: "Jun–Sep", src: "Internal",    s: "green", sl: "Confirmed" },
+    { r: "QA Engineer",        f: 2.0, sk: "Mid",    p: "Jul–Sep", src: "Internal",    s: "green", sl: "Confirmed" },
+    { r: "Integration Dev",    f: 1.5, sk: "Mid",    p: "Jun–Aug", src: "Internal",    s: "green", sl: "Confirmed" },
+    { r: "Security Reviewer",  f: 0.5, sk: "Senior", p: "Aug",     src: "Subcontract", s: "green", sl: "Confirmed" },
+    { r: "Change Manager",     f: 0.5, sk: "Mid",    p: "Sep",     src: "Internal",    s: "amber", sl: "Pending" },
+  ];
+
+  type MP = { rows: ManpowerRow[] };
+  const [versions, setVersions] = useState<Array<BaselineVersion & { snapshot: MP }>>([
+    { version: 1, createdAt: "2026-03-12", author: "Sara Al-Rashid", snapshot: { rows: initialRows.slice(0, 3) } },
+    { version: 2, createdAt: "2026-04-18", author: "John Smith",     snapshot: { rows: initialRows.slice(0, 4) } },
+    { version: 3, createdAt: "2026-05-15", author: "Aisha Khoury",   snapshot: { rows: initialRows } },
+  ]);
+  const baseline = versions[versions.length - 1].snapshot;
+  const [activeVersion, setActiveVersion] = useState("latest");
+  const [editMode, setEditMode] = useState<"viewing" | "editing">("viewing");
+  const [draft, setDraft] = useState<MP>({ rows: baseline.rows.map((r) => ({ ...r })) });
+  const isLatest = activeVersion === "latest";
+  const displayed = isLatest
+    ? (editMode === "editing" ? draft : baseline)
+    : (versions.find((v) => `v${v.version}` === activeVersion)?.snapshot ?? baseline);
+
+  const diff: DiffRow[] = useMemo(() => {
+    const rows: DiffRow[] = [];
+    const base = new Map(baseline.rows.map((r) => [r.r, r]));
+    const drf = new Map(draft.rows.map((r) => [r.r, r]));
+    draft.rows.forEach((d) => {
+      const b = base.get(d.r);
+      if (!b) { rows.push({ group: d.r, field: "Role", from: "—", to: `${d.f} FTE · ${d.sk}`, kind: "added" }); return; }
+      if (b.f !== d.f) rows.push({ group: d.r, field: "FTE", from: b.f, to: d.f });
+      if (b.sk !== d.sk) rows.push({ group: d.r, field: "Skill level", from: b.sk, to: d.sk });
+      if (b.p !== d.p) rows.push({ group: d.r, field: "Period", from: b.p, to: d.p });
+      if (b.src !== d.src) rows.push({ group: d.r, field: "Sourcing", from: b.src, to: d.src });
+    });
+    baseline.rows.forEach((b) => {
+      if (!drf.has(b.r)) rows.push({ group: b.r, field: "Role", from: `${b.f} FTE · ${b.sk}`, to: "—", kind: "removed" });
+    });
+    return rows;
+  }, [draft, baseline]);
+
+  const editing = editMode === "editing" && isLatest;
+  function enterEdit() { setDraft({ rows: baseline.rows.map((r) => ({ ...r })) }); setEditMode("editing"); }
+  function cancelEdit() { setDraft({ rows: baseline.rows.map((r) => ({ ...r })) }); setEditMode("viewing"); }
+  function submitCR(_a: BaselineApprover[]) {
+    setVersions((prev) => [...prev, {
+      version: prev[prev.length - 1].version + 1,
+      createdAt: new Date().toISOString().slice(0, 10),
+      author: pmName,
+      snapshot: { rows: draft.rows.map((r) => ({ ...r })) },
+    }]);
+    setEditMode("viewing");
+  }
+
+  function patchRow(idx: number, patch: Partial<ManpowerRow>) {
+    setDraft((prev) => ({ rows: prev.rows.map((r, i) => i === idx ? { ...r, ...patch } : r) }));
+  }
+
+  return (
+    <BaselineShell
+      tabKey="manpower"
+      title="Manpower Plan Baseline"
+      versions={versions.map(({ version, createdAt, author }) => ({ version, createdAt, author }))}
+      activeVersion={activeVersion}
+      onChangeVersion={setActiveVersion}
+      editMode={editMode}
+      onEnterEdit={enterEdit}
+      onCancelEdit={cancelEdit}
+      hasDraftChanges={diff.length > 0}
+      changeCount={diff.length}
+      diff={diff}
+      approversPool={BASELINE_APPROVERS}
+      onSubmitChangeRequest={submitCR}
+    >
+      <div className="space-y-4">
+        <div className="grid gap-3 md:grid-cols-4">
+          {[
+            { l: "Roles requested", v: String(displayed.rows.length) },
+            { l: "Confirmed", v: String(displayed.rows.filter((r) => r.sl === "Confirmed").length), c: "text-rag-green" },
+            { l: "Pending", v: String(displayed.rows.filter((r) => r.sl === "Pending").length), c: "text-rag-amber" },
+            { l: "Total FTE", v: displayed.rows.reduce((s, r) => s + r.f, 0).toFixed(1) },
+          ].map((k) => (
+            <div key={k.l} className="glass-card p-4">
+              <div className="label-eyebrow">{k.l}</div>
+              <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+            </div>
+          ))}
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent bg-transparent border-0">
+              <TableHead>Role</TableHead><TableHead>FTE</TableHead><TableHead>Skill level</TableHead>
+              <TableHead>Period</TableHead><TableHead>Sourcing</TableHead><TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {displayed.rows.map((m, idx) => (
+              <TableRow key={m.r + idx} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                <TableCell className="font-medium text-foreground" title={!editing && isLatest ? "Locked. Click Change Plan to edit." : undefined}>
+                  {editing ? (
+                    <Input value={m.r} onChange={(e) => patchRow(idx, { r: e.target.value })} className="h-7 text-xs" />
+                  ) : m.r}
+                </TableCell>
+                <TableCell className="num-mono">
+                  {editing ? (
+                    <Input type="number" step="0.5" min={0} value={m.f}
+                      onChange={(e) => patchRow(idx, { f: parseFloat(e.target.value) || 0 })} className="h-7 w-16 text-xs num-mono" />
+                  ) : m.f}
+                </TableCell>
+                <TableCell>
+                  {editing ? (
+                    <Select value={m.sk} onValueChange={(v) => patchRow(idx, { sk: v as ManpowerRow["sk"] })}>
+                      <SelectTrigger className="h-7 w-24 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {["Junior","Mid","Senior","Lead"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : m.sk}
+                </TableCell>
+                <TableCell>
+                  {editing ? (
+                    <Input value={m.p} onChange={(e) => patchRow(idx, { p: e.target.value })} className="h-7 w-24 text-xs" />
+                  ) : m.p}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {editing ? (
+                    <Select value={m.src} onValueChange={(v) => patchRow(idx, { src: v as ManpowerRow["src"] })}>
+                      <SelectTrigger className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {["Internal","Subcontract","External"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : m.src}
+                </TableCell>
+                <TableCell><RagBadge rag={m.s} label={m.sl} /></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        {editing && (
+          <div>
+            <Button size="sm" variant="outline" className="text-xs"
+              onClick={() => setDraft((prev) => ({ rows: [...prev.rows, { r: "New role", f: 1, sk: "Mid", p: "TBD", src: "Internal", s: "amber", sl: "Pending" }] }))}>
+              <Plus className="mr-1 h-3.5 w-3.5" /> Add role
+            </Button>
+          </div>
+        )}
+      </div>
+    </BaselineShell>
   );
 }

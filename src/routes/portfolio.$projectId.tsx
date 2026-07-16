@@ -791,6 +791,19 @@ function ProjectDetail() {
             }}
           />
 
+          {/* Compare versions Dialog */}
+          <VersionCompareDialog
+            open={compareVersionOpen}
+            onOpenChange={setCompareVersionOpen}
+            fromLabel={`v${parseInt(selectedBaselineVersion.replace(/^v/, "")) || projectBaselineVersions.length}`}
+            toLabel={`Current (v${projectBaselineVersions.length})`}
+            fromSnapshot={
+              (projectBaselineVersions.find((v) => `v${v.version}` === selectedBaselineVersion)?.snapshot as Milestone[] | undefined) ??
+              (projectBaselineVersions[projectBaselineVersions.length - 1]?.snapshot as Milestone[] | undefined)
+            }
+            toSnapshot={milestones}
+          />
+
           {/* Cancel Edit Confirmation */}
           <AlertDialog open={cancelEditDialogOpen} onOpenChange={setCancelEditDialogOpen}>
             <AlertDialogContent>

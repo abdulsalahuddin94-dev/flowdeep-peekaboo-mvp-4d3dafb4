@@ -3529,9 +3529,12 @@ function StakeholdersTab() {
 
   return (
     <div className="space-y-4">
+      <BaselineHeader state={stkBaseline} />
+      <TabChangeRequestDialog state={stkBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
+      <TabApprovalDialog state={stkBaseline} />
       <div className="flex items-center justify-between">
-        <div className="label-eyebrow">Stakeholder matrix · {items.length} stakeholders</div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <div className="label-eyebrow">Stakeholder matrix · {displayStk.length} stakeholders</div>
+        {canEdit && <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><UserPlus className="mr-1 h-4 w-4" />Add Stakeholder</Button>
           </DialogTrigger>
@@ -3571,13 +3574,13 @@ function StakeholdersTab() {
               <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Add Stakeholder</Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+        </Dialog>}
       </div>
 
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Name</TableHead><TableHead>Org</TableHead><TableHead>Influence</TableHead><TableHead>Interest</TableHead><TableHead>Strategy</TableHead></TableRow></TableHeader>
-          <TableBody>{items.map((s) => (
+          <TableBody>{displayStk.map((s) => (
             <TableRow key={s.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
               <TableCell className="font-medium">{s.name}</TableCell>
               <TableCell>{s.org}</TableCell>
@@ -3597,7 +3600,7 @@ function StakeholdersTab() {
             <div key={q.key} className={`${q.tint} border p-4 min-h-32`}>
               <div className={`text-xs font-medium ${q.text}`}>{q.label}</div>
               <ul className="mt-2 space-y-1 text-sm text-foreground">
-                {items.filter(q.filter).map((s) => (<li key={s.name}>{s.name}</li>))}
+                {displayStk.filter(q.filter).map((s) => (<li key={s.name}>{s.name}</li>))}
               </ul>
             </div>
           ))}

@@ -901,7 +901,7 @@ function ProjectDetail() {
         </TabsContent>
 
         <TabsContent value="Financials" className="mt-5">
-          <FinancialsTab project={project} />
+          <FinancialsTab project={project} milestones={milestones} />
         </TabsContent>
 
         <TabsContent value="Project Risks" className="mt-5">

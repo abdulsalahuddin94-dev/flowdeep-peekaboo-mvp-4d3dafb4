@@ -1697,36 +1697,13 @@ function ProgressUpdateDialog({
               onChange={(e) => setDraftPct(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
             />
             <div className="flex flex-col gap-2">
-              {!projectBaseline ? (
-                <Button
-                  onClick={createProjectBaseline}
-                  className="bg-rag-green text-white hover:bg-rag-green/90"
-                >
-                  ✓ Create Project Baseline (Lock Schedule)
-                </Button>
-              ) : projectBaseline?.isLocked ? (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-center gap-2 rounded-md border border-rag-green/50 bg-rag-green/10 px-3 py-2 text-sm font-medium text-rag-green">
-                    <CheckCircle2 className="h-4 w-4" />
-                    🔒 Project Baseline v{projectBaseline.version} (Locked)
-                  </div>
-                  <Button
-                    onClick={requestChangeRequest}
-                    variant="outline"
-                    className="border-accent text-accent hover:bg-accent-dim"
-                  >
-                    + Request Change (v{(projectBaseline.version ?? 0) + 1})
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  onClick={save}
-                  disabled={!current}
-                  className="bg-accent text-accent-foreground hover:bg-accent/90"
-                >
-                  Save update
-                </Button>
-              )}
+              <Button
+                onClick={save}
+                disabled={!current}
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                Save update
+              </Button>
             </div>
             <p className="text-[10px] text-muted-foreground">
               Milestones can't be updated directly — their progress is rolled up from their child tasks

@@ -396,7 +396,7 @@ function ProjectDetail() {
                   <Button
                     size="sm"
                     onClick={() => setCrDialogOpen(true)}
-                    className="h-8 bg-rag-amber text-white hover:bg-rag-amber/90 text-xs"
+                    className="h-8 bg-primary text-primary-foreground hover:bg-primary/90 text-xs"
                   >
                     📤 Send Change Request
                   </Button>

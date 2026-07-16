@@ -21,8 +21,8 @@ export type BaselineVersion = {
 export type DiffRow = {
   group: string;      // e.g. "Objective" or a row identifier
   field: string;      // e.g. "Value" or "FTE"
-  from: string;
-  to: string;
+  from: string | number;
+  to: string | number;
   kind?: "changed" | "added" | "removed";
 };
 

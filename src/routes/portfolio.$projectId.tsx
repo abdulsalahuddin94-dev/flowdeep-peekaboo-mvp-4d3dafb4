@@ -2100,10 +2100,10 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
         <div className="glass-card p-5">
           <div className="mb-3 flex items-center justify-between">
             <div className="label-eyebrow">Cost categories</div>
-            <AddCostDialog onAdd={(e) => setCostEntries((prev) => [...prev, e])} />
+            {canEdit && <AddCostDialog onAdd={(e) => setCostEntries((prev) => [...prev, e])} />}
           </div>
           <div className="space-y-3">
-            {costEntries.map((r) => {
+            {displayCost.map((r) => {
               const pct = Math.round((r.a / r.b) * 100);
               return (
                 <div key={r.c}>
@@ -2145,9 +2145,9 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
           <div className="label-eyebrow">Revenue plan — linked to milestones</div>
           <div className="flex items-center gap-3">
             <span className="num-mono text-xs text-muted-foreground">
-              Total planned: ${revEntries.reduce((s, r) => s + r.plan, 0).toFixed(2)}M
+              Total planned: ${displayRev.reduce((s, r) => s + r.plan, 0).toFixed(2)}M
             </span>
-            <AddRevenueDialog onAdd={(e) => setRevEntries((prev) => [...prev, e])} />
+            {canEdit && <AddRevenueDialog onAdd={(e) => setRevEntries((prev) => [...prev, e])} />}
           </div>
         </div>
         <Table>
@@ -2162,7 +2162,7 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {revEntries.map((r) => (
+            {displayRev.map((r) => (
               <TableRow key={r.ms} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="font-medium text-foreground">{r.ms}</TableCell>
                 <TableCell className="text-muted-foreground">{r.evt}</TableCell>

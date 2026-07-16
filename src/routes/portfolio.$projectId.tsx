@@ -3985,11 +3985,27 @@ function ChangeRequestDialog({
     onSubmit(cr);
   }
 
+  const grouped = useMemo(() => {
+    const m = new Map<string, Array<{ field: string; oldValue: string; newValue: string }>>();
+    for (const c of changes) {
+      if (!m.has(c.item)) m.set(c.item, []);
+      m.get(c.item)!.push({ field: c.field, oldValue: c.oldValue, newValue: c.newValue });
+    }
+    return Array.from(m.entries());
+  }, [changes]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Review Change Request (v{baselineVersion + 1})</DialogTitle>
+          <DialogTitle>
+            Review Change Request (v{baselineVersion + 1})
+            {changes.length > 0 && (
+              <Badge variant="outline" className="ml-2 border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
+                {changes.length} change{changes.length === 1 ? "" : "s"} · {grouped.length} item{grouped.length === 1 ? "" : "s"}
+              </Badge>
+            )}
+          </DialogTitle>
           <DialogDescription>
             Summary of edits vs Current Version (v{baselineVersion}). Confirm to send for approval.
           </DialogDescription>
@@ -4001,16 +4017,8 @@ function ChangeRequestDialog({
               No changes detected. Edit the schedule first.
             </div>
           ) : (
-            changes.map((c, i) => (
-              <div key={i} className="rounded border border-border/40 bg-background/40 p-3 text-sm">
-                <div className="font-medium text-foreground">{c.item}</div>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-                  <span className="text-muted-foreground">{c.field}:</span>
-                  <span className="rounded bg-rag-red/10 px-1.5 py-0.5 text-rag-red line-through">{c.oldValue}</span>
-                  <span className="text-muted-foreground">→</span>
-                  <span className="rounded bg-rag-green/10 px-1.5 py-0.5 text-rag-green">{c.newValue}</span>
-                </div>
-              </div>
+            grouped.map(([item, list]) => (
+              <GroupedChangeItem key={item} item={item} changes={list} />
             ))
           )}
         </div>

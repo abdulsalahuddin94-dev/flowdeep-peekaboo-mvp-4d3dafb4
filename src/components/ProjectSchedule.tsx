@@ -276,6 +276,8 @@ export function ProjectSchedule({
   onProgressClick,
   onDependencyClick,
   resourceList = [],
+  headerSlot,
+  restricted = false,
 }: {
   items: ScheduleItem[];
   AddItemSlot?: React.ReactNode;
@@ -288,6 +290,13 @@ export function ProjectSchedule({
   onProgressClick?: (name: string, kind: ItemKind) => void;
   onDependencyClick?: (name: string) => void;
   resourceList?: Array<{ name: string; role?: string; dept?: string }>;
+  headerSlot?: React.ReactNode;
+  /**
+   * When true, only Progress Update and Assignee edits are allowed.
+   * All other inline edits (name, dates, owner, roles, status, dependencies,
+   * Gantt drag, right-click add/edit/delete) are hidden or read-only.
+   */
+  restricted?: boolean;
 }) {
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);
@@ -735,7 +744,9 @@ export function ProjectSchedule({
   function colVisible(k: ColKey) { return visibleCols.has(k); }
 
   // Inline edit helpers
-  const editable = !!onItemPatch;
+  const canPatch = !!onItemPatch;
+  const editable = canPatch && !restricted;
+  const assigneeEditable = canPatch;
   const ragOptions: Rag[] = ["blue", "amber", "green", "red", "grey"];
   function patch(name: string, p: Partial<ScheduleItem>) { onItemPatch?.(name, p); }
 
@@ -864,8 +875,12 @@ export function ProjectSchedule({
       {/* Top action bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-3">
         <div className="flex items-center gap-3">
-          <div className="label-eyebrow">Project Schedule</div>
-          <Badge variant="outline" className="border-border bg-secondary/40">{items.length} items</Badge>
+          {headerSlot ?? (
+            <>
+              <div className="label-eyebrow">Project Schedule</div>
+              <Badge variant="outline" className="border-border bg-secondary/40">{items.length} items</Badge>
+            </>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <ToggleGroup
@@ -1050,7 +1065,12 @@ export function ProjectSchedule({
                             </SelectContent>
                           </Select>
                         ) : (
-                          <span className="text-sm text-foreground truncate">{item.owner || "—"}</span>
+                          <span
+                            className="text-sm text-foreground truncate"
+                            title={restricted ? "🔒 Locked — click Change Plan to edit owner" : undefined}
+                          >
+                            {item.owner || "—"}
+                          </span>
                         )}
                       </div>
                     )}
@@ -1058,7 +1078,7 @@ export function ProjectSchedule({
                       <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.assignee }}>
                         <AssigneeCell
                           item={item}
-                          editable={editable}
+                          editable={assigneeEditable}
                           onCommit={(v) => patch(item.name, { assignee: v || undefined })}
                           onRequestSkill={(role) => onRequestSkill?.(item.name, role)}
                           onSwap={(otherName) => {
@@ -1182,9 +1202,10 @@ export function ProjectSchedule({
                     {colVisible("dep") && (
                       <div className="flex items-center border-l border-border/60 px-3 text-muted-foreground overflow-hidden" style={{ width: widths.dep }}>
                         <button
-                          onClick={() => onDependencyClick?.(item.name)}
-                          className="text-xs text-accent hover:underline cursor-pointer truncate max-w-full"
-                          title="Click to manage dependencies"
+                          onClick={() => !restricted && onDependencyClick?.(item.name)}
+                          disabled={restricted}
+                          className={`text-xs truncate max-w-full ${restricted ? "text-muted-foreground cursor-default" : "text-accent hover:underline cursor-pointer"}`}
+                          title={restricted ? "Locked — use Change Plan to edit dependencies" : "Click to manage dependencies"}
                         >
                           {item.dependencies && item.dependencies.length > 0
                             ? item.dependencies.length === 1
@@ -1212,17 +1233,17 @@ export function ProjectSchedule({
                   </div>
                     </ContextMenuTrigger>
                     <ContextMenuContent className="w-48">
-                      {onAddSubtask && (
+                      {!restricted && onAddSubtask && (
                         <ContextMenuItem onSelect={() => onAddSubtask(item.name)}>
                           <Plus className="mr-2 h-3.5 w-3.5" /> Add subtask
                         </ContextMenuItem>
                       )}
-                      {onEditItem && (
+                      {!restricted && onEditItem && (
                         <ContextMenuItem onSelect={() => onEditItem(item.name)}>
                           <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
                         </ContextMenuItem>
                       )}
-                      {onDeleteItem && (
+                      {!restricted && onDeleteItem && (
                         <>
                           <ContextMenuSeparator />
                           <ContextMenuItem
@@ -1232,6 +1253,11 @@ export function ProjectSchedule({
                             <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
                           </ContextMenuItem>
                         </>
+                      )}
+                      {restricted && (
+                        <ContextMenuItem disabled className="text-xs text-muted-foreground">
+                          Click "Change Plan" to edit
+                        </ContextMenuItem>
                       )}
                     </ContextMenuContent>
                   </ContextMenu>
@@ -1654,7 +1680,10 @@ function EditableText({
 
   if (!editable) {
     return (
-      <span className={`truncate ${className ?? ""}`}>
+      <span
+        className={`truncate ${className ?? ""}`}
+        title="🔒 Locked — click Change Plan to edit"
+      >
         {value || <span className="text-muted-foreground">{placeholder ?? "—"}</span>}
       </span>
     );
@@ -1716,7 +1745,7 @@ function DateRangeCell({
 
   if (!editable) {
     return (
-      <span className="truncate">
+      <span className="truncate" title="🔒 Locked — click Change Plan to edit dates">
         {display || <span className="text-muted-foreground">—</span>}
       </span>
     );

@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, ArrowUpRight, Clock } from "lucide-react";
+import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, ArrowUpRight, Clock, Check } from "lucide-react";
 import type { Rag } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
@@ -149,7 +149,7 @@ function ProjectDetail() {
   }>>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([
     // ── Phase 1: Discovery — completed, all green, all assigned ──────────────
-    { name: "Discovery & Requirements", kind: "Task", startDate: "2025-04-15", endDate: "2025-05-16", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "Package Cost", packageId: "PKG-DSC", amount: "$80K" }, progress: 100, parent: "Discovery Sign-off", weightScore: 8 },
+    { name: "Discovery & Requirements", kind: "Task", startDate: "2025-04-15", endDate: "2025-05-16", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "Package Cost", packageId: "PKG-DSC", amount: "$80K" }, progress: 20, parent: "Discovery Sign-off", weightScore: 8 },
     { name: "Stakeholder workshops", kind: "Task", startDate: "2025-04-15", endDate: "2025-04-25", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 100, parent: "Discovery & Requirements", assignee: "Sara Al-Rashid", weightScore: 5 },
     { name: "Requirements doc", kind: "Task", startDate: "2025-04-28", endDate: "2025-05-12", owner: "Sara Al-Rashid", rag: "green", dep: "Stakeholder workshops", roles: [{ role: "Business Analyst", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 100, parent: "Discovery & Requirements", assignee: "John Smith", weightScore: 5 },
     { name: "Discovery Sign-off", kind: "Milestone", startDate: "2025-05-16", endDate: "2025-05-16", owner: "Sara Al-Rashid", rag: "green", dep: "Discovery & Requirements", roles: [], payment: { kind: "Client Revenue", amount: "$120K" }, progress: 0, assignee: "Sara Al-Rashid", milestoneType: "finish", requiresApproval: true, approvers: [{ id: "u-ahmed", name: "Ahmed Al-Mansouri", role: "Portfolio Director", department: "Executive" }, { id: "u-layla", name: "Layla Mahmoud", role: "Sponsor", department: "Growth" }] },
@@ -1704,13 +1704,31 @@ function ProgressUpdateDialog({
               onChange={(e) => setDraftPct(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
             />
             <div className="flex flex-col gap-2">
-              <Button
-                onClick={save}
-                disabled={!current}
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
-              >
-                Save update
-              </Button>
+              {msApproved ? (
+                <div className="flex items-center justify-center gap-1.5 rounded-md border border-rag-green/40 bg-rag-green/10 px-3 py-2 text-sm font-medium text-rag-green">
+                  <Check className="h-4 w-4" /> Approved
+                </div>
+              ) : msPending ? (
+                <div className="flex items-center justify-center rounded-md border border-rag-amber/40 bg-rag-amber/10 px-3 py-2 text-sm font-medium text-rag-amber">
+                  Waiting for the Approval
+                </div>
+              ) : showSendApprovalBtn ? (
+                <Button
+                  onClick={saveAndRequestApproval}
+                  disabled={!current}
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  Send Approval Request
+                </Button>
+              ) : (
+                <Button
+                  onClick={save}
+                  disabled={!current}
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
+                >
+                  Save update
+                </Button>
+              )}
             </div>
             <p className="text-[10px] text-muted-foreground">
               Milestones can't be updated directly — their progress is rolled up from their child tasks

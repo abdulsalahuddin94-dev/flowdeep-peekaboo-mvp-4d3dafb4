@@ -1065,7 +1065,12 @@ export function ProjectSchedule({
                             </SelectContent>
                           </Select>
                         ) : (
-                          <span className="text-sm text-foreground truncate">{item.owner || "—"}</span>
+                          <span
+                            className="text-sm text-foreground truncate"
+                            title={restricted ? "🔒 Locked — click Change Plan to edit owner" : undefined}
+                          >
+                            {item.owner || "—"}
+                          </span>
                         )}
                       </div>
                     )}

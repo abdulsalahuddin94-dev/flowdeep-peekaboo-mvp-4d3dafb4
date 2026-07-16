@@ -203,6 +203,47 @@ function ProjectDetail() {
   const [planEditMode, setPlanEditMode] = useState<"view" | "editing" | "pending">("view");
   const isViewingCurrent = selectedBaselineVersion === "latest";
   const isEditingAllowed = isViewingCurrent && planEditMode === "editing";
+  const [cancelEditDialogOpen, setCancelEditDialogOpen] = useState(false);
+  const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(null);
+
+  const hasPlanChanges = useMemo(() => {
+    if (!editBaselineSnapshot) return false;
+    const baseByName = new Map(editBaselineSnapshot.map((m) => [m.name, m]));
+    const curByName = new Map(milestones.map((m) => [m.name, m]));
+    const fields: Array<keyof Milestone> = ["startDate", "endDate", "owner", "assignee", "dep"];
+    for (const cur of milestones) {
+      const base = baseByName.get(cur.name);
+      if (!base) return true;
+      for (const f of fields) {
+        if (String((base as any)[f] ?? "") !== String((cur as any)[f] ?? "")) return true;
+      }
+    }
+    for (const b of editBaselineSnapshot) if (!curByName.has(b.name)) return true;
+    return false;
+  }, [editBaselineSnapshot, milestones]);
+
+  function enterEditMode() {
+    setEditBaselineSnapshot(milestones.map((m) => ({ ...m })));
+    setPlanEditMode("editing");
+  }
+
+  function requestExitEditMode() {
+    if (hasPlanChanges) {
+      setCancelEditDialogOpen(true);
+    } else {
+      setEditBaselineSnapshot(null);
+      setPlanEditMode("view");
+    }
+  }
+
+  function discardAndExit() {
+    if (editBaselineSnapshot) {
+      setMilestones(editBaselineSnapshot.map((m) => ({ ...m })));
+    }
+    setEditBaselineSnapshot(null);
+    setCancelEditDialogOpen(false);
+    setPlanEditMode("view");
+  }
 
   // Initialize sample baseline versions on component mount
   useEffect(() => {

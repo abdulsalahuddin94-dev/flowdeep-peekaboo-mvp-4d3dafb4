@@ -469,6 +469,28 @@ function ProjectDetail() {
 
 
         <TabsContent value="Project Schedule" className="mt-5">
+          {planEditMode === "editing" && isViewingCurrent && (
+            <div className="mb-3 flex items-start gap-3 rounded-lg border border-rag-amber/40 bg-rag-amber/10 px-4 py-3">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rag-amber" />
+              <div className="flex-1 text-xs">
+                <div className="font-medium text-rag-amber">You're editing the plan</div>
+                <div className="mt-0.5 text-muted-foreground">
+                  Locked fields are now editable. Changes will be reviewed as a Change Request.
+                  <span className="ml-2 opacity-70">Shortcuts: Esc = cancel · ⌘/Ctrl+S = submit</span>
+                </div>
+              </div>
+              {planChangeCount > 0 && (
+                <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber">
+                  {planChangeCount} change{planChangeCount === 1 ? "" : "s"} pending
+                </Badge>
+              )}
+            </div>
+          )}
+          {planEditMode === "view" && isViewingCurrent && (
+            <div className="mb-2 text-[11px] text-muted-foreground/70">
+              📖 Baseline locked — press <kbd className="rounded border border-border bg-secondary/40 px-1">E</kbd> or click Change Plan to edit
+            </div>
+          )}
           <ProjectSchedule
             headerSlot={
               <div className="flex items-center gap-2">

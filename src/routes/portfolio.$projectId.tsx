@@ -23,6 +23,15 @@ import { useProjects, useNotifications, useRfps, useResourceRequests, useCalenda
 import { toast } from "sonner";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress } from "@/components/ProjectSchedule";
+import {
+  useTabBaseline,
+  BaselineHeader,
+  TabChangeRequestDialog,
+  TabApprovalDialog,
+  DEFAULT_PROJECT_APPROVERS,
+  defaultDiff,
+  type TabChange,
+} from "@/components/TabBaseline";
 void ProjectGantt;
 
 export const Route = createFileRoute("/portfolio/$projectId")({
@@ -879,155 +888,16 @@ function ProjectDetail() {
 
 
         <TabsContent value="Team & Allocation" className="mt-5">
-          <Tabs defaultValue="team-members">
-            <TabsList className="h-auto w-full justify-start overflow-x-auto rounded-none border-b border-border bg-transparent p-0">
-              {[
-                { v: "manpower-plan", l: "Manpower Planning" },
-                { v: "team-members", l: "Team Members" },
-                { v: "alloc-overview", l: "Allocation Overview" },
-              ].map((t) => (
-                <TabsTrigger
-                  key={t.v}
-                  value={t.v}
-                  className="text-xs"
-                >
-                  {t.l}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            <TabsContent value="manpower-plan" className="mt-4 space-y-4">
-              <div className="grid gap-3 md:grid-cols-4">
-                {[
-                  { l: "Roles requested", v: "5" },
-                  { l: "Confirmed", v: "4", c: "text-rag-green" },
-                  { l: "Pending", v: "1", c: "text-rag-amber" },
-                  { l: "Total FTE", v: "5.5" },
-                ].map((k) => (
-                  <div key={k.l} className="glass-card p-4">
-                    <div className="label-eyebrow">{k.l}</div>
-                    <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent bg-transparent border-0">
-                      <TableHead>Role</TableHead><TableHead>FTE</TableHead><TableHead>Skill level</TableHead>
-                      <TableHead>Period</TableHead><TableHead>Sourcing</TableHead><TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {[
-                      { r: "Solution Architect", f: 1.0, sk: "Senior", p: "Jun–Sep", src: "Internal", s: "green", sl: "Confirmed" },
-                      { r: "QA Engineer",        f: 2.0, sk: "Mid",    p: "Jul–Sep", src: "Internal",  s: "green", sl: "Confirmed" },
-                      { r: "Integration Dev",    f: 1.5, sk: "Mid",    p: "Jun–Aug", src: "Internal",  s: "green", sl: "Confirmed" },
-                      { r: "Security Reviewer",  f: 0.5, sk: "Senior", p: "Aug",     src: "Subcontract", s: "green", sl: "Confirmed" },
-                      { r: "Change Manager",     f: 0.5, sk: "Mid",    p: "Sep",     src: "Internal",  s: "amber", sl: "Pending" },
-                    ].map((m) => (
-                      <TableRow key={m.r} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                        <TableCell className="font-medium text-foreground">{m.r}</TableCell>
-                        <TableCell className="num-mono">{m.f}</TableCell>
-                        <TableCell>{m.sk}</TableCell>
-                        <TableCell>{m.p}</TableCell>
-                        <TableCell className="text-muted-foreground">{m.src}</TableCell>
-                        <TableCell><RagBadge rag={m.s as any} label={m.sl} /></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="team-members" className="mt-4 space-y-3">
-              <div className="flex justify-end gap-2">
-                <Button size="sm" variant="outline" className="gap-1 text-xs border-accent/40 text-accent hover:bg-accent-dim"
-                  onClick={() => setReqResourceOpen(true)}>
-                  <UserPlus className="h-3.5 w-3.5" />Request Resource
-                </Button>
-                <Button size="sm" className="gap-1 text-xs bg-accent text-accent-foreground hover:bg-accent/90"
-                  onClick={() => setAddMemberOpen(true)}>
-                  <Plus className="h-3.5 w-3.5" />Add Member
-                </Button>
-              </div>
-              <div className="">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent bg-transparent border-0">
-                      <TableHead>Member</TableHead><TableHead>Role</TableHead>
-                      <TableHead>Allocation %</TableHead><TableHead>Period</TableHead><TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {teamMembers.map((m) => (
-                      <TableRow key={m.n} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                        <TableCell className="font-medium">{m.n}</TableCell>
-                        <TableCell>{m.r}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Progress value={m.a} className="h-1.5 w-32" />
-                            <span className="num-mono text-xs">{m.a}%</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{m.p}</TableCell>
-                        <TableCell><RagBadge rag={m.s} /></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Add Member dialog */}
-              <AddTeamMemberDialog
-                open={addMemberOpen}
-                onOpenChange={setAddMemberOpen}
-                onAdd={(m) => { setTeamMembers((prev) => [...prev, m]); toast.success(`${m.n} added to team`); }}
-              />
-
-              {/* Request Resource dialog */}
-              <RequestResourceDialog
-                open={reqResourceOpen}
-                onOpenChange={setReqResourceOpen}
-                project={project}
-                onSubmit={(r) => { addResourceRequest(r); toast.success("Resource request submitted to Resources module"); }}
-              />
-            </TabsContent>
-
-            <TabsContent value="alloc-overview" className="mt-4 glass-card p-5">
-              <div className="label-eyebrow mb-4">Team capacity vs. allocation — this project</div>
-              <div className="space-y-4">
-                {[
-                  { n: project.pm,   r: "PM",           alloc: 80,  cap: 100, over: false },
-                  { n: "Mei Chen",   r: "Security Lead", alloc: 40,  cap: 100, over: false },
-                  { n: "Priya Iyer", r: "Tech Lead",     alloc: 100, cap: 100, over: false },
-                  { n: "Diego Ortiz",r: "BI Engineer",   alloc: 30,  cap: 100, over: false },
-                ].map((m) => (
-                  <div key={m.n}>
-                    <div className="mb-1.5 flex items-center justify-between text-sm">
-                      <span className="font-medium text-foreground">{m.n}</span>
-                      <span className="text-xs text-muted-foreground">{m.r}</span>
-                      <span className={`num-mono text-xs ml-auto ${m.alloc >= 100 ? "text-rag-amber" : "text-foreground"}`}>{m.alloc}% allocated</span>
-                    </div>
-                    <div className="relative h-4 w-full overflow-hidden rounded-full bg-secondary/50">
-                      <div
-                        className={`h-full rounded-full transition-all ${m.alloc >= 100 ? "bg-rag-amber" : "bg-accent"}`}
-                        style={{ width: `${Math.min(m.alloc, 100)}%` }}
-                      />
-                      {m.alloc > 100 && (
-                        <div className="absolute right-0 top-0 h-full w-1 rounded-r-full bg-rag-red" />
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-5 flex gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5"><span className="h-2 w-4 rounded-full bg-accent" />Normal</span>
-                <span className="flex items-center gap-1.5"><span className="h-2 w-4 rounded-full bg-rag-amber" />At capacity</span>
-                <span className="flex items-center gap-1.5"><span className="h-2 w-4 rounded-full bg-rag-red" />Over-allocated</span>
-              </div>
-            </TabsContent>
-          </Tabs>
+          <TeamAllocationTab
+            project={project}
+            teamMembers={teamMembers}
+            setTeamMembers={setTeamMembers}
+            addMemberOpen={addMemberOpen}
+            setAddMemberOpen={setAddMemberOpen}
+            reqResourceOpen={reqResourceOpen}
+            setReqResourceOpen={setReqResourceOpen}
+            addResourceRequest={addResourceRequest}
+          />
         </TabsContent>
 
         <TabsContent value="Financials" className="mt-5">
@@ -1155,7 +1025,6 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 // ── Project Charter tab ───────────────────────────────────────────────────────
 function CharterTab({ project }: { project: typeof projects[number] }) {
-  const [editMode, setEditMode] = useState(false);
   const [approved, setApproved] = useState(project.stage !== "Initiation");
 
   const [fields, setFields] = useState({
@@ -1172,6 +1041,16 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
     successCriteria: "Go-live achieved by target date. User acceptance ≥ 85%. Budget variance < 5%.",
   });
 
+  const snapshot = useMemo(() => fields, [fields]);
+  const baseline = useTabBaseline({
+    scope: "charter",
+    label: "Project Charter",
+    current: snapshot,
+    onCommit: (s) => setFields(s),
+  });
+  const displayFields = (baseline.viewedSnapshot as typeof fields | null) ?? fields;
+  const editMode = baseline.canEdit;
+
   function patch(key: keyof typeof fields, val: string) {
     setFields((prev) => ({ ...prev, [key]: val }));
   }
@@ -1185,7 +1064,7 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
             ? <Textarea value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm min-h-[64px]" rows={3} />
             : <Input value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm" />
         ) : (
-          <p className="text-sm text-foreground whitespace-pre-line">{fields[fieldKey]}</p>
+          <p className="text-sm text-foreground whitespace-pre-line">{displayFields[fieldKey]}</p>
         )}
       </div>
     );
@@ -1193,6 +1072,9 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
 
   return (
     <div className="space-y-5">
+      <BaselineHeader state={baseline} />
+      <TabChangeRequestDialog state={baseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
+      <TabApprovalDialog state={baseline} />
       {/* Header bar */}
       <div className="glass-card flex items-center justify-between px-5 py-4">
         <div>
@@ -1214,10 +1096,6 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
               Approve Charter
             </Button>
           )}
-          <Button size="sm" variant="outline" className="text-xs"
-            onClick={() => { setEditMode((e) => !e); if (editMode) toast.success("Charter saved"); }}>
-            {editMode ? "Save" : "Edit"}
-          </Button>
         </div>
       </div>
 
@@ -2031,8 +1909,40 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null },
     { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null },
   ]);
+  const finSnapshot = useMemo(() => ({ costEntries, revEntries }), [costEntries, revEntries]);
+  const finBaseline = useTabBaseline({
+    scope: "financials",
+    label: "Financials",
+    current: finSnapshot,
+    onCommit: (s) => { setCostEntries(s.costEntries); setRevEntries(s.revEntries); },
+    diff: (a, b) => {
+      const out: TabChange[] = [];
+      const aMap = new Map(a.costEntries.map((e) => [e.c, e]));
+      const bMap = new Map(b.costEntries.map((e) => [e.c, e]));
+      for (const k of new Set([...aMap.keys(), ...bMap.keys()])) {
+        const av = aMap.get(k); const bv = bMap.get(k);
+        if (!av) out.push({ path: `Cost · ${k}`, before: "—", after: `$${bv!.a.toFixed(2)}M / $${bv!.b.toFixed(2)}M` });
+        else if (!bv) out.push({ path: `Cost · ${k}`, before: `$${av.a.toFixed(2)}M / $${av.b.toFixed(2)}M`, after: "—" });
+        else if (av.a !== bv.a || av.b !== bv.b) out.push({ path: `Cost · ${k}`, before: `$${av.a.toFixed(2)}M / $${av.b.toFixed(2)}M`, after: `$${bv.a.toFixed(2)}M / $${bv.b.toFixed(2)}M` });
+      }
+      const aRev = new Map(a.revEntries.map((e) => [e.ms, e]));
+      const bRev = new Map(b.revEntries.map((e) => [e.ms, e]));
+      for (const k of new Set([...aRev.keys(), ...bRev.keys()])) {
+        const av = aRev.get(k); const bv = bRev.get(k);
+        if (!av || !bv) out.push({ path: `Revenue · ${k}`, before: av ? "present" : "—", after: bv ? "present" : "—" });
+        else if (av.plan !== bv.plan || av.act !== bv.act || av.sl !== bv.sl) out.push({ path: `Revenue · ${k}`, before: `plan $${av.plan}M · ${av.sl}`, after: `plan $${bv.plan}M · ${bv.sl}` });
+      }
+      return out;
+    },
+  });
+  const canEdit = finBaseline.canEdit;
+  const displayCost = (finBaseline.viewedSnapshot?.costEntries as CostEntry[] | undefined) ?? costEntries;
+  const displayRev = (finBaseline.viewedSnapshot?.revEntries as RevEntry[] | undefined) ?? revEntries;
   return (
     <div className="space-y-4">
+      <BaselineHeader state={finBaseline} />
+      <TabChangeRequestDialog state={finBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
+      <TabApprovalDialog state={finBaseline} />
       <div className="grid gap-3 md:grid-cols-4">
         {[
           { l: "Total Budget", v: `$${project.budgetTotal.toFixed(1)}M` },
@@ -2051,10 +1961,10 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
         <div className="glass-card p-5">
           <div className="mb-3 flex items-center justify-between">
             <div className="label-eyebrow">Cost categories</div>
-            <AddCostDialog onAdd={(e) => setCostEntries((prev) => [...prev, e])} />
+            {canEdit && <AddCostDialog onAdd={(e) => setCostEntries((prev) => [...prev, e])} />}
           </div>
           <div className="space-y-3">
-            {costEntries.map((r) => {
+            {displayCost.map((r) => {
               const pct = Math.round((r.a / r.b) * 100);
               return (
                 <div key={r.c}>
@@ -2096,9 +2006,9 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
           <div className="label-eyebrow">Revenue plan — linked to milestones</div>
           <div className="flex items-center gap-3">
             <span className="num-mono text-xs text-muted-foreground">
-              Total planned: ${revEntries.reduce((s, r) => s + r.plan, 0).toFixed(2)}M
+              Total planned: ${displayRev.reduce((s, r) => s + r.plan, 0).toFixed(2)}M
             </span>
-            <AddRevenueDialog onAdd={(e) => setRevEntries((prev) => [...prev, e])} />
+            {canEdit && <AddRevenueDialog onAdd={(e) => setRevEntries((prev) => [...prev, e])} />}
           </div>
         </div>
         <Table>
@@ -2113,7 +2023,7 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {revEntries.map((r) => (
+            {displayRev.map((r) => (
               <TableRow key={r.ms} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="font-medium text-foreground">{r.ms}</TableCell>
                 <TableCell className="text-muted-foreground">{r.evt}</TableCell>
@@ -2965,6 +2875,14 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
     { id: "I-044", title: "Test env outage", kind: "Issue", score: 12, owner: "Mei Chen", status: "In progress", rag: "amber" },
     { id: "R-085", title: "Risk: Audit finding remediation overrun", kind: "Risk", score: 16, owner: "Mei Chen", status: "Open", rag: "amber" },
   ]);
+  const risksBaseline = useTabBaseline({
+    scope: "risks",
+    label: "Project Risks",
+    current: items,
+    onCommit: (s) => setItems(s),
+  });
+  const displayItems = (risksBaseline.viewedSnapshot as RaidItem[] | null) ?? items;
+  const canEdit = risksBaseline.canEdit;
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<"Risk" | "Issue">("Risk");
   const [title, setTitle] = useState("");
@@ -2994,6 +2912,9 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
 
   return (
     <div className="space-y-4">
+      <BaselineHeader state={risksBaseline} />
+      <TabChangeRequestDialog state={risksBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
+      <TabApprovalDialog state={risksBaseline} />
       <div className="rounded-md border border-accent/20 bg-accent-dim/20 px-4 py-3 text-xs text-accent">
         Project-level risks and issues. Log concerns that impact this project's timeline, budget, or scope.
       </div>
@@ -3007,7 +2928,7 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
       </div>
       <div className="flex items-center justify-between">
         <div className="label-eyebrow">Project Risks & Issues</div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        {canEdit && <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
               <AlertTriangle className="mr-1 h-4 w-4" />Log Risk / Issue
@@ -3069,12 +2990,12 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
               <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Log {kind}</Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+        </Dialog>}
       </div>
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>ID</TableHead><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Score</TableHead><TableHead>Owner</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-          <TableBody>{items.map((r) => (
+          <TableBody>{displayItems.map((r) => (
             <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
               <TableCell className="num-mono text-xs">{r.id}</TableCell>
               <TableCell className="font-medium">{r.title}</TableCell>
@@ -3179,6 +3100,13 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
   ];
 
   const [packages, setPackages] = useState<TenderPackage[]>(SEED_PACKAGES);
+  const procBaseline = useTabBaseline({
+    scope: "procurement",
+    label: "Procurement",
+    current: packages,
+    onCommit: (s) => setPackages(s),
+  });
+  const canEdit = procBaseline.canEdit;
   const [expandedPkg, setExpandedPkg] = useState<string | null>(null);
   const [newPkgOpen, setNewPkgOpen] = useState(false);
   const [newScope, setNewScope] = useState("");
@@ -3227,6 +3155,9 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
 
   return (
     <div className="space-y-4">
+      <BaselineHeader state={procBaseline} />
+      <TabChangeRequestDialog state={procBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
+      <TabApprovalDialog state={procBaseline} />
       <div className="grid gap-3 md:grid-cols-4">
         {[
           { l: "Active Contracts", v: String(contracts.filter((c) => c.status === "Active").length), c: "text-rag-green" },
@@ -3426,6 +3357,14 @@ function StakeholdersTab() {
     { name: "IT Steering", org: "Internal", influence: "Medium", interest: "High", strategy: "Keep informed" },
     { name: "Finance Board", org: "Internal", influence: "High", interest: "Low", strategy: "Inform monthly" },
   ]);
+  const stkBaseline = useTabBaseline({
+    scope: "stakeholders",
+    label: "Stakeholders",
+    current: items,
+    onCommit: (s) => setItems(s),
+  });
+  const displayStk = (stkBaseline.viewedSnapshot as Stakeholder[] | null) ?? items;
+  const canEdit = stkBaseline.canEdit;
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(""); const [org, setOrg] = useState("");
   const [influence, setInfluence] = useState<"High" | "Medium" | "Low">("Medium");
@@ -3451,9 +3390,12 @@ function StakeholdersTab() {
 
   return (
     <div className="space-y-4">
+      <BaselineHeader state={stkBaseline} />
+      <TabChangeRequestDialog state={stkBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
+      <TabApprovalDialog state={stkBaseline} />
       <div className="flex items-center justify-between">
-        <div className="label-eyebrow">Stakeholder matrix · {items.length} stakeholders</div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <div className="label-eyebrow">Stakeholder matrix · {displayStk.length} stakeholders</div>
+        {canEdit && <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><UserPlus className="mr-1 h-4 w-4" />Add Stakeholder</Button>
           </DialogTrigger>
@@ -3493,13 +3435,13 @@ function StakeholdersTab() {
               <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Add Stakeholder</Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+        </Dialog>}
       </div>
 
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Name</TableHead><TableHead>Org</TableHead><TableHead>Influence</TableHead><TableHead>Interest</TableHead><TableHead>Strategy</TableHead></TableRow></TableHeader>
-          <TableBody>{items.map((s) => (
+          <TableBody>{displayStk.map((s) => (
             <TableRow key={s.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
               <TableCell className="font-medium">{s.name}</TableCell>
               <TableCell>{s.org}</TableCell>
@@ -3519,7 +3461,7 @@ function StakeholdersTab() {
             <div key={q.key} className={`${q.tint} border p-4 min-h-32`}>
               <div className={`text-xs font-medium ${q.text}`}>{q.label}</div>
               <ul className="mt-2 space-y-1 text-sm text-foreground">
-                {items.filter(q.filter).map((s) => (<li key={s.name}>{s.name}</li>))}
+                {displayStk.filter(q.filter).map((s) => (<li key={s.name}>{s.name}</li>))}
               </ul>
             </div>
           ))}
@@ -4574,5 +4516,183 @@ function DependencyDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+type TeamAllocationTabProps = {
+  project: typeof projects[number];
+  teamMembers: Array<{ n: string; r: string; a: number; p: string; s: Rag }>;
+  setTeamMembers: React.Dispatch<React.SetStateAction<Array<{ n: string; r: string; a: number; p: string; s: Rag }>>>;
+  addMemberOpen: boolean;
+  setAddMemberOpen: (v: boolean) => void;
+  reqResourceOpen: boolean;
+  setReqResourceOpen: (v: boolean) => void;
+  addResourceRequest: (r: Omit<ResourceRequest, "id" | "date" | "status">) => string;
+};
+function TeamAllocationTab({
+  project, teamMembers, setTeamMembers,
+  addMemberOpen, setAddMemberOpen, reqResourceOpen, setReqResourceOpen, addResourceRequest,
+}: TeamAllocationTabProps) {
+  const [teamState] = useState({ label: "team-allocation" });
+  const teamBaseline = useTabBaseline({
+    scope: "team",
+    label: "Team & Allocation",
+    current: teamState,
+  });
+  return (
+    <div className="space-y-4">
+      <BaselineHeader state={teamBaseline} />
+      <TabChangeRequestDialog state={teamBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
+      <TabApprovalDialog state={teamBaseline} />
+      <Tabs defaultValue="team-members">
+        <TabsList className="h-auto w-full justify-start overflow-x-auto rounded-none border-b border-border bg-transparent p-0">
+              {[
+                { v: "manpower-plan", l: "Manpower Planning" },
+                { v: "team-members", l: "Team Members" },
+                { v: "alloc-overview", l: "Allocation Overview" },
+              ].map((t) => (
+                <TabsTrigger
+                  key={t.v}
+                  value={t.v}
+                  className="text-xs"
+                >
+                  {t.l}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            <TabsContent value="manpower-plan" className="mt-4 space-y-4">
+              <div className="grid gap-3 md:grid-cols-4">
+                {[
+                  { l: "Roles requested", v: "5" },
+                  { l: "Confirmed", v: "4", c: "text-rag-green" },
+                  { l: "Pending", v: "1", c: "text-rag-amber" },
+                  { l: "Total FTE", v: "5.5" },
+                ].map((k) => (
+                  <div key={k.l} className="glass-card p-4">
+                    <div className="label-eyebrow">{k.l}</div>
+                    <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent bg-transparent border-0">
+                      <TableHead>Role</TableHead><TableHead>FTE</TableHead><TableHead>Skill level</TableHead>
+                      <TableHead>Period</TableHead><TableHead>Sourcing</TableHead><TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[
+                      { r: "Solution Architect", f: 1.0, sk: "Senior", p: "Jun–Sep", src: "Internal", s: "green", sl: "Confirmed" },
+                      { r: "QA Engineer",        f: 2.0, sk: "Mid",    p: "Jul–Sep", src: "Internal",  s: "green", sl: "Confirmed" },
+                      { r: "Integration Dev",    f: 1.5, sk: "Mid",    p: "Jun–Aug", src: "Internal",  s: "green", sl: "Confirmed" },
+                      { r: "Security Reviewer",  f: 0.5, sk: "Senior", p: "Aug",     src: "Subcontract", s: "green", sl: "Confirmed" },
+                      { r: "Change Manager",     f: 0.5, sk: "Mid",    p: "Sep",     src: "Internal",  s: "amber", sl: "Pending" },
+                    ].map((m) => (
+                      <TableRow key={m.r} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                        <TableCell className="font-medium text-foreground">{m.r}</TableCell>
+                        <TableCell className="num-mono">{m.f}</TableCell>
+                        <TableCell>{m.sk}</TableCell>
+                        <TableCell>{m.p}</TableCell>
+                        <TableCell className="text-muted-foreground">{m.src}</TableCell>
+                        <TableCell><RagBadge rag={m.s as any} label={m.sl} /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="team-members" className="mt-4 space-y-3">
+              <div className="flex justify-end gap-2">
+                <Button size="sm" variant="outline" className="gap-1 text-xs border-accent/40 text-accent hover:bg-accent-dim"
+                  onClick={() => setReqResourceOpen(true)}>
+                  <UserPlus className="h-3.5 w-3.5" />Request Resource
+                </Button>
+                <Button size="sm" className="gap-1 text-xs bg-accent text-accent-foreground hover:bg-accent/90"
+                  onClick={() => setAddMemberOpen(true)}>
+                  <Plus className="h-3.5 w-3.5" />Add Member
+                </Button>
+              </div>
+              <div className="">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent bg-transparent border-0">
+                      <TableHead>Member</TableHead><TableHead>Role</TableHead>
+                      <TableHead>Allocation %</TableHead><TableHead>Period</TableHead><TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {teamMembers.map((m) => (
+                      <TableRow key={m.n} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                        <TableCell className="font-medium">{m.n}</TableCell>
+                        <TableCell>{m.r}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Progress value={m.a} className="h-1.5 w-32" />
+                            <span className="num-mono text-xs">{m.a}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{m.p}</TableCell>
+                        <TableCell><RagBadge rag={m.s} /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Add Member dialog */}
+              <AddTeamMemberDialog
+                open={addMemberOpen}
+                onOpenChange={setAddMemberOpen}
+                onAdd={(m) => { setTeamMembers((prev) => [...prev, m]); toast.success(`${m.n} added to team`); }}
+              />
+
+              {/* Request Resource dialog */}
+              <RequestResourceDialog
+                open={reqResourceOpen}
+                onOpenChange={setReqResourceOpen}
+                project={project}
+                onSubmit={(r) => { addResourceRequest(r); toast.success("Resource request submitted to Resources module"); }}
+              />
+            </TabsContent>
+
+            <TabsContent value="alloc-overview" className="mt-4 glass-card p-5">
+              <div className="label-eyebrow mb-4">Team capacity vs. allocation — this project</div>
+              <div className="space-y-4">
+                {[
+                  { n: project.pm,   r: "PM",           alloc: 80,  cap: 100, over: false },
+                  { n: "Mei Chen",   r: "Security Lead", alloc: 40,  cap: 100, over: false },
+                  { n: "Priya Iyer", r: "Tech Lead",     alloc: 100, cap: 100, over: false },
+                  { n: "Diego Ortiz",r: "BI Engineer",   alloc: 30,  cap: 100, over: false },
+                ].map((m) => (
+                  <div key={m.n}>
+                    <div className="mb-1.5 flex items-center justify-between text-sm">
+                      <span className="font-medium text-foreground">{m.n}</span>
+                      <span className="text-xs text-muted-foreground">{m.r}</span>
+                      <span className={`num-mono text-xs ml-auto ${m.alloc >= 100 ? "text-rag-amber" : "text-foreground"}`}>{m.alloc}% allocated</span>
+                    </div>
+                    <div className="relative h-4 w-full overflow-hidden rounded-full bg-secondary/50">
+                      <div
+                        className={`h-full rounded-full transition-all ${m.alloc >= 100 ? "bg-rag-amber" : "bg-accent"}`}
+                        style={{ width: `${Math.min(m.alloc, 100)}%` }}
+                      />
+                      {m.alloc > 100 && (
+                        <div className="absolute right-0 top-0 h-full w-1 rounded-r-full bg-rag-red" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 flex gap-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5"><span className="h-2 w-4 rounded-full bg-accent" />Normal</span>
+                <span className="flex items-center gap-1.5"><span className="h-2 w-4 rounded-full bg-rag-amber" />At capacity</span>
+                <span className="flex items-center gap-1.5"><span className="h-2 w-4 rounded-full bg-rag-red" />Over-allocated</span>
+              </div>
+            </TabsContent>
+          </Tabs>
+    </div>
   );
 }

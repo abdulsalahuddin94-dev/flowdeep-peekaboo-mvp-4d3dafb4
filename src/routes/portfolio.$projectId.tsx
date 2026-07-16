@@ -1167,10 +1167,23 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 // ── Project Charter tab ───────────────────────────────────────────────────────
 function CharterTab({ project }: { project: typeof projects[number] }) {
-  const [editMode, setEditMode] = useState(false);
   const [approved, setApproved] = useState(project.stage !== "Initiation");
 
-  const [fields, setFields] = useState({
+  const CHARTER_FIELD_LABELS: Record<string, string> = {
+    objective: "Objective",
+    scope: "Scope",
+    sponsor: "Sponsor",
+    pm: "Project Manager",
+    startDate: "Start Date",
+    endDate: "End Date",
+    budget: "Approved Budget",
+    constraints: "Constraints",
+    assumptions: "Assumptions",
+    risks: "Key risks",
+    successCriteria: "Success Criteria",
+  };
+
+  const initialFields = {
     objective:   `Deliver ${project.name} on time and within budget, achieving the agreed scope for ${project.client ?? project.department}.`,
     scope:       `In scope: full delivery of ${project.name} across all defined workstreams.\nOut of scope: ongoing operations, post-go-live support beyond 90 days.`,
     sponsor:     "Executive Director, " + project.department,
@@ -1182,34 +1195,105 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
     assumptions: "Stakeholder availability confirmed. No major regulatory changes expected during delivery.",
     risks:       `${project.risks} open risks logged in Project Risks tab. Top risk: vendor delivery delay.`,
     successCriteria: "Go-live achieved by target date. User acceptance ≥ 85%. Budget variance < 5%.",
-  });
+  };
+  type CharterFields = typeof initialFields;
 
-  function patch(key: keyof typeof fields, val: string) {
-    setFields((prev) => ({ ...prev, [key]: val }));
+  // Snapshots per version + current baseline (last version)
+  const [versions, setVersions] = useState<Array<BaselineVersion & { snapshot: CharterFields }>>([
+    { version: 1, createdAt: "2026-03-10", author: "John Smith",     snapshot: { ...initialFields, objective: initialFields.objective + " (initial draft)" } },
+    { version: 2, createdAt: "2026-04-02", author: "Sara Al-Rashid", snapshot: { ...initialFields, budget: `$${(project.budgetTotal * 0.9).toFixed(1)}M` } },
+    { version: 3, createdAt: "2026-05-08", author: "Aisha Khoury",   snapshot: initialFields },
+  ]);
+
+  const [activeVersion, setActiveVersion] = useState<string>("latest");
+  const [editMode, setEditMode] = useState<"viewing" | "editing">("viewing");
+  const [draft, setDraft] = useState<CharterFields>(initialFields);
+  const baseline = versions[versions.length - 1].snapshot;
+  const isLatest = activeVersion === "latest";
+
+  // Fields to display: draft when editing, baseline when viewing latest, historical snapshot otherwise
+  const displayed: CharterFields = isLatest
+    ? (editMode === "editing" ? draft : baseline)
+    : (versions.find((v) => `v${v.version}` === activeVersion)?.snapshot ?? baseline);
+
+  const diff: DiffRow[] = useMemo(() => {
+    const rows: DiffRow[] = [];
+    (Object.keys(initialFields) as Array<keyof CharterFields>).forEach((k) => {
+      if (draft[k] !== baseline[k]) {
+        rows.push({
+          group: CHARTER_FIELD_LABELS[k as string] ?? String(k),
+          field: "Value",
+          from: baseline[k],
+          to: draft[k],
+        });
+      }
+    });
+    return rows;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft, baseline]);
+
+  function patch(key: keyof CharterFields, val: string) {
+    setDraft((prev) => ({ ...prev, [key]: val }));
   }
 
-  function Field({ label, fieldKey, multiline = false }: { label: string; fieldKey: keyof typeof fields; multiline?: boolean }) {
+  function enterEdit() {
+    setDraft({ ...baseline });
+    setEditMode("editing");
+  }
+  function cancelEdit() {
+    setDraft({ ...baseline });
+    setEditMode("viewing");
+  }
+  function submitCR(_approvers: BaselineApprover[]) {
+    setVersions((prev) => [...prev, {
+      version: prev[prev.length - 1].version + 1,
+      createdAt: new Date().toISOString().slice(0, 10),
+      author: project.pm,
+      snapshot: { ...draft },
+    }]);
+    setEditMode("viewing");
+  }
+
+  const editing = editMode === "editing" && isLatest;
+
+  function Field({ label, fieldKey, multiline = false }: { label: string; fieldKey: keyof CharterFields; multiline?: boolean }) {
+    const value = displayed[fieldKey];
     return (
       <div className="space-y-1">
         <div className="label-eyebrow">{label}</div>
-        {editMode ? (
+        {editing ? (
           multiline
-            ? <Textarea value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm min-h-[64px]" rows={3} />
-            : <Input value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm" />
+            ? <Textarea value={draft[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm min-h-[64px]" rows={3} />
+            : <Input value={draft[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm" />
         ) : (
-          <p className="text-sm text-foreground whitespace-pre-line">{fields[fieldKey]}</p>
+          <p className="text-sm text-foreground whitespace-pre-line">{value}</p>
         )}
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
+    <BaselineShell
+      tabKey="charter"
+      title="Project Charter"
+      versions={versions.map(({ version, createdAt, author }) => ({ version, createdAt, author }))}
+      activeVersion={activeVersion}
+      onChangeVersion={setActiveVersion}
+      editMode={editMode}
+      onEnterEdit={enterEdit}
+      onCancelEdit={cancelEdit}
+      hasDraftChanges={diff.length > 0}
+      changeCount={diff.length}
+      diff={diff}
+      approversPool={BASELINE_APPROVERS}
+      onSubmitChangeRequest={submitCR}
+    >
+      <div className="space-y-5">
       {/* Header bar */}
       <div className="glass-card flex items-center justify-between px-5 py-4">
         <div>
           <h2 className="text-base font-medium text-foreground">Project Charter — {project.name}</h2>
-          <p className="text-xs text-muted-foreground">Version 1.0 · {project.department} · {project.businessLine}</p>
+          <p className="text-xs text-muted-foreground">Baseline v{versions[versions.length - 1].version} · {project.department} · {project.businessLine}</p>
         </div>
         <div className="flex items-center gap-2">
           <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
@@ -1226,10 +1310,6 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
               Approve Charter
             </Button>
           )}
-          <Button size="sm" variant="outline" className="text-xs"
-            onClick={() => { setEditMode((e) => !e); if (editMode) toast.success("Charter saved"); }}>
-            {editMode ? "Save" : "Edit"}
-          </Button>
         </div>
       </div>
 
@@ -1301,7 +1381,8 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </BaselineShell>
   );
 }
 

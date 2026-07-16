@@ -4519,7 +4519,20 @@ function DependencyDialog({
   );
 }
 
-function TeamAllocationTab() {
+type TeamAllocationTabProps = {
+  project: typeof projects[number];
+  teamMembers: Array<{ n: string; r: string; a: number; p: string; s: Rag }>;
+  setTeamMembers: React.Dispatch<React.SetStateAction<Array<{ n: string; r: string; a: number; p: string; s: Rag }>>>;
+  addMemberOpen: boolean;
+  setAddMemberOpen: (v: boolean) => void;
+  reqResourceOpen: boolean;
+  setReqResourceOpen: (v: boolean) => void;
+  addResourceRequest: (r: Omit<ResourceRequest, "id" | "date" | "status">) => string;
+};
+function TeamAllocationTab({
+  project, teamMembers, setTeamMembers,
+  addMemberOpen, setAddMemberOpen, reqResourceOpen, setReqResourceOpen, addResourceRequest,
+}: TeamAllocationTabProps) {
   const [teamState] = useState({ label: "team-allocation" });
   const teamBaseline = useTabBaseline({
     scope: "team",

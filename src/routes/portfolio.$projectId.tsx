@@ -2182,8 +2182,20 @@ type Milestone = {
 };
 
 type Trip = { id: string; purpose: string; dest: string; dates: string; travelers: string; cost: string; rag: Rag; status: string };
-type CostEntry = { c: string; b: number; a: number; color: string };
-type RevEntry = { ms: string; evt: string; plan: number; date: string; s: string; sl: string; act: number | null };
+type CostBreakdownItem = { name: string; amount: number; note?: string };
+type CostEntry = {
+  c: string; b: number; a: number; color: string;
+  desc?: string;
+  ctype?: "internal" | "third-party";
+  classification?: "capex" | "opex";
+  linkKind?: "fixed" | "milestone";
+  linkRef?: string; // ISO date OR milestone name
+  breakdown?: CostBreakdownItem[];
+};
+type RevEntry = {
+  ms: string; evt: string; plan: number; date: string; s: string; sl: string; act: number | null;
+  linkKind?: "fixed" | "milestone";
+};
 type GateItem = { task: string; role: string; done: boolean };
 type GateStage = { name: string; items: GateItem[] };
 type RaidItem = { id: string; title: string; kind: "Risk" | "Issue"; score: number; owner: string; status: string; rag: Rag };

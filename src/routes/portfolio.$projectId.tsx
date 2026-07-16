@@ -4039,6 +4039,50 @@ function ChangeRequestDialog({
 }
 
 function ChangeRequestApprovalDialog({
+  // placeholder retained for diff; actual body follows
+  ...___props
+}: any) { return <_ChangeRequestApprovalDialog {...___props} />; }
+
+function GroupedChangeItem({
+  item,
+  changes,
+}: {
+  item: string;
+  changes: Array<{ field: string; oldValue: string; newValue: string }>;
+}) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="rounded border border-border/40 bg-background/40 p-3 text-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-2"
+      >
+        <span className="flex items-center gap-1.5 font-medium text-foreground">
+          {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+          {item}
+        </span>
+        <Badge variant="outline" className="border-border/60 bg-secondary/40 text-[10px] text-muted-foreground">
+          {changes.length} change{changes.length === 1 ? "" : "s"}
+        </Badge>
+      </button>
+      {open && (
+        <div className="mt-2 space-y-1.5 pl-5">
+          {changes.map((c, i) => (
+            <div key={i} className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-muted-foreground">· {c.field}:</span>
+              <span className="rounded bg-rag-red/10 px-1.5 py-0.5 text-rag-red line-through">{c.oldValue}</span>
+              <span className="text-muted-foreground">→</span>
+              <span className="rounded bg-rag-green/10 px-1.5 py-0.5 text-rag-green">{c.newValue}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function _ChangeRequestApprovalDialog({
   open,
   onOpenChange,
   changeRequest,

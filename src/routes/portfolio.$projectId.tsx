@@ -206,6 +206,30 @@ function ProjectDetail() {
   const [cancelEditDialogOpen, setCancelEditDialogOpen] = useState(false);
   const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(null);
 
+  const planChangeCount = useMemo(() => {
+    if (!editBaselineSnapshot) return 0;
+    const baseByName = new Map(editBaselineSnapshot.map((m) => [m.name, m]));
+    const curByName = new Map(milestones.map((m) => [m.name, m]));
+    const fields: Array<keyof Milestone> = [
+      "name", "kind", "startDate", "endDate", "owner", "assignee", "dep",
+      "rag", "milestoneType", "lagDays", "durationValue", "durationUnit",
+      "isParallel", "weightScore", "parent", "requiresApproval",
+      "roles", "approvers", "payment",
+    ];
+    let count = 0;
+    for (const cur of milestones) {
+      const base = baseByName.get(cur.name);
+      if (!base) { count++; continue; }
+      for (const f of fields) {
+        const a = (base as any)[f];
+        const b = (cur as any)[f];
+        if (JSON.stringify(a ?? null) !== JSON.stringify(b ?? null)) count++;
+      }
+    }
+    for (const b of editBaselineSnapshot) if (!curByName.has(b.name)) count++;
+    return count;
+  }, [editBaselineSnapshot, milestones]);
+
   const hasPlanChanges = useMemo(() => {
     if (!editBaselineSnapshot) return false;
     const baseByName = new Map(editBaselineSnapshot.map((m) => [m.name, m]));
@@ -251,6 +275,38 @@ function ProjectDetail() {
     setCancelEditDialogOpen(false);
     setPlanEditMode("view");
   }
+
+  // Keyboard shortcuts for Change Plan mode (E / Esc / Cmd+S)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      if (!isViewingCurrent) return;
+      // Cmd/Ctrl + S — submit change request
+      if ((e.metaKey || e.ctrlKey) && (e.key === "s" || e.key === "S")) {
+        if (planEditMode === "editing" && hasPlanChanges) {
+          e.preventDefault();
+          setCrDialogOpen(true);
+        }
+        return;
+      }
+      // Esc — cancel edit
+      if (e.key === "Escape" && planEditMode === "editing") {
+        e.preventDefault();
+        requestExitEditMode();
+        return;
+      }
+      // E — enter change plan mode
+      if ((e.key === "e" || e.key === "E") && planEditMode === "view") {
+        e.preventDefault();
+        enterEditMode();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planEditMode, isViewingCurrent, hasPlanChanges]);
 
   // Initialize sample baseline versions on component mount
   useEffect(() => {

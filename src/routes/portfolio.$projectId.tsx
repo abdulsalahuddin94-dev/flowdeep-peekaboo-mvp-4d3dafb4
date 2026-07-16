@@ -523,11 +523,17 @@ function ProjectDetail() {
                 )}
                 {isViewingCurrent && planEditMode === "editing" && (
                   <>
+                    {planChangeCount > 0 && (
+                      <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
+                        {planChangeCount} pending
+                      </Badge>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setCrDialogOpen(true)}
                       className="h-8 text-xs"
+                      disabled={planChangeCount === 0}
                     >
                       Send Change Request
                     </Button>

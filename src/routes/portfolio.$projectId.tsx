@@ -1164,7 +1164,6 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 // ── Project Charter tab ───────────────────────────────────────────────────────
 function CharterTab({ project }: { project: typeof projects[number] }) {
-  const [editMode, setEditMode] = useState(false);
   const [approved, setApproved] = useState(project.stage !== "Initiation");
 
   const [fields, setFields] = useState({
@@ -1181,6 +1180,16 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
     successCriteria: "Go-live achieved by target date. User acceptance ≥ 85%. Budget variance < 5%.",
   });
 
+  const snapshot = useMemo(() => fields, [fields]);
+  const baseline = useTabBaseline({
+    scope: "charter",
+    label: "Project Charter",
+    current: snapshot,
+    onCommit: (s) => setFields(s),
+  });
+  const displayFields = (baseline.viewedSnapshot as typeof fields | null) ?? fields;
+  const editMode = baseline.canEdit;
+
   function patch(key: keyof typeof fields, val: string) {
     setFields((prev) => ({ ...prev, [key]: val }));
   }
@@ -1194,7 +1203,7 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
             ? <Textarea value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm min-h-[64px]" rows={3} />
             : <Input value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm" />
         ) : (
-          <p className="text-sm text-foreground whitespace-pre-line">{fields[fieldKey]}</p>
+          <p className="text-sm text-foreground whitespace-pre-line">{displayFields[fieldKey]}</p>
         )}
       </div>
     );
@@ -1202,6 +1211,9 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
 
   return (
     <div className="space-y-5">
+      <BaselineHeader state={baseline} />
+      <TabChangeRequestDialog state={baseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
+      <TabApprovalDialog state={baseline} />
       {/* Header bar */}
       <div className="glass-card flex items-center justify-between px-5 py-4">
         <div>
@@ -1223,10 +1235,6 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
               Approve Charter
             </Button>
           )}
-          <Button size="sm" variant="outline" className="text-xs"
-            onClick={() => { setEditMode((e) => !e); if (editMode) toast.success("Charter saved"); }}>
-            {editMode ? "Save" : "Edit"}
-          </Button>
         </div>
       </div>
 

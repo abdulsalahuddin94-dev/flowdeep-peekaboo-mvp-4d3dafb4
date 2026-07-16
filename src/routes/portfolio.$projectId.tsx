@@ -205,6 +205,15 @@ function ProjectDetail() {
   const isEditingAllowed = isViewingCurrent && planEditMode === "editing";
   const [cancelEditDialogOpen, setCancelEditDialogOpen] = useState(false);
   const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(null);
+  const [compareVersionOpen, setCompareVersionOpen] = useState(false);
+
+  // Demo version authors (in a real app, comes from CR history)
+  const versionAuthors: Record<number, string> = {
+    1: "Sara Al-Rashid",
+    2: "Mei Chen",
+    3: "Sara Al-Rashid",
+    4: "John Smith",
+  };
 
   const planChangeCount = useMemo(() => {
     if (!editBaselineSnapshot) return 0;

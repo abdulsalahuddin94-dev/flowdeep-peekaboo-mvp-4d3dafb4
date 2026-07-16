@@ -24,6 +24,18 @@ import { toast } from "sonner";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress } from "@/components/ProjectSchedule";
 void ProjectGantt;
+import { BaselineShell, type BaselineVersion, type DiffRow, type BaselineApprover } from "@/components/BaselineShell";
+
+// Shared approvers pool used by non-schedule baseline tabs. Kept small and
+// realistic for demo.
+const BASELINE_APPROVERS: BaselineApprover[] = [
+  { id: "u-sara",   name: "Sara Al-Rashid", role: "Director · Engineering" },
+  { id: "u-john",   name: "John Smith",     role: "Project Manager · IT" },
+  { id: "u-mei",    name: "Mei Chen",       role: "Security Lead" },
+  { id: "u-aisha",  name: "Aisha Khoury",   role: "Portfolio Director" },
+  { id: "u-ahmad",  name: "Ahmad Al-Farsi", role: "Executive Sponsor" },
+  { id: "u-finance",name: "Finance Manager (approver)", role: "Finance" },
+];
 
 export const Route = createFileRoute("/portfolio/$projectId")({
   component: ProjectDetail,

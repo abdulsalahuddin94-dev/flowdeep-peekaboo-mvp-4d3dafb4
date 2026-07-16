@@ -508,14 +508,28 @@ function ProjectDetail() {
                   setPlanEditMode("view");
                   setEditBaselineSnapshot(null);
                 }}>
-                  <SelectTrigger className="h-8 w-52 text-xs">
+                  <SelectTrigger className="h-8 w-64 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="latest">Current Version (v{projectBaselineVersions.length}) ⭐</SelectItem>
+                    <SelectItem value="latest">
+                      <div className="flex flex-col leading-tight">
+                        <span>Current Version (v{projectBaselineVersions.length}) ⭐</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {projectBaselineVersions[projectBaselineVersions.length - 1]?.createdAt}
+                          {" · by "}
+                          {versionAuthors[projectBaselineVersions.length] ?? "—"}
+                        </span>
+                      </div>
+                    </SelectItem>
                     {projectBaselineVersions.slice(0, -1).map((v) => (
                       <SelectItem key={v.version} value={`v${v.version}`}>
-                        v{v.version} · {v.createdAt}
+                        <div className="flex flex-col leading-tight">
+                          <span>v{v.version}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {v.createdAt} · by {versionAuthors[v.version] ?? "—"}
+                          </span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -560,7 +574,17 @@ function ProjectDetail() {
                   <Badge className="border-rag-blue/40 bg-rag-blue/10 text-rag-blue text-xs">⏳ Waiting For Approval</Badge>
                 )}
                 {!isViewingCurrent && (
-                  <Badge variant="outline" className="text-xs text-muted-foreground">📖 View Only</Badge>
+                  <>
+                    <Badge variant="outline" className="text-xs text-muted-foreground">📖 View Only</Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCompareVersionOpen(true)}
+                      className="h-8 text-xs"
+                    >
+                      Compare with Current
+                    </Button>
+                  </>
                 )}
               </div>
             }

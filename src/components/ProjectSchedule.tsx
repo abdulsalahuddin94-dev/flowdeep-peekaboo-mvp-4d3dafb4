@@ -1742,7 +1742,7 @@ function DateRangeCell({
 
   if (!editable) {
     return (
-      <span className="truncate">
+      <span className="truncate" title="🔒 Locked — click Change Plan to edit dates">
         {display || <span className="text-muted-foreground">—</span>}
       </span>
     );

@@ -4726,3 +4726,163 @@ function DependencyDialog({
     </Dialog>
   );
 }
+
+// ─── Manpower Plan Baseline ─────────────────────────────────────────────────
+
+type ManpowerRow = {
+  r: string; f: number; sk: "Junior" | "Mid" | "Senior" | "Lead";
+  p: string; src: "Internal" | "Subcontract" | "External"; s: Rag; sl: string;
+};
+
+function ManpowerPlanBaseline({ pmName }: { pmName: string }) {
+  const initialRows: ManpowerRow[] = [
+    { r: "Solution Architect", f: 1.0, sk: "Senior", p: "Jun–Sep", src: "Internal",    s: "green", sl: "Confirmed" },
+    { r: "QA Engineer",        f: 2.0, sk: "Mid",    p: "Jul–Sep", src: "Internal",    s: "green", sl: "Confirmed" },
+    { r: "Integration Dev",    f: 1.5, sk: "Mid",    p: "Jun–Aug", src: "Internal",    s: "green", sl: "Confirmed" },
+    { r: "Security Reviewer",  f: 0.5, sk: "Senior", p: "Aug",     src: "Subcontract", s: "green", sl: "Confirmed" },
+    { r: "Change Manager",     f: 0.5, sk: "Mid",    p: "Sep",     src: "Internal",    s: "amber", sl: "Pending" },
+  ];
+
+  type MP = { rows: ManpowerRow[] };
+  const [versions, setVersions] = useState<Array<BaselineVersion & { snapshot: MP }>>([
+    { version: 1, createdAt: "2026-03-12", author: "Sara Al-Rashid", snapshot: { rows: initialRows.slice(0, 3) } },
+    { version: 2, createdAt: "2026-04-18", author: "John Smith",     snapshot: { rows: initialRows.slice(0, 4) } },
+    { version: 3, createdAt: "2026-05-15", author: "Aisha Khoury",   snapshot: { rows: initialRows } },
+  ]);
+  const baseline = versions[versions.length - 1].snapshot;
+  const [activeVersion, setActiveVersion] = useState("latest");
+  const [editMode, setEditMode] = useState<"viewing" | "editing">("viewing");
+  const [draft, setDraft] = useState<MP>({ rows: baseline.rows.map((r) => ({ ...r })) });
+  const isLatest = activeVersion === "latest";
+  const displayed = isLatest
+    ? (editMode === "editing" ? draft : baseline)
+    : (versions.find((v) => `v${v.version}` === activeVersion)?.snapshot ?? baseline);
+
+  const diff: DiffRow[] = useMemo(() => {
+    const rows: DiffRow[] = [];
+    const base = new Map(baseline.rows.map((r) => [r.r, r]));
+    const drf = new Map(draft.rows.map((r) => [r.r, r]));
+    draft.rows.forEach((d) => {
+      const b = base.get(d.r);
+      if (!b) { rows.push({ group: d.r, field: "Role", from: "—", to: `${d.f} FTE · ${d.sk}`, kind: "added" }); return; }
+      if (b.f !== d.f) rows.push({ group: d.r, field: "FTE", from: b.f, to: d.f });
+      if (b.sk !== d.sk) rows.push({ group: d.r, field: "Skill level", from: b.sk, to: d.sk });
+      if (b.p !== d.p) rows.push({ group: d.r, field: "Period", from: b.p, to: d.p });
+      if (b.src !== d.src) rows.push({ group: d.r, field: "Sourcing", from: b.src, to: d.src });
+    });
+    baseline.rows.forEach((b) => {
+      if (!drf.has(b.r)) rows.push({ group: b.r, field: "Role", from: `${b.f} FTE · ${b.sk}`, to: "—", kind: "removed" });
+    });
+    return rows;
+  }, [draft, baseline]);
+
+  const editing = editMode === "editing" && isLatest;
+  function enterEdit() { setDraft({ rows: baseline.rows.map((r) => ({ ...r })) }); setEditMode("editing"); }
+  function cancelEdit() { setDraft({ rows: baseline.rows.map((r) => ({ ...r })) }); setEditMode("viewing"); }
+  function submitCR(_a: BaselineApprover[]) {
+    setVersions((prev) => [...prev, {
+      version: prev[prev.length - 1].version + 1,
+      createdAt: new Date().toISOString().slice(0, 10),
+      author: pmName,
+      snapshot: { rows: draft.rows.map((r) => ({ ...r })) },
+    }]);
+    setEditMode("viewing");
+  }
+
+  function patchRow(idx: number, patch: Partial<ManpowerRow>) {
+    setDraft((prev) => ({ rows: prev.rows.map((r, i) => i === idx ? { ...r, ...patch } : r) }));
+  }
+
+  return (
+    <BaselineShell
+      tabKey="manpower"
+      title="Manpower Plan Baseline"
+      versions={versions.map(({ version, createdAt, author }) => ({ version, createdAt, author }))}
+      activeVersion={activeVersion}
+      onChangeVersion={setActiveVersion}
+      editMode={editMode}
+      onEnterEdit={enterEdit}
+      onCancelEdit={cancelEdit}
+      hasDraftChanges={diff.length > 0}
+      changeCount={diff.length}
+      diff={diff}
+      approversPool={BASELINE_APPROVERS}
+      onSubmitChangeRequest={submitCR}
+    >
+      <div className="space-y-4">
+        <div className="grid gap-3 md:grid-cols-4">
+          {[
+            { l: "Roles requested", v: String(displayed.rows.length) },
+            { l: "Confirmed", v: String(displayed.rows.filter((r) => r.sl === "Confirmed").length), c: "text-rag-green" },
+            { l: "Pending", v: String(displayed.rows.filter((r) => r.sl === "Pending").length), c: "text-rag-amber" },
+            { l: "Total FTE", v: displayed.rows.reduce((s, r) => s + r.f, 0).toFixed(1) },
+          ].map((k) => (
+            <div key={k.l} className="glass-card p-4">
+              <div className="label-eyebrow">{k.l}</div>
+              <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+            </div>
+          ))}
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent bg-transparent border-0">
+              <TableHead>Role</TableHead><TableHead>FTE</TableHead><TableHead>Skill level</TableHead>
+              <TableHead>Period</TableHead><TableHead>Sourcing</TableHead><TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {displayed.rows.map((m, idx) => (
+              <TableRow key={m.r + idx} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                <TableCell className="font-medium text-foreground" title={!editing && isLatest ? "Locked. Click Change Plan to edit." : undefined}>
+                  {editing ? (
+                    <Input value={m.r} onChange={(e) => patchRow(idx, { r: e.target.value })} className="h-7 text-xs" />
+                  ) : m.r}
+                </TableCell>
+                <TableCell className="num-mono">
+                  {editing ? (
+                    <Input type="number" step="0.5" min={0} value={m.f}
+                      onChange={(e) => patchRow(idx, { f: parseFloat(e.target.value) || 0 })} className="h-7 w-16 text-xs num-mono" />
+                  ) : m.f}
+                </TableCell>
+                <TableCell>
+                  {editing ? (
+                    <Select value={m.sk} onValueChange={(v) => patchRow(idx, { sk: v as ManpowerRow["sk"] })}>
+                      <SelectTrigger className="h-7 w-24 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {["Junior","Mid","Senior","Lead"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : m.sk}
+                </TableCell>
+                <TableCell>
+                  {editing ? (
+                    <Input value={m.p} onChange={(e) => patchRow(idx, { p: e.target.value })} className="h-7 w-24 text-xs" />
+                  ) : m.p}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {editing ? (
+                    <Select value={m.src} onValueChange={(v) => patchRow(idx, { src: v as ManpowerRow["src"] })}>
+                      <SelectTrigger className="h-7 w-28 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {["Internal","Subcontract","External"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : m.src}
+                </TableCell>
+                <TableCell><RagBadge rag={m.s} label={m.sl} /></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        {editing && (
+          <div>
+            <Button size="sm" variant="outline" className="text-xs"
+              onClick={() => setDraft((prev) => ({ rows: [...prev.rows, { r: "New role", f: 1, sk: "Mid", p: "TBD", src: "Internal", s: "amber", sl: "Pending" }] }))}>
+              <Plus className="mr-1 h-3.5 w-3.5" /> Add role
+            </Button>
+          </div>
+        )}
+      </div>
+    </BaselineShell>
+  );
+}

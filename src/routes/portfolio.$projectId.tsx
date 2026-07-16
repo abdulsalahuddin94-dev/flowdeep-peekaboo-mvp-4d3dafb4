@@ -890,25 +890,6 @@ function ProjectDetail() {
         <TabsContent value="Team & Allocation" className="mt-5">
           <TeamAllocationTab />
         </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
-
-function TeamAllocationTab() {
-  const [teamState] = useState({ roles: 5, confirmed: 4, pending: 1, fte: 5.5 });
-  const teamBaseline = useTabBaseline({
-    scope: "team",
-    label: "Team & Allocation",
-    current: teamState,
-  });
-  return (
-    <div className="space-y-4">
-      <BaselineHeader state={teamBaseline} />
-      <TabChangeRequestDialog state={teamBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
-      <TabApprovalDialog state={teamBaseline} />
-      <Tabs defaultValue="team-members">
-            <TabsList className="h-auto w-full justify-start overflow-x-auto rounded-none border-b border-border bg-transparent p-0">
               {[
                 { v: "manpower-plan", l: "Manpower Planning" },
                 { v: "team-members", l: "Team Members" },

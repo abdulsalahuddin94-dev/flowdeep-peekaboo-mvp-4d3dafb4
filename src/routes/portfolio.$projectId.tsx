@@ -1969,24 +1969,20 @@ function FinancialsTab({ project, milestones }: { project: typeof projects[numbe
         <div className="glass-card p-5">
           <div className="mb-3 flex items-center justify-between">
             <div className="label-eyebrow">Cost categories</div>
-            {canEdit && <AddCostDialog onAdd={(e) => setCostEntries((prev) => [...prev, e])} />}
+            {canEdit && (
+              <AddFinanceLinkDialog
+                milestoneNames={milestoneNames}
+                defaultType="cost"
+                onAddCost={(e) => setCostEntries((prev) => [...prev, e])}
+                onAddRevenue={(e) => setRevEntries((prev) => [...prev, e])}
+              />
+            )}
           </div>
-          <div className="space-y-3">
-            {displayCost.map((r) => {
-              const pct = Math.round((r.a / r.b) * 100);
-              return (
-                <div key={r.c}>
-                  <div className="mb-1 flex justify-between text-sm">
-                    <span className="text-foreground">{r.c}</span>
-                    <span className="num-mono text-xs text-muted-foreground">${r.a.toFixed(2)}M / ${r.b.toFixed(2)}M</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/50">
-                    <div className={`h-full ${r.color}`} style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <CostCategoriesList
+            entries={displayCost}
+            canEdit={canEdit}
+            onUpdate={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
+          />
         </div>
         <div className="glass-card p-5">
           <div className="label-eyebrow mb-3">Quarterly cash plan</div>
@@ -2016,13 +2012,20 @@ function FinancialsTab({ project, milestones }: { project: typeof projects[numbe
             <span className="num-mono text-xs text-muted-foreground">
               Total planned: ${displayRev.reduce((s, r) => s + r.plan, 0).toFixed(2)}M
             </span>
-            {canEdit && <AddRevenueDialog onAdd={(e) => setRevEntries((prev) => [...prev, e])} />}
+            {canEdit && (
+              <AddFinanceLinkDialog
+                milestoneNames={milestoneNames}
+                defaultType="revenue"
+                onAddCost={(e) => setCostEntries((prev) => [...prev, e])}
+                onAddRevenue={(e) => setRevEntries((prev) => [...prev, e])}
+              />
+            )}
           </div>
         </div>
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent bg-transparent border-0">
-              <TableHead>Milestone</TableHead>
+              <TableHead>Linked to</TableHead>
               <TableHead>Revenue event</TableHead>
               <TableHead className="text-right">Planned ($M)</TableHead>
               <TableHead>Expected date</TableHead>
@@ -2033,7 +2036,14 @@ function FinancialsTab({ project, milestones }: { project: typeof projects[numbe
           <TableBody>
             {displayRev.map((r) => (
               <TableRow key={r.ms} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                <TableCell className="font-medium text-foreground">{r.ms}</TableCell>
+                <TableCell className="font-medium text-foreground">
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${r.linkKind === "fixed" ? "bg-secondary/40 text-muted-foreground" : "bg-accent/15 text-accent"}`}>
+                      {r.linkKind === "fixed" ? "Date" : "MS"}
+                    </span>
+                    <span>{r.ms}</span>
+                  </div>
+                </TableCell>
                 <TableCell className="text-muted-foreground">{r.evt}</TableCell>
                 <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{r.date}</TableCell>

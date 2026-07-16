@@ -1,98 +1,64 @@
-# Extend Baseline & Change Request concept to all Project Details tabs
+## Goal
 
-Currently Project Schedule tab has:
-- Version dropdown (v1…vN + "Current")
-- Change Plan toggle (locks/unlocks editing)
-- Editing banner + keyboard shortcuts (Esc / ⌘S)
-- Change Request dialog with grouped diffs + approvers
-- Compare-with-Current for historical versions
+Centralize all theme colors for sidebar, header, and cards into CSS variables in `src/styles.css`, and remove hardcoded hex/rgba values scattered across components. After the refactor, changing any color (light or dark mode) happens in **one place only**: the `:root` / `[data-theme="dark"]` token blocks.
 
-We will apply the **same UX** to three more tabs, each with its **own independent** baseline, versions, and CR history:
+## Current problems
 
-- Project Charter
-- Team & Allocation
-- Financials
+- `src/components/AppSidebar.tsx` defines a `SIDEBAR_COLORS` JS object with hardcoded hex values (`#0B154B`, `#DEC9FF`, `#1C274C`, gradients, rgba whites) used via inline `style={{...}}` on ~15 elements.
+- `src/styles.css` repeats the same hex values (`#0B154B`, `#121318`, `#DEC9FF`, lavender gradient) inside `.ds02-sidebar` rules with `!important`, duplicating what should be tokens.
+- `src/components/AppTopbar.tsx` mixes utility classes and is fine, but the header background is hard-pinned via `bg-card/80`; we'll keep token-driven but rename intent.
+- Theme tokens exist (`--sidebar`, `--card`, etc.) but the sidebar component bypasses them with inline styles.
 
-Project Schedule stays as-is (it's already the reference implementation).
+## Token model (new)
 
----
+Add a single source of truth in `src/styles.css`, defined once per theme:
 
-## Approach: shared shell, per-tab state
-
-Extract the reusable chrome into a single component so each tab only supplies its data + diff formatter:
-
-```
-src/components/BaselineShell.tsx
-  props:
-    tabKey: "charter" | "team" | "financials"
-    versions: { version: number; createdAt: string; author: string }[]
-    activeVersion: "latest" | `v${n}`
-    onChangeVersion(v)
-    editMode: "viewing" | "editing"
-    onEnterEdit() / onCancelEdit() / onSubmit()
-    changeCount: number
-    children  // the tab body, which reads a BaselineContext to know if locked
+```text
+Sidebar          Header           Cards
+--sidebar        --header         --card
+--sidebar-fg     --header-fg      --card-foreground
+--sidebar-border --header-border  --border
+--sidebar-muted-fg
+--sidebar-hover-bg
+--sidebar-active-bg     (gradient or solid)
+--sidebar-active-fg
+--sidebar-logo-bg
+--sidebar-logo-fg
+--sidebar-badge-bg
+--sidebar-badge-fg
+--sidebar-badge-danger-bg
+--sidebar-badge-danger-fg
 ```
 
-`BaselineContext` exposes `{ locked: boolean; tabKey }` so child inputs can render read-only chips vs editable controls, mirroring the Schedule behavior.
+Light and dark blocks each set every token. No `!important`, no hex anywhere outside these two blocks.
 
-Each tab keeps its **own** local state:
-- `charterVersions`, `charterEditMode`, `charterDraft`, `charterBaseline`
-- `teamVersions`, `teamEditMode`, `teamDraft`, `teamBaseline`
-- `finVersions`, `finEditMode`, `finDraft`, `finBaseline`
+## Changes
 
-A shared `ChangeRequestDialog` (already in the file) is generalized to accept a `diffRows` array so each tab computes its own diff:
+### 1. `src/styles.css`
+- Extend `:root` (light) and `[data-theme="dark"]` with the full sidebar token set above plus `--header` / `--header-fg` / `--header-border`.
+- Map them under `@theme inline` so Tailwind utilities (`bg-sidebar`, `bg-header`, `text-sidebar-foreground`, etc.) work.
+- Replace the `.ds02-sidebar` block (and the duplicate dark override) with token-driven rules — no hex, no `!important`. The class becomes a thin styling hook: `background: var(--sidebar); color: var(--sidebar-foreground); border-color: var(--sidebar-border);`.
+- Keep the active-item gradient as a token (`--sidebar-active-bg`) so themes can swap solid vs gradient.
 
-- Charter: title, sponsor, objectives, success criteria, scope in/out, assumptions, constraints
-- Team & Allocation: member add/remove/role change, FTE change per role in Manpower Plan
-- Financials: budget lines (CapEx/OpEx), forecast rows, contingency %
+### 2. `src/components/AppSidebar.tsx`
+- Delete the `SIDEBAR_COLORS` constant.
+- Remove every `style={{...}}` color override. Replace with Tailwind utilities bound to tokens: `bg-sidebar`, `text-sidebar-foreground`, `border-sidebar-border`, `hover:bg-sidebar-accent`, `data-[active=true]:bg-sidebar-primary`, etc.
+- Badges use `bg-sidebar-badge` / `bg-sidebar-badge-danger` utilities (added via `@theme inline`).
+- Logo chip and avatar use `bg-sidebar-primary text-sidebar-primary-foreground`.
 
-Approver selection stays the same per-CR (multi-select of stakeholders).
+### 3. `src/components/AppTopbar.tsx`
+- Change `bg-card/80` → `bg-header/80`, and the bottom border uses `border-header-border` (falls back to `--border` token if we alias).
+- No other behavioral changes.
 
----
+### 4. Card surfaces
+- Already token-driven via `.glass-card { background: var(--card); border-color: var(--border); }`. No code changes — just confirm KpiCard and other consumers don't hardcode colors. (Spot check: `KpiCard.tsx` uses semantic classes only ✓.)
 
-## What's editable without a CR
+## Result
 
-Same principle as Schedule (progress + assignee swap don't need CR). Per tab:
-
-- **Charter**: nothing — every field is CR-guarded (this is the contract).
-- **Team & Allocation**:
-  - No-CR: reassigning a specific person to an already-approved role slot (swap of names within same role/FTE)
-  - CR-required: adding/removing roles, changing FTE, changing skill level
-- **Financials**:
-  - No-CR: forecast re-estimates within ±5% of baseline for the current period
-  - CR-required: baseline budget changes, adding/removing budget lines, contingency changes
-
----
-
-## UI additions per tab (same as Schedule)
-
-1. Header row with:
-   - `Current Version (vN) ⭐` dropdown showing `date · by Author`
-   - `Change Plan` button (turns into `Send Change Request` / `Cancel` while editing)
-   - Historical versions show `📖 View Only` + `Compare with Current`
-2. Amber "You're editing" banner with change counter and shortcut hints
-3. Discard confirmation on Esc when there are unsaved edits
-4. Grouped diff summary in the CR dialog
-5. Approver multi-select in the CR dialog
-
----
-
-## Files to touch
-
-- `src/components/BaselineShell.tsx` — new: dropdown + banner + shortcuts + shared context
-- `src/components/BaselineChangeRequestDialog.tsx` — new: generalized version of Schedule's CR dialog (accepts `diffRows` + `approvers`)
-- `src/routes/portfolio.$projectId.tsx`:
-  - Wrap Charter tab in `<BaselineShell>` and add per-field lock/unlock, draft state, diff builder
-  - Wrap Team & Allocation similarly (Manpower Plan + Team Members subtabs)
-  - Wrap Financials similarly (budget + forecast tables)
-  - Refactor Schedule's existing CR dialog to reuse the new generalized dialog (behavior unchanged)
-
-Mock data: each tab seeds 2–3 prior versions with plausible authors/dates so the dropdown and Compare view feel real.
-
----
+To recolor the sidebar, header, or cards (in either theme), edit only the token block in `src/styles.css`. No component file needs to change. The `ds02-sidebar` class stays as a structural hook but contains zero color literals.
 
 ## Out of scope
 
-- Overview, Status Reports, Documents, Lessons Learned, Risks, Procurement, Business Trips, Stakeholders (not requested)
-- Real backend persistence — versions/CRs live in component state as with Schedule
+- RAG colors, role colors, accent — already tokenized, untouched.
+- Auth/route logic, layout structure, fonts — untouched.
+- No new components, no design changes; pixels stay visually identical.

@@ -661,9 +661,26 @@ function ProjectDetail() {
               setChangeRequests((prev) => [...prev, cr]);
               setCrDialogOpen(false);
               setPlanEditMode("pending");
+              setEditBaselineSnapshot(null);
               toast.success(`Change Request ${cr.id} submitted for approval`);
             }}
           />
+
+          {/* Cancel Edit Confirmation */}
+          <AlertDialog open={cancelEditDialogOpen} onOpenChange={setCancelEditDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  You have unsaved edits to the schedule. Exiting Change Plan mode will discard them.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep Editing</AlertDialogCancel>
+                <AlertDialogAction onClick={discardAndExit}>Discard Changes</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* CR Approval Dialog */}
           <ChangeRequestApprovalDialog

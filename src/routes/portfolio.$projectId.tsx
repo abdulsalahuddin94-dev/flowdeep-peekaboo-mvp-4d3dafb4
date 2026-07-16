@@ -4038,11 +4038,6 @@ function ChangeRequestDialog({
   );
 }
 
-function ChangeRequestApprovalDialog({
-  // placeholder retained for diff; actual body follows
-  ...___props
-}: any) { return <_ChangeRequestApprovalDialog {...___props} />; }
-
 function GroupedChangeItem({
   item,
   changes,
@@ -4082,7 +4077,7 @@ function GroupedChangeItem({
   );
 }
 
-function _ChangeRequestApprovalDialog({
+function ChangeRequestApprovalDialog({
   open,
   onOpenChange,
   changeRequest,

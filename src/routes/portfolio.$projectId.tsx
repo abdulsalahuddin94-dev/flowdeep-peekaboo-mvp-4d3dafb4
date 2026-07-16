@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -202,6 +203,47 @@ function ProjectDetail() {
   const [planEditMode, setPlanEditMode] = useState<"view" | "editing" | "pending">("view");
   const isViewingCurrent = selectedBaselineVersion === "latest";
   const isEditingAllowed = isViewingCurrent && planEditMode === "editing";
+  const [cancelEditDialogOpen, setCancelEditDialogOpen] = useState(false);
+  const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(null);
+
+  const hasPlanChanges = useMemo(() => {
+    if (!editBaselineSnapshot) return false;
+    const baseByName = new Map(editBaselineSnapshot.map((m) => [m.name, m]));
+    const curByName = new Map(milestones.map((m) => [m.name, m]));
+    const fields: Array<keyof Milestone> = ["startDate", "endDate", "owner", "assignee", "dep"];
+    for (const cur of milestones) {
+      const base = baseByName.get(cur.name);
+      if (!base) return true;
+      for (const f of fields) {
+        if (String((base as any)[f] ?? "") !== String((cur as any)[f] ?? "")) return true;
+      }
+    }
+    for (const b of editBaselineSnapshot) if (!curByName.has(b.name)) return true;
+    return false;
+  }, [editBaselineSnapshot, milestones]);
+
+  function enterEditMode() {
+    setEditBaselineSnapshot(milestones.map((m) => ({ ...m })));
+    setPlanEditMode("editing");
+  }
+
+  function requestExitEditMode() {
+    if (hasPlanChanges) {
+      setCancelEditDialogOpen(true);
+    } else {
+      setEditBaselineSnapshot(null);
+      setPlanEditMode("view");
+    }
+  }
+
+  function discardAndExit() {
+    if (editBaselineSnapshot) {
+      setMilestones(editBaselineSnapshot.map((m) => ({ ...m })));
+    }
+    setEditBaselineSnapshot(null);
+    setCancelEditDialogOpen(false);
+    setPlanEditMode("view");
+  }
 
   // Initialize sample baseline versions on component mount
   useEffect(() => {
@@ -370,6 +412,7 @@ function ProjectDetail() {
                 <Select value={selectedBaselineVersion} onValueChange={(v) => {
                   setSelectedBaselineVersion(v);
                   setPlanEditMode("view");
+                  setEditBaselineSnapshot(null);
                 }}>
                   <SelectTrigger className="h-8 w-52 text-xs">
                     <SelectValue />
@@ -387,21 +430,31 @@ function ProjectDetail() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setPlanEditMode("editing")}
+                    onClick={enterEditMode}
                     className="h-8 text-xs"
                   >
                     ✎ Change Plan
                   </Button>
                 )}
                 {isViewingCurrent && planEditMode === "editing" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCrDialogOpen(true)}
-                    className="h-8 text-xs"
-                  >
-                    Send Change Request
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCrDialogOpen(true)}
+                      className="h-8 text-xs"
+                    >
+                      Send Change Request
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={requestExitEditMode}
+                      className="h-8 text-xs text-muted-foreground"
+                    >
+                      Cancel
+                    </Button>
+                  </>
                 )}
                 {isViewingCurrent && planEditMode === "pending" && (
                   <Badge className="border-rag-blue/40 bg-rag-blue/10 text-rag-blue text-xs">⏳ Waiting For Approval</Badge>
@@ -609,9 +662,26 @@ function ProjectDetail() {
               setChangeRequests((prev) => [...prev, cr]);
               setCrDialogOpen(false);
               setPlanEditMode("pending");
+              setEditBaselineSnapshot(null);
               toast.success(`Change Request ${cr.id} submitted for approval`);
             }}
           />
+
+          {/* Cancel Edit Confirmation */}
+          <AlertDialog open={cancelEditDialogOpen} onOpenChange={setCancelEditDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  You have unsaved edits to the schedule. Exiting Change Plan mode will discard them.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep Editing</AlertDialogCancel>
+                <AlertDialogAction onClick={discardAndExit}>Discard Changes</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* CR Approval Dialog */}
           <ChangeRequestApprovalDialog

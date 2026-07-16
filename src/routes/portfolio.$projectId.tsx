@@ -3508,11 +3508,316 @@ function StakeholdersTab() {
   );
 }
 
-// ── Add Cost Entry dialog ─────────────────────────────────────────────────────
+// ── Cost categories list with expandable breakdown ────────────────────────────
 const COST_COLORS: Record<string, string> = {
   Labour: "bg-rag-green", Hardware: "bg-rag-blue", Software: "bg-accent",
   "Business trips": "bg-rag-amber", Contingency: "bg-muted-foreground", Other: "bg-rag-red",
 };
+function CostCategoriesList({
+  entries, canEdit, onUpdate,
+}: {
+  entries: CostEntry[];
+  canEdit: boolean;
+  onUpdate: (idx: number, patch: Partial<CostEntry>) => void;
+}) {
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const [newName, setNewName] = useState("");
+  const [newAmount, setNewAmount] = useState("");
+  return (
+    <div className="space-y-3">
+      {entries.map((r, idx) => {
+        const pct = r.b > 0 ? Math.round((r.a / r.b) * 100) : 0;
+        const open = openIdx === idx;
+        const bd = r.breakdown ?? [];
+        const bdTotal = bd.reduce((s, i) => s + i.amount, 0);
+        return (
+          <div key={r.c + idx} className="rounded-md border border-border/50 bg-background/30 p-2.5">
+            <button
+              type="button"
+              onClick={() => setOpenIdx(open ? null : idx)}
+              className="flex w-full items-center gap-2 text-left"
+            >
+              <span className={`text-xs transition-transform ${open ? "rotate-90" : ""}`}>▸</span>
+              <div className="flex-1">
+                <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span className="flex items-center gap-2 text-foreground">
+                    {r.c}
+                    {r.classification && (
+                      <span className="rounded bg-secondary/40 px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground">
+                        {r.classification}
+                      </span>
+                    )}
+                    {r.ctype && (
+                      <span className="rounded bg-secondary/40 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                        {r.ctype === "internal" ? "Internal" : "3rd party"}
+                      </span>
+                    )}
+                    {r.linkKind && r.linkRef && (
+                      <span className={`rounded px-1.5 py-0.5 text-[10px] ${r.linkKind === "milestone" ? "bg-accent/15 text-accent" : "bg-secondary/40 text-muted-foreground"}`}>
+                        {r.linkKind === "milestone" ? `→ ${r.linkRef}` : r.linkRef}
+                      </span>
+                    )}
+                  </span>
+                  <span className="num-mono text-xs text-muted-foreground">${r.a.toFixed(2)}M / ${r.b.toFixed(2)}M</span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/50">
+                  <div className={`h-full ${r.color}`} style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            </button>
+            {open && (
+              <div className="mt-3 space-y-2 border-t border-border/40 pt-2 pl-6">
+                {r.desc && <div className="text-xs text-muted-foreground">{r.desc}</div>}
+                {bd.length === 0 && <div className="text-xs italic text-muted-foreground">No breakdown items yet.</div>}
+                {bd.map((b, bi) => (
+                  <div key={bi} className="flex items-center justify-between text-xs">
+                    <div>
+                      <div className="text-foreground">{b.name}</div>
+                      {b.note && <div className="text-[11px] text-muted-foreground">{b.note}</div>}
+                    </div>
+                    <span className="num-mono text-muted-foreground">${b.amount.toFixed(2)}M</span>
+                  </div>
+                ))}
+                {bd.length > 0 && (
+                  <div className="flex items-center justify-between border-t border-border/30 pt-1 text-[11px] text-muted-foreground">
+                    <span>Subtotal</span>
+                    <span className="num-mono">${bdTotal.toFixed(2)}M</span>
+                  </div>
+                )}
+                {canEdit && (
+                  <div className="flex items-end gap-2 pt-1">
+                    <div className="flex-1">
+                      <Label className="text-[11px]">Item</Label>
+                      <Input
+                        value={openIdx === idx ? newName : ""}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder="e.g. Backend engineers (2)"
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div className="w-28">
+                      <Label className="text-[11px]">Amount ($M)</Label>
+                      <Input
+                        type="number" min={0} step={0.01}
+                        value={openIdx === idx ? newAmount : ""}
+                        onChange={(e) => setNewAmount(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 border-accent/40 text-accent hover:bg-accent-dim"
+                      onClick={() => {
+                        const amt = parseFloat(newAmount);
+                        if (!newName.trim() || isNaN(amt)) { toast.error("Item name and amount are required"); return; }
+                        onUpdate(idx, { breakdown: [...bd, { name: newName.trim(), amount: amt }] });
+                        setNewName(""); setNewAmount("");
+                        toast.success("Breakdown item added");
+                      }}
+                    >
+                      <Plus className="mr-1 h-3 w-3" />Add
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Unified Add Finance Link dialog (Cost OR Revenue) ─────────────────────────
+function AddFinanceLinkDialog({
+  milestoneNames, defaultType, onAddCost, onAddRevenue,
+}: {
+  milestoneNames: string[];
+  defaultType: "cost" | "revenue";
+  onAddCost: (e: CostEntry) => void;
+  onAddRevenue: (e: RevEntry) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [kind, setKind] = useState<"cost" | "revenue">(defaultType);
+
+  // Common
+  const [amount, setAmount] = useState("");
+  const [desc, setDesc] = useState("");
+  const [linkKind, setLinkKind] = useState<"fixed" | "milestone">("milestone");
+  const [linkDate, setLinkDate] = useState("");
+  const [linkMs, setLinkMs] = useState("");
+
+  // Cost-only
+  const [cat, setCat] = useState("");
+  const [actual, setActual] = useState("");
+  const [ctype, setCtype] = useState<"internal" | "third-party">("internal");
+  const [capex, setCapex] = useState<"capex" | "opex">("opex");
+
+  // Revenue-only
+  const [evt, setEvt] = useState("");
+
+  function reset() {
+    setKind(defaultType);
+    setAmount(""); setDesc(""); setLinkKind("milestone"); setLinkDate(""); setLinkMs("");
+    setCat(""); setActual(""); setCtype("internal"); setCapex("opex");
+    setEvt("");
+  }
+
+  function submit() {
+    const linkRef = linkKind === "fixed" ? linkDate : linkMs;
+    if (linkKind === "fixed" && !linkDate) { toast.error("Please pick a date"); return; }
+    if (linkKind === "milestone" && !linkMs) { toast.error("Please pick a milestone"); return; }
+    const amt = parseFloat(amount);
+    if (isNaN(amt)) { toast.error("Amount is required"); return; }
+
+    if (kind === "cost") {
+      if (!cat.trim()) { toast.error("Category is required"); return; }
+      const a = parseFloat(actual || "0");
+      onAddCost({
+        c: cat.trim(), b: amt, a: isNaN(a) ? 0 : a,
+        color: COST_COLORS[cat] ?? "bg-muted-foreground",
+        desc: desc.trim() || undefined,
+        ctype, classification: capex,
+        linkKind, linkRef, breakdown: [],
+      });
+      toast.success("Cost link added");
+    } else {
+      onAddRevenue({
+        ms: linkKind === "milestone" ? linkMs : (desc.trim() || "Revenue"),
+        evt: evt.trim() || "—",
+        plan: amt,
+        date: linkKind === "fixed" ? linkDate : "Linked",
+        s: "blue", sl: "Planned", act: null,
+        linkKind,
+      });
+      toast.success("Revenue link added");
+    }
+    setOpen(false);
+    reset();
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); else setKind(defaultType); }}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="h-7 border-accent/40 text-accent hover:bg-accent-dim text-xs">
+          <Plus className="mr-1 h-3.5 w-3.5" />Add Finance Link
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Finance Link</DialogTitle>
+          <DialogDescription>Link either a cost or a revenue event to a milestone or a fixed date.</DialogDescription>
+        </DialogHeader>
+
+        <div className="mb-1 grid grid-cols-2 gap-1 rounded-md bg-secondary/30 p-1">
+          {(["cost", "revenue"] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setKind(k)}
+              className={`rounded px-2 py-1.5 text-xs font-medium transition ${kind === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {k === "cost" ? "Outgoing (Cost)" : "Incoming (Revenue)"}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid gap-3">
+          {kind === "cost" ? (
+            <>
+              <div>
+                <Label>Category</Label>
+                <Select value={cat} onValueChange={setCat}>
+                  <SelectTrigger><SelectValue placeholder="Select category…" /></SelectTrigger>
+                  <SelectContent>
+                    {["Staff", "Services", "Insurance", "Business Trips", "Contracts", "Hardware", "Software", "Other"].map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Senior developer contract" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div><Label>Budget ($M)</Label><Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.50" /></div>
+                <div><Label>Actual ($M)</Label><Input type="number" min={0} step={0.01} value={actual} onChange={(e) => setActual(e.target.value)} placeholder="0.00" /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>Type</Label>
+                  <Select value={ctype} onValueChange={(v) => setCtype(v as typeof ctype)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="internal">Internal</SelectItem>
+                      <SelectItem value="third-party">Third-party</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Classification</Label>
+                  <Select value={capex} onValueChange={(v) => setCapex(v as typeof capex)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="capex">CapEx</SelectItem>
+                      <SelectItem value="opex">OpEx</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div><Label>Revenue event</Label><Input value={evt} onChange={(e) => setEvt(e.target.value)} placeholder="e.g. Progress invoice (15%)" /></div>
+              <div><Label>Planned amount ($M)</Label><Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.50" /></div>
+              {linkKind === "fixed" && (
+                <div><Label>Label (optional)</Label><Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Advance payment" /></div>
+              )}
+            </>
+          )}
+
+          <div>
+            <Label>Link to</Label>
+            <Select value={linkKind} onValueChange={(v) => setLinkKind(v as typeof linkKind)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="milestone">Milestone (Dynamic)</SelectItem>
+                <SelectItem value="fixed">Fixed Date</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {linkKind === "fixed" && (
+            <div><Label>Due Date</Label><Input type="date" value={linkDate} onChange={(e) => setLinkDate(e.target.value)} /></div>
+          )}
+          {linkKind === "milestone" && (
+            <div>
+              <Label>Milestone</Label>
+              <Select value={linkMs} onValueChange={setLinkMs}>
+                <SelectTrigger><SelectValue placeholder="Select milestone…" /></SelectTrigger>
+                <SelectContent>
+                  {milestoneNames.length === 0 ? (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">No milestones yet</div>
+                  ) : milestoneNames.map((n) => (
+                    <SelectItem key={n} value={n}>{n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Add link</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Legacy Add Cost Entry dialog (kept for reference) ─────────────────────────
 function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
   const [open, setOpen] = useState(false);
   const [cat, setCat] = useState("");

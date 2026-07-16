@@ -394,7 +394,7 @@ function ProjectDetail() {
                 )}
                 {isViewingCurrent && planEditMode === "editing" && (
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     size="sm"
                     onClick={() => setCrDialogOpen(true)}
                     className="h-8 text-xs"

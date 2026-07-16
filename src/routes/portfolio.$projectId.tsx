@@ -23,6 +23,15 @@ import { useProjects, useNotifications, useRfps, useResourceRequests, useCalenda
 import { toast } from "sonner";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress } from "@/components/ProjectSchedule";
+import {
+  useTabBaseline,
+  BaselineHeader,
+  TabChangeRequestDialog,
+  TabApprovalDialog,
+  DEFAULT_PROJECT_APPROVERS,
+  defaultDiff,
+  type TabChange,
+} from "@/components/TabBaseline";
 void ProjectGantt;
 
 export const Route = createFileRoute("/portfolio/$projectId")({

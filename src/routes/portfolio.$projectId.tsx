@@ -206,6 +206,30 @@ function ProjectDetail() {
   const [cancelEditDialogOpen, setCancelEditDialogOpen] = useState(false);
   const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(null);
 
+  const planChangeCount = useMemo(() => {
+    if (!editBaselineSnapshot) return 0;
+    const baseByName = new Map(editBaselineSnapshot.map((m) => [m.name, m]));
+    const curByName = new Map(milestones.map((m) => [m.name, m]));
+    const fields: Array<keyof Milestone> = [
+      "name", "kind", "startDate", "endDate", "owner", "assignee", "dep",
+      "rag", "milestoneType", "lagDays", "durationValue", "durationUnit",
+      "isParallel", "weightScore", "parent", "requiresApproval",
+      "roles", "approvers", "payment",
+    ];
+    let count = 0;
+    for (const cur of milestones) {
+      const base = baseByName.get(cur.name);
+      if (!base) { count++; continue; }
+      for (const f of fields) {
+        const a = (base as any)[f];
+        const b = (cur as any)[f];
+        if (JSON.stringify(a ?? null) !== JSON.stringify(b ?? null)) count++;
+      }
+    }
+    for (const b of editBaselineSnapshot) if (!curByName.has(b.name)) count++;
+    return count;
+  }, [editBaselineSnapshot, milestones]);
+
   const hasPlanChanges = useMemo(() => {
     if (!editBaselineSnapshot) return false;
     const baseByName = new Map(editBaselineSnapshot.map((m) => [m.name, m]));
@@ -251,6 +275,38 @@ function ProjectDetail() {
     setCancelEditDialogOpen(false);
     setPlanEditMode("view");
   }
+
+  // Keyboard shortcuts for Change Plan mode (E / Esc / Cmd+S)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      if (!isViewingCurrent) return;
+      // Cmd/Ctrl + S — submit change request
+      if ((e.metaKey || e.ctrlKey) && (e.key === "s" || e.key === "S")) {
+        if (planEditMode === "editing" && hasPlanChanges) {
+          e.preventDefault();
+          setCrDialogOpen(true);
+        }
+        return;
+      }
+      // Esc — cancel edit
+      if (e.key === "Escape" && planEditMode === "editing") {
+        e.preventDefault();
+        requestExitEditMode();
+        return;
+      }
+      // E — enter change plan mode
+      if ((e.key === "e" || e.key === "E") && planEditMode === "view") {
+        e.preventDefault();
+        enterEditMode();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planEditMode, isViewingCurrent, hasPlanChanges]);
 
   // Initialize sample baseline versions on component mount
   useEffect(() => {
@@ -413,6 +469,28 @@ function ProjectDetail() {
 
 
         <TabsContent value="Project Schedule" className="mt-5">
+          {planEditMode === "editing" && isViewingCurrent && (
+            <div className="mb-3 flex items-start gap-3 rounded-lg border border-rag-amber/40 bg-rag-amber/10 px-4 py-3">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rag-amber" />
+              <div className="flex-1 text-xs">
+                <div className="font-medium text-rag-amber">You're editing the plan</div>
+                <div className="mt-0.5 text-muted-foreground">
+                  Locked fields are now editable. Changes will be reviewed as a Change Request.
+                  <span className="ml-2 opacity-70">Shortcuts: Esc = cancel · ⌘/Ctrl+S = submit</span>
+                </div>
+              </div>
+              {planChangeCount > 0 && (
+                <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber">
+                  {planChangeCount} change{planChangeCount === 1 ? "" : "s"} pending
+                </Badge>
+              )}
+            </div>
+          )}
+          {planEditMode === "view" && isViewingCurrent && (
+            <div className="mb-2 text-[11px] text-muted-foreground/70">
+              📖 Baseline locked — press <kbd className="rounded border border-border bg-secondary/40 px-1">E</kbd> or click Change Plan to edit
+            </div>
+          )}
           <ProjectSchedule
             headerSlot={
               <div className="flex items-center gap-2">
@@ -445,11 +523,17 @@ function ProjectDetail() {
                 )}
                 {isViewingCurrent && planEditMode === "editing" && (
                   <>
+                    {planChangeCount > 0 && (
+                      <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
+                        {planChangeCount} pending
+                      </Badge>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setCrDialogOpen(true)}
                       className="h-8 text-xs"
+                      disabled={planChangeCount === 0}
                     >
                       Send Change Request
                     </Button>
@@ -680,12 +764,17 @@ function ProjectDetail() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Discard changes?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  You have unsaved edits to the schedule. Exiting Change Plan mode will discard them.
+                  You'll lose {planChangeCount} unsaved change{planChangeCount === 1 ? "" : "s"} to the schedule. This cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Keep Editing</AlertDialogCancel>
-                <AlertDialogAction onClick={discardAndExit}>Discard Changes</AlertDialogAction>
+                <AlertDialogCancel autoFocus>Keep Editing</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={discardAndExit}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Discard Changes
+                </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -3896,11 +3985,27 @@ function ChangeRequestDialog({
     onSubmit(cr);
   }
 
+  const grouped = useMemo(() => {
+    const m = new Map<string, Array<{ field: string; oldValue: string; newValue: string }>>();
+    for (const c of changes) {
+      if (!m.has(c.item)) m.set(c.item, []);
+      m.get(c.item)!.push({ field: c.field, oldValue: c.oldValue, newValue: c.newValue });
+    }
+    return Array.from(m.entries());
+  }, [changes]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Review Change Request (v{baselineVersion + 1})</DialogTitle>
+          <DialogTitle>
+            Review Change Request (v{baselineVersion + 1})
+            {changes.length > 0 && (
+              <Badge variant="outline" className="ml-2 border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
+                {changes.length} change{changes.length === 1 ? "" : "s"} · {grouped.length} item{grouped.length === 1 ? "" : "s"}
+              </Badge>
+            )}
+          </DialogTitle>
           <DialogDescription>
             Summary of edits vs Current Version (v{baselineVersion}). Confirm to send for approval.
           </DialogDescription>
@@ -3912,16 +4017,8 @@ function ChangeRequestDialog({
               No changes detected. Edit the schedule first.
             </div>
           ) : (
-            changes.map((c, i) => (
-              <div key={i} className="rounded border border-border/40 bg-background/40 p-3 text-sm">
-                <div className="font-medium text-foreground">{c.item}</div>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-                  <span className="text-muted-foreground">{c.field}:</span>
-                  <span className="rounded bg-rag-red/10 px-1.5 py-0.5 text-rag-red line-through">{c.oldValue}</span>
-                  <span className="text-muted-foreground">→</span>
-                  <span className="rounded bg-rag-green/10 px-1.5 py-0.5 text-rag-green">{c.newValue}</span>
-                </div>
-              </div>
+            grouped.map(([item, list]) => (
+              <GroupedChangeItem key={item} item={item} changes={list} />
             ))
           )}
         </div>
@@ -3938,6 +4035,45 @@ function ChangeRequestDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function GroupedChangeItem({
+  item,
+  changes,
+}: {
+  item: string;
+  changes: Array<{ field: string; oldValue: string; newValue: string }>;
+}) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="rounded border border-border/40 bg-background/40 p-3 text-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-2"
+      >
+        <span className="flex items-center gap-1.5 font-medium text-foreground">
+          {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+          {item}
+        </span>
+        <Badge variant="outline" className="border-border/60 bg-secondary/40 text-[10px] text-muted-foreground">
+          {changes.length} change{changes.length === 1 ? "" : "s"}
+        </Badge>
+      </button>
+      {open && (
+        <div className="mt-2 space-y-1.5 pl-5">
+          {changes.map((c, i) => (
+            <div key={i} className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-muted-foreground">· {c.field}:</span>
+              <span className="rounded bg-rag-red/10 px-1.5 py-0.5 text-rag-red line-through">{c.oldValue}</span>
+              <span className="text-muted-foreground">→</span>
+              <span className="rounded bg-rag-green/10 px-1.5 py-0.5 text-rag-green">{c.newValue}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

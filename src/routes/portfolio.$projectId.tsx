@@ -3802,12 +3802,41 @@ function ChangeRequestDialog({
     if (!baselineSnapshot) return out;
     const baseByName = new Map(baselineSnapshot.map((m) => [m.name, m]));
     const curByName = new Map(currentMilestones.map((m) => [m.name, m]));
+    const fmt = (key: keyof Milestone, v: any): string => {
+      if (v == null || v === "") return "—";
+      if (key === "roles" && Array.isArray(v)) {
+        return v.length === 0 ? "—" : v.map((r: any) => `${r.role ?? r.name ?? ""}${r.skill ? ` (${r.skill})` : ""}${r.fte ? ` × ${r.fte}` : ""}`).join(", ");
+      }
+      if (key === "approvers" && Array.isArray(v)) {
+        return v.length === 0 ? "—" : v.map((a: any) => a.name).join(", ");
+      }
+      if (key === "payment" && typeof v === "object") {
+        return `${v.kind ?? ""}${v.amount ? ` ${v.amount}` : ""}`.trim() || "—";
+      }
+      if (typeof v === "boolean") return v ? "Yes" : "No";
+      if (typeof v === "object") return JSON.stringify(v);
+      return String(v);
+    };
     const trackedFields: Array<{ key: keyof Milestone; label: string }> = [
+      { key: "name", label: "Name" },
+      { key: "kind", label: "Kind" },
       { key: "startDate", label: "Start Date" },
       { key: "endDate", label: "End Date" },
       { key: "owner", label: "Owner" },
       { key: "assignee", label: "Assignee" },
       { key: "dep", label: "Depends On" },
+      { key: "rag", label: "RAG" },
+      { key: "milestoneType", label: "Milestone Type" },
+      { key: "lagDays", label: "Lag Days" },
+      { key: "durationValue", label: "Duration" },
+      { key: "durationUnit", label: "Duration Unit" },
+      { key: "isParallel", label: "Parallel Task" },
+      { key: "weightScore", label: "Weight" },
+      { key: "parent", label: "Parent" },
+      { key: "requiresApproval", label: "Requires Approval" },
+      { key: "roles", label: "Roles" },
+      { key: "approvers", label: "Approvers" },
+      { key: "payment", label: "Payment" },
     ];
     for (const cur of currentMilestones) {
       const base = baseByName.get(cur.name);
@@ -3816,10 +3845,10 @@ function ChangeRequestDialog({
         continue;
       }
       for (const f of trackedFields) {
-        const o = (base as any)[f.key] ?? "";
-        const n = (cur as any)[f.key] ?? "";
-        if (String(o) !== String(n)) {
-          out.push({ item: cur.name, field: f.label, oldValue: String(o) || "—", newValue: String(n) || "—" });
+        const o = (base as any)[f.key];
+        const n = (cur as any)[f.key];
+        if (JSON.stringify(o ?? null) !== JSON.stringify(n ?? null)) {
+          out.push({ item: cur.name, field: f.label, oldValue: fmt(f.key, o), newValue: fmt(f.key, n) });
         }
       }
     }

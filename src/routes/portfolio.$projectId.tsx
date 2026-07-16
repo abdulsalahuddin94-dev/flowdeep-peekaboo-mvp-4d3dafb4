@@ -3014,6 +3014,14 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
     { id: "I-044", title: "Test env outage", kind: "Issue", score: 12, owner: "Mei Chen", status: "In progress", rag: "amber" },
     { id: "R-085", title: "Risk: Audit finding remediation overrun", kind: "Risk", score: 16, owner: "Mei Chen", status: "Open", rag: "amber" },
   ]);
+  const risksBaseline = useTabBaseline({
+    scope: "risks",
+    label: "Project Risks",
+    current: items,
+    onCommit: (s) => setItems(s),
+  });
+  const displayItems = (risksBaseline.viewedSnapshot as RaidItem[] | null) ?? items;
+  const canEdit = risksBaseline.canEdit;
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<"Risk" | "Issue">("Risk");
   const [title, setTitle] = useState("");

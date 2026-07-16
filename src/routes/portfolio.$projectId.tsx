@@ -2124,7 +2124,85 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null },
     { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null },
   ]);
+
+  // Baseline versioning of cost categories (budget line "b" values)
+  type FinSnapshot = { costs: CostEntry[] };
+  const [finVersions, setFinVersions] = useState<Array<BaselineVersion & { snapshot: FinSnapshot }>>(() => {
+    const initial = [
+      { c: "Labour",            b: 1.20, a: 0.84, color: "bg-rag-green" },
+      { c: "Hardware",          b: 0.90, a: 0.62, color: "bg-rag-blue" },
+      { c: "Software licenses", b: 0.40, a: 0.31, color: "bg-accent" },
+      { c: "Business trips",    b: 0.10, a: 0.07, color: "bg-rag-amber" },
+      { c: "Contingency",       b: 0.60, a: 0.26, color: "bg-muted-foreground" },
+    ];
+    return [
+      { version: 1, createdAt: "2026-03-05", author: "Finance Manager (approver)", snapshot: { costs: initial.map((e) => ({ ...e, b: +(e.b * 0.85).toFixed(2) })) } },
+      { version: 2, createdAt: "2026-04-12", author: "John Smith",                 snapshot: { costs: initial.map((e) => ({ ...e, b: +(e.b * 0.95).toFixed(2) })) } },
+      { version: 3, createdAt: "2026-05-20", author: "Sara Al-Rashid",             snapshot: { costs: initial } },
+    ];
+  });
+  const finBaseline = finVersions[finVersions.length - 1].snapshot;
+  const [finActive, setFinActive] = useState("latest");
+  const [finEditMode, setFinEditMode] = useState<"viewing" | "editing">("viewing");
+  const [finDraft, setFinDraft] = useState<FinSnapshot>({ costs: finBaseline.costs.map((c) => ({ ...c })) });
+  const finIsLatest = finActive === "latest";
+
+  const finDisplayed: FinSnapshot = finIsLatest
+    ? (finEditMode === "editing" ? finDraft : finBaseline)
+    : (finVersions.find((v) => `v${v.version}` === finActive)?.snapshot ?? finBaseline);
+
+  const finDiff: DiffRow[] = useMemo(() => {
+    const rows: DiffRow[] = [];
+    const baseMap = new Map(finBaseline.costs.map((c) => [c.c, c]));
+    const draftMap = new Map(finDraft.costs.map((c) => [c.c, c]));
+    finDraft.costs.forEach((d) => {
+      const b = baseMap.get(d.c);
+      if (!b) {
+        rows.push({ group: d.c, field: "Line", from: "—", to: `Baseline $${d.b.toFixed(2)}M`, kind: "added" });
+      } else if (b.b !== d.b) {
+        rows.push({ group: d.c, field: "Baseline budget", from: `$${b.b.toFixed(2)}M`, to: `$${d.b.toFixed(2)}M` });
+      }
+    });
+    finBaseline.costs.forEach((b) => {
+      if (!draftMap.has(b.c)) rows.push({ group: b.c, field: "Line", from: `Baseline $${b.b.toFixed(2)}M`, to: "—", kind: "removed" });
+    });
+    return rows;
+  }, [finDraft, finBaseline]);
+
+  function finEnterEdit() { setFinDraft({ costs: finBaseline.costs.map((c) => ({ ...c })) }); setFinEditMode("editing"); }
+  function finCancelEdit() { setFinDraft({ costs: finBaseline.costs.map((c) => ({ ...c })) }); setFinEditMode("viewing"); }
+  function finSubmitCR(_a: BaselineApprover[]) {
+    setFinVersions((prev) => [...prev, {
+      version: prev[prev.length - 1].version + 1,
+      createdAt: new Date().toISOString().slice(0, 10),
+      author: project.pm,
+      snapshot: { costs: finDraft.costs.map((c) => ({ ...c })) },
+    }]);
+    // Also propagate to live cost entries
+    setCostEntries(finDraft.costs.map((c) => ({ ...c })));
+    setFinEditMode("viewing");
+  }
+  const finEditing = finEditMode === "editing" && finIsLatest;
+
+  // What we render: use displayed for cost bars (versioned), forecast/revenue stay unversioned demo data
+  const displayedCosts = finDisplayed.costs;
+
   return (
+    <BaselineShell
+      tabKey="financials"
+      title="Financials Baseline"
+      versions={finVersions.map(({ version, createdAt, author }) => ({ version, createdAt, author }))}
+      activeVersion={finActive}
+      onChangeVersion={setFinActive}
+      editMode={finEditMode}
+      onEnterEdit={finEnterEdit}
+      onCancelEdit={finCancelEdit}
+      hasDraftChanges={finDiff.length > 0}
+      changeCount={finDiff.length}
+      diff={finDiff}
+      approversPool={BASELINE_APPROVERS}
+      onSubmitChangeRequest={finSubmitCR}
+    >
     <div className="space-y-4">
       <div className="grid gap-3 md:grid-cols-4">
         {[
@@ -2144,16 +2222,34 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
         <div className="glass-card p-5">
           <div className="mb-3 flex items-center justify-between">
             <div className="label-eyebrow">Cost categories</div>
-            <AddCostDialog onAdd={(e) => setCostEntries((prev) => [...prev, e])} />
+            {finEditing && (
+              <AddCostDialog onAdd={(e) => setFinDraft((prev) => ({ costs: [...prev.costs, e] }))} />
+            )}
           </div>
           <div className="space-y-3">
-            {costEntries.map((r) => {
+            {displayedCosts.map((r, idx) => {
               const pct = Math.round((r.a / r.b) * 100);
               return (
                 <div key={r.c}>
                   <div className="mb-1 flex justify-between text-sm">
                     <span className="text-foreground">{r.c}</span>
-                    <span className="num-mono text-xs text-muted-foreground">${r.a.toFixed(2)}M / ${r.b.toFixed(2)}M</span>
+                    {finEditing ? (
+                      <span className="flex items-center gap-1 num-mono text-xs text-muted-foreground">
+                        ${r.a.toFixed(2)}M /
+                        <Input
+                          type="number" step="0.05" min={0}
+                          value={r.b}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setFinDraft((prev) => ({ costs: prev.costs.map((c, i) => i === idx ? { ...c, b: val } : c) }));
+                          }}
+                          className="h-6 w-20 text-xs num-mono"
+                        />
+                        M
+                      </span>
+                    ) : (
+                      <span className="num-mono text-xs text-muted-foreground">${r.a.toFixed(2)}M / ${r.b.toFixed(2)}M</span>
+                    )}
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/50">
                     <div className={`h-full ${r.color}`} style={{ width: `${pct}%` }} />
@@ -2220,6 +2316,7 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
         </Table>
       </div>
     </div>
+    </BaselineShell>
   );
 }
 

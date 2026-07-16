@@ -3051,6 +3051,9 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
 
   return (
     <div className="space-y-4">
+      <BaselineHeader state={risksBaseline} />
+      <TabChangeRequestDialog state={risksBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
+      <TabApprovalDialog state={risksBaseline} />
       <div className="rounded-md border border-accent/20 bg-accent-dim/20 px-4 py-3 text-xs text-accent">
         Project-level risks and issues. Log concerns that impact this project's timeline, budget, or scope.
       </div>
@@ -3064,7 +3067,7 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
       </div>
       <div className="flex items-center justify-between">
         <div className="label-eyebrow">Project Risks & Issues</div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        {canEdit && <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
               <AlertTriangle className="mr-1 h-4 w-4" />Log Risk / Issue
@@ -3126,12 +3129,12 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
               <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Log {kind}</Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+        </Dialog>}
       </div>
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>ID</TableHead><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Score</TableHead><TableHead>Owner</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-          <TableBody>{items.map((r) => (
+          <TableBody>{displayItems.map((r) => (
             <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
               <TableCell className="num-mono text-xs">{r.id}</TableCell>
               <TableCell className="font-medium">{r.title}</TableCell>

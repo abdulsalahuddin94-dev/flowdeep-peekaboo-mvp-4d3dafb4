@@ -888,7 +888,16 @@ function ProjectDetail() {
 
 
         <TabsContent value="Team & Allocation" className="mt-5">
-          <TeamAllocationTab />
+          <TeamAllocationTab
+            project={project}
+            teamMembers={teamMembers}
+            setTeamMembers={setTeamMembers}
+            addMemberOpen={addMemberOpen}
+            setAddMemberOpen={setAddMemberOpen}
+            reqResourceOpen={reqResourceOpen}
+            setReqResourceOpen={setReqResourceOpen}
+            addResourceRequest={addResourceRequest}
+          />
         </TabsContent>
 
         <TabsContent value="Financials" className="mt-5">

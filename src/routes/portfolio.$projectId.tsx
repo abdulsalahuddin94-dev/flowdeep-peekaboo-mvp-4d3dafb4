@@ -909,47 +909,7 @@ function ProjectDetail() {
             </TabsList>
 
             <TabsContent value="manpower-plan" className="mt-4 space-y-4">
-              <div className="grid gap-3 md:grid-cols-4">
-                {[
-                  { l: "Roles requested", v: "5" },
-                  { l: "Confirmed", v: "4", c: "text-rag-green" },
-                  { l: "Pending", v: "1", c: "text-rag-amber" },
-                  { l: "Total FTE", v: "5.5" },
-                ].map((k) => (
-                  <div key={k.l} className="glass-card p-4">
-                    <div className="label-eyebrow">{k.l}</div>
-                    <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent bg-transparent border-0">
-                      <TableHead>Role</TableHead><TableHead>FTE</TableHead><TableHead>Skill level</TableHead>
-                      <TableHead>Period</TableHead><TableHead>Sourcing</TableHead><TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {[
-                      { r: "Solution Architect", f: 1.0, sk: "Senior", p: "Jun–Sep", src: "Internal", s: "green", sl: "Confirmed" },
-                      { r: "QA Engineer",        f: 2.0, sk: "Mid",    p: "Jul–Sep", src: "Internal",  s: "green", sl: "Confirmed" },
-                      { r: "Integration Dev",    f: 1.5, sk: "Mid",    p: "Jun–Aug", src: "Internal",  s: "green", sl: "Confirmed" },
-                      { r: "Security Reviewer",  f: 0.5, sk: "Senior", p: "Aug",     src: "Subcontract", s: "green", sl: "Confirmed" },
-                      { r: "Change Manager",     f: 0.5, sk: "Mid",    p: "Sep",     src: "Internal",  s: "amber", sl: "Pending" },
-                    ].map((m) => (
-                      <TableRow key={m.r} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                        <TableCell className="font-medium text-foreground">{m.r}</TableCell>
-                        <TableCell className="num-mono">{m.f}</TableCell>
-                        <TableCell>{m.sk}</TableCell>
-                        <TableCell>{m.p}</TableCell>
-                        <TableCell className="text-muted-foreground">{m.src}</TableCell>
-                        <TableCell><RagBadge rag={m.s as any} label={m.sl} /></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <ManpowerPlanBaseline pmName={project.pm} />
             </TabsContent>
 
             <TabsContent value="team-members" className="mt-4 space-y-3">

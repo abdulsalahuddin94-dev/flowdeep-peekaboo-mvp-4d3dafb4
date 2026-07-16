@@ -3239,6 +3239,13 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
   ];
 
   const [packages, setPackages] = useState<TenderPackage[]>(SEED_PACKAGES);
+  const procBaseline = useTabBaseline({
+    scope: "procurement",
+    label: "Procurement",
+    current: packages,
+    onCommit: (s) => setPackages(s),
+  });
+  const canEdit = procBaseline.canEdit;
   const [expandedPkg, setExpandedPkg] = useState<string | null>(null);
   const [newPkgOpen, setNewPkgOpen] = useState(false);
   const [newScope, setNewScope] = useState("");
@@ -3287,6 +3294,9 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
 
   return (
     <div className="space-y-4">
+      <BaselineHeader state={procBaseline} />
+      <TabChangeRequestDialog state={procBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
+      <TabApprovalDialog state={procBaseline} />
       <div className="grid gap-3 md:grid-cols-4">
         {[
           { l: "Active Contracts", v: String(contracts.filter((c) => c.status === "Active").length), c: "text-rag-green" },

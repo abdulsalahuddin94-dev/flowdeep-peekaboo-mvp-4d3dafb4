@@ -2048,8 +2048,40 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null },
     { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null },
   ]);
+  const finSnapshot = useMemo(() => ({ costEntries, revEntries }), [costEntries, revEntries]);
+  const finBaseline = useTabBaseline({
+    scope: "financials",
+    label: "Financials",
+    current: finSnapshot,
+    onCommit: (s) => { setCostEntries(s.costEntries); setRevEntries(s.revEntries); },
+    diff: (a, b) => {
+      const out: TabChange[] = [];
+      const aMap = new Map(a.costEntries.map((e) => [e.c, e]));
+      const bMap = new Map(b.costEntries.map((e) => [e.c, e]));
+      for (const k of new Set([...aMap.keys(), ...bMap.keys()])) {
+        const av = aMap.get(k); const bv = bMap.get(k);
+        if (!av) out.push({ path: `Cost · ${k}`, before: "—", after: `$${bv!.a.toFixed(2)}M / $${bv!.b.toFixed(2)}M` });
+        else if (!bv) out.push({ path: `Cost · ${k}`, before: `$${av.a.toFixed(2)}M / $${av.b.toFixed(2)}M`, after: "—" });
+        else if (av.a !== bv.a || av.b !== bv.b) out.push({ path: `Cost · ${k}`, before: `$${av.a.toFixed(2)}M / $${av.b.toFixed(2)}M`, after: `$${bv.a.toFixed(2)}M / $${bv.b.toFixed(2)}M` });
+      }
+      const aRev = new Map(a.revEntries.map((e) => [e.ms, e]));
+      const bRev = new Map(b.revEntries.map((e) => [e.ms, e]));
+      for (const k of new Set([...aRev.keys(), ...bRev.keys()])) {
+        const av = aRev.get(k); const bv = bRev.get(k);
+        if (!av || !bv) out.push({ path: `Revenue · ${k}`, before: av ? "present" : "—", after: bv ? "present" : "—" });
+        else if (av.plan !== bv.plan || av.act !== bv.act || av.sl !== bv.sl) out.push({ path: `Revenue · ${k}`, before: `plan $${av.plan}M · ${av.sl}`, after: `plan $${bv.plan}M · ${bv.sl}` });
+      }
+      return out;
+    },
+  });
+  const canEdit = finBaseline.canEdit;
+  const displayCost = (finBaseline.viewedSnapshot?.costEntries as CostEntry[] | undefined) ?? costEntries;
+  const displayRev = (finBaseline.viewedSnapshot?.revEntries as RevEntry[] | undefined) ?? revEntries;
   return (
     <div className="space-y-4">
+      <BaselineHeader state={finBaseline} />
+      <TabChangeRequestDialog state={finBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
+      <TabApprovalDialog state={finBaseline} />
       <div className="grid gap-3 md:grid-cols-4">
         {[
           { l: "Total Budget", v: `$${project.budgetTotal.toFixed(1)}M` },

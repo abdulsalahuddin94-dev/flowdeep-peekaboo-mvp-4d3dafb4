@@ -210,12 +210,19 @@ function ProjectDetail() {
     if (!editBaselineSnapshot) return false;
     const baseByName = new Map(editBaselineSnapshot.map((m) => [m.name, m]));
     const curByName = new Map(milestones.map((m) => [m.name, m]));
-    const fields: Array<keyof Milestone> = ["startDate", "endDate", "owner", "assignee", "dep"];
+    const fields: Array<keyof Milestone> = [
+      "name", "kind", "startDate", "endDate", "owner", "assignee", "dep",
+      "rag", "milestoneType", "lagDays", "durationValue", "durationUnit",
+      "isParallel", "weightScore", "parent", "requiresApproval",
+      "roles", "approvers", "payment",
+    ];
     for (const cur of milestones) {
       const base = baseByName.get(cur.name);
       if (!base) return true;
       for (const f of fields) {
-        if (String((base as any)[f] ?? "") !== String((cur as any)[f] ?? "")) return true;
+        const a = (base as any)[f];
+        const b = (cur as any)[f];
+        if (JSON.stringify(a ?? null) !== JSON.stringify(b ?? null)) return true;
       }
     }
     for (const b of editBaselineSnapshot) if (!curByName.has(b.name)) return true;

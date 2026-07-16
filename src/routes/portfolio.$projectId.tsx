@@ -394,9 +394,10 @@ function ProjectDetail() {
                 )}
                 {isViewingCurrent && planEditMode === "editing" && (
                   <Button
+                    variant="secondary"
                     size="sm"
                     onClick={() => setCrDialogOpen(true)}
-                    className="h-8 bg-primary text-primary-foreground hover:bg-primary/90 text-xs"
+                    className="h-8 text-xs"
                   >
                     Send Change Request
                   </Button>

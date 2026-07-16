@@ -1828,6 +1828,47 @@ function ProgressUpdateDialog({
                 </div>
               </div>
             )}
+            {approvalMilestone && (
+              <div className="mt-2 rounded-md border border-border bg-secondary/10 p-3">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-medium text-foreground">
+                    Approvers · {approvalMilestone.name}
+                  </span>
+                  <span className={`rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
+                    approvalMilestone.approvalStatus === "approved" ? "border-rag-green/40 bg-rag-green/10 text-rag-green"
+                    : approvalMilestone.approvalStatus === "pending" ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber"
+                    : "border-border bg-secondary text-muted-foreground"
+                  }`}>
+                    {approvalMilestone.approvalStatus === "approved" ? "Approved"
+                      : approvalMilestone.approvalStatus === "pending" ? "Pending"
+                      : "Not requested"}
+                  </span>
+                </div>
+                {(approvalMilestone.approvers ?? []).length === 0 ? (
+                  <div className="mt-1.5 text-[11px] text-muted-foreground">No approvers assigned.</div>
+                ) : (
+                  <ul className="mt-2 space-y-1.5">
+                    {(approvalMilestone.approvers ?? []).map((a) => {
+                      const s = approvalMilestone.approvalStatus;
+                      const label = s === "approved" ? "Approved" : s === "pending" ? "Pending" : "Not requested";
+                      const tone = s === "approved" ? "text-rag-green" : s === "pending" ? "text-rag-amber" : "text-muted-foreground";
+                      return (
+                        <li key={a.id} className="flex items-center justify-between text-[11px]">
+                          <span className="text-foreground">
+                            {a.name}
+                            <span className="ml-1 text-muted-foreground">· {a.role}{a.department ? ` · ${a.department}` : ""}</span>
+                          </span>
+                          <span className={`inline-flex items-center gap-1 ${tone}`}>
+                            {s === "approved" && <Check className="h-3 w-3" />}
+                            {label}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
           </div>
           <div className="grid gap-2">
             <Label className="text-xs">New progress (%)</Label>

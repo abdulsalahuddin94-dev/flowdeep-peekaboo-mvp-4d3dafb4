@@ -412,6 +412,7 @@ function ProjectDetail() {
                 <Select value={selectedBaselineVersion} onValueChange={(v) => {
                   setSelectedBaselineVersion(v);
                   setPlanEditMode("view");
+                  setEditBaselineSnapshot(null);
                 }}>
                   <SelectTrigger className="h-8 w-52 text-xs">
                     <SelectValue />

@@ -3919,6 +3919,90 @@ function LessonsTab({ project }: { project: typeof projects[number] }) {
   );
 }
 
+function VersionCompareDialog({
+  open, onOpenChange, fromLabel, toLabel, fromSnapshot, toSnapshot,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  fromLabel: string;
+  toLabel: string;
+  fromSnapshot?: Milestone[];
+  toSnapshot: Milestone[];
+}) {
+  const grouped = useMemo(() => {
+    const out = new Map<string, Array<{ field: string; oldValue: string; newValue: string }>>();
+    if (!fromSnapshot) return Array.from(out.entries());
+    const baseByName = new Map(fromSnapshot.map((m) => [m.name, m]));
+    const curByName = new Map(toSnapshot.map((m) => [m.name, m]));
+    const fmt = (v: any): string => {
+      if (v == null || v === "") return "—";
+      if (Array.isArray(v)) return v.length === 0 ? "—" : v.map((x: any) => x.name ?? x.role ?? String(x)).join(", ");
+      if (typeof v === "boolean") return v ? "Yes" : "No";
+      if (typeof v === "object") return JSON.stringify(v);
+      return String(v);
+    };
+    const fields: Array<{ key: keyof Milestone; label: string }> = [
+      { key: "startDate", label: "Start Date" },
+      { key: "endDate", label: "End Date" },
+      { key: "owner", label: "Owner" },
+      { key: "assignee", label: "Assignee" },
+      { key: "dep", label: "Depends On" },
+      { key: "rag", label: "RAG" },
+      { key: "progress", label: "Progress" },
+      { key: "weightScore", label: "Weight" },
+      { key: "requiresApproval", label: "Requires Approval" },
+    ];
+    const push = (item: string, field: string, oldV: string, newV: string) => {
+      if (!out.has(item)) out.set(item, []);
+      out.get(item)!.push({ field, oldValue: oldV, newValue: newV });
+    };
+    for (const cur of toSnapshot) {
+      const base = baseByName.get(cur.name);
+      if (!base) { push(cur.name, "Item", "—", "Added"); continue; }
+      for (const f of fields) {
+        const o = (base as any)[f.key];
+        const n = (cur as any)[f.key];
+        if (JSON.stringify(o ?? null) !== JSON.stringify(n ?? null)) {
+          push(cur.name, f.label, fmt(o), fmt(n));
+        }
+      }
+    }
+    for (const base of fromSnapshot) if (!curByName.has(base.name)) push(base.name, "Item", "Existed", "Removed");
+    return Array.from(out.entries());
+  }, [fromSnapshot, toSnapshot]);
+  const total = grouped.reduce((s, [, l]) => s + l.length, 0);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>
+            Compare {fromLabel} → {toLabel}
+            {total > 0 && (
+              <Badge variant="outline" className="ml-2 border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
+                {total} change{total === 1 ? "" : "s"} · {grouped.length} item{grouped.length === 1 ? "" : "s"}
+              </Badge>
+            )}
+          </DialogTitle>
+          <DialogDescription>
+            Read-only diff between the selected version and the current plan.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="max-h-[420px] space-y-2 overflow-y-auto rounded-md border border-border/50 bg-secondary/20 p-3">
+          {total === 0 ? (
+            <div className="py-6 text-center text-sm text-muted-foreground">No differences between these versions.</div>
+          ) : (
+            grouped.map(([item, list]) => <GroupedChangeItem key={item} item={item} changes={list} />)
+          )}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Change Request Dialog ───────────────────────────────────────────────────────
 interface ChangeRequest {
   id: string;

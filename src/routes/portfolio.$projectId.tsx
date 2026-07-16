@@ -1895,13 +1895,21 @@ function BusinessTripsTab({ pm }: { pm: string }) {
 }
 
 // ── Financials tab (includes Financial Planning content) ─────────────────────
-function FinancialsTab({ project }: { project: typeof projects[number] }) {
+function FinancialsTab({ project, milestones }: { project: typeof projects[number]; milestones: Milestone[] }) {
+  const milestoneNames = useMemo(
+    () => milestones.filter((m) => m.kind === "Milestone").map((m) => m.name),
+    [milestones],
+  );
   const [costEntries, setCostEntries] = useState<CostEntry[]>([
-    { c: "Labour",            b: 1.20, a: 0.84, color: "bg-rag-green" },
-    { c: "Hardware",          b: 0.90, a: 0.62, color: "bg-rag-blue" },
-    { c: "Software licenses", b: 0.40, a: 0.31, color: "bg-accent" },
-    { c: "Business trips",    b: 0.10, a: 0.07, color: "bg-rag-amber" },
-    { c: "Contingency",       b: 0.60, a: 0.26, color: "bg-muted-foreground" },
+    { c: "Labour", b: 1.20, a: 0.84, color: "bg-rag-green", desc: "Core delivery team", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Build Complete", breakdown: [
+      { name: "Backend engineers (3)", amount: 0.55, note: "6-month allocation" },
+      { name: "Frontend engineers (2)", amount: 0.35 },
+      { name: "QA (2)", amount: 0.30 },
+    ] },
+    { c: "Hardware", b: 0.90, a: 0.62, color: "bg-rag-blue", desc: "On-prem servers + peripherals", ctype: "third-party", classification: "capex", linkKind: "fixed", linkRef: "2025-06-15" },
+    { c: "Software licenses", b: 0.40, a: 0.31, color: "bg-accent", desc: "Annual licenses", ctype: "third-party", classification: "opex", linkKind: "fixed", linkRef: "2025-05-01" },
+    { c: "Business trips", b: 0.10, a: 0.07, color: "bg-rag-amber", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Design Approved" },
+    { c: "Contingency", b: 0.60, a: 0.26, color: "bg-muted-foreground", ctype: "internal", classification: "opex", linkKind: "fixed", linkRef: "" },
   ]);
   const [revEntries, setRevEntries] = useState<RevEntry[]>([
     { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "May 02",        s: "green", sl: "Received", act: 0.96 },

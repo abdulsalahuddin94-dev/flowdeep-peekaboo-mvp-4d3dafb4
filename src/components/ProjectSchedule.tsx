@@ -1680,7 +1680,10 @@ function EditableText({
 
   if (!editable) {
     return (
-      <span className={`truncate ${className ?? ""}`}>
+      <span
+        className={`truncate ${className ?? ""}`}
+        title="🔒 Locked — click Change Plan to edit"
+      >
         {value || <span className="text-muted-foreground">{placeholder ?? "—"}</span>}
       </span>
     );

@@ -333,15 +333,17 @@ function FinancialsPage() {
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Business Line</TableHead><TableHead>Expected Revenue</TableHead><TableHead>Total Budget</TableHead>
-              <TableHead>Spent</TableHead><TableHead>Expected Profit</TableHead><TableHead>Expected Profit %</TableHead><TableHead>Margin %</TableHead><TableHead>Status</TableHead>
+              <TableHead>CapEx</TableHead><TableHead>OpEx</TableHead><TableHead>Spent</TableHead><TableHead>Expected Profit</TableHead><TableHead>Expected Profit %</TableHead><TableHead>Margin %</TableHead><TableHead>Status</TableHead>
             </TableRow></TableHeader>
-            <TableBody>{pnlRows.map(({ p, revenue, expectedProfit, expectedProfitPct, margin, burnPct }) => {
+            <TableBody>{pnlRows.map(({ p, revenue, expectedProfit, expectedProfitPct, margin, burnPct, capex, opex }) => {
               return (
                 <TableRow key={p.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                   <TableCell className="font-medium text-foreground">{p.name}</TableCell>
                   <TableCell className="text-muted-foreground">{p.businessLine}</TableCell>
                   <TableCell className="num-mono">${revenue.toFixed(2)}M</TableCell>
                   <TableCell className="num-mono">${p.budgetTotal.toFixed(2)}M</TableCell>
+                  <TableCell className="num-mono text-accent">${capex.toFixed(2)}M</TableCell>
+                  <TableCell className="num-mono text-role-director">${opex.toFixed(2)}M</TableCell>
                   <TableCell className="num-mono">${p.budgetUsed.toFixed(2)}M</TableCell>
                   <TableCell className={`num-mono text-xs ${expectedProfit > 0 ? "text-rag-green" : "text-rag-red"}`}>${expectedProfit.toFixed(2)}M</TableCell>
                   <TableCell className={`num-mono text-xs ${expectedProfitPct > 15 ? "text-rag-green" : expectedProfitPct > 5 ? "text-rag-amber" : "text-rag-red"}`}>{Math.round(expectedProfitPct)}%</TableCell>

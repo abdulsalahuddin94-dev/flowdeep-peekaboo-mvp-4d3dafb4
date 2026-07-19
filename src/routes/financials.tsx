@@ -23,6 +23,16 @@ import {
   Area,
 } from "recharts";
 
+const COST_ITEMS = [
+  { project: "ERP Upgrade", item: "SAP licensing (Y1)", cat: "Software", type: "CapEx", amount: "$1.2M", milestone: "Kickoff", due: "Feb 10", status: "Recognised" },
+  { project: "ERP Upgrade", item: "Integration labour", cat: "Staff", type: "OpEx", amount: "$0.8M", milestone: "UAT Sign-off", due: "Jun 15", status: "Pending" },
+  { project: "Refinery Expansion", item: "Civil works — Phase 1", cat: "Contracts", type: "CapEx", amount: "$8.4M", milestone: "Civil phase complete", due: "Sep 22", status: "In progress" },
+  { project: "Refinery Expansion", item: "Site supervision", cat: "Services", type: "OpEx", amount: "$1.1M", milestone: "Fixed monthly", due: "Monthly", status: "Recurring" },
+  { project: "Customer Portal v3", item: "Dev sprint capacity", cat: "Staff", type: "OpEx", amount: "$0.6M", milestone: "Production cutover", due: "Aug 30", status: "Pending" },
+  { project: "Salesforce Migration", item: "SF platform fees", cat: "Software", type: "CapEx", amount: "$0.9M", milestone: "Hypercare exit", due: "Jul 22", status: "Recognised" },
+  { project: "Smart Grid Pilot", item: "Field engineers travel", cat: "Business Trips", type: "OpEx", amount: "$0.3M", milestone: "Fixed date", due: "Aug 05", status: "Pending" },
+];
+
 export const Route = createFileRoute("/financials")({
   component: FinancialsPage,
   head: () => ({ meta: [{ title: "Financials â€” Nexus PMO" }, { name: "description", content: "Portfolio-wide budgets, CAPEX/OPEX split, change requests and milestone-linked revenue recognition." }] }),

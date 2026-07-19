@@ -19,7 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, ArrowUpRight, Clock, Check } from "lucide-react";
 import type { Rag } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool } from "@/lib/mock-data";
-import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
+import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
 import { toast } from "sonner";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress } from "@/components/ProjectSchedule";
@@ -112,6 +112,7 @@ function ProjectDetail() {
   const { addNotification } = useNotifications();
   const { addRfp } = useRfps();
   const { addResourceRequest, resourceRequests } = useResourceRequests();
+  const { jobRoles } = useJobRoles();
   const project = liveProjects.find((p) => p.id === loaderProject.id) ?? loaderProject;
   const [reportOpen, setReportOpen] = useState(false);
   const [teamMembers, setTeamMembers] = useState([
@@ -607,6 +608,7 @@ function ProjectDetail() {
             }, [milestones, resourceRequests, isViewingCurrent, selectedBaselineVersion, projectBaselineVersions])}
             resourceList={resourcePool}
             restricted={!isEditingAllowed}
+            jobRoles={jobRoles.map((r) => r.title)}
             onProgressClick={(name, kind) => {
               const derived = computeDerivedSchedule(milestones, resourceRequests);
               const hasChildren = derived.some((d) => d.parent === name);
@@ -901,7 +903,7 @@ function ProjectDetail() {
         </TabsContent>
 
         <TabsContent value="Financials" className="mt-5">
-          <FinancialsTab project={project} />
+          <FinancialsTab project={project} milestones={milestones} />
         </TabsContent>
 
         <TabsContent value="Project Risks" className="mt-5">
@@ -1055,20 +1057,18 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
     setFields((prev) => ({ ...prev, [key]: val }));
   }
 
-  function Field({ label, fieldKey, multiline = false }: { label: string; fieldKey: keyof typeof fields; multiline?: boolean }) {
-    return (
-      <div className="space-y-1">
-        <div className="label-eyebrow">{label}</div>
-        {editMode ? (
-          multiline
-            ? <Textarea value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm min-h-[64px]" rows={3} />
-            : <Input value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm" />
-        ) : (
-          <p className="text-sm text-foreground whitespace-pre-line">{displayFields[fieldKey]}</p>
-        )}
-      </div>
-    );
-  }
+  const renderField = (label: string, fieldKey: keyof typeof fields, multiline = false) => (
+    <div key={fieldKey} className="space-y-1">
+      <div className="label-eyebrow">{label}</div>
+      {editMode ? (
+        multiline
+          ? <Textarea value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm min-h-[64px]" rows={3} />
+          : <Input value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm" />
+      ) : (
+        <p className="text-sm text-foreground whitespace-pre-line">{displayFields[fieldKey]}</p>
+      )}
+    </div>
+  );
 
   return (
     <div className="space-y-5">
@@ -1105,19 +1105,19 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
         <div className="space-y-4">
           <div className="glass-card p-5 space-y-4">
             <div className="label-eyebrow text-accent">Project Purpose</div>
-            <Field label="Objective" fieldKey="objective" multiline />
-            <Field label="Scope" fieldKey="scope" multiline />
+            {renderField("Objective", "objective", true)}
+            {renderField("Scope", "scope", true)}
           </div>
 
           <div className="glass-card p-5 space-y-4">
             <div className="label-eyebrow text-accent">Success Criteria</div>
-            <Field label="Definition of success" fieldKey="successCriteria" multiline />
+            {renderField("Definition of success", "successCriteria", true)}
           </div>
 
           <div className="glass-card p-5 space-y-4">
             <div className="label-eyebrow text-accent">Constraints & Assumptions</div>
-            <Field label="Constraints" fieldKey="constraints" multiline />
-            <Field label="Assumptions" fieldKey="assumptions" multiline />
+            {renderField("Constraints", "constraints", true)}
+            {renderField("Assumptions", "assumptions", true)}
           </div>
         </div>
 
@@ -1126,11 +1126,11 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
           <div className="glass-card p-5 space-y-4">
             <div className="label-eyebrow text-accent">Project Identity</div>
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Sponsor" fieldKey="sponsor" />
-              <Field label="Project Manager" fieldKey="pm" />
-              <Field label="Start Date" fieldKey="startDate" />
-              <Field label="End Date" fieldKey="endDate" />
-              <Field label="Approved Budget" fieldKey="budget" />
+              {renderField("Sponsor", "sponsor")}
+              {renderField("Project Manager", "pm")}
+              {renderField("Start Date", "startDate")}
+              {renderField("End Date", "endDate")}
+              {renderField("Approved Budget", "budget")}
               <div className="space-y-1">
                 <div className="label-eyebrow">Client</div>
                 <p className="text-sm text-foreground">{project.client ?? "Internal"}</p>
@@ -1140,7 +1140,7 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
 
           <div className="glass-card p-5 space-y-4">
             <div className="label-eyebrow text-accent">Risk Summary</div>
-            <Field label="Key risks at charter stage" fieldKey="risks" multiline />
+            {renderField("Key risks at charter stage", "risks", true)}
           </div>
 
           <div className="glass-card p-5 space-y-3">
@@ -1895,13 +1895,21 @@ function BusinessTripsTab({ pm }: { pm: string }) {
 }
 
 // ── Financials tab (includes Financial Planning content) ─────────────────────
-function FinancialsTab({ project }: { project: typeof projects[number] }) {
+function FinancialsTab({ project, milestones }: { project: typeof projects[number]; milestones: Milestone[] }) {
+  const milestoneNames = useMemo(
+    () => milestones.filter((m) => m.kind === "Milestone").map((m) => m.name),
+    [milestones],
+  );
   const [costEntries, setCostEntries] = useState<CostEntry[]>([
-    { c: "Labour",            b: 1.20, a: 0.84, color: "bg-rag-green" },
-    { c: "Hardware",          b: 0.90, a: 0.62, color: "bg-rag-blue" },
-    { c: "Software licenses", b: 0.40, a: 0.31, color: "bg-accent" },
-    { c: "Business trips",    b: 0.10, a: 0.07, color: "bg-rag-amber" },
-    { c: "Contingency",       b: 0.60, a: 0.26, color: "bg-muted-foreground" },
+    { c: "Labour", b: 1.20, a: 0.84, color: "bg-rag-green", desc: "Core delivery team", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Build Complete", breakdown: [
+      { name: "Backend engineers (3)", amount: 0.55, note: "6-month allocation" },
+      { name: "Frontend engineers (2)", amount: 0.35 },
+      { name: "QA (2)", amount: 0.30 },
+    ] },
+    { c: "Hardware", b: 0.90, a: 0.62, color: "bg-rag-blue", desc: "On-prem servers + peripherals", ctype: "third-party", classification: "capex", linkKind: "fixed", linkRef: "2025-06-15" },
+    { c: "Software licenses", b: 0.40, a: 0.31, color: "bg-accent", desc: "Annual licenses", ctype: "third-party", classification: "opex", linkKind: "fixed", linkRef: "2025-05-01" },
+    { c: "Business trips", b: 0.10, a: 0.07, color: "bg-rag-amber", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Design Approved" },
+    { c: "Contingency", b: 0.60, a: 0.26, color: "bg-muted-foreground", ctype: "internal", classification: "opex", linkKind: "fixed", linkRef: "" },
   ]);
   const [revEntries, setRevEntries] = useState<RevEntry[]>([
     { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "May 02",        s: "green", sl: "Received", act: 0.96 },
@@ -1961,24 +1969,20 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
         <div className="glass-card p-5">
           <div className="mb-3 flex items-center justify-between">
             <div className="label-eyebrow">Cost categories</div>
-            {canEdit && <AddCostDialog onAdd={(e) => setCostEntries((prev) => [...prev, e])} />}
+            {canEdit && (
+              <AddFinanceLinkDialog
+                milestoneNames={milestoneNames}
+                defaultType="cost"
+                onAddCost={(e) => setCostEntries((prev) => [...prev, e])}
+                onAddRevenue={(e) => setRevEntries((prev) => [...prev, e])}
+              />
+            )}
           </div>
-          <div className="space-y-3">
-            {displayCost.map((r) => {
-              const pct = Math.round((r.a / r.b) * 100);
-              return (
-                <div key={r.c}>
-                  <div className="mb-1 flex justify-between text-sm">
-                    <span className="text-foreground">{r.c}</span>
-                    <span className="num-mono text-xs text-muted-foreground">${r.a.toFixed(2)}M / ${r.b.toFixed(2)}M</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/50">
-                    <div className={`h-full ${r.color}`} style={{ width: `${pct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <CostCategoriesList
+            entries={displayCost}
+            canEdit={canEdit}
+            onUpdate={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
+          />
         </div>
         <div className="glass-card p-5">
           <div className="label-eyebrow mb-3">Quarterly cash plan</div>
@@ -2008,13 +2012,20 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
             <span className="num-mono text-xs text-muted-foreground">
               Total planned: ${displayRev.reduce((s, r) => s + r.plan, 0).toFixed(2)}M
             </span>
-            {canEdit && <AddRevenueDialog onAdd={(e) => setRevEntries((prev) => [...prev, e])} />}
+            {canEdit && (
+              <AddFinanceLinkDialog
+                milestoneNames={milestoneNames}
+                defaultType="revenue"
+                onAddCost={(e) => setCostEntries((prev) => [...prev, e])}
+                onAddRevenue={(e) => setRevEntries((prev) => [...prev, e])}
+              />
+            )}
           </div>
         </div>
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent bg-transparent border-0">
-              <TableHead>Milestone</TableHead>
+              <TableHead>Linked to</TableHead>
               <TableHead>Revenue event</TableHead>
               <TableHead className="text-right">Planned ($M)</TableHead>
               <TableHead>Expected date</TableHead>
@@ -2025,7 +2036,14 @@ function FinancialsTab({ project }: { project: typeof projects[number] }) {
           <TableBody>
             {displayRev.map((r) => (
               <TableRow key={r.ms} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                <TableCell className="font-medium text-foreground">{r.ms}</TableCell>
+                <TableCell className="font-medium text-foreground">
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${r.linkKind === "fixed" ? "bg-secondary/40 text-muted-foreground" : "bg-accent/15 text-accent"}`}>
+                      {r.linkKind === "fixed" ? "Date" : "MS"}
+                    </span>
+                    <span>{r.ms}</span>
+                  </div>
+                </TableCell>
                 <TableCell className="text-muted-foreground">{r.evt}</TableCell>
                 <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{r.date}</TableCell>
@@ -2182,8 +2200,20 @@ type Milestone = {
 };
 
 type Trip = { id: string; purpose: string; dest: string; dates: string; travelers: string; cost: string; rag: Rag; status: string };
-type CostEntry = { c: string; b: number; a: number; color: string };
-type RevEntry = { ms: string; evt: string; plan: number; date: string; s: string; sl: string; act: number | null };
+type CostBreakdownItem = { name: string; amount: number; note?: string };
+type CostEntry = {
+  c: string; b: number; a: number; color: string;
+  desc?: string;
+  ctype?: "internal" | "third-party";
+  classification?: "capex" | "opex";
+  linkKind?: "fixed" | "milestone";
+  linkRef?: string; // ISO date OR milestone name
+  breakdown?: CostBreakdownItem[];
+};
+type RevEntry = {
+  ms: string; evt: string; plan: number; date: string; s: string; sl: string; act: number | null;
+  linkKind?: "fixed" | "milestone";
+};
 type GateItem = { task: string; role: string; done: boolean };
 type GateStage = { name: string; items: GateItem[] };
 type RaidItem = { id: string; title: string; kind: "Risk" | "Issue"; score: number; owner: string; status: string; rag: Rag };
@@ -3478,11 +3508,316 @@ function StakeholdersTab() {
   );
 }
 
-// ── Add Cost Entry dialog ─────────────────────────────────────────────────────
+// ── Cost categories list with expandable breakdown ────────────────────────────
 const COST_COLORS: Record<string, string> = {
   Labour: "bg-rag-green", Hardware: "bg-rag-blue", Software: "bg-accent",
   "Business trips": "bg-rag-amber", Contingency: "bg-muted-foreground", Other: "bg-rag-red",
 };
+function CostCategoriesList({
+  entries, canEdit, onUpdate,
+}: {
+  entries: CostEntry[];
+  canEdit: boolean;
+  onUpdate: (idx: number, patch: Partial<CostEntry>) => void;
+}) {
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const [newName, setNewName] = useState("");
+  const [newAmount, setNewAmount] = useState("");
+  return (
+    <div className="space-y-3">
+      {entries.map((r, idx) => {
+        const pct = r.b > 0 ? Math.round((r.a / r.b) * 100) : 0;
+        const open = openIdx === idx;
+        const bd = r.breakdown ?? [];
+        const bdTotal = bd.reduce((s, i) => s + i.amount, 0);
+        return (
+          <div key={r.c + idx} className="rounded-md border border-border/50 bg-background/30 p-2.5">
+            <button
+              type="button"
+              onClick={() => setOpenIdx(open ? null : idx)}
+              className="flex w-full items-center gap-2 text-left"
+            >
+              <span className={`text-xs transition-transform ${open ? "rotate-90" : ""}`}>▸</span>
+              <div className="flex-1">
+                <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span className="flex items-center gap-2 text-foreground">
+                    {r.c}
+                    {r.classification && (
+                      <span className="rounded bg-secondary/40 px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground">
+                        {r.classification}
+                      </span>
+                    )}
+                    {r.ctype && (
+                      <span className="rounded bg-secondary/40 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                        {r.ctype === "internal" ? "Internal" : "3rd party"}
+                      </span>
+                    )}
+                    {r.linkKind && r.linkRef && (
+                      <span className={`rounded px-1.5 py-0.5 text-[10px] ${r.linkKind === "milestone" ? "bg-accent/15 text-accent" : "bg-secondary/40 text-muted-foreground"}`}>
+                        {r.linkKind === "milestone" ? `→ ${r.linkRef}` : r.linkRef}
+                      </span>
+                    )}
+                  </span>
+                  <span className="num-mono text-xs text-muted-foreground">${r.a.toFixed(2)}M / ${r.b.toFixed(2)}M</span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/50">
+                  <div className={`h-full ${r.color}`} style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            </button>
+            {open && (
+              <div className="mt-3 space-y-2 border-t border-border/40 pt-2 pl-6">
+                {r.desc && <div className="text-xs text-muted-foreground">{r.desc}</div>}
+                {bd.length === 0 && <div className="text-xs italic text-muted-foreground">No breakdown items yet.</div>}
+                {bd.map((b, bi) => (
+                  <div key={bi} className="flex items-center justify-between text-xs">
+                    <div>
+                      <div className="text-foreground">{b.name}</div>
+                      {b.note && <div className="text-[11px] text-muted-foreground">{b.note}</div>}
+                    </div>
+                    <span className="num-mono text-muted-foreground">${b.amount.toFixed(2)}M</span>
+                  </div>
+                ))}
+                {bd.length > 0 && (
+                  <div className="flex items-center justify-between border-t border-border/30 pt-1 text-[11px] text-muted-foreground">
+                    <span>Subtotal</span>
+                    <span className="num-mono">${bdTotal.toFixed(2)}M</span>
+                  </div>
+                )}
+                {canEdit && (
+                  <div className="flex items-end gap-2 pt-1">
+                    <div className="flex-1">
+                      <Label className="text-[11px]">Item</Label>
+                      <Input
+                        value={openIdx === idx ? newName : ""}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder="e.g. Backend engineers (2)"
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <div className="w-28">
+                      <Label className="text-[11px]">Amount ($M)</Label>
+                      <Input
+                        type="number" min={0} step={0.01}
+                        value={openIdx === idx ? newAmount : ""}
+                        onChange={(e) => setNewAmount(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 border-accent/40 text-accent hover:bg-accent-dim"
+                      onClick={() => {
+                        const amt = parseFloat(newAmount);
+                        if (!newName.trim() || isNaN(amt)) { toast.error("Item name and amount are required"); return; }
+                        onUpdate(idx, { breakdown: [...bd, { name: newName.trim(), amount: amt }] });
+                        setNewName(""); setNewAmount("");
+                        toast.success("Breakdown item added");
+                      }}
+                    >
+                      <Plus className="mr-1 h-3 w-3" />Add
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Unified Add Finance Link dialog (Cost OR Revenue) ─────────────────────────
+function AddFinanceLinkDialog({
+  milestoneNames, defaultType, onAddCost, onAddRevenue,
+}: {
+  milestoneNames: string[];
+  defaultType: "cost" | "revenue";
+  onAddCost: (e: CostEntry) => void;
+  onAddRevenue: (e: RevEntry) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [kind, setKind] = useState<"cost" | "revenue">(defaultType);
+
+  // Common
+  const [amount, setAmount] = useState("");
+  const [desc, setDesc] = useState("");
+  const [linkKind, setLinkKind] = useState<"fixed" | "milestone">("milestone");
+  const [linkDate, setLinkDate] = useState("");
+  const [linkMs, setLinkMs] = useState("");
+
+  // Cost-only
+  const [cat, setCat] = useState("");
+  const [actual, setActual] = useState("");
+  const [ctype, setCtype] = useState<"internal" | "third-party">("internal");
+  const [capex, setCapex] = useState<"capex" | "opex">("opex");
+
+  // Revenue-only
+  const [evt, setEvt] = useState("");
+
+  function reset() {
+    setKind(defaultType);
+    setAmount(""); setDesc(""); setLinkKind("milestone"); setLinkDate(""); setLinkMs("");
+    setCat(""); setActual(""); setCtype("internal"); setCapex("opex");
+    setEvt("");
+  }
+
+  function submit() {
+    const linkRef = linkKind === "fixed" ? linkDate : linkMs;
+    if (linkKind === "fixed" && !linkDate) { toast.error("Please pick a date"); return; }
+    if (linkKind === "milestone" && !linkMs) { toast.error("Please pick a milestone"); return; }
+    const amt = parseFloat(amount);
+    if (isNaN(amt)) { toast.error("Amount is required"); return; }
+
+    if (kind === "cost") {
+      if (!cat.trim()) { toast.error("Category is required"); return; }
+      const a = parseFloat(actual || "0");
+      onAddCost({
+        c: cat.trim(), b: amt, a: isNaN(a) ? 0 : a,
+        color: COST_COLORS[cat] ?? "bg-muted-foreground",
+        desc: desc.trim() || undefined,
+        ctype, classification: capex,
+        linkKind, linkRef, breakdown: [],
+      });
+      toast.success("Cost link added");
+    } else {
+      onAddRevenue({
+        ms: linkKind === "milestone" ? linkMs : (desc.trim() || "Revenue"),
+        evt: evt.trim() || "—",
+        plan: amt,
+        date: linkKind === "fixed" ? linkDate : "Linked",
+        s: "blue", sl: "Planned", act: null,
+        linkKind,
+      });
+      toast.success("Revenue link added");
+    }
+    setOpen(false);
+    reset();
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); else setKind(defaultType); }}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="h-7 border-accent/40 text-accent hover:bg-accent-dim text-xs">
+          <Plus className="mr-1 h-3.5 w-3.5" />Add Finance Link
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Finance Link</DialogTitle>
+          <DialogDescription>Link either a cost or a revenue event to a milestone or a fixed date.</DialogDescription>
+        </DialogHeader>
+
+        <div className="mb-1 grid grid-cols-2 gap-1 rounded-md bg-secondary/30 p-1">
+          {(["cost", "revenue"] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setKind(k)}
+              className={`rounded px-2 py-1.5 text-xs font-medium transition ${kind === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {k === "cost" ? "Outgoing (Cost)" : "Incoming (Revenue)"}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid gap-3">
+          {kind === "cost" ? (
+            <>
+              <div>
+                <Label>Category</Label>
+                <Select value={cat} onValueChange={setCat}>
+                  <SelectTrigger><SelectValue placeholder="Select category…" /></SelectTrigger>
+                  <SelectContent>
+                    {["Staff", "Services", "Insurance", "Business Trips", "Contracts", "Hardware", "Software", "Other"].map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Senior developer contract" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div><Label>Budget ($M)</Label><Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.50" /></div>
+                <div><Label>Actual ($M)</Label><Input type="number" min={0} step={0.01} value={actual} onChange={(e) => setActual(e.target.value)} placeholder="0.00" /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label>Type</Label>
+                  <Select value={ctype} onValueChange={(v) => setCtype(v as typeof ctype)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="internal">Internal</SelectItem>
+                      <SelectItem value="third-party">Third-party</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Classification</Label>
+                  <Select value={capex} onValueChange={(v) => setCapex(v as typeof capex)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="capex">CapEx</SelectItem>
+                      <SelectItem value="opex">OpEx</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div><Label>Revenue event</Label><Input value={evt} onChange={(e) => setEvt(e.target.value)} placeholder="e.g. Progress invoice (15%)" /></div>
+              <div><Label>Planned amount ($M)</Label><Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.50" /></div>
+              {linkKind === "fixed" && (
+                <div><Label>Label (optional)</Label><Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Advance payment" /></div>
+              )}
+            </>
+          )}
+
+          <div>
+            <Label>Link to</Label>
+            <Select value={linkKind} onValueChange={(v) => setLinkKind(v as typeof linkKind)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="milestone">Milestone (Dynamic)</SelectItem>
+                <SelectItem value="fixed">Fixed Date</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {linkKind === "fixed" && (
+            <div><Label>Due Date</Label><Input type="date" value={linkDate} onChange={(e) => setLinkDate(e.target.value)} /></div>
+          )}
+          {linkKind === "milestone" && (
+            <div>
+              <Label>Milestone</Label>
+              <Select value={linkMs} onValueChange={setLinkMs}>
+                <SelectTrigger><SelectValue placeholder="Select milestone…" /></SelectTrigger>
+                <SelectContent>
+                  {milestoneNames.length === 0 ? (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">No milestones yet</div>
+                  ) : milestoneNames.map((n) => (
+                    <SelectItem key={n} value={n}>{n}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Add link</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Legacy Add Cost Entry dialog (kept for reference) ─────────────────────────
 function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
   const [open, setOpen] = useState(false);
   const [cat, setCat] = useState("");
@@ -4606,12 +4941,23 @@ function TeamAllocationTab({
             </TabsContent>
 
             <TabsContent value="team-members" className="mt-4 space-y-3">
-              <div className="flex justify-end gap-2">
-                <Button size="sm" variant="outline" className="gap-1 text-xs border-accent/40 text-accent hover:bg-accent-dim"
+              <div className="flex items-center justify-end gap-2">
+                {!teamBaseline.canEdit && (
+                  <span className="text-[11px] text-muted-foreground mr-1">
+                    Click "Edit Team & Allocation" to add or request resources
+                  </span>
+                )}
+                <Button size="sm" variant="outline"
+                  disabled={!teamBaseline.canEdit}
+                  title={!teamBaseline.canEdit ? "Enable Edit Team & Allocation first" : undefined}
+                  className="gap-1 text-xs border-accent/40 text-accent hover:bg-accent-dim disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => setReqResourceOpen(true)}>
                   <UserPlus className="h-3.5 w-3.5" />Request Resource
                 </Button>
-                <Button size="sm" className="gap-1 text-xs bg-accent text-accent-foreground hover:bg-accent/90"
+                <Button size="sm"
+                  disabled={!teamBaseline.canEdit}
+                  title={!teamBaseline.canEdit ? "Enable Edit Team & Allocation first" : undefined}
+                  className="gap-1 text-xs bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => setAddMemberOpen(true)}>
                   <Plus className="h-3.5 w-3.5" />Add Member
                 </Button>

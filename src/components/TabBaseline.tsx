@@ -307,13 +307,13 @@ export function BaselineHeader<TSnapshot>({
             setViewedVersion(v === "latest" ? "latest" : Number(v.replace("v", "")))
           }
         >
-          <SelectTrigger className="h-8 w-56 text-xs">
+          <SelectTrigger className="h-auto min-h-[38px] w-56 items-start py-1.5 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="latest">
-              <div className="flex flex-col leading-tight">
-                <span>
+              <div className="flex flex-col items-start gap-0.5 leading-none">
+                <span className="text-foreground">
                   Current (v{latestVersion?.version ?? 1}) ⭐
                 </span>
                 <span className="text-[10px] text-muted-foreground">

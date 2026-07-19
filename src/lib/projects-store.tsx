@@ -75,6 +75,7 @@ type AppContextValue = {
   calendars: WorkCalendar[];
   addCalendar: (c: WorkCalendar) => void;
   updateCalendar: (id: string, patch: Partial<WorkCalendar>) => void;
+  removeCalendar: (id: string) => void;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -92,6 +93,9 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   function addCalendar(c: WorkCalendar) { setCalendars((prev) => [...prev, c]); }
   function updateCalendar(id: string, patch: Partial<WorkCalendar>) {
     setCalendars((prev) => prev.map((c) => c.id === id ? { ...c, ...patch } : c));
+  }
+  function removeCalendar(id: string) {
+    setCalendars((prev) => prev.filter((c) => c.id !== id));
   }
 
   const tags = useMemo(
@@ -144,7 +148,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       rfps, addRfp,
       resourceRequests, addResourceRequest, updateResourceRequest,
       tags, addTag,
-      calendars, addCalendar, updateCalendar,
+      calendars, addCalendar, updateCalendar, removeCalendar,
     }}>
       {children}
     </AppContext.Provider>
@@ -182,6 +186,6 @@ export function useTags() {
 }
 
 export function useCalendars() {
-  const { calendars, addCalendar, updateCalendar } = useAppContext();
-  return { calendars, addCalendar, updateCalendar };
+  const { calendars, addCalendar, updateCalendar, removeCalendar } = useAppContext();
+  return { calendars, addCalendar, updateCalendar, removeCalendar };
 }

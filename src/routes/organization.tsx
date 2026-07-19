@@ -145,8 +145,8 @@ function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta:
 function RowActions() {
   return (
     <div className="flex justify-end gap-1">
-      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
-      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
+      <Button aria-label="Edit" size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
+      <Button aria-label="Delete" size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
     </div>
   );
 }
@@ -306,7 +306,7 @@ function CalendarsTab() {
                 <CalendarDays className="h-4 w-4 text-accent" />
                 <div className="font-medium text-foreground">{c.name}</div>
               </div>
-              <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-accent" onClick={() => setEditing(c)}>
+              <Button aria-label={`Edit ${c.name}`} size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:!bg-accent/15 hover:!text-accent" onClick={() => setEditing(c)}>
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
             </div>
@@ -442,7 +442,7 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
                         <div className="truncate text-sm font-medium text-foreground">{h.label}</div>
                         <div className="text-[11px] text-muted-foreground">{format(d, "EEEE, yyyy")}</div>
                       </div>
-                      <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-rag-red" onClick={() => removeHoliday(h.date)}>
+                      <Button aria-label={`Delete ${h.label}`} size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:!bg-rag-red/15 hover:!text-rag-red" onClick={() => removeHoliday(h.date)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>

@@ -43,18 +43,6 @@ function FinancialsPage() {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 3 }, (_, i) => (currentYear - 2 + i).toString());
 
-  const costByProject = useMemo(() => {
-    const map = new Map<string, { capex: number; opex: number }>();
-    for (const c of COST_ITEMS) {
-      const cur = map.get(c.project) ?? { capex: 0, opex: 0 };
-      const val = parseFloat(c.amount.replace(/[^0-9.]/g, ""));
-      if (c.type === "CapEx") cur.capex += val;
-      else cur.opex += val;
-      map.set(c.project, cur);
-    }
-    return map;
-  }, []);
-
   const pnlRows = useMemo(
     () =>
       projects.slice(0, 12).map((p) => {
@@ -64,10 +52,9 @@ function FinancialsPage() {
         const actualProfit = revenue - p.budgetUsed;
         const margin = (actualProfit / revenue) * 100;
         const burnPct = (p.budgetUsed / p.budgetTotal) * 100;
-        const split = costByProject.get(p.name) ?? { capex: p.budgetTotal * 0.6, opex: p.budgetTotal * 0.4 };
-        return { p, revenue, expectedProfit, expectedProfitPct, actualProfit, margin, burnPct, capex: split.capex, opex: split.opex };
+        return { p, revenue, expectedProfit, expectedProfitPct, actualProfit, margin, burnPct };
       }),
-    [costByProject],
+    [],
   );
 
   const budgetVsSpent = pnlRows.map((r) => ({

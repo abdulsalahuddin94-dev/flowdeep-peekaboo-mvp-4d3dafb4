@@ -278,6 +278,7 @@ export function ProjectSchedule({
   resourceList = [],
   headerSlot,
   restricted = false,
+  jobRoles,
 }: {
   items: ScheduleItem[];
   AddItemSlot?: React.ReactNode;

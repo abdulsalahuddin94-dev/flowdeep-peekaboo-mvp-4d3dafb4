@@ -292,6 +292,11 @@ export function ProjectSchedule({
   resourceList?: Array<{ name: string; role?: string; dept?: string }>;
   headerSlot?: React.ReactNode;
   /**
+   * Organization-level Job Roles list. When provided, drives the Role dropdown
+   * in the inline RolesCell editor. Falls back to a default catalog otherwise.
+   */
+  jobRoles?: string[];
+  /**
    * When true, only Progress Update and Assignee edits are allowed.
    * All other inline edits (name, dates, owner, roles, status, dependencies,
    * Gantt drag, right-click add/edit/delete) are hidden or read-only.

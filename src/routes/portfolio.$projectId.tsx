@@ -608,6 +608,7 @@ function ProjectDetail() {
             }, [milestones, resourceRequests, isViewingCurrent, selectedBaselineVersion, projectBaselineVersions])}
             resourceList={resourcePool}
             restricted={!isEditingAllowed}
+            jobRoles={jobRoles.map((r) => r.title)}
             onProgressClick={(name, kind) => {
               const derived = computeDerivedSchedule(milestones, resourceRequests);
               const hasChildren = derived.some((d) => d.parent === name);

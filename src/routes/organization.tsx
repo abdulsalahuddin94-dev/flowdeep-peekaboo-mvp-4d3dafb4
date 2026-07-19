@@ -287,9 +287,14 @@ function AddTagDialog() {
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function CalendarsTab() {
-  const { calendars } = useCalendars();
+  const { calendars, removeCalendar } = useCalendars();
   const [editing, setEditing] = useState<WorkCalendar | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+
+  function deleteCalendar(calendar: WorkCalendar) {
+    removeCalendar(calendar.id);
+    toast.success(`Calendar "${calendar.name}" deleted`);
+  }
 
   return (
     <>
@@ -306,9 +311,14 @@ function CalendarsTab() {
                 <CalendarDays className="h-4 w-4 text-accent" />
                 <div className="font-medium text-foreground">{c.name}</div>
               </div>
-              <Button aria-label={`Edit ${c.name}`} size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:!bg-accent/15 hover:!text-accent" onClick={() => setEditing(c)}>
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
+              <div className="flex shrink-0 items-center gap-1">
+                <Button aria-label={`Edit ${c.name}`} size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:!bg-accent/15 hover:!text-accent" onClick={() => setEditing(c)}>
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button aria-label={`Delete ${c.name}`} size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red" onClick={() => deleteCalendar(c)}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-1">
               {DAY_LABELS.map((d, i) => (

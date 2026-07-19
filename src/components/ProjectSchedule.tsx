@@ -1121,6 +1121,7 @@ export function ProjectSchedule({
                             item={item}
                             onUpdate={(roles) => patch(item.name, { roles })}
                             onRequestRole={(role) => onRequestSkill?.(item.name, role)}
+                            roleOptions={jobRoles && jobRoles.length ? jobRoles : ROLE_OPTIONS}
                           />
                         ) : item.roles.length === 0 ? (
                           <span className="text-muted-foreground">—</span>

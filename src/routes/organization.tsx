@@ -146,7 +146,7 @@ function RowActions() {
   return (
     <div className="flex justify-end gap-1">
       <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
-      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
+      <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
     </div>
   );
 }

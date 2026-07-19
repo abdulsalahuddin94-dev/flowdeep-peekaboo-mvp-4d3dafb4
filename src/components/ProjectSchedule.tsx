@@ -1899,7 +1899,7 @@ function RolesCell({
                     <Select value={newRole} onValueChange={setNewRole}>
                       <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a role" /></SelectTrigger>
                       <SelectContent>
-                        {ROLE_OPTIONS.map((r) => (
+                        {roleOptions.map((r) => (
                           <SelectItem key={r} value={r}>{r}</SelectItem>
                         ))}
                       </SelectContent>

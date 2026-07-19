@@ -278,6 +278,7 @@ export function ProjectSchedule({
   resourceList = [],
   headerSlot,
   restricted = false,
+  jobRoles,
 }: {
   items: ScheduleItem[];
   AddItemSlot?: React.ReactNode;
@@ -291,6 +292,11 @@ export function ProjectSchedule({
   onDependencyClick?: (name: string) => void;
   resourceList?: Array<{ name: string; role?: string; dept?: string }>;
   headerSlot?: React.ReactNode;
+  /**
+   * Organization-level Job Roles list. When provided, drives the Role dropdown
+   * in the inline RolesCell editor. Falls back to a default catalog otherwise.
+   */
+  jobRoles?: string[];
   /**
    * When true, only Progress Update and Assignee edits are allowed.
    * All other inline edits (name, dates, owner, roles, status, dependencies,
@@ -1115,6 +1121,7 @@ export function ProjectSchedule({
                             item={item}
                             onUpdate={(roles) => patch(item.name, { roles })}
                             onRequestRole={(role) => onRequestSkill?.(item.name, role)}
+                            roleOptions={jobRoles && jobRoles.length ? jobRoles : ROLE_OPTIONS}
                           />
                         ) : item.roles.length === 0 ? (
                           <span className="text-muted-foreground">—</span>
@@ -1822,10 +1829,12 @@ function RolesCell({
   item,
   onUpdate,
   onRequestRole,
+  roleOptions = ROLE_OPTIONS,
 }: {
   item: ScheduleItem;
   onUpdate: (roles: RoleReq[]) => void;
   onRequestRole: (role: RoleReq) => void;
+  roleOptions?: readonly string[];
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<RoleReq | null>(null);
@@ -1890,7 +1899,7 @@ function RolesCell({
                     <Select value={newRole} onValueChange={setNewRole}>
                       <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a role" /></SelectTrigger>
                       <SelectContent>
-                        {ROLE_OPTIONS.map((r) => (
+                        {roleOptions.map((r) => (
                           <SelectItem key={r} value={r}>{r}</SelectItem>
                         ))}
                       </SelectContent>

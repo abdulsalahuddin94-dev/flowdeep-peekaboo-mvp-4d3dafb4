@@ -3,6 +3,26 @@ import { projects as initialProjects, rfps as initialRfps, orgTags as initialTag
 
 export type OrgTag = { name: string; color: string };
 
+export type JobRole = { id: string; title: string };
+
+const SEED_JOB_ROLES: JobRole[] = [
+  { id: "jr-ba",     title: "Business Analyst" },
+  { id: "jr-sa",     title: "Solution Architect" },
+  { id: "jr-ux",     title: "UX Designer" },
+  { id: "jr-be",     title: "Backend Dev" },
+  { id: "jr-fe",     title: "Frontend Dev" },
+  { id: "jr-int",    title: "Integration Dev" },
+  { id: "jr-de",     title: "Data Engineer" },
+  { id: "jr-qa",     title: "QA Engineer" },
+  { id: "jr-qal",    title: "QA Lead" },
+  { id: "jr-devops", title: "DevOps Engineer" },
+  { id: "jr-sec",    title: "Security Lead" },
+  { id: "jr-perf",   title: "Performance Engineer" },
+  { id: "jr-sup",    title: "Support Lead" },
+  { id: "jr-tr",     title: "Trainer" },
+  { id: "jr-pm",     title: "Project Manager" },
+];
+
 // ── Shared types ──────────────────────────────────────────────────────────────
 
 export type Notification = {
@@ -76,6 +96,11 @@ type AppContextValue = {
   addCalendar: (c: WorkCalendar) => void;
   updateCalendar: (id: string, patch: Partial<WorkCalendar>) => void;
   removeCalendar: (id: string) => void;
+  // Job roles (Organization-level)
+  jobRoles: JobRole[];
+  addJobRole: (title: string) => void;
+  updateJobRole: (id: string, title: string) => void;
+  removeJobRole: (id: string) => void;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -89,6 +114,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   const [resourceRequests, setResourceRequests] = useState<ResourceRequest[]>(SEED_RESOURCE_REQUESTS);
   const [tagList, setTagList] = useState<OrgTag[]>(initialTags.map(({ name, color }) => ({ name, color })));
   const [calendars, setCalendars] = useState<WorkCalendar[]>(initialCalendars);
+  const [jobRoles, setJobRoles] = useState<JobRole[]>(SEED_JOB_ROLES);
 
   function addCalendar(c: WorkCalendar) { setCalendars((prev) => [...prev, c]); }
   function updateCalendar(id: string, patch: Partial<WorkCalendar>) {
@@ -96,6 +122,22 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   }
   function removeCalendar(id: string) {
     setCalendars((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  function addJobRole(title: string) {
+    const t = title.trim();
+    if (!t) return;
+    setJobRoles((prev) => prev.some((r) => r.title.toLowerCase() === t.toLowerCase())
+      ? prev
+      : [...prev, { id: `jr-${Date.now()}`, title: t }]);
+  }
+  function updateJobRole(id: string, title: string) {
+    const t = title.trim();
+    if (!t) return;
+    setJobRoles((prev) => prev.map((r) => r.id === id ? { ...r, title: t } : r));
+  }
+  function removeJobRole(id: string) {
+    setJobRoles((prev) => prev.filter((r) => r.id !== id));
   }
 
   const tags = useMemo(
@@ -149,6 +191,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       resourceRequests, addResourceRequest, updateResourceRequest,
       tags, addTag,
       calendars, addCalendar, updateCalendar, removeCalendar,
+      jobRoles, addJobRole, updateJobRole, removeJobRole,
     }}>
       {children}
     </AppContext.Provider>
@@ -188,4 +231,9 @@ export function useTags() {
 export function useCalendars() {
   const { calendars, addCalendar, updateCalendar, removeCalendar } = useAppContext();
   return { calendars, addCalendar, updateCalendar, removeCalendar };
+}
+
+export function useJobRoles() {
+  const { jobRoles, addJobRole, updateJobRole, removeJobRole } = useAppContext();
+  return { jobRoles, addJobRole, updateJobRole, removeJobRole };
 }

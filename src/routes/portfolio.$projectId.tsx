@@ -3205,52 +3205,66 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
       <div className="">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <div className="label-eyebrow">Tender Packages</div>
-          <Dialog open={newPkgOpen} onOpenChange={setNewPkgOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">+ New Request</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader><DialogTitle>New Tender Request</DialogTitle></DialogHeader>
-              <div className="rounded-md border border-accent/20 bg-accent-dim/30 px-3 py-2 text-xs text-accent">
-                Project: <span className="font-medium">{projectName}</span>
-                <span className="ml-2 text-muted-foreground">· Saved as Draft until sent for tendering</span>
-              </div>
-              <div className="grid gap-3">
-                <div>
-                  <Label>Package scope</Label>
-                  <Input placeholder="e.g. Security audit & pen-testing" value={newScope} onChange={e => setNewScope(e.target.value)} />
+          <div className="flex items-center gap-2">
+            {!canEdit && (
+              <span className="text-[11px] text-muted-foreground">
+                Click "Edit Procurement" to create or send requests
+              </span>
+            )}
+            <Dialog open={newPkgOpen} onOpenChange={setNewPkgOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  disabled={!canEdit}
+                  title={!canEdit ? "Enable Edit Procurement first" : undefined}
+                  className="bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  + New Request
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader><DialogTitle>New Tender Request</DialogTitle></DialogHeader>
+                <div className="rounded-md border border-accent/20 bg-accent-dim/30 px-3 py-2 text-xs text-accent">
+                  Project: <span className="font-medium">{projectName}</span>
+                  <span className="ml-2 text-muted-foreground">· Saved as Draft until sent for tendering</span>
                 </div>
-                <div>
-                  <Label>Estimated value</Label>
-                  <Input placeholder="e.g. $150K" value={newEst} onChange={e => setNewEst(e.target.value)} />
-                </div>
-                <div>
-                  <Label>Recommended Vendors</Label>
-                  <div className="mt-1.5 space-y-2 rounded-md border border-border bg-background/40 p-3">
-                    {vendorList.map((v) => (
-                      <div key={v.name} className="flex items-center gap-2">
-                        <Checkbox
-                          id={`nv-${v.name}`}
-                          checked={newVendors.includes(v.name)}
-                          onCheckedChange={(checked) =>
-                            setNewVendors((prev) => checked ? [...prev, v.name] : prev.filter((n) => n !== v.name))
-                          }
-                        />
-                        <label htmlFor={`nv-${v.name}`} className="cursor-pointer text-sm text-foreground">
-                          {v.name}
-                          <span className="ml-1.5 text-xs text-muted-foreground">({v.category})</span>
-                        </label>
-                      </div>
-                    ))}
+                <div className="grid gap-3">
+                  <div>
+                    <Label>Package scope</Label>
+                    <Input placeholder="e.g. Security audit & pen-testing" value={newScope} onChange={e => setNewScope(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Estimated value</Label>
+                    <Input placeholder="e.g. $150K" value={newEst} onChange={e => setNewEst(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>Recommended Vendors</Label>
+                    <div className="mt-1.5 space-y-2 rounded-md border border-border bg-background/40 p-3">
+                      {vendorList.map((v) => (
+                        <div key={v.name} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`nv-${v.name}`}
+                            checked={newVendors.includes(v.name)}
+                            onCheckedChange={(checked) =>
+                              setNewVendors((prev) => checked ? [...prev, v.name] : prev.filter((n) => n !== v.name))
+                            }
+                          />
+                          <label htmlFor={`nv-${v.name}`} className="cursor-pointer text-sm text-foreground">
+                            {v.name}
+                            <span className="ml-1.5 text-xs text-muted-foreground">({v.category})</span>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setNewPkgOpen(false)}>Cancel</Button>
-                <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleNewPackage}>Create Request</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setNewPkgOpen(false)}>Cancel</Button>
+                  <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleNewPackage}>Create Request</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
         <Table>
           <TableHeader>

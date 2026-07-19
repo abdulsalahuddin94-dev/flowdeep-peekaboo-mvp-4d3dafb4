@@ -3292,8 +3292,14 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
                   </TableCell>
                   <TableCell>
                     {pkg.status === "Draft" && (
-                      <Button size="sm" variant="outline" className="border-accent/40 text-accent hover:bg-accent-dim h-7 text-xs"
-                        onClick={() => sendForTendering(pkg.id)}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={!canEdit}
+                        title={!canEdit ? "Enable Edit Procurement first" : undefined}
+                        className="border-accent/40 text-accent hover:bg-accent-dim h-7 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={() => sendForTendering(pkg.id)}
+                      >
                         <Send className="mr-1.5 h-3 w-3" />Send for Tendering
                       </Button>
                     )}

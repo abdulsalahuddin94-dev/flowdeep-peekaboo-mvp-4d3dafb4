@@ -555,30 +555,16 @@ function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: any) => void }) {
 }
 
 function JobRolesTab() {
-  const [roles, setRoles] = useState([
-    { id: "ba", title: "Business Analyst" },
-    { id: "sa", title: "Solution Architect" },
-    { id: "ux", title: "UX Designer" },
-    { id: "be", title: "Backend Developer" },
-    { id: "fe", title: "Frontend Developer" },
-    { id: "int", title: "Integration Developer" },
-    { id: "de", title: "Data Engineer" },
-    { id: "qa", title: "QA Engineer" },
-    { id: "qal", title: "QA Lead" },
-    { id: "devops", title: "DevOps Engineer" },
-    { id: "sec", title: "Security Lead" },
-    { id: "perf", title: "Performance Engineer" },
-    { id: "sup", title: "Support Lead" },
-    { id: "tr", title: "Trainer" },
-    { id: "pm", title: "Project Manager" },
-  ]);
+  const { jobRoles, addJobRole, updateJobRole, removeJobRole } = useJobRoles();
+  const [editing, setEditing] = useState<{ id: string; title: string } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(null);
 
   return (
     <>
       <SectionHeader
         title="Job Roles Definition"
-        desc="Define standard job titles and roles used during project planning. Assign roles to tasks before allocating specific resources."
-        cta={<AddJobRoleDialog onAdd={(role) => setRoles([...roles, role])} />}
+        desc="Define standard job titles (e.g. Data Engineer, Solution Architect) at the organization level so Project Managers can assign roles to tasks during planning — before any specific resource is allocated."
+        cta={<AddJobRoleDialog onAdd={(title) => { addJobRole(title); toast.success(`Job Role "${title}" created`); }} />}
       />
       <div className="">
         <Table>
@@ -588,29 +574,77 @@ function JobRolesTab() {
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {roles.map((r) => (
+            {jobRoles.map((r) => (
               <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="font-medium text-foreground">{r.title}</TableCell>
                 <TableCell className="text-right text-xs text-muted-foreground">— tasks</TableCell>
-                <TableCell><RowActions /></TableCell>
+                <TableCell>
+                  <div className="flex justify-end gap-1">
+                    <Button aria-label="Edit" size="icon" variant="ghost" onClick={() => setEditing({ id: r.id, title: r.title })} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Button aria-label="Delete" size="icon" variant="ghost" onClick={() => setPendingDelete({ id: r.id, title: r.title })} className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Job Role</DialogTitle>
+            <DialogDescription>Rename this role. Existing task assignments keep referencing this role.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Role Title</Label>
+              <Input value={editing?.title ?? ""} onChange={(e) => setEditing((prev) => prev ? { ...prev, title: e.target.value } : prev)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button className="bg-accent text-accent-foreground" onClick={() => {
+              if (!editing) return;
+              const t = editing.title.trim();
+              if (!t) { toast.error("Role title is required"); return; }
+              updateJobRole(editing.id, t);
+              toast.success("Job Role updated");
+              setEditing(null);
+            }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete "{pendingDelete?.title}"?</DialogTitle>
+            <DialogDescription>This role will no longer appear in the Project Schedule role picker. Tasks already tagged with this role are not affected.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingDelete(null)}>Cancel</Button>
+            <Button className="bg-rag-red text-white hover:bg-rag-red/90" onClick={() => {
+              if (!pendingDelete) return;
+              removeJobRole(pendingDelete.id);
+              toast.success(`Deleted "${pendingDelete.title}"`);
+              setPendingDelete(null);
+            }}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
 
-function AddJobRoleDialog({ onAdd }: { onAdd: (role: any) => void }) {
+function AddJobRoleDialog({ onAdd }: { onAdd: (title: string) => void }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
 
   function save() {
     const trimmed = title.trim();
     if (!trimmed) { toast.error("Role title is required"); return; }
-    onAdd({ id: `role-${Date.now()}`, title: trimmed });
-    toast.success(`Job Role "${trimmed}" created`);
+    onAdd(trimmed);
     setTitle("");
     setOpen(false);
   }
@@ -621,7 +655,7 @@ function AddJobRoleDialog({ onAdd }: { onAdd: (role: any) => void }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>New Job Role</DialogTitle>
-          <DialogDescription>Define a job title that can be assigned to tasks during project planning.</DialogDescription>
+          <DialogDescription>Define a job title that Project Managers can assign to tasks during planning — before any resource is allocated. Skills and seniority can be added on the task itself.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div>

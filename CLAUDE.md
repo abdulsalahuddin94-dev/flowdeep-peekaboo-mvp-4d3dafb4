@@ -75,7 +75,7 @@ src/
 | **Secondary** | `#94A3B8` → `#CBD5E1` (gradient) |
 | **Sidebar BG** | Always dark (no light variant) |
 | **Active state** | Lavender `#A78BFA` (nav pills) |
-| **Typography** | Poppins (sidebar), Inter (body) |
+| **Typography** | Poppins (universal default) |
 
 ---
 

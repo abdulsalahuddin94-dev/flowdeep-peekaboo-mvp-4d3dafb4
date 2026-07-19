@@ -1057,20 +1057,18 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
     setFields((prev) => ({ ...prev, [key]: val }));
   }
 
-  function Field({ label, fieldKey, multiline = false }: { label: string; fieldKey: keyof typeof fields; multiline?: boolean }) {
-    return (
-      <div className="space-y-1">
-        <div className="label-eyebrow">{label}</div>
-        {editMode ? (
-          multiline
-            ? <Textarea value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm min-h-[64px]" rows={3} />
-            : <Input value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm" />
-        ) : (
-          <p className="text-sm text-foreground whitespace-pre-line">{displayFields[fieldKey]}</p>
-        )}
-      </div>
-    );
-  }
+  const renderField = (label: string, fieldKey: keyof typeof fields, multiline = false) => (
+    <div key={fieldKey} className="space-y-1">
+      <div className="label-eyebrow">{label}</div>
+      {editMode ? (
+        multiline
+          ? <Textarea value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm min-h-[64px]" rows={3} />
+          : <Input value={fields[fieldKey]} onChange={(e) => patch(fieldKey, e.target.value)} className="text-sm" />
+      ) : (
+        <p className="text-sm text-foreground whitespace-pre-line">{displayFields[fieldKey]}</p>
+      )}
+    </div>
+  );
 
   return (
     <div className="space-y-5">
@@ -1107,19 +1105,19 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
         <div className="space-y-4">
           <div className="glass-card p-5 space-y-4">
             <div className="label-eyebrow text-accent">Project Purpose</div>
-            <Field label="Objective" fieldKey="objective" multiline />
-            <Field label="Scope" fieldKey="scope" multiline />
+            {renderField("Objective", "objective", true)}
+            {renderField("Scope", "scope", true)}
           </div>
 
           <div className="glass-card p-5 space-y-4">
             <div className="label-eyebrow text-accent">Success Criteria</div>
-            <Field label="Definition of success" fieldKey="successCriteria" multiline />
+            {renderField("Definition of success", "successCriteria", true)}
           </div>
 
           <div className="glass-card p-5 space-y-4">
             <div className="label-eyebrow text-accent">Constraints & Assumptions</div>
-            <Field label="Constraints" fieldKey="constraints" multiline />
-            <Field label="Assumptions" fieldKey="assumptions" multiline />
+            {renderField("Constraints", "constraints", true)}
+            {renderField("Assumptions", "assumptions", true)}
           </div>
         </div>
 
@@ -1128,11 +1126,11 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
           <div className="glass-card p-5 space-y-4">
             <div className="label-eyebrow text-accent">Project Identity</div>
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Sponsor" fieldKey="sponsor" />
-              <Field label="Project Manager" fieldKey="pm" />
-              <Field label="Start Date" fieldKey="startDate" />
-              <Field label="End Date" fieldKey="endDate" />
-              <Field label="Approved Budget" fieldKey="budget" />
+              {renderField("Sponsor", "sponsor")}
+              {renderField("Project Manager", "pm")}
+              {renderField("Start Date", "startDate")}
+              {renderField("End Date", "endDate")}
+              {renderField("Approved Budget", "budget")}
               <div className="space-y-1">
                 <div className="label-eyebrow">Client</div>
                 <p className="text-sm text-foreground">{project.client ?? "Internal"}</p>
@@ -1142,7 +1140,7 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
 
           <div className="glass-card p-5 space-y-4">
             <div className="label-eyebrow text-accent">Risk Summary</div>
-            <Field label="Key risks at charter stage" fieldKey="risks" multiline />
+            {renderField("Key risks at charter stage", "risks", true)}
           </div>
 
           <div className="glass-card p-5 space-y-3">

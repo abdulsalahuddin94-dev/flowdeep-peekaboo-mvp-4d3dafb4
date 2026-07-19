@@ -43,18 +43,6 @@ function FinancialsPage() {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 3 }, (_, i) => (currentYear - 2 + i).toString());
 
-  const costByProject = useMemo(() => {
-    const map = new Map<string, { capex: number; opex: number }>();
-    for (const c of COST_ITEMS) {
-      const cur = map.get(c.project) ?? { capex: 0, opex: 0 };
-      const val = parseFloat(c.amount.replace(/[^0-9.]/g, ""));
-      if (c.type === "CapEx") cur.capex += val;
-      else cur.opex += val;
-      map.set(c.project, cur);
-    }
-    return map;
-  }, []);
-
   const pnlRows = useMemo(
     () =>
       projects.slice(0, 12).map((p) => {
@@ -64,10 +52,9 @@ function FinancialsPage() {
         const actualProfit = revenue - p.budgetUsed;
         const margin = (actualProfit / revenue) * 100;
         const burnPct = (p.budgetUsed / p.budgetTotal) * 100;
-        const split = costByProject.get(p.name) ?? { capex: p.budgetTotal * 0.6, opex: p.budgetTotal * 0.4 };
-        return { p, revenue, expectedProfit, expectedProfitPct, actualProfit, margin, burnPct, capex: split.capex, opex: split.opex };
+        return { p, revenue, expectedProfit, expectedProfitPct, actualProfit, margin, burnPct };
       }),
-    [costByProject],
+    [],
   );
 
   const budgetVsSpent = pnlRows.map((r) => ({
@@ -333,17 +320,15 @@ function FinancialsPage() {
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Business Line</TableHead><TableHead>Expected Revenue</TableHead><TableHead>Total Budget</TableHead>
-              <TableHead>CapEx</TableHead><TableHead>OpEx</TableHead><TableHead>Spent</TableHead><TableHead>Expected Profit</TableHead><TableHead>Expected Profit %</TableHead><TableHead>Margin %</TableHead><TableHead>Status</TableHead>
+              <TableHead>Spent</TableHead><TableHead>Expected Profit</TableHead><TableHead>Expected Profit %</TableHead><TableHead>Margin %</TableHead><TableHead>Status</TableHead>
             </TableRow></TableHeader>
-            <TableBody>{pnlRows.map(({ p, revenue, expectedProfit, expectedProfitPct, margin, burnPct, capex, opex }) => {
+            <TableBody>{pnlRows.map(({ p, revenue, expectedProfit, expectedProfitPct, margin, burnPct }) => {
               return (
                 <TableRow key={p.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                   <TableCell className="font-medium text-foreground">{p.name}</TableCell>
                   <TableCell className="text-muted-foreground">{p.businessLine}</TableCell>
                   <TableCell className="num-mono">${revenue.toFixed(2)}M</TableCell>
                   <TableCell className="num-mono">${p.budgetTotal.toFixed(2)}M</TableCell>
-                  <TableCell className="num-mono text-accent">${capex.toFixed(2)}M</TableCell>
-                  <TableCell className="num-mono text-role-director">${opex.toFixed(2)}M</TableCell>
                   <TableCell className="num-mono">${p.budgetUsed.toFixed(2)}M</TableCell>
                   <TableCell className={`num-mono text-xs ${expectedProfit > 0 ? "text-rag-green" : "text-rag-red"}`}>${expectedProfit.toFixed(2)}M</TableCell>
                   <TableCell className={`num-mono text-xs ${expectedProfitPct > 15 ? "text-rag-green" : expectedProfitPct > 5 ? "text-rag-amber" : "text-rag-red"}`}>{Math.round(expectedProfitPct)}%</TableCell>

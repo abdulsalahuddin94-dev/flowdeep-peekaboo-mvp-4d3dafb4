@@ -4941,12 +4941,23 @@ function TeamAllocationTab({
             </TabsContent>
 
             <TabsContent value="team-members" className="mt-4 space-y-3">
-              <div className="flex justify-end gap-2">
-                <Button size="sm" variant="outline" className="gap-1 text-xs border-accent/40 text-accent hover:bg-accent-dim"
+              <div className="flex items-center justify-end gap-2">
+                {!teamBaseline.canEdit && (
+                  <span className="text-[11px] text-muted-foreground mr-1">
+                    Click "Edit Team & Allocation" to add or request resources
+                  </span>
+                )}
+                <Button size="sm" variant="outline"
+                  disabled={!teamBaseline.canEdit}
+                  title={!teamBaseline.canEdit ? "Enable Edit Team & Allocation first" : undefined}
+                  className="gap-1 text-xs border-accent/40 text-accent hover:bg-accent-dim disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => setReqResourceOpen(true)}>
                   <UserPlus className="h-3.5 w-3.5" />Request Resource
                 </Button>
-                <Button size="sm" className="gap-1 text-xs bg-accent text-accent-foreground hover:bg-accent/90"
+                <Button size="sm"
+                  disabled={!teamBaseline.canEdit}
+                  title={!teamBaseline.canEdit ? "Enable Edit Team & Allocation first" : undefined}
+                  className="gap-1 text-xs bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => setAddMemberOpen(true)}>
                   <Plus className="h-3.5 w-3.5" />Add Member
                 </Button>

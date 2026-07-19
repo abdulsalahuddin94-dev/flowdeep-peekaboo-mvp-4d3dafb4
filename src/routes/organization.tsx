@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper } from "lucide-react";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
-import { useTags, useProjects, useCalendars } from "@/lib/projects-store";
+import { useTags, useProjects, useCalendars, useJobRoles } from "@/lib/projects-store";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";

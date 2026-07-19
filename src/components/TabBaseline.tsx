@@ -295,61 +295,63 @@ export function BaselineHeader<TSnapshot>({
   } = state;
 
   return (
-    <div className="glass-card mb-4 flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-      <div className="flex items-center gap-3">
+    <div className="glass-card mb-4 flex flex-wrap items-start justify-between gap-3 px-4 py-3">
+      <div className="flex flex-col gap-2">
         <div>
           <div className="label-eyebrow">Baseline</div>
           <div className="text-sm font-medium text-foreground">{label}</div>
         </div>
-        <Select
-          value={isViewingCurrent ? "latest" : `v${viewedVersion}`}
-          onValueChange={(v) =>
-            setViewedVersion(v === "latest" ? "latest" : Number(v.replace("v", "")))
-          }
-        >
-          <SelectTrigger className="h-8 w-56 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="latest">
-              <div className="flex flex-col leading-tight">
-                <span>
-                  Current (v{latestVersion?.version ?? 1}) ⭐
-                </span>
-                <span className="text-[10px] text-muted-foreground">
-                  {latestVersion?.createdAt} · by {latestVersion?.author}
-                </span>
-              </div>
-            </SelectItem>
-            {versions
-              .slice(0, -1)
-              .reverse()
-              .map((v) => (
-                <SelectItem key={v.version} value={`v${v.version}`}>
-                  <div className="flex flex-col leading-tight">
-                    <span>v{v.version}</span>
-                    <span className="text-[10px] text-muted-foreground">
-                      {v.createdAt} · by {v.author}
-                    </span>
-                  </div>
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
-        {!isViewingCurrent && (
-          <Badge variant="outline" className="text-xs text-muted-foreground">
-            📖 View Only
-          </Badge>
-        )}
-        {pendingCrs.length > 0 && (
-          <Badge
-            variant="outline"
-            className="cursor-pointer border-rag-amber/40 bg-rag-amber/10 text-xs text-rag-amber"
-            onClick={() => openApprovalDialog(pendingCrs[0].id)}
+        <div className="flex flex-wrap items-center gap-2">
+          <Select
+            value={isViewingCurrent ? "latest" : `v${viewedVersion}`}
+            onValueChange={(v) =>
+              setViewedVersion(v === "latest" ? "latest" : Number(v.replace("v", "")))
+            }
           >
-            {pendingCrs.length} pending approval{pendingCrs.length === 1 ? "" : "s"}
-          </Badge>
-        )}
+            <SelectTrigger className="h-8 w-56 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="latest">
+                <div className="flex flex-col leading-tight">
+                  <span>
+                    Current (v{latestVersion?.version ?? 1}) ⭐
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {latestVersion?.createdAt} · by {latestVersion?.author}
+                  </span>
+                </div>
+              </SelectItem>
+              {versions
+                .slice(0, -1)
+                .reverse()
+                .map((v) => (
+                  <SelectItem key={v.version} value={`v${v.version}`}>
+                    <div className="flex flex-col leading-tight">
+                      <span>v{v.version}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {v.createdAt} · by {v.author}
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+          {!isViewingCurrent && (
+            <Badge variant="outline" className="text-xs text-muted-foreground">
+              📖 View Only
+            </Badge>
+          )}
+          {pendingCrs.length > 0 && (
+            <Badge
+              variant="outline"
+              className="cursor-pointer border-rag-amber/40 bg-rag-amber/10 text-xs text-rag-amber"
+              onClick={() => openApprovalDialog(pendingCrs[0].id)}
+            >
+              {pendingCrs.length} pending approval{pendingCrs.length === 1 ? "" : "s"}
+            </Badge>
+          )}
+        </div>
       </div>
       <div className="flex items-center gap-2">
         {extra}

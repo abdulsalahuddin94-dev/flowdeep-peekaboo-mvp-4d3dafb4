@@ -1829,10 +1829,12 @@ function RolesCell({
   item,
   onUpdate,
   onRequestRole,
+  roleOptions = ROLE_OPTIONS,
 }: {
   item: ScheduleItem;
   onUpdate: (roles: RoleReq[]) => void;
   onRequestRole: (role: RoleReq) => void;
+  roleOptions?: readonly string[];
 }) {
   const [editOpen, setEditOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<RoleReq | null>(null);

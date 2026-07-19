@@ -23,6 +23,16 @@ import {
   Area,
 } from "recharts";
 
+const COST_ITEMS = [
+  { project: "ERP Upgrade", item: "SAP licensing (Y1)", cat: "Software", type: "CapEx", amount: "$1.2M", milestone: "Kickoff", due: "Feb 10", status: "Recognised" },
+  { project: "ERP Upgrade", item: "Integration labour", cat: "Staff", type: "OpEx", amount: "$0.8M", milestone: "UAT Sign-off", due: "Jun 15", status: "Pending" },
+  { project: "Refinery Expansion", item: "Civil works — Phase 1", cat: "Contracts", type: "CapEx", amount: "$8.4M", milestone: "Civil phase complete", due: "Sep 22", status: "In progress" },
+  { project: "Refinery Expansion", item: "Site supervision", cat: "Services", type: "OpEx", amount: "$1.1M", milestone: "Fixed monthly", due: "Monthly", status: "Recurring" },
+  { project: "Customer Portal v3", item: "Dev sprint capacity", cat: "Staff", type: "OpEx", amount: "$0.6M", milestone: "Production cutover", due: "Aug 30", status: "Pending" },
+  { project: "Salesforce Migration", item: "SF platform fees", cat: "Software", type: "CapEx", amount: "$0.9M", milestone: "Hypercare exit", due: "Jul 22", status: "Recognised" },
+  { project: "Smart Grid Pilot", item: "Field engineers travel", cat: "Business Trips", type: "OpEx", amount: "$0.3M", milestone: "Fixed date", due: "Aug 05", status: "Pending" },
+];
+
 export const Route = createFileRoute("/financials")({
   component: FinancialsPage,
   head: () => ({ meta: [{ title: "Financials â€” Nexus PMO" }, { name: "description", content: "Portfolio-wide budgets, CAPEX/OPEX split, change requests and milestone-linked revenue recognition." }] }),
@@ -33,6 +43,18 @@ function FinancialsPage() {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 3 }, (_, i) => (currentYear - 2 + i).toString());
 
+  const costByProject = useMemo(() => {
+    const map = new Map<string, { capex: number; opex: number }>();
+    for (const c of COST_ITEMS) {
+      const cur = map.get(c.project) ?? { capex: 0, opex: 0 };
+      const val = parseFloat(c.amount.replace(/[^0-9.]/g, ""));
+      if (c.type === "CapEx") cur.capex += val;
+      else cur.opex += val;
+      map.set(c.project, cur);
+    }
+    return map;
+  }, []);
+
   const pnlRows = useMemo(
     () =>
       projects.slice(0, 12).map((p) => {
@@ -42,9 +64,10 @@ function FinancialsPage() {
         const actualProfit = revenue - p.budgetUsed;
         const margin = (actualProfit / revenue) * 100;
         const burnPct = (p.budgetUsed / p.budgetTotal) * 100;
-        return { p, revenue, expectedProfit, expectedProfitPct, actualProfit, margin, burnPct };
+        const split = costByProject.get(p.name) ?? { capex: p.budgetTotal * 0.6, opex: p.budgetTotal * 0.4 };
+        return { p, revenue, expectedProfit, expectedProfitPct, actualProfit, margin, burnPct, capex: split.capex, opex: split.opex };
       }),
-    [],
+    [costByProject],
   );
 
   const budgetVsSpent = pnlRows.map((r) => ({
@@ -310,15 +333,17 @@ function FinancialsPage() {
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Business Line</TableHead><TableHead>Expected Revenue</TableHead><TableHead>Total Budget</TableHead>
-              <TableHead>Spent</TableHead><TableHead>Expected Profit</TableHead><TableHead>Expected Profit %</TableHead><TableHead>Margin %</TableHead><TableHead>Status</TableHead>
+              <TableHead>CapEx</TableHead><TableHead>OpEx</TableHead><TableHead>Spent</TableHead><TableHead>Expected Profit</TableHead><TableHead>Expected Profit %</TableHead><TableHead>Margin %</TableHead><TableHead>Status</TableHead>
             </TableRow></TableHeader>
-            <TableBody>{pnlRows.map(({ p, revenue, expectedProfit, expectedProfitPct, margin, burnPct }) => {
+            <TableBody>{pnlRows.map(({ p, revenue, expectedProfit, expectedProfitPct, margin, burnPct, capex, opex }) => {
               return (
                 <TableRow key={p.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                   <TableCell className="font-medium text-foreground">{p.name}</TableCell>
                   <TableCell className="text-muted-foreground">{p.businessLine}</TableCell>
                   <TableCell className="num-mono">${revenue.toFixed(2)}M</TableCell>
                   <TableCell className="num-mono">${p.budgetTotal.toFixed(2)}M</TableCell>
+                  <TableCell className="num-mono text-accent">${capex.toFixed(2)}M</TableCell>
+                  <TableCell className="num-mono text-role-director">${opex.toFixed(2)}M</TableCell>
                   <TableCell className="num-mono">${p.budgetUsed.toFixed(2)}M</TableCell>
                   <TableCell className={`num-mono text-xs ${expectedProfit > 0 ? "text-rag-green" : "text-rag-red"}`}>${expectedProfit.toFixed(2)}M</TableCell>
                   <TableCell className={`num-mono text-xs ${expectedProfitPct > 15 ? "text-rag-green" : expectedProfitPct > 5 ? "text-rag-amber" : "text-rag-red"}`}>{Math.round(expectedProfitPct)}%</TableCell>
@@ -355,18 +380,10 @@ function FinancialsPage() {
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Cost Item</TableHead><TableHead>Category</TableHead>
-              <TableHead>Type</TableHead><TableHead>Amount</TableHead>
+              <TableHead>Cost Type</TableHead><TableHead>Amount</TableHead>
               <TableHead>Linked Milestone</TableHead><TableHead>Due</TableHead><TableHead>Status</TableHead>
             </TableRow></TableHeader>
-            <TableBody>{([
-              { project: "ERP Upgrade", item: "SAP licensing (Y1)", cat: "Software", type: "CapEx", amount: "$1.2M", milestone: "Kickoff", due: "Feb 10", status: "Recognised" },
-              { project: "ERP Upgrade", item: "Integration labour", cat: "Staff", type: "OpEx", amount: "$0.8M", milestone: "UAT Sign-off", due: "Jun 15", status: "Pending" },
-              { project: "Refinery Expansion", item: "Civil works — Phase 1", cat: "Contracts", type: "CapEx", amount: "$8.4M", milestone: "Civil phase complete", due: "Sep 22", status: "In progress" },
-              { project: "Refinery Expansion", item: "Site supervision", cat: "Services", type: "OpEx", amount: "$1.1M", milestone: "Fixed monthly", due: "Monthly", status: "Recurring" },
-              { project: "Customer Portal v3", item: "Dev sprint capacity", cat: "Staff", type: "OpEx", amount: "$0.6M", milestone: "Production cutover", due: "Aug 30", status: "Pending" },
-              { project: "Salesforce Migration", item: "SF platform fees", cat: "Software", type: "CapEx", amount: "$0.9M", milestone: "Hypercare exit", due: "Jul 22", status: "Recognised" },
-              { project: "Smart Grid Pilot", item: "Field engineers travel", cat: "Business Trips", type: "OpEx", amount: "$0.3M", milestone: "Fixed date", due: "Aug 05", status: "Pending" },
-            ]).map((c) => (
+            <TableBody>{COST_ITEMS.map((c) => (
               <TableRow key={`${c.project}-${c.item}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="font-medium">{c.project}</TableCell>
                 <TableCell className="text-sm">{c.item}</TableCell>

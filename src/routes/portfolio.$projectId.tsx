@@ -50,8 +50,7 @@ export const Route = createFileRoute("/portfolio/$projectId")({
 });
 
 const TABS = [
-  "Overview", "Project Charter", "Project Schedule", "Team & Allocation", "Financials",
-  "Project Risks", "Status Reports", "Procurement", "Business Trips", "Stakeholders", "Lessons Learned",
+  "Overview", "Project Schedule", "Financials", "Status Reports",
 ];
 
 const PLANNING_STAGES = [
@@ -482,11 +481,6 @@ function ProjectDetail() {
           <OverviewTab project={project} />
         </TabsContent>
 
-        <TabsContent value="Project Charter" className="mt-5">
-          <CharterTab project={project} />
-        </TabsContent>
-
-
         <TabsContent value="Project Schedule" className="mt-5">
           {planEditMode === "editing" && isViewingCurrent && (
             <div className="mb-3 flex items-start gap-3 rounded-lg border border-rag-amber/40 bg-rag-amber/10 px-4 py-3">
@@ -889,25 +883,8 @@ function ProjectDetail() {
         </TabsContent>
 
 
-        <TabsContent value="Team & Allocation" className="mt-5">
-          <TeamAllocationTab
-            project={project}
-            teamMembers={teamMembers}
-            setTeamMembers={setTeamMembers}
-            addMemberOpen={addMemberOpen}
-            setAddMemberOpen={setAddMemberOpen}
-            reqResourceOpen={reqResourceOpen}
-            setReqResourceOpen={setReqResourceOpen}
-            addResourceRequest={addResourceRequest}
-          />
-        </TabsContent>
-
         <TabsContent value="Financials" className="mt-5">
           <FinancialsTab project={project} milestones={milestones} />
-        </TabsContent>
-
-        <TabsContent value="Project Risks" className="mt-5">
-          <RisksTab project={project} />
         </TabsContent>
 
         <TabsContent value="Status Reports" className="mt-5">
@@ -921,21 +898,6 @@ function ProjectDetail() {
           />
         </TabsContent>
 
-        <TabsContent value="Procurement" className="mt-5">
-          <ProcurementProjectTab projectName={project.name} addRfp={addRfp} />
-        </TabsContent>
-
-        <TabsContent value="Business Trips" className="mt-5">
-          <BusinessTripsTab pm={project.pm} />
-        </TabsContent>
-
-        <TabsContent value="Stakeholders" className="mt-5">
-          <StakeholdersTab />
-        </TabsContent>
-
-        <TabsContent value="Lessons Learned" className="mt-5">
-          <LessonsTab project={project} />
-        </TabsContent>
       </Tabs>
 
       <ProgressUpdateDialog

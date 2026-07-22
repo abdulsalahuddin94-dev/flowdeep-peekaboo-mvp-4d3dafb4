@@ -1340,10 +1340,10 @@ export function ProjectSchedule({
                 <svg className="absolute inset-0 pointer-events-none" width={chartWidth} height={visibleRows.length * ROW_H}>
                   <defs>
                     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                      <path d="M0,0 L10,5 L0,10 z" fill="#94A3B8" />
+                      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-rag-grey)" style={{ fill: 'var(--color-rag-grey)' }} />
                     </marker>
                     <marker id="arr-crit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-                      <path d="M0,0 L10,5 L0,10 z" fill="#EF4444" />
+                      <path d="M0,0 L10,5 L0,10 z" fill="var(--color-rag-red)" style={{ fill: 'var(--color-rag-red)' }} />
                     </marker>
                   </defs>
                   {visibleRows.map(({ item }, toIdx) => {
@@ -1361,7 +1361,7 @@ export function ProjectSchedule({
                     const x2 = xForDate(toStart);
                     const y2 = toIdx * ROW_H + ROW_H / 2;
                     const isCrit = offTrackSet.has(item.name) && offTrackSet.has(from.name);
-                    const stroke = isCrit ? "#EF4444" : "#94A3B8";
+                    const stroke = isCrit ? "var(--color-rag-red)" : "var(--color-rag-grey)";
                     const midX = Math.max(x1 + 8, x2 - 8);
                     const d = `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`;
                     return (
@@ -1370,6 +1370,7 @@ export function ProjectSchedule({
                         d={d}
                         fill="none"
                         stroke={stroke}
+                        style={{ stroke }}
                         strokeWidth={1.2}
                         opacity={0.7}
                         markerEnd={isCrit ? "url(#arr-crit)" : "url(#arr)"}
@@ -1389,12 +1390,12 @@ export function ProjectSchedule({
                   const top = i * ROW_H;
                   const progress = Math.max(0, Math.min(100, item.progress ?? 0));
 
-                  const ragColor: Record<typeof item.rag, { solid: string; soft: string; border: string; hex: string }> = {
-                    green: { solid: "bg-rag-green", soft: "bg-rag-green/30", border: "border-rag-green/60", hex: "#22C55E" },
-                    amber: { solid: "bg-rag-amber", soft: "bg-rag-amber/30", border: "border-rag-amber/60", hex: "#F59E0B" },
-                    red:   { solid: "bg-rag-red",   soft: "bg-rag-red/30",   border: "border-rag-red/60",   hex: "#EF4444" },
-                    blue:  { solid: "bg-rag-blue",  soft: "bg-rag-blue/30",  border: "border-rag-blue/60",  hex: "#3B82F6" },
-                    grey:  { solid: "bg-rag-grey",  soft: "bg-rag-grey/30",  border: "border-rag-grey/60",  hex: "#94A3B8" },
+                  const ragColor: Record<typeof item.rag, { solid: string; soft: string; border: string; cssVar: string }> = {
+                    green: { solid: "bg-rag-green", soft: "bg-rag-green/30", border: "border-rag-green/60", cssVar: "var(--color-rag-green)" },
+                    amber: { solid: "bg-rag-amber", soft: "bg-rag-amber/30", border: "border-rag-amber/60", cssVar: "var(--color-rag-amber)" },
+                    red:   { solid: "bg-rag-red",   soft: "bg-rag-red/30",   border: "border-rag-red/60",   cssVar: "var(--color-rag-red)" },
+                    blue:  { solid: "bg-rag-blue",  soft: "bg-rag-blue/30",  border: "border-rag-blue/60",  cssVar: "var(--color-rag-blue)" },
+                    grey:  { solid: "bg-rag-grey",  soft: "bg-rag-grey/30",  border: "border-rag-grey/60",  cssVar: "var(--color-rag-grey)" },
                   } as const;
                   const rc = ragColor[item.rag];
 

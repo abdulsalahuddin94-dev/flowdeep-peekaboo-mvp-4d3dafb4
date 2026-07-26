@@ -20,257 +20,132 @@
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Courier New", ui-monospace, monospace;
 
-  /* Border Radius — from Semantic */
-  --radius-sm: var(--semantic-border-radius-sm);
-  --radius-md: var(--semantic-border-radius-md);
-  --radius-lg: var(--semantic-border-radius-lg);
-  --radius-xl: var(--semantic-border-radius-xl);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
 
-  /* Font Sizes — from Semantic */
-  --font-size-xs: var(--semantic-font-size-xs);
-  --font-size-sm: var(--semantic-font-size-sm);
-  --font-size-base: var(--semantic-font-size-base);
-  --font-size-md: var(--semantic-font-size-md);
-  --font-size-lg: var(--semantic-font-size-lg);
-  --font-size-xl: var(--semantic-font-size-xl);
-  --font-size-2xl: var(--semantic-font-size-2xl);
-  --font-size-3xl: var(--semantic-font-size-3xl);
-  --font-size-4xl: var(--semantic-font-size-4xl);
-  --font-size-h1: var(--semantic-font-size-h1);
-  --font-size-h2: var(--semantic-font-size-h2);
-  --font-size-h3: var(--semantic-font-size-h3);
-  --font-size-h4: var(--semantic-font-size-h4);
-  --font-size-h5: var(--semantic-font-size-h5);
-  --font-size-h6: var(--semantic-font-size-h6);
-  --font-size-body-1: var(--semantic-font-size-body-1);
-  --font-size-body-2: var(--semantic-font-size-body-2);
-  --font-size-body-3: var(--semantic-font-size-body-3);
-  --font-size-body-4: var(--semantic-font-size-body-4);
-  --font-size-caption: var(--semantic-font-size-caption);
-  --font-size-label: var(--semantic-font-size-label);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-glow: var(--accent-glow);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-  /* Semantic Color Tokens from Figma */
-  /* Interactive (Buttons, CTAs) */
-  --color-primary: var(--semantic-interactive-primary);
-  --color-primary-hover: var(--semantic-interactive-primary-hover);
-  --color-primary-focus: var(--semantic-interactive-primary-focus);
-  --color-primary-active: var(--semantic-interactive-primary-active);
+  --color-rag-green: var(--rag-green);
+  --color-rag-amber: var(--rag-amber);
+  --color-rag-red: var(--rag-red);
+  --color-rag-blue: var(--rag-blue);
+  --color-rag-grey: var(--rag-grey);
 
-  /* Surface (Backgrounds) */
-  --color-background: var(--semantic-surface-primary);
-  --color-foreground: var(--semantic-text-primary);
-  --color-surface: var(--semantic-surface-secondary);
-  --color-card: var(--semantic-surface-secondary);
-  --color-card-foreground: var(--semantic-text-primary);
-
-  /* Border & Input */
-  --color-border: var(--semantic-border-default);
-  --color-border-subtle: var(--semantic-border-subtle);
-  --color-input: var(--semantic-surface-input);
-  --color-ring: var(--semantic-interactive-primary-focus);
-
-  /* Status & Destructive */
-  --color-destructive: var(--semantic-status-danger);
-  --color-destructive-foreground: #ffffff;
-
-  /* RAG Status Colors */
-  --color-rag-green: var(--semantic-status-success);
-  --color-rag-amber: var(--semantic-status-warning);
-  --color-rag-red: var(--semantic-status-danger);
-  --color-rag-blue: var(--semantic-status-info);
-  --color-rag-grey: var(--semantic-neutral-600);
-
-  /* Legacy shadcn vars */
-  --color-popover: var(--semantic-card);
-  --color-popover-foreground: var(--semantic-foreground);
-  --color-secondary: var(--semantic-neutrals-200);
-  --color-secondary-foreground: var(--semantic-foreground);
-  --color-muted: var(--semantic-neutrals-200);
-  --color-muted-foreground: var(--semantic-neutrals-600);
-  --color-accent: var(--semantic-primary);
-  --color-accent-foreground: #ffffff;
-  --color-accent-dim: rgba(81,91,146,0.12);
-  --color-accent-glow: rgba(81,91,146,0.25);
-
-  /* Sidebar */
-  --color-sidebar: var(--semantic-surface-sidebar);
-  --color-sidebar-foreground: var(--semantic-text-secondary);
-  --color-sidebar-muted: var(--semantic-text-muted);
-  --color-sidebar-primary: var(--semantic-interactive-primary-hover);
-  --color-sidebar-primary-foreground: var(--semantic-surface-sidebar);
-  --color-sidebar-accent: var(--semantic-interactive-primary-focus);
-  --color-sidebar-accent-foreground: var(--semantic-interactive-primary);
-  --color-sidebar-border: var(--semantic-border-default);
-  --color-sidebar-ring: var(--semantic-interactive-primary-hover);
-  --color-sidebar-badge: rgba(255,255,255,0.15);
-  --color-sidebar-badge-foreground: rgba(255,255,255,0.7);
-  --color-sidebar-badge-danger: rgba(220,38,38,0.2);
-  --color-sidebar-badge-danger-foreground: var(--semantic-status-danger);
+  --color-role-exec: #8B5CF6;
+  --color-role-director: #0EA5E9;
+  --color-role-resource: #F97316;
+  --color-role-pm: #10B981;
+  --color-role-viewer: #64748B;
 
   /* Header */
-  --color-header: var(--semantic-surface-primary);
-  --color-header-foreground: var(--semantic-text-primary);
-  --color-header-border: var(--semantic-border-default);
+  --color-header: var(--header);
+  --color-header-foreground: var(--header-foreground);
+  --color-header-border: var(--header-border);
+
+  /* Sidebar */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-badge: var(--sidebar-badge-bg);
+  --color-sidebar-badge-foreground: var(--sidebar-badge-fg);
+  --color-sidebar-badge-danger: var(--sidebar-badge-danger-bg);
+  --color-sidebar-badge-danger-foreground: var(--sidebar-badge-danger-fg);
 }
 
 /* ── DS02 Light Mode (default or explicit data-theme="light") ───────────── */
 :root,
 [data-theme="light"] {
-  /* Border Radius — from Semantic collection */
-  --semantic-border-radius-sm: 4px;              /* Border Radius/sm */
-  --semantic-border-radius-md: 8px;              /* Border Radius/md */
-  --semantic-border-radius-lg: 10px;             /* Border Radius/lg */
-  --semantic-border-radius-xl: 16px;             /* Border Radius/xl */
+  --background:     #ffffff;
+  --foreground:     #262626;
+  --surface:        #f5efeb;
+  --card:           #f5efeb;
+  --card-foreground: #262626;
+  --popover:        #ffffff;
+  --popover-foreground: #262626;
 
-  /* Font Sizes — from Semantic collection */
-  --semantic-font-size-xs: 11px;                 /* Font Sizes/xs */
-  --semantic-font-size-sm: 13px;                 /* Font Sizes/sm */
-  --semantic-font-size-base: 14px;               /* Font Sizes/base */
-  --semantic-font-size-md: 14px;                 /* Font Sizes/md */
-  --semantic-font-size-lg: 16px;                 /* Font Sizes/lg */
-  --semantic-font-size-xl: 18px;                 /* Font Sizes/xl */
-  --semantic-font-size-2xl: 20px;                /* Font Sizes/2xl */
-  --semantic-font-size-3xl: 24px;                /* Font Sizes/3xl */
-  --semantic-font-size-4xl: 32px;                /* Font Sizes/4xl */
-  --semantic-font-size-h1: 48px;                 /* Font Sizes/H1 */
-  --semantic-font-size-h2: 40px;                 /* Font Sizes/H2 */
-  --semantic-font-size-h3: 32px;                 /* Font Sizes/H3 */
-  --semantic-font-size-h4: 28px;                 /* Font Sizes/H4 */
-  --semantic-font-size-h5: 24px;                 /* Font Sizes/H5 */
-  --semantic-font-size-h6: 20px;                 /* Font Sizes/H6 */
-  --semantic-font-size-body-1: 18px;             /* Font Sizes/Body 1 */
-  --semantic-font-size-body-2: 16px;             /* Font Sizes/Body 2 */
-  --semantic-font-size-body-3: 14px;             /* Font Sizes/Body 3 */
-  --semantic-font-size-body-4: 12px;             /* Font Sizes/Body 4 */
-  --semantic-font-size-caption: 12px;            /* Font Sizes/Caption */
-  --semantic-font-size-label: 10px;              /* Font Sizes/Label */
+  --primary:             #515B92;
+  --primary-foreground:  #ffffff;
+  --secondary:           #e5e5e5;
+  --secondary-foreground: #3d3d44;
+  --muted:               #e5e5e5;
+  --muted-foreground:    #737373;
 
-  /* Interactive (Buttons, CTAs) */
-  --semantic-interactive-primary: #515B92;       /* Interactive/primary */
-  --semantic-interactive-primary-hover: #E5EAFF; /* Interactive/primary-hover */
-  --semantic-interactive-primary-focus: #8A94CD; /* Interactive/primary-focus */
-  --semantic-interactive-primary-active: #0B154B; /* Interactive/primary-active */
+  --accent:             #515B92;
+  --accent-foreground:  #ffffff;
+  --accent-dim:         rgba(81,91,146,0.12);
+  --accent-glow:        rgba(81,91,146,0.25);
 
-  /* Surface (Backgrounds) */
-  --semantic-surface-primary: #ffffff;           /* Surface/primary */
-  --semantic-surface-secondary: #F0F0F0;         /* Surface/secondary */
-  --semantic-surface-tertiary: #F6F6F6;          /* Surface/tertiary */
-  --semantic-surface-hover: #E5EAFF;             /* Surface/hover */
-  --semantic-surface-input: #ffffff;             /* Surface/input */
-  --semantic-surface-tag: #ffffff;               /* Surface/tag */
-  --semantic-surface-table-header: #F6F6F6;      /* Surface/table-header */
-  --semantic-surface-avatar: #F6F6F6;            /* Surface/avatar */
-  --semantic-surface-sidebar: #0B154B;           /* Surface/sidebar */
+  --destructive:            #EF4444;
+  --destructive-foreground: #ffffff;
+  --border: #d4d4d4;
+  --input:  #ffffff;
+  --ring:   rgba(81,91,146,0.5);
 
-  /* Text */
-  --semantic-text-primary: #262626;              /* Text/primary */
-  --semantic-text-secondary: #737373;            /* Text/secondary */
-  --semantic-text-muted: #A3A3A3;                /* Text/muted */
-  --semantic-text-disabled: #D4D4D4;             /* Text/disabled */
-  --semantic-text-danger: #DC2626;               /* Text/danger */
-  --semantic-text-inverse: #ffffff;              /* Text/inverse */
-
-  /* Status (RAG Colors) */
-  --semantic-status-success-bg: #C2FBE8;         /* Status/Success/bg */
-  --semantic-status-success-light: #A0F0D9;      /* Status/Success/light */
-  --semantic-status-success-medium: #6FE5C0;     /* Status/Success/medium */
-  --semantic-status-success: #10B981;            /* Status/Success/default */
-  --semantic-status-success-dark: #047857;       /* Status/Success/dark */
-  --semantic-status-success-950: #034d39;        /* Status/Success/950 */
-
-  --semantic-status-warning-bg: #FEE8C3;         /* Status/Warning/bg */
-  --semantic-status-warning-light: #FDD9A3;      /* Status/Warning/light */
-  --semantic-status-warning-medium: #FCC87D;     /* Status/Warning/medium */
-  --semantic-status-warning: #E59500;            /* Status/Warning/default */
-  --semantic-status-warning-dark: #C4870C;       /* Status/Warning/dark */
-  --semantic-status-warning-950: #7A4D05;        /* Status/Warning/950 */
-
-  --semantic-status-danger-bg: #FFDDD8;          /* Status/Danger/bg */
-  --semantic-status-danger-light: #FFC8C2;       /* Status/Danger/light */
-  --semantic-status-danger-medium: #FF9A8F;      /* Status/Danger/medium */
-  --semantic-status-danger: #DC2626;             /* Status/Danger/default */
-  --semantic-status-danger-dark: #9E0000;        /* Status/Danger/dark */
-  --semantic-status-danger-950: #310303;         /* Status/Danger/950 */
-
-  --semantic-status-info-bg: #CEDFFF;            /* Status/Info/bg */
-  --semantic-status-info-light: #C2D5FF;         /* Status/Info/light */
-  --semantic-status-info-medium: #8AD2FF;        /* Status/Info/medium */
-  --semantic-status-info: #3BA8FF;               /* Status/Info/default */
-  --semantic-status-info-dark: #3BA8FF;          /* Status/Info/dark */
-  --semantic-status-info-950: #0F7FC8;           /* Status/Info/950 */
-
-  /* Neutral (Greyscale) */
-  --semantic-neutral-50: #F0F0F0;                /* Neutral/50 */
-  --semantic-neutral-100: #FFFFFF;               /* Neutral/100 */
-  --semantic-neutral-200: #F6F6F6;               /* Neutral/200 */
-  --semantic-neutral-300: #E5E5E5;               /* Neutral/300 */
-  --semantic-neutral-400: #D4D4D4;               /* Neutral/400 */
-  --semantic-neutral-500: #A3A3A3;               /* Neutral/500 */
-  --semantic-neutral-600: #737373;               /* Neutral/600 */
-  --semantic-neutral-700: #2F2F35;               /* Neutral/700 */
-  --semantic-neutral-800: #1F1F25;               /* Neutral/800 */
-  --semantic-neutral-900: #1D1D23;               /* Neutral/900 */
-
-  /* Border */
-  --semantic-border-default: #E5E5E5;            /* Border/default */
-  --semantic-border-subtle: #D4D4D4;             /* Border/subtle */
-
-  /* Role Colors */
-  --semantic-role-success: #10B981;              /* Role/success */
-  --semantic-role-warning: #E59500;              /* Role/warning */
-  --semantic-role-danger: #DC2626;               /* Role/danger */
-  --semantic-role-info: #3BA8FF;                 /* Role/info */
-  --semantic-role-primary: #515B92;              /* Role/primary */
-  --semantic-role-neutral: #A3A3A3;              /* Role/neutral */
-  --semantic-role-info-alt: #8FD3FF;             /* Role/info-alt */
-
-  /* Indicator Colors — KPI & Financial Metrics */
-  --semantic-indicator-revenue-light: #7FD9C4;  /* Indicator/Revenue Light (Teal/300) */
-  --semantic-indicator-revenue: #51CAAD;        /* Indicator/Revenue (Teal/500) */
-  --semantic-indicator-revenue-dark: #2A9F82;   /* Indicator/Revenue Dark (Teal/700) */
-
-  /* Legacy bridging (for backward compatibility with old component names) */
-  --semantic-background: var(--semantic-surface-primary);
-  --semantic-foreground: var(--semantic-text-primary);
-  --semantic-surface: var(--semantic-surface-secondary);
-  --semantic-card: var(--semantic-surface-secondary);
-  --semantic-card-foreground: var(--semantic-text-primary);
-  --semantic-border: var(--semantic-border-default);
-  --semantic-border-dark: var(--semantic-border-subtle);
-  --semantic-input: var(--semantic-surface-input);
-  --semantic-success: var(--semantic-status-success);
-  --semantic-warning: var(--semantic-status-warning);
-  --semantic-danger: var(--semantic-status-danger);
-  --semantic-info: var(--semantic-status-info);
-  --semantic-primary: var(--semantic-interactive-primary);
-  --semantic-primary-light: var(--semantic-interactive-primary-hover);
-  --semantic-primary-medium: var(--semantic-interactive-primary-focus);
-  --semantic-primary-dark: var(--semantic-interactive-primary-active);
-  --semantic-neutrals-50: var(--semantic-neutral-50);
-  --semantic-neutrals-100: var(--semantic-neutral-100);
-  --semantic-neutrals-200: var(--semantic-neutral-200);
-  --semantic-neutrals-300: var(--semantic-neutral-300);
-  --semantic-neutrals-400: var(--semantic-neutral-400);
-  --semantic-neutrals-500: var(--semantic-neutral-500);
-  --semantic-neutrals-600: var(--semantic-neutral-600);
-  --semantic-neutrals-700: var(--semantic-neutral-700);
-  --semantic-neutrals-800: var(--semantic-neutral-800);
-  --semantic-neutrals-900: var(--semantic-neutral-900);
-  --semantic-sidebar-bg: var(--semantic-surface-sidebar);
-  --semantic-sidebar-fg: var(--semantic-text-secondary);
-  --semantic-sidebar-muted: var(--semantic-text-muted);
-  --semantic-sidebar-accent: var(--semantic-interactive-primary-focus);
-  --semantic-header-bg: var(--semantic-surface-primary);
-  --semantic-header-fg: var(--semantic-text-primary);
-  --semantic-header-border: var(--semantic-border-default);
+  --rag-green: #10B981;
+  --rag-amber: #F59E0B;
+  --rag-red:   #EF4444;
+  --rag-blue:  #3B82F6;
+  --rag-grey:  #64748B;
 
   /* Table */
-  --table-header-bg: #E5E5E5;
+  --table-header-bg: #e9e4df;
   --table-header-fg: #262626;
-  --table-row-bg: #F0F0F0;
-  --table-row-hover: #E5E5E5;
+  --table-row-bg:    #f5efeb;
+  --table-row-hover: #e5dfd9;
 
-  /* Shadows */
+  /* Header */
+  --header:            #ffffff;
+  --header-foreground: #262626;
+  --header-border:     #d4d4d4;
+
+  /* Sidebar — navy bg + lavender gradient active */
+  --sidebar:                    #0B154B;
+  --sidebar-foreground:         rgba(255,255,255,0.7);
+  --sidebar-muted-foreground:   rgba(255,255,255,0.5);
+  --sidebar-primary:            #DEC9FF;
+  --sidebar-primary-foreground: #1c274c;
+  --sidebar-accent:             rgba(255,255,255,0.08);
+  --sidebar-accent-foreground:  #ffffff;
+  --sidebar-border:             rgba(255,255,255,0.08);
+  --sidebar-ring:               rgba(222,201,255,0.4);
+  --sidebar-active-bg:          linear-gradient(180deg, #DEC9FF 0%, #857999 100%);
+  --sidebar-active-fg:          #1c274c;
+  --sidebar-badge-bg:           rgba(255,255,255,0.15);
+  --sidebar-badge-fg:           rgba(255,255,255,0.7);
+  --sidebar-badge-danger-bg:    rgba(239,68,68,0.2);
+  --sidebar-badge-danger-fg:    #EF4444;
+  --sidebar-scrollbar-thumb:        rgba(255,255,255,0.18);
+  --sidebar-scrollbar-thumb-hover:  rgba(255,255,255,0.32);
+
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.1);
   --shadow-md: 0 2px 4px rgba(0,0,0,0.06), 0 4px 6px rgba(0,0,0,0.1);
   --shadow-lg: 0 4px 6px rgba(0,0,0,0.07), 0 10px 15px rgba(0,0,0,0.1);
@@ -279,161 +154,62 @@
 
 /* ── DS02 Dark Mode ──────────────────────────────────────────────────────── */
 [data-theme="dark"] {
-  /* Border Radius (same values as light mode) */
-  --semantic-border-radius-sm: 4px;
-  --semantic-border-radius-md: 8px;
-  --semantic-border-radius-lg: 10px;
-  --semantic-border-radius-xl: 16px;
+  --background:     #1D1D23;
+  --foreground:     #ffffff;
+  --surface:        #121318;
+  --card:           #121318;
+  --card-foreground: #ffffff;
+  --popover:        #121318;
+  --popover-foreground: #ffffff;
 
-  /* Font Sizes (same values as light mode) */
-  --semantic-font-size-xs: 11px;
-  --semantic-font-size-sm: 13px;
-  --semantic-font-size-base: 14px;
-  --semantic-font-size-md: 14px;
-  --semantic-font-size-lg: 16px;
-  --semantic-font-size-xl: 18px;
-  --semantic-font-size-2xl: 20px;
-  --semantic-font-size-3xl: 24px;
-  --semantic-font-size-4xl: 32px;
-  --semantic-font-size-h1: 48px;
-  --semantic-font-size-h2: 40px;
-  --semantic-font-size-h3: 32px;
-  --semantic-font-size-h4: 28px;
-  --semantic-font-size-h5: 24px;
-  --semantic-font-size-h6: 20px;
-  --semantic-font-size-body-1: 18px;
-  --semantic-font-size-body-2: 16px;
-  --semantic-font-size-body-3: 14px;
-  --semantic-font-size-body-4: 12px;
-  --semantic-font-size-caption: 12px;
-  --semantic-font-size-label: 10px;
+  --primary:             #DEC9FF;
+  --primary-foreground:  #1c1c24;
+  --secondary:           #292931;
+  --secondary-foreground: #c7c5d0;
+  --muted:               #292931;
+  --muted-foreground:    #737373;
 
-  /* Interactive (Buttons, CTAs) — Dark mode */
-  --semantic-interactive-primary: #DEC9FF;       /* Interactive/primary */
-  --semantic-interactive-primary-hover: #E5EAFF; /* Interactive/primary-hover */
-  --semantic-interactive-primary-focus: #8A94CD; /* Interactive/primary-focus */
-  --semantic-interactive-primary-active: #0B154B; /* Interactive/primary-active */
+  --accent:             #DEC9FF;
+  --accent-foreground:  #1c1c24;
+  --accent-dim:         rgba(222,201,255,0.15);
+  --accent-glow:        rgba(222,201,255,0.30);
 
-  /* Surface (Backgrounds) — Dark mode */
-  --semantic-surface-primary: #1D1D23;           /* Surface/primary */
-  --semantic-surface-secondary: #121318;         /* Surface/secondary */
-  --semantic-surface-tertiary: #2F2F35;          /* Surface/tertiary */
-  --semantic-surface-hover: #303036;             /* Surface/hover */
-  --semantic-surface-input: rgba(255,255,255,0.06); /* Surface/input */
-  --semantic-surface-tag: rgba(255,255,255,0.08); /* Surface/tag */
-  --semantic-surface-table-header: #29292F;      /* Surface/table-header */
-  --semantic-surface-avatar: #2F2F35;            /* Surface/avatar */
-  --semantic-surface-sidebar: #121318;           /* Surface/sidebar */
+  --destructive:            #EF4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255,255,255,0.12);
+  --input:  rgba(255,255,255,0.06);
+  --ring:   rgba(222,201,255,0.4);
 
-  /* Text — Dark mode (proper hierarchy, light colors on dark bg) */
-  --semantic-text-primary: #F0F0F0;              /* Text/primary - Slate/50, brightest */
-  --semantic-text-secondary: #A7B5C9;            /* Text/secondary - Slate/300, less prominent */
-  --semantic-text-muted: #8B9BB3;                /* Text/muted - Slate/400, even less prominent */
-  --semantic-text-disabled: #7A8A9E;             /* Text/disabled - Slate/500, least prominent */
-  --semantic-text-danger: #FF6B6B;               /* Text/danger - bright red on dark */
-  --semantic-text-inverse: #0F1729;              /* Text/inverse - Slate/900, dark text */
-
-  /* Status (RAG Colors) — Dark mode */
-  --semantic-status-success-bg: rgba(16,185,129,0.15); /* Status/Success/bg */
-  --semantic-status-success-light: rgba(16,185,129,0.25); /* Status/Success/light */
-  --semantic-status-success-medium: rgba(16,185,129,0.35); /* Status/Success/medium */
-  --semantic-status-success: #10B981;            /* Status/Success/default */
-  --semantic-status-success-dark: #047857;       /* Status/Success/dark */
-  --semantic-status-success-950: #034d39;        /* Status/Success/950 */
-
-  --semantic-status-warning-bg: rgba(229,149,0,0.15); /* Status/Warning/bg */
-  --semantic-status-warning-light: rgba(229,149,0,0.25); /* Status/Warning/light */
-  --semantic-status-warning-medium: rgba(229,149,0,0.35); /* Status/Warning/medium */
-  --semantic-status-warning: #E59500;            /* Status/Warning/default */
-  --semantic-status-warning-dark: #C4870C;       /* Status/Warning/dark */
-  --semantic-status-warning-950: #7A4D05;        /* Status/Warning/950 */
-
-  --semantic-status-danger-bg: rgba(220,38,38,0.15); /* Status/Danger/bg */
-  --semantic-status-danger-light: rgba(220,38,38,0.25); /* Status/Danger/light */
-  --semantic-status-danger-medium: rgba(220,38,38,0.35); /* Status/Danger/medium */
-  --semantic-status-danger: #DC2626;             /* Status/Danger/default */
-  --semantic-status-danger-dark: #9E0000;        /* Status/Danger/dark */
-  --semantic-status-danger-950: #310303;         /* Status/Danger/950 */
-
-  --semantic-status-info-bg: rgba(59,168,255,0.15); /* Status/Info/bg */
-  --semantic-status-info-light: rgba(59,168,255,0.25); /* Status/Info/light */
-  --semantic-status-info-medium: rgba(59,168,255,0.35); /* Status/Info/medium */
-  --semantic-status-info: #3BA8FF;               /* Status/Info/default */
-  --semantic-status-info-dark: #3BA8FF;          /* Status/Info/dark */
-  --semantic-status-info-950: #0F7FC8;           /* Status/Info/950 */
-
-  /* Neutral (Greyscale) — Dark mode */
-  --semantic-neutral-50: #1D1D23;
-  --semantic-neutral-100: #29292F;
-  --semantic-neutral-200: #2F2F35;
-  --semantic-neutral-300: #3D3D44;
-  --semantic-neutral-400: #4A4A52;
-  --semantic-neutral-500: #737373;
-  --semantic-neutral-600: #A3A3A3;
-  --semantic-neutral-700: #CBD5D0;
-  --semantic-neutral-800: #E5E5E5;
-  --semantic-neutral-900: #F0F0F0;
-
-  /* Border — Dark mode */
-  --semantic-border-default: rgba(255,255,255,0.12);
-  --semantic-border-subtle: rgba(255,255,255,0.08);
-
-  /* Role Colors — Dark mode */
-  --semantic-role-success: #10B981;
-  --semantic-role-warning: #E59500;
-  --semantic-role-danger: #DC2626;
-  --semantic-role-info: #3BA8FF;
-  --semantic-role-primary: #DEC9FF;
-  --semantic-role-neutral: #A3A3A3;
-  --semantic-role-info-alt: #8FD3FF;
-
-  /* Indicator Colors — Dark mode (same as light, good contrast on both) */
-  --semantic-indicator-revenue-light: #7FD9C4;  /* Indicator/Revenue Light (Teal/300) */
-  --semantic-indicator-revenue: #51CAAD;        /* Indicator/Revenue (Teal/500) */
-  --semantic-indicator-revenue-dark: #2A9F82;   /* Indicator/Revenue Dark (Teal/700) */
-
-  /* Legacy bridging (for backward compatibility with old component names) */
-  --semantic-background: var(--semantic-surface-primary);
-  --semantic-foreground: var(--semantic-text-primary);
-  --semantic-surface: var(--semantic-surface-secondary);
-  --semantic-card: var(--semantic-surface-secondary);
-  --semantic-card-foreground: var(--semantic-text-primary);
-  --semantic-border: var(--semantic-border-default);
-  --semantic-border-dark: var(--semantic-border-subtle);
-  --semantic-input: var(--semantic-surface-input);
-  --semantic-success: var(--semantic-status-success);
-  --semantic-warning: var(--semantic-status-warning);
-  --semantic-danger: var(--semantic-status-danger);
-  --semantic-info: var(--semantic-status-info);
-  --semantic-primary: var(--semantic-interactive-primary);
-  --semantic-primary-light: var(--semantic-interactive-primary-hover);
-  --semantic-primary-medium: var(--semantic-interactive-primary-focus);
-  --semantic-primary-dark: var(--semantic-interactive-primary-active);
-  --semantic-neutrals-50: var(--semantic-neutral-50);
-  --semantic-neutrals-100: var(--semantic-neutral-100);
-  --semantic-neutrals-200: var(--semantic-neutral-200);
-  --semantic-neutrals-300: var(--semantic-neutral-300);
-  --semantic-neutrals-400: var(--semantic-neutral-400);
-  --semantic-neutrals-500: var(--semantic-neutral-500);
-  --semantic-neutrals-600: var(--semantic-neutral-600);
-  --semantic-neutrals-700: var(--semantic-neutral-700);
-  --semantic-neutrals-800: var(--semantic-neutral-800);
-  --semantic-neutrals-900: var(--semantic-neutral-900);
-  --semantic-sidebar-bg: var(--semantic-surface-sidebar);
-  --semantic-sidebar-fg: var(--semantic-text-secondary);
-  --semantic-sidebar-muted: var(--semantic-text-muted);
-  --semantic-sidebar-accent: var(--semantic-interactive-primary-focus);
-  --semantic-header-bg: var(--semantic-surface-primary);
-  --semantic-header-fg: var(--semantic-text-primary);
-  --semantic-header-border: var(--semantic-border-default);
+  /* Header */
+  --header:            #121318;
+  --header-foreground: #ffffff;
+  --header-border:     rgba(255,255,255,0.08);
 
   /* Table */
   --table-header-bg: #29292F;
   --table-header-fg: #ffffff;
-  --table-row-bg: #121318;
+  --table-row-bg:    #121318;
   --table-row-hover: #303036;
 
-  /* Shadows */
+  /* Sidebar */
+  --sidebar:                    #121318;
+  --sidebar-foreground:         #c7c5d0;
+  --sidebar-muted-foreground:   rgba(255,255,255,0.5);
+  --sidebar-primary:            #DEC9FF;
+  --sidebar-primary-foreground: #1c1c24;
+  --sidebar-accent:             rgba(222,201,255,0.15);
+  --sidebar-accent-foreground:  #DEC9FF;
+  --sidebar-border:             rgba(255,255,255,0.08);
+  --sidebar-ring:               rgba(222,201,255,0.4);
+  --sidebar-active-bg:          linear-gradient(180deg, #DEC9FF 0%, #857999 100%);
+  --sidebar-active-fg:          #1c1c24;
+  --sidebar-badge-bg:           rgba(255,255,255,0.10);
+  --sidebar-badge-fg:           rgba(255,255,255,0.75);
+  --sidebar-badge-danger-bg:    rgba(239,68,68,0.2);
+  --sidebar-badge-danger-fg:    #EF4444;
+  --sidebar-scrollbar-thumb:        rgba(255,255,255,0.18);
+  --sidebar-scrollbar-thumb-hover:  rgba(255,255,255,0.32);
+
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.6);

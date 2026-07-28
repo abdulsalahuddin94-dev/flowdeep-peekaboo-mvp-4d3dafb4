@@ -625,10 +625,8 @@ export function TabApprovalDialog<TSnapshot>({
             {cr.approvers.map((a) => {
               const resp = cr.responses.find((r) => r.approverId === a.id);
               return (
-                <div
-                  key={a.id}
-                  className="flex items-center justify-between text-xs"
-                >
+                <div key={a.id} className="text-xs">
+                <div className="flex items-center justify-between">
                   <span className="text-foreground">
                     {a.name}
                     {a.role && (
@@ -652,6 +650,12 @@ export function TabApprovalDialog<TSnapshot>({
                       Pending
                     </Badge>
                   )}
+                </div>
+                {resp?.note && (
+                  <div className="mt-1 rounded bg-background/40 px-1.5 py-1 text-[10px] text-muted-foreground">
+                    Reason: {resp.note}
+                  </div>
+                )}
                 </div>
               );
             })}

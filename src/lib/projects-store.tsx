@@ -27,7 +27,7 @@ export type ApprovalApprover = {
 
 export type ApprovalRequest = {
   id: string;
-  type: "milestone-gate" | "change-request";
+  type: "milestone-gate" | "change-request" | "calendar-change";
   projectId: string;
   projectName: string;
   /** Milestone name or Change Request id. */

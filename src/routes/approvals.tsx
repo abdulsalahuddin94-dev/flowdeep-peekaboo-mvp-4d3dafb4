@@ -9,11 +9,15 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Check, X, Diamond, GitBranch, Inbox, Bell, CalendarDays } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { useApprovals, type ApprovalRequest } from "@/lib/projects-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/approvals")({
   component: ApprovalsInbox,
+  validateSearch: (search: Record<string, unknown>) => ({
+    project: typeof search.project === "string" ? search.project : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Approvals Inbox — Nexus PMO MVP" },
@@ -30,18 +34,23 @@ type Filter = "Pending on me" | "All pending" | "History";
 
 function ApprovalsInbox() {
   const { approvals, decideApproval, remindApproval, currentUser } = useApprovals();
+  const { project: projectFilter } = Route.useSearch();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<Filter>("Pending on me");
   const [selected, setSelected] = useState<ApprovalRequest | null>(null);
   const [mode, setMode] = useState<"approve" | "reject">("approve");
   const [comment, setComment] = useState("");
 
   const rows = useMemo(() => {
-    if (filter === "History") return approvals.filter((a) => a.status !== "pending");
-    if (filter === "All pending") return approvals.filter((a) => a.status === "pending");
-    return approvals.filter(
+    const scoped = projectFilter
+      ? approvals.filter((a) => a.projectName === projectFilter)
+      : approvals;
+    if (filter === "History") return scoped.filter((a) => a.status !== "pending");
+    if (filter === "All pending") return scoped.filter((a) => a.status === "pending");
+    return scoped.filter(
       (a) => a.status === "pending" && a.approvers.some((ap) => ap.id === currentUser.id && ap.decision === "pending"),
     );
-  }, [approvals, filter, currentUser.id]);
+  }, [approvals, filter, currentUser.id, projectFilter]);
 
   function openDecision(a: ApprovalRequest, m: "approve" | "reject") {
     setSelected(a); setMode(m); setComment("");
@@ -75,6 +84,22 @@ function ApprovalsInbox() {
           </Tabs>
         }
       />
+
+      {projectFilter && (
+        <div className="mb-4 flex items-center gap-2">
+          <Badge variant="outline" className="border-accent/40 bg-accent-dim text-accent">
+            Project: {projectFilter}
+          </Badge>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 text-[11px]"
+            onClick={() => navigate({ to: "/approvals", search: {} })}
+          >
+            <X className="mr-1 h-3 w-3" /> Clear filter
+          </Button>
+        </div>
+      )}
 
       {rows.length === 0 ? (
         <div className="glass-card flex flex-col items-center gap-2 p-12 text-center">

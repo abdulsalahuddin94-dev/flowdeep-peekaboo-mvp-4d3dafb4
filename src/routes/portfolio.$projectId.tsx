@@ -986,6 +986,9 @@ function ProjectDetail() {
         onApprove={(name) =>
           setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, approvalStatus: "approved" } : m)))
         }
+        onRejectApproval={(name) =>
+          setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, approvalStatus: "rejected" } : m)))
+        }
       />
       <StageGatesDialog open={stageGateOpen} onOpenChange={setStageGateOpen} gateData={gateData} setGateData={setGateData} />
       <DependencyDialog

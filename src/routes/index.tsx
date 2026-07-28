@@ -396,6 +396,8 @@ function PMView() {
   const mine = projects.slice(0, 5);
   return (
     <div className="grid grid-cols-12 gap-4">
+      <ApprovalsWidget />
+      <AwaitingOthersWidget />
       <Tile className="col-span-12 lg:col-span-12" eyebrow="My Projects">
         <ul className="space-y-2">
           {mine.map((p) => (

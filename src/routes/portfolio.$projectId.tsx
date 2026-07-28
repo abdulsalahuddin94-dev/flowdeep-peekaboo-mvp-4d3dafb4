@@ -21,6 +21,7 @@ import type { Rag } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
 import { toast } from "sonner";
+import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress } from "@/components/ProjectSchedule";
 import {
@@ -1805,6 +1806,7 @@ function ProgressUpdateDialog({
                   }`}>
                     {approvalMilestone.approvalStatus === "approved" ? "Approved"
                       : approvalMilestone.approvalStatus === "pending" ? "Pending"
+                      : approvalMilestone.approvalStatus === "rejected" ? "Rejected"
                       : "Not requested"}
                   </span>
                 </div>

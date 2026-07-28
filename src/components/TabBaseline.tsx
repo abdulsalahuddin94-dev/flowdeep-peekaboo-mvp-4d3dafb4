@@ -137,6 +137,10 @@ export function useTabBaseline<TSnapshot>({
   const [crDialogOpen, setCrDialogOpen] = useState(false);
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [activeCrId, setActiveCrId] = useState<string | null>(null);
+  const params = useParams({ strict: false }) as { projectId?: string };
+  const { projects } = useProjects();
+  const { approvals, addApprovalRequest, currentUser } = useApprovals();
+  const project = projects.find((p) => p.id === params.projectId);
 
   // Ensure v1 exists on first render even if `current` was undefined initially.
   useEffect(() => {
@@ -182,19 +186,34 @@ export function useTabBaseline<TSnapshot>({
         scope,
         summary,
         changes,
-        submittedBy: submittedBy ?? "You",
+        submittedBy: submittedBy ?? currentUser.name,
         createdAt: today(),
         status: "pending",
         approvers,
         responses: [],
         pendingSnapshot: current,
       };
+      cr.approvalId = addApprovalRequest({
+        type: "change-request",
+        projectId: project?.id ?? params.projectId ?? "p-001",
+        projectName: project?.name ?? "Project",
+        ref: cr.id,
+        title: `${label} change request — ${changes.length} change${changes.length === 1 ? "" : "s"}`,
+        requestedBy: cr.submittedBy,
+        summary: changes.map((c) => ({ label: c.path, before: c.before, after: c.after })),
+        approvers: approvers.map((a) => ({
+          id: a.id,
+          name: a.name,
+          role: a.role ?? "Approver",
+          decision: "pending" as const,
+        })),
+      });
       setChangeRequests((prev) => [cr, ...prev]);
       setCrDialogOpen(false);
       setEditMode(false);
       toast.success(`${label} change request sent for approval`);
     },
-    [latestVersion, current, diffFn, scope, label]
+    [latestVersion, current, diffFn, scope, label, addApprovalRequest, currentUser.name, project, params.projectId]
   );
 
   const respondToCr = useCallback(

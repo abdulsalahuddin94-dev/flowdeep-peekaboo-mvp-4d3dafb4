@@ -2198,10 +2198,11 @@ function FinancialsTab({ project, milestones }: { project: typeof projects[numbe
               <TableHead>Expected date</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actual ($M)</TableHead>
+              {canEdit && <TableHead className="w-10" />}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {displayRev.map((r) => (
+            {displayRev.map((r, idx) => (
               <TableRow key={r.ms} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="font-medium text-foreground">
                   <div className="flex items-center gap-2">
@@ -2216,12 +2217,141 @@ function FinancialsTab({ project, milestones }: { project: typeof projects[numbe
                 <TableCell className="text-xs text-muted-foreground">{r.date}</TableCell>
                 <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
                 <TableCell className="num-mono text-right">{r.act != null ? `$${r.act.toFixed(2)}M` : "—"}</TableCell>
+                {canEdit && (
+                  <TableCell className="text-right">
+                    <EditRevenueRowDialog
+                      entry={r}
+                      milestoneNames={milestoneNames}
+                      onSave={(patch) => setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
+                      onDelete={() => setRevEntries((prev) => prev.filter((_, i) => i !== idx))}
+                    />
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
     </div>
+  );
+}
+
+const REV_STATUSES: { s: string; sl: string }[] = [
+  { s: "blue", sl: "Planned" },
+  { s: "amber", sl: "Pending" },
+  { s: "green", sl: "Received" },
+  { s: "red", sl: "Overdue" },
+];
+
+function EditRevenueRowDialog({
+  entry, milestoneNames, onSave, onDelete,
+}: {
+  entry: RevEntry;
+  milestoneNames: string[];
+  onSave: (patch: Partial<RevEntry>) => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [ms, setMs] = useState(entry.ms);
+  const [evt, setEvt] = useState(entry.evt);
+  const [plan, setPlan] = useState(String(entry.plan));
+  const [date, setDate] = useState(entry.date);
+  const [sl, setSl] = useState(entry.sl);
+  const [act, setAct] = useState(entry.act != null ? String(entry.act) : "");
+
+  function reset() {
+    setMs(entry.ms); setEvt(entry.evt); setPlan(String(entry.plan));
+    setDate(entry.date); setSl(entry.sl); setAct(entry.act != null ? String(entry.act) : "");
+  }
+
+  const linkOptions = Array.from(new Set([...milestoneNames, entry.ms]));
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) reset(); }}>
+      <DialogTrigger asChild>
+        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-accent" title="Edit revenue line">
+          <Pencil className="h-3.5 w-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit revenue line</DialogTitle>
+          <DialogDescription>Update the linked milestone, amount, expected date or status.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3">
+          <div className="grid gap-1.5">
+            <Label>Linked to</Label>
+            {entry.linkKind === "fixed" ? (
+              <Input value={ms} onChange={(e) => setMs(e.target.value)} />
+            ) : (
+              <Select value={ms} onValueChange={setMs}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {linkOptions.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Revenue event</Label>
+            <Input value={evt} onChange={(e) => setEvt(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label>Planned ($M)</Label>
+              <Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Actual ($M)</Label>
+              <Input type="number" min={0} step={0.01} value={act} onChange={(e) => setAct(e.target.value)} placeholder="—" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label>Expected date</Label>
+              <Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="e.g. Jun 30" />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Status</Label>
+              <Select value={sl} onValueChange={setSl}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {REV_STATUSES.map((o) => <SelectItem key={o.sl} value={o.sl}>{o.sl}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+        <DialogFooter className="justify-between sm:justify-between">
+          <Button
+            variant="ghost"
+            className="text-rag-red hover:text-rag-red"
+            onClick={() => { onDelete(); setOpen(false); toast.success("Revenue line removed"); }}
+          >
+            Delete
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                const p = parseFloat(plan);
+                if (!ms.trim() || !evt.trim() || isNaN(p)) { toast.error("Linked to, event and planned amount are required"); return; }
+                const a = act.trim() === "" ? null : parseFloat(act);
+                onSave({
+                  ms: ms.trim(), evt: evt.trim(), plan: p, date,
+                  sl, s: REV_STATUSES.find((o) => o.sl === sl)?.s ?? "blue",
+                  act: a != null && isNaN(a) ? null : a,
+                });
+                setOpen(false);
+                toast.success("Revenue line updated");
+              }}
+            >
+              Save changes
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

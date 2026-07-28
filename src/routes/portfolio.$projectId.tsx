@@ -1793,25 +1793,29 @@ function ProgressUpdateDialog({
                             {a.name}
                             <span className="ml-1 text-muted-foreground">· {a.role}{a.department ? ` · ${a.department}` : ""}</span>
                           </span>
-                          {s === "pending" && !mine ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-6 px-2 text-[10px]"
-                              onClick={() => approveAs(a.id)}
-                            >
-                              Approve
-                            </Button>
-                          ) : (
-                            <span className={`inline-flex items-center gap-1 ${tone}`}>
-                              {mine && <Check className="h-3 w-3" />}
-                              {label}
-                            </span>
-                          )}
+                          <span className={`inline-flex items-center gap-1 ${tone}`}>
+                            {mine && <Check className="h-3 w-3" />}
+                            {label}
+                          </span>
                         </li>
                       );
                     })}
                   </ul>
+                )}
+                {gateRequest?.status === "pending" && (
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-muted-foreground">
+                      Decisions are taken in the Approvals inbox by the assigned approvers.
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-6 px-2 text-[10px]"
+                      onClick={() => { remindApproval(gateRequest.id); toast.success("Reminder sent to pending approvers"); }}
+                    >
+                      Remind
+                    </Button>
+                  </div>
                 )}
                 <p className="mt-2 text-[10px] text-muted-foreground">
                   This gate carries no weight in the milestone roll-up — the milestone only counts as complete once

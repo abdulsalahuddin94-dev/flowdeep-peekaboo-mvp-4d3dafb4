@@ -947,9 +947,14 @@ function ProjectDetail() {
                     : cr
                 )
               );
+              setProjectBaselineVersions((prev) => {
+                const version = prev.length + 1;
+                toast.success(`✅ Change Request approved — Project Schedule baseline v${version} created`);
+                return [...prev, { version, createdAt: new Date().toISOString().split("T")[0], snapshot: milestones.map((m) => ({ ...m })) }];
+              });
+              setSelectedBaselineVersion("latest");
               setPlanEditMode("view");
               setCrApprovalDialogOpen(false);
-              toast.success("✅ Change Request approved! Back to Change Plan mode");
             }}
             onReject={(reason) => {
               setChangeRequests((prev) =>

@@ -4565,6 +4565,8 @@ interface ChangeRequest {
   approvalReason?: string;
   rejectionReason?: string;
   rejectedAt?: string;
+  /** Linked central Approvals Inbox request id. */
+  approvalId?: string;
 }
 
 function ChangeRequestDialog({

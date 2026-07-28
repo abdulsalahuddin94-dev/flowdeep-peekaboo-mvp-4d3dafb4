@@ -1360,20 +1360,6 @@ function OverviewTab({ project }: { project: typeof projects[number] }) {
 
       <div className="space-y-4">
         <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Open Project Risks</div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-lg border border-rag-amber/30 bg-rag-amber/10 p-5 text-center">
-              <div className="num-mono text-3xl font-medium text-rag-amber">{project.risks}</div>
-              <div className="mt-1 text-xs text-muted-foreground">Risks</div>
-            </div>
-            <div className="rounded-lg border border-rag-red/30 bg-rag-red/10 p-5 text-center">
-              <div className="num-mono text-3xl font-medium text-rag-red">{project.issues}</div>
-              <div className="mt-1 text-xs text-muted-foreground">Issues</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-card p-5">
           <div className="label-eyebrow mb-4">Recent Activity</div>
           <ul className="space-y-3">
             {activity.map((a) => (

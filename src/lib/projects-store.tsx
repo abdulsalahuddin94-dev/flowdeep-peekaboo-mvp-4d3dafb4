@@ -41,8 +41,103 @@ export type ApprovalRequest = {
   reminders: number;
 };
 
+const SEED_APPROVALS: ApprovalRequest[] = [
+  {
+    id: "AP-1041",
+    type: "milestone-gate",
+    projectId: "p-001",
+    projectName: "ERP System Upgrade",
+    ref: "Discovery Sign-off",
+    title: "Milestone completion — Discovery Sign-off",
+    requestedBy: "John Smith",
+    requestedAt: "2026-07-24",
+    summary: [
+      { label: "Milestone progress", before: "80%", after: "100%" },
+      { label: "Tasks completed", before: "4 of 5", after: "5 of 5" },
+      { label: "Finish date", before: "2026-07-26", after: "2026-07-24" },
+    ],
+    approvers: [
+      { id: "u-sara", name: "Sara Al-Rashid", role: "Director", department: "Engineering", decision: "approved", decidedAt: "2026-07-25" },
+      { id: "u-aisha", name: "Aisha Khoury", role: "Portfolio Director", department: "PMO", decision: "pending" },
+    ],
+    status: "pending",
+    reminders: 1,
+  },
+  {
+    id: "AP-1038",
+    type: "change-request",
+    projectId: "p-002",
+    projectName: "Coastal Refinery Expansion",
+    ref: "CR-schedule-0042",
+    title: "Project Schedule change request — 3 changes",
+    requestedBy: "Mei Chen",
+    requestedAt: "2026-07-23",
+    summary: [
+      { label: "Detailed Design · Finish", before: "2026-09-10", after: "2026-10-02" },
+      { label: "Detailed Design · Owner", before: "Omar Haddad", after: "Mei Chen" },
+      { label: "Procurement Kick-off · Depends on", before: "Detailed Design (FS)", after: "Detailed Design (FS +10d)" },
+    ],
+    approvers: [
+      { id: "u-aisha", name: "Aisha Khoury", role: "Portfolio Director", department: "PMO", decision: "pending" },
+      { id: "u-sara", name: "Sara Al-Rashid", role: "Director", department: "Engineering", decision: "pending" },
+    ],
+    status: "pending",
+    reminders: 0,
+  },
+  {
+    id: "AP-1035",
+    type: "change-request",
+    projectId: "p-003",
+    projectName: "Salesforce Migration",
+    ref: "CR-financials-0031",
+    title: "Financials change request — 2 changes",
+    requestedBy: "John Smith",
+    requestedAt: "2026-07-21",
+    summary: [
+      { label: "Licences · Budget", before: "$180,000", after: "$225,000" },
+      { label: "Integration · Cost type", before: "OpEx", after: "CapEx" },
+    ],
+    approvers: [
+      { id: "u-aisha", name: "Aisha Khoury", role: "Portfolio Director", department: "PMO", decision: "pending" },
+    ],
+    status: "pending",
+    reminders: 2,
+  },
+  {
+    id: "AP-1029",
+    type: "change-request",
+    projectId: "p-006",
+    projectName: "Customer Portal v3",
+    ref: "CR-charter-0018",
+    title: "Project Charter change request — 1 change",
+    requestedBy: "Mei Chen",
+    requestedAt: "2026-07-16",
+    summary: [{ label: "Objective", before: "Launch portal MVP by Q3", after: "Launch portal MVP + payments by Q4" }],
+    approvers: [
+      { id: "u-aisha", name: "Aisha Khoury", role: "Portfolio Director", department: "PMO", decision: "approved", decidedAt: "2026-07-17", comment: "Scope aligned with the commercial plan." },
+    ],
+    status: "approved",
+    reminders: 0,
+  },
+  {
+    id: "AP-1024",
+    type: "milestone-gate",
+    projectId: "p-005",
+    projectName: "Warehouse Robotics",
+    ref: "Pilot Acceptance",
+    title: "Milestone completion — Pilot Acceptance",
+    requestedBy: "Omar Haddad",
+    requestedAt: "2026-07-12",
+    summary: [{ label: "Milestone progress", before: "95%", after: "100%" }],
+    approvers: [
+      { id: "u-sara", name: "Sara Al-Rashid", role: "Director", department: "Engineering", decision: "rejected", decidedAt: "2026-07-13", comment: "Two acceptance defects still open." },
+    ],
+    status: "rejected",
+    reminders: 0,
+  },
+];
+
 const SEED_JOB_ROLES: JobRole[] = [
-  { id: "jr-ba",     title: "Business Analyst" },
   { id: "jr-ba",     title: "Business Analyst" },
   { id: "jr-sa",     title: "Solution Architect" },
   { id: "jr-ux",     title: "UX Designer" },

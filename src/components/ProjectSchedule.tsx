@@ -186,6 +186,10 @@ export type ScheduleItem = {
   approvalStatus?: ApprovalStatus;
   /** Dependencies: list of predecessors with relation types and time buffers */
   dependencies?: Dependency[];
+  /** Synthetic gate task auto-created for milestones that require approval. */
+  isApprovalTask?: boolean;
+  /** Approval gate is unlocked (all sibling work at 100%). */
+  approvalReady?: boolean;
 };
 
 /**

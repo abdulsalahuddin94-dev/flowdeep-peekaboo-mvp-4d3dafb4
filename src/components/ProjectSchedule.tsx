@@ -241,7 +241,8 @@ const COLUMNS = [
   { key: "assignee", label: "Assignee",    w: 130 },
   { key: "roles",    label: "Roles",       w: 180 },
   { key: "status",   label: "Status",      w: 110 },
-  { key: "progress", label: "% Complete",  w: 180 },
+  { key: "actual",   label: "% Actual",    w: 130 },
+  { key: "planned",  label: "% Plan",      w: 130 },
   { key: "dep",      label: "Depends on",  w: 110 },
   { key: "payment",  label: "Financial Link",w: 160 },
 ] as const;
@@ -312,7 +313,7 @@ export function ProjectSchedule({
   const [healthHighlight, setHealthHighlight] = useState(false);
   const [visibleCols] = useState<Set<ColKey>>(
     // Owner + Assignee columns hidden for the MVP demo view
-    () => new Set<ColKey>(["type", "start", "end", "status", "progress", "dep", "roles", "payment"]),
+    () => new Set<ColKey>(["type", "start", "end", "status", "actual", "planned", "dep", "roles", "payment"]),
   );
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(items.map(i => i.name)));
   const [leftPct, setLeftPct] = useState(48);
@@ -541,7 +542,8 @@ export function ProjectSchedule({
           break;
         }
         case "status": txt = statusText[item.rag]; extra = 6 + 6 + 16 + 2; break; // dot + gap + px-2*2 + border
-        case "progress": txt = `${item.progress ?? 0}%`; extra = 60; break;
+        case "actual": txt = `${item.progress ?? 0}%`; extra = 60; break;
+        case "planned": txt = `${computePlannedProgress(item.startDate, item.endDate)}%`; extra = 60; break;
         case "dep": txt = item.dep || "—"; break;
         case "roles":
           txt = item.roles.length ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ") : "—";
@@ -1184,63 +1186,69 @@ export function ProjectSchedule({
                         )}
                       </div>
                     )}
-                    {colVisible("progress") && (() => {
+                    {(() => {
                       const planned = computePlannedProgress(item.startDate, item.endDate);
                       const actual = item.progress ?? 0;
-                      const isMs = item.kind === "Milestone";
                       const canClick = !!onProgressClick && !isGate;
                       const gateBar = gateApproved ? "bg-rag-green" : "bg-rag-amber";
+                      const delta = Math.round(actual - planned);
                       return (
-                        <div
-                          role={canClick ? "button" : undefined}
-                          tabIndex={canClick ? 0 : undefined}
-                          aria-label={`Update progress for ${item.name}`}
-                          title={isGate ? gateTitle : canClick ? "Click to update progress" : `Actual ${actual}% / Planned ${planned}%`}
-                          onClick={() => canClick && onProgressClick?.(item.name, item.kind)}
-                          onKeyDown={(e) => {
-                            if (!canClick) return;
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              onProgressClick?.(item.name, item.kind);
-                            }
-                          }}
-                          className={`flex items-center gap-2 border-l border-border/60 px-3 overflow-hidden ${canClick ? "cursor-pointer hover:bg-secondary/30" : ""}`}
-                          style={{ width: widths.progress }}
-                        >
-                          {isGate ? (
-                            <div className="flex flex-1 items-center gap-2 py-1 min-w-0">
-                              <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-secondary/60">
-                                <div className={`absolute inset-y-0 left-0 ${gateBar}`} style={{ width: `${gateApproved ? 100 : 0}%` }} />
-                              </div>
-                              <span className={`shrink-0 text-[10px] ${gateApproved ? "text-rag-green" : "text-rag-amber"}`}>
-                                {gateApproved ? "Approved" : gatePending ? "Waiting for approval" : "Locked"}
-                              </span>
+                        <>
+                          {colVisible("actual") && (
+                            <div
+                              role={canClick ? "button" : undefined}
+                              tabIndex={canClick ? 0 : undefined}
+                              aria-label={`Update progress for ${item.name}`}
+                              title={isGate ? gateTitle : canClick ? "Click to update progress" : `Actual ${actual}%`}
+                              onClick={() => canClick && onProgressClick?.(item.name, item.kind)}
+                              onKeyDown={(e) => {
+                                if (!canClick) return;
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  onProgressClick?.(item.name, item.kind);
+                                }
+                              }}
+                              className={`flex items-center gap-2 border-l border-border/60 px-3 overflow-hidden ${canClick ? "cursor-pointer hover:bg-secondary/30" : ""}`}
+                              style={{ width: widths.actual }}
+                            >
+                              {isGate ? (
+                                <div className="flex flex-1 items-center gap-2 min-w-0">
+                                  <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-secondary/60">
+                                    <div className={`absolute inset-y-0 left-0 ${gateBar}`} style={{ width: `${gateApproved ? 100 : 0}%` }} />
+                                  </div>
+                                  <span className={`shrink-0 text-[10px] ${gateApproved ? "text-rag-green" : "text-rag-amber"}`}>
+                                    {gateApproved ? "Approved" : gatePending ? "Waiting" : "Locked"}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex flex-1 items-center gap-2 min-w-0">
+                                  <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-secondary/60">
+                                    <div className="absolute inset-y-0 left-0 bg-accent" style={{ width: `${actual}%` }} />
+                                  </div>
+                                  <span className="num-mono w-8 shrink-0 text-right text-[10px] text-accent">{actual}%</span>
+                                </div>
+                              )}
                             </div>
-                          ) : (
-                          <div className="flex flex-1 flex-col gap-1 py-1 min-w-0">
-                            {/* Actual */}
-                            <div className="flex items-center gap-2">
-                              <span className="w-3 text-[9px] uppercase tracking-wide text-accent/80">A</span>
-                              <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-secondary/60">
-                                <div className="absolute inset-y-0 left-0 bg-accent" style={{ width: `${actual}%` }} />
-                              </div>
-                              <span className="num-mono w-8 shrink-0 text-right text-[10px] text-accent">{actual}%</span>
-                            </div>
-                            {/* Planned */}
-                            <div className="flex items-center gap-2">
-                              <span className="w-3 text-[9px] uppercase tracking-wide text-rag-blue/80">P</span>
-                              <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-secondary/40">
-                                <div
-                                  className="absolute inset-y-0 left-0 bg-rag-blue"
-                                  style={{ width: `${planned}%` }}
-                                />
-                              </div>
-                              <span className="num-mono w-8 shrink-0 text-right text-[10px] text-rag-blue">{planned}%</span>
-                            </div>
-                          </div>
                           )}
-                        </div>
-
+                          {colVisible("planned") && (
+                            <div
+                              className="flex items-center gap-2 border-l border-border/60 px-3 overflow-hidden"
+                              style={{ width: widths.planned }}
+                              title={isGate ? "—" : `Planned ${planned}% · ${delta === 0 ? "on plan" : delta > 0 ? `${delta}% ahead` : `${Math.abs(delta)}% behind`}`}
+                            >
+                              {isGate ? (
+                                <span className="text-[11px] text-muted-foreground">—</span>
+                              ) : (
+                                <div className="flex flex-1 items-center gap-2 min-w-0">
+                                  <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-secondary/40">
+                                    <div className="absolute inset-y-0 left-0 bg-rag-blue" style={{ width: `${planned}%` }} />
+                                  </div>
+                                  <span className="num-mono w-8 shrink-0 text-right text-[10px] text-rag-blue">{planned}%</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </>
                       );
                     })()}
                     {colVisible("dep") && (

@@ -330,12 +330,11 @@ function PendingApprovalsChip({ count, projectName, className }: { count: number
       onClick={(e) => { e.stopPropagation(); navigate({ to: "/approvals", search: { project: projectName } }); }}
       onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); navigate({ to: "/approvals", search: { project: projectName } }); } }}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border border-rag-amber/40 bg-rag-amber/10 px-1.5 py-px text-[10px] font-medium text-rag-amber hover:bg-rag-amber/20",
+        "inline-flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full bg-rag-amber text-[10px] font-semibold text-black hover:bg-rag-amber/90",
         className,
       )}
     >
-      <Clock className="h-3 w-3" />
-      {count} pending
+      {count}
     </span>
   );
 }
@@ -349,15 +348,15 @@ function ProjectGrid({ items, onOpen, pendingByProject }: { items: Project[]; on
         <button
           key={p.id}
           onClick={() => onOpen(p)}
-          className={cn("glass-card group flex flex-col p-4 text-left", pending > 0 && "ring-1 ring-rag-amber/40")}
+          className="glass-card group flex flex-col p-4 text-left"
         >
           <div className="flex items-start justify-between gap-2">
             <RagBadge rag={p.rag} />
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{p.stage}</span>
+            <div className="flex items-center gap-1.5">
+              <PendingApprovalsChip count={pending} projectName={p.name} />
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{p.stage}</span>
+            </div>
           </div>
-          {pending > 0 && (
-            <div className="mt-2"><PendingApprovalsChip count={pending} projectName={p.name} /></div>
-          )}
           <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">{p.name}</h3>
           <div className="mt-1 text-xs text-muted-foreground">{p.businessLine} · {p.department}</div>
           <div className="mt-3">

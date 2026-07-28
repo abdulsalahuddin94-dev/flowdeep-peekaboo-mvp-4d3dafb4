@@ -2201,8 +2201,38 @@ function minISO(arr: (string | undefined)[]): string | undefined {
   if (!v.length) return undefined;
   return v.slice().sort()[0];
 }
+export const APPROVAL_TASK_PREFIX = "Approval — ";
+
 function computeDerivedSchedule(items: Milestone[], reqs: ResourceRequest[]): Milestone[] {
-  const out = items.map((it) => ({ ...it }));
+  const base = items.map((it) => ({ ...it }));
+  // Inject a synthetic "Approval Task" gate under every milestone that requires approval.
+  const out: Milestone[] = [];
+  for (const it of base) {
+    if (it.isApprovalTask) continue; // never persist / duplicate synthetic gates
+    out.push(it);
+    if (it.kind === "Milestone" && it.requiresApproval) {
+      const approved = it.approvalStatus === "approved";
+      out.push({
+        name: `${APPROVAL_TASK_PREFIX}${it.name}`,
+        kind: "Task",
+        startDate: it.endDate,
+        endDate: it.endDate,
+        owner: it.owner,
+        rag: approved ? "green" : it.approvalStatus === "pending" ? "amber" : "grey",
+        dep: it.name,
+        roles: [],
+        payment: { kind: "None", amount: "" },
+        progress: approved ? 100 : 0,
+        parent: it.name,
+        assignee: (it.approvers ?? []).map((a) => a.name).join(", ") || "—",
+        weightScore: 0, // gate: no weight in the milestone roll-up
+        isApprovalTask: true,
+        requiresApproval: true,
+        approvalStatus: it.approvalStatus,
+        approvers: it.approvers,
+      } as Milestone);
+    }
+  }
   const childrenOf = new Map<string, Milestone[]>();
   for (const it of out) {
     if (!it.parent) continue;
@@ -2277,6 +2307,25 @@ function computeDerivedSchedule(items: Milestone[], reqs: ResourceRequest[]): Mi
   const allNames = new Set(out.map((i) => i.name));
   const roots = out.filter((i) => !i.parent || !allNames.has(i.parent));
   for (const r of roots) rollup(r.name);
+
+  // Gate readiness: unlocked once every non-gate leaf under the milestone is at 100%.
+  for (const gate of out) {
+    if (!gate.isApprovalTask || !gate.parent) continue;
+    const isDesc = (n: string) => {
+      let c = out.find((x) => x.name === n);
+      const seen = new Set<string>();
+      while (c?.parent && !seen.has(c.parent)) {
+        if (c.parent === gate.parent) return true;
+        seen.add(c.parent);
+        c = out.find((x) => x.name === c!.parent);
+      }
+      return false;
+    };
+    const leaves = out.filter(
+      (l) => l.kind === "Task" && !l.isApprovalTask && !out.some((c) => c.parent === l.name) && isDesc(l.name),
+    );
+    gate.approvalReady = leaves.length > 0 && leaves.every((l) => (l.progress ?? 0) >= 100);
+  }
 
   return out;
 }

@@ -1050,7 +1050,6 @@ export function ProjectSchedule({
                       <EditableText
                         value={item.name}
                         editable={editable && !isGate}
-                        title={isGate ? gateTitle : undefined}
                         className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOff ? "text-rag-red" : isRisk ? "text-rag-amber" : ""}`}
                         onCommit={(v) => v && v !== item.name && patch(item.name, { name: v })}
                       />

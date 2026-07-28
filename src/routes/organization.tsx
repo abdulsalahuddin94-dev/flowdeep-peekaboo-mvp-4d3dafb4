@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch } from "lucide-react";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
-import { useTags, useProjects, useCalendars, useJobRoles } from "@/lib/projects-store";
+import { useTags, useProjects, useCalendars, useJobRoles, useApprovals } from "@/lib/projects-store";
+import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
@@ -288,6 +289,7 @@ const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function CalendarsTab() {
   const { calendars, removeCalendar, pendingCalendarIds } = useCalendars();
+  const { approvals } = useApprovals();
   const { projects } = useProjects();
   const [editing, setEditing] = useState<WorkCalendar | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -312,6 +314,9 @@ function CalendarsTab() {
         {calendars.map((c) => {
           const linked = projects.filter((p) => p.calendarId === c.id);
           const pending = pendingCalendarIds.includes(c.id);
+          const decided = approvals.find(
+            (a) => a.type === "calendar-change" && a.ref === c.name && a.status !== "pending",
+          );
           return (
           <div key={c.id} className="glass-card p-4">
             <div className="flex items-start justify-between gap-2">
@@ -354,6 +359,7 @@ function CalendarsTab() {
                 {linked.slice(0, 3).map((p) => p.name).join(" · ")}{linked.length > 3 ? ` +${linked.length - 3} more` : ""}
               </div>
             )}
+            {!pending && decided && <ApprovalOutcomeBanner request={decided} className="mt-2" />}
           </div>
           );
         })}

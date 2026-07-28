@@ -330,9 +330,12 @@ export function BaselineHeader<TSnapshot>({
     setCrDialogOpen,
     pendingCrs,
     openApprovalDialog,
+    changeRequests,
   } = state;
+  const lastDecided = changeRequests.find((c) => c.status !== "pending");
 
   return (
+    <>
     <div className="glass-card mb-4 flex flex-wrap items-center justify-between gap-3 px-4 py-3">
       <div className="flex items-center gap-3">
         <div>
@@ -430,6 +433,52 @@ export function BaselineHeader<TSnapshot>({
         )}
       </div>
     </div>
+    {lastDecided && (
+      <div
+        className={`mb-4 rounded-lg border px-4 py-3 ${
+          lastDecided.status === "approved"
+            ? "border-rag-green/40 bg-rag-green/10"
+            : "border-rag-red/40 bg-rag-red/10"
+        }`}
+      >
+        <div
+          className={`flex items-center gap-1.5 text-xs font-medium ${
+            lastDecided.status === "approved" ? "text-rag-green" : "text-rag-red"
+          }`}
+        >
+          {lastDecided.status === "approved" ? (
+            <CheckCircle2 className="h-3.5 w-3.5" />
+          ) : (
+            <XCircle className="h-3.5 w-3.5" />
+          )}
+          Change request {lastDecided.status} · {lastDecided.changes.length} change
+          {lastDecided.changes.length === 1 ? "" : "s"} · submitted by {lastDecided.submittedBy}
+        </div>
+        <ul className="mt-1.5 space-y-1">
+          {lastDecided.approvers.map((a) => {
+            const resp = lastDecided.responses.find((r) => r.approverId === a.id);
+            if (!resp) return null;
+            return (
+              <li key={a.id} className="text-[11px]">
+                <span className="text-foreground">{a.name}</span>
+                {a.role && <span className="ml-1 text-muted-foreground">· {a.role}</span>}
+                <span
+                  className={`ml-1 ${resp.decision === "approved" ? "text-rag-green" : "text-rag-red"}`}
+                >
+                  {resp.decision === "approved" ? "Approved" : "Rejected"} · {resp.at}
+                </span>
+                {resp.note && (
+                  <div className="mt-0.5 rounded bg-background/40 px-1.5 py-1 text-[10px] text-muted-foreground">
+                    Reason: {resp.note}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    )}
+    </>
   );
 }
 
@@ -576,10 +625,8 @@ export function TabApprovalDialog<TSnapshot>({
             {cr.approvers.map((a) => {
               const resp = cr.responses.find((r) => r.approverId === a.id);
               return (
-                <div
-                  key={a.id}
-                  className="flex items-center justify-between text-xs"
-                >
+                <div key={a.id} className="text-xs">
+                <div className="flex items-center justify-between">
                   <span className="text-foreground">
                     {a.name}
                     {a.role && (
@@ -603,6 +650,12 @@ export function TabApprovalDialog<TSnapshot>({
                       Pending
                     </Badge>
                   )}
+                </div>
+                {resp?.note && (
+                  <div className="mt-1 rounded bg-background/40 px-1.5 py-1 text-[10px] text-muted-foreground">
+                    Reason: {resp.note}
+                  </div>
+                )}
                 </div>
               );
             })}

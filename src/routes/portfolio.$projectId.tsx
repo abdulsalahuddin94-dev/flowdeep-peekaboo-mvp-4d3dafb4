@@ -21,6 +21,7 @@ import type { Rag } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
 import { toast } from "sonner";
+import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress } from "@/components/ProjectSchedule";
 import {
@@ -986,6 +987,9 @@ function ProjectDetail() {
         onApprove={(name) =>
           setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, approvalStatus: "approved" } : m)))
         }
+        onRejectApproval={(name) =>
+          setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, approvalStatus: "rejected" } : m)))
+        }
       />
       <StageGatesDialog open={stageGateOpen} onOpenChange={setStageGateOpen} gateData={gateData} setGateData={setGateData} />
       <DependencyDialog
@@ -1453,7 +1457,7 @@ const SEED_PACKAGES: TenderPackage[] = [
 
 // ── Progress Update dialog (shown when the Progress KPI is clicked) ─────────
 function ProgressUpdateDialog({
-  open, onOpenChange, items, onSetProgress, onRequestApproval, onApprove, initialTaskName, scopeMilestone,
+  open, onOpenChange, items, onSetProgress, onRequestApproval, onApprove, onRejectApproval, initialTaskName, scopeMilestone,
   projectBaseline, setProjectBaseline, projectBaselineVersions, setProjectBaselineVersions,
   milestones, resourceRequests, setCrDialogOpen, projectId, projectName,
 }: {
@@ -1463,6 +1467,7 @@ function ProgressUpdateDialog({
   onSetProgress: (name: string, progress: number) => void;
   onRequestApproval: (name: string) => void;
   onApprove: (name: string) => void;
+  onRejectApproval: (name: string) => void;
   initialTaskName?: string;
   scopeMilestone?: string;
   projectBaseline: { version: number; createdAt: string; isLocked: boolean; snapshot: Milestone[] } | null;
@@ -1595,6 +1600,9 @@ function ProgressUpdateDialog({
   useEffect(() => {
     if (gateRequest?.status === "approved" && approvalMilestone && approvalMilestone.approvalStatus !== "approved") {
       onApprove(approvalMilestone.name);
+    }
+    if (gateRequest?.status === "rejected" && approvalMilestone && approvalMilestone.approvalStatus !== "rejected") {
+      onRejectApproval(approvalMilestone.name);
     }
   }, [gateRequest?.status, approvalMilestone?.name, approvalMilestone?.approvalStatus]);
 
@@ -1769,18 +1777,23 @@ function ProgressUpdateDialog({
                     ) : (
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="text-[11px] font-medium text-rag-green">
-                          All tasks complete — Approval Task unlocked
+                          {approvalMilestone.approvalStatus === "rejected"
+                            ? "Rejected — you can revise and re-submit"
+                            : "All tasks complete — Approval Task unlocked"}
                         </span>
                         <Button
                           size="sm"
                           className="h-7 px-2.5 text-[11px] bg-accent text-accent-foreground hover:bg-accent/90"
                           onClick={saveAndRequestApproval}
                         >
-                          Send Approval Request
+                          {approvalMilestone.approvalStatus === "rejected" ? "Re-send Approval Request" : "Send Approval Request"}
                         </Button>
                       </div>
                     )}
                   </div>
+                )}
+                {gateRequest && (
+                  <ApprovalOutcomeBanner request={gateRequest} className="mb-2.5" />
                 )}
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-medium text-foreground">
@@ -1793,6 +1806,7 @@ function ProgressUpdateDialog({
                   }`}>
                     {approvalMilestone.approvalStatus === "approved" ? "Approved"
                       : approvalMilestone.approvalStatus === "pending" ? "Pending"
+                      : approvalMilestone.approvalStatus === "rejected" ? "Rejected"
                       : "Not requested"}
                   </span>
                 </div>

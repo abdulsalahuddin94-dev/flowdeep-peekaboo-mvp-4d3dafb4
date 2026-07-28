@@ -348,15 +348,15 @@ function ProjectGrid({ items, onOpen, pendingByProject }: { items: Project[]; on
         <button
           key={p.id}
           onClick={() => onOpen(p)}
-          className={cn("glass-card group flex flex-col p-4 text-left", pending > 0 && "ring-1 ring-rag-amber/40")}
+          className="glass-card group flex flex-col p-4 text-left"
         >
           <div className="flex items-start justify-between gap-2">
             <RagBadge rag={p.rag} />
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{p.stage}</span>
+            <div className="flex items-center gap-1.5">
+              <PendingApprovalsChip count={pending} projectName={p.name} />
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{p.stage}</span>
+            </div>
           </div>
-          {pending > 0 && (
-            <div className="mt-2"><PendingApprovalsChip count={pending} projectName={p.name} /></div>
-          )}
           <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">{p.name}</h3>
           <div className="mt-1 text-xs text-muted-foreground">{p.businessLine} · {p.department}</div>
           <div className="mt-3">

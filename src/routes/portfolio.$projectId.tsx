@@ -1510,8 +1510,11 @@ function ProgressUpdateDialog({
   const currentPlanned = current ? computePlannedProgress(current.startDate, current.endDate) : 0;
   // Find the ancestor milestone (if any) that requires approval for `current`.
   const approvalMilestone = useMemo(() => {
-    if (!current) return null as Milestone | null;
     const byName = new Map(items.map((i) => [i.name, i]));
+    if (!current) {
+      const scoped = scopeMilestone ? byName.get(scopeMilestone) : undefined;
+      return scoped?.requiresApproval ? scoped : (null as Milestone | null);
+    }
     let cur: Milestone | undefined = current;
     const seen = new Set<string>();
     while (cur?.parent && !seen.has(cur.parent)) {
@@ -1521,8 +1524,15 @@ function ProgressUpdateDialog({
       seen.add(cur.parent);
       cur = p;
     }
-    return null;
-  }, [current, items]);
+    const scoped = scopeMilestone ? byName.get(scopeMilestone) : undefined;
+    return scoped?.requiresApproval ? scoped : null;
+  }, [current, items, scopeMilestone]);
+
+  // Synthetic approval gate task belonging to that milestone (shown read-only in the picker).
+  const gateTask = useMemo(
+    () => (approvalMilestone ? items.find((i) => i.isApprovalTask && i.parent === approvalMilestone.name) ?? null : null),
+    [items, approvalMilestone],
+  );
 
   // Every leaf task that rolls up into that milestone.
   const approvalLeaves = useMemo(() => {
@@ -1649,6 +1659,12 @@ function ProgressUpdateDialog({
                     {t.name}
                   </SelectItem>
                 ))}
+                {gateTask && (
+                  <SelectItem key={gateTask.name} value={gateTask.name} disabled>
+                    <span className="text-rag-amber">🔒 {gateTask.name}</span>
+                    <span className="ml-1 text-muted-foreground text-[10px]">(approver-only)</span>
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
             {current && (

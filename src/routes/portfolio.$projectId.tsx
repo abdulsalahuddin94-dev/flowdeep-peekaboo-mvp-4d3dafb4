@@ -343,15 +343,17 @@ function ProjectDetail() {
       decisions.push({ name: m.name, status: central.status });
     }
     if (!decisions.length) return;
-    setMilestones((prev) =>
-      prev.map((m) => {
+    setMilestones((prev) => {
+      let next = prev.map((m) => {
         const d = decisions.find((x) => x.name === m.name);
         if (!d) return m;
         return d.status === "approved"
           ? { ...m, approvalStatus: "approved" as const, progress: 100 }
           : { ...m, approvalStatus: "rejected" as const };
-      }),
-    );
+      });
+      for (const d of decisions) if (d.status === "approved") next = completeMilestoneSubtree(next, d.name);
+      return next;
+    });
     for (const d of decisions) {
       if (d.status === "approved") toast.success(`✅ ${d.name} approved — milestone completed (100%)`);
       else toast.error(`${d.name} approval rejected`);
@@ -1057,7 +1059,12 @@ function ProjectDetail() {
           setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, approvalStatus: "pending" } : m)))
         }
         onApprove={(name) =>
-          setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, approvalStatus: "approved" } : m)))
+          setMilestones((prev) =>
+            completeMilestoneSubtree(
+              prev.map((m) => (m.name === name ? { ...m, approvalStatus: "approved" as const, progress: 100 } : m)),
+              name,
+            ),
+          )
         }
         onRejectApproval={(name) =>
           setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, approvalStatus: "rejected" } : m)))
@@ -2386,6 +2393,22 @@ function minISO(arr: (string | undefined)[]): string | undefined {
   return v.slice().sort()[0];
 }
 export const APPROVAL_TASK_PREFIX = "Approval — ";
+
+// When a milestone gate is approved, every task underneath it is considered delivered.
+function completeMilestoneSubtree(items: Milestone[], milestoneName: string): Milestone[] {
+  const names = new Set<string>([milestoneName]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const it of items) {
+      if (it.parent && names.has(it.parent) && !names.has(it.name)) {
+        names.add(it.name);
+        changed = true;
+      }
+    }
+  }
+  return items.map((m) => (names.has(m.name) ? { ...m, progress: 100 } : m));
+}
 
 function computeDerivedSchedule(items: Milestone[], reqs: ResourceRequest[]): Milestone[] {
   const base = items.map((it) => ({ ...it }));

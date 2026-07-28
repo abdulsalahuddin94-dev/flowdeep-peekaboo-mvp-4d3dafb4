@@ -111,6 +111,7 @@ function ProjectDetail() {
   const { addNotification } = useNotifications();
   const { addRfp } = useRfps();
   const { addResourceRequest, resourceRequests } = useResourceRequests();
+  const { addApprovalRequest: addProjectApproval, currentUser: approvalUser } = useApprovals();
   const { jobRoles } = useJobRoles();
   const project = liveProjects.find((p) => p.id === loaderProject.id) ?? loaderProject;
   const [reportOpen, setReportOpen] = useState(false);
@@ -812,6 +813,18 @@ function ProjectDetail() {
               setCrDialogOpen(false);
               setPlanEditMode("pending");
               setEditBaselineSnapshot(null);
+              addProjectApproval({
+                type: "change-request",
+                projectId: project.id,
+                projectName: project.name,
+                ref: cr.id,
+                title: `Baseline change request ${cr.id} — Project Schedule`,
+                requestedBy: approvalUser.name,
+                summary: cr.changes.map((c) => ({ label: c.field, before: c.oldValue, after: c.newValue })),
+                approvers: DEFAULT_PROJECT_APPROVERS.map((a) => ({
+                  id: a.id, name: a.name, role: a.role, department: a.department, decision: "pending" as const,
+                })),
+              });
               toast.success(`Change Request ${cr.id} submitted for approval`);
             }}
           />

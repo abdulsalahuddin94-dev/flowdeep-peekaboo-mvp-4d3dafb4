@@ -287,11 +287,16 @@ function AddTagDialog() {
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function CalendarsTab() {
-  const { calendars, removeCalendar } = useCalendars();
+  const { calendars, removeCalendar, pendingCalendarIds } = useCalendars();
+  const { projects } = useProjects();
   const [editing, setEditing] = useState<WorkCalendar | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
   function deleteCalendar(calendar: WorkCalendar) {
+    if (projects.some((p) => p.calendarId === calendar.id)) {
+      toast.error("Calendar is linked to active projects — unlink them first");
+      return;
+    }
     removeCalendar(calendar.id);
     toast.success(`Calendar "${calendar.name}" deleted`);
   }
@@ -300,11 +305,14 @@ function CalendarsTab() {
     <>
       <SectionHeader
         title="Calendars"
-        desc="Define working days, daily hours and official holidays per country/region. Link a calendar when creating a project."
+        desc="Define working days, daily hours and official holidays per country/region. Calendars linked to projects are baselined — edits go through a change request."
         cta={<Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {calendars.map((c) => (
+        {calendars.map((c) => {
+          const linked = projects.filter((p) => p.calendarId === c.id);
+          const pending = pendingCalendarIds.includes(c.id);
+          return (
           <div key={c.id} className="glass-card p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -315,10 +323,25 @@ function CalendarsTab() {
                 <Button aria-label={`Edit ${c.name}`} size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:!bg-accent/15 hover:!text-accent" onClick={() => setEditing(c)}>
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
-                <Button aria-label={`Delete ${c.name}`} size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red" onClick={() => deleteCalendar(c)}>
+                <Button aria-label={`Delete ${c.name}`} size="icon" variant="ghost" disabled={linked.length > 0} className="h-7 w-7 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red" onClick={() => deleteCalendar(c)}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 rounded-md bg-secondary/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                <Link2 className="h-3 w-3" />{linked.length} linked project{linked.length === 1 ? "" : "s"}
+              </span>
+              {linked.length > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-accent-dim px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                  <Lock className="h-3 w-3" />Baselined
+                </span>
+              )}
+              {pending && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-rag-amber/15 px-1.5 py-0.5 text-[10px] font-medium text-rag-amber">
+                  <Clock className="h-3 w-3" />Change request pending
+                </span>
+              )}
             </div>
             <div className="mt-3 flex flex-wrap gap-1">
               {DAY_LABELS.map((d, i) => (
@@ -326,8 +349,14 @@ function CalendarsTab() {
               ))}
             </div>
             <div className="mt-2 text-xs text-muted-foreground">{c.hoursPerDay}h/day · {c.holidays.length} holiday{c.holidays.length === 1 ? "" : "s"}</div>
+            {linked.length > 0 && (
+              <div className="mt-2 truncate text-[11px] text-muted-foreground/80" title={linked.map((p) => p.name).join(", ")}>
+                {linked.slice(0, 3).map((p) => p.name).join(" · ")}{linked.length > 3 ? ` +${linked.length - 3} more` : ""}
+              </div>
+            )}
           </div>
-        ))}
+          );
+        })}
       </div>
       <CalendarDialog open={createOpen} onOpenChange={setCreateOpen} />
       {editing && <CalendarDialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)} calendar={editing} />}

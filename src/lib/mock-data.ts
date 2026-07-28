@@ -89,6 +89,9 @@ export const projects: Project[] = seed.map((row, i) => {
     tags: [tags[i % tags.length], tags[(i + 2) % tags.length]],
     client: i % 3 === 0 ? "ACME Energy" : i % 3 === 1 ? "Northwind Logistics" : "Internal",
     ragNote,
+    // Every project is bound to a working calendar so calendar edits always
+    // have a visible downstream impact.
+    calendarId: ["cal-eg", "cal-sa", "cal-intl"][i % 3],
   };
 });
 

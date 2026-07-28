@@ -27,7 +27,7 @@ export type ApprovalApprover = {
 
 export type ApprovalRequest = {
   id: string;
-  type: "milestone-gate" | "change-request";
+  type: "milestone-gate" | "change-request" | "calendar-change";
   projectId: string;
   projectName: string;
   /** Milestone name or Change Request id. */
@@ -133,6 +133,27 @@ const SEED_APPROVALS: ApprovalRequest[] = [
       { id: "u-sara", name: "Sara Al-Rashid", role: "Director", department: "Engineering", decision: "rejected", decidedAt: "2026-07-13", comment: "Two acceptance defects still open." },
     ],
     status: "rejected",
+    reminders: 0,
+  },
+  {
+    id: "AP-1026",
+    type: "calendar-change",
+    projectId: "p-001",
+    projectName: "9 linked projects",
+    ref: "Egypt — Standard",
+    title: "Calendar change request — Egypt — Standard",
+    requestedBy: "Aisha Khoury",
+    requestedAt: "2026-07-27",
+    summary: [
+      { label: "Holiday · 2026-08-13", before: "—", after: "Eid Al-Adha (extended)" },
+      { label: "Hours / day", before: "8h", after: "7.5h" },
+      { label: "Impacted projects", after: "ERP System Upgrade, Smart Grid Pilot, Data Lake Foundation, +6 more" },
+    ],
+    approvers: [
+      { id: "u-aisha", name: "Aisha Khoury", role: "Portfolio Director", department: "PMO", decision: "pending" },
+      { id: "u-sara", name: "Sara Al-Rashid", role: "Director", department: "Engineering", decision: "pending" },
+    ],
+    status: "pending",
     reminders: 0,
   },
 ];
@@ -241,6 +262,8 @@ type AppContextValue = {
   addApprovalRequest: (r: Omit<ApprovalRequest, "id" | "status" | "requestedAt" | "reminders">) => string;
   decideApproval: (id: string, approverId: string, decision: Exclude<ApprovalDecision, "pending">, comment?: string) => void;
   remindApproval: (id: string) => void;
+  submitCalendarChangeRequest: (calendarId: string, patch: Partial<WorkCalendar>, summary: { label: string; before?: string; after?: string }[]) => string | null;
+  pendingCalendarIds: string[];
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -257,6 +280,8 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   const [jobRoles, setJobRoles] = useState<JobRole[]>(SEED_JOB_ROLES);
   const [currentUserId, setCurrentUserId] = useState<string>("u-aisha");
   const [approvals, setApprovals] = useState<ApprovalRequest[]>(SEED_APPROVALS);
+  // approvalId -> queued calendar patch, applied only once fully approved
+  const [pendingCalendarPatches, setPendingCalendarPatches] = useState<Record<string, { calendarId: string; patch: Partial<WorkCalendar> }>>({});
 
   const currentUser = APP_USERS.find((u) => u.id === currentUserId) ?? APP_USERS[0];
 
@@ -277,6 +302,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   }
 
   function decideApproval(id: string, approverId: string, decision: Exclude<ApprovalDecision, "pending">, comment?: string) {
+    let finalStatus: ApprovalDecision = "pending";
     setApprovals((prev) => prev.map((a) => {
       if (a.id !== id) return a;
       const approvers = a.approvers.map((ap) => ap.id === approverId
@@ -286,9 +312,64 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
         approvers.some((ap) => ap.decision === "rejected") ? "rejected"
         : approvers.every((ap) => ap.decision === "approved") ? "approved"
         : "pending";
+      finalStatus = status;
       return { ...a, approvers, status };
     }));
+    // Calendar change requests are applied to the org calendar only once approved.
+    const queued = pendingCalendarPatches[id];
+    if (queued && finalStatus !== "pending") {
+      if (finalStatus === "approved") {
+        setCalendars((prev) => prev.map((c) => c.id === queued.calendarId ? { ...c, ...queued.patch } : c));
+      }
+      setPendingCalendarPatches((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    }
   }
+
+  function submitCalendarChangeRequest(
+    calendarId: string,
+    patch: Partial<WorkCalendar>,
+    summary: { label: string; before?: string; after?: string }[],
+  ) {
+    const cal = calendars.find((c) => c.id === calendarId);
+    if (!cal) return null;
+    const affected = projects.filter((p) => p.calendarId === calendarId);
+    const pmApprovers = Array.from(new Set(affected.map((p) => p.pm)))
+      .map((name) => APP_USERS.find((u) => u.name === name))
+      .filter((u): u is AppUser => !!u && u.id !== "u-aisha")
+      .slice(0, 2);
+    const approvers: ApprovalApprover[] = [
+      { id: "u-aisha", name: "Aisha Khoury", role: "Portfolio Director", department: "PMO", decision: "pending" },
+      ...pmApprovers.map((u) => ({ id: u.id, name: u.name, role: u.role, department: u.department, decision: "pending" as const })),
+    ];
+    const id = addApprovalRequest({
+      type: "calendar-change",
+      projectId: affected[0]?.id ?? "",
+      projectName: affected.length
+        ? `${affected.length} linked project${affected.length === 1 ? "" : "s"}`
+        : "No linked projects",
+      ref: cal.name,
+      title: `Calendar change request — ${cal.name}`,
+      requestedBy: currentUser.name,
+      summary: [
+        ...summary,
+        { label: "Impacted projects", after: affected.map((p) => p.name).join(", ") || "None" },
+      ],
+      approvers,
+    });
+    setPendingCalendarPatches((prev) => ({ ...prev, [id]: { calendarId, patch } }));
+    return id;
+  }
+
+  const pendingCalendarIds = useMemo(() => {
+    const pendingIds = new Set(approvals.filter((a) => a.status === "pending").map((a) => a.id));
+    return Object.entries(pendingCalendarPatches)
+      .filter(([apId]) => pendingIds.has(apId))
+      .map(([, v]) => v.calendarId);
+  }, [approvals, pendingCalendarPatches]);
 
   function remindApproval(id: string) {
     setApprovals((prev) => prev.map((a) => a.id === id ? { ...a, reminders: a.reminders + 1 } : a));
@@ -372,6 +453,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       jobRoles, addJobRole, updateJobRole, removeJobRole,
       currentUser, setCurrentUserId,
       approvals, addApprovalRequest, decideApproval, remindApproval,
+      submitCalendarChangeRequest, pendingCalendarIds,
     }}>
       {children}
     </AppContext.Provider>
@@ -409,8 +491,8 @@ export function useTags() {
 }
 
 export function useCalendars() {
-  const { calendars, addCalendar, updateCalendar, removeCalendar } = useAppContext();
-  return { calendars, addCalendar, updateCalendar, removeCalendar };
+  const { calendars, addCalendar, updateCalendar, removeCalendar, submitCalendarChangeRequest, pendingCalendarIds } = useAppContext();
+  return { calendars, addCalendar, updateCalendar, removeCalendar, submitCalendarChangeRequest, pendingCalendarIds };
 }
 
 export function useJobRoles() {

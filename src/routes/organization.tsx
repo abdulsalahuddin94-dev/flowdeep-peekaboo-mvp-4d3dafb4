@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch } from "lucide-react";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
 import { useTags, useProjects, useCalendars, useJobRoles } from "@/lib/projects-store";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,7 +29,7 @@ function OrganizationPage() {
       <PageHeader title="Organization" subtitle="Define internal structure — required before projects can be created" />
       <Tabs defaultValue="business-lines">
         <TabsList>
-          <TabsTrigger value="business-lines">Business Types</TabsTrigger>
+          <TabsTrigger value="business-lines">Project Types</TabsTrigger>
           <TabsTrigger value="departments">Departments</TabsTrigger>
           <TabsTrigger value="tags">Tags & Classifications</TabsTrigger>
           <TabsTrigger value="cost-categories">Cost Categories</TabsTrigger>
@@ -38,7 +38,7 @@ function OrganizationPage() {
         </TabsList>
 
         <TabsContent value="business-lines" className="mt-5">
-          <SectionHeader title="Business Types" desc="High-level project categories (such as business lines) used across Portfolio filters."
+          <SectionHeader title="Project Types" desc="High-level project categories used across Portfolio filters."
             cta={<AddBusinessLineDialog />} />
           <div className="">
             <Table>
@@ -155,9 +155,9 @@ function AddBusinessLineDialog() {
   const [open, setOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Business Type</Button></DialogTrigger>
+      <DialogTrigger asChild><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Project Type</Button></DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>New Business Type</DialogTitle><DialogDescription>High-level category (such as business lines). Used as filter chips in Portfolio and as color tag on cards.</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>New Project Type</DialogTitle><DialogDescription>High-level category used as filter chips in Portfolio and as a color tag on cards.</DialogDescription></DialogHeader>
         <div className="space-y-3">
           <div><Label>Name</Label><Input placeholder="e.g. Renewables" /></div>
           <div><Label>Description</Label><Textarea placeholder="Brief description" /></div>
@@ -165,7 +165,7 @@ function AddBusinessLineDialog() {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={() => { toast.success("Business Type created"); setOpen(false); }}>Save</Button>
+          <Button className="bg-accent text-accent-foreground" onClick={() => { toast.success("Project Type created"); setOpen(false); }}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -287,11 +287,16 @@ function AddTagDialog() {
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function CalendarsTab() {
-  const { calendars, removeCalendar } = useCalendars();
+  const { calendars, removeCalendar, pendingCalendarIds } = useCalendars();
+  const { projects } = useProjects();
   const [editing, setEditing] = useState<WorkCalendar | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
   function deleteCalendar(calendar: WorkCalendar) {
+    if (projects.some((p) => p.calendarId === calendar.id)) {
+      toast.error("Calendar is linked to active projects — unlink them first");
+      return;
+    }
     removeCalendar(calendar.id);
     toast.success(`Calendar "${calendar.name}" deleted`);
   }
@@ -300,11 +305,14 @@ function CalendarsTab() {
     <>
       <SectionHeader
         title="Calendars"
-        desc="Define working days, daily hours and official holidays per country/region. Link a calendar when creating a project."
+        desc="Define working days, daily hours and official holidays per country/region. Calendars linked to projects are baselined — edits go through a change request."
         cta={<Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {calendars.map((c) => (
+        {calendars.map((c) => {
+          const linked = projects.filter((p) => p.calendarId === c.id);
+          const pending = pendingCalendarIds.includes(c.id);
+          return (
           <div key={c.id} className="glass-card p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -315,10 +323,25 @@ function CalendarsTab() {
                 <Button aria-label={`Edit ${c.name}`} size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:!bg-accent/15 hover:!text-accent" onClick={() => setEditing(c)}>
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
-                <Button aria-label={`Delete ${c.name}`} size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red" onClick={() => deleteCalendar(c)}>
+                <Button aria-label={`Delete ${c.name}`} size="icon" variant="ghost" disabled={linked.length > 0} className="h-7 w-7 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red" onClick={() => deleteCalendar(c)}>
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 rounded-md bg-secondary/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                <Link2 className="h-3 w-3" />{linked.length} linked project{linked.length === 1 ? "" : "s"}
+              </span>
+              {linked.length > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-accent-dim px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                  <Lock className="h-3 w-3" />Baselined
+                </span>
+              )}
+              {pending && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-rag-amber/15 px-1.5 py-0.5 text-[10px] font-medium text-rag-amber">
+                  <Clock className="h-3 w-3" />Change request pending
+                </span>
+              )}
             </div>
             <div className="mt-3 flex flex-wrap gap-1">
               {DAY_LABELS.map((d, i) => (
@@ -326,8 +349,14 @@ function CalendarsTab() {
               ))}
             </div>
             <div className="mt-2 text-xs text-muted-foreground">{c.hoursPerDay}h/day · {c.holidays.length} holiday{c.holidays.length === 1 ? "" : "s"}</div>
+            {linked.length > 0 && (
+              <div className="mt-2 truncate text-[11px] text-muted-foreground/80" title={linked.map((p) => p.name).join(", ")}>
+                {linked.slice(0, 3).map((p) => p.name).join(" · ")}{linked.length > 3 ? ` +${linked.length - 3} more` : ""}
+              </div>
+            )}
           </div>
-        ))}
+          );
+        })}
       </div>
       <CalendarDialog open={createOpen} onOpenChange={setCreateOpen} />
       {editing && <CalendarDialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)} calendar={editing} />}
@@ -336,8 +365,13 @@ function CalendarsTab() {
 }
 
 function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpenChange: (v: boolean) => void; calendar?: WorkCalendar }) {
-  const { addCalendar, updateCalendar } = useCalendars();
+  const { addCalendar, updateCalendar, submitCalendarChangeRequest, pendingCalendarIds } = useCalendars();
+  const { projects } = useProjects();
   const isEdit = !!calendar;
+  const linked = calendar ? projects.filter((p) => p.calendarId === calendar.id) : [];
+  const needsCr = isEdit && linked.length > 0;
+  const crPending = !!calendar && pendingCalendarIds.includes(calendar.id);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [name, setName] = useState(calendar?.name ?? "");
   const [workingDays, setWorkingDays] = useState<number[]>(calendar?.workingDays ?? [1, 2, 3, 4, 5]);
   const [hoursPerDay, setHoursPerDay] = useState<number>(calendar?.hoursPerDay ?? 8);
@@ -346,6 +380,25 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
   const [newLabel, setNewLabel] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
   const holidayDates = holidays.map((h) => parseISO(h.date));
+
+  const diffs = (() => {
+    if (!calendar) return [];
+    const out: { label: string; before?: string; after?: string }[] = [];
+    if (name.trim() !== calendar.name) out.push({ label: "Calendar name", before: calendar.name, after: name.trim() });
+    const dayStr = (d: number[]) => d.slice().sort().map((i) => DAY_LABELS[i]).join(", ") || "None";
+    if (dayStr(workingDays) !== dayStr(calendar.workingDays)) out.push({ label: "Working days", before: dayStr(calendar.workingDays), after: dayStr(workingDays) });
+    if (hoursPerDay !== calendar.hoursPerDay) out.push({ label: "Hours / day", before: `${calendar.hoursPerDay}h`, after: `${hoursPerDay}h` });
+    const before = new Map(calendar.holidays.map((h) => [h.date, h.label]));
+    const after = new Map(holidays.map((h) => [h.date, h.label]));
+    for (const [date, label] of after) {
+      if (!before.has(date)) out.push({ label: `Holiday · ${date}`, before: "—", after: label });
+      else if (before.get(date) !== label) out.push({ label: `Holiday · ${date}`, before: before.get(date), after: label });
+    }
+    for (const [date, label] of before) {
+      if (!after.has(date)) out.push({ label: `Holiday · ${date}`, before: label, after: "Removed" });
+    }
+    return out;
+  })();
 
   function toggleDay(d: number) {
     setWorkingDays((prev) => prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d].sort());
@@ -364,6 +417,11 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
     if (!name.trim()) { toast.error("Calendar name is required"); return; }
     if (workingDays.length === 0) { toast.error("Select at least one working day"); return; }
     if (isEdit && calendar) {
+      if (needsCr) {
+        if (diffs.length === 0) { toast.info("No changes to submit"); return; }
+        setReviewOpen(true);
+        return;
+      }
       updateCalendar(calendar.id, { name: name.trim(), workingDays, hoursPerDay, holidays });
       toast.success("Calendar updated");
     } else {
@@ -373,13 +431,32 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
     onOpenChange(false);
   }
 
+  function submitCr() {
+    if (!calendar) return;
+    submitCalendarChangeRequest(calendar.id, { name: name.trim(), workingDays, hoursPerDay, holidays }, diffs);
+    setReviewOpen(false);
+    onOpenChange(false);
+    toast.success("Change request submitted — pending approval", { description: "Track it in Approvals. The calendar updates once approved." });
+  }
+
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Calendar" : "New Calendar"}</DialogTitle>
           <DialogDescription>Working schedule and official holidays. Projects can be bound to this calendar for scheduling.</DialogDescription>
         </DialogHeader>
+        {needsCr && (
+          <div className={`flex items-start gap-2 rounded-lg border p-3 text-xs ${crPending ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber" : "border-accent/30 bg-accent-dim text-accent"}`}>
+            {crPending ? <Clock className="mt-0.5 h-4 w-4 shrink-0" /> : <Lock className="mt-0.5 h-4 w-4 shrink-0" />}
+            <div>
+              {crPending
+                ? <>A change request for this calendar is already pending approval. New edits can still be submitted, but they queue behind the current request.</>
+                : <>This calendar is baselined — <strong>{linked.length} project{linked.length === 1 ? "" : "s"}</strong> depend on it. Your edits are submitted as a change request and applied only after approval.</>}
+            </div>
+          </div>
+        )}
         <div className="space-y-4">
           <div className="grid grid-cols-[1fr_auto] gap-3">
             <div>
@@ -464,10 +541,45 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={save}>{isEdit ? "Save changes" : "Create Calendar"}</Button>
+          <Button className="bg-accent text-accent-foreground" onClick={save}>
+            {needsCr ? <><GitBranch className="mr-1.5 h-4 w-4" />Review change request{diffs.length ? ` (${diffs.length})` : ""}</> : isEdit ? "Save changes" : "Create Calendar"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Review change request</DialogTitle>
+          <DialogDescription>
+            {diffs.length} change{diffs.length === 1 ? "" : "s"} to “{calendar?.name}” · impacts {linked.length} project{linked.length === 1 ? "" : "s"} schedule{linked.length === 1 ? "" : "s"}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="max-h-[45vh] overflow-auto rounded-lg border border-border">
+          <Table>
+            <TableHeader><TableRow className="hover:bg-transparent"><TableHead>Field</TableHead><TableHead>Before</TableHead><TableHead>After</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {diffs.map((d) => (
+                <TableRow key={d.label}>
+                  <TableCell className="font-medium text-foreground">{d.label}</TableCell>
+                  <TableCell className="text-muted-foreground line-through">{d.before ?? "—"}</TableCell>
+                  <TableCell className="text-accent">{d.after ?? "—"}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Impacted projects:</span> {linked.map((p) => p.name).join(", ")}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setReviewOpen(false)}>Cancel</Button>
+          <Button className="bg-accent text-accent-foreground" onClick={submitCr}>Submit change request</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }
 

@@ -256,7 +256,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   const [calendars, setCalendars] = useState<WorkCalendar[]>(initialCalendars);
   const [jobRoles, setJobRoles] = useState<JobRole[]>(SEED_JOB_ROLES);
   const [currentUserId, setCurrentUserId] = useState<string>("u-aisha");
-  const [approvals, setApprovals] = useState<ApprovalRequest[]>([]);
+  const [approvals, setApprovals] = useState<ApprovalRequest[]>(SEED_APPROVALS);
 
   const currentUser = APP_USERS.find((u) => u.id === currentUserId) ?? APP_USERS[0];
 

@@ -1437,7 +1437,7 @@ const SEED_PACKAGES: TenderPackage[] = [
 function ProgressUpdateDialog({
   open, onOpenChange, items, onSetProgress, onRequestApproval, onApprove, initialTaskName, scopeMilestone,
   projectBaseline, setProjectBaseline, projectBaselineVersions, setProjectBaselineVersions,
-  milestones, resourceRequests, setCrDialogOpen,
+  milestones, resourceRequests, setCrDialogOpen, projectId, projectName,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -1454,6 +1454,8 @@ function ProgressUpdateDialog({
   milestones: Milestone[];
   resourceRequests: ResourceRequest[];
   setCrDialogOpen: (v: boolean) => void;
+  projectId: string;
+  projectName: string;
 }) {
   // All leaf tasks (no children)
   const allLeaves = useMemo(

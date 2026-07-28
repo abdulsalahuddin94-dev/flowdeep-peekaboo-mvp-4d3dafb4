@@ -1659,6 +1659,12 @@ function ProgressUpdateDialog({
                     {t.name}
                   </SelectItem>
                 ))}
+                {gateTask && (
+                  <SelectItem key={gateTask.name} value={gateTask.name} disabled>
+                    <span className="text-rag-amber">🔒 {gateTask.name}</span>
+                    <span className="ml-1 text-muted-foreground text-[10px]">(approver-only)</span>
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
             {current && (

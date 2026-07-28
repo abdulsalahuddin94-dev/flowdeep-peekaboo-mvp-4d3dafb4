@@ -11,7 +11,7 @@ import {
   Activity, Users, DollarSign, GanttChartSquare, Bell, Inbox, Sparkles, Plus,
 } from "lucide-react";
 import { milestones, resources, type Rag } from "@/lib/mock-data";
-import { useProjects, useNotifications, useResourceRequests } from "@/lib/projects-store";
+import { useProjects, useNotifications, useResourceRequests, useApprovals } from "@/lib/projects-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
@@ -144,6 +144,7 @@ function DirectorView() {
 
   return (
     <div className="grid grid-cols-12 gap-4">
+      <ApprovalsWidget />
       {/* Hero KPI band */}
       <Tile className="col-span-12 lg:col-span-8" eyebrow="Portfolio Health" right={
         <Link to="/portfolio" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">

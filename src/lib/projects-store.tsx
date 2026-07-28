@@ -43,6 +43,7 @@ export type ApprovalRequest = {
 
 const SEED_JOB_ROLES: JobRole[] = [
   { id: "jr-ba",     title: "Business Analyst" },
+  { id: "jr-ba",     title: "Business Analyst" },
   { id: "jr-sa",     title: "Solution Architect" },
   { id: "jr-ux",     title: "UX Designer" },
   { id: "jr-be",     title: "Backend Dev" },

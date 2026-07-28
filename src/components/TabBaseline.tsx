@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -233,27 +233,37 @@ export function useTabBaseline<TSnapshot>({
             next.approvers.every((a) =>
               next.responses.some((r) => r.approverId === a.id && r.decision === "approved")
             );
-          if (anyReject) {
-            next.status = "rejected";
-            toast.error(`${label} change request rejected`);
-          } else if (allApproved) {
-            next.status = "approved";
-            const newVersion: BaselineVersion<TSnapshot> = {
-              version: (latestVersion?.version ?? 1) + 1,
-              createdAt: today(),
-              author: cr.submittedBy,
-              snapshot: next.pendingSnapshot,
-            };
-            setVersions((vs) => [...vs, newVersion]);
-            onCommit?.(next.pendingSnapshot);
-            toast.success(`${label} baseline updated to v${newVersion.version}`);
-          }
+          if (anyReject) next.status = "rejected";
+          else if (allApproved) next.status = "approved";
           return next;
         })
       );
     },
-    [label, latestVersion, onCommit]
+    []
   );
+
+  // Commit approved change requests → new baseline version (side effects live here,
+  // never inside a state updater, so React never drops or double-applies them).
+  const settledCrIds = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    for (const cr of changeRequests) {
+      if (cr.status === "pending" || settledCrIds.current.has(cr.id)) continue;
+      settledCrIds.current.add(cr.id);
+      if (cr.status === "rejected") {
+        toast.error(`${label} change request rejected`);
+        continue;
+      }
+      setVersions((vs) => {
+        const nextNumber = (vs[vs.length - 1]?.version ?? 0) + 1;
+        toast.success(`${label} baseline updated to v${nextNumber}`);
+        return [
+          ...vs,
+          { version: nextNumber, createdAt: today(), author: cr.submittedBy, snapshot: cr.pendingSnapshot },
+        ];
+      });
+      onCommit?.(cr.pendingSnapshot);
+    }
+  }, [changeRequests, label, onCommit]);
 
   const openApprovalDialog = (crId: string) => {
     setActiveCrId(crId);

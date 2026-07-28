@@ -532,13 +532,30 @@ function ProjectDetail() {
           { l: "Budget", v: `$${project.budgetUsed.toFixed(2)}M / $${project.budgetTotal.toFixed(1)}M` },
           { l: "Variance", v: "+4%", c: "text-rag-amber" },
           { l: "End date", v: project.endDate },
-          { l: "Open Risks", v: project.risks + project.issues, c: "text-rag-red" },
         ].map((k) => (
           <div key={k.l} className="glass-card p-3">
             <div className="label-eyebrow">{k.l}</div>
             <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
           </div>
         ))}
+        {(() => {
+          const pendingCount = centralApprovals.filter(
+            (a) => a.status === "pending" && (a.projectId === project.id || a.projectName === project.name),
+          ).length;
+          return (
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/approvals", search: { project: project.name } })}
+              className="glass-card group relative p-3 text-left transition-colors hover:border-accent/40"
+            >
+              <ArrowUpRight className="pointer-events-none absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground/60 transition-colors group-hover:text-accent" />
+              <div className="label-eyebrow">Pending Approvals</div>
+              <div className={`mt-1 text-lg font-medium num-mono ${pendingCount > 0 ? "text-rag-amber" : "text-foreground"}`}>
+                {pendingCount}
+              </div>
+            </button>
+          );
+        })()}
       </div>
 
       <Tabs defaultValue="Overview">

@@ -157,11 +157,10 @@ function AddBusinessLineDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Project Type</Button></DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>New Project Type</DialogTitle><DialogDescription>High-level category used as filter chips in Portfolio and as a color tag on cards.</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>New Project Type</DialogTitle><DialogDescription>High-level category used as filter chips in Portfolio.</DialogDescription></DialogHeader>
         <div className="space-y-3">
           <div><Label>Name</Label><Input placeholder="e.g. Renewables" /></div>
           <div><Label>Description</Label><Textarea placeholder="Brief description" /></div>
-          <div><Label>Color tag</Label><Input type="color" defaultValue="#51CAAD" className="h-10 w-20" /></div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

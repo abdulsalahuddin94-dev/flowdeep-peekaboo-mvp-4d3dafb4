@@ -17,8 +17,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { pipelineItems, resources } from "@/lib/mock-data";
-import { useProjects, useNotifications } from "@/lib/projects-store";
+import { useProjects, useNotifications, useCurrentUser } from "@/lib/projects-store";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -47,6 +50,7 @@ export function AppTopbar() {
   const navigate = useNavigate();
   const { projects } = useProjects();
   const { notifications, unreadCount, markAllRead } = useNotifications();
+  const { currentUser, setCurrentUserId, users } = useCurrentUser();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const top = "/" + (pathname.split("/")[1] ?? "");
   const label = crumbsMap[top] ?? "Workspace";
@@ -211,9 +215,21 @@ export function AppTopbar() {
           </SheetContent>
         </Sheet>
 
-        <Badge variant="outline" className="border-role-director/40 bg-role-director/10 text-[10px] text-role-director">
-          Director Mode
-        </Badge>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">View as</span>
+          <Select value={currentUser.id} onValueChange={setCurrentUserId}>
+            <SelectTrigger className="h-8 w-[190px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {users.map((u) => (
+                <SelectItem key={u.id} value={u.id} className="text-xs">
+                  {u.name} · {u.role}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <ThemeToggle />
         <SignOutButton />

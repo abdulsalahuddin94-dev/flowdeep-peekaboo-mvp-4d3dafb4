@@ -1561,9 +1561,6 @@ function ProgressUpdateDialog({
   }, [approvalMilestone, approvalLeaves, current, draftPct]);
 
   const msApproved = approvalMilestone?.approvalStatus === "approved";
-  const msPending = approvalMilestone?.approvalStatus === "pending" && allChildrenAt100;
-  const showSendApprovalBtn = !!approvalMilestone && allChildrenAt100 && !msApproved && approvalMilestone.approvalStatus !== "pending";
-
   // Demo-side tracking of which approvers signed off the Approval Task.
   const [approvedBy, setApprovedBy] = useState<string[]>([]);
   useEffect(() => { if (!open) setApprovedBy([]); }, [open]);
@@ -1587,8 +1584,8 @@ function ProgressUpdateDialog({
   }
 
   function saveAndRequestApproval() {
-    if (!current || !approvalMilestone) return;
-    onSetProgress(current.name, draftPct);
+    if (!approvalMilestone) return;
+    if (current) onSetProgress(current.name, draftPct);
     onRequestApproval(approvalMilestone.name);
     toast.success(`Approval requests sent for ${approvalMilestone.name}`);
   }
@@ -1722,6 +1719,32 @@ function ProgressUpdateDialog({
             )}
             {approvalMilestone && (
               <div className="mt-2 rounded-md border border-border bg-secondary/10 p-3">
+                {allChildrenAt100 && !msApproved && (
+                  <div className={`mb-2.5 rounded-md border px-2.5 py-2 ${
+                    approvalMilestone.approvalStatus === "pending"
+                      ? "border-rag-amber/40 bg-rag-amber/10"
+                      : "border-rag-green/40 bg-rag-green/10"
+                  }`}>
+                    {approvalMilestone.approvalStatus === "pending" ? (
+                      <div className="text-[11px] font-medium text-rag-amber">
+                        Waiting — {(approvalMilestone.approvers ?? []).filter((a) => approvedBy.includes(a.id)).length}/{(approvalMilestone.approvers ?? []).length} approved
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-[11px] font-medium text-rag-green">
+                          All tasks complete — Approval Task unlocked
+                        </span>
+                        <Button
+                          size="sm"
+                          className="h-7 px-2.5 text-[11px] bg-accent text-accent-foreground hover:bg-accent/90"
+                          onClick={saveAndRequestApproval}
+                        >
+                          Send Approval Request
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-medium text-foreground">
                     Approval Task · {approvalMilestone.name}
@@ -1788,31 +1811,13 @@ function ProgressUpdateDialog({
               onChange={(e) => setDraftPct(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
             />
             <div className="flex flex-col gap-2">
-              {msApproved ? (
-                <div className="flex items-center justify-center gap-1.5 rounded-md border border-rag-green/40 bg-rag-green/10 px-3 py-2 text-sm font-medium text-rag-green">
-                  <Check className="h-4 w-4" /> Approved
-                </div>
-              ) : msPending ? (
-                <div className="flex items-center justify-center rounded-md border border-rag-amber/40 bg-rag-amber/10 px-3 py-2 text-sm font-medium text-rag-amber">
-                  Waiting for the Approval
-                </div>
-              ) : showSendApprovalBtn ? (
-                <Button
-                  onClick={saveAndRequestApproval}
-                  disabled={!current}
-                  className="bg-accent text-accent-foreground hover:bg-accent/90"
-                >
-                  Send Approval Request
-                </Button>
-              ) : (
-                <Button
-                  onClick={save}
-                  disabled={!current}
-                  className="bg-accent text-accent-foreground hover:bg-accent/90"
-                >
-                  Save update
-                </Button>
-              )}
+              <Button
+                onClick={save}
+                disabled={!current}
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                Save update
+              </Button>
             </div>
             <p className="text-[10px] text-muted-foreground">
               Milestones can't be updated directly — their progress is rolled up from their child tasks

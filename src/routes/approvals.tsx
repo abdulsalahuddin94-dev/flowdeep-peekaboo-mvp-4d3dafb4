@@ -10,6 +10,9 @@ import {
 } from "@/components/ui/dialog";
 import { Check, X, Diamond, GitBranch, Inbox, Bell, CalendarDays } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { useApprovals, type ApprovalRequest } from "@/lib/projects-store";
 import { toast } from "sonner";
 
@@ -52,6 +55,11 @@ function ApprovalsInbox() {
     );
   }, [approvals, filter, currentUser.id, projectFilter]);
 
+  const projectNames = useMemo(
+    () => Array.from(new Set(approvals.map((a) => a.projectName).filter(Boolean))).sort(),
+    [approvals],
+  );
+
   function openDecision(a: ApprovalRequest, m: "approve" | "reject") {
     setSelected(a); setMode(m); setComment("");
   }
@@ -75,13 +83,31 @@ function ApprovalsInbox() {
         title="Approvals"
         subtitle={`Signed in as ${currentUser.name} · ${currentUser.role}`}
         actions={
-          <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)}>
-            <TabsList>
-              {(["Pending on me", "All pending", "History"] as Filter[]).map((f) => (
-                <TabsTrigger key={f} value={f} className="text-xs">{f}</TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              value={projectFilter ?? "__all"}
+              onValueChange={(v) =>
+                navigate({ to: "/approvals", search: v === "__all" ? {} : { project: v } })
+              }
+            >
+              <SelectTrigger className="h-9 w-[220px] text-xs">
+                <SelectValue placeholder="All projects" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all" className="text-xs">All projects</SelectItem>
+                {projectNames.map((n) => (
+                  <SelectItem key={n} value={n} className="text-xs">{n}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)}>
+              <TabsList>
+                {(["Pending on me", "All pending", "History"] as Filter[]).map((f) => (
+                  <TabsTrigger key={f} value={f} className="text-xs">{f}</TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
         }
       />
 

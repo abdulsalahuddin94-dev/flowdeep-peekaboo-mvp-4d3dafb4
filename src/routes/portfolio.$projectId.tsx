@@ -877,11 +877,10 @@ function ProjectDetail() {
             currentMilestones={milestones}
             baselineVersion={projectBaselineVersions.length}
             onSubmit={(cr) => {
-              setChangeRequests((prev) => [...prev, cr]);
               setCrDialogOpen(false);
               setPlanEditMode("pending");
               setEditBaselineSnapshot(null);
-              addProjectApproval({
+              const approvalId = addProjectApproval({
                 type: "change-request",
                 projectId: project.id,
                 projectName: project.name,
@@ -896,6 +895,7 @@ function ProjectDetail() {
                   decision: "pending" as const,
                 })),
               });
+              setChangeRequests((prev) => [...prev, { ...cr, approvalId }]);
               toast.success(`Change Request ${cr.id} submitted for approval`);
             }}
           />

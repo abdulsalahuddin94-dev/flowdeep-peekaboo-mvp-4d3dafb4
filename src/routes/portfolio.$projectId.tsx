@@ -1587,8 +1587,8 @@ function ProgressUpdateDialog({
   }
 
   function saveAndRequestApproval() {
-    if (!current || !approvalMilestone) return;
-    onSetProgress(current.name, draftPct);
+    if (!approvalMilestone) return;
+    if (current) onSetProgress(current.name, draftPct);
     onRequestApproval(approvalMilestone.name);
     toast.success(`Approval requests sent for ${approvalMilestone.name}`);
   }
@@ -1814,31 +1814,13 @@ function ProgressUpdateDialog({
               onChange={(e) => setDraftPct(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
             />
             <div className="flex flex-col gap-2">
-              {msApproved ? (
-                <div className="flex items-center justify-center gap-1.5 rounded-md border border-rag-green/40 bg-rag-green/10 px-3 py-2 text-sm font-medium text-rag-green">
-                  <Check className="h-4 w-4" /> Approved
-                </div>
-              ) : msPending ? (
-                <div className="flex items-center justify-center rounded-md border border-rag-amber/40 bg-rag-amber/10 px-3 py-2 text-sm font-medium text-rag-amber">
-                  Waiting for the Approval
-                </div>
-              ) : showSendApprovalBtn ? (
-                <Button
-                  onClick={saveAndRequestApproval}
-                  disabled={!current}
-                  className="bg-accent text-accent-foreground hover:bg-accent/90"
-                >
-                  Send Approval Request
-                </Button>
-              ) : (
-                <Button
-                  onClick={save}
-                  disabled={!current}
-                  className="bg-accent text-accent-foreground hover:bg-accent/90"
-                >
-                  Save update
-                </Button>
-              )}
+              <Button
+                onClick={save}
+                disabled={!current}
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                Save update
+              </Button>
             </div>
             <p className="text-[10px] text-muted-foreground">
               Milestones can't be updated directly — their progress is rolled up from their child tasks

@@ -135,6 +135,27 @@ const SEED_APPROVALS: ApprovalRequest[] = [
     status: "rejected",
     reminders: 0,
   },
+  {
+    id: "AP-1026",
+    type: "calendar-change",
+    projectId: "p-001",
+    projectName: "9 linked projects",
+    ref: "Egypt — Standard",
+    title: "Calendar change request — Egypt — Standard",
+    requestedBy: "Aisha Khoury",
+    requestedAt: "2026-07-27",
+    summary: [
+      { label: "Holiday · 2026-08-13", before: "—", after: "Eid Al-Adha (extended)" },
+      { label: "Hours / day", before: "8h", after: "7.5h" },
+      { label: "Impacted projects", after: "ERP System Upgrade, Smart Grid Pilot, Data Lake Foundation, +6 more" },
+    ],
+    approvers: [
+      { id: "u-aisha", name: "Aisha Khoury", role: "Portfolio Director", department: "PMO", decision: "pending" },
+      { id: "u-sara", name: "Sara Al-Rashid", role: "Director", department: "Engineering", decision: "pending" },
+    ],
+    status: "pending",
+    reminders: 0,
+  },
 ];
 
 const SEED_JOB_ROLES: JobRole[] = [

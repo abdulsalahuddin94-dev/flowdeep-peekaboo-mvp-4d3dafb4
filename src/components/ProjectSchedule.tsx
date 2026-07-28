@@ -241,7 +241,8 @@ const COLUMNS = [
   { key: "assignee", label: "Assignee",    w: 130 },
   { key: "roles",    label: "Roles",       w: 180 },
   { key: "status",   label: "Status",      w: 110 },
-  { key: "progress", label: "% Complete",  w: 180 },
+  { key: "actual",   label: "% Actual",    w: 130 },
+  { key: "planned",  label: "% Plan",      w: 130 },
   { key: "dep",      label: "Depends on",  w: 110 },
   { key: "payment",  label: "Financial Link",w: 160 },
 ] as const;

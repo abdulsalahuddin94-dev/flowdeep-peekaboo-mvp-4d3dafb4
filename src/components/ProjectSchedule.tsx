@@ -1439,6 +1439,35 @@ export function ProjectSchedule({
                   } as const;
                   const rc = ragColor[item.rag];
 
+                  if (item.isApprovalTask) {
+                    const approved = item.approvalStatus === "approved";
+                    const cx = x + dayWidth / 2;
+                    const cy = top + ROW_H / 2;
+                    return (
+                      <div
+                        key={item.name}
+                        title={
+                          approved
+                            ? `${item.name} · Approved`
+                            : item.approvalStatus === "pending"
+                              ? `${item.name} · Waiting for approval`
+                              : `${item.name} · Locked until all tasks reach 100%`
+                        }
+                        className="absolute flex items-center justify-center"
+                        style={{ left: cx - 9, top: cy - 9, width: 18, height: 18 }}
+                      >
+                        <div
+                          className={`absolute inset-0 rotate-45 rounded-[3px] border ${
+                            approved ? "border-rag-green/70 bg-rag-green/30" : "border-rag-amber/70 bg-rag-amber/30"
+                          }`}
+                        />
+                        <span className={`relative text-[10px] font-bold ${approved ? "text-rag-green" : "text-rag-amber"}`}>
+                          {approved ? "✓" : "!"}
+                        </span>
+                      </div>
+                    );
+                  }
+
                   if (isMs) {
                     const cx = x + dayWidth / 2;
                     const cy = top + ROW_H / 2;

@@ -1457,7 +1457,7 @@ function ProgressUpdateDialog({
 }) {
   // All leaf tasks (no children)
   const allLeaves = useMemo(
-    () => items.filter((m) => m.kind === "Task" && !items.some((c) => c.parent === m.name)),
+    () => items.filter((m) => m.kind === "Task" && !m.isApprovalTask && !items.some((c) => c.parent === m.name)),
     [items],
   );
   // When scoped to a milestone, only include leaves whose ancestor chain reaches that milestone.

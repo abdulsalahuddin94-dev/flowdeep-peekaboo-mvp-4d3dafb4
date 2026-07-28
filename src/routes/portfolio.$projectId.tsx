@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge } from "@/components/RagBadge";
@@ -114,6 +114,7 @@ function ProjectDetail() {
   const { addResourceRequest, resourceRequests } = useResourceRequests();
   const { addApprovalRequest: addProjectApproval, currentUser: approvalUser, approvals: centralApprovals } = useApprovals();
   const { jobRoles } = useJobRoles();
+  const navigate = useNavigate();
   const project = liveProjects.find((p) => p.id === loaderProject.id) ?? loaderProject;
   const [reportOpen, setReportOpen] = useState(false);
   const [teamMembers, setTeamMembers] = useState([

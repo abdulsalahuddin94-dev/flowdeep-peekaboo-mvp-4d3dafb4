@@ -97,11 +97,14 @@ function ApprovalsInbox() {
                     <span className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg ${
                       a.type === "milestone-gate" ? "bg-rag-amber/15 text-rag-amber" : "bg-accent-dim text-accent"
                     }`}>
-                      {a.type === "milestone-gate" ? <Diamond className="h-4 w-4" /> : <GitBranch className="h-4 w-4" />}
+                      {a.type === "milestone-gate" ? <Diamond className="h-4 w-4" />
+                        : a.type === "calendar-change" ? <CalendarDays className="h-4 w-4" />
+                        : <GitBranch className="h-4 w-4" />}
                     </span>
                     <div>
                       <div className="text-sm font-medium text-foreground">{a.title}</div>
                       <div className="mt-0.5 text-[11px] text-muted-foreground">
+                        {a.projectId ? (
                         <Link
                           to="/portfolio/$projectId"
                           params={{ projectId: a.projectId }}
@@ -109,7 +112,10 @@ function ApprovalsInbox() {
                         >
                           {a.projectName}
                         </Link>
-                        {" · "}{a.type === "milestone-gate" ? "Milestone completion gate" : "Baseline change request"}
+                        ) : <span>{a.projectName}</span>}
+                        {" · "}{a.type === "milestone-gate" ? "Milestone completion gate"
+                          : a.type === "calendar-change" ? "Organization calendar change"
+                          : "Baseline change request"}
                         {" · "}requested by {a.requestedBy} on {a.requestedAt}
                         {a.reminders > 0 && ` · ${a.reminders} reminder${a.reminders === 1 ? "" : "s"}`}
                       </div>

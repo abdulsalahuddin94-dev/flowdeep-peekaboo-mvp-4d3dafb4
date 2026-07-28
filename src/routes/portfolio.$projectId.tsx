@@ -112,7 +112,7 @@ function ProjectDetail() {
   const { addNotification } = useNotifications();
   const { addRfp } = useRfps();
   const { addResourceRequest, resourceRequests } = useResourceRequests();
-  const { addApprovalRequest: addProjectApproval, currentUser: approvalUser } = useApprovals();
+  const { addApprovalRequest: addProjectApproval, currentUser: approvalUser, approvals: centralApprovals } = useApprovals();
   const { jobRoles } = useJobRoles();
   const project = liveProjects.find((p) => p.id === loaderProject.id) ?? loaderProject;
   const [reportOpen, setReportOpen] = useState(false);

@@ -1600,6 +1600,9 @@ function ProgressUpdateDialog({
     if (gateRequest?.status === "approved" && approvalMilestone && approvalMilestone.approvalStatus !== "approved") {
       onApprove(approvalMilestone.name);
     }
+    if (gateRequest?.status === "rejected" && approvalMilestone && approvalMilestone.approvalStatus !== "rejected") {
+      onRejectApproval(approvalMilestone.name);
+    }
   }, [gateRequest?.status, approvalMilestone?.name, approvalMilestone?.approvalStatus]);
 
   function save() {
@@ -1773,18 +1776,23 @@ function ProgressUpdateDialog({
                     ) : (
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="text-[11px] font-medium text-rag-green">
-                          All tasks complete — Approval Task unlocked
+                          {approvalMilestone.approvalStatus === "rejected"
+                            ? "Rejected — you can revise and re-submit"
+                            : "All tasks complete — Approval Task unlocked"}
                         </span>
                         <Button
                           size="sm"
                           className="h-7 px-2.5 text-[11px] bg-accent text-accent-foreground hover:bg-accent/90"
                           onClick={saveAndRequestApproval}
                         >
-                          Send Approval Request
+                          {approvalMilestone.approvalStatus === "rejected" ? "Re-send Approval Request" : "Send Approval Request"}
                         </Button>
                       </div>
                     )}
                   </div>
+                )}
+                {gateRequest && (
+                  <ApprovalOutcomeBanner request={gateRequest} className="mb-2.5" />
                 )}
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-medium text-foreground">

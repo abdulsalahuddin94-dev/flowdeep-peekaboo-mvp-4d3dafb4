@@ -19,6 +19,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, XCircle, Send, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { useParams } from "@tanstack/react-router";
+import { useApprovals, useProjects } from "@/lib/projects-store";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -60,6 +62,8 @@ export type TabChangeRequest<TSnapshot = unknown> = {
   approvers: ApproverPick[];
   responses: ApproverResponse[];
   pendingSnapshot: TSnapshot;
+  /** Linked central Approvals Inbox request id. */
+  approvalId?: string;
 };
 
 export type BaselineVersion<TSnapshot = unknown> = {

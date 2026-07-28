@@ -1561,9 +1561,6 @@ function ProgressUpdateDialog({
   }, [approvalMilestone, approvalLeaves, current, draftPct]);
 
   const msApproved = approvalMilestone?.approvalStatus === "approved";
-  const msPending = approvalMilestone?.approvalStatus === "pending" && allChildrenAt100;
-  const showSendApprovalBtn = !!approvalMilestone && allChildrenAt100 && !msApproved && approvalMilestone.approvalStatus !== "pending";
-
   // Demo-side tracking of which approvers signed off the Approval Task.
   const [approvedBy, setApprovedBy] = useState<string[]>([]);
   useEffect(() => { if (!open) setApprovedBy([]); }, [open]);

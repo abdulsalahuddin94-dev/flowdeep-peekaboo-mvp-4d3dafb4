@@ -10,9 +10,9 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Check, ChevronRight } from "lucide-react";
+import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Check, ChevronRight, Clock } from "lucide-react";
 import { projects, pipelineItems, type Project, type Rag } from "@/lib/mock-data";
-import { useProjects, useCalendars } from "@/lib/projects-store";
+import { useProjects, useCalendars, useApprovals } from "@/lib/projects-store";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -83,6 +83,17 @@ function AllProjectsTab({ restrict, projectList }: { restrict?: boolean; project
   const [deptFilter, setDeptFilter] = useState("");
   const [clientFilter, setClientFilter] = useState("");
 
+  const { approvals } = useApprovals();
+  const pendingByProject = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const a of approvals) {
+      if (a.status !== "pending") continue;
+      m.set(a.projectName, (m.get(a.projectName) ?? 0) + 1);
+    }
+    return m;
+  }, [approvals]);
+  const [onlyPending, setOnlyPending] = useState(false);
+
   const activeCount = ragFilter.length + stageFilter.length + tagFilter.length + (deptFilter ? 1 : 0) + (clientFilter ? 1 : 0);
 
   const list = useMemo(() => {
@@ -95,14 +106,18 @@ function AllProjectsTab({ restrict, projectList }: { restrict?: boolean; project
     if (tagFilter.length > 0) l = l.filter((p) => p.tags.some((t) => tagFilter.includes(t)));
     if (deptFilter) l = l.filter((p) => p.department === deptFilter);
     if (clientFilter) l = l.filter((p) => p.client === clientFilter);
+    if (onlyPending) l = l.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
     return l;
-  }, [projectList, line, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter]);
+  }, [projectList, line, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, onlyPending, pendingByProject]);
+
+  const projectsAwaiting = projectList.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
+  const pendingTotal = projectsAwaiting.reduce((s, p) => s + (pendingByProject.get(p.name) ?? 0), 0);
 
   function clearAll() { setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter(""); setClientFilter(""); }
 
   return (
     <>
-      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-5">
         {[
           { l: "Active", v: projectList.length },
           { l: "On Track", v: projectList.filter((p) => p.rag === "green").length, c: "rag-green" },
@@ -117,7 +132,47 @@ function AllProjectsTab({ restrict, projectList }: { restrict?: boolean; project
             </div>
           </div>
         ))}
+        <button
+          onClick={() => setOnlyPending((v) => !v)}
+          className={cn(
+            "glass-card p-4 text-left transition hover:ring-2 hover:ring-accent/40",
+            onlyPending && "ring-2 ring-accent",
+          )}
+          title="Show only projects with pending approvals"
+        >
+          <div className="label-eyebrow flex items-center gap-1"><Clock className="h-3 w-3" /> Pending Approvals</div>
+          <div className="mt-1 flex items-center gap-2">
+            {pendingTotal > 0 && <span className="h-2 w-2 rounded-full bg-rag-amber pulse-dot" />}
+            <span className="text-xl font-medium num-mono text-foreground">{pendingTotal}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {projectsAwaiting.length} project{projectsAwaiting.length === 1 ? "" : "s"}
+            </span>
+          </div>
+        </button>
       </div>
+
+      {pendingTotal > 0 && !onlyPending && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-rag-amber/30 bg-rag-amber/10 px-3 py-2 text-xs">
+          <Clock className="h-3.5 w-3.5 text-rag-amber" />
+          <span className="text-foreground">
+            {projectsAwaiting.length} project{projectsAwaiting.length === 1 ? "" : "s"} waiting on approvals
+          </span>
+          <span className="text-muted-foreground">
+            {projectsAwaiting.slice(0, 3).map((p) => p.name).join(" · ")}
+            {projectsAwaiting.length > 3 ? ` +${projectsAwaiting.length - 3} more` : ""}
+          </span>
+          <button onClick={() => setOnlyPending(true)} className="ml-auto text-accent hover:underline">Show only these</button>
+          <Link to="/approvals" className="text-accent hover:underline">Open Approvals</Link>
+        </div>
+      )}
+      {onlyPending && (
+        <div className="mb-3 flex items-center gap-2">
+          <span className="inline-flex items-center gap-1 rounded-full border border-rag-amber/40 bg-rag-amber/10 px-2 py-0.5 text-[11px] text-rag-amber">
+            Pending approvals only
+            <button onClick={() => setOnlyPending(false)} className="ml-0.5 hover:text-foreground"><X className="h-3 w-3" /></button>
+          </span>
+        </div>
+      )}
 
       {/* Toolbar */}
       <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -257,22 +312,52 @@ function AllProjectsTab({ restrict, projectList }: { restrict?: boolean; project
         </div>
       )}
 
-      {view === "grid" && list.length > 0 && <ProjectGrid items={list} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
-      {view === "list" && list.length > 0 && <ProjectListView items={list} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "grid" && list.length > 0 && <ProjectGrid items={list} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "list" && list.length > 0 && <ProjectListView items={list} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
       {view === "gantt" && list.length > 0 && <GanttView items={list} />}
     </>
   );
 }
 
-function ProjectGrid({ items, onOpen }: { items: Project[]; onOpen: (p: Project) => void }) {
+function PendingApprovalsChip({ count, projectName, className }: { count: number; projectName: string; className?: string }) {
+  const navigate = useNavigate();
+  if (!count) return null;
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      title={`${count} pending approval${count === 1 ? "" : "s"} — open Approvals`}
+      onClick={(e) => { e.stopPropagation(); navigate({ to: "/approvals", search: { project: projectName } }); }}
+      onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); navigate({ to: "/approvals", search: { project: projectName } }); } }}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border border-rag-amber/40 bg-rag-amber/10 px-1.5 py-px text-[10px] font-medium text-rag-amber hover:bg-rag-amber/20",
+        className,
+      )}
+    >
+      <Clock className="h-3 w-3" />
+      {count} pending
+    </span>
+  );
+}
+
+function ProjectGrid({ items, onOpen, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; pendingByProject: Map<string, number> }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {items.map((p) => (
-        <button key={p.id} onClick={() => onOpen(p)} className="glass-card group flex flex-col p-4 text-left">
+      {items.map((p) => {
+        const pending = pendingByProject.get(p.name) ?? 0;
+        return (
+        <button
+          key={p.id}
+          onClick={() => onOpen(p)}
+          className={cn("glass-card group flex flex-col p-4 text-left", pending > 0 && "ring-1 ring-rag-amber/40")}
+        >
           <div className="flex items-start justify-between gap-2">
             <RagBadge rag={p.rag} />
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{p.stage}</span>
           </div>
+          {pending > 0 && (
+            <div className="mt-2"><PendingApprovalsChip count={pending} projectName={p.name} /></div>
+          )}
           <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">{p.name}</h3>
           <div className="mt-1 text-xs text-muted-foreground">{p.businessLine} · {p.department}</div>
           <div className="mt-3">
@@ -299,12 +384,13 @@ function ProjectGrid({ items, onOpen }: { items: Project[]; onOpen: (p: Project)
             <Avatar className="h-6 w-6"><AvatarFallback className="bg-accent-dim text-[10px] text-accent">{p.pmAvatar}</AvatarFallback></Avatar>
           </div>
         </button>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-function ProjectListView({ items, onOpen }: { items: Project[]; onOpen: (p: Project) => void }) {
+function ProjectListView({ items, onOpen, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; pendingByProject: Map<string, number> }) {
   return (
     <div className="">
       <Table>
@@ -317,7 +403,12 @@ function ProjectListView({ items, onOpen }: { items: Project[]; onOpen: (p: Proj
           {items.map((p) => (
             <TableRow key={p.id} onClick={() => onOpen(p)} className="cursor-pointer bg-[#1D1D23] hover:bg-[#252530] border-0">
               <TableCell><RagDot rag={p.rag} /></TableCell>
-              <TableCell className="font-medium text-foreground">{p.name}</TableCell>
+              <TableCell className="font-medium text-foreground">
+                <div className="flex items-center gap-2">
+                  <span>{p.name}</span>
+                  <PendingApprovalsChip count={pendingByProject.get(p.name) ?? 0} projectName={p.name} />
+                </div>
+              </TableCell>
               <TableCell className="text-muted-foreground">{p.businessLine}</TableCell>
               <TableCell>{p.pm}</TableCell>
               <TableCell className="text-muted-foreground">{p.department}</TableCell>

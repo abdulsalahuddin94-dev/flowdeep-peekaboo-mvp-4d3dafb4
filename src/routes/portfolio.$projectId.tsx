@@ -1563,21 +1563,22 @@ function ProgressUpdateDialog({
   }, [approvalMilestone, approvalLeaves, current, draftPct]);
 
   const msApproved = approvalMilestone?.approvalStatus === "approved";
-  // Demo-side tracking of which approvers signed off the Approval Task.
-  const [approvedBy, setApprovedBy] = useState<string[]>([]);
-  useEffect(() => { if (!open) setApprovedBy([]); }, [open]);
-  useEffect(() => { if (approvalMilestone?.approvalStatus !== "pending") setApprovedBy([]); }, [approvalMilestone?.approvalStatus, approvalMilestone?.name]);
+  // Decisions live in the central Approvals inbox — this panel is read-only here.
+  const { approvals, addApprovalRequest, remindApproval, currentUser } = useApprovals();
+  const gateRequest = useMemo(
+    () => approvals.find(
+      (a) => a.type === "milestone-gate" && a.projectId === projectId && a.ref === approvalMilestone?.name,
+    ) ?? null,
+    [approvals, projectId, approvalMilestone?.name],
+  );
+  const approvedBy = (gateRequest?.approvers ?? []).filter((a) => a.decision === "approved").map((a) => a.id);
 
-  function approveAs(id: string) {
-    if (!approvalMilestone) return;
-    const next = Array.from(new Set([...approvedBy, id]));
-    setApprovedBy(next);
-    const all = (approvalMilestone.approvers ?? []).every((a) => next.includes(a.id));
-    if (all) {
+  // Reflect the inbox decision back onto the milestone.
+  useEffect(() => {
+    if (gateRequest?.status === "approved" && approvalMilestone && approvalMilestone.approvalStatus !== "approved") {
       onApprove(approvalMilestone.name);
-      toast.success(`Approval Task completed — ${approvalMilestone.name} is now approved`);
     }
-  }
+  }, [gateRequest?.status, approvalMilestone?.name, approvalMilestone?.approvalStatus]);
 
   function save() {
     if (!current) return;
@@ -1589,6 +1590,22 @@ function ProgressUpdateDialog({
     if (!approvalMilestone) return;
     if (current) onSetProgress(current.name, draftPct);
     onRequestApproval(approvalMilestone.name);
+    addApprovalRequest({
+      type: "milestone-gate",
+      projectId,
+      projectName,
+      ref: approvalMilestone.name,
+      title: `Milestone completion — ${approvalMilestone.name}`,
+      requestedBy: currentUser.name,
+      summary: [
+        { label: "Milestone", after: approvalMilestone.name },
+        { label: "Tasks complete", after: `${approvalLeaves.length}/${approvalLeaves.length} at 100%` },
+        { label: "Planned finish", after: approvalMilestone.endDate ?? "—" },
+      ],
+      approvers: (approvalMilestone.approvers ?? []).map((a) => ({
+        id: a.id, name: a.name, role: a.role, department: a.department, decision: "pending" as const,
+      })),
+    });
     toast.success(`Approval requests sent for ${approvalMilestone.name}`);
   }
 

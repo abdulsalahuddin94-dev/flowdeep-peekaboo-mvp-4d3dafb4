@@ -186,6 +186,10 @@ export type ScheduleItem = {
   approvalStatus?: ApprovalStatus;
   /** Dependencies: list of predecessors with relation types and time buffers */
   dependencies?: Dependency[];
+  /** Synthetic gate task auto-created for milestones that require approval. */
+  isApprovalTask?: boolean;
+  /** Approval gate is unlocked (all sibling work at 100%). */
+  approvalReady?: boolean;
 };
 
 /**
@@ -997,6 +1001,16 @@ export function ProjectSchedule({
                 const isRisk = atRiskSet.has(item.name) && !isOff;
                 const rowTint = isOff ? "bg-rag-red/5" : isRisk ? "bg-rag-amber/5" : "";
                 const isMs = item.kind === "Milestone";
+                const isGate = !!item.isApprovalTask;
+                const gateApproved = item.approvalStatus === "approved";
+                const gatePending = item.approvalStatus === "pending";
+                const gateTitle = gateApproved
+                  ? "Approved"
+                  : gatePending
+                    ? "Waiting for approval"
+                    : item.approvalReady
+                      ? "Ready — send approval request"
+                      : "Locked until all tasks reach 100%";
                 return (
                   <ContextMenu key={item.name}>
                     <ContextMenuTrigger asChild>
@@ -1023,9 +1037,19 @@ export function ProjectSchedule({
                         title={`Level ${depth + 1}`}
                       />
                       {isMs && <Diamond className="h-3 w-3 shrink-0 text-accent" />}
+                      {isGate && (
+                        <span
+                          title={gateTitle}
+                          className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] text-[10px] font-bold ${
+                            gateApproved ? "bg-rag-green/20 text-rag-green" : "bg-rag-amber/20 text-rag-amber"
+                          }`}
+                        >
+                          {gateApproved ? "✓" : "!"}
+                        </span>
+                      )}
                       <EditableText
                         value={item.name}
-                        editable={editable}
+                        editable={editable && !isGate}
                         className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOff ? "text-rag-red" : isRisk ? "text-rag-amber" : ""}`}
                         onCommit={(v) => v && v !== item.name && patch(item.name, { name: v })}
                       />
@@ -1163,13 +1187,14 @@ export function ProjectSchedule({
                       const planned = computePlannedProgress(item.startDate, item.endDate);
                       const actual = item.progress ?? 0;
                       const isMs = item.kind === "Milestone";
-                      const canClick = !!onProgressClick;
+                      const canClick = !!onProgressClick && !isGate;
+                      const gateBar = gateApproved ? "bg-rag-green" : "bg-rag-amber";
                       return (
                         <div
                           role={canClick ? "button" : undefined}
                           tabIndex={canClick ? 0 : undefined}
                           aria-label={`Update progress for ${item.name}`}
-                          title={canClick ? "Click to update progress" : `Actual ${actual}% / Planned ${planned}%`}
+                          title={isGate ? gateTitle : canClick ? "Click to update progress" : `Actual ${actual}% / Planned ${planned}%`}
                           onClick={() => canClick && onProgressClick?.(item.name, item.kind)}
                           onKeyDown={(e) => {
                             if (!canClick) return;
@@ -1181,6 +1206,16 @@ export function ProjectSchedule({
                           className={`flex items-center gap-2 border-l border-border/60 px-3 overflow-hidden ${canClick ? "cursor-pointer hover:bg-secondary/30" : ""}`}
                           style={{ width: widths.progress }}
                         >
+                          {isGate ? (
+                            <div className="flex flex-1 items-center gap-2 py-1 min-w-0">
+                              <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-secondary/60">
+                                <div className={`absolute inset-y-0 left-0 ${gateBar}`} style={{ width: `${gateApproved ? 100 : 0}%` }} />
+                              </div>
+                              <span className={`shrink-0 text-[10px] ${gateApproved ? "text-rag-green" : "text-rag-amber"}`}>
+                                {gateApproved ? "Approved" : gatePending ? "Waiting for approval" : "Locked"}
+                              </span>
+                            </div>
+                          ) : (
                           <div className="flex flex-1 flex-col gap-1 py-1 min-w-0">
                             {/* Actual */}
                             <div className="flex items-center gap-2">
@@ -1202,6 +1237,7 @@ export function ProjectSchedule({
                               <span className="num-mono w-8 shrink-0 text-right text-[10px] text-rag-blue">{planned}%</span>
                             </div>
                           </div>
+                          )}
                         </div>
 
                       );
@@ -1240,17 +1276,22 @@ export function ProjectSchedule({
                   </div>
                     </ContextMenuTrigger>
                     <ContextMenuContent className="w-48">
-                      {!restricted && onAddSubtask && (
+                      {isGate && (
+                        <ContextMenuItem disabled className="text-xs text-muted-foreground">
+                          Approval gate — managed by approvers
+                        </ContextMenuItem>
+                      )}
+                      {!isGate && !restricted && onAddSubtask && (
                         <ContextMenuItem onSelect={() => onAddSubtask(item.name)}>
                           <Plus className="mr-2 h-3.5 w-3.5" /> Add subtask
                         </ContextMenuItem>
                       )}
-                      {!restricted && onEditItem && (
+                      {!isGate && !restricted && onEditItem && (
                         <ContextMenuItem onSelect={() => onEditItem(item.name)}>
                           <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
                         </ContextMenuItem>
                       )}
-                      {!restricted && onDeleteItem && (
+                      {!isGate && !restricted && onDeleteItem && (
                         <>
                           <ContextMenuSeparator />
                           <ContextMenuItem
@@ -1261,7 +1302,7 @@ export function ProjectSchedule({
                           </ContextMenuItem>
                         </>
                       )}
-                      {restricted && (
+                      {!isGate && restricted && (
                         <ContextMenuItem disabled className="text-xs text-muted-foreground">
                           Click "Change Plan" to edit
                         </ContextMenuItem>
@@ -1397,6 +1438,35 @@ export function ProjectSchedule({
                     grey:  { solid: "bg-rag-grey",  soft: "bg-rag-grey/30",  border: "border-rag-grey/60",  hex: "#94A3B8" },
                   } as const;
                   const rc = ragColor[item.rag];
+
+                  if (item.isApprovalTask) {
+                    const approved = item.approvalStatus === "approved";
+                    const cx = x + dayWidth / 2;
+                    const cy = top + ROW_H / 2;
+                    return (
+                      <div
+                        key={item.name}
+                        title={
+                          approved
+                            ? `${item.name} · Approved`
+                            : item.approvalStatus === "pending"
+                              ? `${item.name} · Waiting for approval`
+                              : `${item.name} · Locked until all tasks reach 100%`
+                        }
+                        className="absolute flex items-center justify-center"
+                        style={{ left: cx - 9, top: cy - 9, width: 18, height: 18 }}
+                      >
+                        <div
+                          className={`absolute inset-0 rotate-45 rounded-[3px] border ${
+                            approved ? "border-rag-green/70 bg-rag-green/30" : "border-rag-amber/70 bg-rag-amber/30"
+                          }`}
+                        />
+                        <span className={`relative text-[10px] font-bold ${approved ? "text-rag-green" : "text-rag-amber"}`}>
+                          {approved ? "✓" : "!"}
+                        </span>
+                      </div>
+                    );
+                  }
 
                   if (isMs) {
                     const cx = x + dayWidth / 2;

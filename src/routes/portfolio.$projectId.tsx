@@ -1457,7 +1457,7 @@ function ProgressUpdateDialog({
 }) {
   // All leaf tasks (no children)
   const allLeaves = useMemo(
-    () => items.filter((m) => m.kind === "Task" && !items.some((c) => c.parent === m.name)),
+    () => items.filter((m) => m.kind === "Task" && !m.isApprovalTask && !items.some((c) => c.parent === m.name)),
     [items],
   );
   // When scoped to a milestone, only include leaves whose ancestor chain reaches that milestone.
@@ -1553,6 +1553,22 @@ function ProgressUpdateDialog({
   const msApproved = approvalMilestone?.approvalStatus === "approved";
   const msPending = approvalMilestone?.approvalStatus === "pending" && allChildrenAt100;
   const showSendApprovalBtn = !!approvalMilestone && allChildrenAt100 && !msApproved && approvalMilestone.approvalStatus !== "pending";
+
+  // Demo-side tracking of which approvers signed off the Approval Task.
+  const [approvedBy, setApprovedBy] = useState<string[]>([]);
+  useEffect(() => { if (!open) setApprovedBy([]); }, [open]);
+  useEffect(() => { if (approvalMilestone?.approvalStatus !== "pending") setApprovedBy([]); }, [approvalMilestone?.approvalStatus, approvalMilestone?.name]);
+
+  function approveAs(id: string) {
+    if (!approvalMilestone) return;
+    const next = Array.from(new Set([...approvedBy, id]));
+    setApprovedBy(next);
+    const all = (approvalMilestone.approvers ?? []).every((a) => next.includes(a.id));
+    if (all) {
+      onApprove(approvalMilestone.name);
+      toast.success(`Approval Task completed — ${approvalMilestone.name} is now approved`);
+    }
+  }
 
   function save() {
     if (!current) return;
@@ -1692,7 +1708,7 @@ function ProgressUpdateDialog({
               <div className="mt-2 rounded-md border border-border bg-secondary/10 p-3">
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-medium text-foreground">
-                    Approvers · {approvalMilestone.name}
+                    Approval Task · {approvalMilestone.name}
                   </span>
                   <span className={`rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
                     approvalMilestone.approvalStatus === "approved" ? "border-rag-green/40 bg-rag-green/10 text-rag-green"
@@ -1710,23 +1726,39 @@ function ProgressUpdateDialog({
                   <ul className="mt-2 space-y-1.5">
                     {(approvalMilestone.approvers ?? []).map((a) => {
                       const s = approvalMilestone.approvalStatus;
-                      const label = s === "approved" ? "Approved" : s === "pending" ? "Pending" : "Not requested";
-                      const tone = s === "approved" ? "text-rag-green" : s === "pending" ? "text-rag-amber" : "text-muted-foreground";
+                      const mine = s === "approved" || approvedBy.includes(a.id);
+                      const label = mine ? "Approved" : s === "pending" ? "Pending" : "Not requested";
+                      const tone = mine ? "text-rag-green" : s === "pending" ? "text-rag-amber" : "text-muted-foreground";
                       return (
                         <li key={a.id} className="flex items-center justify-between text-[11px]">
                           <span className="text-foreground">
                             {a.name}
                             <span className="ml-1 text-muted-foreground">· {a.role}{a.department ? ` · ${a.department}` : ""}</span>
                           </span>
-                          <span className={`inline-flex items-center gap-1 ${tone}`}>
-                            {s === "approved" && <Check className="h-3 w-3" />}
-                            {label}
-                          </span>
+                          {s === "pending" && !mine ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-6 px-2 text-[10px]"
+                              onClick={() => approveAs(a.id)}
+                            >
+                              Approve
+                            </Button>
+                          ) : (
+                            <span className={`inline-flex items-center gap-1 ${tone}`}>
+                              {mine && <Check className="h-3 w-3" />}
+                              {label}
+                            </span>
+                          )}
                         </li>
                       );
                     })}
                   </ul>
                 )}
+                <p className="mt-2 text-[10px] text-muted-foreground">
+                  This gate carries no weight in the milestone roll-up — the milestone only counts as complete once
+                  the Approval Task is signed off.
+                </p>
               </div>
             )}
           </div>
@@ -2154,6 +2186,10 @@ type Milestone = {
   /** Workflow state: undefined (not requested) → "pending" → "approved" | "rejected". */
   approvalStatus?: "approved" | "pending" | "rejected";
   approvers?: { id: string; name: string; role: string; department: string }[];
+  /** Synthetic approval gate task (auto-generated, never persisted). */
+  isApprovalTask?: boolean;
+  /** Gate unlocked — every sibling leaf task reached 100%. */
+  approvalReady?: boolean;
   dependencies?: any[];
   /** Baseline snapshot — locked version after approval. Milestone only. */
   baseline?: { version: number; createdAt: string; baselineStart: string; baselineEnd: string; baselineProgress: number; isLocked: boolean };
@@ -2201,8 +2237,38 @@ function minISO(arr: (string | undefined)[]): string | undefined {
   if (!v.length) return undefined;
   return v.slice().sort()[0];
 }
+export const APPROVAL_TASK_PREFIX = "Approval — ";
+
 function computeDerivedSchedule(items: Milestone[], reqs: ResourceRequest[]): Milestone[] {
-  const out = items.map((it) => ({ ...it }));
+  const base = items.map((it) => ({ ...it }));
+  // Inject a synthetic "Approval Task" gate under every milestone that requires approval.
+  const out: Milestone[] = [];
+  for (const it of base) {
+    if (it.isApprovalTask) continue; // never persist / duplicate synthetic gates
+    out.push(it);
+    if (it.kind === "Milestone" && it.requiresApproval) {
+      const approved = it.approvalStatus === "approved";
+      out.push({
+        name: `${APPROVAL_TASK_PREFIX}${it.name}`,
+        kind: "Task",
+        startDate: it.endDate,
+        endDate: it.endDate,
+        owner: it.owner,
+        rag: approved ? "green" : it.approvalStatus === "pending" ? "amber" : "grey",
+        dep: it.name,
+        roles: [],
+        payment: { kind: "None", amount: "" },
+        progress: approved ? 100 : 0,
+        parent: it.name,
+        assignee: (it.approvers ?? []).map((a) => a.name).join(", ") || "—",
+        weightScore: 0, // gate: no weight in the milestone roll-up
+        isApprovalTask: true,
+        requiresApproval: true,
+        approvalStatus: it.approvalStatus,
+        approvers: it.approvers,
+      } as Milestone);
+    }
+  }
   const childrenOf = new Map<string, Milestone[]>();
   for (const it of out) {
     if (!it.parent) continue;
@@ -2277,6 +2343,25 @@ function computeDerivedSchedule(items: Milestone[], reqs: ResourceRequest[]): Mi
   const allNames = new Set(out.map((i) => i.name));
   const roots = out.filter((i) => !i.parent || !allNames.has(i.parent));
   for (const r of roots) rollup(r.name);
+
+  // Gate readiness: unlocked once every non-gate leaf under the milestone is at 100%.
+  for (const gate of out) {
+    if (!gate.isApprovalTask || !gate.parent) continue;
+    const isDesc = (n: string) => {
+      let c = out.find((x) => x.name === n);
+      const seen = new Set<string>();
+      while (c?.parent && !seen.has(c.parent)) {
+        if (c.parent === gate.parent) return true;
+        seen.add(c.parent);
+        c = out.find((x) => x.name === c!.parent);
+      }
+      return false;
+    };
+    const leaves = out.filter(
+      (l) => l.kind === "Task" && !l.isApprovalTask && !out.some((c) => c.parent === l.name) && isDesc(l.name),
+    );
+    gate.approvalReady = leaves.length > 0 && leaves.every((l) => (l.progress ?? 0) >= 100);
+  }
 
   return out;
 }

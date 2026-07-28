@@ -313,7 +313,7 @@ export function ProjectSchedule({
   const [healthHighlight, setHealthHighlight] = useState(false);
   const [visibleCols] = useState<Set<ColKey>>(
     // Owner + Assignee columns hidden for the MVP demo view
-    () => new Set<ColKey>(["type", "start", "end", "status", "progress", "dep", "roles", "payment"]),
+    () => new Set<ColKey>(["type", "start", "end", "status", "actual", "planned", "dep", "roles", "payment"]),
   );
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(items.map(i => i.name)));
   const [leftPct, setLeftPct] = useState(48);
@@ -542,7 +542,8 @@ export function ProjectSchedule({
           break;
         }
         case "status": txt = statusText[item.rag]; extra = 6 + 6 + 16 + 2; break; // dot + gap + px-2*2 + border
-        case "progress": txt = `${item.progress ?? 0}%`; extra = 60; break;
+        case "actual": txt = `${item.progress ?? 0}%`; extra = 60; break;
+        case "planned": txt = `${computePlannedProgress(item.startDate, item.endDate)}%`; extra = 60; break;
         case "dep": txt = item.dep || "—"; break;
         case "roles":
           txt = item.roles.length ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ") : "—";

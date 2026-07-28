@@ -312,22 +312,52 @@ function AllProjectsTab({ restrict, projectList }: { restrict?: boolean; project
         </div>
       )}
 
-      {view === "grid" && list.length > 0 && <ProjectGrid items={list} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
-      {view === "list" && list.length > 0 && <ProjectListView items={list} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "grid" && list.length > 0 && <ProjectGrid items={list} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "list" && list.length > 0 && <ProjectListView items={list} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
       {view === "gantt" && list.length > 0 && <GanttView items={list} />}
     </>
   );
 }
 
-function ProjectGrid({ items, onOpen }: { items: Project[]; onOpen: (p: Project) => void }) {
+function PendingApprovalsChip({ count, projectName, className }: { count: number; projectName: string; className?: string }) {
+  const navigate = useNavigate();
+  if (!count) return null;
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      title={`${count} pending approval${count === 1 ? "" : "s"} — open Approvals`}
+      onClick={(e) => { e.stopPropagation(); navigate({ to: "/approvals", search: { project: projectName } }); }}
+      onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); navigate({ to: "/approvals", search: { project: projectName } }); } }}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border border-rag-amber/40 bg-rag-amber/10 px-1.5 py-px text-[10px] font-medium text-rag-amber hover:bg-rag-amber/20",
+        className,
+      )}
+    >
+      <Clock className="h-3 w-3" />
+      {count} pending
+    </span>
+  );
+}
+
+function ProjectGrid({ items, onOpen, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; pendingByProject: Map<string, number> }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {items.map((p) => (
-        <button key={p.id} onClick={() => onOpen(p)} className="glass-card group flex flex-col p-4 text-left">
+      {items.map((p) => {
+        const pending = pendingByProject.get(p.name) ?? 0;
+        return (
+        <button
+          key={p.id}
+          onClick={() => onOpen(p)}
+          className={cn("glass-card group flex flex-col p-4 text-left", pending > 0 && "ring-1 ring-rag-amber/40")}
+        >
           <div className="flex items-start justify-between gap-2">
             <RagBadge rag={p.rag} />
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{p.stage}</span>
           </div>
+          {pending > 0 && (
+            <div className="mt-2"><PendingApprovalsChip count={pending} projectName={p.name} /></div>
+          )}
           <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">{p.name}</h3>
           <div className="mt-1 text-xs text-muted-foreground">{p.businessLine} · {p.department}</div>
           <div className="mt-3">
@@ -354,12 +384,13 @@ function ProjectGrid({ items, onOpen }: { items: Project[]; onOpen: (p: Project)
             <Avatar className="h-6 w-6"><AvatarFallback className="bg-accent-dim text-[10px] text-accent">{p.pmAvatar}</AvatarFallback></Avatar>
           </div>
         </button>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-function ProjectListView({ items, onOpen }: { items: Project[]; onOpen: (p: Project) => void }) {
+function ProjectListView({ items, onOpen, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; pendingByProject: Map<string, number> }) {
   return (
     <div className="">
       <Table>
@@ -372,7 +403,12 @@ function ProjectListView({ items, onOpen }: { items: Project[]; onOpen: (p: Proj
           {items.map((p) => (
             <TableRow key={p.id} onClick={() => onOpen(p)} className="cursor-pointer bg-[#1D1D23] hover:bg-[#252530] border-0">
               <TableCell><RagDot rag={p.rag} /></TableCell>
-              <TableCell className="font-medium text-foreground">{p.name}</TableCell>
+              <TableCell className="font-medium text-foreground">
+                <div className="flex items-center gap-2">
+                  <span>{p.name}</span>
+                  <PendingApprovalsChip count={pendingByProject.get(p.name) ?? 0} projectName={p.name} />
+                </div>
+              </TableCell>
               <TableCell className="text-muted-foreground">{p.businessLine}</TableCell>
               <TableCell>{p.pm}</TableCell>
               <TableCell className="text-muted-foreground">{p.department}</TableCell>

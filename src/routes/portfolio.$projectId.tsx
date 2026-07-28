@@ -1554,6 +1554,22 @@ function ProgressUpdateDialog({
   const msPending = approvalMilestone?.approvalStatus === "pending" && allChildrenAt100;
   const showSendApprovalBtn = !!approvalMilestone && allChildrenAt100 && !msApproved && approvalMilestone.approvalStatus !== "pending";
 
+  // Demo-side tracking of which approvers signed off the Approval Task.
+  const [approvedBy, setApprovedBy] = useState<string[]>([]);
+  useEffect(() => { if (!open) setApprovedBy([]); }, [open]);
+  useEffect(() => { if (approvalMilestone?.approvalStatus !== "pending") setApprovedBy([]); }, [approvalMilestone?.approvalStatus, approvalMilestone?.name]);
+
+  function approveAs(id: string) {
+    if (!approvalMilestone) return;
+    const next = Array.from(new Set([...approvedBy, id]));
+    setApprovedBy(next);
+    const all = (approvalMilestone.approvers ?? []).every((a) => next.includes(a.id));
+    if (all) {
+      onApprove(approvalMilestone.name);
+      toast.success(`Approval Task completed — ${approvalMilestone.name} is now approved`);
+    }
+  }
+
   function save() {
     if (!current) return;
     onSetProgress(current.name, draftPct);

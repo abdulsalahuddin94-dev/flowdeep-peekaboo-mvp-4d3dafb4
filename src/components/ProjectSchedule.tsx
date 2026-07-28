@@ -1001,6 +1001,16 @@ export function ProjectSchedule({
                 const isRisk = atRiskSet.has(item.name) && !isOff;
                 const rowTint = isOff ? "bg-rag-red/5" : isRisk ? "bg-rag-amber/5" : "";
                 const isMs = item.kind === "Milestone";
+                const isGate = !!item.isApprovalTask;
+                const gateApproved = item.approvalStatus === "approved";
+                const gatePending = item.approvalStatus === "pending";
+                const gateTitle = gateApproved
+                  ? "Approved"
+                  : gatePending
+                    ? "Waiting for approval"
+                    : item.approvalReady
+                      ? "Ready — send approval request"
+                      : "Locked until all tasks reach 100%";
                 return (
                   <ContextMenu key={item.name}>
                     <ContextMenuTrigger asChild>
@@ -1027,9 +1037,20 @@ export function ProjectSchedule({
                         title={`Level ${depth + 1}`}
                       />
                       {isMs && <Diamond className="h-3 w-3 shrink-0 text-accent" />}
+                      {isGate && (
+                        <span
+                          title={gateTitle}
+                          className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] text-[10px] font-bold ${
+                            gateApproved ? "bg-rag-green/20 text-rag-green" : "bg-rag-amber/20 text-rag-amber"
+                          }`}
+                        >
+                          {gateApproved ? "✓" : "!"}
+                        </span>
+                      )}
                       <EditableText
                         value={item.name}
-                        editable={editable}
+                        editable={editable && !isGate}
+                        title={isGate ? gateTitle : undefined}
                         className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOff ? "text-rag-red" : isRisk ? "text-rag-amber" : ""}`}
                         onCommit={(v) => v && v !== item.name && patch(item.name, { name: v })}
                       />

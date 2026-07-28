@@ -1456,7 +1456,7 @@ const SEED_PACKAGES: TenderPackage[] = [
 
 // ── Progress Update dialog (shown when the Progress KPI is clicked) ─────────
 function ProgressUpdateDialog({
-  open, onOpenChange, items, onSetProgress, onRequestApproval, onApprove, initialTaskName, scopeMilestone,
+  open, onOpenChange, items, onSetProgress, onRequestApproval, onApprove, onRejectApproval, initialTaskName, scopeMilestone,
   projectBaseline, setProjectBaseline, projectBaselineVersions, setProjectBaselineVersions,
   milestones, resourceRequests, setCrDialogOpen, projectId, projectName,
 }: {
@@ -1466,6 +1466,7 @@ function ProgressUpdateDialog({
   onSetProgress: (name: string, progress: number) => void;
   onRequestApproval: (name: string) => void;
   onApprove: (name: string) => void;
+  onRejectApproval: (name: string) => void;
   initialTaskName?: string;
   scopeMilestone?: string;
   projectBaseline: { version: number; createdAt: string; isLocked: boolean; snapshot: Milestone[] } | null;

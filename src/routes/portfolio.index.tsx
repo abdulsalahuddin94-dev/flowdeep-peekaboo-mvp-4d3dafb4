@@ -51,21 +51,8 @@ function PortfolioPage() {
           </div>
         }
       />
-      <Tabs defaultValue="all">
-        <TabsList>
-          <TabsTrigger value="all">All Projects</TabsTrigger>
-          <TabsTrigger value="mine">My Projects</TabsTrigger>
-          <TabsTrigger value="archived">Archived</TabsTrigger>
-          <TabsTrigger value="bc">Business Cases</TabsTrigger>
-          <TabsTrigger value="gov">Governance History</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all" className="mt-5"><AllProjectsTab projectList={projectList} /></TabsContent>
-        <TabsContent value="mine" className="mt-5"><AllProjectsTab projectList={projectList} restrict /></TabsContent>
-        <TabsContent value="archived" className="mt-5"><ArchivedTab /></TabsContent>
-        <TabsContent value="bc" className="mt-5"><BusinessCasesTab /></TabsContent>
-        <TabsContent value="gov" className="mt-5"><GovernanceTab /></TabsContent>
-      </Tabs>
+      {/* Portfolio tabs hidden for MVP demo — All Projects is the default view */}
+      <div className="mt-5"><AllProjectsTab projectList={projectList} /></div>
     </div>
   );
 }

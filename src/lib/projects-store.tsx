@@ -5,6 +5,42 @@ export type OrgTag = { name: string; color: string };
 
 export type JobRole = { id: string; title: string };
 
+// ── Identity (demo role switcher) ─────────────────────────────────────────────
+
+export type AppUser = { id: string; name: string; role: string; department?: string };
+
+export const APP_USERS: AppUser[] = [
+  { id: "u-aisha", name: "Aisha Khoury",  role: "Portfolio Director", department: "PMO" },
+  { id: "u-sara",  name: "Sara Al-Rashid", role: "Director",          department: "Engineering" },
+  { id: "u-john",  name: "John Smith",     role: "Project Manager",   department: "IT" },
+  { id: "u-mei",   name: "Mei Chen",       role: "Solution Architect", department: "Engineering" },
+];
+
+// ── Approvals ─────────────────────────────────────────────────────────────────
+
+export type ApprovalDecision = "pending" | "approved" | "rejected";
+
+export type ApprovalApprover = {
+  id: string; name: string; role: string; department?: string;
+  decision: ApprovalDecision; decidedAt?: string; comment?: string;
+};
+
+export type ApprovalRequest = {
+  id: string;
+  type: "milestone-gate" | "change-request";
+  projectId: string;
+  projectName: string;
+  /** Milestone name or Change Request id. */
+  ref: string;
+  title: string;
+  requestedBy: string;
+  requestedAt: string;
+  summary: { label: string; before?: string; after?: string }[];
+  approvers: ApprovalApprover[];
+  status: ApprovalDecision;
+  reminders: number;
+};
+
 const SEED_JOB_ROLES: JobRole[] = [
   { id: "jr-ba",     title: "Business Analyst" },
   { id: "jr-sa",     title: "Solution Architect" },

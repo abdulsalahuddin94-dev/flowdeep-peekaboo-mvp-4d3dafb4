@@ -822,7 +822,10 @@ function ProjectDetail() {
                 requestedBy: approvalUser.name,
                 summary: cr.changes.map((c) => ({ label: c.field, before: c.oldValue, after: c.newValue })),
                 approvers: DEFAULT_PROJECT_APPROVERS.map((a) => ({
-                  id: a.id, name: a.name, role: a.role ?? "Approver", decision: "pending" as const,
+                  id: a.id.startsWith("u-") ? a.id : `u-${a.id}`,
+                  name: a.name,
+                  role: a.role ?? "Approver",
+                  decision: "pending" as const,
                 })),
               });
               toast.success(`Change Request ${cr.id} submitted for approval`);

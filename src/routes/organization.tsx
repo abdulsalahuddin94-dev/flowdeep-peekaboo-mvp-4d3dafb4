@@ -46,7 +46,7 @@ function OrganizationPage() {
               <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
                 <TableHead>Name</TableHead><TableHead>Description</TableHead>
                 <TableHead className="text-right">Active Projects</TableHead>
-                <TableHead>Color</TableHead><TableHead className="w-24" />
+                <TableHead className="w-24" />
               </TableRow></TableHeader>
               <TableBody>
                 {businessLines.map((b) => (
@@ -54,7 +54,6 @@ function OrganizationPage() {
                     <TableCell className="font-medium text-foreground">{b.name}</TableCell>
                     <TableCell className="text-muted-foreground">{b.description}</TableCell>
                     <TableCell className="text-right num-mono">{b.projects}</TableCell>
-                    <TableCell><span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full" style={{ background: b.color }} /><span className="text-xs text-muted-foreground">{b.color}</span></span></TableCell>
                     <TableCell><RowActions /></TableCell>
                   </TableRow>
                 ))}
@@ -182,7 +181,6 @@ function AddDepartmentDialog() {
         <DialogHeader><DialogTitle>New Department</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div><Label>Name</Label><Input placeholder="e.g. Quality Assurance" /></div>
-          <div><Label>Parent Unit (optional)</Label><Input placeholder="Engineering" /></div>
           <div><Label>Head</Label><Input placeholder="Search user…" /></div>
         </div>
         <DialogFooter>

@@ -260,6 +260,21 @@ export function useTabBaseline<TSnapshot>({
     setApprovalDialogOpen(true);
   };
 
+  // Mirror decisions taken in the central Approvals Inbox back onto this tab's CR.
+  useEffect(() => {
+    for (const cr of changeRequests) {
+      if (cr.status !== "pending" || !cr.approvalId) continue;
+      const central = approvals.find((a) => a.id === cr.approvalId);
+      if (!central) continue;
+      for (const ap of central.approvers) {
+        if (ap.decision === "pending") continue;
+        const already = cr.responses.some((r) => r.approverId === ap.id && r.decision === ap.decision);
+        if (already) continue;
+        respondToCr(cr.id, ap.id, ap.decision, ap.comment);
+      }
+    }
+  }, [approvals, changeRequests, respondToCr]);
+
   const pendingCrs = changeRequests.filter((c) => c.status === "pending");
 
   return {

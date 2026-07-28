@@ -2387,6 +2387,22 @@ function minISO(arr: (string | undefined)[]): string | undefined {
 }
 export const APPROVAL_TASK_PREFIX = "Approval — ";
 
+// When a milestone gate is approved, every task underneath it is considered delivered.
+function completeMilestoneSubtree(items: Milestone[], milestoneName: string): Milestone[] {
+  const names = new Set<string>([milestoneName]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const it of items) {
+      if (it.parent && names.has(it.parent) && !names.has(it.name)) {
+        names.add(it.name);
+        changed = true;
+      }
+    }
+  }
+  return items.map((m) => (names.has(m.name) ? { ...m, progress: 100 } : m));
+}
+
 function computeDerivedSchedule(items: Milestone[], reqs: ResourceRequest[]): Milestone[] {
   const base = items.map((it) => ({ ...it }));
   // Inject a synthetic "Approval Task" gate under every milestone that requires approval.

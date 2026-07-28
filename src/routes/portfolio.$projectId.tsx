@@ -1722,6 +1722,32 @@ function ProgressUpdateDialog({
             )}
             {approvalMilestone && (
               <div className="mt-2 rounded-md border border-border bg-secondary/10 p-3">
+                {allChildrenAt100 && !msApproved && (
+                  <div className={`mb-2.5 rounded-md border px-2.5 py-2 ${
+                    approvalMilestone.approvalStatus === "pending"
+                      ? "border-rag-amber/40 bg-rag-amber/10"
+                      : "border-rag-green/40 bg-rag-green/10"
+                  }`}>
+                    {approvalMilestone.approvalStatus === "pending" ? (
+                      <div className="text-[11px] font-medium text-rag-amber">
+                        Waiting — {(approvalMilestone.approvers ?? []).filter((a) => approvedBy.includes(a.id)).length}/{(approvalMilestone.approvers ?? []).length} approved
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-[11px] font-medium text-rag-green">
+                          All tasks complete — Approval Task unlocked
+                        </span>
+                        <Button
+                          size="sm"
+                          className="h-7 px-2.5 text-[11px] bg-accent text-accent-foreground hover:bg-accent/90"
+                          onClick={saveAndRequestApproval}
+                        >
+                          Send Approval Request
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-medium text-foreground">
                     Approval Task · {approvalMilestone.name}

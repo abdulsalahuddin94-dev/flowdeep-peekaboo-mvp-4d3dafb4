@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Building2, Handshake, Target, Users,
-  DollarSign, LogOut, ChevronLeft,
+  DollarSign, LogOut, ChevronLeft, CheckSquare,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { useApprovals } from "@/lib/projects-store";
 
 /*
  * Sidebar is fully token-driven. All colors come from CSS variables defined
@@ -35,6 +36,11 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isActive = (url: string) => url === "/" ? pathname === "/" : pathname.startsWith(url);
+  const { myPending, currentUser } = useApprovals();
+  const canApprove = ["Director", "Portfolio Director", "Project Manager"].includes(currentUser.role);
+  const items = canApprove
+    ? [...allItems, { title: "Approvals", url: "/approvals", icon: CheckSquare, badge: myPending.length || undefined }]
+    : allItems;
 
   return (
     <Sidebar collapsible="icon" className="ds02-sidebar border-r-0">
@@ -67,7 +73,7 @@ export function AppSidebar() {
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
             <SidebarMenu className="gap-3">
-              {allItems.map((item) => {
+              {items.map((item) => {
                 const active = isActive(item.url);
                 const badge = ("badge" in item ? item.badge : undefined) as number | string | undefined;
                 const badgeDanger = "badgeTone" in item && item.badgeTone === "red";

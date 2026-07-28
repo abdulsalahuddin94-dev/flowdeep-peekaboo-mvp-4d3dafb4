@@ -19,7 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, ArrowUpRight, Clock, Check } from "lucide-react";
 import type { Rag } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool } from "@/lib/mock-data";
-import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
+import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
 import { toast } from "sonner";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress } from "@/components/ProjectSchedule";
@@ -111,6 +111,7 @@ function ProjectDetail() {
   const { addNotification } = useNotifications();
   const { addRfp } = useRfps();
   const { addResourceRequest, resourceRequests } = useResourceRequests();
+  const { addApprovalRequest: addProjectApproval, currentUser: approvalUser } = useApprovals();
   const { jobRoles } = useJobRoles();
   const project = liveProjects.find((p) => p.id === loaderProject.id) ?? loaderProject;
   const [reportOpen, setReportOpen] = useState(false);
@@ -812,6 +813,21 @@ function ProjectDetail() {
               setCrDialogOpen(false);
               setPlanEditMode("pending");
               setEditBaselineSnapshot(null);
+              addProjectApproval({
+                type: "change-request",
+                projectId: project.id,
+                projectName: project.name,
+                ref: cr.id,
+                title: `Baseline change request ${cr.id} — Project Schedule`,
+                requestedBy: approvalUser.name,
+                summary: cr.changes.map((c) => ({ label: c.field, before: c.oldValue, after: c.newValue })),
+                approvers: DEFAULT_PROJECT_APPROVERS.map((a) => ({
+                  id: a.id.startsWith("u-") ? a.id : `u-${a.id}`,
+                  name: a.name,
+                  role: a.role ?? "Approver",
+                  decision: "pending" as const,
+                })),
+              });
               toast.success(`Change Request ${cr.id} submitted for approval`);
             }}
           />
@@ -913,6 +929,8 @@ function ProjectDetail() {
         milestones={milestones}
         resourceRequests={resourceRequests}
         setCrDialogOpen={setCrDialogOpen}
+        projectId={project.id}
+        projectName={project.name}
         onSetProgress={(name, progress) =>
           setMilestones((prev) => {
             let updated = prev.map((m) => (m.name === name ? { ...m, progress } : m));
@@ -1437,7 +1455,7 @@ const SEED_PACKAGES: TenderPackage[] = [
 function ProgressUpdateDialog({
   open, onOpenChange, items, onSetProgress, onRequestApproval, onApprove, initialTaskName, scopeMilestone,
   projectBaseline, setProjectBaseline, projectBaselineVersions, setProjectBaselineVersions,
-  milestones, resourceRequests, setCrDialogOpen,
+  milestones, resourceRequests, setCrDialogOpen, projectId, projectName,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -1454,6 +1472,8 @@ function ProgressUpdateDialog({
   milestones: Milestone[];
   resourceRequests: ResourceRequest[];
   setCrDialogOpen: (v: boolean) => void;
+  projectId: string;
+  projectName: string;
 }) {
   // All leaf tasks (no children)
   const allLeaves = useMemo(
@@ -1561,21 +1581,22 @@ function ProgressUpdateDialog({
   }, [approvalMilestone, approvalLeaves, current, draftPct]);
 
   const msApproved = approvalMilestone?.approvalStatus === "approved";
-  // Demo-side tracking of which approvers signed off the Approval Task.
-  const [approvedBy, setApprovedBy] = useState<string[]>([]);
-  useEffect(() => { if (!open) setApprovedBy([]); }, [open]);
-  useEffect(() => { if (approvalMilestone?.approvalStatus !== "pending") setApprovedBy([]); }, [approvalMilestone?.approvalStatus, approvalMilestone?.name]);
+  // Decisions live in the central Approvals inbox — this panel is read-only here.
+  const { approvals, addApprovalRequest, remindApproval, currentUser } = useApprovals();
+  const gateRequest = useMemo(
+    () => approvals.find(
+      (a) => a.type === "milestone-gate" && a.projectId === projectId && a.ref === approvalMilestone?.name,
+    ) ?? null,
+    [approvals, projectId, approvalMilestone?.name],
+  );
+  const approvedBy = (gateRequest?.approvers ?? []).filter((a) => a.decision === "approved").map((a) => a.id);
 
-  function approveAs(id: string) {
-    if (!approvalMilestone) return;
-    const next = Array.from(new Set([...approvedBy, id]));
-    setApprovedBy(next);
-    const all = (approvalMilestone.approvers ?? []).every((a) => next.includes(a.id));
-    if (all) {
+  // Reflect the inbox decision back onto the milestone.
+  useEffect(() => {
+    if (gateRequest?.status === "approved" && approvalMilestone && approvalMilestone.approvalStatus !== "approved") {
       onApprove(approvalMilestone.name);
-      toast.success(`Approval Task completed — ${approvalMilestone.name} is now approved`);
     }
-  }
+  }, [gateRequest?.status, approvalMilestone?.name, approvalMilestone?.approvalStatus]);
 
   function save() {
     if (!current) return;
@@ -1587,6 +1608,22 @@ function ProgressUpdateDialog({
     if (!approvalMilestone) return;
     if (current) onSetProgress(current.name, draftPct);
     onRequestApproval(approvalMilestone.name);
+    addApprovalRequest({
+      type: "milestone-gate",
+      projectId,
+      projectName,
+      ref: approvalMilestone.name,
+      title: `Milestone completion — ${approvalMilestone.name}`,
+      requestedBy: currentUser.name,
+      summary: [
+        { label: "Milestone", after: approvalMilestone.name },
+        { label: "Tasks complete", after: `${approvalLeaves.length}/${approvalLeaves.length} at 100%` },
+        { label: "Planned finish", after: approvalMilestone.endDate ?? "—" },
+      ],
+      approvers: (approvalMilestone.approvers ?? []).map((a) => ({
+        id: a.id, name: a.name, role: a.role, department: a.department, decision: "pending" as const,
+      })),
+    });
     toast.success(`Approval requests sent for ${approvalMilestone.name}`);
   }
 
@@ -1774,25 +1811,29 @@ function ProgressUpdateDialog({
                             {a.name}
                             <span className="ml-1 text-muted-foreground">· {a.role}{a.department ? ` · ${a.department}` : ""}</span>
                           </span>
-                          {s === "pending" && !mine ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-6 px-2 text-[10px]"
-                              onClick={() => approveAs(a.id)}
-                            >
-                              Approve
-                            </Button>
-                          ) : (
-                            <span className={`inline-flex items-center gap-1 ${tone}`}>
-                              {mine && <Check className="h-3 w-3" />}
-                              {label}
-                            </span>
-                          )}
+                          <span className={`inline-flex items-center gap-1 ${tone}`}>
+                            {mine && <Check className="h-3 w-3" />}
+                            {label}
+                          </span>
                         </li>
                       );
                     })}
                   </ul>
+                )}
+                {gateRequest?.status === "pending" && (
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <span className="text-[10px] text-muted-foreground">
+                      Decisions are taken in the Approvals inbox by the assigned approvers.
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-6 px-2 text-[10px]"
+                      onClick={() => { remindApproval(gateRequest.id); toast.success("Reminder sent to pending approvers"); }}
+                    >
+                      Remind
+                    </Button>
+                  </div>
                 )}
                 <p className="mt-2 text-[10px] text-muted-foreground">
                   This gate carries no weight in the milestone roll-up — the milestone only counts as complete once

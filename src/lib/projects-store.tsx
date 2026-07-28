@@ -5,6 +5,42 @@ export type OrgTag = { name: string; color: string };
 
 export type JobRole = { id: string; title: string };
 
+// ── Identity (demo role switcher) ─────────────────────────────────────────────
+
+export type AppUser = { id: string; name: string; role: string; department?: string };
+
+export const APP_USERS: AppUser[] = [
+  { id: "u-aisha", name: "Aisha Khoury",  role: "Portfolio Director", department: "PMO" },
+  { id: "u-sara",  name: "Sara Al-Rashid", role: "Director",          department: "Engineering" },
+  { id: "u-john",  name: "John Smith",     role: "Project Manager",   department: "IT" },
+  { id: "u-mei",   name: "Mei Chen",       role: "Solution Architect", department: "Engineering" },
+];
+
+// ── Approvals ─────────────────────────────────────────────────────────────────
+
+export type ApprovalDecision = "pending" | "approved" | "rejected";
+
+export type ApprovalApprover = {
+  id: string; name: string; role: string; department?: string;
+  decision: ApprovalDecision; decidedAt?: string; comment?: string;
+};
+
+export type ApprovalRequest = {
+  id: string;
+  type: "milestone-gate" | "change-request";
+  projectId: string;
+  projectName: string;
+  /** Milestone name or Change Request id. */
+  ref: string;
+  title: string;
+  requestedBy: string;
+  requestedAt: string;
+  summary: { label: string; before?: string; after?: string }[];
+  approvers: ApprovalApprover[];
+  status: ApprovalDecision;
+  reminders: number;
+};
+
 const SEED_JOB_ROLES: JobRole[] = [
   { id: "jr-ba",     title: "Business Analyst" },
   { id: "jr-sa",     title: "Solution Architect" },
@@ -101,6 +137,14 @@ type AppContextValue = {
   addJobRole: (title: string) => void;
   updateJobRole: (id: string, title: string) => void;
   removeJobRole: (id: string) => void;
+  // Identity (demo "view as" switcher)
+  currentUser: AppUser;
+  setCurrentUserId: (id: string) => void;
+  // Approvals inbox
+  approvals: ApprovalRequest[];
+  addApprovalRequest: (r: Omit<ApprovalRequest, "id" | "status" | "requestedAt" | "reminders">) => string;
+  decideApproval: (id: string, approverId: string, decision: Exclude<ApprovalDecision, "pending">, comment?: string) => void;
+  remindApproval: (id: string) => void;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -115,6 +159,44 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   const [tagList, setTagList] = useState<OrgTag[]>(initialTags.map(({ name, color }) => ({ name, color })));
   const [calendars, setCalendars] = useState<WorkCalendar[]>(initialCalendars);
   const [jobRoles, setJobRoles] = useState<JobRole[]>(SEED_JOB_ROLES);
+  const [currentUserId, setCurrentUserId] = useState<string>("u-aisha");
+  const [approvals, setApprovals] = useState<ApprovalRequest[]>([]);
+
+  const currentUser = APP_USERS.find((u) => u.id === currentUserId) ?? APP_USERS[0];
+
+  function addApprovalRequest(r: Omit<ApprovalRequest, "id" | "status" | "requestedAt" | "reminders">) {
+    const id = `AP-${String(Date.now()).slice(-5)}`;
+    setApprovals((prev) => [
+      { ...r, id, status: "pending", requestedAt: new Date().toISOString().split("T")[0], reminders: 0 },
+      ...prev,
+    ]);
+    setNotifications((prev) => [{
+      id: `n-${Date.now()}`,
+      tone: "amber" as const,
+      title: `Approval requested: ${r.title}`,
+      time: "Just now",
+      read: false,
+    }, ...prev]);
+    return id;
+  }
+
+  function decideApproval(id: string, approverId: string, decision: Exclude<ApprovalDecision, "pending">, comment?: string) {
+    setApprovals((prev) => prev.map((a) => {
+      if (a.id !== id) return a;
+      const approvers = a.approvers.map((ap) => ap.id === approverId
+        ? { ...ap, decision, decidedAt: new Date().toISOString().split("T")[0], comment }
+        : ap);
+      const status: ApprovalDecision =
+        approvers.some((ap) => ap.decision === "rejected") ? "rejected"
+        : approvers.every((ap) => ap.decision === "approved") ? "approved"
+        : "pending";
+      return { ...a, approvers, status };
+    }));
+  }
+
+  function remindApproval(id: string) {
+    setApprovals((prev) => prev.map((a) => a.id === id ? { ...a, reminders: a.reminders + 1 } : a));
+  }
 
   function addCalendar(c: WorkCalendar) { setCalendars((prev) => [...prev, c]); }
   function updateCalendar(id: string, patch: Partial<WorkCalendar>) {
@@ -192,6 +274,8 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       tags, addTag,
       calendars, addCalendar, updateCalendar, removeCalendar,
       jobRoles, addJobRole, updateJobRole, removeJobRole,
+      currentUser, setCurrentUserId,
+      approvals, addApprovalRequest, decideApproval, remindApproval,
     }}>
       {children}
     </AppContext.Provider>
@@ -236,4 +320,17 @@ export function useCalendars() {
 export function useJobRoles() {
   const { jobRoles, addJobRole, updateJobRole, removeJobRole } = useAppContext();
   return { jobRoles, addJobRole, updateJobRole, removeJobRole };
+}
+
+export function useCurrentUser() {
+  const { currentUser, setCurrentUserId } = useAppContext();
+  return { currentUser, setCurrentUserId, users: APP_USERS };
+}
+
+export function useApprovals() {
+  const { approvals, addApprovalRequest, decideApproval, remindApproval, currentUser } = useAppContext();
+  const myPending = approvals.filter(
+    (a) => a.status === "pending" && a.approvers.some((ap) => ap.id === currentUser.id && ap.decision === "pending"),
+  );
+  return { approvals, addApprovalRequest, decideApproval, remindApproval, currentUser, myPending };
 }

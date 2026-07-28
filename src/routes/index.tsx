@@ -11,7 +11,7 @@ import {
   Activity, Users, DollarSign, GanttChartSquare, Bell, Inbox, Sparkles, Plus,
 } from "lucide-react";
 import { milestones, resources, type Rag } from "@/lib/mock-data";
-import { useProjects, useNotifications, useResourceRequests } from "@/lib/projects-store";
+import { useProjects, useNotifications, useResourceRequests, useApprovals } from "@/lib/projects-store";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
@@ -136,6 +136,72 @@ function Stat({
 // ── Director view (default) — bento ────────────────────────────────────────────
 
 function DirectorView() {
+  return <DirectorViewInner />;
+}
+
+function ApprovalsWidget() {
+  const { myPending } = useApprovals();
+  return (
+    <Tile
+      className="col-span-12"
+      eyebrow="Awaiting your approval"
+      right={
+        <Link to="/approvals" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
+          View all <ArrowUpRight className="h-3 w-3" />
+        </Link>
+      }
+    >
+      {myPending.length === 0 ? (
+        <p className="text-xs text-muted-foreground">No approvals waiting on you.</p>
+      ) : (
+        <ul className="space-y-2">
+          {myPending.slice(0, 5).map((a) => (
+            <li key={a.id} className="flex items-center gap-3 rounded-md border border-border bg-background/30 p-3">
+              <span className={`h-2 w-2 shrink-0 rounded-full ${a.type === "milestone-gate" ? "bg-rag-amber" : "bg-accent"}`} />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm text-foreground">{a.title}</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {a.projectName} · {a.type === "milestone-gate" ? "Milestone gate" : "Change request"} · {a.requestedAt}
+                </div>
+              </div>
+              <Link to="/approvals">
+                <Button size="sm" variant="outline" className="h-7 text-[11px]">Review</Button>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Tile>
+  );
+}
+
+function AwaitingOthersWidget() {
+  const { approvals, currentUser } = useApprovals();
+  const mine = approvals.filter((a) => a.status === "pending" && a.requestedBy === currentUser.name);
+  return (
+    <Tile className="col-span-12" eyebrow="Awaiting others">
+      {mine.length === 0 ? (
+        <p className="text-xs text-muted-foreground">You have no requests pending with approvers.</p>
+      ) : (
+        <ul className="space-y-2">
+          {mine.map((a) => (
+            <li key={a.id} className="flex items-center justify-between gap-3 rounded-md border border-border bg-background/30 p-3">
+              <div className="min-w-0">
+                <div className="truncate text-sm text-foreground">{a.title}</div>
+                <div className="text-[11px] text-muted-foreground">{a.projectName} · sent {a.requestedAt}</div>
+              </div>
+              <span className="shrink-0 text-[11px] text-rag-amber">
+                {a.approvers.filter((ap) => ap.decision === "approved").length}/{a.approvers.length} approved
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Tile>
+  );
+}
+
+function DirectorViewInner() {
   const s = useLiveSummary();
   const { notifications, unreadCount } = useNotifications();
   const { resourceRequests } = useResourceRequests();
@@ -144,6 +210,7 @@ function DirectorView() {
 
   return (
     <div className="grid grid-cols-12 gap-4">
+      <ApprovalsWidget />
       {/* Hero KPI band */}
       <Tile className="col-span-12 lg:col-span-8" eyebrow="Portfolio Health" right={
         <Link to="/portfolio" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
@@ -395,6 +462,8 @@ function PMView() {
   const mine = projects.slice(0, 5);
   return (
     <div className="grid grid-cols-12 gap-4">
+      <ApprovalsWidget />
+      <AwaitingOthersWidget />
       <Tile className="col-span-12 lg:col-span-12" eyebrow="My Projects">
         <ul className="space-y-2">
           {mine.map((p) => (

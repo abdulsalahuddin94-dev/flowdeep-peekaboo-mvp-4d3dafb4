@@ -112,7 +112,7 @@ function ProjectDetail() {
   const { addNotification } = useNotifications();
   const { addRfp } = useRfps();
   const { addResourceRequest, resourceRequests } = useResourceRequests();
-  const { addApprovalRequest: addProjectApproval, currentUser: approvalUser } = useApprovals();
+  const { addApprovalRequest: addProjectApproval, currentUser: approvalUser, approvals: centralApprovals } = useApprovals();
   const { jobRoles } = useJobRoles();
   const project = liveProjects.find((p) => p.id === loaderProject.id) ?? loaderProject;
   const [reportOpen, setReportOpen] = useState(false);
@@ -327,6 +327,73 @@ function ProjectDetail() {
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planEditMode, isViewingCurrent, hasPlanChanges]);
+
+  // ── Reflect central Approvals Inbox decisions back onto this project ────────
+
+  // 1) Milestone gates: approve → milestone completed (100%) & gate closed.
+  useEffect(() => {
+    const decisions: Array<{ name: string; status: "approved" | "rejected" }> = [];
+    for (const m of milestones) {
+      if (m.kind !== "Milestone" || !m.requiresApproval) continue;
+      if (m.approvalStatus === "approved" || m.approvalStatus === "rejected") continue;
+      const central = centralApprovals.find(
+        (a) => a.type === "milestone-gate" && a.projectId === project.id && a.ref === m.name,
+      );
+      if (!central || central.status === "pending") continue;
+      decisions.push({ name: m.name, status: central.status });
+    }
+    if (!decisions.length) return;
+    setMilestones((prev) =>
+      prev.map((m) => {
+        const d = decisions.find((x) => x.name === m.name);
+        if (!d) return m;
+        return d.status === "approved"
+          ? { ...m, approvalStatus: "approved" as const, progress: 100 }
+          : { ...m, approvalStatus: "rejected" as const };
+      }),
+    );
+    for (const d of decisions) {
+      if (d.status === "approved") toast.success(`✅ ${d.name} approved — milestone completed (100%)`);
+      else toast.error(`${d.name} approval rejected`);
+    }
+  }, [centralApprovals, milestones, project.id]);
+
+  // 2) Schedule change requests: approve → new baseline version created.
+  useEffect(() => {
+    const pending = changeRequests.filter((cr) => cr.status === "pending" && cr.approvalId);
+    if (!pending.length) return;
+    for (const cr of pending) {
+      const central = centralApprovals.find((a) => a.id === cr.approvalId);
+      if (!central || central.status === "pending") continue;
+      const reason = central.approvers.find((a) => a.comment)?.comment;
+      if (central.status === "approved") {
+        setChangeRequests((prev) =>
+          prev.map((c) =>
+            c.id === cr.id
+              ? { ...c, status: "approved" as const, approvedAt: new Date().toISOString().split("T")[0], approvedBy: central.approvers.map((a) => a.name).join(", "), approvalReason: reason }
+              : c,
+          ),
+        );
+        setProjectBaselineVersions((prev) => {
+          const version = prev.length + 1;
+          toast.success(`✅ Change Request ${cr.id} approved — Project Schedule baseline v${version} created`);
+          return [...prev, { version, createdAt: new Date().toISOString().split("T")[0], snapshot: milestones.map((m) => ({ ...m })) }];
+        });
+        setSelectedBaselineVersion("latest");
+        setPlanEditMode("view");
+      } else {
+        setChangeRequests((prev) =>
+          prev.map((c) =>
+            c.id === cr.id
+              ? { ...c, status: "rejected" as const, rejectedAt: new Date().toISOString().split("T")[0], rejectionReason: reason }
+              : c,
+          ),
+        );
+        setPlanEditMode("view");
+        toast.error(`Change Request ${cr.id} rejected${reason ? ` — ${reason}` : ""}`);
+      }
+    }
+  }, [centralApprovals, changeRequests, milestones]);
 
   // Initialize sample baseline versions on component mount
   useEffect(() => {
@@ -810,11 +877,10 @@ function ProjectDetail() {
             currentMilestones={milestones}
             baselineVersion={projectBaselineVersions.length}
             onSubmit={(cr) => {
-              setChangeRequests((prev) => [...prev, cr]);
               setCrDialogOpen(false);
               setPlanEditMode("pending");
               setEditBaselineSnapshot(null);
-              addProjectApproval({
+              const approvalId = addProjectApproval({
                 type: "change-request",
                 projectId: project.id,
                 projectName: project.name,
@@ -829,6 +895,7 @@ function ProjectDetail() {
                   decision: "pending" as const,
                 })),
               });
+              setChangeRequests((prev) => [...prev, { ...cr, approvalId }]);
               toast.success(`Change Request ${cr.id} submitted for approval`);
             }}
           />
@@ -880,9 +947,14 @@ function ProjectDetail() {
                     : cr
                 )
               );
+              setProjectBaselineVersions((prev) => {
+                const version = prev.length + 1;
+                toast.success(`✅ Change Request approved — Project Schedule baseline v${version} created`);
+                return [...prev, { version, createdAt: new Date().toISOString().split("T")[0], snapshot: milestones.map((m) => ({ ...m })) }];
+              });
+              setSelectedBaselineVersion("latest");
               setPlanEditMode("view");
               setCrApprovalDialogOpen(false);
-              toast.success("✅ Change Request approved! Back to Change Plan mode");
             }}
             onReject={(reason) => {
               setChangeRequests((prev) =>
@@ -4498,6 +4570,8 @@ interface ChangeRequest {
   approvalReason?: string;
   rejectionReason?: string;
   rejectedAt?: string;
+  /** Linked central Approvals Inbox request id. */
+  approvalId?: string;
 }
 
 function ChangeRequestDialog({

@@ -1708,7 +1708,7 @@ function ProgressUpdateDialog({
               <div className="mt-2 rounded-md border border-border bg-secondary/10 p-3">
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-medium text-foreground">
-                    Approvers · {approvalMilestone.name}
+                    Approval Task · {approvalMilestone.name}
                   </span>
                   <span className={`rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
                     approvalMilestone.approvalStatus === "approved" ? "border-rag-green/40 bg-rag-green/10 text-rag-green"
@@ -1726,23 +1726,39 @@ function ProgressUpdateDialog({
                   <ul className="mt-2 space-y-1.5">
                     {(approvalMilestone.approvers ?? []).map((a) => {
                       const s = approvalMilestone.approvalStatus;
-                      const label = s === "approved" ? "Approved" : s === "pending" ? "Pending" : "Not requested";
-                      const tone = s === "approved" ? "text-rag-green" : s === "pending" ? "text-rag-amber" : "text-muted-foreground";
+                      const mine = s === "approved" || approvedBy.includes(a.id);
+                      const label = mine ? "Approved" : s === "pending" ? "Pending" : "Not requested";
+                      const tone = mine ? "text-rag-green" : s === "pending" ? "text-rag-amber" : "text-muted-foreground";
                       return (
                         <li key={a.id} className="flex items-center justify-between text-[11px]">
                           <span className="text-foreground">
                             {a.name}
                             <span className="ml-1 text-muted-foreground">· {a.role}{a.department ? ` · ${a.department}` : ""}</span>
                           </span>
-                          <span className={`inline-flex items-center gap-1 ${tone}`}>
-                            {s === "approved" && <Check className="h-3 w-3" />}
-                            {label}
-                          </span>
+                          {s === "pending" && !mine ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-6 px-2 text-[10px]"
+                              onClick={() => approveAs(a.id)}
+                            >
+                              Approve
+                            </Button>
+                          ) : (
+                            <span className={`inline-flex items-center gap-1 ${tone}`}>
+                              {mine && <Check className="h-3 w-3" />}
+                              {label}
+                            </span>
+                          )}
                         </li>
                       );
                     })}
                   </ul>
                 )}
+                <p className="mt-2 text-[10px] text-muted-foreground">
+                  This gate carries no weight in the milestone roll-up — the milestone only counts as complete once
+                  the Approval Task is signed off.
+                </p>
               </div>
             )}
           </div>

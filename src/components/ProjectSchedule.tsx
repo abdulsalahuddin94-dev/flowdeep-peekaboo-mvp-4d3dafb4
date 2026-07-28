@@ -311,7 +311,8 @@ export function ProjectSchedule({
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);
   const [visibleCols] = useState<Set<ColKey>>(
-    () => new Set<ColKey>(["type", "start", "end", "owner", "assignee", "status", "progress", "dep", "roles", "payment"]),
+    // Owner + Assignee columns hidden for the MVP demo view
+    () => new Set<ColKey>(["type", "start", "end", "status", "progress", "dep", "roles", "payment"]),
   );
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(items.map(i => i.name)));
   const [leftPct, setLeftPct] = useState(48);

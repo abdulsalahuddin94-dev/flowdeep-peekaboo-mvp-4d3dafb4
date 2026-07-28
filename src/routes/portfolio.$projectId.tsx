@@ -2154,6 +2154,10 @@ type Milestone = {
   /** Workflow state: undefined (not requested) → "pending" → "approved" | "rejected". */
   approvalStatus?: "approved" | "pending" | "rejected";
   approvers?: { id: string; name: string; role: string; department: string }[];
+  /** Synthetic approval gate task (auto-generated, never persisted). */
+  isApprovalTask?: boolean;
+  /** Gate unlocked — every sibling leaf task reached 100%. */
+  approvalReady?: boolean;
   dependencies?: any[];
   /** Baseline snapshot — locked version after approval. Milestone only. */
   baseline?: { version: number; createdAt: string; baselineStart: string; baselineEnd: string; baselineProgress: number; isLocked: boolean };

@@ -690,6 +690,254 @@
   --color-cat-slate:  var(--cat-slate);
 }
 
+/* ───────────────────────────────────────────────────────────────────────────
+   Tailwind Theme Bridge — PRIMITIVE tokens exposed as utilities
+   ═══════════════════════════════════════════════════════════════════════════ */
+@theme inline {
+  /* Primitive · Neutral */
+  --color-p-white:       var(--p-white);
+  --color-p-black:       var(--p-black);
+  --color-p-neutral-50:  var(--p-neutral-50);
+  --color-p-neutral-100: var(--p-neutral-100);
+  --color-p-neutral-200: var(--p-neutral-200);
+  --color-p-neutral-300: var(--p-neutral-300);
+  --color-p-neutral-400: var(--p-neutral-400);
+  --color-p-neutral-500: var(--p-neutral-500);
+  --color-p-neutral-600: var(--p-neutral-600);
+  --color-p-neutral-700: var(--p-neutral-700);
+  --color-p-neutral-800: var(--p-neutral-800);
+  --color-p-neutral-900: var(--p-neutral-900);
+  --color-p-neutral-950: var(--p-neutral-950);
+
+  /* Primitive · Charcoal */
+  --color-p-charcoal-50:  var(--p-charcoal-50);
+  --color-p-charcoal-100: var(--p-charcoal-100);
+  --color-p-charcoal-200: var(--p-charcoal-200);
+  --color-p-charcoal-300: var(--p-charcoal-300);
+  --color-p-charcoal-400: var(--p-charcoal-400);
+  --color-p-charcoal-500: var(--p-charcoal-500);
+  --color-p-charcoal-600: var(--p-charcoal-600);
+  --color-p-charcoal-700: var(--p-charcoal-700);
+  --color-p-charcoal-800: var(--p-charcoal-800);
+  --color-p-charcoal-850: var(--p-charcoal-850);
+  --color-p-charcoal-900: var(--p-charcoal-900);
+  --color-p-charcoal-950: var(--p-charcoal-950);
+
+  /* Primitive · Lavender */
+  --color-p-lavender-50:  var(--p-lavender-50);
+  --color-p-lavender-100: var(--p-lavender-100);
+  --color-p-lavender-200: var(--p-lavender-200);
+  --color-p-lavender-300: var(--p-lavender-300);
+  --color-p-lavender-400: var(--p-lavender-400);
+  --color-p-lavender-500: var(--p-lavender-500);
+  --color-p-lavender-600: var(--p-lavender-600);
+  --color-p-lavender-700: var(--p-lavender-700);
+  --color-p-lavender-800: var(--p-lavender-800);
+  --color-p-lavender-900: var(--p-lavender-900);
+  --color-p-lavender-950: var(--p-lavender-950);
+
+  /* Primitive · Indigo */
+  --color-p-indigo-50:  var(--p-indigo-50);
+  --color-p-indigo-100: var(--p-indigo-100);
+  --color-p-indigo-200: var(--p-indigo-200);
+  --color-p-indigo-300: var(--p-indigo-300);
+  --color-p-indigo-400: var(--p-indigo-400);
+  --color-p-indigo-500: var(--p-indigo-500);
+  --color-p-indigo-600: var(--p-indigo-600);
+  --color-p-indigo-700: var(--p-indigo-700);
+  --color-p-indigo-800: var(--p-indigo-800);
+  --color-p-indigo-900: var(--p-indigo-900);
+  --color-p-indigo-950: var(--p-indigo-950);
+
+  /* Primitive · Emerald */
+  --color-p-emerald-50:  var(--p-emerald-50);
+  --color-p-emerald-100: var(--p-emerald-100);
+  --color-p-emerald-200: var(--p-emerald-200);
+  --color-p-emerald-300: var(--p-emerald-300);
+  --color-p-emerald-400: var(--p-emerald-400);
+  --color-p-emerald-500: var(--p-emerald-500);
+  --color-p-emerald-600: var(--p-emerald-600);
+  --color-p-emerald-700: var(--p-emerald-700);
+  --color-p-emerald-800: var(--p-emerald-800);
+  --color-p-emerald-900: var(--p-emerald-900);
+  --color-p-emerald-950: var(--p-emerald-950);
+
+  /* Primitive · Slate */
+  --color-p-slate-50:  var(--p-slate-50);
+  --color-p-slate-100: var(--p-slate-100);
+  --color-p-slate-200: var(--p-slate-200);
+  --color-p-slate-300: var(--p-slate-300);
+  --color-p-slate-400: var(--p-slate-400);
+  --color-p-slate-500: var(--p-slate-500);
+  --color-p-slate-600: var(--p-slate-600);
+  --color-p-slate-700: var(--p-slate-700);
+  --color-p-slate-800: var(--p-slate-800);
+  --color-p-slate-900: var(--p-slate-900);
+  --color-p-slate-950: var(--p-slate-950);
+
+  /* Primitive · Amber */
+  --color-p-amber-50:  var(--p-amber-50);
+  --color-p-amber-100: var(--p-amber-100);
+  --color-p-amber-200: var(--p-amber-200);
+  --color-p-amber-300: var(--p-amber-300);
+  --color-p-amber-400: var(--p-amber-400);
+  --color-p-amber-500: var(--p-amber-500);
+  --color-p-amber-600: var(--p-amber-600);
+  --color-p-amber-700: var(--p-amber-700);
+  --color-p-amber-800: var(--p-amber-800);
+  --color-p-amber-900: var(--p-amber-900);
+  --color-p-amber-950: var(--p-amber-950);
+
+  /* Primitive · Red */
+  --color-p-red-50:  var(--p-red-50);
+  --color-p-red-100: var(--p-red-100);
+  --color-p-red-200: var(--p-red-200);
+  --color-p-red-300: var(--p-red-300);
+  --color-p-red-400: var(--p-red-400);
+  --color-p-red-500: var(--p-red-500);
+  --color-p-red-600: var(--p-red-600);
+  --color-p-red-700: var(--p-red-700);
+  --color-p-red-800: var(--p-red-800);
+  --color-p-red-900: var(--p-red-900);
+  --color-p-red-950: var(--p-red-950);
+
+  /* Primitive · Blue */
+  --color-p-blue-50:  var(--p-blue-50);
+  --color-p-blue-100: var(--p-blue-100);
+  --color-p-blue-200: var(--p-blue-200);
+  --color-p-blue-300: var(--p-blue-300);
+  --color-p-blue-400: var(--p-blue-400);
+  --color-p-blue-500: var(--p-blue-500);
+  --color-p-blue-600: var(--p-blue-600);
+  --color-p-blue-700: var(--p-blue-700);
+  --color-p-blue-800: var(--p-blue-800);
+  --color-p-blue-900: var(--p-blue-900);
+  --color-p-blue-950: var(--p-blue-950);
+
+  /* Primitive · Teal */
+  --color-p-teal-50:  var(--p-teal-50);
+  --color-p-teal-100: var(--p-teal-100);
+  --color-p-teal-200: var(--p-teal-200);
+  --color-p-teal-300: var(--p-teal-300);
+  --color-p-teal-400: var(--p-teal-400);
+  --color-p-teal-500: var(--p-teal-500);
+  --color-p-teal-600: var(--p-teal-600);
+  --color-p-teal-700: var(--p-teal-700);
+  --color-p-teal-800: var(--p-teal-800);
+  --color-p-teal-900: var(--p-teal-900);
+  --color-p-teal-950: var(--p-teal-950);
+
+  /* Primitive · Sky */
+  --color-p-sky-50:  var(--p-sky-50);
+  --color-p-sky-100: var(--p-sky-100);
+  --color-p-sky-200: var(--p-sky-200);
+  --color-p-sky-300: var(--p-sky-300);
+  --color-p-sky-400: var(--p-sky-400);
+  --color-p-sky-500: var(--p-sky-500);
+  --color-p-sky-600: var(--p-sky-600);
+  --color-p-sky-700: var(--p-sky-700);
+  --color-p-sky-800: var(--p-sky-800);
+  --color-p-sky-900: var(--p-sky-900);
+  --color-p-sky-950: var(--p-sky-950);
+
+  /* Primitive · Violet */
+  --color-p-violet-50:  var(--p-violet-50);
+  --color-p-violet-100: var(--p-violet-100);
+  --color-p-violet-200: var(--p-violet-200);
+  --color-p-violet-300: var(--p-violet-300);
+  --color-p-violet-400: var(--p-violet-400);
+  --color-p-violet-500: var(--p-violet-500);
+  --color-p-violet-600: var(--p-violet-600);
+  --color-p-violet-700: var(--p-violet-700);
+  --color-p-violet-800: var(--p-violet-800);
+  --color-p-violet-900: var(--p-violet-900);
+  --color-p-violet-950: var(--p-violet-950);
+
+  /* Primitive · Alpha ramps */
+  --color-p-white-a-5:  var(--p-white-a-5);
+  --color-p-white-a-6:  var(--p-white-a-6);
+  --color-p-white-a-8:  var(--p-white-a-8);
+  --color-p-white-a-10: var(--p-white-a-10);
+  --color-p-white-a-12: var(--p-white-a-12);
+  --color-p-white-a-15: var(--p-white-a-15);
+  --color-p-white-a-18: var(--p-white-a-18);
+  --color-p-white-a-20: var(--p-white-a-20);
+  --color-p-white-a-30: var(--p-white-a-30);
+  --color-p-white-a-32: var(--p-white-a-32);
+  --color-p-white-a-40: var(--p-white-a-40);
+  --color-p-white-a-50: var(--p-white-a-50);
+  --color-p-white-a-60: var(--p-white-a-60);
+  --color-p-white-a-70: var(--p-white-a-70);
+  --color-p-white-a-75: var(--p-white-a-75);
+  --color-p-white-a-80: var(--p-white-a-80);
+  --color-p-white-a-90: var(--p-white-a-90);
+
+  --color-p-black-a-4:  var(--p-black-a-4);
+  --color-p-black-a-6:  var(--p-black-a-6);
+  --color-p-black-a-7:  var(--p-black-a-7);
+  --color-p-black-a-10: var(--p-black-a-10);
+  --color-p-black-a-20: var(--p-black-a-20);
+  --color-p-black-a-30: var(--p-black-a-30);
+  --color-p-black-a-40: var(--p-black-a-40);
+  --color-p-black-a-50: var(--p-black-a-50);
+  --color-p-black-a-60: var(--p-black-a-60);
+  --color-p-black-a-70: var(--p-black-a-70);
+  --color-p-black-a-80: var(--p-black-a-80);
+  --color-p-black-a-90: var(--p-black-a-90);
+
+  --color-p-lavender-a-10: var(--p-lavender-a-10);
+  --color-p-lavender-a-15: var(--p-lavender-a-15);
+  --color-p-lavender-a-20: var(--p-lavender-a-20);
+  --color-p-lavender-a-30: var(--p-lavender-a-30);
+  --color-p-lavender-a-40: var(--p-lavender-a-40);
+  --color-p-lavender-a-50: var(--p-lavender-a-50);
+  --color-p-lavender-a-60: var(--p-lavender-a-60);
+
+  --color-p-indigo-a-10: var(--p-indigo-a-10);
+  --color-p-indigo-a-12: var(--p-indigo-a-12);
+  --color-p-indigo-a-20: var(--p-indigo-a-20);
+  --color-p-indigo-a-25: var(--p-indigo-a-25);
+  --color-p-indigo-a-30: var(--p-indigo-a-30);
+  --color-p-indigo-a-40: var(--p-indigo-a-40);
+  --color-p-indigo-a-50: var(--p-indigo-a-50);
+  --color-p-indigo-a-60: var(--p-indigo-a-60);
+
+  --color-p-red-a-10: var(--p-red-a-10);
+  --color-p-red-a-20: var(--p-red-a-20);
+  --color-p-red-a-30: var(--p-red-a-30);
+  --color-p-red-a-40: var(--p-red-a-40);
+  --color-p-red-a-50: var(--p-red-a-50);
+
+  /* Semantic · Table */
+  --color-table-header-bg:   var(--table-header-bg);
+  --color-table-header-fg:   var(--table-header-fg);
+  --color-table-row-bg:      var(--table-row-bg);
+  --color-table-row-hover:   var(--table-row-hover);
+
+  /* Semantic · Chart */
+  --color-chart-1:  var(--chart-1);
+  --color-chart-2:  var(--chart-2);
+  --color-chart-3:  var(--chart-3);
+  --color-chart-4:  var(--chart-4);
+  --color-chart-5:  var(--chart-5);
+  --color-chart-6:  var(--chart-6);
+  --color-chart-grid:          var(--chart-grid);
+  --color-chart-axis:          var(--chart-axis);
+  --color-chart-axis-tick:     var(--chart-axis-tick);
+  --color-chart-tooltip-bg:    var(--chart-tooltip-bg);
+  --color-chart-tooltip-border: var(--chart-tooltip-border);
+  --color-chart-tooltip-label: var(--chart-tooltip-label);
+  --color-chart-tooltip-item:  var(--chart-tooltip-item);
+  --color-chart-track:         var(--chart-track);
+  --color-chart-plan:          var(--chart-plan);
+  --color-chart-actual:        var(--chart-actual);
+  --color-chart-revenue:       var(--chart-revenue);
+  --color-chart-capex:         var(--chart-capex);
+  --color-chart-opex:          var(--chart-opex);
+  --color-chart-pie-stroke:    var(--chart-pie-stroke);
+  --color-chart-planned-hatch: var(--chart-planned-hatch);
+}
+
 @layer base {
   * { border-color: var(--color-border); }
   html, body { background: var(--color-background); color: var(--color-foreground); }

@@ -3,7 +3,7 @@ import { projects as initialProjects, rfps as initialRfps, orgTags as initialTag
 
 export type OrgTag = { name: string; color: string };
 
-export type JobRole = { id: string; title: string };
+export type JobRole = { id: string; title: string; skills?: string[] };
 
 // ── Identity (demo role switcher) ─────────────────────────────────────────────
 
@@ -159,21 +159,21 @@ const SEED_APPROVALS: ApprovalRequest[] = [
 ];
 
 const SEED_JOB_ROLES: JobRole[] = [
-  { id: "jr-ba",     title: "Business Analyst" },
-  { id: "jr-sa",     title: "Solution Architect" },
-  { id: "jr-ux",     title: "UX Designer" },
-  { id: "jr-be",     title: "Backend Dev" },
-  { id: "jr-fe",     title: "Frontend Dev" },
-  { id: "jr-int",    title: "Integration Dev" },
-  { id: "jr-de",     title: "Data Engineer" },
-  { id: "jr-qa",     title: "QA Engineer" },
-  { id: "jr-qal",    title: "QA Lead" },
-  { id: "jr-devops", title: "DevOps Engineer" },
-  { id: "jr-sec",    title: "Security Lead" },
-  { id: "jr-perf",   title: "Performance Engineer" },
-  { id: "jr-sup",    title: "Support Lead" },
-  { id: "jr-tr",     title: "Trainer" },
-  { id: "jr-pm",     title: "Project Manager" },
+  { id: "jr-ba",     title: "Business Analyst",       skills: ["Requirements elicitation", "BPMN", "User stories"] },
+  { id: "jr-sa",     title: "Solution Architect",     skills: ["System design", "Integration patterns", "Cloud architecture"] },
+  { id: "jr-ux",     title: "UX Designer",            skills: ["Wireframing", "Figma", "Usability testing"] },
+  { id: "jr-be",     title: "Backend Dev",            skills: ["Node.js", "SQL", "REST APIs"] },
+  { id: "jr-fe",     title: "Frontend Dev",           skills: ["React", "TypeScript", "Tailwind CSS"] },
+  { id: "jr-int",    title: "Integration Dev",        skills: ["Middleware", "SOAP/REST", "Message queues"] },
+  { id: "jr-de",     title: "Data Engineer",          skills: ["ETL", "Data modelling", "Spark"] },
+  { id: "jr-qa",     title: "QA Engineer",            skills: ["Test cases", "Automation", "Regression testing"] },
+  { id: "jr-qal",    title: "QA Lead",                skills: ["Test strategy", "Defect governance", "Team leadership"] },
+  { id: "jr-devops", title: "DevOps Engineer",        skills: ["CI/CD", "Kubernetes", "Observability"] },
+  { id: "jr-sec",    title: "Security Lead",          skills: ["Threat modelling", "Pen-testing", "Compliance"] },
+  { id: "jr-perf",   title: "Performance Engineer",   skills: ["Load testing", "Profiling", "Tuning"] },
+  { id: "jr-sup",    title: "Support Lead",           skills: ["Incident management", "SLA handling", "Escalation"] },
+  { id: "jr-tr",     title: "Trainer",                skills: ["Curriculum design", "Facilitation", "Documentation"] },
+  { id: "jr-pm",     title: "Project Manager",        skills: ["Scheduling", "Stakeholder management", "Risk control"] },
 ];
 
 // ── Shared types ──────────────────────────────────────────────────────────────
@@ -251,8 +251,8 @@ type AppContextValue = {
   removeCalendar: (id: string) => void;
   // Job roles (Organization-level)
   jobRoles: JobRole[];
-  addJobRole: (title: string) => void;
-  updateJobRole: (id: string, title: string) => void;
+  addJobRole: (title: string, skills?: string[]) => void;
+  updateJobRole: (id: string, title: string, skills?: string[]) => void;
   removeJobRole: (id: string) => void;
   // Identity (demo "view as" switcher)
   currentUser: AppUser;
@@ -383,17 +383,17 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     setCalendars((prev) => prev.filter((c) => c.id !== id));
   }
 
-  function addJobRole(title: string) {
+  function addJobRole(title: string, skills?: string[]) {
     const t = title.trim();
     if (!t) return;
     setJobRoles((prev) => prev.some((r) => r.title.toLowerCase() === t.toLowerCase())
       ? prev
-      : [...prev, { id: `jr-${Date.now()}`, title: t }]);
+      : [...prev, { id: `jr-${Date.now()}`, title: t, skills: skills ?? [] }]);
   }
-  function updateJobRole(id: string, title: string) {
+  function updateJobRole(id: string, title: string, skills?: string[]) {
     const t = title.trim();
     if (!t) return;
-    setJobRoles((prev) => prev.map((r) => r.id === id ? { ...r, title: t } : r));
+    setJobRoles((prev) => prev.map((r) => r.id === id ? { ...r, title: t, ...(skills ? { skills } : {}) } : r));
   }
   function removeJobRole(id: string) {
     setJobRoles((prev) => prev.filter((r) => r.id !== id));

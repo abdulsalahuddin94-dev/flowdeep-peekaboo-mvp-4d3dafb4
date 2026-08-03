@@ -3,7 +3,7 @@ import { projects as initialProjects, rfps as initialRfps, orgTags as initialTag
 
 export type OrgTag = { name: string; color: string };
 
-export type JobRole = { id: string; title: string };
+export type JobRole = { id: string; title: string; skills?: string[] };
 
 // ── Identity (demo role switcher) ─────────────────────────────────────────────
 
@@ -251,8 +251,8 @@ type AppContextValue = {
   removeCalendar: (id: string) => void;
   // Job roles (Organization-level)
   jobRoles: JobRole[];
-  addJobRole: (title: string) => void;
-  updateJobRole: (id: string, title: string) => void;
+  addJobRole: (title: string, skills?: string[]) => void;
+  updateJobRole: (id: string, title: string, skills?: string[]) => void;
   removeJobRole: (id: string) => void;
   // Identity (demo "view as" switcher)
   currentUser: AppUser;
@@ -383,17 +383,17 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     setCalendars((prev) => prev.filter((c) => c.id !== id));
   }
 
-  function addJobRole(title: string) {
+  function addJobRole(title: string, skills?: string[]) {
     const t = title.trim();
     if (!t) return;
     setJobRoles((prev) => prev.some((r) => r.title.toLowerCase() === t.toLowerCase())
       ? prev
-      : [...prev, { id: `jr-${Date.now()}`, title: t }]);
+      : [...prev, { id: `jr-${Date.now()}`, title: t, skills: skills ?? [] }]);
   }
-  function updateJobRole(id: string, title: string) {
+  function updateJobRole(id: string, title: string, skills?: string[]) {
     const t = title.trim();
     if (!t) return;
-    setJobRoles((prev) => prev.map((r) => r.id === id ? { ...r, title: t } : r));
+    setJobRoles((prev) => prev.map((r) => r.id === id ? { ...r, title: t, ...(skills ? { skills } : {}) } : r));
   }
   function removeJobRole(id: string) {
     setJobRoles((prev) => prev.filter((r) => r.id !== id));

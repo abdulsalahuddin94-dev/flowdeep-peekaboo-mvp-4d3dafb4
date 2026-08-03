@@ -48,7 +48,7 @@ function OrganizationPage() {
                 <TableHead className="w-28">ID</TableHead>
                 <TableHead className="w-56">Name</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead className="w-36 text-right">Active Projects</TableHead>
+                <TableHead className="w-36 text-center">Active Projects</TableHead>
                 <TableHead className="w-24" />
               </TableRow></TableHeader>
               <TableBody>
@@ -57,7 +57,7 @@ function OrganizationPage() {
                     <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`PT-${String(i + 1).padStart(3, "0")}`}</TableCell>
                     <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
                     <TableCell className="text-muted-foreground">{b.description}</TableCell>
-                    <TableCell className="text-right num-mono">{b.projects}</TableCell>
+                    <TableCell className="text-center num-mono">{b.projects}</TableCell>
                     <TableCell><RowActions /></TableCell>
                   </TableRow>
                 ))}

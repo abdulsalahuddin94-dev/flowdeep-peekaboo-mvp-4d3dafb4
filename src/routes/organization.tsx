@@ -47,7 +47,7 @@ function OrganizationPage() {
               <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
                 <TableHead className="w-28">ID</TableHead>
                 <TableHead className="w-56">Name</TableHead>
-                <TableHead>Description</TableHead>
+                <TableHead className="w-72">Description</TableHead>
                 <TableHead className="w-36 text-center">Active Projects</TableHead>
                 <TableHead className="w-24" />
               </TableRow></TableHeader>
@@ -56,7 +56,7 @@ function OrganizationPage() {
                   <TableRow key={b.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                     <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`PT-${String(i + 1).padStart(3, "0")}`}</TableCell>
                     <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{b.description}</TableCell>
+                    <TableCell className="w-72 text-muted-foreground">{b.description}</TableCell>
                     <TableCell className="text-center num-mono">{b.projects}</TableCell>
                     <TableCell><RowActions /></TableCell>
                   </TableRow>

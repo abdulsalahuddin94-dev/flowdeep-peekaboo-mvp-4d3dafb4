@@ -39,19 +39,22 @@ function OrganizationPage() {
         </TabsList>
 
         <TabsContent value="business-lines" className="mt-5">
-          <SectionHeader title="Project Types" desc="High-level project categories used across Portfolio filters."
+          <SectionHeader title="Project Types" desc="Used across Portfolio filters such as business lines."
             cta={<AddBusinessLineDialog />} />
           <div className="">
             <Table>
               <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-                <TableHead>Name</TableHead><TableHead>Description</TableHead>
-                <TableHead className="text-right">Active Projects</TableHead>
+                <TableHead className="w-28">ID</TableHead>
+                <TableHead className="w-56">Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="w-36 text-right">Active Projects</TableHead>
                 <TableHead className="w-24" />
               </TableRow></TableHeader>
               <TableBody>
-                {businessLines.map((b) => (
+                {businessLines.map((b, i) => (
                   <TableRow key={b.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                    <TableCell className="font-medium text-foreground">{b.name}</TableCell>
+                    <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`PT-${String(i + 1).padStart(3, "0")}`}</TableCell>
+                    <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
                     <TableCell className="text-muted-foreground">{b.description}</TableCell>
                     <TableCell className="text-right num-mono">{b.projects}</TableCell>
                     <TableCell><RowActions /></TableCell>
@@ -68,16 +71,17 @@ function OrganizationPage() {
           <div className="">
             <Table>
               <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-                <TableHead>Department</TableHead><TableHead>Parent</TableHead><TableHead>Head</TableHead>
-                <TableHead className="text-right">Members</TableHead><TableHead className="w-24" />
+                <TableHead className="w-28">ID</TableHead>
+                <TableHead className="w-64">Department</TableHead>
+                <TableHead>Head</TableHead>
+                <TableHead className="w-24" />
               </TableRow></TableHeader>
               <TableBody>
-                {departments.map((d) => (
+                {departments.map((d, i) => (
                   <TableRow key={d.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                    <TableCell className="font-medium text-foreground">{d.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{d.parent}</TableCell>
+                    <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`DEP-${String(i + 1).padStart(3, "0")}`}</TableCell>
+                    <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
                     <TableCell>{d.head}</TableCell>
-                    <TableCell className="text-right num-mono">{d.members}</TableCell>
                     <TableCell><RowActions /></TableCell>
                   </TableRow>
                 ))}
@@ -113,11 +117,12 @@ function TagsTab() {
       <SectionHeader title="Tags & Classifications" desc="Customizable labels applied to business cases and projects."
         cta={<AddTagDialog />} />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {tags.map((t) => (
+        {tags.map((t, i) => (
           <div key={t.name} className="glass-card flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <span className="h-3 w-3 rounded-full" style={{ background: t.color }} />
               <div>
+                <div className="num-mono text-[11px] text-muted-foreground">{`TAG-${String(i + 1).padStart(3, "0")}`}</div>
                 <div className="font-medium text-foreground">{t.name}</div>
                 <div className="text-xs text-muted-foreground">Used by {t.usage} projects</div>
               </div>
@@ -194,7 +199,7 @@ function AddDepartmentDialog() {
 function AddTagDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [color, setColor] = useState("#51CAAD");
+  const color = "#51CAAD";
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const { addTag } = useTags();
@@ -209,7 +214,7 @@ function AddTagDialog() {
   }
 
   function reset() {
-    setName(""); setColor("#51CAAD"); setSearch(""); setSelected([]);
+    setName(""); setSearch(""); setSelected([]);
   }
 
   function save() {
@@ -234,15 +239,9 @@ function AddTagDialog() {
           <DialogDescription>Create a tag and optionally assign it to existing projects.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          <div className="grid grid-cols-[1fr_auto] gap-3">
-            <div>
-              <Label>Tag name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sustainability" />
-            </div>
-            <div>
-              <Label>Color</Label>
-              <Input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-10 w-20" />
-            </div>
+          <div>
+            <Label>Tag name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sustainability" />
           </div>
           <div>
             <div className="mb-1.5 flex items-center justify-between">

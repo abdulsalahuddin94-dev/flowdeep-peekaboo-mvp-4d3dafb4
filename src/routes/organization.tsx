@@ -670,7 +670,7 @@ function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: any) => void }) {
 
 function JobRolesTab() {
   const { jobRoles, addJobRole, updateJobRole, removeJobRole } = useJobRoles();
-  const [editing, setEditing] = useState<{ id: string; title: string } | null>(null);
+  const [editing, setEditing] = useState<{ id: string; title: string; skills: string }  | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(null);
 
   return (
@@ -678,23 +678,35 @@ function JobRolesTab() {
       <SectionHeader
         title="Job Roles Definition"
         desc="Define standard job titles (e.g. Data Engineer, Solution Architect) at the organization level so Project Managers can assign roles to tasks during planning — before any specific resource is allocated."
-        cta={<AddJobRoleDialog onAdd={(title) => { addJobRole(title); toast.success(`Job Role "${title}" created`); }} />}
+        cta={<AddJobRoleDialog onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
       />
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-            <TableHead>Role Title</TableHead>
-            <TableHead className="text-right">Usage in Projects</TableHead>
+            <TableHead className="w-28">Role ID</TableHead>
+            <TableHead className="w-56">Role Title</TableHead>
+            <TableHead>Skills</TableHead>
+            <TableHead className="w-40 text-right">Usage in Projects</TableHead>
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {jobRoles.map((r) => (
+            {jobRoles.map((r, i) => (
               <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                <TableCell className="font-medium text-foreground">{r.title}</TableCell>
+                <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`ROL-${String(i + 1).padStart(3, "0")}`}</TableCell>
+                <TableCell className="whitespace-nowrap font-medium text-foreground">{r.title}</TableCell>
+                <TableCell>
+                  {r.skills?.length ? (
+                    <div className="flex flex-wrap gap-1">
+                      {r.skills.map((sk) => (
+                        <span key={sk} className="rounded-md bg-secondary/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">{sk}</span>
+                      ))}
+                    </div>
+                  ) : <span className="text-xs text-muted-foreground">—</span>}
+                </TableCell>
                 <TableCell className="text-right text-xs text-muted-foreground">— tasks</TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">
-                    <Button aria-label="Edit" size="icon" variant="ghost" onClick={() => setEditing({ id: r.id, title: r.title })} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Button aria-label="Edit" size="icon" variant="ghost" onClick={() => setEditing({ id: r.id, title: r.title, skills: (r.skills ?? []).join(", ") })} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
                     <Button aria-label="Delete" size="icon" variant="ghost" onClick={() => setPendingDelete({ id: r.id, title: r.title })} className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
                 </TableCell>
@@ -715,6 +727,11 @@ function JobRolesTab() {
               <Label>Role Title</Label>
               <Input value={editing?.title ?? ""} onChange={(e) => setEditing((prev) => prev ? { ...prev, title: e.target.value } : prev)} />
             </div>
+            <div>
+              <Label>Skills</Label>
+              <Input value={editing?.skills ?? ""} onChange={(e) => setEditing((prev) => prev ? { ...prev, skills: e.target.value } : prev)} placeholder="Comma separated — e.g. React, TypeScript" />
+              <p className="mt-1 text-[11px] text-muted-foreground">Separate multiple skills with commas.</p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
@@ -722,7 +739,7 @@ function JobRolesTab() {
               if (!editing) return;
               const t = editing.title.trim();
               if (!t) { toast.error("Role title is required"); return; }
-              updateJobRole(editing.id, t);
+              updateJobRole(editing.id, t, editing.skills.split(",").map((x) => x.trim()).filter(Boolean));
               toast.success("Job Role updated");
               setEditing(null);
             }}>Save</Button>
@@ -751,15 +768,17 @@ function JobRolesTab() {
   );
 }
 
-function AddJobRoleDialog({ onAdd }: { onAdd: (title: string) => void }) {
+function AddJobRoleDialog({ onAdd }: { onAdd: (title: string, skills: string[]) => void }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [skills, setSkills] = useState("");
 
   function save() {
     const trimmed = title.trim();
     if (!trimmed) { toast.error("Role title is required"); return; }
-    onAdd(trimmed);
+    onAdd(trimmed, skills.split(",").map((x) => x.trim()).filter(Boolean));
     setTitle("");
+    setSkills("");
     setOpen(false);
   }
 
@@ -775,6 +794,11 @@ function AddJobRoleDialog({ onAdd }: { onAdd: (title: string) => void }) {
           <div>
             <Label>Role Title</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Data Engineer, Cloud Architect" />
+          </div>
+          <div>
+            <Label>Skills</Label>
+            <Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="Comma separated — e.g. ETL, Data modelling, Spark" />
+            <p className="mt-1 text-[11px] text-muted-foreground">Separate multiple skills with commas.</p>
           </div>
         </div>
         <DialogFooter>

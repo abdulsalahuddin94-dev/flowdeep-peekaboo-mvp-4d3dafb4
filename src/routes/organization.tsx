@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch } from "lucide-react";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals } from "@/lib/projects-store";
@@ -586,12 +587,12 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
 }
 
 function CostCategoriesTab() {
-  const [categories, setCategories] = useState([
-    { id: "staff", name: "Staff", number: "CC-001" },
-    { id: "services", name: "Services", number: "CC-002" },
-    { id: "insurance", name: "Insurance", number: "CC-003" },
-    { id: "business-trips", name: "Business Trips", number: "CC-004" },
-    { id: "contracts", name: "Contracts", number: "CC-005" },
+  const [categories, setCategories] = useState<CostCategory[]>([
+    { id: "staff", name: "Staff", number: "CC-001", description: "Salaries, benefits and internal staff cost", type: "OpEx" },
+    { id: "services", name: "Services", number: "CC-002", description: "External professional and managed services", type: "OpEx" },
+    { id: "insurance", name: "Insurance", number: "CC-003", description: "Project and asset insurance premiums", type: "OpEx" },
+    { id: "business-trips", name: "Business Trips", number: "CC-004", description: "Travel, accommodation and per-diem", type: "OpEx" },
+    { id: "contracts", name: "Contracts", number: "CC-005", description: "Capitalized contracts and construction works", type: "CapEx" },
   ]);
 
   return (
@@ -604,16 +605,22 @@ function CostCategoriesTab() {
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-            <TableHead>Category Name</TableHead>
-            <TableHead>Cost Center ID</TableHead>
-            <TableHead className="text-right">Usage</TableHead>
+            <TableHead className="w-32">Cost Center ID</TableHead>
+            <TableHead className="w-56">Category Name</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead className="w-28">Type</TableHead>
+            <TableHead className="w-28 text-right">Usage</TableHead>
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
             {categories.map((c) => (
               <TableRow key={c.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                <TableCell className="font-medium text-foreground">{c.name}</TableCell>
-                <TableCell className="num-mono text-muted-foreground">{c.number}</TableCell>
+                <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{c.number}</TableCell>
+                <TableCell className="whitespace-nowrap font-medium text-foreground">{c.name}</TableCell>
+                <TableCell className="text-muted-foreground">{c.description || "—"}</TableCell>
+                <TableCell>
+                  <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium ${c.type === "CapEx" ? "bg-rag-blue/15 text-rag-blue" : "bg-accent-dim text-accent"}`}>{c.type}</span>
+                </TableCell>
                 <TableCell className="text-right text-xs text-muted-foreground">— projects</TableCell>
                 <TableCell><RowActions /></TableCell>
               </TableRow>
@@ -625,19 +632,25 @@ function CostCategoriesTab() {
   );
 }
 
-function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: any) => void }) {
+type CostCategory = { id: string; name: string; number: string; description: string; type: "CapEx" | "OpEx" };
+
+function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [number, setNumber] = useState("");
+  const [description, setDescription] = useState("");
+  const [type, setType] = useState<"CapEx" | "OpEx">("OpEx");
 
   function save() {
     const trimmed = name.trim();
     const numTrimmed = number.trim();
     if (!trimmed || !numTrimmed) { toast.error("Name and ID are required"); return; }
-    onAdd({ id: `cat-${Date.now()}`, name: trimmed, number: numTrimmed });
+    onAdd({ id: `cat-${Date.now()}`, name: trimmed, number: numTrimmed, description: description.trim(), type });
     toast.success(`Cost Category "${trimmed}" created`);
     setName("");
     setNumber("");
+    setDescription("");
+    setType("OpEx");
     setOpen(false);
   }
 
@@ -657,6 +670,20 @@ function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: any) => void }) {
           <div>
             <Label>Cost Center ID</Label>
             <Input value={number} onChange={(e) => setNumber(e.target.value)} placeholder="e.g. CC-001" />
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What kind of costs belong to this category?" />
+          </div>
+          <div>
+            <Label>Type</Label>
+            <Select value={type} onValueChange={(v) => setType(v as "CapEx" | "OpEx")}>
+              <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="CapEx">CapEx — Capital expenditure</SelectItem>
+                <SelectItem value="OpEx">OpEx — Operating expenditure</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <DialogFooter>

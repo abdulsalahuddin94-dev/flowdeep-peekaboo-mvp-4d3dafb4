@@ -41,55 +41,11 @@ function OrganizationPage() {
         </TabsList>
 
         <TabsContent value="business-lines" className="mt-5">
-          <SectionHeader title="Project Types" desc="Used across Portfolio filters such as business lines."
-            cta={<AddBusinessLineDialog />} />
-          <div className="">
-            <Table>
-              <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-                <TableHead className="w-28">ID</TableHead>
-                <TableHead className="w-56">Name</TableHead>
-                <TableHead className="w-72">Description</TableHead>
-                <TableHead className="w-36 text-center">Active Projects</TableHead>
-                <TableHead className="w-24" />
-              </TableRow></TableHeader>
-              <TableBody>
-                {businessLines.map((b, i) => (
-                  <TableRow key={b.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                    <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`PT-${String(i + 1).padStart(3, "0")}`}</TableCell>
-                    <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
-                    <TableCell className="w-72 text-muted-foreground">{b.description}</TableCell>
-                    <TableCell className="text-center num-mono">{b.projects}</TableCell>
-                    <TableCell><RowActions /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <BusinessLinesTab />
         </TabsContent>
 
         <TabsContent value="departments" className="mt-5">
-          <SectionHeader title="Departments / Units" desc="Org chart units. A project may span multiple departments."
-            cta={<AddDepartmentDialog />} />
-          <div className="">
-            <Table>
-              <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-                <TableHead className="w-28">ID</TableHead>
-                <TableHead className="w-64">Department</TableHead>
-                <TableHead>Head</TableHead>
-                <TableHead className="w-24" />
-              </TableRow></TableHeader>
-              <TableBody>
-                {departments.map((d, i) => (
-                  <TableRow key={d.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                    <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`DEP-${String(i + 1).padStart(3, "0")}`}</TableCell>
-                    <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
-                    <TableCell>{d.head}</TableCell>
-                    <TableCell><RowActions /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <DepartmentsTab />
         </TabsContent>
 
         <TabsContent value="tags" className="mt-5">
@@ -112,8 +68,175 @@ function OrganizationPage() {
   );
 }
 
+type OrgBusinessLine = { name: string; description: string; projects: number };
+
+function BusinessLinesTab() {
+  const [rows, setRows] = useState<OrgBusinessLine[]>(
+    businessLines.map((b) => ({ name: b.name, description: b.description ?? "", projects: b.projects ?? 0 })),
+  );
+  const [editing, setEditing] = useState<{ index: number; name: string; description: string } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ index: number; name: string } | null>(null);
+
+  return (
+    <>
+      <SectionHeader title="Project Types" desc="Used across Portfolio filters such as business lines."
+        cta={<AddBusinessLineDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />} />
+      <div className="">
+        <Table>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
+            <TableHead className="w-28">ID</TableHead>
+            <TableHead className="w-56">Name</TableHead>
+            <TableHead className="w-72">Description</TableHead>
+            <TableHead className="w-36 text-center">Active Projects</TableHead>
+            <TableHead className="w-24" />
+          </TableRow></TableHeader>
+          <TableBody>
+            {rows.map((b, i) => (
+              <TableRow key={`${b.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`PT-${String(i + 1).padStart(3, "0")}`}</TableCell>
+                <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
+                <TableCell className="w-72 text-muted-foreground">{b.description || "—"}</TableCell>
+                <TableCell className="text-center num-mono">{b.projects}</TableCell>
+                <TableCell>
+                  <RowActions
+                    onEdit={() => setEditing({ index: i, name: b.name, description: b.description })}
+                    onDelete={() => setPendingDelete({ index: i, name: b.name })}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Project Type</DialogTitle><DialogDescription>Update the name and description of this project type.</DialogDescription></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Name</Label><Input value={editing?.name ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, name: e.target.value } : p)} /></div>
+            <div><Label>Description</Label><Textarea value={editing?.description ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, description: e.target.value } : p)} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button className="bg-accent text-accent-foreground" onClick={() => {
+              if (!editing) return;
+              const name = editing.name.trim();
+              if (!name) { toast.error("Name is required"); return; }
+              setRows((prev) => prev.map((r, idx) => idx === editing.index ? { ...r, name, description: editing.description.trim() } : r));
+              toast.success("Project Type updated");
+              setEditing(null);
+            }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDeleteDialog
+        label={pendingDelete?.name}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          setRows((prev) => prev.filter((_, idx) => idx !== pendingDelete.index));
+          toast.success(`Deleted "${pendingDelete.name}"`);
+          setPendingDelete(null);
+        }}
+      />
+    </>
+  );
+}
+
+type OrgDepartment = { name: string; head: string };
+
+function DepartmentsTab() {
+  const [rows, setRows] = useState<OrgDepartment[]>(departments.map((d) => ({ name: d.name, head: d.head ?? "" })));
+  const [editing, setEditing] = useState<{ index: number; name: string; head: string } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ index: number; name: string } | null>(null);
+
+  return (
+    <>
+      <SectionHeader title="Departments / Units" desc="Org chart units. A project may span multiple departments."
+        cta={<AddDepartmentDialog onAdd={(name, head) => setRows((prev) => [...prev, { name, head }])} />} />
+      <div className="">
+        <Table>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
+            <TableHead className="w-28">ID</TableHead>
+            <TableHead className="w-64">Department</TableHead>
+            <TableHead>Head</TableHead>
+            <TableHead className="w-24" />
+          </TableRow></TableHeader>
+          <TableBody>
+            {rows.map((d, i) => (
+              <TableRow key={`${d.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`DEP-${String(i + 1).padStart(3, "0")}`}</TableCell>
+                <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
+                <TableCell>{d.head || "—"}</TableCell>
+                <TableCell>
+                  <RowActions
+                    onEdit={() => setEditing({ index: i, name: d.name, head: d.head })}
+                    onDelete={() => setPendingDelete({ index: i, name: d.name })}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Department</DialogTitle><DialogDescription>Update the department name or its head.</DialogDescription></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Name</Label><Input value={editing?.name ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, name: e.target.value } : p)} /></div>
+            <div><Label>Head</Label><Input value={editing?.head ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, head: e.target.value } : p)} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button className="bg-accent text-accent-foreground" onClick={() => {
+              if (!editing) return;
+              const name = editing.name.trim();
+              if (!name) { toast.error("Name is required"); return; }
+              setRows((prev) => prev.map((r, idx) => idx === editing.index ? { name, head: editing.head.trim() } : r));
+              toast.success("Department updated");
+              setEditing(null);
+            }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDeleteDialog
+        label={pendingDelete?.name}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          setRows((prev) => prev.filter((_, idx) => idx !== pendingDelete.index));
+          toast.success(`Deleted "${pendingDelete.name}"`);
+          setPendingDelete(null);
+        }}
+      />
+    </>
+  );
+}
+
+function ConfirmDeleteDialog({ label, onCancel, onConfirm }: { label?: string; onCancel: () => void; onConfirm: () => void }) {
+  return (
+    <Dialog open={!!label} onOpenChange={(o) => !o && onCancel()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete "{label}"?</DialogTitle>
+          <DialogDescription>This entry will be removed from the organization master data.</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button className="bg-rag-red text-white hover:bg-rag-red/90" onClick={onConfirm}>Delete</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function TagsTab() {
-  const { tags } = useTags();
+  const { tags, updateTag, removeTag } = useTags();
+  const [editing, setEditing] = useState<{ name: string; original: string } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   return (
     <>
       <SectionHeader title="Tags & Classifications" desc="Customizable labels applied to business cases and projects."
@@ -128,10 +251,42 @@ function TagsTab() {
                 <div className="text-xs text-muted-foreground">Used by {t.usage} projects</div>
               </div>
             </div>
-            <RowActions />
+            <RowActions
+              onEdit={() => setEditing({ name: t.name, original: t.name })}
+              onDelete={() => setPendingDelete(t.name)}
+            />
           </div>
         ))}
       </div>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Tag</DialogTitle><DialogDescription>Renaming updates the tag on every project already using it.</DialogDescription></DialogHeader>
+          <div><Label>Tag name</Label><Input value={editing?.name ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, name: e.target.value } : p)} /></div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button className="bg-accent text-accent-foreground" onClick={() => {
+              if (!editing) return;
+              const name = editing.name.trim();
+              if (!name) { toast.error("Tag name is required"); return; }
+              updateTag(editing.original, { name });
+              toast.success("Tag updated");
+              setEditing(null);
+            }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDeleteDialog
+        label={pendingDelete ?? undefined}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          removeTag(pendingDelete);
+          toast.success(`Deleted "${pendingDelete}"`);
+          setPendingDelete(null);
+        }}
+      />
     </>
   );
 }
@@ -148,49 +303,65 @@ function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta:
   );
 }
 
-function RowActions() {
+function RowActions({ onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void }) {
   return (
     <div className="flex justify-end gap-1">
-      <Button aria-label="Edit" size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
-      <Button aria-label="Delete" size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
+      <Button aria-label="Edit" size="icon" variant="ghost" onClick={onEdit} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
+      <Button aria-label="Delete" size="icon" variant="ghost" onClick={onDelete} className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
     </div>
   );
 }
 
-function AddBusinessLineDialog() {
+function AddBusinessLineDialog({ onAdd }: { onAdd: (name: string, description: string) => void }) {
   const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Project Type</Button></DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>New Project Type</DialogTitle><DialogDescription>High-level category used as filter chips in Portfolio.</DialogDescription></DialogHeader>
         <div className="space-y-3">
-          <div><Label>Name</Label><Input placeholder="e.g. Renewables" /></div>
-          <div><Label>Description</Label><Textarea placeholder="Brief description" /></div>
+          <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Renewables" /></div>
+          <div><Label>Description</Label><Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description" /></div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={() => { toast.success("Project Type created"); setOpen(false); }}>Save</Button>
+          <Button className="bg-accent text-accent-foreground" onClick={() => {
+            const trimmed = name.trim();
+            if (!trimmed) { toast.error("Name is required"); return; }
+            onAdd(trimmed, description.trim());
+            toast.success("Project Type created");
+            setName(""); setDescription(""); setOpen(false);
+          }}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-function AddDepartmentDialog() {
+function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, head: string) => void }) {
   const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [head, setHead] = useState("");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Department</Button></DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>New Department</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <div><Label>Name</Label><Input placeholder="e.g. Quality Assurance" /></div>
-          <div><Label>Head</Label><Input placeholder="Search user…" /></div>
+          <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Quality Assurance" /></div>
+          <div><Label>Head</Label><Input value={head} onChange={(e) => setHead(e.target.value)} placeholder="Search user…" /></div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={() => { toast.success("Department created"); setOpen(false); }}>Save</Button>
+          <Button className="bg-accent text-accent-foreground" onClick={() => {
+            const trimmed = name.trim();
+            if (!trimmed) { toast.error("Name is required"); return; }
+            onAdd(trimmed, head.trim());
+            toast.success("Department created");
+            setName(""); setHead(""); setOpen(false);
+          }}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

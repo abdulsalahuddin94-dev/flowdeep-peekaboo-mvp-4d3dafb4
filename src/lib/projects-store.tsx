@@ -505,8 +505,8 @@ export function useResourceRequests() {
 }
 
 export function useTags() {
-  const { tags, addTag } = useAppContext();
-  return { tags, addTag };
+  const { tags, addTag, updateTag, removeTag } = useAppContext();
+  return { tags, addTag, updateTag, removeTag };
 }
 
 export function useCalendars() {

@@ -415,6 +415,23 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  function updateTag(oldName: string, patch: Partial<OrgTag>) {
+    setTagList((prev) => prev.map((t) => t.name === oldName ? { ...t, ...patch } : t));
+    if (patch.name && patch.name !== oldName) {
+      const next = patch.name;
+      setProjects((prev) => prev.map((p) =>
+        p.tags.includes(oldName) ? { ...p, tags: p.tags.map((t) => t === oldName ? next : t) } : p,
+      ));
+    }
+  }
+
+  function removeTag(name: string) {
+    setTagList((prev) => prev.filter((t) => t.name !== name));
+    setProjects((prev) => prev.map((p) =>
+      p.tags.includes(name) ? { ...p, tags: p.tags.filter((t) => t !== name) } : p,
+    ));
+  }
+
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -450,7 +467,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       notifications, unreadCount, addNotification, markAllRead,
       rfps, addRfp,
       resourceRequests, addResourceRequest, updateResourceRequest,
-      tags, addTag,
+      tags, addTag, updateTag, removeTag,
       calendars, addCalendar, updateCalendar, removeCalendar,
       jobRoles, addJobRole, updateJobRole, removeJobRole,
       currentUser, setCurrentUserId,

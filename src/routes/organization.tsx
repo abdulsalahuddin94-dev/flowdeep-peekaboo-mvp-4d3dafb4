@@ -798,14 +798,14 @@ function JobRolesTab() {
 function AddJobRoleDialog({ onAdd }: { onAdd: (title: string, skills: string[]) => void }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [skills, setSkills] = useState("");
+  const [skills, setSkills] = useState<string[]>([]);
 
   function save() {
     const trimmed = title.trim();
     if (!trimmed) { toast.error("Role title is required"); return; }
-    onAdd(trimmed, skills.split(",").map((x) => x.trim()).filter(Boolean));
+    onAdd(trimmed, skills);
     setTitle("");
-    setSkills("");
+    setSkills([]);
     setOpen(false);
   }
 
@@ -824,8 +824,8 @@ function AddJobRoleDialog({ onAdd }: { onAdd: (title: string, skills: string[]) 
           </div>
           <div>
             <Label>Skills</Label>
-            <Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="Comma separated — e.g. ETL, Data modelling, Spark" />
-            <p className="mt-1 text-[11px] text-muted-foreground">Separate multiple skills with commas.</p>
+            <SkillsTagsInput value={skills} onChange={setSkills} />
+            <p className="mt-1 text-[11px] text-muted-foreground">Press Enter, Tab or double space to add a skill.</p>
           </div>
         </div>
         <DialogFooter>

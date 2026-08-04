@@ -244,6 +244,8 @@ type AppContextValue = {
   // Tags
   tags: (OrgTag & { usage: number })[];
   addTag: (tag: OrgTag, projectIds: string[]) => void;
+  updateTag: (oldName: string, patch: Partial<OrgTag>) => void;
+  removeTag: (name: string) => void;
   // Calendars
   calendars: WorkCalendar[];
   addCalendar: (c: WorkCalendar) => void;

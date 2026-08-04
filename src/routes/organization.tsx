@@ -121,7 +121,6 @@ function TagsTab() {
         {tags.map((t, i) => (
           <div key={t.name} className="glass-card flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
-              <span className="h-3 w-3 rounded-full" style={{ background: t.color }} />
               <div>
                 <div className="num-mono text-[11px] text-muted-foreground">{`TAG-${String(i + 1).padStart(3, "0")}`}</div>
                 <div className="font-medium text-foreground">{t.name}</div>

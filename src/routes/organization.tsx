@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { SkillsTagsInput } from "@/components/SkillsTagsInput";
 import { Button } from "@/components/ui/button";
@@ -697,7 +697,7 @@ function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }
 
 function JobRolesTab() {
   const { jobRoles, addJobRole, updateJobRole, removeJobRole } = useJobRoles();
-  const { requests: resourceRequests } = useResourceRequests();
+  const { resourceRequests } = useResourceRequests();
   const usageByRole = useMemo(() => {
     const map = new Map<string, Set<string>>();
     for (const r of resourceRequests) {

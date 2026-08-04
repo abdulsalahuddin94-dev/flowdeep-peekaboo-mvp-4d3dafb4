@@ -244,6 +244,8 @@ type AppContextValue = {
   // Tags
   tags: (OrgTag & { usage: number })[];
   addTag: (tag: OrgTag, projectIds: string[]) => void;
+  updateTag: (oldName: string, patch: Partial<OrgTag>) => void;
+  removeTag: (name: string) => void;
   // Calendars
   calendars: WorkCalendar[];
   addCalendar: (c: WorkCalendar) => void;
@@ -413,6 +415,23 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  function updateTag(oldName: string, patch: Partial<OrgTag>) {
+    setTagList((prev) => prev.map((t) => t.name === oldName ? { ...t, ...patch } : t));
+    if (patch.name && patch.name !== oldName) {
+      const next = patch.name;
+      setProjects((prev) => prev.map((p) =>
+        p.tags.includes(oldName) ? { ...p, tags: p.tags.map((t) => t === oldName ? next : t) } : p,
+      ));
+    }
+  }
+
+  function removeTag(name: string) {
+    setTagList((prev) => prev.filter((t) => t.name !== name));
+    setProjects((prev) => prev.map((p) =>
+      p.tags.includes(name) ? { ...p, tags: p.tags.filter((t) => t !== name) } : p,
+    ));
+  }
+
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -448,7 +467,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       notifications, unreadCount, addNotification, markAllRead,
       rfps, addRfp,
       resourceRequests, addResourceRequest, updateResourceRequest,
-      tags, addTag,
+      tags, addTag, updateTag, removeTag,
       calendars, addCalendar, updateCalendar, removeCalendar,
       jobRoles, addJobRole, updateJobRole, removeJobRole,
       currentUser, setCurrentUserId,
@@ -486,8 +505,8 @@ export function useResourceRequests() {
 }
 
 export function useTags() {
-  const { tags, addTag } = useAppContext();
-  return { tags, addTag };
+  const { tags, addTag, updateTag, removeTag } = useAppContext();
+  return { tags, addTag, updateTag, removeTag };
 }
 
 export function useCalendars() {

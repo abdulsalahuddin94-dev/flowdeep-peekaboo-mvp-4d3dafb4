@@ -696,7 +696,7 @@ function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }
 
 function JobRolesTab() {
   const { jobRoles, addJobRole, updateJobRole, removeJobRole } = useJobRoles();
-  const [editing, setEditing] = useState<{ id: string; title: string; skills: string }  | null>(null);
+  const [editing, setEditing] = useState<{ id: string; title: string; skills: string[] }  | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(null);
 
   return (
@@ -732,7 +732,7 @@ function JobRolesTab() {
                 <TableCell className="text-right text-xs text-muted-foreground">— tasks</TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">
-                    <Button aria-label="Edit" size="icon" variant="ghost" onClick={() => setEditing({ id: r.id, title: r.title, skills: (r.skills ?? []).join(", ") })} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
+                    <Button aria-label="Edit" size="icon" variant="ghost" onClick={() => setEditing({ id: r.id, title: r.title, skills: r.skills ?? [] })} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
                     <Button aria-label="Delete" size="icon" variant="ghost" onClick={() => setPendingDelete({ id: r.id, title: r.title })} className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
                 </TableCell>
@@ -755,8 +755,8 @@ function JobRolesTab() {
             </div>
             <div>
               <Label>Skills</Label>
-              <Input value={editing?.skills ?? ""} onChange={(e) => setEditing((prev) => prev ? { ...prev, skills: e.target.value } : prev)} placeholder="Comma separated — e.g. React, TypeScript" />
-              <p className="mt-1 text-[11px] text-muted-foreground">Separate multiple skills with commas.</p>
+              <SkillsTagsInput value={editing?.skills ?? []} onChange={(skills) => setEditing((prev) => prev ? { ...prev, skills } : prev)} />
+              <p className="mt-1 text-[11px] text-muted-foreground">Press Enter, Tab or double space to add a skill.</p>
             </div>
           </div>
           <DialogFooter>
@@ -765,7 +765,7 @@ function JobRolesTab() {
               if (!editing) return;
               const t = editing.title.trim();
               if (!t) { toast.error("Role title is required"); return; }
-              updateJobRole(editing.id, t, editing.skills.split(",").map((x) => x.trim()).filter(Boolean));
+              updateJobRole(editing.id, t, editing.skills);
               toast.success("Job Role updated");
               setEditing(null);
             }}>Save</Button>

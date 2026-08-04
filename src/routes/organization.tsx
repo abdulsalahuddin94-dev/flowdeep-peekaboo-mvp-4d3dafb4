@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch } from "lucide-react";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
-import { useTags, useProjects, useCalendars, useJobRoles, useApprovals } from "@/lib/projects-store";
+import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -697,6 +697,16 @@ function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }
 
 function JobRolesTab() {
   const { jobRoles, addJobRole, updateJobRole, removeJobRole } = useJobRoles();
+  const { requests: resourceRequests } = useResourceRequests();
+  const usageByRole = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const r of resourceRequests) {
+      const key = r.role.trim().toLowerCase();
+      if (!map.has(key)) map.set(key, new Set());
+      map.get(key)!.add(r.project);
+    }
+    return map;
+  }, [resourceRequests]);
   const [editing, setEditing] = useState<{ id: string; title: string; skills: string[] }  | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(null);
 
@@ -730,7 +740,15 @@ function JobRolesTab() {
                     </div>
                   ) : <span className="text-xs text-muted-foreground">—</span>}
                 </TableCell>
-                <TableCell className="text-right text-xs text-muted-foreground">— tasks</TableCell>
+                <TableCell className="text-right text-xs">
+                  {(() => {
+                    const projects = usageByRole.get(r.title.trim().toLowerCase());
+                    const count = projects?.size ?? 0;
+                    return count === 0
+                      ? <span className="text-muted-foreground">Not used</span>
+                      : <span className="text-foreground" title={[...projects!].join(", ")}>{count} project{count > 1 ? "s" : ""}</span>;
+                  })()}
+                </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">
                     <Button aria-label="Edit" size="icon" variant="ghost" onClick={() => setEditing({ id: r.id, title: r.title, skills: r.skills ?? [] })} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>

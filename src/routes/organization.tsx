@@ -765,6 +765,8 @@ function CostCategoriesTab() {
     { id: "business-trips", name: "Business Trips", number: "CC-004", description: "Travel, accommodation and per-diem", type: "OpEx" },
     { id: "contracts", name: "Contracts", number: "CC-005", description: "Capitalized contracts and construction works", type: "CapEx" },
   ]);
+  const [editing, setEditing] = useState<CostCategory | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<CostCategory | null>(null);
 
   return (
     <>
@@ -793,12 +795,58 @@ function CostCategoriesTab() {
                   <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium ${c.type === "CapEx" ? "bg-rag-blue/15 text-rag-blue" : "bg-accent-dim text-accent"}`}>{c.type}</span>
                 </TableCell>
                 <TableCell className="text-right text-xs text-muted-foreground">— projects</TableCell>
-                <TableCell><RowActions /></TableCell>
+                <TableCell>
+                  <RowActions onEdit={() => setEditing(c)} onDelete={() => setPendingDelete(c)} />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Cost Category</DialogTitle><DialogDescription>Update the classification, its cost center identifier, description and type.</DialogDescription></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Category Name</Label><Input value={editing?.name ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, name: e.target.value } : p)} /></div>
+            <div><Label>Cost Center ID</Label><Input value={editing?.number ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, number: e.target.value } : p)} /></div>
+            <div><Label>Description</Label><Textarea value={editing?.description ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, description: e.target.value } : p)} /></div>
+            <div>
+              <Label>Type</Label>
+              <Select value={editing?.type ?? "OpEx"} onValueChange={(v) => setEditing((p) => p ? { ...p, type: v as "CapEx" | "OpEx" } : p)}>
+                <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CapEx">CapEx — Capital expenditure</SelectItem>
+                  <SelectItem value="OpEx">OpEx — Operating expenditure</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button className="bg-accent text-accent-foreground" onClick={() => {
+              if (!editing) return;
+              const name = editing.name.trim();
+              const number = editing.number.trim();
+              if (!name || !number) { toast.error("Name and ID are required"); return; }
+              setCategories((prev) => prev.map((c) => c.id === editing.id ? { ...editing, name, number, description: editing.description.trim() } : c));
+              toast.success("Cost Category updated");
+              setEditing(null);
+            }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDeleteDialog
+        label={pendingDelete?.name}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          setCategories((prev) => prev.filter((c) => c.id !== pendingDelete.id));
+          toast.success(`Deleted "${pendingDelete.name}"`);
+          setPendingDelete(null);
+        }}
+      />
     </>
   );
 }

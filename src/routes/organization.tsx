@@ -723,7 +723,7 @@ function JobRolesTab() {
             <TableHead className="w-28">Role ID</TableHead>
             <TableHead className="w-56">Role Title</TableHead>
             <TableHead>Skills</TableHead>
-            <TableHead className="w-40 text-right">Usage in Projects</TableHead>
+            <TableHead className="w-40 text-center">Usage in Projects</TableHead>
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
@@ -740,7 +740,7 @@ function JobRolesTab() {
                     </div>
                   ) : <span className="text-xs text-muted-foreground">—</span>}
                 </TableCell>
-                <TableCell className="text-right text-xs">
+                <TableCell className="text-center text-xs">
                   {(() => {
                     const projects = usageByRole.get(r.title.trim().toLowerCase());
                     const count = projects?.size ?? 0;

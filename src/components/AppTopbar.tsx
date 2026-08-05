@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Search, Command as CmdIcon, Briefcase, Users, Zap } from "lucide-react";
+import { Bell, Search, Command as CmdIcon, Briefcase, Users, Zap } from "@/lib/icons";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";

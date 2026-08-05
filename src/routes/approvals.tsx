@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
-import { Check, X, Diamond, GitBranch, Inbox, Bell, CalendarDays } from "lucide-react";
+import { Check, X, Diamond, GitBranch, Inbox, Bell, CalendarDays } from "@/lib/icons";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,

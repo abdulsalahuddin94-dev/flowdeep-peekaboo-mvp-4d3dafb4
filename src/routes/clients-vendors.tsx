@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Plus, Search, Star, Building2, ChevronRight, FileText, Mail, Phone, X } from "lucide-react";
+import { Plus, Search, Star, Building2, ChevronRight, FileText, Mail, Phone, X } from "@/lib/icons";
 import { clients, vendors, projects, contracts } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/clients-vendors")({

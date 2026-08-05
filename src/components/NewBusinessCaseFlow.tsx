@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import {
   Building2, Briefcase, Check, ChevronRight, ChevronLeft, FileText, Target,
   DollarSign, ShieldAlert, Users, ClipboardCheck, Handshake, Trophy, Package,
-} from "lucide-react";
+} from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 type CaseType = "capital" | "commercial";

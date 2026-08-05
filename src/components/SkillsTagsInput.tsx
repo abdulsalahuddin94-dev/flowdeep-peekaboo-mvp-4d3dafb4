@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent } from "react";
-import { X } from "lucide-react";
+import { X } from "@/lib/icons";
 
 interface SkillsTagsInputProps {
   value: string[];

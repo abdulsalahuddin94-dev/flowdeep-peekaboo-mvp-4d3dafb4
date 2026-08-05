@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   ArrowUpRight, CheckCircle2, Clock, TrendingUp,
   Activity, Users, DollarSign, GanttChartSquare, Bell, Inbox, Sparkles, Plus,
-} from "lucide-react";
+} from "@/lib/icons";
 import { milestones, resources, type Rag } from "@/lib/mock-data";
 import { useProjects, useNotifications, useResourceRequests, useApprovals } from "@/lib/projects-store";
 import { toast } from "sonner";

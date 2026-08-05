@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { projects, portfolioSummary } from "@/lib/mock-data";
-import { Download, FileSpreadsheet, TrendingUp, TrendingDown, Wallet, Flame, AlertTriangle, PiggyBank } from "lucide-react";
+import { Download, FileSpreadsheet, TrendingUp, TrendingDown, Wallet, Flame, AlertTriangle, PiggyBank } from "@/lib/icons";
 import { useState, useMemo } from "react";
 import {
   ResponsiveContainer,

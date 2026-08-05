@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch } from "lucide-react";
+import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch } from "@/lib/icons";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";

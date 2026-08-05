@@ -1,4 +1,4 @@
-import { Check, X, Clock } from "lucide-react";
+import { Check, X, Clock } from "@/lib/icons";
 import type { ApprovalRequest } from "@/lib/projects-store";
 
 /**

@@ -1053,7 +1053,7 @@ function CostCategoriesTab() {
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-            <TableHead className="w-32">Cost Center ID</TableHead>
+            <TableHead className="w-32">Account number</TableHead>
             <TableHead className="w-56">Category Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead className="w-28">Type</TableHead>

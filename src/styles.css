@@ -1046,3 +1046,15 @@
 .ds02-sidebar * {
   scrollbar-color: var(--sidebar-scrollbar-thumb) transparent;
 }
+
+/* ── DS02 control baseline: every text field / button = 36px height, 8px radius ──
+   Unlayered so it wins over Tailwind utility overrides (h-8 / h-10 / rounded-xl …).
+   Opt out per-instance with data-ds-size="auto". */
+[data-ui="control"]:not([data-ds-size="auto"]) {
+  height: 2.25rem;      /* 36px */
+  min-height: 2.25rem;
+  border-radius: 8px;
+}
+[data-ui="control-text"]:not([data-ds-size="auto"]) {
+  border-radius: 8px;
+}

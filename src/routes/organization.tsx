@@ -485,7 +485,7 @@ function FilterBar({
           value={query}
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder={placeholder ?? "Search by …"}
-          className="h-11 rounded-xl pl-9"
+          className="rounded-md pl-9"
           aria-label={placeholder ?? "Search"}
         />
       </div>
@@ -495,7 +495,7 @@ function FilterBar({
           type="button"
           variant="outline"
           onClick={openDrawer}
-          className="h-11 gap-2 rounded-xl border-[hsl(258_90%_76%)] px-5 text-foreground hover:bg-[hsl(258_90%_76%_/_0.1)]"
+          className="gap-2 rounded-md border-[hsl(258_90%_76%)] px-5 text-foreground hover:bg-[hsl(258_90%_76%_/_0.1)]"
         >
           <Filter className="h-4 w-4 text-[hsl(258_90%_76%)]" />
           Filter
@@ -528,7 +528,7 @@ function FilterBar({
                     value={panelQuery}
                     onChange={(e) => setPanelQuery(e.target.value)}
                     placeholder={`Search by ${activePanel.label}`}
-                    className="h-9 rounded-lg pl-8 text-xs"
+                    className="rounded-md pl-8 text-xs"
                   />
                 </div>
               </div>

@@ -3,6 +3,7 @@
  * Single source of truth for iconography — swap a mapping here to restyle globally.
  */
 import { Icon as IconifyIcon } from "@iconify/react";
+import { Setting4 as SaxSetting4, Add as SaxAdd } from "iconsax-react";
 import type { SVGProps } from "react";
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {
@@ -26,6 +27,21 @@ function make(name: string) {
 }
 
 const s = (base: string) => make(`${base}-${STYLE}`);
+
+/** Iconsax (vuesax) icons — used for the Filter (settings) and Add (+) actions. */
+function sax(Base: typeof SaxAdd, displayName: string) {
+  const Component = ({ size, strokeWidth, color, ...rest }: IconProps) => (
+    <Base
+      variant="Linear"
+      {...(size !== undefined ? { size: size as number } : { size: 20 })}
+      {...(color ? { color: color as string } : { color: "currentColor" })}
+      {...(strokeWidth !== undefined ? { strokeWidth: Number(strokeWidth) } : {})}
+      {...(rest as Record<string, unknown>)}
+    />
+  );
+  Component.displayName = displayName;
+  return Component;
+}
 
 export const Activity = s("pulse");
 export const AlertTriangle = s("danger-triangle");

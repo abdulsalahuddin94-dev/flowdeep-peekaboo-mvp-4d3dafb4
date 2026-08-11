@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Check, ChevronRight, Clock } from "@/lib/icons";
+import { FilterDrawer } from "@/components/FilterDrawer";
 import { projects, pipelineItems, type Project, type Rag } from "@/lib/mock-data";
 import { useProjects, useCalendars, useApprovals } from "@/lib/projects-store";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";

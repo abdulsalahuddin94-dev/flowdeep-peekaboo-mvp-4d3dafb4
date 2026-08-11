@@ -407,12 +407,7 @@ function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta?
 }
 
 function RowActions({ onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void }) {
-  return (
-    <div className="flex justify-end gap-1">
-      <Button aria-label="Edit" size="icon" variant="ghost" onClick={onEdit} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
-      <Button aria-label="Delete" size="icon" variant="ghost" onClick={onDelete} className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
-    </div>
-  );
+  return <TableRowActions onEdit={onEdit} onDelete={onDelete} />;
 }
 
 export type FilterGroup = {

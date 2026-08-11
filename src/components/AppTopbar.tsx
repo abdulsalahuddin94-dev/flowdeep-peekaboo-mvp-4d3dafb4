@@ -191,12 +191,7 @@ export function AppTopbar() {
         </Sheet>
 
         <ThemeToggle />
-        <UserMenu
-          initials={initials}
-          currentUserId={currentUser.id}
-          setCurrentUserId={setCurrentUserId}
-          users={users}
-        />
+        <UserMenu initials={initials} name={currentUser.name} role={currentUser.role} />
       </div>
     </header>
   );

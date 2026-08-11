@@ -114,19 +114,17 @@ function BusinessLinesTab() {
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-            <TableHead className="w-28">ID</TableHead>
             <TableHead className="w-56">Name</TableHead>
             <TableHead className="w-72">Description</TableHead>
             <TableHead className="w-36 text-center">Active Projects</TableHead>
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {visible.length === 0 && <EmptyRow colSpan={5} />}
+            {visible.length === 0 && <EmptyRow colSpan={4} />}
             {visible.map((b) => {
               const i = b.index;
               return (
               <TableRow key={`${b.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`PT-${String(i + 1).padStart(3, "0")}`}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
                 <TableCell className="w-72 text-muted-foreground">{b.description || "—"}</TableCell>
                 <TableCell className="text-center num-mono">{b.projects}</TableCell>
@@ -222,18 +220,16 @@ function DepartmentsTab() {
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-            <TableHead className="w-28">ID</TableHead>
             <TableHead className="w-64">Department</TableHead>
             <TableHead>Head</TableHead>
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {visible.length === 0 && <EmptyRow colSpan={4} />}
+            {visible.length === 0 && <EmptyRow colSpan={3} />}
             {visible.map((d) => {
               const i = d.index;
               return (
               <TableRow key={`${d.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`DEP-${String(i + 1).padStart(3, "0")}`}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
                 <TableCell>{d.head || "—"}</TableCell>
                 <TableCell>
@@ -343,14 +339,11 @@ function TagsTab() {
         {visible.length === 0 && (
           <div className="col-span-full py-8 text-center text-sm text-muted-foreground">No matching tags</div>
         )}
-        {visible.map((t) => {
-          const i = t.index;
-          return (
+        {visible.map((t) => (
           <div key={t.name} className="glass-card flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: t.color }} aria-hidden />
               <div>
-                <div className="num-mono text-[11px] text-muted-foreground">{`TAG-${String(i + 1).padStart(3, "0")}`}</div>
                 <div className="font-medium text-foreground">{t.name}</div>
                 <div className="text-xs text-muted-foreground">Used by {t.usage} projects</div>
               </div>
@@ -360,8 +353,7 @@ function TagsTab() {
               onDelete={() => setPendingDelete(t.name)}
             />
           </div>
-          );
-        })}
+        ))}
       </div>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
@@ -1254,19 +1246,15 @@ function JobRolesTab() {
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-            <TableHead className="w-28">Role ID</TableHead>
             <TableHead className="w-56">Role Title</TableHead>
             <TableHead className="w-48">Skills</TableHead>
             <TableHead className="w-40 text-center">Usage in Projects</TableHead>
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {visible.length === 0 && <EmptyRow colSpan={5} />}
-            {visible.map((r) => {
-              const i = r.index;
-              return (
+            {visible.length === 0 && <EmptyRow colSpan={4} />}
+            {visible.map((r) => (
               <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
-                <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`ROL-${String(i + 1).padStart(3, "0")}`}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{r.title}</TableCell>
                 <TableCell>
                   {r.skills?.length ? (

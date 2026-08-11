@@ -31,6 +31,8 @@ export interface WorkCalendar {
   workingDays: number[];        // e.g. [0,1,2,3,4] (Sun–Thu) for Egypt
   hoursPerDay: number;
   holidays: { date: string; label: string }[];
+  /** Inactive calendars stay on record but can't be linked to new projects. */
+  active?: boolean;
 }
 
 const pms = [

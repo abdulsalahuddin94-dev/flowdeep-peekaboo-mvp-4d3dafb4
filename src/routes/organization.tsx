@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch } from "@/lib/icons";
+import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch, Search } from "@/lib/icons";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
@@ -76,11 +76,41 @@ function BusinessLinesTab() {
   );
   const [editing, setEditing] = useState<{ index: number; name: string; description: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ index: number; name: string } | null>(null);
+  const [query, setQuery] = useState("");
+  const [usage, setUsage] = useState("all");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return rows
+      .map((b, index) => ({ ...b, index }))
+      .filter((b) => !q || b.name.toLowerCase().includes(q) || b.description.toLowerCase().includes(q))
+      .filter((b) => usage === "all" || (usage === "active" ? b.projects > 0 : b.projects === 0));
+  }, [rows, query, usage]);
 
   return (
     <>
       <SectionHeader title="Project Types" desc="Used across Portfolio filters such as business lines."
         cta={<AddBusinessLineDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />} />
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search name or description…"
+        resultCount={visible.length}
+        totalCount={rows.length}
+        onReset={() => { setQuery(""); setUsage("all"); }}
+        filters={
+          <FilterSelect
+            value={usage}
+            onChange={setUsage}
+            options={[
+              { value: "all", label: "All types" },
+              { value: "active", label: "With active projects" },
+              { value: "empty", label: "No projects" },
+            ]}
+            width="w-48"
+          />
+        }
+      />
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -91,7 +121,10 @@ function BusinessLinesTab() {
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {rows.map((b, i) => (
+            {visible.length === 0 && <EmptyRow colSpan={5} />}
+            {visible.map((b) => {
+              const i = b.index;
+              return (
               <TableRow key={`${b.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`PT-${String(i + 1).padStart(3, "0")}`}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
@@ -104,7 +137,8 @@ function BusinessLinesTab() {
                   />
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -150,11 +184,41 @@ function DepartmentsTab() {
   const [rows, setRows] = useState<OrgDepartment[]>(departments.map((d) => ({ name: d.name, head: d.head ?? "" })));
   const [editing, setEditing] = useState<{ index: number; name: string; head: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ index: number; name: string } | null>(null);
+  const [query, setQuery] = useState("");
+  const [head, setHead] = useState("all");
+
+  const heads = useMemo(
+    () => Array.from(new Set(rows.map((d) => d.head).filter(Boolean))).sort(),
+    [rows],
+  );
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return rows
+      .map((d, index) => ({ ...d, index }))
+      .filter((d) => !q || d.name.toLowerCase().includes(q) || d.head.toLowerCase().includes(q))
+      .filter((d) => head === "all" || d.head === head);
+  }, [rows, query, head]);
 
   return (
     <>
       <SectionHeader title="Departments / Units" desc="Org chart units. A project may span multiple departments."
         cta={<AddDepartmentDialog onAdd={(name, head) => setRows((prev) => [...prev, { name, head }])} />} />
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search department or head…"
+        resultCount={visible.length}
+        totalCount={rows.length}
+        onReset={() => { setQuery(""); setHead("all"); }}
+        filters={
+          <FilterSelect
+            value={head}
+            onChange={setHead}
+            options={[{ value: "all", label: "All heads" }, ...heads.map((h) => ({ value: h, label: h }))]}
+            width="w-48"
+          />
+        }
+      />
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -164,7 +228,10 @@ function DepartmentsTab() {
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {rows.map((d, i) => (
+            {visible.length === 0 && <EmptyRow colSpan={4} />}
+            {visible.map((d) => {
+              const i = d.index;
+              return (
               <TableRow key={`${d.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`DEP-${String(i + 1).padStart(3, "0")}`}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
@@ -176,7 +243,8 @@ function DepartmentsTab() {
                   />
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -235,16 +303,52 @@ function ConfirmDeleteDialog({ label, onCancel, onConfirm }: { label?: string; o
 
 function TagsTab() {
   const { tags, updateTag, removeTag } = useTags();
-  const [editing, setEditing] = useState<{ name: string; original: string } | null>(null);
+  const [editing, setEditing] = useState<{ name: string; color: string; original: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [usage, setUsage] = useState("all");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return tags
+      .map((t, index) => ({ ...t, index }))
+      .filter((t) => !q || t.name.toLowerCase().includes(q))
+      .filter((t) => usage === "all" || (usage === "used" ? (t.usage ?? 0) > 0 : (t.usage ?? 0) === 0));
+  }, [tags, query, usage]);
   return (
     <>
       <SectionHeader title="Tags & Classifications" desc="Customizable labels applied to business cases and projects."
         cta={<AddTagDialog />} />
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search tags…"
+        resultCount={visible.length}
+        totalCount={tags.length}
+        onReset={() => { setQuery(""); setUsage("all"); }}
+        filters={
+          <FilterSelect
+            value={usage}
+            onChange={setUsage}
+            options={[
+              { value: "all", label: "All tags" },
+              { value: "used", label: "In use" },
+              { value: "unused", label: "Unused" },
+            ]}
+            width="w-40"
+          />
+        }
+      />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {tags.map((t, i) => (
+        {visible.length === 0 && (
+          <div className="col-span-full py-8 text-center text-sm text-muted-foreground">No matching tags</div>
+        )}
+        {visible.map((t) => {
+          const i = t.index;
+          return (
           <div key={t.name} className="glass-card flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: t.color }} aria-hidden />
               <div>
                 <div className="num-mono text-[11px] text-muted-foreground">{`TAG-${String(i + 1).padStart(3, "0")}`}</div>
                 <div className="font-medium text-foreground">{t.name}</div>
@@ -252,24 +356,31 @@ function TagsTab() {
               </div>
             </div>
             <RowActions
-              onEdit={() => setEditing({ name: t.name, original: t.name })}
+              onEdit={() => setEditing({ name: t.name, color: t.color, original: t.name })}
               onDelete={() => setPendingDelete(t.name)}
             />
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Edit Tag</DialogTitle><DialogDescription>Renaming updates the tag on every project already using it.</DialogDescription></DialogHeader>
-          <div><Label>Tag name</Label><Input value={editing?.name ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, name: e.target.value } : p)} /></div>
+          <div className="flex items-end gap-3">
+            <div className="flex-1"><Label>Tag name</Label><Input value={editing?.name ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, name: e.target.value } : p)} /></div>
+            <div>
+              <Label>Color</Label>
+              <ColorPicker value={editing?.color ?? "#51CAAD"} onChange={(color) => setEditing((p) => p ? { ...p, color } : p)} />
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
             <Button className="bg-accent text-accent-foreground" onClick={() => {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Tag name is required"); return; }
-              updateTag(editing.original, { name });
+              updateTag(editing.original, { name, color: editing.color });
               toast.success("Tag updated");
               setEditing(null);
             }}>Save</Button>
@@ -291,6 +402,35 @@ function TagsTab() {
   );
 }
 
+const TAG_COLORS = ["#51CAAD", "#EF4444", "#8B5CF6", "#10B981", "#0EA5E9", "#F97316", "#F59E0B", "#64748B"];
+
+/** Swatch + native color input for tag colors. */
+function ColorPicker({ value, onChange }: { value: string; onChange: (color: string) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="color"
+        aria-label="Tag color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-9 w-12 cursor-pointer rounded-md border border-border bg-transparent p-1"
+      />
+      <div className="flex gap-1">
+        {TAG_COLORS.map((c) => (
+          <button
+            key={c}
+            type="button"
+            aria-label={`Use ${c}`}
+            onClick={() => onChange(c)}
+            className={`h-4 w-4 rounded-full ring-offset-1 ring-offset-background ${value.toLowerCase() === c.toLowerCase() ? "ring-2 ring-accent" : ""}`}
+            style={{ backgroundColor: c }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta: React.ReactNode }) {
   return (
     <div className="mb-4 flex items-end justify-between gap-3">
@@ -309,6 +449,67 @@ function RowActions({ onEdit, onDelete }: { onEdit?: () => void; onDelete?: () =
       <Button aria-label="Edit" size="icon" variant="ghost" onClick={onEdit} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
       <Button aria-label="Delete" size="icon" variant="ghost" onClick={onDelete} className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
     </div>
+  );
+}
+
+/** Shared search + filter toolbar used by every Organization tab. */
+function FilterBar({
+  query,
+  onQueryChange,
+  placeholder,
+  filters,
+  resultCount,
+  totalCount,
+  onReset,
+}: {
+  query: string;
+  onQueryChange: (v: string) => void;
+  placeholder: string;
+  filters?: React.ReactNode;
+  resultCount: number;
+  totalCount: number;
+  onReset: () => void;
+}) {
+  const filtered = resultCount !== totalCount;
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="relative min-w-[220px] flex-1 sm:max-w-xs">
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder={placeholder}
+          className="pl-8"
+          aria-label={placeholder}
+        />
+      </div>
+      {filters}
+      <span className="ml-auto text-xs text-muted-foreground">
+        {filtered ? `${resultCount} of ${totalCount}` : `${totalCount} item${totalCount === 1 ? "" : "s"}`}
+      </span>
+      {filtered && (
+        <button type="button" onClick={onReset} className="text-xs text-accent hover:underline">Reset</button>
+      )}
+    </div>
+  );
+}
+
+function EmptyRow({ colSpan }: { colSpan: number }) {
+  return (
+    <TableRow className="bg-transparent hover:bg-transparent border-0">
+      <TableCell colSpan={colSpan} className="py-8 text-center text-sm text-muted-foreground">No matching records</TableCell>
+    </TableRow>
+  );
+}
+
+function FilterSelect({ value, onChange, options, width = "w-40" }: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; width?: string }) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className={width}><SelectValue /></SelectTrigger>
+      <SelectContent>
+        {options.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -371,7 +572,7 @@ function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, head: string) =>
 function AddTagDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const color = "#51CAAD";
+  const [color, setColor] = useState("#51CAAD");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const { addTag } = useTags();
@@ -386,7 +587,7 @@ function AddTagDialog() {
   }
 
   function reset() {
-    setName(""); setSearch(""); setSelected([]);
+    setName(""); setSearch(""); setSelected([]); setColor("#51CAAD");
   }
 
   function save() {
@@ -411,9 +612,15 @@ function AddTagDialog() {
           <DialogDescription>Create a tag and optionally assign it to existing projects.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          <div>
-            <Label>Tag name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sustainability" />
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <Label>Tag name</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sustainability" />
+            </div>
+            <div>
+              <Label>Color</Label>
+              <ColorPicker value={color} onChange={setColor} />
+            </div>
           </div>
           <div>
             <div className="mb-1.5 flex items-center justify-between">
@@ -461,6 +668,21 @@ function CalendarsTab() {
   const { projects } = useProjects();
   const [editing, setEditing] = useState<WorkCalendar | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [link, setLink] = useState("all");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return calendars
+      .filter((c) => !q || c.name.toLowerCase().includes(q) || c.holidays.some((h) => h.label.toLowerCase().includes(q)))
+      .filter((c) => {
+        const linkedCount = projects.filter((p) => p.calendarId === c.id).length;
+        if (link === "linked") return linkedCount > 0;
+        if (link === "unlinked") return linkedCount === 0;
+        if (link === "pending") return pendingCalendarIds.includes(c.id);
+        return true;
+      });
+  }, [calendars, projects, pendingCalendarIds, query, link]);
 
   function deleteCalendar(calendar: WorkCalendar) {
     if (projects.some((p) => p.calendarId === calendar.id)) {
@@ -478,8 +700,32 @@ function CalendarsTab() {
         desc="Define working days, daily hours and official holidays per country/region. Calendars linked to projects are baselined — edits go through a change request."
         cta={<Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
       />
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search calendar or holiday…"
+        resultCount={visible.length}
+        totalCount={calendars.length}
+        onReset={() => { setQuery(""); setLink("all"); }}
+        filters={
+          <FilterSelect
+            value={link}
+            onChange={setLink}
+            options={[
+              { value: "all", label: "All calendars" },
+              { value: "linked", label: "Linked to projects" },
+              { value: "unlinked", label: "Not linked" },
+              { value: "pending", label: "Change request pending" },
+            ]}
+            width="w-52"
+          />
+        }
+      />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {calendars.map((c) => {
+        {visible.length === 0 && (
+          <div className="col-span-full py-8 text-center text-sm text-muted-foreground">No matching calendars</div>
+        )}
+        {visible.map((c) => {
           const linked = projects.filter((p) => p.calendarId === c.id);
           const pending = pendingCalendarIds.includes(c.id);
           const decided = approvals.find(
@@ -767,6 +1013,15 @@ function CostCategoriesTab() {
   ]);
   const [editing, setEditing] = useState<CostCategory | null>(null);
   const [pendingDelete, setPendingDelete] = useState<CostCategory | null>(null);
+  const [query, setQuery] = useState("");
+  const [type, setType] = useState("all");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return categories
+      .filter((c) => !q || c.name.toLowerCase().includes(q) || c.number.toLowerCase().includes(q) || c.description.toLowerCase().includes(q))
+      .filter((c) => type === "all" || c.type === type);
+  }, [categories, query, type]);
 
   return (
     <>
@@ -774,6 +1029,26 @@ function CostCategoriesTab() {
         title="Cost Categories"
         desc="Standard organizational cost classifications used across projects. Each category has a unique cost center identifier."
         cta={<AddCostCategoryDialog onAdd={(cat) => setCategories([...categories, cat])} />}
+      />
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search name, ID or description…"
+        resultCount={visible.length}
+        totalCount={categories.length}
+        onReset={() => { setQuery(""); setType("all"); }}
+        filters={
+          <FilterSelect
+            value={type}
+            onChange={setType}
+            options={[
+              { value: "all", label: "All types" },
+              { value: "CapEx", label: "CapEx only" },
+              { value: "OpEx", label: "OpEx only" },
+            ]}
+            width="w-40"
+          />
+        }
       />
       <div className="">
         <Table>
@@ -786,7 +1061,8 @@ function CostCategoriesTab() {
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {categories.map((c) => (
+            {visible.length === 0 && <EmptyRow colSpan={6} />}
+            {visible.map((c) => (
               <TableRow key={c.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{c.number}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{c.name}</TableCell>
@@ -928,6 +1204,23 @@ function JobRolesTab() {
   }, [resourceRequests]);
   const [editing, setEditing] = useState<{ id: string; title: string; skills: string[] }  | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(null);
+  const [query, setQuery] = useState("");
+  const [usage, setUsage] = useState("all");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return jobRoles
+      .map((r, index) => ({ ...r, index }))
+      .filter((r) => !q || r.title.toLowerCase().includes(q) || (r.skills ?? []).some((sk) => sk.toLowerCase().includes(q)))
+      .filter((r) => {
+        if (usage === "all") return true;
+        const used = (usageByRole.get(r.title.trim().toLowerCase())?.size ?? 0) > 0;
+        if (usage === "used") return used;
+        if (usage === "unused") return !used;
+        if (usage === "with-skills") return (r.skills ?? []).length > 0;
+        return (r.skills ?? []).length === 0;
+      });
+  }, [jobRoles, query, usage, usageByRole]);
 
   return (
     <>
@@ -935,6 +1228,28 @@ function JobRolesTab() {
         title="Job Roles Definition"
         desc="Define standard job titles (e.g. Data Engineer, Solution Architect) at the organization level so Project Managers can assign roles to tasks during planning — before any specific resource is allocated."
         cta={<AddJobRoleDialog onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
+      />
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search role title or skill…"
+        resultCount={visible.length}
+        totalCount={jobRoles.length}
+        onReset={() => { setQuery(""); setUsage("all"); }}
+        filters={
+          <FilterSelect
+            value={usage}
+            onChange={setUsage}
+            options={[
+              { value: "all", label: "All roles" },
+              { value: "used", label: "Used in projects" },
+              { value: "unused", label: "Not used" },
+              { value: "with-skills", label: "With skills" },
+              { value: "no-skills", label: "Without skills" },
+            ]}
+            width="w-48"
+          />
+        }
       />
       <div className="">
         <Table>
@@ -946,7 +1261,10 @@ function JobRolesTab() {
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {jobRoles.map((r, i) => (
+            {visible.length === 0 && <EmptyRow colSpan={5} />}
+            {visible.map((r) => {
+              const i = r.index;
+              return (
               <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`ROL-${String(i + 1).padStart(3, "0")}`}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{r.title}</TableCell>
@@ -975,7 +1293,8 @@ function JobRolesTab() {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>

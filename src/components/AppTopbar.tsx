@@ -190,24 +190,13 @@ export function AppTopbar() {
           </SheetContent>
         </Sheet>
 
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">View as</span>
-          <Select value={currentUser.id} onValueChange={setCurrentUserId}>
-            <SelectTrigger className="h-8 w-[190px] text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {users.map((u) => (
-                <SelectItem key={u.id} value={u.id} className="text-xs">
-                  {u.name} · {u.role}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
         <ThemeToggle />
-        <SignOutButton />
+        <UserMenu
+          initials={initials}
+          currentUserId={currentUser.id}
+          setCurrentUserId={setCurrentUserId}
+          users={users}
+        />
       </div>
     </header>
   );
@@ -232,11 +221,76 @@ function ThemeToggle() {
   }, [dark]);
 
   return (
-    <div className="flex items-center gap-2">
-      <span className={`text-xs ${!dark ? "text-foreground font-medium" : "text-muted-foreground"}`}>Light</span>
-      <Switch checked={dark} onCheckedChange={setDark} />
-      <span className={`text-xs ${dark ? "text-foreground font-medium" : "text-muted-foreground"}`}>Dark</span>
+    <div className="flex items-center gap-1 rounded-full bg-secondary/60 p-1">
+      <button
+        type="button"
+        onClick={() => setDark(false)}
+        aria-label="Light mode"
+        aria-pressed={!dark}
+        className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
+          !dark ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        <Sun className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setDark(true)}
+        aria-label="Dark mode"
+        aria-pressed={dark}
+        className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
+          dark ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        <Moon className="h-4 w-4" />
+      </button>
     </div>
+  );
+}
+
+function UserMenu({
+  initials, currentUserId, setCurrentUserId, users,
+}: {
+  initials: string;
+  currentUserId: string;
+  setCurrentUserId: (id: string) => void;
+  users: { id: string; name: string; role: string }[];
+}) {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  async function signOut() {
+    await qc.cancelQueries();
+    qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center gap-1.5 rounded-full pl-0.5 pr-1 text-foreground/80 hover:text-foreground">
+          <Avatar className="h-9 w-9">
+            <AvatarFallback className="bg-accent text-xs font-bold text-accent-foreground">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          <ChevronDown className="h-4 w-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="text-[10px] uppercase tracking-wide text-muted-foreground">
+          View as
+        </DropdownMenuLabel>
+        <DropdownMenuRadioGroup value={currentUserId} onValueChange={setCurrentUserId}>
+          {users.map((u) => (
+            <DropdownMenuRadioItem key={u.id} value={u.id} className="text-xs">
+              {u.name} · {u.role}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={signOut} className="text-sm">Sign out</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

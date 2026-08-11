@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useApprovals } from "@/lib/projects-store";
 import sansLogo from "@/assets/sans-logo.png.asset.json";
+import teamsmartLogo from "@/assets/teamsmart-logo.png.asset.json";
 
 /*
  * Sidebar is fully token-driven. All colors come from CSS variables defined
@@ -48,14 +49,13 @@ export function AppSidebar() {
       <SidebarHeader className="px-3 py-5">
         <div className="flex items-center gap-2">
           {!collapsed && (
-            <div className="flex items-center gap-2.5">
-              <span className="text-2xl font-bold italic leading-none tracking-tighter text-sidebar-accent-foreground">
-                TS
-              </span>
-              <span className="text-lg font-semibold leading-none text-sidebar-accent-foreground">
-                TeamSmart
-              </span>
-            </div>
+            <Link to="/" className="flex items-center gap-2.5" aria-label="Home">
+              <img
+                src={teamsmartLogo.url}
+                alt="TeamSmart"
+                className="h-7 w-auto object-contain"
+              />
+            </Link>
           )}
           <button
             onClick={toggleSidebar}

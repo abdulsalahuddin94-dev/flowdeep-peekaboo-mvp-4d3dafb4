@@ -264,7 +264,8 @@ type AppContextValue = {
   addApprovalRequest: (r: Omit<ApprovalRequest, "id" | "status" | "requestedAt" | "reminders">) => string;
   decideApproval: (id: string, approverId: string, decision: Exclude<ApprovalDecision, "pending">, comment?: string) => void;
   remindApproval: (id: string) => void;
-  submitCalendarChangeRequest: (calendarId: string, patch: Partial<WorkCalendar>, summary: { label: string; before?: string; after?: string }[]) => string | null;
+  /** Applies the calendar edit immediately and asks each linked project to accept or keep its current calendar. */
+  updateCalendarWithAdoption: (calendarId: string, patch: Partial<WorkCalendar>, summary: { label: string; before?: string; after?: string }[]) => number;
   pendingCalendarIds: string[];
 };
 
@@ -282,8 +283,11 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   const [jobRoles, setJobRoles] = useState<JobRole[]>(SEED_JOB_ROLES);
   const [currentUserId, setCurrentUserId] = useState<string>("u-aisha");
   const [approvals, setApprovals] = useState<ApprovalRequest[]>(SEED_APPROVALS);
-  // approvalId -> queued calendar patch, applied only once fully approved
-  const [pendingCalendarPatches, setPendingCalendarPatches] = useState<Record<string, { calendarId: string; patch: Partial<WorkCalendar> }>>({});
+  // approvalId -> per-project adoption of an already-applied calendar edit.
+  // Rejecting pins that project to a frozen copy of the previous calendar.
+  const [pendingCalendarPatches, setPendingCalendarPatches] = useState<
+    Record<string, { calendarId: string; projectId: string; previous: WorkCalendar }>
+  >({});
 
   const currentUser = APP_USERS.find((u) => u.id === currentUserId) ?? APP_USERS[0];
 
@@ -317,11 +321,18 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       finalStatus = status;
       return { ...a, approvers, status };
     }));
-    // Calendar change requests are applied to the org calendar only once approved.
+    // Calendar edits are already applied org-wide. A project that rejects the
+    // update keeps working on a frozen copy of the previous calendar.
     const queued = pendingCalendarPatches[id];
     if (queued && finalStatus !== "pending") {
-      if (finalStatus === "approved") {
-        setCalendars((prev) => prev.map((c) => c.id === queued.calendarId ? { ...c, ...queued.patch } : c));
+      if (finalStatus === "rejected") {
+        const pinnedId = `${queued.previous.id}-pinned-${queued.projectId}`;
+        setCalendars((prev) => prev.some((c) => c.id === pinnedId)
+          ? prev
+          : [...prev, { ...queued.previous, id: pinnedId, name: `${queued.previous.name} (kept — previous version)` }]);
+        setProjects((prev) => prev.map((p) => p.id === queued.projectId ? { ...p, calendarId: pinnedId } : p));
+      } else {
+        setProjects((prev) => prev.map((p) => p.id === queued.projectId ? { ...p, calendarId: queued.calendarId } : p));
       }
       setPendingCalendarPatches((prev) => {
         const next = { ...prev };
@@ -331,39 +342,43 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  function submitCalendarChangeRequest(
+  function updateCalendarWithAdoption(
     calendarId: string,
     patch: Partial<WorkCalendar>,
     summary: { label: string; before?: string; after?: string }[],
   ) {
     const cal = calendars.find((c) => c.id === calendarId);
-    if (!cal) return null;
+    if (!cal) return 0;
+    const previous: WorkCalendar = { ...cal, holidays: cal.holidays.map((h) => ({ ...h })) };
+    // The edit takes effect right away — no baseline lock.
+    setCalendars((prev) => prev.map((c) => c.id === calendarId ? { ...c, ...patch } : c));
+
     const affected = projects.filter((p) => p.calendarId === calendarId);
-    const pmApprovers = Array.from(new Set(affected.map((p) => p.pm)))
-      .map((name) => APP_USERS.find((u) => u.name === name))
-      .filter((u): u is AppUser => !!u && u.id !== "u-aisha")
-      .slice(0, 2);
-    const approvers: ApprovalApprover[] = [
-      { id: "u-aisha", name: "Aisha Khoury", role: "Portfolio Director", department: "PMO", decision: "pending" },
-      ...pmApprovers.map((u) => ({ id: u.id, name: u.name, role: u.role, department: u.department, decision: "pending" as const })),
-    ];
-    const id = addApprovalRequest({
-      type: "calendar-change",
-      projectId: affected[0]?.id ?? "",
-      projectName: affected.length
-        ? `${affected.length} linked project${affected.length === 1 ? "" : "s"}`
-        : "No linked projects",
-      ref: cal.name,
-      title: `Calendar change request — ${cal.name}`,
-      requestedBy: currentUser.name,
-      summary: [
-        ...summary,
-        { label: "Impacted projects", after: affected.map((p) => p.name).join(", ") || "None" },
-      ],
-      approvers,
-    });
-    setPendingCalendarPatches((prev) => ({ ...prev, [id]: { calendarId, patch } }));
-    return id;
+    const queued: Record<string, { calendarId: string; projectId: string; previous: WorkCalendar }> = {};
+    for (const p of affected) {
+      const pmUser = APP_USERS.find((u) => u.name === p.pm);
+      const approvers: ApprovalApprover[] = [
+        pmUser
+          ? { id: pmUser.id, name: pmUser.name, role: pmUser.role, department: pmUser.department, decision: "pending" as const }
+          : { id: "u-aisha", name: "Aisha Khoury", role: "Portfolio Director", department: "PMO", decision: "pending" as const },
+      ];
+      const id = addApprovalRequest({
+        type: "calendar-change",
+        projectId: p.id,
+        projectName: p.name,
+        ref: cal.name,
+        title: `Adopt calendar update — ${patch.name ?? cal.name}`,
+        requestedBy: currentUser.name,
+        summary: [
+          ...summary,
+          { label: "If rejected", after: `${p.name} keeps the previous calendar version` },
+        ],
+        approvers,
+      });
+      queued[id] = { calendarId, projectId: p.id, previous };
+    }
+    setPendingCalendarPatches((prev) => ({ ...prev, ...queued }));
+    return affected.length;
   }
 
   const pendingCalendarIds = useMemo(() => {

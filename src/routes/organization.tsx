@@ -1165,6 +1165,23 @@ function JobRolesTab() {
   }, [resourceRequests]);
   const [editing, setEditing] = useState<{ id: string; title: string; skills: string[] }  | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(null);
+  const [query, setQuery] = useState("");
+  const [usage, setUsage] = useState("all");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return jobRoles
+      .map((r, index) => ({ ...r, index }))
+      .filter((r) => !q || r.title.toLowerCase().includes(q) || (r.skills ?? []).some((sk) => sk.toLowerCase().includes(q)))
+      .filter((r) => {
+        if (usage === "all") return true;
+        const used = (usageByRole.get(r.title.trim().toLowerCase())?.size ?? 0) > 0;
+        if (usage === "used") return used;
+        if (usage === "unused") return !used;
+        if (usage === "with-skills") return (r.skills ?? []).length > 0;
+        return (r.skills ?? []).length === 0;
+      });
+  }, [jobRoles, query, usage, usageByRole]);
 
   return (
     <>
@@ -1172,6 +1189,28 @@ function JobRolesTab() {
         title="Job Roles Definition"
         desc="Define standard job titles (e.g. Data Engineer, Solution Architect) at the organization level so Project Managers can assign roles to tasks during planning — before any specific resource is allocated."
         cta={<AddJobRoleDialog onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
+      />
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search role title or skill…"
+        resultCount={visible.length}
+        totalCount={jobRoles.length}
+        onReset={() => { setQuery(""); setUsage("all"); }}
+        filters={
+          <FilterSelect
+            value={usage}
+            onChange={setUsage}
+            options={[
+              { value: "all", label: "All roles" },
+              { value: "used", label: "Used in projects" },
+              { value: "unused", label: "Not used" },
+              { value: "with-skills", label: "With skills" },
+              { value: "no-skills", label: "Without skills" },
+            ]}
+            width="w-48"
+          />
+        }
       />
       <div className="">
         <Table>
@@ -1183,7 +1222,10 @@ function JobRolesTab() {
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {jobRoles.map((r, i) => (
+            {visible.length === 0 && <EmptyRow colSpan={5} />}
+            {visible.map((r) => {
+              const i = r.index;
+              return (
               <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`ROL-${String(i + 1).padStart(3, "0")}`}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{r.title}</TableCell>
@@ -1212,7 +1254,8 @@ function JobRolesTab() {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>

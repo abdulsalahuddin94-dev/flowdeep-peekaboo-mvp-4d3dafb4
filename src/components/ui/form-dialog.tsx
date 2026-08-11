@@ -1,6 +1,7 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
+import { X } from "@/lib/icons";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -115,9 +116,7 @@ export function FormDialog({
               aria-label="Close"
               className="-mr-1 -mt-1 cursor-pointer text-foreground/80 transition-colors hover:text-foreground"
             >
-              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-              </svg>
+              <X size={22} />
             </DialogPrimitive.Close>
           </div>
 

@@ -2,7 +2,7 @@ import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Info, AlertTriangle, Trash2 } from "@/lib/icons";
+import { CheckCircle2, Info, AlertTriangle, Trash2, X } from "@/lib/icons";
 
 /**
  * DS02 confirmation popup — success / info / warning / danger.
@@ -111,9 +111,7 @@ export function ConfirmDialog({
             aria-label="Close"
             className="absolute right-4 top-4 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
           >
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-              <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-            </svg>
+            <X size={22} />
           </DialogPrimitive.Close>
 
           <div className="flex flex-col items-center gap-3">

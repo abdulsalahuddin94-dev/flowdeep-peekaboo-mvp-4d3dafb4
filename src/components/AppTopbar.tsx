@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
-  DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import neraLogo from "@/assets/nera-logo.png.asset.json";
 import {
@@ -37,7 +37,7 @@ export function AppTopbar() {
   const navigate = useNavigate();
   const { projects } = useProjects();
   const { notifications, unreadCount, markAllRead } = useNotifications();
-  const { currentUser, setCurrentUserId, users } = useCurrentUser();
+  const { currentUser } = useCurrentUser();
   const initials = currentUser.name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
 
   useEffect(() => {

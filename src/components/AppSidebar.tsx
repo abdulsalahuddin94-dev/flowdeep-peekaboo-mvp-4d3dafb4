@@ -49,14 +49,13 @@ export function AppSidebar() {
       <SidebarHeader className="px-3 py-5">
         <div className="flex items-center gap-2">
           {!collapsed && (
-            <div className="flex items-center gap-2.5">
-              <span className="text-2xl font-bold italic leading-none tracking-tighter text-sidebar-accent-foreground">
-                TS
-              </span>
-              <span className="text-lg font-semibold leading-none text-sidebar-accent-foreground">
-                TeamSmart
-              </span>
-            </div>
+            <Link to="/" className="flex items-center gap-2.5" aria-label="Home">
+              <img
+                src={teamsmartLogo.url}
+                alt="TeamSmart"
+                className="h-7 w-auto object-contain"
+              />
+            </Link>
           )}
           <button
             onClick={toggleSidebar}

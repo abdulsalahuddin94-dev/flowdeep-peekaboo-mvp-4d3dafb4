@@ -108,6 +108,7 @@ export const PartyPopper = s("confetti");
 export const Pencil = s("pen-new-square");
 export const Phone = s("phone");
 export const PiggyBank = s("safe-2");
+export const Power = s("power");
 export const Plus = sax(SaxAdd, "Iconsax(Add)");
 export const Search = s("magnifer");
 export const SearchIcon = Search;

@@ -3,7 +3,7 @@
  * Single source of truth for iconography — swap a mapping here to restyle globally.
  */
 import { Icon as IconifyIcon } from "@iconify/react";
-import { Setting4 as SaxSetting4, Add as SaxAdd } from "iconsax-react";
+import { Setting4 as SaxSetting4, Add as SaxAdd, Edit2 as SaxEdit2, Trash as SaxTrash } from "iconsax-react";
 import type { SVGProps } from "react";
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {
@@ -79,6 +79,9 @@ export const FileSpreadsheet = s("document-text");
 export const FileText = s("document-text");
 export const FileUp = s("file-send");
 export const Filter = sax(SaxSetting4, "Iconsax(Setting4)");
+/** Iconsax row actions — table Edit / Delete buttons. */
+export const EditAction = sax(SaxEdit2, "Iconsax(Edit2)");
+export const DeleteAction = sax(SaxTrash, "Iconsax(Trash)");
 export const Flame = s("fire");
 export const GanttChartSquare = s("chart-square");
 export const GitBranch = s("branching-paths-up");

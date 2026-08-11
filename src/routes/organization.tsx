@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch, Search, Filter, Check, ChevronRight, ChevronLeft, X } from "@/lib/icons";
+import { TableRowActions } from "@/components/TableRowActions";
+import { TablePagination, usePagination } from "@/components/TablePagination";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests } from "@/lib/projects-store";
@@ -89,6 +91,8 @@ function BusinessLinesTab() {
       .filter((b) => usage === "all" || (usage === "active" ? b.projects > 0 : b.projects === 0));
   }, [rows, query, usage]);
 
+  const pager = usePagination(visible);
+
   return (
     <>
       <SectionHeader title="Project Types" desc="Used across Portfolio filters such as business lines." />
@@ -112,7 +116,7 @@ function BusinessLinesTab() {
           </TableRow></TableHeader>
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={4} />}
-            {visible.map((b) => {
+            {pager.pageItems.map((b) => {
               const i = b.index;
               return (
               <TableRow key={`${b.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
@@ -131,6 +135,7 @@ function BusinessLinesTab() {
           </TableBody>
         </Table>
       </div>
+      <TablePagination {...pager} itemLabel="project types" />
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
@@ -188,6 +193,8 @@ function DepartmentsTab() {
       .filter((d) => head === "all" || d.head === head);
   }, [rows, query, head]);
 
+  const pager = usePagination(visible);
+
   return (
     <>
       <SectionHeader title="Departments / Units" desc="Org chart units. A project may span multiple departments." />
@@ -210,7 +217,7 @@ function DepartmentsTab() {
           </TableRow></TableHeader>
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={3} />}
-            {visible.map((d) => {
+            {pager.pageItems.map((d) => {
               const i = d.index;
               return (
               <TableRow key={`${d.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
@@ -228,6 +235,7 @@ function DepartmentsTab() {
           </TableBody>
         </Table>
       </div>
+      <TablePagination {...pager} itemLabel="departments" />
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
@@ -407,12 +415,7 @@ function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta?
 }
 
 function RowActions({ onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void }) {
-  return (
-    <div className="flex justify-end gap-1">
-      <Button aria-label="Edit" size="icon" variant="ghost" onClick={onEdit} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
-      <Button aria-label="Delete" size="icon" variant="ghost" onClick={onDelete} className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
-    </div>
-  );
+  return <TableRowActions onEdit={onEdit} onDelete={onDelete} />;
 }
 
 export type FilterGroup = {
@@ -1144,6 +1147,8 @@ function CostCategoriesTab() {
       .filter((c) => type === "all" || c.type === type);
   }, [categories, query, type]);
 
+  const pager = usePagination(visible);
+
   return (
     <>
       <SectionHeader
@@ -1172,7 +1177,7 @@ function CostCategoriesTab() {
           </TableRow></TableHeader>
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={6} />}
-            {visible.map((c) => (
+            {pager.pageItems.map((c) => (
               <TableRow key={c.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{c.number}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{c.name}</TableCell>
@@ -1189,6 +1194,7 @@ function CostCategoriesTab() {
           </TableBody>
         </Table>
       </div>
+      <TablePagination {...pager} itemLabel="cost categories" />
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
@@ -1332,6 +1338,8 @@ function JobRolesTab() {
       });
   }, [jobRoles, query, usage, usageByRole]);
 
+  const pager = usePagination(visible);
+
   return (
     <>
       <SectionHeader
@@ -1358,7 +1366,7 @@ function JobRolesTab() {
           </TableRow></TableHeader>
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={4} />}
-            {visible.map((r) => (
+            {pager.pageItems.map((r) => (
               <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{r.title}</TableCell>
                 <TableCell>
@@ -1380,16 +1388,17 @@ function JobRolesTab() {
                   })()}
                 </TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-1">
-                    <Button aria-label="Edit" size="icon" variant="ghost" onClick={() => setEditing({ id: r.id, title: r.title, skills: r.skills ?? [] })} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button aria-label="Delete" size="icon" variant="ghost" onClick={() => setPendingDelete({ id: r.id, title: r.title })} className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
-                  </div>
+                  <TableRowActions
+                    onEdit={() => setEditing({ id: r.id, title: r.title, skills: r.skills ?? [] })}
+                    onDelete={() => setPendingDelete({ id: r.id, title: r.title })}
+                  />
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
+      <TablePagination {...pager} itemLabel="job roles" />
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>

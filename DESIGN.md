@@ -546,6 +546,28 @@ Tokens live in `src/styles.css` as `--confirm-{tone}-{icon|surface|ring}`.
 
 ## Form Elements (DS02)
 
+## Tables — Row Actions & Pagination (DS02)
+
+**Row actions:** every table row's action cell uses `TableRowActions` from
+`@/components/TableRowActions` — two 36px circular buttons on a dark surface
+(lavender **Edit-2**, red **Trash**, both Iconsax), hidden until the row is
+hovered/focused. Never hand-roll ghost pencil/trash buttons in a table.
+
+```tsx
+<TableCell><TableRowActions onEdit={...} onDelete={...} /></TableCell>
+```
+
+**Pagination:** every table paginates at 10 rows per page using
+`usePagination` + `TablePagination` from `@/components/TablePagination`.
+Footer anatomy: `Showing 1 to 10 of 95 items` far-left, page pills right
+(active pill = `--accent-secondary` fill), chevron prev/next on both ends.
+
+```tsx
+const pager = usePagination(visible);      // 10 per page
+{pager.pageItems.map(...)}
+<TablePagination {...pager} itemLabel="departments" />
+```
+
 Source: Figma · Design System — NERA · Form Elements.
 All field states are token-driven in `src/styles.css` (`--field-*`) and applied
 globally through `data-ui="control"` (inputs, selects, single-line controls) and

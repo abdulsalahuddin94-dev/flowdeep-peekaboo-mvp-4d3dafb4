@@ -402,6 +402,35 @@ function TagsTab() {
   );
 }
 
+const TAG_COLORS = ["#51CAAD", "#EF4444", "#8B5CF6", "#10B981", "#0EA5E9", "#F97316", "#F59E0B", "#64748B"];
+
+/** Swatch + native color input for tag colors. */
+function ColorPicker({ value, onChange }: { value: string; onChange: (color: string) => void }) {
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="color"
+        aria-label="Tag color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-9 w-12 cursor-pointer rounded-md border border-border bg-transparent p-1"
+      />
+      <div className="flex gap-1">
+        {TAG_COLORS.map((c) => (
+          <button
+            key={c}
+            type="button"
+            aria-label={`Use ${c}`}
+            onClick={() => onChange(c)}
+            className={`h-4 w-4 rounded-full ring-offset-1 ring-offset-background ${value.toLowerCase() === c.toLowerCase() ? "ring-2 ring-accent" : ""}`}
+            style={{ backgroundColor: c }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta: React.ReactNode }) {
   return (
     <div className="mb-4 flex items-end justify-between gap-3">

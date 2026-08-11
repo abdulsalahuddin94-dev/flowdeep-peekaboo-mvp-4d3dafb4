@@ -303,16 +303,52 @@ function ConfirmDeleteDialog({ label, onCancel, onConfirm }: { label?: string; o
 
 function TagsTab() {
   const { tags, updateTag, removeTag } = useTags();
-  const [editing, setEditing] = useState<{ name: string; original: string } | null>(null);
+  const [editing, setEditing] = useState<{ name: string; color: string; original: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [usage, setUsage] = useState("all");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return tags
+      .map((t, index) => ({ ...t, index }))
+      .filter((t) => !q || t.name.toLowerCase().includes(q))
+      .filter((t) => usage === "all" || (usage === "used" ? (t.usage ?? 0) > 0 : (t.usage ?? 0) === 0));
+  }, [tags, query, usage]);
   return (
     <>
       <SectionHeader title="Tags & Classifications" desc="Customizable labels applied to business cases and projects."
         cta={<AddTagDialog />} />
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search tags…"
+        resultCount={visible.length}
+        totalCount={tags.length}
+        onReset={() => { setQuery(""); setUsage("all"); }}
+        filters={
+          <FilterSelect
+            value={usage}
+            onChange={setUsage}
+            options={[
+              { value: "all", label: "All tags" },
+              { value: "used", label: "In use" },
+              { value: "unused", label: "Unused" },
+            ]}
+            width="w-40"
+          />
+        }
+      />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {tags.map((t, i) => (
+        {visible.length === 0 && (
+          <div className="col-span-full py-8 text-center text-sm text-muted-foreground">No matching tags</div>
+        )}
+        {visible.map((t) => {
+          const i = t.index;
+          return (
           <div key={t.name} className="glass-card flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: t.color }} aria-hidden />
               <div>
                 <div className="num-mono text-[11px] text-muted-foreground">{`TAG-${String(i + 1).padStart(3, "0")}`}</div>
                 <div className="font-medium text-foreground">{t.name}</div>
@@ -320,24 +356,31 @@ function TagsTab() {
               </div>
             </div>
             <RowActions
-              onEdit={() => setEditing({ name: t.name, original: t.name })}
+              onEdit={() => setEditing({ name: t.name, color: t.color, original: t.name })}
               onDelete={() => setPendingDelete(t.name)}
             />
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Edit Tag</DialogTitle><DialogDescription>Renaming updates the tag on every project already using it.</DialogDescription></DialogHeader>
-          <div><Label>Tag name</Label><Input value={editing?.name ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, name: e.target.value } : p)} /></div>
+          <div className="flex items-end gap-3">
+            <div className="flex-1"><Label>Tag name</Label><Input value={editing?.name ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, name: e.target.value } : p)} /></div>
+            <div>
+              <Label>Color</Label>
+              <ColorPicker value={editing?.color ?? "#51CAAD"} onChange={(color) => setEditing((p) => p ? { ...p, color } : p)} />
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
             <Button className="bg-accent text-accent-foreground" onClick={() => {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Tag name is required"); return; }
-              updateTag(editing.original, { name });
+              updateTag(editing.original, { name, color: editing.color });
               toast.success("Tag updated");
               setEditing(null);
             }}>Save</Button>

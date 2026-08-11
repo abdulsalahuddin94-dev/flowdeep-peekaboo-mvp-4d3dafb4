@@ -832,7 +832,7 @@ function CalendarsTab() {
     <>
       <SectionHeader
         title="Calendars"
-        desc="Define working days, daily hours and official holidays per country/region. Edits apply immediately; each linked project accepts the update or keeps its current version."
+        desc="Define working days, daily hours and official holidays per country/region."
       />
       <FilterBar
         query={query}

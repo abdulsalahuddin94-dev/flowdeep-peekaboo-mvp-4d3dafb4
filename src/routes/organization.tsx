@@ -500,12 +500,12 @@ function FilterBar({
           type="button"
           variant="outline"
           onClick={openDrawer}
-          className="gap-2 rounded-md px-5"
+          className="gap-2 rounded-md border-[var(--btn-outline-border)] bg-[var(--btn-secondary-bg)] px-5 text-[var(--btn-secondary-fg)] hover:bg-[var(--btn-outline-bg-hover)] hover:text-[var(--btn-secondary-fg)]"
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="h-4 w-4 text-[var(--btn-outline-border)]" />
           Filter
           {activeCount > 0 && (
-            <span className="ml-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-muted/40 px-1 text-[10px] font-semibold text-foreground">
+            <span className="ml-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[rgba(255,255,255,0.14)] px-1.5 text-[11px] font-medium text-[var(--btn-secondary-fg)]">
               {activeCount}
             </span>
           )}

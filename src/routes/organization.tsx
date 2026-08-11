@@ -91,6 +91,8 @@ function BusinessLinesTab() {
       .filter((b) => usage === "all" || (usage === "active" ? b.projects > 0 : b.projects === 0));
   }, [rows, query, usage]);
 
+  const pager = usePagination(visible);
+
   return (
     <>
       <SectionHeader title="Project Types" desc="Used across Portfolio filters such as business lines." />
@@ -114,7 +116,7 @@ function BusinessLinesTab() {
           </TableRow></TableHeader>
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={4} />}
-            {visible.map((b) => {
+            {pager.pageItems.map((b) => {
               const i = b.index;
               return (
               <TableRow key={`${b.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
@@ -133,6 +135,7 @@ function BusinessLinesTab() {
           </TableBody>
         </Table>
       </div>
+      <TablePagination {...pager} itemLabel="project types" />
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>

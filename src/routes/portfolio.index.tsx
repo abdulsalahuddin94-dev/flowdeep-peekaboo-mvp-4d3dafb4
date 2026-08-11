@@ -174,14 +174,15 @@ function AllProjectsTab({ restrict, projectList }: { restrict?: boolean; project
           <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Search projects…" value={query} onChange={(e) => setQuery(e.target.value)} className="pl-8" />
         </div>
-        <Button
-          variant="outline" size="sm"
-          onClick={() => setFilterOpen((o) => !o)}
-          className={activeCount > 0 ? "border-accent/40 bg-accent-dim text-accent" : ""}
-        >
-          <Filter className="mr-1 h-3.5 w-3.5" />
-          Filters{activeCount > 0 ? ` (${activeCount})` : ""}
-        </Button>
+        <FilterDrawer
+          groups={[
+            { key: "rag", label: "RAG", multi: true, value: ragFilter, onChange: setRagFilter as never, options: ALL_RAGS.map(({ v, l }) => ({ value: v, label: l })) },
+            { key: "stage", label: "Stage", multi: true, value: stageFilter, onChange: setStageFilter as never, options: ALL_STAGES.map((s) => ({ value: s, label: s })) },
+            { key: "tags", label: "Tags", multi: true, value: tagFilter, onChange: setTagFilter as never, options: ALL_TAGS.map((t) => ({ value: t, label: t })) },
+            { key: "dept", label: "Department", value: deptFilter, onChange: setDeptFilter as never, options: ALL_DEPTS.map((d) => ({ value: d, label: d })) },
+            { key: "client", label: "Client", value: clientFilter, onChange: setClientFilter as never, options: ALL_CLIENTS.map((c) => ({ value: c, label: c })) },
+          ]}
+        />
         <div className="flex overflow-hidden rounded-md border border-border bg-secondary/40">
           {([["grid", LayoutGrid], ["list", List], ["gantt", GanttChartSquare]] as const).map(([k, Icon]) => (
             <button key={k} onClick={() => setView(k as View)} className={`p-2 ${view === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}><Icon className="h-4 w-4" /></button>

@@ -908,7 +908,7 @@ function CalendarsTab() {
 }
 
 function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpenChange: (v: boolean) => void; calendar?: WorkCalendar }) {
-  const { addCalendar, updateCalendar, submitCalendarChangeRequest, pendingCalendarIds } = useCalendars();
+  const { addCalendar, updateCalendar, updateCalendarWithAdoption, pendingCalendarIds } = useCalendars();
   const { projects } = useProjects();
   const isEdit = !!calendar;
   const linked = calendar ? projects.filter((p) => p.calendarId === calendar.id) : [];
@@ -976,7 +976,7 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
 
   function submitCr() {
     if (!calendar) return;
-    submitCalendarChangeRequest(calendar.id, { name: name.trim(), workingDays, hoursPerDay, holidays }, diffs);
+    updateCalendarWithAdoption(calendar.id, { name: name.trim(), workingDays, hoursPerDay, holidays }, diffs);
     setReviewOpen(false);
     onOpenChange(false);
     toast.success("Change request submitted — pending approval", { description: "Track it in Approvals. The calendar updates once approved." });

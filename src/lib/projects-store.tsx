@@ -487,7 +487,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       jobRoles, addJobRole, updateJobRole, removeJobRole,
       currentUser, setCurrentUserId,
       approvals, addApprovalRequest, decideApproval, remindApproval,
-      submitCalendarChangeRequest, pendingCalendarIds,
+      updateCalendarWithAdoption, pendingCalendarIds,
     }}>
       {children}
     </AppContext.Provider>
@@ -525,8 +525,8 @@ export function useTags() {
 }
 
 export function useCalendars() {
-  const { calendars, addCalendar, updateCalendar, removeCalendar, submitCalendarChangeRequest, pendingCalendarIds } = useAppContext();
-  return { calendars, addCalendar, updateCalendar, removeCalendar, submitCalendarChangeRequest, pendingCalendarIds };
+  const { calendars, addCalendar, updateCalendar, removeCalendar, updateCalendarWithAdoption, pendingCalendarIds } = useAppContext();
+  return { calendars, addCalendar, updateCalendar, removeCalendar, updateCalendarWithAdoption, pendingCalendarIds };
 }
 
 export function useJobRoles() {

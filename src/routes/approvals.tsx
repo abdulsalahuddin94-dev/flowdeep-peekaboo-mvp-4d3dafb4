@@ -19,9 +19,12 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/approvals")({
   component: ApprovalsInbox,
-  validateSearch: (search: Record<string, unknown>) => ({
-    project: typeof search.project === "string" ? search.project : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>) => {
+    if (typeof search.project === "string" && search.project) {
+      return { project: search.project };
+    }
+    return {};
+  },
   head: () => ({
     meta: [
       { title: "Approvals Inbox — Nexus PMO MVP" },

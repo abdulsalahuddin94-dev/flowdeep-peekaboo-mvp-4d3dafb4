@@ -452,9 +452,9 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
                           <span>Ends {c.end}</span>
                         </div>
                       </div>
-                      <Link to="/procurement" onClick={onClose} className="shrink-0 inline-flex items-center gap-1 rounded-md border border-border bg-secondary/40 px-2.5 py-1 text-xs text-muted-foreground hover:border-accent/40 hover:text-accent transition-colors">
+                      <span className="shrink-0 inline-flex items-center gap-1 rounded-md border border-border bg-secondary/40 px-2.5 py-1 text-xs text-muted-foreground">
                         Open <ChevronRight className="h-3 w-3" />
-                      </Link>
+                      </span>
                     </div>
                   </div>
                 ))}

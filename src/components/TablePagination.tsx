@@ -91,7 +91,10 @@ export function TablePagination({
           aria-label="Previous page"
           disabled={page === 1}
           onClick={() => setPage(page - 1)}
-          className="h-8 w-8 rounded-full text-muted-foreground"
+          className={cn(
+            "h-9 w-9 hover:bg-transparent",
+            page === 1 ? "text-muted-foreground" : "text-[var(--btn-primary-bg)]",
+          )}
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -105,10 +108,10 @@ export function TablePagination({
               aria-current={p === page ? "page" : undefined}
               onClick={() => setPage(p)}
               className={cn(
-                "h-8 min-w-8 rounded-lg px-2 text-xs font-medium transition-colors",
+                "h-9 min-w-9 rounded-lg px-2 text-xs font-medium transition-colors",
                 p === page
-                  ? "bg-accent-secondary text-accent-foreground"
-                  : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+                  ? "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)]"
+                  : "text-foreground hover:bg-secondary/30",
               )}
             >
               {p}
@@ -123,7 +126,10 @@ export function TablePagination({
           aria-label="Next page"
           disabled={page >= displayPageCount}
           onClick={() => setPage(page + 1)}
-          className="h-8 w-8 rounded-full text-muted-foreground"
+          className={cn(
+            "h-9 w-9 hover:bg-transparent",
+            page >= displayPageCount ? "text-muted-foreground" : "text-[var(--btn-primary-bg)]",
+          )}
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

@@ -560,8 +560,12 @@ hovered/focused. Never hand-roll ghost pencil/trash buttons in a table.
 
 **Pagination:** every table paginates at 10 rows per page using
 `usePagination` + `TablePagination` from `@/components/TablePagination`.
-Footer anatomy: `Showing 1 to 10 of 95 items` far-left, page pills right
-(active pill = `--accent-secondary` fill), chevron prev/next on both ends.
+Footer anatomy: `Showing 1 to 10 of 95 items` far-left, page pills right,
+chevron prev/next on both ends. Default selected page is **1**.
+- Active pill: `bg-[var(--btn-primary-bg)]` lavender square, `text-[var(--btn-primary-fg)]` dark text.
+- Inactive pills: `text-foreground` white text, subtle hover background.
+- Active chevron: `text-[var(--btn-primary-bg)]` lavender.
+- Disabled chevron: `text-muted-foreground` gray.
 
 ```tsx
 const pager = usePagination(visible);      // 10 per page

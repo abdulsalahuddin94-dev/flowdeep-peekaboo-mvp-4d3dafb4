@@ -12,7 +12,7 @@ import {
   Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
 import {
-  Dialog, DialogContent, DialogTrigger,
+  Dialog, DialogContent,
 } from "@/components/ui/dialog";
 
 
@@ -20,7 +20,7 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 import { pipelineItems, resources } from "@/lib/mock-data";
 import { useProjects, useNotifications, useCurrentUser } from "@/lib/projects-store";
@@ -294,18 +294,3 @@ function UserMenu({
   );
 }
 
-function SignOutButton() {
-  const navigate = useNavigate();
-  const qc = useQueryClient();
-  async function handle() {
-    await qc.cancelQueries();
-    qc.clear();
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  }
-  return (
-    <Button variant="outline" size="sm" onClick={handle}>
-      Sign out
-    </Button>
-  );
-}

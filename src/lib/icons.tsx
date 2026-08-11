@@ -3,7 +3,7 @@
  * Single source of truth for iconography — swap a mapping here to restyle globally.
  */
 import { Icon as IconifyIcon } from "@iconify/react";
-import { Setting4 as SaxSetting4, Add as SaxAdd, Edit2 as SaxEdit2, Trash as SaxTrash } from "iconsax-react";
+import { Setting4 as SaxSetting4, Add as SaxAdd, Edit2 as SaxEdit2, Trash as SaxTrash, CloseCircle as SaxCloseCircle } from "iconsax-react";
 import type { SVGProps } from "react";
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {
@@ -126,7 +126,8 @@ export const UserCheck = s("user-check");
 export const UserPlus = s("user-plus");
 export const Users = s("users-group-two-rounded");
 export const Wallet = s("wallet");
-export const X = s("close-circle");
+/** Close (✕) — Iconsax CloseCircle, used by every dialog/sheet/chip close button. */
+export const X = sax(SaxCloseCircle, "Iconsax(CloseCircle)");
 export const XIcon = X;
-export const XCircle = s("close-circle");
+export const XCircle = X;
 export const Zap = s("bolt");

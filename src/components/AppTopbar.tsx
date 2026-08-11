@@ -244,12 +244,11 @@ function ThemeToggle() {
 }
 
 function UserMenu({
-  initials, currentUserId, setCurrentUserId, users,
+  initials, name, role,
 }: {
   initials: string;
-  currentUserId: string;
-  setCurrentUserId: (id: string) => void;
-  users: { id: string; name: string; role: string }[];
+  name: string;
+  role: string;
 }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -272,16 +271,10 @@ function UserMenu({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="text-[10px] uppercase tracking-wide text-muted-foreground">
-          View as
+        <DropdownMenuLabel className="pb-1">
+          <div className="text-sm text-foreground">{name}</div>
+          <div className="text-[11px] font-normal text-muted-foreground">{role}</div>
         </DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={currentUserId} onValueChange={setCurrentUserId}>
-          {users.map((u) => (
-            <DropdownMenuRadioItem key={u.id} value={u.id} className="text-xs">
-              {u.name} · {u.role}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={signOut} className="text-sm">Sign out</DropdownMenuItem>
       </DropdownMenuContent>

@@ -974,6 +974,15 @@ function CostCategoriesTab() {
   ]);
   const [editing, setEditing] = useState<CostCategory | null>(null);
   const [pendingDelete, setPendingDelete] = useState<CostCategory | null>(null);
+  const [query, setQuery] = useState("");
+  const [type, setType] = useState("all");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return categories
+      .filter((c) => !q || c.name.toLowerCase().includes(q) || c.number.toLowerCase().includes(q) || c.description.toLowerCase().includes(q))
+      .filter((c) => type === "all" || c.type === type);
+  }, [categories, query, type]);
 
   return (
     <>
@@ -981,6 +990,26 @@ function CostCategoriesTab() {
         title="Cost Categories"
         desc="Standard organizational cost classifications used across projects. Each category has a unique cost center identifier."
         cta={<AddCostCategoryDialog onAdd={(cat) => setCategories([...categories, cat])} />}
+      />
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search name, ID or description…"
+        resultCount={visible.length}
+        totalCount={categories.length}
+        onReset={() => { setQuery(""); setType("all"); }}
+        filters={
+          <FilterSelect
+            value={type}
+            onChange={setType}
+            options={[
+              { value: "all", label: "All types" },
+              { value: "CapEx", label: "CapEx only" },
+              { value: "OpEx", label: "OpEx only" },
+            ]}
+            width="w-40"
+          />
+        }
       />
       <div className="">
         <Table>
@@ -993,7 +1022,8 @@ function CostCategoriesTab() {
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {categories.map((c) => (
+            {visible.length === 0 && <EmptyRow colSpan={6} />}
+            {visible.map((c) => (
               <TableRow key={c.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{c.number}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{c.name}</TableCell>

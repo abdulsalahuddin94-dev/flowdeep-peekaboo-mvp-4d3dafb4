@@ -799,7 +799,7 @@ function AddTagDialog() {
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function CalendarsTab() {
-  const { calendars, removeCalendar, pendingCalendarIds } = useCalendars();
+  const { calendars, removeCalendar } = useCalendars();
   const { approvals } = useApprovals();
   const { projects } = useProjects();
   const [editing, setEditing] = useState<WorkCalendar | null>(null);
@@ -815,10 +815,9 @@ function CalendarsTab() {
         const linkedCount = projects.filter((p) => p.calendarId === c.id).length;
         if (link === "linked") return linkedCount > 0;
         if (link === "unlinked") return linkedCount === 0;
-        if (link === "pending") return pendingCalendarIds.includes(c.id);
         return true;
       });
-  }, [calendars, projects, pendingCalendarIds, query, link]);
+  }, [calendars, projects, query, link]);
 
   function deleteCalendar(calendar: WorkCalendar) {
     if (projects.some((p) => p.calendarId === calendar.id)) {
@@ -833,7 +832,7 @@ function CalendarsTab() {
     <>
       <SectionHeader
         title="Calendars"
-        desc="Define working days, daily hours and official holidays per country/region. Edits apply immediately; each linked project accepts the update or keeps its current version."
+        desc="Define working days, daily hours and official holidays per country/region."
       />
       <FilterBar
         query={query}
@@ -843,7 +842,7 @@ function CalendarsTab() {
         totalCount={calendars.length}
         onReset={() => { setQuery(""); setLink("all"); }}
         cta={<Button size="sm" variant="primary" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
-        filterGroups={[{ key: "link", label: "Linked Projects", value: link, onChange: setLink, options: [{ value: "all", label: "All calendars" },{ value: "linked", label: "Linked to projects" },{ value: "unlinked", label: "Not linked" },{ value: "pending", label: "Awaiting project acceptance" },] }]}
+        filterGroups={[{ key: "link", label: "Linked Projects", value: link, onChange: setLink, options: [{ value: "all", label: "All calendars" },{ value: "linked", label: "Linked to projects" },{ value: "unlinked", label: "Not linked" },] }]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (
@@ -851,7 +850,6 @@ function CalendarsTab() {
         )}
         {visible.map((c) => {
           const linked = projects.filter((p) => p.calendarId === c.id);
-          const pending = pendingCalendarIds.includes(c.id);
           const decided = approvals.find(
             (a) => a.type === "calendar-change" && a.ref === c.name && a.status !== "pending",
           );
@@ -874,11 +872,6 @@ function CalendarsTab() {
               <span className="inline-flex items-center gap-1 rounded-md bg-secondary/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                 <Link2 className="h-3 w-3" />{linked.length} linked project{linked.length === 1 ? "" : "s"}
               </span>
-              {pending && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-rag-amber/15 px-1.5 py-0.5 text-[10px] font-medium text-rag-amber">
-                  <Clock className="h-3 w-3" />Awaiting project acceptance
-                </span>
-              )}
             </div>
             <div className="mt-3 flex flex-wrap gap-1">
               {DAY_LABELS.map((d, i) => (
@@ -891,7 +884,7 @@ function CalendarsTab() {
                 {linked.slice(0, 3).map((p) => p.name).join(" · ")}{linked.length > 3 ? ` +${linked.length - 3} more` : ""}
               </div>
             )}
-            {!pending && decided && <ApprovalOutcomeBanner request={decided} className="mt-2" />}
+            {decided && <ApprovalOutcomeBanner request={decided} className="mt-2" />}
           </div>
           );
         })}
@@ -903,12 +896,11 @@ function CalendarsTab() {
 }
 
 function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpenChange: (v: boolean) => void; calendar?: WorkCalendar }) {
-  const { addCalendar, updateCalendar, updateCalendarWithAdoption, pendingCalendarIds } = useCalendars();
+  const { addCalendar, updateCalendar, updateCalendarWithAdoption } = useCalendars();
   const { projects } = useProjects();
   const isEdit = !!calendar;
   const linked = calendar ? projects.filter((p) => p.calendarId === calendar.id) : [];
   const hasLinked = isEdit && linked.length > 0;
-  const crPending = !!calendar && pendingCalendarIds.includes(calendar.id);
   const [name, setName] = useState(calendar?.name ?? "");
   const [workingDays, setWorkingDays] = useState<number[]>(calendar?.workingDays ?? [1, 2, 3, 4, 5]);
   const [hoursPerDay, setHoursPerDay] = useState<number>(calendar?.hoursPerDay ?? 8);
@@ -956,14 +948,12 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
     if (isEdit && calendar) {
       if (hasLinked) {
         if (diffs.length === 0) { toast.info("No changes to save"); return; }
-        const count = updateCalendarWithAdoption(
+        updateCalendarWithAdoption(
           calendar.id,
           { name: name.trim(), workingDays, hoursPerDay, holidays },
           diffs,
         );
-        toast.success("Calendar updated", {
-          description: `${count} linked project${count === 1 ? "" : "s"} asked to accept the update — a project that rejects keeps the previous version.`,
-        });
+        toast.success("Calendar updated");
         onOpenChange(false);
         return;
       }
@@ -984,16 +974,6 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
           <DialogTitle>{isEdit ? "Edit Calendar" : "New Calendar"}</DialogTitle>
           <DialogDescription>Working schedule and official holidays. Projects can be bound to this calendar for scheduling.</DialogDescription>
         </DialogHeader>
-        {hasLinked && (
-          <div className={`flex items-start gap-2 rounded-lg border p-3 text-xs ${crPending ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber" : "border-accent/30 bg-accent-dim text-accent"}`}>
-            {crPending ? <Clock className="mt-0.5 h-4 w-4 shrink-0" /> : <GitBranch className="mt-0.5 h-4 w-4 shrink-0" />}
-            <div>
-              {crPending
-                ? <>Some linked projects still haven’t responded to a previous update of this calendar. Saving again sends a fresh request.</>
-                : <>Your edits apply immediately. Each of the <strong>{linked.length} linked project{linked.length === 1 ? "" : "s"}</strong> is then asked to accept the update — a project that rejects keeps the previous calendar version and continues unchanged.</>}
-            </div>
-          </div>
-        )}
         <div className="space-y-4">
           <div className="grid grid-cols-[1fr_auto] gap-3">
             <div>

@@ -1281,8 +1281,7 @@ function JobRolesTab() {
                   </div>
                 </TableCell>
               </TableRow>
-              );
-            })}
+            ))}
           </TableBody>
         </Table>
       </div>

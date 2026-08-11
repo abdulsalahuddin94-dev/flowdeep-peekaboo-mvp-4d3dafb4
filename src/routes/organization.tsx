@@ -193,6 +193,8 @@ function DepartmentsTab() {
       .filter((d) => head === "all" || d.head === head);
   }, [rows, query, head]);
 
+  const pager = usePagination(visible);
+
   return (
     <>
       <SectionHeader title="Departments / Units" desc="Org chart units. A project may span multiple departments." />
@@ -215,7 +217,7 @@ function DepartmentsTab() {
           </TableRow></TableHeader>
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={3} />}
-            {visible.map((d) => {
+            {pager.pageItems.map((d) => {
               const i = d.index;
               return (
               <TableRow key={`${d.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
@@ -233,6 +235,7 @@ function DepartmentsTab() {
           </TableBody>
         </Table>
       </div>
+      <TablePagination {...pager} itemLabel="departments" />
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>

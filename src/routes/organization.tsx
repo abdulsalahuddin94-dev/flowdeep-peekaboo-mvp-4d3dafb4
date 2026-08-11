@@ -99,18 +99,7 @@ function BusinessLinesTab() {
         resultCount={visible.length}
         totalCount={rows.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
-        filters={
-          <FilterSelect
-            value={usage}
-            onChange={setUsage}
-            options={[
-              { value: "all", label: "All types" },
-              { value: "active", label: "With active projects" },
-              { value: "empty", label: "No projects" },
-            ]}
-            width="w-48"
-          />
-        }
+        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All types" },{ value: "active", label: "With active projects" },{ value: "empty", label: "No projects" },] }]}
       />
       <div className="">
         <Table>
@@ -209,14 +198,7 @@ function DepartmentsTab() {
         resultCount={visible.length}
         totalCount={rows.length}
         onReset={() => { setQuery(""); setHead("all"); }}
-        filters={
-          <FilterSelect
-            value={head}
-            onChange={setHead}
-            options={[{ value: "all", label: "All heads" }, ...heads.map((h) => ({ value: h, label: h }))]}
-            width="w-48"
-          />
-        }
+        filterGroups={[{ key: "head", label: "Head", value: head, onChange: setHead, options: [{ value: "all", label: "All heads" }, ...heads.map((h) => ({ value: h, label: h }))] }]}
       />
       <div className="">
         <Table>
@@ -323,18 +305,7 @@ function TagsTab() {
         resultCount={visible.length}
         totalCount={tags.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
-        filters={
-          <FilterSelect
-            value={usage}
-            onChange={setUsage}
-            options={[
-              { value: "all", label: "All tags" },
-              { value: "used", label: "In use" },
-              { value: "unused", label: "Unused" },
-            ]}
-            width="w-40"
-          />
-        }
+        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All tags" },{ value: "used", label: "In use" },{ value: "unused", label: "Unused" },] }]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (
@@ -638,7 +609,7 @@ function FilterBar({
             </>
           )}
           <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-4">
-            <Button variant="outline" onClick={() => { setOpen(false); onReset(); }}>Cancel</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
             <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={apply}>Apply</Button>
           </div>
         </SheetContent>
@@ -860,19 +831,7 @@ function CalendarsTab() {
         resultCount={visible.length}
         totalCount={calendars.length}
         onReset={() => { setQuery(""); setLink("all"); }}
-        filters={
-          <FilterSelect
-            value={link}
-            onChange={setLink}
-            options={[
-              { value: "all", label: "All calendars" },
-              { value: "linked", label: "Linked to projects" },
-              { value: "unlinked", label: "Not linked" },
-              { value: "pending", label: "Change request pending" },
-            ]}
-            width="w-52"
-          />
-        }
+        filterGroups={[{ key: "link", label: "Linked Projects", value: link, onChange: setLink, options: [{ value: "all", label: "All calendars" },{ value: "linked", label: "Linked to projects" },{ value: "unlinked", label: "Not linked" },{ value: "pending", label: "Change request pending" },] }]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (
@@ -1190,18 +1149,7 @@ function CostCategoriesTab() {
         resultCount={visible.length}
         totalCount={categories.length}
         onReset={() => { setQuery(""); setType("all"); }}
-        filters={
-          <FilterSelect
-            value={type}
-            onChange={setType}
-            options={[
-              { value: "all", label: "All types" },
-              { value: "CapEx", label: "CapEx only" },
-              { value: "OpEx", label: "OpEx only" },
-            ]}
-            width="w-40"
-          />
-        }
+        filterGroups={[{ key: "type", label: "Type", value: type, onChange: setType, options: [{ value: "all", label: "All types" },{ value: "CapEx", label: "CapEx only" },{ value: "OpEx", label: "OpEx only" },] }]}
       />
       <div className="">
         <Table>
@@ -1389,20 +1337,7 @@ function JobRolesTab() {
         resultCount={visible.length}
         totalCount={jobRoles.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
-        filters={
-          <FilterSelect
-            value={usage}
-            onChange={setUsage}
-            options={[
-              { value: "all", label: "All roles" },
-              { value: "used", label: "Used in projects" },
-              { value: "unused", label: "Not used" },
-              { value: "with-skills", label: "With skills" },
-              { value: "no-skills", label: "Without skills" },
-            ]}
-            width="w-48"
-          />
-        }
+        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "Used in projects" },{ value: "unused", label: "Not used" },{ value: "with-skills", label: "With skills" },{ value: "no-skills", label: "Without skills" },] }]}
       />
       <div className="">
         <Table>

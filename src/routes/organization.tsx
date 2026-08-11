@@ -76,11 +76,41 @@ function BusinessLinesTab() {
   );
   const [editing, setEditing] = useState<{ index: number; name: string; description: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ index: number; name: string } | null>(null);
+  const [query, setQuery] = useState("");
+  const [usage, setUsage] = useState("all");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return rows
+      .map((b, index) => ({ ...b, index }))
+      .filter((b) => !q || b.name.toLowerCase().includes(q) || b.description.toLowerCase().includes(q))
+      .filter((b) => usage === "all" || (usage === "active" ? b.projects > 0 : b.projects === 0));
+  }, [rows, query, usage]);
 
   return (
     <>
       <SectionHeader title="Project Types" desc="Used across Portfolio filters such as business lines."
         cta={<AddBusinessLineDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />} />
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search name or description…"
+        resultCount={visible.length}
+        totalCount={rows.length}
+        onReset={() => { setQuery(""); setUsage("all"); }}
+        filters={
+          <FilterSelect
+            value={usage}
+            onChange={setUsage}
+            options={[
+              { value: "all", label: "All types" },
+              { value: "active", label: "With active projects" },
+              { value: "empty", label: "No projects" },
+            ]}
+            width="w-48"
+          />
+        }
+      />
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -91,7 +121,10 @@ function BusinessLinesTab() {
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {rows.map((b, i) => (
+            {visible.length === 0 && <EmptyRow colSpan={5} />}
+            {visible.map((b) => {
+              const i = b.index;
+              return (
               <TableRow key={`${b.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`PT-${String(i + 1).padStart(3, "0")}`}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
@@ -104,7 +137,8 @@ function BusinessLinesTab() {
                   />
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>

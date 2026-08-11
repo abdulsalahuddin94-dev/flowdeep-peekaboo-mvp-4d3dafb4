@@ -12,6 +12,7 @@ import {
 } from "@/lib/icons";
 import { milestones, resources, type Rag } from "@/lib/mock-data";
 import { useProjects, useNotifications, useResourceRequests, useApprovals } from "@/lib/projects-store";
+import { ViewAsSelect } from "@/components/ViewAsSelect";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
@@ -36,7 +37,9 @@ function Dashboard() {
         title="Good morning, Aisha"
         subtitle="Saturday, June 6, 2026 · FY2026 portfolio overview"
         actions={
-          <Tabs value={role} onValueChange={(v) => setRole(v as Role)}>
+          <div className="flex flex-wrap items-center gap-2">
+            <ViewAsSelect />
+            <Tabs value={role} onValueChange={(v) => setRole(v as Role)}>
             <TabsList>
               {ROLES.map((r) => (
                 <TabsTrigger
@@ -48,7 +51,8 @@ function Dashboard() {
                 </TabsTrigger>
               ))}
             </TabsList>
-          </Tabs>
+            </Tabs>
+          </div>
         }
       />
 

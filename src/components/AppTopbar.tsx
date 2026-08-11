@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
-  DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import neraLogo from "@/assets/nera-logo.png.asset.json";
 import {
@@ -37,7 +37,7 @@ export function AppTopbar() {
   const navigate = useNavigate();
   const { projects } = useProjects();
   const { notifications, unreadCount, markAllRead } = useNotifications();
-  const { currentUser, setCurrentUserId, users } = useCurrentUser();
+  const { currentUser } = useCurrentUser();
   const initials = currentUser.name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
 
   useEffect(() => {
@@ -191,12 +191,7 @@ export function AppTopbar() {
         </Sheet>
 
         <ThemeToggle />
-        <UserMenu
-          initials={initials}
-          currentUserId={currentUser.id}
-          setCurrentUserId={setCurrentUserId}
-          users={users}
-        />
+        <UserMenu initials={initials} name={currentUser.name} role={currentUser.role} />
       </div>
     </header>
   );
@@ -249,12 +244,11 @@ function ThemeToggle() {
 }
 
 function UserMenu({
-  initials, currentUserId, setCurrentUserId, users,
+  initials, name, role,
 }: {
   initials: string;
-  currentUserId: string;
-  setCurrentUserId: (id: string) => void;
-  users: { id: string; name: string; role: string }[];
+  name: string;
+  role: string;
 }) {
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -277,16 +271,10 @@ function UserMenu({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="text-[10px] uppercase tracking-wide text-muted-foreground">
-          View as
+        <DropdownMenuLabel className="pb-1">
+          <div className="text-sm text-foreground">{name}</div>
+          <div className="text-[11px] font-normal text-muted-foreground">{role}</div>
         </DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={currentUserId} onValueChange={setCurrentUserId}>
-          {users.map((u) => (
-            <DropdownMenuRadioItem key={u.id} value={u.id} className="text-xs">
-              {u.name} · {u.role}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={signOut} className="text-sm">Sign out</DropdownMenuItem>
       </DropdownMenuContent>

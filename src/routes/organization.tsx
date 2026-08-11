@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch } from "@/lib/icons";
+import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch, Search } from "@/lib/icons";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
@@ -304,6 +304,76 @@ function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta:
 }
 
 function RowActions({ onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void }) {
+  return (
+    <div className="flex justify-end gap-1">
+      <Button aria-label="Edit" size="icon" variant="ghost" onClick={onEdit} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
+      <Button aria-label="Delete" size="icon" variant="ghost" onClick={onDelete} className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
+    </div>
+  );
+}
+
+/** Shared search + filter toolbar used by every Organization tab. */
+function FilterBar({
+  query,
+  onQueryChange,
+  placeholder,
+  filters,
+  resultCount,
+  totalCount,
+  onReset,
+}: {
+  query: string;
+  onQueryChange: (v: string) => void;
+  placeholder: string;
+  filters?: React.ReactNode;
+  resultCount: number;
+  totalCount: number;
+  onReset: () => void;
+}) {
+  const filtered = resultCount !== totalCount;
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="relative min-w-[220px] flex-1 sm:max-w-xs">
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+          placeholder={placeholder}
+          className="pl-8"
+          aria-label={placeholder}
+        />
+      </div>
+      {filters}
+      <span className="ml-auto text-xs text-muted-foreground">
+        {filtered ? `${resultCount} of ${totalCount}` : `${totalCount} item${totalCount === 1 ? "" : "s"}`}
+      </span>
+      {filtered && (
+        <button type="button" onClick={onReset} className="text-xs text-accent hover:underline">Reset</button>
+      )}
+    </div>
+  );
+}
+
+function EmptyRow({ colSpan }: { colSpan: number }) {
+  return (
+    <TableRow className="bg-transparent hover:bg-transparent border-0">
+      <TableCell colSpan={colSpan} className="py-8 text-center text-sm text-muted-foreground">No matching records</TableCell>
+    </TableRow>
+  );
+}
+
+function FilterSelect({ value, onChange, options, width = "w-40" }: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; width?: string }) {
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger className={width}><SelectValue /></SelectTrigger>
+      <SelectContent>
+        {options.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function RowActionsLegacy({ onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void }) {
   return (
     <div className="flex justify-end gap-1">
       <Button aria-label="Edit" size="icon" variant="ghost" onClick={onEdit} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>

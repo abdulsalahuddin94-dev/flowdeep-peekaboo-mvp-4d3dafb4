@@ -3715,7 +3715,7 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
       <div className="">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <div className="label-eyebrow">Contracts</div>
-          <Link to="/procurement" className="text-xs text-accent hover:underline">Open Procurement module →</Link>
+          <span className="text-xs text-muted-foreground">Open Procurement module →</span>
         </div>
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Contract</TableHead><TableHead>Vendor</TableHead><TableHead>Value</TableHead><TableHead>End</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Briefcase, Users, Zap, ChevronDown } from "@/lib/icons";
+import { Bell, Briefcase, Users, Zap, ChevronDown, Sun, Moon } from "@/lib/icons";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

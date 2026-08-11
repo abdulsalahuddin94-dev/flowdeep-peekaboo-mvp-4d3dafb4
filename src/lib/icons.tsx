@@ -3,6 +3,7 @@
  * Single source of truth for iconography — swap a mapping here to restyle globally.
  */
 import * as Sax from "iconsax-react";
+import { X as LucideX } from "lucide-react";
 import type { SVGProps } from "react";
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {

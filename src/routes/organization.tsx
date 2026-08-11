@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch, Search, Filter, ChevronRight, ChevronLeft, X } from "@/lib/icons";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
@@ -519,7 +519,7 @@ function FilterBar({
                 <button type="button" aria-label="Back" onClick={() => { setPanel(null); setPanelQuery(""); }} className="text-muted-foreground hover:text-foreground">
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="text-sm font-medium text-foreground">{activePanel.label}</span>
+                <SheetTitle className="text-sm font-medium text-foreground">{activePanel.label}</SheetTitle>
               </div>
               <div className="px-5 pb-3">
                 <div className="relative">
@@ -540,10 +540,20 @@ function FilterBar({
                       <button
                         key={o.value}
                         type="button"
+                        aria-pressed={selected}
                         onClick={() => setDraft((d) => ({ ...d, [activePanel.key]: o.value }))}
                         className="flex w-full items-center gap-3 rounded-md px-1 py-2 text-left text-sm text-foreground hover:bg-secondary/40"
                       >
-                        <Checkbox checked={selected} className="pointer-events-none" />
+                        <span
+                          aria-hidden
+                          className={`grid h-4 w-4 shrink-0 place-content-center rounded-sm border ${
+                            selected
+                              ? "border-[hsl(258_90%_76%)] bg-[hsl(258_90%_76%)] text-[#12121a]"
+                              : "border-border"
+                          }`}
+                        >
+                          {selected && <Check className="h-3 w-3" />}
+                        </span>
                         <span className="truncate">{o.label}</span>
                       </button>
                     );
@@ -557,10 +567,7 @@ function FilterBar({
           ) : (
             <>
               <div className="flex items-center justify-between px-5 py-4">
-                <span className="text-sm font-medium text-foreground">Filters</span>
-                <button type="button" aria-label="Close filters" onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">
-                  <X className="h-4 w-4" />
-                </button>
+                <SheetTitle className="text-sm font-medium text-foreground">Filters</SheetTitle>
               </div>
               <ScrollArea className="flex-1 px-5">
                 <div className="pb-4">

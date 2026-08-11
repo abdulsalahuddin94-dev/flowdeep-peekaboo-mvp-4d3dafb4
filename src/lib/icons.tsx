@@ -3,6 +3,7 @@
  * Single source of truth for iconography — swap a mapping here to restyle globally.
  */
 import { Icon as IconifyIcon } from "@iconify/react";
+import { Setting4 as SaxSetting4, Add as SaxAdd } from "iconsax-react";
 import type { SVGProps } from "react";
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {
@@ -26,6 +27,21 @@ function make(name: string) {
 }
 
 const s = (base: string) => make(`${base}-${STYLE}`);
+
+/** Iconsax (vuesax) icons — used for the Filter (settings) and Add (+) actions. */
+function sax(Base: typeof SaxAdd, displayName: string) {
+  const Component = ({ size, strokeWidth, color, ...rest }: IconProps) => (
+    <Base
+      variant="Linear"
+      {...(size !== undefined ? { size: size as number } : { size: 20 })}
+      {...(color ? { color: color as string } : { color: "currentColor" })}
+      {...(strokeWidth !== undefined ? { strokeWidth: Number(strokeWidth) } : {})}
+      {...(rest as Record<string, unknown>)}
+    />
+  );
+  Component.displayName = displayName;
+  return Component;
+}
 
 export const Activity = s("pulse");
 export const AlertTriangle = s("danger-triangle");
@@ -61,7 +77,7 @@ export const Download = s("download");
 export const FileSpreadsheet = s("document-text");
 export const FileText = s("document-text");
 export const FileUp = s("file-send");
-export const Filter = s("filter");
+export const Filter = sax(SaxSetting4, "Iconsax(Setting4)");
 export const Flame = s("fire");
 export const GanttChartSquare = s("chart-square");
 export const GitBranch = s("branching-paths-up");
@@ -88,7 +104,7 @@ export const PartyPopper = s("confetti");
 export const Pencil = s("pen-new-square");
 export const Phone = s("phone");
 export const PiggyBank = s("safe-2");
-export const Plus = s("add-circle");
+export const Plus = sax(SaxAdd, "Iconsax(Add)");
 export const Search = s("magnifer");
 export const SearchIcon = Search;
 export const Send = s("plain-2");

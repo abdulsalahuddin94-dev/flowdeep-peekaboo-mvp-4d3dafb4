@@ -9,11 +9,22 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        default:
+          "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)] shadow-sm hover:bg-[var(--btn-primary-bg-hover)] hover:text-[var(--btn-primary-fg-hover)]",
+        primary:
+          "bg-[var(--btn-primary-bg)] text-[var(--btn-primary-fg)] shadow-sm hover:bg-[var(--btn-primary-bg-hover)] hover:text-[var(--btn-primary-fg-hover)]",
+        secondary:
+          "border border-[var(--btn-secondary-border)] bg-[var(--btn-secondary-bg)] text-[var(--btn-secondary-fg)] shadow-sm hover:bg-[var(--btn-secondary-bg-hover)]",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+          "border border-[var(--btn-outline-border)] bg-transparent text-[var(--btn-outline-fg)] hover:border-[var(--btn-outline-border-hover)] hover:bg-[var(--btn-outline-bg-hover)] hover:text-[var(--btn-outline-fg-hover)]",
+        outlineSecondary:
+          "border border-[var(--btn-outline-2-border)] bg-[var(--btn-outline-2-bg)] text-[var(--btn-outline-2-fg)] shadow-sm hover:bg-[var(--btn-outline-2-bg-hover)]",
+        danger:
+          "bg-[var(--btn-danger-bg)] text-[var(--btn-danger-fg)] shadow-sm hover:bg-[var(--btn-danger-bg-hover)]",
+        destructive:
+          "bg-[var(--btn-danger-bg)] text-[var(--btn-danger-fg)] shadow-sm hover:bg-[var(--btn-danger-bg-hover)]",
+        warning:
+          "bg-[var(--btn-warning-bg)] text-[var(--btn-warning-fg)] shadow-sm hover:bg-[var(--btn-warning-bg-hover)] hover:text-[var(--btn-warning-fg-hover)]",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },

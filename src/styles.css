@@ -1058,3 +1058,36 @@
 [data-ui="control-text"]:not([data-ds-size="auto"]) {
   border-radius: 8px;
 }
+
+/* ── DS02 button tokens (semantic, per-state) ───────────────────────────── */
+:root {
+  --btn-primary-bg:            #ddd0ff;
+  --btn-primary-fg:            #1f1235;
+  --btn-primary-bg-hover:      #8b2bf2;
+  --btn-primary-fg-hover:      #ffffff;
+
+  --btn-secondary-bg:          #1f1f26;
+  --btn-secondary-fg:          #ffffff;
+  --btn-secondary-bg-hover:    #4a4a55;
+  --btn-secondary-border:      rgba(255, 255, 255, 0.14);
+
+  --btn-outline-border:        #a78bfa;
+  --btn-outline-fg:            var(--foreground);
+  --btn-outline-border-hover:  #8b2bf2;
+  --btn-outline-fg-hover:      #8b2bf2;
+  --btn-outline-bg-hover:      rgba(139, 43, 242, 0.12);
+
+  --btn-outline-2-bg:          #ffffff;
+  --btn-outline-2-fg:          #1c274c;
+  --btn-outline-2-border:      #e5e5e5;
+  --btn-outline-2-bg-hover:    #f4f4f5;
+
+  --btn-danger-bg:             #dc2626;
+  --btn-danger-fg:             #ffffff;
+  --btn-danger-bg-hover:       #3d0a0a;
+
+  --btn-warning-bg:            #fbde7b;
+  --btn-warning-fg:            #1f1235;
+  --btn-warning-bg-hover:      #a88400;
+  --btn-warning-fg-hover:      #241d05;
+}

@@ -495,3 +495,22 @@ Map to RAG: green=approved/active, amber=pending/risk, red=rejected/critical, bl
 - Drag: `opacity-30 scale-95` on dragged item
 - Focus: `ring-2 ring-accent/40`
 - Pulse: `.pulse-dot` on critical RAG only
+
+## Button States (all design systems)
+
+Six variants, each with Default / Hover / Disabled (disabled = 50% opacity, no pointer events).
+Values come from the `--btn-*` tokens in `src/styles.css` — never hardcode hex in components.
+
+| Variant | Default | Hover |
+|---|---|---|
+| `primary` (`default`) | lavender fill, dark text | vivid purple fill, white text |
+| `secondary` | dark fill + hairline border | lighter dark fill |
+| `outline` | transparent + lavender border | purple border, purple text, tinted fill |
+| `outlineSecondary` | white fill, navy text | off-white fill |
+| `danger` (`destructive`) | red fill | deep maroon fill |
+| `warning` | golden fill, dark text | dark gold fill |
+
+## Icons — Filter & Add
+
+Filter uses the Iconsax (vuesax) **Setting4** icon; Add uses Iconsax **Add** (`+`).
+Both are exported from `src/lib/icons.tsx` as `Filter` / `Plus` — import from there only.

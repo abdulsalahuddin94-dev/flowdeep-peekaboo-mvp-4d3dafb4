@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import { ViewAsSelect } from "@/components/ViewAsSelect";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -84,6 +85,7 @@ function ApprovalsInbox() {
         subtitle={`Signed in as ${currentUser.name} · ${currentUser.role}`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <ViewAsSelect />
             <Select
               value={projectFilter ?? "__all"}
               onValueChange={(v) =>

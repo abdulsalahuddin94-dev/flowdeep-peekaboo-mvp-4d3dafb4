@@ -414,8 +414,8 @@ function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta?
   );
 }
 
-function RowActions({ onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void }) {
-  return <TableRowActions onEdit={onEdit} onDelete={onDelete} />;
+function RowActions(props: React.ComponentProps<typeof TableRowActions>) {
+  return <TableRowActions {...props} />;
 }
 
 export type FilterGroup = {

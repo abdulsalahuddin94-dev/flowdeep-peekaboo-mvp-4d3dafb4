@@ -833,7 +833,7 @@ function CalendarsTab() {
     <>
       <SectionHeader
         title="Calendars"
-        desc="Define working days, daily hours and official holidays per country/region. Calendars linked to projects are baselined — edits go through a change request."
+        desc="Define working days, daily hours and official holidays per country/region. Edits apply immediately; each linked project accepts the update or keeps its current version."
       />
       <FilterBar
         query={query}
@@ -874,14 +874,9 @@ function CalendarsTab() {
               <span className="inline-flex items-center gap-1 rounded-md bg-secondary/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                 <Link2 className="h-3 w-3" />{linked.length} linked project{linked.length === 1 ? "" : "s"}
               </span>
-              {linked.length > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-md bg-accent-dim px-1.5 py-0.5 text-[10px] font-medium text-accent">
-                  <Lock className="h-3 w-3" />Baselined
-                </span>
-              )}
               {pending && (
                 <span className="inline-flex items-center gap-1 rounded-md bg-rag-amber/15 px-1.5 py-0.5 text-[10px] font-medium text-rag-amber">
-                  <Clock className="h-3 w-3" />Change request pending
+                  <Clock className="h-3 w-3" />Awaiting project acceptance
                 </span>
               )}
             </div>

@@ -1,14 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Building2, Handshake, Target, Users,
-  DollarSign, LogOut, ChevronLeft, CheckSquare,
+  DollarSign, ChevronLeft, CheckSquare,
 } from "@/lib/icons";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useApprovals } from "@/lib/projects-store";
 import sansLogo from "@/assets/sans-logo.png.asset.json";

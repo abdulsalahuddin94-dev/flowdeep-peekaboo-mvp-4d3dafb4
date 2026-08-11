@@ -1110,3 +1110,80 @@
   --confirm-danger-surface: #fde3e3;
   --confirm-danger-ring:    #ef4444;
 }
+
+/* ── DS02 form field tokens + states (input / textarea / select) ────────────
+   Figma: Design System — NERA · Form Elements
+   States: default · hover · focused · filled · disabled · error */
+:root {
+  --field-bg:            #16161c;
+  --field-bg-filled:     #1f1f26;
+  --field-bg-disabled:   #17171c;
+  --field-fg:            #ffffff;
+  --field-placeholder:   #737373;
+  --field-border:        rgba(255, 255, 255, 0.12);
+  --field-border-hover:  rgba(255, 255, 255, 0.28);
+  --field-border-focus:  #a78bfa;
+  --field-ring-focus:    rgba(167, 139, 250, 0.25);
+  --field-border-error:  #ef4444;
+  --field-ring-error:    rgba(239, 68, 68, 0.2);
+  --field-error-fg:      #f87171;
+  --field-hint-fg:       #737373;
+  --field-chip-bg:       rgba(255, 255, 255, 0.08);
+  --field-chip-fg:       #e5e5e5;
+}
+
+/* Unlayered so field states beat Tailwind utilities from earlier code. */
+[data-ui="control"]:not([data-ds-field="off"]),
+[data-ui="control-text"]:not([data-ds-field="off"]) {
+  background-color: var(--field-bg);
+  border: 1px solid var(--field-border);
+  color: var(--field-fg);
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+[data-ui="control"]:not([data-ds-field="off"])::placeholder,
+[data-ui="control-text"]:not([data-ds-field="off"])::placeholder {
+  color: var(--field-placeholder);
+}
+/* filled */
+[data-ui="control"]:not([data-ds-field="off"]):not(:placeholder-shown),
+[data-ui="control-text"]:not([data-ds-field="off"]):not(:placeholder-shown),
+[data-ui="control"][data-filled="true"] {
+  background-color: var(--field-bg-filled);
+}
+/* hover */
+[data-ui="control"]:not([data-ds-field="off"]):not(:disabled):not([data-disabled]):hover,
+[data-ui="control-text"]:not([data-ds-field="off"]):not(:disabled):hover {
+  border-color: var(--field-border-hover);
+}
+/* focused */
+[data-ui="control"]:not([data-ds-field="off"]):focus,
+[data-ui="control"]:not([data-ds-field="off"]):focus-visible,
+[data-ui="control"]:not([data-ds-field="off"])[data-state="open"],
+[data-ui="control-text"]:not([data-ds-field="off"]):focus,
+[data-ui="control-text"]:not([data-ds-field="off"]):focus-visible {
+  outline: none;
+  border-color: var(--field-border-focus);
+  box-shadow: 0 0 0 3px var(--field-ring-focus);
+}
+/* error */
+[data-ui="control"][aria-invalid="true"],
+[data-ui="control-text"][aria-invalid="true"] {
+  border-color: var(--field-border-error);
+}
+[data-ui="control"][aria-invalid="true"]:focus,
+[data-ui="control"][aria-invalid="true"]:focus-visible,
+[data-ui="control-text"][aria-invalid="true"]:focus,
+[data-ui="control-text"][aria-invalid="true"]:focus-visible {
+  border-color: var(--field-border-error);
+  box-shadow: 0 0 0 3px var(--field-ring-error);
+}
+/* disabled */
+[data-ui="control"]:not([data-ds-field="off"]):disabled,
+[data-ui="control"]:not([data-ds-field="off"])[data-disabled],
+[data-ui="control-text"]:not([data-ds-field="off"]):disabled {
+  background-color: var(--field-bg-disabled);
+  border-color: var(--field-border);
+  color: var(--field-placeholder);
+  opacity: 0.5;
+  cursor: not-allowed;
+}

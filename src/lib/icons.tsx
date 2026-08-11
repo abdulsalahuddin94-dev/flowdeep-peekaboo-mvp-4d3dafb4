@@ -79,6 +79,9 @@ export const FileSpreadsheet = s("document-text");
 export const FileText = s("document-text");
 export const FileUp = s("file-send");
 export const Filter = sax(SaxSetting4, "Iconsax(Setting4)");
+/** Iconsax row actions — table Edit / Delete buttons. */
+export const EditAction = sax(SaxEdit2, "Iconsax(Edit2)");
+export const DeleteAction = sax(SaxTrash, "Iconsax(Trash)");
 export const Flame = s("fire");
 export const GanttChartSquare = s("chart-square");
 export const GitBranch = s("branching-paths-up");

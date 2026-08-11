@@ -3,6 +3,7 @@
  * Single source of truth for iconography — swap a mapping here to restyle globally.
  */
 import * as Sax from "iconsax-react";
+import { X as LucideX } from "lucide-react";
 import type { SVGProps } from "react";
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {
@@ -114,7 +115,7 @@ export const UserPlus = sax("UserAdd");
 export const Users = sax("Profile2User");
 export const Wallet = sax("Wallet");
 /** Close (✕) — used by every dialog/sheet/chip close button. */
-export const X = sax("CloseCircle");
+export const X = LucideX;
 export const XIcon = X;
-export const XCircle = X;
+export const XCircle = sax("CloseCircle");
 export const Zap = sax("Flash");

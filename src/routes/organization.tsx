@@ -912,9 +912,8 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
   const { projects } = useProjects();
   const isEdit = !!calendar;
   const linked = calendar ? projects.filter((p) => p.calendarId === calendar.id) : [];
-  const needsCr = isEdit && linked.length > 0;
+  const hasLinked = isEdit && linked.length > 0;
   const crPending = !!calendar && pendingCalendarIds.includes(calendar.id);
-  const [reviewOpen, setReviewOpen] = useState(false);
   const [name, setName] = useState(calendar?.name ?? "");
   const [workingDays, setWorkingDays] = useState<number[]>(calendar?.workingDays ?? [1, 2, 3, 4, 5]);
   const [hoursPerDay, setHoursPerDay] = useState<number>(calendar?.hoursPerDay ?? 8);
@@ -960,9 +959,17 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
     if (!name.trim()) { toast.error("Calendar name is required"); return; }
     if (workingDays.length === 0) { toast.error("Select at least one working day"); return; }
     if (isEdit && calendar) {
-      if (needsCr) {
-        if (diffs.length === 0) { toast.info("No changes to submit"); return; }
-        setReviewOpen(true);
+      if (hasLinked) {
+        if (diffs.length === 0) { toast.info("No changes to save"); return; }
+        const count = updateCalendarWithAdoption(
+          calendar.id,
+          { name: name.trim(), workingDays, hoursPerDay, holidays },
+          diffs,
+        );
+        toast.success("Calendar updated", {
+          description: `${count} linked project${count === 1 ? "" : "s"} asked to accept the update — a project that rejects keeps the previous version.`,
+        });
+        onOpenChange(false);
         return;
       }
       updateCalendar(calendar.id, { name: name.trim(), workingDays, hoursPerDay, holidays });
@@ -974,14 +981,6 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
     onOpenChange(false);
   }
 
-  function submitCr() {
-    if (!calendar) return;
-    updateCalendarWithAdoption(calendar.id, { name: name.trim(), workingDays, hoursPerDay, holidays }, diffs);
-    setReviewOpen(false);
-    onOpenChange(false);
-    toast.success("Change request submitted — pending approval", { description: "Track it in Approvals. The calendar updates once approved." });
-  }
-
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -990,13 +989,13 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
           <DialogTitle>{isEdit ? "Edit Calendar" : "New Calendar"}</DialogTitle>
           <DialogDescription>Working schedule and official holidays. Projects can be bound to this calendar for scheduling.</DialogDescription>
         </DialogHeader>
-        {needsCr && (
+        {hasLinked && (
           <div className={`flex items-start gap-2 rounded-lg border p-3 text-xs ${crPending ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber" : "border-accent/30 bg-accent-dim text-accent"}`}>
-            {crPending ? <Clock className="mt-0.5 h-4 w-4 shrink-0" /> : <Lock className="mt-0.5 h-4 w-4 shrink-0" />}
+            {crPending ? <Clock className="mt-0.5 h-4 w-4 shrink-0" /> : <GitBranch className="mt-0.5 h-4 w-4 shrink-0" />}
             <div>
               {crPending
-                ? <>A change request for this calendar is already pending approval. New edits can still be submitted, but they queue behind the current request.</>
-                : <>This calendar is baselined — <strong>{linked.length} project{linked.length === 1 ? "" : "s"}</strong> depend on it. Your edits are submitted as a change request and applied only after approval.</>}
+                ? <>Some linked projects still haven’t responded to a previous update of this calendar. Saving again sends a fresh request.</>
+                : <>Your edits apply immediately. Each of the <strong>{linked.length} linked project{linked.length === 1 ? "" : "s"}</strong> is then asked to accept the update — a project that rejects keeps the previous calendar version and continues unchanged.</>}
             </div>
           </div>
         )}
@@ -1085,40 +1084,8 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button className="bg-accent text-accent-foreground" onClick={save}>
-            {needsCr ? <><GitBranch className="mr-1.5 h-4 w-4" />Review change request{diffs.length ? ` (${diffs.length})` : ""}</> : isEdit ? "Save changes" : "Create Calendar"}
+            {isEdit ? "Save changes" : "Create Calendar"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-
-    <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Review change request</DialogTitle>
-          <DialogDescription>
-            {diffs.length} change{diffs.length === 1 ? "" : "s"} to “{calendar?.name}” · impacts {linked.length} project{linked.length === 1 ? "" : "s"} schedule{linked.length === 1 ? "" : "s"}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="max-h-[45vh] overflow-auto rounded-lg border border-border">
-          <Table>
-            <TableHeader><TableRow className="hover:bg-transparent"><TableHead>Field</TableHead><TableHead>Before</TableHead><TableHead>After</TableHead></TableRow></TableHeader>
-            <TableBody>
-              {diffs.map((d) => (
-                <TableRow key={d.label}>
-                  <TableCell className="font-medium text-foreground">{d.label}</TableCell>
-                  <TableCell className="text-muted-foreground line-through">{d.before ?? "—"}</TableCell>
-                  <TableCell className="text-accent">{d.after ?? "—"}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">Impacted projects:</span> {linked.map((p) => p.name).join(", ")}
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setReviewOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={submitCr}>Submit change request</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

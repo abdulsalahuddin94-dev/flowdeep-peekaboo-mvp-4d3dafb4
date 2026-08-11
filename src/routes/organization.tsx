@@ -1053,7 +1053,7 @@ function CostCategoriesTab() {
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-            <TableHead className="w-32">Account number</TableHead>
+            <TableHead className="w-32">Account Num.</TableHead>
             <TableHead className="w-56">Category Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead className="w-28">Type</TableHead>
@@ -1085,7 +1085,7 @@ function CostCategoriesTab() {
           <DialogHeader><DialogTitle>Edit Cost Category</DialogTitle><DialogDescription>Update the classification, its cost center identifier, description and type.</DialogDescription></DialogHeader>
           <div className="space-y-3">
             <div><Label>Category Name</Label><Input value={editing?.name ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, name: e.target.value } : p)} /></div>
-            <div><Label>Account number</Label><Input value={editing?.number ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, number: e.target.value } : p)} /></div>
+            <div><Label>Account Num.</Label><Input value={editing?.number ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, number: e.target.value } : p)} /></div>
             <div><Label>Description</Label><Textarea value={editing?.description ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, description: e.target.value } : p)} /></div>
             <div>
               <Label>Type</Label>
@@ -1163,7 +1163,7 @@ function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Staff, Services, Insurance" />
           </div>
           <div>
-            <Label>Account number</Label>
+            <Label>Account Num.</Label>
             <Input value={number} onChange={(e) => setNumber(e.target.value)} placeholder="e.g. CC-001" />
           </div>
           <div>

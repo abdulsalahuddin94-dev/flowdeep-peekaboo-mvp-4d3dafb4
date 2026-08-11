@@ -843,7 +843,7 @@ function CalendarsTab() {
         totalCount={calendars.length}
         onReset={() => { setQuery(""); setLink("all"); }}
         cta={<Button size="sm" variant="primary" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
-        filterGroups={[{ key: "link", label: "Linked Projects", value: link, onChange: setLink, options: [{ value: "all", label: "All calendars" },{ value: "linked", label: "Linked to projects" },{ value: "unlinked", label: "Not linked" },{ value: "pending", label: "Change request pending" },] }]}
+        filterGroups={[{ key: "link", label: "Linked Projects", value: link, onChange: setLink, options: [{ value: "all", label: "All calendars" },{ value: "linked", label: "Linked to projects" },{ value: "unlinked", label: "Not linked" },{ value: "pending", label: "Awaiting project acceptance" },] }]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (

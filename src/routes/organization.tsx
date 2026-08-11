@@ -319,7 +319,7 @@ function TagsTab() {
           <div className="col-span-full py-8 text-center text-sm text-muted-foreground">No matching tags</div>
         )}
         {visible.map((t) => (
-          <div key={t.name} className="glass-card flex items-center justify-between p-4">
+          <div key={t.name} className="group glass-card flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: t.color }} aria-hidden />
               <div>

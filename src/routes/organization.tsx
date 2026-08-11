@@ -655,7 +655,7 @@ function AddBusinessLineDialog({ onAdd }: { onAdd: (name: string, description: s
   const [description, setDescription] = useState("");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Project Type</Button></DialogTrigger>
+      <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Project Type</Button></DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>New Project Type</DialogTitle><DialogDescription>High-level category used as filter chips in Portfolio.</DialogDescription></DialogHeader>
         <div className="space-y-3">
@@ -683,7 +683,7 @@ function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, head: string) =>
   const [head, setHead] = useState("");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Department</Button></DialogTrigger>
+      <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Department</Button></DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle>New Department</DialogTitle></DialogHeader>
         <div className="space-y-3">
@@ -741,7 +741,7 @@ function AddTagDialog() {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
-      <DialogTrigger asChild><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Tag</Button></DialogTrigger>
+      <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Tag</Button></DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>New Tag</DialogTitle>
@@ -842,7 +842,7 @@ function CalendarsTab() {
         resultCount={visible.length}
         totalCount={calendars.length}
         onReset={() => { setQuery(""); setLink("all"); }}
-        cta={<Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
+        cta={<Button size="sm" variant="primary" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
         filterGroups={[{ key: "link", label: "Linked Projects", value: link, onChange: setLink, options: [{ value: "all", label: "All calendars" },{ value: "linked", label: "Linked to projects" },{ value: "unlinked", label: "Not linked" },{ value: "pending", label: "Change request pending" },] }]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -1049,7 +1049,7 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
                 </PopoverContent>
               </Popover>
               <Input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="Label (e.g. Labour Day)" className="flex-1" />
-              <Button type="button" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={addHoliday}>
+              <Button type="button" variant="primary" onClick={addHoliday}>
                 <Plus className="mr-1 h-4 w-4" />Add
               </Button>
             </div>
@@ -1267,7 +1267,7 @@ function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Category</Button></DialogTrigger>
+      <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Category</Button></DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>New Cost Category</DialogTitle>
@@ -1468,7 +1468,7 @@ function AddJobRoleDialog({ onAdd }: { onAdd: (title: string, skills: string[]) 
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Role</Button></DialogTrigger>
+      <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Role</Button></DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>New Job Role</DialogTitle>

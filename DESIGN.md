@@ -388,9 +388,10 @@ in one right-aligned toolbar row — never split across the page.
 - Filter: `variant="outline"` with accent-lavender border + icon, numeric badge for active filters,
   opens a **right side drawer** (`Sheet`, 380px) with drill-down groups, applied-filter chips,
   and Clear / Cancel / Apply.
-- Primary CTA: single accent button (`bg-accent text-accent-foreground`) with `Plus` icon.
+- Primary CTA: single primary button (`<Button variant="primary">` with `Plus` icon). `Add X` always uses the primary brand fill.
 - The section title/description block stays on its own row above the toolbar — no CTA in it.
 - All three controls share the global control metrics: **height 36px, radius 8px**.
+- Buttons are not form fields: `Button` sets `data-ds-field="off"` so the control baseline does not override button background colours.
 
 ## Typography
 

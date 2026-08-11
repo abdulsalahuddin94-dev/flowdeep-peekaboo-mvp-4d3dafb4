@@ -90,8 +90,7 @@ function BusinessLinesTab() {
 
   return (
     <>
-      <SectionHeader title="Project Types" desc="Used across Portfolio filters such as business lines."
-        cta={<AddBusinessLineDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />} />
+      <SectionHeader title="Project Types" desc="Used across Portfolio filters such as business lines." />
       <FilterBar
         query={query}
         onQueryChange={setQuery}
@@ -99,6 +98,7 @@ function BusinessLinesTab() {
         resultCount={visible.length}
         totalCount={rows.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
+        cta={<AddBusinessLineDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />}
         filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All types" },{ value: "active", label: "With active projects" },{ value: "empty", label: "No projects" },] }]}
       />
       <div className="">
@@ -189,8 +189,7 @@ function DepartmentsTab() {
 
   return (
     <>
-      <SectionHeader title="Departments / Units" desc="Org chart units. A project may span multiple departments."
-        cta={<AddDepartmentDialog onAdd={(name, head) => setRows((prev) => [...prev, { name, head }])} />} />
+      <SectionHeader title="Departments / Units" desc="Org chart units. A project may span multiple departments." />
       <FilterBar
         query={query}
         onQueryChange={setQuery}
@@ -198,6 +197,7 @@ function DepartmentsTab() {
         resultCount={visible.length}
         totalCount={rows.length}
         onReset={() => { setQuery(""); setHead("all"); }}
+        cta={<AddDepartmentDialog onAdd={(name, head) => setRows((prev) => [...prev, { name, head }])} />}
         filterGroups={[{ key: "head", label: "Head", value: head, onChange: setHead, options: [{ value: "all", label: "All heads" }, ...heads.map((h) => ({ value: h, label: h }))] }]}
       />
       <div className="">
@@ -296,8 +296,7 @@ function TagsTab() {
   }, [tags, query, usage]);
   return (
     <>
-      <SectionHeader title="Tags & Classifications" desc="Customizable labels applied to business cases and projects."
-        cta={<AddTagDialog />} />
+      <SectionHeader title="Tags & Classifications" desc="Customizable labels applied to business cases and projects." />
       <FilterBar
         query={query}
         onQueryChange={setQuery}
@@ -305,6 +304,7 @@ function TagsTab() {
         resultCount={visible.length}
         totalCount={tags.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
+        cta={<AddTagDialog />}
         filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All tags" },{ value: "used", label: "In use" },{ value: "unused", label: "Unused" },] }]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -832,7 +832,6 @@ function CalendarsTab() {
       <SectionHeader
         title="Calendars"
         desc="Define working days, daily hours and official holidays per country/region. Calendars linked to projects are baselined — edits go through a change request."
-        cta={<Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
       />
       <FilterBar
         query={query}
@@ -841,6 +840,7 @@ function CalendarsTab() {
         resultCount={visible.length}
         totalCount={calendars.length}
         onReset={() => { setQuery(""); setLink("all"); }}
+        cta={<Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
         filterGroups={[{ key: "link", label: "Linked Projects", value: link, onChange: setLink, options: [{ value: "all", label: "All calendars" },{ value: "linked", label: "Linked to projects" },{ value: "unlinked", label: "Not linked" },{ value: "pending", label: "Change request pending" },] }]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -1150,7 +1150,6 @@ function CostCategoriesTab() {
       <SectionHeader
         title="Cost Categories"
         desc="Standard organizational cost classifications used across projects. Each category has a unique cost center identifier."
-        cta={<AddCostCategoryDialog onAdd={(cat) => setCategories([...categories, cat])} />}
       />
       <FilterBar
         query={query}
@@ -1159,6 +1158,7 @@ function CostCategoriesTab() {
         resultCount={visible.length}
         totalCount={categories.length}
         onReset={() => { setQuery(""); setType("all"); }}
+        cta={<AddCostCategoryDialog onAdd={(cat) => setCategories([...categories, cat])} />}
         filterGroups={[{ key: "type", label: "Type", value: type, onChange: setType, options: [{ value: "all", label: "All types" },{ value: "CapEx", label: "CapEx only" },{ value: "OpEx", label: "OpEx only" },] }]}
       />
       <div className="">
@@ -1338,7 +1338,6 @@ function JobRolesTab() {
       <SectionHeader
         title="Job Roles Definition"
         desc="Define standard job titles (e.g. Data Engineer, Solution Architect) at the organization level so Project Managers can assign roles to tasks during planning — before any specific resource is allocated."
-        cta={<AddJobRoleDialog onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
       />
       <FilterBar
         query={query}
@@ -1347,6 +1346,7 @@ function JobRolesTab() {
         resultCount={visible.length}
         totalCount={jobRoles.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
+        cta={<AddJobRoleDialog onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
         filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "Used in projects" },{ value: "unused", label: "Not used" },{ value: "with-skills", label: "With skills" },{ value: "no-skills", label: "Without skills" },] }]}
       />
       <div className="">

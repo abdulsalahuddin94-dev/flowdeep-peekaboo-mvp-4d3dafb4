@@ -37,6 +37,7 @@ export function TablePagination({
   total,
   itemLabel = "items",
   className,
+  demoPages = 5,
 }: {
   page: number;
   setPage: (p: number) => void;
@@ -45,22 +46,26 @@ export function TablePagination({
   total: number;
   itemLabel?: string;
   className?: string;
+  /** Minimum number of page pills to render (demo/preview padding). */
+  demoPages?: number;
 }) {
   if (total === 0) return null;
+  const displayPageCount = Math.max(pageCount, demoPages);
+  const displayTotal = Math.max(total, displayPageCount * pageSize);
   const from = (page - 1) * pageSize + 1;
-  const to = Math.min(page * pageSize, total);
+  const to = Math.min(page * pageSize, displayTotal);
 
   const pages: (number | "…")[] = [];
-  if (pageCount <= 7) {
-    for (let i = 1; i <= pageCount; i++) pages.push(i);
+  if (displayPageCount <= 7) {
+    for (let i = 1; i <= displayPageCount; i++) pages.push(i);
   } else {
     pages.push(1);
     const start = Math.max(2, page - 1);
-    const end = Math.min(pageCount - 1, page + 1);
+    const end = Math.min(displayPageCount - 1, page + 1);
     if (start > 2) pages.push("…");
     for (let i = start; i <= end; i++) pages.push(i);
-    if (end < pageCount - 1) pages.push("…");
-    pages.push(pageCount);
+    if (end < displayPageCount - 1) pages.push("…");
+    pages.push(displayPageCount);
   }
 
   return (
@@ -69,7 +74,7 @@ export function TablePagination({
       className={cn("mt-3 flex flex-wrap items-center justify-between gap-3 px-1", className)}
     >
       <span className="text-xs text-muted-foreground">
-        Showing {from} to {to} of {total} {itemLabel}
+        Showing {from} to {to} of {displayTotal} {itemLabel}
       </span>
       <div className="flex items-center gap-1">
         <Button

@@ -668,6 +668,21 @@ function CalendarsTab() {
   const { projects } = useProjects();
   const [editing, setEditing] = useState<WorkCalendar | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [link, setLink] = useState("all");
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return calendars
+      .filter((c) => !q || c.name.toLowerCase().includes(q) || c.holidays.some((h) => h.label.toLowerCase().includes(q)))
+      .filter((c) => {
+        const linkedCount = projects.filter((p) => p.calendarId === c.id).length;
+        if (link === "linked") return linkedCount > 0;
+        if (link === "unlinked") return linkedCount === 0;
+        if (link === "pending") return pendingCalendarIds.includes(c.id);
+        return true;
+      });
+  }, [calendars, projects, pendingCalendarIds, query, link]);
 
   function deleteCalendar(calendar: WorkCalendar) {
     if (projects.some((p) => p.calendarId === calendar.id)) {
@@ -685,8 +700,32 @@ function CalendarsTab() {
         desc="Define working days, daily hours and official holidays per country/region. Calendars linked to projects are baselined — edits go through a change request."
         cta={<Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
       />
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search calendar or holiday…"
+        resultCount={visible.length}
+        totalCount={calendars.length}
+        onReset={() => { setQuery(""); setLink("all"); }}
+        filters={
+          <FilterSelect
+            value={link}
+            onChange={setLink}
+            options={[
+              { value: "all", label: "All calendars" },
+              { value: "linked", label: "Linked to projects" },
+              { value: "unlinked", label: "Not linked" },
+              { value: "pending", label: "Change request pending" },
+            ]}
+            width="w-52"
+          />
+        }
+      />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {calendars.map((c) => {
+        {visible.length === 0 && (
+          <div className="col-span-full py-8 text-center text-sm text-muted-foreground">No matching calendars</div>
+        )}
+        {visible.map((c) => {
           const linked = projects.filter((p) => p.calendarId === c.id);
           const pending = pendingCalendarIds.includes(c.id);
           const decided = approvals.find(

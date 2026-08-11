@@ -33,7 +33,7 @@ const mgmt: typeof main = [];
 const allItems = [...main, ...mgmt];
 
 export function AppSidebar() {
-  const { state, toggleSidebar } = useSidebar();
+  const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isActive = (url: string) => url === "/" ? pathname === "/" : pathname.startsWith(url);
@@ -45,25 +45,16 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="ds02-sidebar border-r-0">
-      {/* Header — logo & collapse toggle */}
+      {/* Header — centered logo */}
       <SidebarHeader className="px-3 py-5">
-        <div className="flex items-center gap-2">
-          {!collapsed && (
-            <Link to="/" className="flex items-center gap-2.5" aria-label="Home">
-              <img
-                src={teamsmartLogo.url}
-                alt="TeamSmart"
-                className="h-7 w-auto object-contain"
-              />
-            </Link>
-          )}
-          <button
-            onClick={toggleSidebar}
-            className="ml-auto rounded-lg p-1.5 text-sidebar-muted transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-            aria-label="Toggle sidebar"
-          >
-            <ChevronLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
-          </button>
+        <div className="flex items-center justify-center">
+          <Link to="/" className={cn("flex items-center justify-center", collapsed && "hidden")} aria-label="Home">
+            <img
+              src={teamsmartLogo.url}
+              alt="TeamSmart"
+              className="h-7 w-auto object-contain"
+            />
+          </Link>
         </div>
       </SidebarHeader>
 

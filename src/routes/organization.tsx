@@ -1147,6 +1147,8 @@ function CostCategoriesTab() {
       .filter((c) => type === "all" || c.type === type);
   }, [categories, query, type]);
 
+  const pager = usePagination(visible);
+
   return (
     <>
       <SectionHeader
@@ -1175,7 +1177,7 @@ function CostCategoriesTab() {
           </TableRow></TableHeader>
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={6} />}
-            {visible.map((c) => (
+            {pager.pageItems.map((c) => (
               <TableRow key={c.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{c.number}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{c.name}</TableCell>
@@ -1192,6 +1194,7 @@ function CostCategoriesTab() {
           </TableBody>
         </Table>
       </div>
+      <TablePagination {...pager} itemLabel="cost categories" />
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "@/lib/icons";
 import { cn } from "@/lib/utils";
@@ -8,18 +8,24 @@ export function usePagination<T>(items: T[], pageSize = 10) {
   const [page, setPage] = useState(1);
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
 
+  // Reset to page 1 when the underlying list changes size (e.g. search/filter),
+  // but keep the selected page otherwise so demo page pills stay navigable.
+  const lastLength = useRef(items.length);
   useEffect(() => {
-    if (page > pageCount) setPage(1);
-  }, [page, pageCount]);
+    if (lastLength.current !== items.length) {
+      lastLength.current = items.length;
+      setPage(1);
+    }
+  }, [items.length]);
 
-  const safePage = Math.min(page, pageCount);
+  const safePage = Math.max(1, Math.min(page, pageCount));
   const pageItems = useMemo(
     () => items.slice((safePage - 1) * pageSize, safePage * pageSize),
     [items, safePage, pageSize],
   );
 
   return {
-    page: safePage,
+    page,
     setPage,
     pageCount,
     pageSize,

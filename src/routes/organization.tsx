@@ -1338,6 +1338,8 @@ function JobRolesTab() {
       });
   }, [jobRoles, query, usage, usageByRole]);
 
+  const pager = usePagination(visible);
+
   return (
     <>
       <SectionHeader
@@ -1364,7 +1366,7 @@ function JobRolesTab() {
           </TableRow></TableHeader>
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={4} />}
-            {visible.map((r) => (
+            {pager.pageItems.map((r) => (
               <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{r.title}</TableCell>
                 <TableCell>
@@ -1386,16 +1388,17 @@ function JobRolesTab() {
                   })()}
                 </TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-1">
-                    <Button aria-label="Edit" size="icon" variant="ghost" onClick={() => setEditing({ id: r.id, title: r.title, skills: r.skills ?? [] })} className="h-8 w-8 text-muted-foreground hover:!bg-accent/15 hover:!text-accent"><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button aria-label="Delete" size="icon" variant="ghost" onClick={() => setPendingDelete({ id: r.id, title: r.title })} className="h-8 w-8 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><Trash2 className="h-3.5 w-3.5" /></Button>
-                  </div>
+                  <TableRowActions
+                    onEdit={() => setEditing({ id: r.id, title: r.title, skills: r.skills ?? [] })}
+                    onDelete={() => setPendingDelete({ id: r.id, title: r.title })}
+                  />
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
+      <TablePagination {...pager} itemLabel="job roles" />
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>

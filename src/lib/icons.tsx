@@ -3,7 +3,7 @@
  * Single source of truth for iconography — swap a mapping here to restyle globally.
  */
 import { Icon as IconifyIcon } from "@iconify/react";
-import { Setting4 as SaxSetting4, Add as SaxAdd } from "iconsax-react";
+import { Setting4 as SaxSetting4, Add as SaxAdd, Edit2 as SaxEdit2, Trash as SaxTrash } from "iconsax-react";
 import type { SVGProps } from "react";
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {

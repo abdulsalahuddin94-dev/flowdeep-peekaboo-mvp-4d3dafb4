@@ -799,7 +799,7 @@ function AddTagDialog() {
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function CalendarsTab() {
-  const { calendars, removeCalendar } = useCalendars();
+  const { calendars, removeCalendar, updateCalendar } = useCalendars();
   const { approvals } = useApprovals();
   const { projects } = useProjects();
   const [editing, setEditing] = useState<WorkCalendar | null>(null);
@@ -815,6 +815,8 @@ function CalendarsTab() {
         const linkedCount = projects.filter((p) => p.calendarId === c.id).length;
         if (link === "linked") return linkedCount > 0;
         if (link === "unlinked") return linkedCount === 0;
+        if (link === "active") return c.active !== false;
+        if (link === "inactive") return c.active === false;
         return true;
       });
   }, [calendars, projects, query, link]);
@@ -842,7 +844,7 @@ function CalendarsTab() {
         totalCount={calendars.length}
         onReset={() => { setQuery(""); setLink("all"); }}
         cta={<Button size="sm" variant="primary" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
-        filterGroups={[{ key: "link", label: "Linked Projects", value: link, onChange: setLink, options: [{ value: "all", label: "All calendars" },{ value: "linked", label: "Linked to projects" },{ value: "unlinked", label: "Not linked" },] }]}
+        filterGroups={[{ key: "link", label: "Linked Projects", value: link, onChange: setLink, options: [{ value: "all", label: "All calendars" },{ value: "linked", label: "Linked to projects" },{ value: "unlinked", label: "Not linked" },{ value: "active", label: "Active" },{ value: "inactive", label: "Deactivated" },] }]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (
@@ -850,6 +852,7 @@ function CalendarsTab() {
         )}
         {visible.map((c) => {
           const linked = projects.filter((p) => p.calendarId === c.id);
+          const isActive = c.active !== false;
           const decided = approvals.find(
             (a) => a.type === "calendar-change" && a.ref === c.name && a.status !== "pending",
           );
@@ -865,6 +868,15 @@ function CalendarsTab() {
                 deleteLabel={`Delete ${c.name}`}
                 deleteDisabled={linked.length > 0}
                 onEdit={() => setEditing(c)}
+                isActive={isActive}
+                onToggleActive={() => {
+                  if (isActive && linked.length > 0) {
+                    toast.error("Calendar is linked to active projects — unlink them first");
+                    return;
+                  }
+                  updateCalendar(c.id, { active: !isActive });
+                  toast.success(isActive ? `Calendar "${c.name}" deactivated` : `Calendar "${c.name}" activated`);
+                }}
                 onDelete={() => deleteCalendar(c)}
               />
             </div>
@@ -872,6 +884,11 @@ function CalendarsTab() {
               <span className="inline-flex items-center gap-1 rounded-md bg-secondary/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                 <Link2 className="h-3 w-3" />{linked.length} linked project{linked.length === 1 ? "" : "s"}
               </span>
+              {!isActive && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-secondary/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  Deactivated
+                </span>
+              )}
             </div>
             <div className="mt-3 flex flex-wrap gap-1">
               {DAY_LABELS.map((d, i) => (

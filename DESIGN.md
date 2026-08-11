@@ -543,3 +543,39 @@ Tokens live in `src/styles.css` as `--confirm-{tone}-{icon|surface|ring}`.
   onConfirm={handleDelete}
 />
 ```
+
+## Form Elements (DS02)
+
+Source: Figma · Design System — NERA · Form Elements.
+All field states are token-driven in `src/styles.css` (`--field-*`) and applied
+globally through `data-ui="control"` (inputs, selects, single-line controls) and
+`data-ui="control-text"` (textarea). Never restyle a field with ad-hoc classes.
+
+| State | Rule |
+|---|---|
+| Default | bg `--field-bg`, 1px `--field-border`, radius 8px, height 36px |
+| Hover | border `--field-border-hover` |
+| Focused | border `--field-border-focus` (lavender) + 3px ring `--field-ring-focus` |
+| Filled | bg `--field-bg-filled` (auto via `:not(:placeholder-shown)` / `data-filled`) |
+| Error | `aria-invalid="true"` → red border + red ring, error text `--field-error-fg` |
+| Disabled | `disabled` → muted bg, 50% opacity, `not-allowed` cursor |
+
+Escape hatch: `data-ds-field="off"` on a control opts out of the state styling.
+
+### Field wrapper
+
+`Field` from `@/components/ui/field` is the only approved label/hint/error
+anatomy: label (600, 12px) → `(Optional)` tag → info tooltip → control →
+hint (`--field-hint-fg`) or error (`--field-error-fg`, replaces the hint).
+Use `FieldSuffix` for trailing units (e.g. "Minutes").
+
+```tsx
+<Field label="Email" optional info="Work email" hint="Hint Goes Here" error={err}>
+  <Input aria-invalid={!!err} placeholder="Option 1" />
+</Field>
+```
+
+### Multiple selection
+
+`MultiSelectField` from `@/components/ui/multi-select-field` — chips with
+per-chip remove, `+N` overflow after 5, clear-all ✕, and the same field states.

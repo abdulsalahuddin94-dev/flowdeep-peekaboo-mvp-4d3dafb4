@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useApprovals } from "@/lib/projects-store";
 import sansLogo from "@/assets/sans-logo.png.asset.json";
+import teamsmartLogo from "@/assets/teamsmart-logo.png.asset.json";
 
 /*
  * Sidebar is fully token-driven. All colors come from CSS variables defined

@@ -514,3 +514,32 @@ Values come from the `--btn-*` tokens in `src/styles.css` — never hardcode hex
 
 Filter uses the Iconsax (vuesax) **Setting4** icon; Add uses Iconsax **Add** (`+`).
 Both are exported from `src/lib/icons.tsx` as `Filter` / `Plus` — import from there only.
+
+## Confirmation Popups (DS02)
+
+Use `ConfirmDialog` from `@/components/ui/confirm-dialog` for every confirm,
+destructive or acknowledgement prompt. Never hand-roll a confirm modal.
+
+| Tone | Icon (Solar) | Confirm button |
+|---|---|---|
+| `success` | check-circle | primary (lavender) |
+| `info` | info-circle | primary (lavender) |
+| `warning` | danger-triangle | warning (gold) |
+| `danger` | trash-bin | danger (red) |
+
+Anatomy (fixed): close ✕ top-right → 44px tinted icon circle with matching
+1px ring → bold title → muted description → footer with secondary "Cancel"
+plus the tone's action button, both centered. Optional `children` renders an
+inner body (e.g. a searchable checkbox list) left-aligned above the footer.
+
+Tokens live in `src/styles.css` as `--confirm-{tone}-{icon|surface|ring}`.
+
+```tsx
+<ConfirmDialog
+  open={open} onOpenChange={setOpen}
+  tone="danger" title="Delete department?"
+  description="This action can't be undone."
+  cancelLabel="Cancel" confirmLabel="Delete"
+  onConfirm={handleDelete}
+/>
+```

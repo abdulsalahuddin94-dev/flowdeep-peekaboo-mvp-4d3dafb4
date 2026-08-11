@@ -11,6 +11,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useApprovals } from "@/lib/projects-store";
+import sansLogo from "@/assets/sans-logo.png.asset.json";
 
 /*
  * Sidebar is fully token-driven. All colors come from CSS variables defined
@@ -45,17 +46,16 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="ds02-sidebar border-r-0">
       {/* Header — logo & collapse toggle */}
-      <SidebarHeader className="border-b border-sidebar-border px-3 py-4">
-        <div className="flex items-center justify-between gap-2">
+      <SidebarHeader className="px-3 py-5">
+        <div className="flex items-center gap-2">
           {!collapsed && (
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary text-sm font-bold text-sidebar-primary-foreground">
-                N
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-sidebar-accent-foreground">Nexus PMO</div>
-                <div className="mt-0.5 text-[10px] text-sidebar-muted">Portfolio Director</div>
-              </div>
+              <span className="text-2xl font-bold italic leading-none tracking-tighter text-sidebar-accent-foreground">
+                TS
+              </span>
+              <span className="text-lg font-semibold leading-none text-sidebar-accent-foreground">
+                TeamSmart
+              </span>
             </div>
           )}
           <button
@@ -115,29 +115,14 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* Footer */}
-      <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
-        <SidebarMenu className="gap-3">
-          <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Logout" className="h-10 rounded-lg px-3 text-sm">
-              <LogOut className="h-5 w-5 shrink-0" />
-              {!collapsed && <span>Logout</span>}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-
-        {!collapsed && (
-          <div className="mt-4 flex items-center gap-2.5 rounded-xl bg-sidebar-accent px-2 py-2">
-            <Avatar className="h-8 w-8 shrink-0">
-              <AvatarFallback className="bg-sidebar-primary text-xs font-bold text-sidebar-primary-foreground">
-                AK
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-xs font-semibold text-sidebar-accent-foreground">Aisha Khoury</div>
-              <div className="truncate text-[10px] text-sidebar-muted">Portfolio Director</div>
-            </div>
-          </div>
-        )}
+      <SidebarFooter className="px-3 py-6">
+        <div className="flex items-center justify-center">
+          <img
+            src={sansLogo.url}
+            alt="SANS"
+            className={cn("opacity-70", collapsed ? "h-7 w-7 object-contain" : "h-12 w-auto")}
+          />
+        </div>
       </SidebarFooter>
     </Sidebar>
   );

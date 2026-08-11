@@ -121,7 +121,7 @@ export function TablePagination({
           variant="ghost"
           data-ds-size="auto"
           aria-label="Next page"
-          disabled={page === pageCount}
+          disabled={page >= displayPageCount}
           onClick={() => setPage(page + 1)}
           className="h-8 w-8 rounded-full text-muted-foreground"
         >

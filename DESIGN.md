@@ -373,6 +373,25 @@ border: 1px solid rgba(255,255,255,0.1);
 
 These rules are system-agnostic and always apply regardless of active DS.
 
+## Toolbar Pattern — Search + Filter + Primary CTA
+
+**Rule:** On any list/table/grid screen, search, Filter and the primary Add CTA live together
+in one right-aligned toolbar row — never split across the page.
+
+```
+[ result count ] ................ [ 🔍 Search by … ] [ ⚙ Filter (n) ] [ + Add X ]
+```
+
+- Order is fixed: **Search → Filter → Primary CTA** (right-aligned, `gap-3`).
+- Result count (`text-xs text-muted-foreground`) sits far-left via `mr-auto`.
+- Search: `Input` with leading `Search` icon (`pl-9`), width `w-72` (full width on mobile).
+- Filter: `variant="outline"` with accent-lavender border + icon, numeric badge for active filters,
+  opens a **right side drawer** (`Sheet`, 380px) with drill-down groups, applied-filter chips,
+  and Clear / Cancel / Apply.
+- Primary CTA: single accent button (`bg-accent text-accent-foreground`) with `Plus` icon.
+- The section title/description block stays on its own row above the toolbar — no CTA in it.
+- All three controls share the global control metrics: **height 36px, radius 8px**.
+
 ## Typography
 
 **Font family:** `Outfit` (Google Fonts). Fallback: `ui-sans-serif, system-ui, sans-serif`.  

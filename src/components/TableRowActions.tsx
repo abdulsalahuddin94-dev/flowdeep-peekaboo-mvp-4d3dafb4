@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { EditAction, DeleteAction } from "@/lib/icons";
+import { EditAction, DeleteAction, Power } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 export function TableRowActions({
   onEdit,
   onDelete,
+  onToggleActive,
+  isActive = true,
   editLabel = "Edit",
   deleteLabel = "Delete",
   deleteDisabled,
@@ -18,6 +20,8 @@ export function TableRowActions({
 }: {
   onEdit?: () => void;
   onDelete?: () => void;
+  onToggleActive?: () => void;
+  isActive?: boolean;
   editLabel?: string;
   deleteLabel?: string;
   deleteDisabled?: boolean;
@@ -40,6 +44,23 @@ export function TableRowActions({
           className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
         >
           <EditAction size={16} />
+        </Button>
+      )}
+      {onToggleActive && (
+        <Button
+          type="button"
+          aria-label={isActive ? "Deactivate" : "Activate"}
+          title={isActive ? "Deactivate" : "Activate"}
+          size="icon"
+          variant="secondary"
+          data-ds-size="auto"
+          onClick={onToggleActive}
+          className={cn(
+            "h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] hover:!bg-[var(--btn-secondary-bg-hover)]",
+            isActive ? "text-rag-amber" : "text-rag-green",
+          )}
+        >
+          <Power className="h-4 w-4" />
         </Button>
       )}
       {onDelete && (

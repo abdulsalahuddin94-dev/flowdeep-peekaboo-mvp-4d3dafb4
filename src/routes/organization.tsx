@@ -37,9 +37,9 @@ function OrganizationPage() {
       <Tabs defaultValue="business-lines">
         <TabsList>
           <TabsTrigger value="business-lines">Project Types</TabsTrigger>
-          <TabsTrigger value="departments">Departments</TabsTrigger>
           <TabsTrigger value="tags">Tags & Classifications</TabsTrigger>
           <TabsTrigger value="cost-categories">Cost Categories</TabsTrigger>
+          <TabsTrigger value="departments">Departments</TabsTrigger>
           <TabsTrigger value="job-roles">Job Roles</TabsTrigger>
           <TabsTrigger value="calendars">Calendars</TabsTrigger>
         </TabsList>
@@ -48,16 +48,16 @@ function OrganizationPage() {
           <BusinessLinesTab />
         </TabsContent>
 
-        <TabsContent value="departments" className="mt-5">
-          <DepartmentsTab />
-        </TabsContent>
-
         <TabsContent value="tags" className="mt-5">
           <TagsTab />
         </TabsContent>
 
         <TabsContent value="cost-categories" className="mt-5">
           <CostCategoriesTab />
+        </TabsContent>
+
+        <TabsContent value="departments" className="mt-5">
+          <DepartmentsTab />
         </TabsContent>
 
         <TabsContent value="job-roles" className="mt-5">

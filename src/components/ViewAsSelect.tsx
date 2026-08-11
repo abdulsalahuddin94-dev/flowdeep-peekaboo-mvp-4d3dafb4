@@ -11,11 +11,11 @@ export function ViewAsSelect({ className }: { className?: string }) {
   return (
     <div className={className}>
       <Select value={currentUser.id} onValueChange={setCurrentUserId}>
-        <SelectTrigger className="w-[240px] text-xs" aria-label="View as">
-          <span className="flex min-w-0 items-center gap-2">
+        <SelectTrigger className="w-[290px] text-xs" aria-label="View as">
+          <span className="flex min-w-0 items-center gap-1.5">
             <Users className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <span className="shrink-0 text-muted-foreground">View as</span>
-            <SelectValue />
+            <span className="shrink-0 text-muted-foreground">View as:</span>
+            <span className="min-w-0 truncate"><SelectValue /></span>
           </span>
         </SelectTrigger>
         <SelectContent>

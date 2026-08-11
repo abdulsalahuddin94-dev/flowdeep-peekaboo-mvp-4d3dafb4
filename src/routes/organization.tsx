@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -265,18 +266,16 @@ function DepartmentsTab() {
 
 function ConfirmDeleteDialog({ label, onCancel, onConfirm }: { label?: string; onCancel: () => void; onConfirm: () => void }) {
   return (
-    <Dialog open={!!label} onOpenChange={(o) => !o && onCancel()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete "{label}"?</DialogTitle>
-          <DialogDescription>This entry will be removed from the organization master data.</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button className="bg-rag-red text-white hover:bg-rag-red/90" onClick={onConfirm}>Delete</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ConfirmDialog
+      open={!!label}
+      onOpenChange={(o) => !o && onCancel()}
+      tone="danger"
+      title={`Delete "${label}"?`}
+      description="This entry will be removed from the organization master data."
+      cancelLabel="Cancel"
+      confirmLabel="Delete"
+      onConfirm={onConfirm}
+    />
   );
 }
 

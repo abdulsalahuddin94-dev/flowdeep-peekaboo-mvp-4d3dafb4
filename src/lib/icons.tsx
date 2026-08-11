@@ -56,6 +56,7 @@ export const CalendarIcon = s("calendar");
 export const Calendar = s("calendar");
 export const Check = s("check-read");
 export const CheckCircle2 = s("check-circle");
+export const Info = s("info-circle");
 export const CheckSquare = s("check-square");
 export const ChevronDown = s("alt-arrow-down");
 export const ChevronDownIcon = ChevronDown;

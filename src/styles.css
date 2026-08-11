@@ -1091,3 +1091,22 @@
   --btn-warning-bg-hover:      #a88400;
   --btn-warning-fg-hover:      #241d05;
 }
+
+/* ── DS02 confirmation popup tokens (success / info / warning / danger) ──── */
+:root {
+  --confirm-success-icon:   #14b8a6;
+  --confirm-success-surface: #e0f7f3;
+  --confirm-success-ring:   #14b8a6;
+
+  --confirm-info-icon:      #2b93f5;
+  --confirm-info-surface:   #dceeff;
+  --confirm-info-ring:      #2b93f5;
+
+  --confirm-warning-icon:   #d9a300;
+  --confirm-warning-surface: #fdf3d3;
+  --confirm-warning-ring:   #e8bb3a;
+
+  --confirm-danger-icon:    #dc2626;
+  --confirm-danger-surface: #fde3e3;
+  --confirm-danger-ring:    #ef4444;
+}

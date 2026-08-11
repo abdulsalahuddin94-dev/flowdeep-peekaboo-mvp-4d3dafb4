@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Building2, Handshake, Target, Users,
-  DollarSign, ChevronLeft, CheckSquare,
+  DollarSign, CheckSquare,
 } from "@/lib/icons";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,

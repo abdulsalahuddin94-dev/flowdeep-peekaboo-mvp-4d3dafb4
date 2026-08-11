@@ -95,8 +95,9 @@ function BusinessLinesTab() {
 
   return (
     <>
-      <SectionHeader title="Project Types" desc="Used across Portfolio filters such as business lines." />
       <FilterBar
+        title="Project Types"
+        desc="Used across Portfolio filters such as business lines."
         query={query}
         onQueryChange={setQuery}
         placeholder="Search name or description…"
@@ -197,8 +198,9 @@ function DepartmentsTab() {
 
   return (
     <>
-      <SectionHeader title="Departments / Units" desc="Org chart units. A project may span multiple departments." />
       <FilterBar
+        title="Departments / Units"
+        desc="Org chart units; a project may span multiple."
         query={query}
         onQueryChange={setQuery}
         placeholder="Search department or head…"
@@ -303,8 +305,9 @@ function TagsTab() {
   }, [tags, query, usage]);
   return (
     <>
-      <SectionHeader title="Tags & Classifications" desc="Customizable labels applied to business cases and projects." />
       <FilterBar
+        title="Tags & Classifications"
+        desc="Labels applied to business cases and projects."
         query={query}
         onQueryChange={setQuery}
         placeholder="Search tags…"
@@ -402,18 +405,6 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (color: str
   );
 }
 
-function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta?: React.ReactNode }) {
-  return (
-    <div className="mb-4 flex items-end justify-between gap-3">
-      <div>
-        <h2 className="text-lg font-medium text-foreground">{title}</h2>
-        <p className="text-sm text-muted-foreground">{desc}</p>
-      </div>
-      {cta}
-    </div>
-  );
-}
-
 function RowActions(props: React.ComponentProps<typeof TableRowActions>) {
   return <TableRowActions {...props} />;
 }
@@ -428,6 +419,8 @@ export type FilterGroup = {
 
 /** Shared search + filter toolbar (side-drawer filters) used by every Organization tab. */
 function FilterBar({
+  title,
+  desc,
   query,
   onQueryChange,
   placeholder,
@@ -437,6 +430,8 @@ function FilterBar({
   onReset,
   cta,
 }: {
+  title?: string;
+  desc?: string;
   query: string;
   onQueryChange: (v: string) => void;
   placeholder?: string;
@@ -452,7 +447,6 @@ function FilterBar({
   const [panelQuery, setPanelQuery] = useState("");
 
   const activeCount = filterGroups.filter((g) => g.value !== g.options[0]?.value).length;
-  const filtered = resultCount !== totalCount;
 
   function openDrawer() {
     setDraft(Object.fromEntries(filterGroups.map((g) => [g.key, g.value])));
@@ -482,10 +476,13 @@ function FilterBar({
     : [];
 
   return (
-    <div className="mb-3 flex flex-wrap items-center justify-end gap-3">
-      <span className="mr-auto text-xs text-muted-foreground">
-        {filtered ? `${resultCount} of ${totalCount}` : `${totalCount} item${totalCount === 1 ? "" : "s"}`}
-      </span>
+    <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
+      {(title || desc) && (
+        <div className="mr-auto min-w-0 max-w-[46%]">
+          {title && <h2 className="truncate text-lg font-medium text-foreground">{title}</h2>}
+          {desc && <p className="truncate text-sm text-muted-foreground" title={desc}>{desc}</p>}
+        </div>
+      )}
       <div className="relative w-full min-w-[220px] sm:w-72">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -832,11 +829,9 @@ function CalendarsTab() {
 
   return (
     <>
-      <SectionHeader
-        title="Calendars"
-        desc="Define working days, daily hours and official holidays per country/region."
-      />
       <FilterBar
+        title="Calendars"
+        desc="Working days, hours and holidays per region."
         query={query}
         onQueryChange={setQuery}
         placeholder="Search calendar or holiday…"
@@ -1109,11 +1104,9 @@ function CostCategoriesTab() {
 
   return (
     <>
-      <SectionHeader
-        title="Cost Categories"
-        desc="Standard organizational cost classifications used across projects. Each category has a unique cost center identifier."
-      />
       <FilterBar
+        title="Cost Categories"
+        desc="Standard cost classifications used across projects."
         query={query}
         onQueryChange={setQuery}
         placeholder="Search name, ID or description…"
@@ -1300,11 +1293,9 @@ function JobRolesTab() {
 
   return (
     <>
-      <SectionHeader
-        title="Job Roles Definition"
-        desc="Define standard job titles (e.g. Data Engineer, Solution Architect) at the organization level so Project Managers can assign roles to tasks during planning — before any specific resource is allocated."
-      />
       <FilterBar
+        title="Job Roles Definition"
+        desc="Standard job titles used when planning tasks."
         query={query}
         onQueryChange={setQuery}
         placeholder="Search role title or skill…"

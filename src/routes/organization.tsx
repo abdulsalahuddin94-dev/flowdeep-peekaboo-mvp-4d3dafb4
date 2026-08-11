@@ -414,8 +414,8 @@ function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta?
   );
 }
 
-function RowActions({ onEdit, onDelete }: { onEdit?: () => void; onDelete?: () => void }) {
-  return <TableRowActions onEdit={onEdit} onDelete={onDelete} />;
+function RowActions(props: React.ComponentProps<typeof TableRowActions>) {
+  return <TableRowActions {...props} />;
 }
 
 export type FilterGroup = {
@@ -856,20 +856,19 @@ function CalendarsTab() {
             (a) => a.type === "calendar-change" && a.ref === c.name && a.status !== "pending",
           );
           return (
-          <div key={c.id} className="glass-card p-4">
+          <div key={c.id} className="group glass-card p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-accent" />
                 <div className="font-medium text-foreground">{c.name}</div>
               </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <Button aria-label={`Edit ${c.name}`} size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:!bg-accent/15 hover:!text-accent" onClick={() => setEditing(c)}>
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
-                <Button aria-label={`Delete ${c.name}`} size="icon" variant="ghost" disabled={linked.length > 0} className="h-7 w-7 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red" onClick={() => deleteCalendar(c)}>
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+              <RowActions
+                editLabel={`Edit ${c.name}`}
+                deleteLabel={`Delete ${c.name}`}
+                deleteDisabled={linked.length > 0}
+                onEdit={() => setEditing(c)}
+                onDelete={() => deleteCalendar(c)}
+              />
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <span className="inline-flex items-center gap-1 rounded-md bg-secondary/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">

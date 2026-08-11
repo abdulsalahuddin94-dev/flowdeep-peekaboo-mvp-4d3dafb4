@@ -265,18 +265,16 @@ function DepartmentsTab() {
 
 function ConfirmDeleteDialog({ label, onCancel, onConfirm }: { label?: string; onCancel: () => void; onConfirm: () => void }) {
   return (
-    <Dialog open={!!label} onOpenChange={(o) => !o && onCancel()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete "{label}"?</DialogTitle>
-          <DialogDescription>This entry will be removed from the organization master data.</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button className="bg-rag-red text-white hover:bg-rag-red/90" onClick={onConfirm}>Delete</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ConfirmDialog
+      open={!!label}
+      onOpenChange={(o) => !o && onCancel()}
+      tone="danger"
+      title={`Delete "${label}"?`}
+      description="This entry will be removed from the organization master data."
+      cancelLabel="Cancel"
+      confirmLabel="Delete"
+      onConfirm={onConfirm}
+    />
   );
 }
 

@@ -572,7 +572,7 @@ function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, head: string) =>
 function AddTagDialog() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const color = "#51CAAD";
+  const [color, setColor] = useState("#51CAAD");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const { addTag } = useTags();
@@ -587,7 +587,7 @@ function AddTagDialog() {
   }
 
   function reset() {
-    setName(""); setSearch(""); setSelected([]);
+    setName(""); setSearch(""); setSelected([]); setColor("#51CAAD");
   }
 
   function save() {
@@ -612,9 +612,15 @@ function AddTagDialog() {
           <DialogDescription>Create a tag and optionally assign it to existing projects.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          <div>
-            <Label>Tag name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sustainability" />
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <Label>Tag name</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sustainability" />
+            </div>
+            <div>
+              <Label>Color</Label>
+              <ColorPicker value={color} onChange={setColor} />
+            </div>
           </div>
           <div>
             <div className="mb-1.5 flex items-center justify-between">

@@ -1,9 +1,8 @@
 /**
- * Solar icon library (via Iconify) exposed with the icon names used across the app.
+ * Vuesax / Iconsax icon library exposed with the icon names used across the app.
  * Single source of truth for iconography — swap a mapping here to restyle globally.
  */
-import { Icon as IconifyIcon } from "@iconify/react";
-import { Setting4 as SaxSetting4, Add as SaxAdd, Edit2 as SaxEdit2, Trash as SaxTrash, CloseCircle as SaxCloseCircle } from "iconsax-react";
+import * as Sax from "iconsax-react";
 import type { SVGProps } from "react";
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {
@@ -11,125 +10,111 @@ export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {
   strokeWidth?: number | string;
 };
 
-const STYLE = "linear" as const;
+type SaxComponent = (typeof Sax)["Add"];
 
-function make(name: string) {
-  const Component = ({ size, strokeWidth: _sw, color, ...rest }: IconProps) => (
-    <IconifyIcon
-      icon={`solar:${name}`}
-      {...(size !== undefined ? { width: size, height: size } : {})}
-      {...(color ? { color: color as string } : {})}
-      {...(rest as Record<string, unknown>)}
-    />
-  );
-  Component.displayName = `Solar(${name})`;
-  return Component;
-}
-
-const s = (base: string) => make(`${base}-${STYLE}`);
-
-/** Iconsax (vuesax) icons — used for the Filter (settings) and Add (+) actions. */
-function sax(Base: typeof SaxAdd, displayName: string) {
+/** Wrap an Iconsax (vuesax) icon so it accepts the lucide-style prop shape. */
+function sax(name: keyof typeof Sax) {
+  const Base = Sax[name] as SaxComponent;
   const Component = ({ size, strokeWidth, color, ...rest }: IconProps) => (
     <Base
       variant="Linear"
-      {...(size !== undefined ? { size: size as number } : { size: 20 })}
-      {...(color ? { color: color as string } : { color: "currentColor" })}
+      size={(size as number) ?? 20}
+      color={(color as string) ?? "currentColor"}
       {...(strokeWidth !== undefined ? { strokeWidth: Number(strokeWidth) } : {})}
       {...(rest as Record<string, unknown>)}
     />
   );
-  Component.displayName = displayName;
+  Component.displayName = `Vuesax(${String(name)})`;
   return Component;
 }
 
-export const Activity = s("pulse");
-export const AlertTriangle = s("danger-triangle");
-export const ArrowLeft = s("arrow-left");
-export const ArrowRight = s("arrow-right");
-export const ArrowUpRight = s("arrow-right-up");
-export const Bell = s("bell");
-export const Briefcase = s("case");
-export const Building2 = s("buildings-2");
-export const CalendarDays = s("calendar");
-export const CalendarIcon = s("calendar");
-export const Calendar = s("calendar");
-export const Check = s("check-read");
-export const CheckCircle2 = s("check-circle");
-export const Info = s("info-circle");
-export const CheckSquare = s("check-square");
-export const ChevronDown = s("alt-arrow-down");
+export const Activity = sax("Activity");
+export const AlertTriangle = sax("Danger");
+export const ArrowLeft = sax("ArrowLeft");
+export const ArrowRight = sax("ArrowRight");
+export const ArrowUpRight = sax("ArrowUp");
+export const Bell = sax("Notification");
+export const Briefcase = sax("Briefcase");
+export const Building2 = sax("Buildings2");
+export const CalendarDays = sax("Calendar");
+export const CalendarIcon = CalendarDays;
+export const Calendar = CalendarDays;
+export const Check = sax("TickCircle");
+export const CheckCircle2 = sax("TickCircle");
+export const Info = sax("InfoCircle");
+export const CheckSquare = sax("TickSquare");
+export const ChevronDown = sax("ArrowDown2");
 export const ChevronDownIcon = ChevronDown;
-export const ChevronUp = s("alt-arrow-up");
+export const ChevronUp = sax("ArrowUp2");
 export const ChevronUpIcon = ChevronUp;
-export const ChevronLeft = s("alt-arrow-left");
+export const ChevronLeft = sax("ArrowLeft2");
 export const ChevronLeftIcon = ChevronLeft;
-export const ChevronRight = s("alt-arrow-right");
+export const ChevronRight = sax("ArrowRight2");
 export const ChevronRightIcon = ChevronRight;
-export const Circle = s("record");
+export const Circle = sax("Record");
 export const CircleIcon = Circle;
-export const ClipboardCheck = s("clipboard-check");
-export const Clock = s("clock-circle");
-export const Columns3 = s("widget-4");
-export const Command = s("command");
-export const Diamond = s("record");
-export const DollarSign = s("dollar-minimalistic");
-export const Download = s("download");
-export const FileSpreadsheet = s("document-text");
-export const FileText = s("document-text");
-export const FileUp = s("file-send");
-export const Filter = sax(SaxSetting4, "Iconsax(Setting4)");
-/** Iconsax row actions — table Edit / Delete buttons. */
-export const EditAction = sax(SaxEdit2, "Iconsax(Edit2)");
-export const DeleteAction = sax(SaxTrash, "Iconsax(Trash)");
-export const Flame = s("fire");
-export const GanttChartSquare = s("chart-square");
-export const GitBranch = s("branching-paths-up");
-export const GripVertical = s("sort-vertical");
-export const Handshake = s("hand-shake");
-export const Inbox = s("inbox");
-export const LayoutDashboard = s("widget-5");
-export const LayoutGrid = s("widget-4");
-export const Link2 = s("link");
-export const List = s("list");
-export const Lock = s("lock-keyhole-minimalistic");
-export const LogOut = s("logout-2");
-export const Mail = s("letter");
-export const MessageSquare = s("chat-round");
-export const Minus = s("minus-circle");
-export const Moon = s("moon");
-export const Sun = s("sun");
-export const MoreHorizontal = s("menu-dots");
+export const ClipboardCheck = sax("ClipboardTick");
+export const Clock = sax("Clock");
+export const Columns3 = sax("Grid2");
+export const Command = sax("Command");
+export const Diamond = sax("Record");
+export const DollarSign = sax("DollarCircle");
+export const Download = sax("DocumentDownload");
+export const FileSpreadsheet = sax("DocumentText");
+export const FileText = sax("DocumentText");
+export const FileUp = sax("DocumentUpload");
+export const Filter = sax("Setting4");
+/** Table row actions — Edit / Delete buttons. */
+export const EditAction = sax("Edit2");
+export const DeleteAction = sax("Trash");
+export const Flame = sax("Flash");
+export const GanttChartSquare = sax("ChartSquare");
+export const GitBranch = sax("Hierarchy");
+export const GripVertical = sax("Sort");
+export const Handshake = sax("People");
+export const Inbox = sax("DirectInbox");
+export const LayoutDashboard = sax("Category");
+export const LayoutGrid = sax("Element3");
+export const Link2 = sax("Link2");
+export const List = sax("TextalignJustifycenter");
+export const Lock = sax("Lock");
+export const LogOut = sax("Logout");
+export const Mail = sax("Sms");
+export const MessageSquare = sax("Message");
+export const Minus = sax("MinusCirlce");
+export const Moon = sax("Moon");
+export const Sun = sax("Sun");
+export const MoreHorizontal = sax("More");
 export const MoreHorizontalIcon = MoreHorizontal;
-export const Package = s("box");
-export const PanelLeft = s("sidebar-minimalistic");
-export const PanelLeftClose = s("sidebar-minimalistic");
-export const PanelLeftOpen = s("sidebar-minimalistic");
-export const Paperclip = s("paperclip");
-export const PartyPopper = s("confetti");
-export const Pencil = s("pen-new-square");
-export const Phone = s("phone");
-export const PiggyBank = s("safe-2");
-export const Power = s("power");
-export const Plus = sax(SaxAdd, "Iconsax(Add)");
-export const Search = s("magnifer");
+export const Package = sax("Box");
+export const PanelLeft = sax("SidebarLeft");
+export const PanelLeftClose = PanelLeft;
+export const PanelLeftOpen = PanelLeft;
+export const Paperclip = sax("Paperclip");
+export const PartyPopper = sax("Gift");
+export const Pencil = sax("Edit");
+export const Phone = sax("Call");
+export const PiggyBank = sax("Wallet2");
+export const Power = sax("ToggleOffCircle");
+export const Plus = sax("Add");
+export const Search = sax("SearchNormal1");
 export const SearchIcon = Search;
-export const Send = s("plain-2");
-export const ShieldAlert = s("shield-warning");
-export const Sparkles = s("stars");
-export const Star = s("star");
-export const Target = s("target");
-export const Trash2 = s("trash-bin-trash");
-export const TrendingUp = s("graph-up");
-export const TrendingDown = s("graph-down");
-export const Trophy = s("cup-star");
-export const Upload = s("upload");
-export const UserCheck = s("user-check");
-export const UserPlus = s("user-plus");
-export const Users = s("users-group-two-rounded");
-export const Wallet = s("wallet");
-/** Close (✕) — Iconsax CloseCircle, used by every dialog/sheet/chip close button. */
-export const X = sax(SaxCloseCircle, "Iconsax(CloseCircle)");
+export const Send = sax("Send2");
+export const ShieldAlert = sax("ShieldCross");
+export const Sparkles = sax("Magicpen");
+export const Star = sax("Star1");
+export const Target = sax("Gps");
+export const Trash2 = sax("Trash");
+export const TrendingUp = sax("TrendUp");
+export const TrendingDown = sax("TrendDown");
+export const Trophy = sax("Cup");
+export const Upload = sax("Export");
+export const UserCheck = sax("UserTick");
+export const UserPlus = sax("UserAdd");
+export const Users = sax("Profile2User");
+export const Wallet = sax("Wallet");
+/** Close (✕) — used by every dialog/sheet/chip close button. */
+export const X = sax("CloseCircle");
 export const XIcon = X;
 export const XCircle = X;
-export const Zap = s("bolt");
+export const Zap = sax("Flash");

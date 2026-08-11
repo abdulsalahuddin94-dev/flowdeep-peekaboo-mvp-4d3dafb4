@@ -405,18 +405,6 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (color: str
   );
 }
 
-function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta?: React.ReactNode }) {
-  return (
-    <div className="mb-4 flex items-end justify-between gap-3">
-      <div>
-        <h2 className="text-lg font-medium text-foreground">{title}</h2>
-        <p className="text-sm text-muted-foreground">{desc}</p>
-      </div>
-      {cta}
-    </div>
-  );
-}
-
 function RowActions(props: React.ComponentProps<typeof TableRowActions>) {
   return <TableRowActions {...props} />;
 }
@@ -459,7 +447,6 @@ function FilterBar({
   const [panelQuery, setPanelQuery] = useState("");
 
   const activeCount = filterGroups.filter((g) => g.value !== g.options[0]?.value).length;
-  const filtered = resultCount !== totalCount;
 
   function openDrawer() {
     setDraft(Object.fromEntries(filterGroups.map((g) => [g.key, g.value])));

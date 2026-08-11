@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Check, ChevronRight, Clock } from "@/lib/icons";
+import { FilterDrawer } from "@/components/FilterDrawer";
 import { projects, pipelineItems, type Project, type Rag } from "@/lib/mock-data";
 import { useProjects, useCalendars, useApprovals } from "@/lib/projects-store";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -63,7 +64,6 @@ function AllProjectsTab({ restrict, projectList }: { restrict?: boolean; project
   const [query, setQuery]         = useState("");
   const [active, setActive]       = useState<Project | null>(null);
   const navigate = useNavigate();
-  const [filterOpen, setFilterOpen] = useState(false);
   const [ragFilter, setRagFilter]   = useState<string[]>([]);
   const [stageFilter, setStageFilter] = useState<string[]>([]);
   const [tagFilter, setTagFilter]   = useState<string[]>([]);
@@ -173,90 +173,21 @@ function AllProjectsTab({ restrict, projectList }: { restrict?: boolean; project
           <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Search projects…" value={query} onChange={(e) => setQuery(e.target.value)} className="pl-8" />
         </div>
-        <Button
-          variant="outline" size="sm"
-          onClick={() => setFilterOpen((o) => !o)}
-          className={activeCount > 0 ? "border-accent/40 bg-accent-dim text-accent" : ""}
-        >
-          <Filter className="mr-1 h-3.5 w-3.5" />
-          Filters{activeCount > 0 ? ` (${activeCount})` : ""}
-        </Button>
+        <FilterDrawer
+          groups={[
+            { key: "rag", label: "RAG", multi: true, value: ragFilter, onChange: setRagFilter as never, options: ALL_RAGS.map(({ v, l }) => ({ value: v, label: l })) },
+            { key: "stage", label: "Stage", multi: true, value: stageFilter, onChange: setStageFilter as never, options: ALL_STAGES.map((s) => ({ value: s, label: s })) },
+            { key: "tags", label: "Tags", multi: true, value: tagFilter, onChange: setTagFilter as never, options: ALL_TAGS.map((t) => ({ value: t, label: t })) },
+            { key: "dept", label: "Department", value: deptFilter, onChange: setDeptFilter as never, options: ALL_DEPTS.map((d) => ({ value: d, label: d })) },
+            { key: "client", label: "Client", value: clientFilter, onChange: setClientFilter as never, options: ALL_CLIENTS.map((c) => ({ value: c, label: c })) },
+          ]}
+        />
         <div className="flex overflow-hidden rounded-md border border-border bg-secondary/40">
           {([["grid", LayoutGrid], ["list", List], ["gantt", GanttChartSquare]] as const).map(([k, Icon]) => (
             <button key={k} onClick={() => setView(k as View)} className={`p-2 ${view === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}><Icon className="h-4 w-4" /></button>
           ))}
         </div>
       </div>
-
-      {/* Filter panel */}
-      {filterOpen && (
-        <div className="mb-3 rounded-lg border border-border bg-secondary/20 p-4 space-y-3">
-          {/* RAG */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="shrink-0 w-14 text-xs text-muted-foreground">RAG</span>
-            {ALL_RAGS.map(({ v, l }) => {
-              const on = ragFilter.includes(v);
-              const dot = v === "green" ? "bg-rag-green" : v === "amber" ? "bg-rag-amber" : v === "red" ? "bg-rag-red" : v === "blue" ? "bg-rag-blue" : "bg-muted-foreground";
-              return (
-                <button key={v} onClick={() => setRagFilter((prev) => on ? prev.filter((x) => x !== v) : [...prev, v])}
-                  className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground"}`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />{l}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Stage */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="shrink-0 w-14 text-xs text-muted-foreground">Stage</span>
-            {ALL_STAGES.map((s) => {
-              const on = stageFilter.includes(s);
-              return (
-                <button key={s} onClick={() => setStageFilter((prev) => on ? prev.filter((x) => x !== s) : [...prev, s])}
-                  className={`rounded-full border px-2.5 py-1 text-xs ${on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground"}`}>
-                  {s}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Tags */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="shrink-0 w-14 text-xs text-muted-foreground">Tags</span>
-            {ALL_TAGS.map((t) => {
-              const on = tagFilter.includes(t);
-              return (
-                <button key={t} onClick={() => setTagFilter((prev) => on ? prev.filter((x) => x !== t) : [...prev, t])}
-                  className={`rounded-full border px-2.5 py-1 text-xs ${on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground"}`}>
-                  {t}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Dept + Client + Clear */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Select value={deptFilter || "all"} onValueChange={(v) => setDeptFilter(v === "all" ? "" : v)}>
-              <SelectTrigger className="h-8 w-44 text-xs"><SelectValue placeholder="Department…" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All departments</SelectItem>
-                {ALL_DEPTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={clientFilter || "all"} onValueChange={(v) => setClientFilter(v === "all" ? "" : v)}>
-              <SelectTrigger className="h-8 w-44 text-xs"><SelectValue placeholder="Client…" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All clients</SelectItem>
-                {ALL_CLIENTS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            {activeCount > 0 && (
-              <button className="ml-auto text-xs text-muted-foreground hover:text-rag-red" onClick={clearAll}>Clear all</button>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Active filter chips */}
       {activeCount > 0 && (
         <div className="mb-3 flex flex-wrap gap-1.5">

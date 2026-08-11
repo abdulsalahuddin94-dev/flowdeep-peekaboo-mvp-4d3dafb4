@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
-import { Bell, Search, Command as CmdIcon, Briefcase, Users, Zap } from "@/lib/icons";
+import { Bell, Briefcase, Users, Zap, ChevronDown } from "@/lib/icons";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import neraLogo from "@/assets/nera-logo.png.asset.json";
 import {
   Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
@@ -17,9 +22,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
 import { pipelineItems, resources } from "@/lib/mock-data";
 import { useProjects, useNotifications, useCurrentUser } from "@/lib/projects-store";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,30 +32,13 @@ const RAG_DOT: Record<string, string> = {
   red: "bg-rag-red", blue: "bg-rag-blue", grey: "bg-muted-foreground",
 };
 
-const crumbsMap: Record<string, string> = {
-  "/": "Dashboard",
-  "/organization": "Organization",
-  "/clients-vendors": "Clients & Vendors",
-  "/portfolio": "Portfolio",
-  "/pipeline": "Pipeline",
-  "/resources": "Resources",
-  "/financials": "Financials",
-  "/risks": "Risk & Issues",
-  "/procurement": "Procurement",
-  "/reports": "Reports",
-  "/roles": "Roles & Permissions",
-  "/settings": "Settings",
-};
-
 export function AppTopbar() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { projects } = useProjects();
   const { notifications, unreadCount, markAllRead } = useNotifications();
   const { currentUser, setCurrentUserId, users } = useCurrentUser();
-  const pathname = useRouterState({ select: (r) => r.location.pathname });
-  const top = "/" + (pathname.split("/")[1] ?? "");
-  const label = crumbsMap[top] ?? "Workspace";
+  const initials = currentUser.name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
 
   useEffect(() => {
     function down(e: KeyboardEvent) {
@@ -72,25 +57,15 @@ export function AppTopbar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-header-border bg-header/80 px-4 text-header-foreground backdrop-blur-md">
-      <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Link to="/" className="hover:text-accent">Home</Link>
-        <span>/</span>
-        <span className="text-foreground">{label}</span>
-      </nav>
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-header-border bg-header/80 px-5 text-header-foreground backdrop-blur-md">
+      <SidebarTrigger className="text-foreground/80 hover:text-foreground" />
+      <Link to="/" className="flex items-center gap-2" aria-label="Home">
+        <span className="text-sm text-muted-foreground">By</span>
+        <img src={neraLogo.url} alt="nera" className="h-4 w-auto" />
+      </Link>
 
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-3">
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <button className="flex h-9 w-72 items-center gap-2 rounded-md border border-border bg-secondary/40 px-3 text-sm text-muted-foreground hover:border-accent/40 hover:text-foreground">
-              <Search className="h-4 w-4 shrink-0" />
-              <span className="flex-1 truncate text-left">Search projects, people, docs…</span>
-              <kbd className="ml-auto flex shrink-0 items-center gap-0.5 rounded border border-border bg-background px-1.5 py-0.5 text-[10px]">
-                <CmdIcon className="h-3 w-3" />K
-              </kbd>
-            </button>
-          </DialogTrigger>
           <DialogContent className="overflow-hidden p-0 sm:max-w-xl">
             <Command>
               <CommandInput placeholder="Search projects, people, pipeline…" />

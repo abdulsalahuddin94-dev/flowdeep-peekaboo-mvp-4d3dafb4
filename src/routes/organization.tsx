@@ -395,7 +395,7 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (color: str
   );
 }
 
-function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta: React.ReactNode }) {
+function SectionHeader({ title, desc, cta }: { title: string; desc: string; cta?: React.ReactNode }) {
   return (
     <div className="mb-4 flex items-end justify-between gap-3">
       <div>
@@ -433,6 +433,7 @@ function FilterBar({
   resultCount,
   totalCount,
   onReset,
+  cta,
 }: {
   query: string;
   onQueryChange: (v: string) => void;
@@ -441,6 +442,7 @@ function FilterBar({
   resultCount: number;
   totalCount: number;
   onReset: () => void;
+  cta?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Record<string, string>>({});
@@ -478,8 +480,11 @@ function FilterBar({
     : [];
 
   return (
-    <div className="mb-3 flex flex-wrap items-center gap-3">
-      <div className="relative min-w-[220px] flex-1">
+    <div className="mb-3 flex flex-wrap items-center justify-end gap-3">
+      <span className="mr-auto text-xs text-muted-foreground">
+        {filtered ? `${resultCount} of ${totalCount}` : `${totalCount} item${totalCount === 1 ? "" : "s"}`}
+      </span>
+      <div className="relative w-full min-w-[220px] sm:w-72">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={query}
@@ -507,9 +512,7 @@ function FilterBar({
         </Button>
       )}
 
-      <span className="text-xs text-muted-foreground">
-        {filtered ? `${resultCount} of ${totalCount}` : `${totalCount} item${totalCount === 1 ? "" : "s"}`}
-      </span>
+      {cta}
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className="flex w-[380px] flex-col gap-0 border-l border-border bg-surface p-0 sm:max-w-[380px]">

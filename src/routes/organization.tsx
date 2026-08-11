@@ -184,11 +184,41 @@ function DepartmentsTab() {
   const [rows, setRows] = useState<OrgDepartment[]>(departments.map((d) => ({ name: d.name, head: d.head ?? "" })));
   const [editing, setEditing] = useState<{ index: number; name: string; head: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ index: number; name: string } | null>(null);
+  const [query, setQuery] = useState("");
+  const [head, setHead] = useState("all");
+
+  const heads = useMemo(
+    () => Array.from(new Set(rows.map((d) => d.head).filter(Boolean))).sort(),
+    [rows],
+  );
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return rows
+      .map((d, index) => ({ ...d, index }))
+      .filter((d) => !q || d.name.toLowerCase().includes(q) || d.head.toLowerCase().includes(q))
+      .filter((d) => head === "all" || d.head === head);
+  }, [rows, query, head]);
 
   return (
     <>
       <SectionHeader title="Departments / Units" desc="Org chart units. A project may span multiple departments."
         cta={<AddDepartmentDialog onAdd={(name, head) => setRows((prev) => [...prev, { name, head }])} />} />
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search department or head…"
+        resultCount={visible.length}
+        totalCount={rows.length}
+        onReset={() => { setQuery(""); setHead("all"); }}
+        filters={
+          <FilterSelect
+            value={head}
+            onChange={setHead}
+            options={[{ value: "all", label: "All heads" }, ...heads.map((h) => ({ value: h, label: h }))]}
+            width="w-48"
+          />
+        }
+      />
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -198,7 +228,10 @@ function DepartmentsTab() {
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {rows.map((d, i) => (
+            {visible.length === 0 && <EmptyRow colSpan={4} />}
+            {visible.map((d) => {
+              const i = d.index;
+              return (
               <TableRow key={`${d.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
                 <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{`DEP-${String(i + 1).padStart(3, "0")}`}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
@@ -210,7 +243,8 @@ function DepartmentsTab() {
                   />
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>

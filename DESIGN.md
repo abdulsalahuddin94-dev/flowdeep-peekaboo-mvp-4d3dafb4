@@ -545,6 +545,43 @@ Tokens live in `src/styles.css` as `--confirm-{tone}-{icon|surface|ring}`.
 />
 ```
 
+## Standard Popups — every other dialog (DS02)
+
+Any popup that is **not** one of the four toned confirms (success / info /
+warning / danger) uses `FormDialog` from `@/components/ui/form-dialog`.
+This is the single shape/style for add / edit / form / content dialogs.
+
+Anatomy (fixed):
+- Container: `bg-card`, 1px `--border`, radius 16px (`rounded-2xl`), padding 28px, max-height 90vh scrollable
+- Header: **bold left-aligned title** (20px, 600) + optional muted description; large 24px ✕ top-right
+- Body: left-aligned stack, `gap-5`. Each field uses `Field` + `Input`/`Textarea`/`Select` (36px, radius 8px)
+- Footer: **two equal-width buttons side by side** (`grid grid-cols-2 gap-4`) —
+  secondary `outlineSecondary` (Cancel) on the left, `primary` lavender (Save/Add) on the right.
+  Never right-align or stack them.
+- Toggles (e.g. "Enable …") sit as a full-width row: label left, `Switch` right.
+
+Sizes: `sm` (max-w-sm) · `md` (max-w-lg, default) · `lg` (max-w-2xl) · `xl` (max-w-4xl).
+
+```tsx
+<FormDialog
+  open={open} onOpenChange={setOpen}
+  title="Add Job Role"
+  cancelLabel="Cancel" submitLabel="Add Job Role"
+  onSubmit={handleSave}
+>
+  <Field label="Job Role Name">
+    <Input placeholder="Enter job role name" />
+  </Field>
+  <Field label="Description" optional>
+    <Textarea placeholder="Enter description" />
+  </Field>
+  <div className="flex items-center justify-between">
+    <span className="text-sm font-medium">Enable DOO management for this job role</span>
+    <Switch />
+  </div>
+</FormDialog>
+```
+
 ## Form Elements (DS02)
 
 ## Tables — Row Actions & Pagination (DS02)

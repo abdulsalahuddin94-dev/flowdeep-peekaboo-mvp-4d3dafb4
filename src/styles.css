@@ -24,46 +24,47 @@
    Anchor shades marked ← preserve the exact hex used before this refactor.
    ─────────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Color · Neutral (warm gray) */
-  --p-neutral-50:   #fafafa;
-  --p-neutral-100:  #f5efeb;                 /* ← anchor */
-  --p-neutral-200:  #e9e4df;                 /* ← anchor */
-  --p-neutral-300:  #e5dfd9;                 /* ← anchor */
-  --p-neutral-400:  #d4d4d4;                 /* ← anchor */
-  --p-neutral-500:  #a3a3a3;                 /* ← anchor */
-  --p-neutral-600:  #737373;                 /* ← anchor */
-  --p-neutral-700:  #525252;                 /* ← anchor */
-  --p-neutral-800:  #3d3d44;                 /* ← anchor */
-  --p-neutral-900:  #262626;                 /* ← anchor */
-  --p-neutral-950:  #1c1c24;                 /* ← anchor */
+  /* Color · Neutral / Greyscale — DS reference ramp (Gray 0 … Gray 950).
+     Semantic naming below keeps the 50→950 API: 50 = lightest, 950 = black. */
+  --p-neutral-50:   #f6f6f6;                 /* Gray 50   · Neutral 800 */
+  --p-neutral-100:  #e5e7eb;                 /* Gray 100  · Neutral 700 */
+  --p-neutral-200:  #e0e0e0;                 /* Gray 200  · Neutral 600 */
+  --p-neutral-300:  #d4d4d4;                 /* Gray 300  · Neutral 500 */
+  --p-neutral-400:  #a0a0a0;                 /* Gray 400  · Description  */
+  --p-neutral-500:  #75767f;                 /* Gray 500  · Placeholder / border darker */
+  --p-neutral-600:  #45464f;                 /* Gray 600  · Border / table header */
+  --p-neutral-700:  #282a30;                 /* Gray 700  · Tags */
+  --p-neutral-800:  #1d1d1f;                 /* Gray 800  · Input fields / page */
+  --p-neutral-900:  #12131a;                 /* Gray 900  · Main section / side menu */
+  --p-neutral-950:  #000000;                 /* Gray 950  */
   --p-white:        #ffffff;                 /* absolute white */
   --p-black:        #000000;                 /* absolute black */
 
-  /* Color · Charcoal (dark UI surfaces) */
-  --p-charcoal-50:  #e6e6ea;
-  --p-charcoal-100: #c9c9d0;
-  --p-charcoal-200: #a8a8b3;
-  --p-charcoal-300: #838391;
-  --p-charcoal-400: #5f5f6d;
-  --p-charcoal-500: #46464f;
-  --p-charcoal-600: #3a3a41;
-  --p-charcoal-700: #303036;                 /* ← anchor (row hover) */
-  --p-charcoal-800: #29292F;                 /* ← anchor (table header) */
-  --p-charcoal-850: #1D1D23;                 /* ← anchor (page bg) */
-  --p-charcoal-900: #121318;                 /* ← anchor (sidebar/card) */
-  --p-charcoal-950: #0a0a0e;
+  /* Color · Charcoal (dark UI surfaces) — aliases onto the reference greyscale */
+  --p-charcoal-50:  var(--p-neutral-100);
+  --p-charcoal-100: var(--p-neutral-300);
+  --p-charcoal-200: var(--p-neutral-400);
+  --p-charcoal-300: var(--p-neutral-500);
+  --p-charcoal-400: #5b5c66;
+  --p-charcoal-500: var(--p-neutral-600);
+  --p-charcoal-600: var(--p-neutral-700);
+  --p-charcoal-700: var(--p-neutral-600);    /* row hover      · Gray 600 */
+  --p-charcoal-800: var(--p-neutral-600);    /* table header   · Gray 600 */
+  --p-charcoal-850: var(--p-neutral-800);    /* page color     · Gray 800 */
+  --p-charcoal-900: var(--p-neutral-900);    /* main / sidebar · Gray 900 */
+  --p-charcoal-950: var(--p-neutral-950);
 
-  /* Color · Lavender */
-  --p-lavender-50:  #f7f1ff;
-  --p-lavender-100: #ecdfff;
-  --p-lavender-200: #DEC9FF;                 /* ← anchor (primary/dark accent) */
-  --p-lavender-300: #c4a9f0;
-  --p-lavender-400: #a891d2;
-  --p-lavender-500: #857999;                 /* ← anchor (sidebar gradient end) */
-  --p-lavender-600: #6d637d;
-  --p-lavender-700: #565060;
-  --p-lavender-800: #3f3a47;
-  --p-lavender-900: #2a2731;
+  /* Color · Lavender / Primary (Purple 0 → 400) */
+  --p-lavender-50:  #f1edfa;                 /* Primary Lighter · Purple 0   */
+  --p-lavender-100: #efe4fe;                 /* Primary Light   · Purple 50  */
+  --p-lavender-200: #ddc9ff;                 /* Primary         · Purple 100 */
+  --p-lavender-300: #c8b5e6;                 /* Primary Medium  · Purple 200 */
+  --p-lavender-400: #ceb1ff;                 /* Primary Dark    · Purple 300 */
+  --p-lavender-500: #9848ff;                 /* Primary Darker  · Purple 400 */
+  --p-lavender-600: #7a30d8;
+  --p-lavender-700: #5f24a8;
+  --p-lavender-800: #39304c;                 /* Purple BG · Purple 500 */
+  --p-lavender-900: #2a2438;
   --p-lavender-950: #17151b;
 
   /* Color · Indigo (deep blue-purple — sidebar in light mode, primary in light)

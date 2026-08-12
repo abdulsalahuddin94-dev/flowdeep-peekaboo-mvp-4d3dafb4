@@ -985,6 +985,12 @@
 .ds02-sidebar [data-sidebar="footer"] {
   border-color: var(--sidebar-border);
 }
+/* Sub-page (nested) nav item — selected state matches main nav pill */
+.ds02-sidebar .ds02-subnav-active {
+  background: var(--sidebar-active-bg) !important;
+  color: var(--sidebar-active-fg) !important;
+  font-weight: 600;
+}
 
 @layer components {
   .glass-card {

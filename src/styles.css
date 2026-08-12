@@ -375,17 +375,17 @@
 [data-theme="light"] {
   --background:          var(--p-white);
   --foreground:          var(--p-neutral-900);
-  --surface:             var(--p-neutral-100);
-  --card:                var(--p-neutral-100);
+  --surface:             var(--p-neutral-50);
+  --card:                var(--p-neutral-50);
   --card-foreground:     var(--p-neutral-900);
   --popover:             var(--p-white);
   --popover-foreground:  var(--p-neutral-900);
 
   --primary:              var(--p-indigo-500);
   --primary-foreground:   var(--p-white);
-  --secondary:            var(--p-neutral-400);
+  --secondary:            var(--p-neutral-100);
   --secondary-foreground: var(--p-neutral-800);
-  --muted:                var(--p-neutral-400);
+  --muted:                var(--p-neutral-100);
   --muted-foreground:     var(--p-neutral-600);
 
   --accent:               var(--p-indigo-500);
@@ -395,7 +395,7 @@
 
   --destructive:            var(--p-red-500);
   --destructive-foreground: var(--p-white);
-  --border:                 var(--p-neutral-400);
+  --border:                 var(--p-neutral-200);
   --input:                  var(--p-white);
   --ring:                   var(--p-indigo-a-50);
 
@@ -440,15 +440,15 @@
   --cat-slate-deep: var(--p-slate-600);
 
   /* Table */
-  --table-header-bg: var(--p-neutral-200);
+  --table-header-bg: var(--p-neutral-100);
   --table-header-fg: var(--p-neutral-900);
-  --table-row-bg:    var(--p-neutral-100);
-  --table-row-hover: var(--p-neutral-300);
+  --table-row-bg:    var(--p-white);
+  --table-row-hover: var(--p-neutral-50);
 
   /* Header */
   --header:            var(--p-white);
   --header-foreground: var(--p-neutral-900);
-  --header-border:     var(--p-neutral-400);
+  --header-border:     var(--p-neutral-200);
 
   /* Sidebar */
   --sidebar:                    var(--p-indigo-900);
@@ -490,10 +490,10 @@
 
   --primary:              var(--p-lavender-200);
   --primary-foreground:   var(--p-neutral-950);
-  --secondary:            var(--p-charcoal-600);
-  --secondary-foreground: var(--p-charcoal-100);
-  --muted:                var(--p-charcoal-600);
-  --muted-foreground:     var(--p-neutral-600);
+  --secondary:            var(--p-neutral-700);
+  --secondary-foreground: var(--p-neutral-300);
+  --muted:                var(--p-neutral-700);
+  --muted-foreground:     var(--p-neutral-400);
 
   --accent:               var(--p-lavender-200);
   --accent-foreground:    var(--p-neutral-950);

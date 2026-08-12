@@ -1067,37 +1067,55 @@
   border-radius: 8px;
 }
 
-/* ── DS02 button tokens (semantic, per-state) ───────────────────────────── */
+/* ── DS02 button tokens (semantic, per-state) — mapped to the reference palette
+   Primary  default Purple 100 → hover Purple 400
+   Secondary default Gray 800 → hover Gray 600
+   Outline  Purple 300 border → hover Purple 400
+   Danger   Red 700 → hover Red BG (Red 900)
+   Warning  Yellow 300 → hover Yellow 700                                    */
 :root {
-  --btn-primary-bg:            #ddd0ff;
-  --btn-primary-fg:            #1f1235;
-  --btn-primary-bg-hover:      #8b2bf2;
-  --btn-primary-fg-hover:      #ffffff;
+  --btn-primary-bg:            var(--p-lavender-200);
+  --btn-primary-fg:            var(--p-neutral-800);
+  --btn-primary-bg-hover:      var(--p-lavender-500);
+  --btn-primary-fg-hover:      var(--p-white);
 
-  --btn-secondary-bg:          #1f1f26;
-  --btn-secondary-fg:          #ffffff;
-  --btn-secondary-bg-hover:    #4a4a55;
-  --btn-secondary-border:      rgba(255, 255, 255, 0.14);
+  --btn-secondary-bg:          var(--p-neutral-800);
+  --btn-secondary-fg:          var(--p-white);
+  --btn-secondary-bg-hover:    var(--p-neutral-600);
+  --btn-secondary-border:      var(--p-white-a-12);
 
-  --btn-outline-border:        #a78bfa;
+  --btn-outline-border:        var(--p-lavender-400);
   --btn-outline-fg:            var(--foreground);
-  --btn-outline-border-hover:  #8b2bf2;
-  --btn-outline-fg-hover:      #8b2bf2;
-  --btn-outline-bg-hover:      rgba(139, 43, 242, 0.12);
+  --btn-outline-border-hover:  var(--p-lavender-500);
+  --btn-outline-fg-hover:      var(--p-lavender-500);
+  --btn-outline-bg-hover:      rgba(152, 72, 255, 0.12);
 
-  --btn-outline-2-bg:          #ffffff;
-  --btn-outline-2-fg:          #1c274c;
-  --btn-outline-2-border:      #e5e5e5;
-  --btn-outline-2-bg-hover:    #f4f4f5;
+  --btn-outline-2-bg:          var(--p-white);
+  --btn-outline-2-fg:          var(--p-neutral-900);
+  --btn-outline-2-border:      var(--p-neutral-200);
+  --btn-outline-2-bg-hover:    var(--p-neutral-50);
 
-  --btn-danger-bg:             #dc2626;
-  --btn-danger-fg:             #ffffff;
-  --btn-danger-bg-hover:       #3d0a0a;
+  --btn-danger-bg:             var(--p-red-700);
+  --btn-danger-fg:             var(--p-white);
+  --btn-danger-bg-hover:       var(--p-red-900);
 
-  --btn-warning-bg:            #fbde7b;
-  --btn-warning-fg:            #1f1235;
-  --btn-warning-bg-hover:      #a88400;
-  --btn-warning-fg-hover:      #241d05;
+  --btn-warning-bg:            var(--p-amber-300);
+  --btn-warning-fg:            var(--p-neutral-800);
+  --btn-warning-bg-hover:      var(--p-amber-700);
+  --btn-warning-fg-hover:      var(--p-amber-50);
+}
+
+/* Light theme: only the neutral-driven button surfaces flip */
+[data-theme="light"] {
+  --btn-secondary-bg:       var(--p-white);
+  --btn-secondary-fg:       var(--p-neutral-900);
+  --btn-secondary-bg-hover: var(--p-neutral-50);
+  --btn-secondary-border:   var(--p-neutral-200);
+
+  --btn-outline-2-bg:       var(--p-neutral-900);
+  --btn-outline-2-fg:       var(--p-white);
+  --btn-outline-2-border:   var(--p-neutral-700);
+  --btn-outline-2-bg-hover: var(--p-neutral-800);
 }
 
 /* ── DS02 confirmation popup tokens (success / info / warning / danger) ──── */

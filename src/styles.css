@@ -1120,21 +1120,21 @@
 
 /* ── DS02 confirmation popup tokens (success / info / warning / danger) ──── */
 :root {
-  --confirm-success-icon:   #14b8a6;
-  --confirm-success-surface: #e0f7f3;
-  --confirm-success-ring:   #14b8a6;
+  --confirm-success-icon:    var(--p-emerald-500);
+  --confirm-success-surface: var(--p-emerald-50);
+  --confirm-success-ring:    var(--p-emerald-500);
 
-  --confirm-info-icon:      #2b93f5;
-  --confirm-info-surface:   #dceeff;
-  --confirm-info-ring:      #2b93f5;
+  --confirm-info-icon:       var(--p-blue-500);
+  --confirm-info-surface:    var(--p-blue-50);
+  --confirm-info-ring:       var(--p-blue-500);
 
-  --confirm-warning-icon:   #d9a300;
-  --confirm-warning-surface: #fdf3d3;
-  --confirm-warning-ring:   #e8bb3a;
+  --confirm-warning-icon:    var(--p-amber-600);
+  --confirm-warning-surface: var(--p-amber-50);
+  --confirm-warning-ring:    var(--p-amber-500);
 
-  --confirm-danger-icon:    #dc2626;
-  --confirm-danger-surface: #fde3e3;
-  --confirm-danger-ring:    #ef4444;
+  --confirm-danger-icon:     var(--p-red-700);
+  --confirm-danger-surface:  var(--p-red-50);
+  --confirm-danger-ring:     var(--p-red-500);
 }
 
 /* ── DS02 form field tokens + states (input / textarea / select) ────────────

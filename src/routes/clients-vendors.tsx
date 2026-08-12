@@ -21,7 +21,7 @@ import { clients, vendors, projects, contracts } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/clients-vendors")({
   component: ClientsVendorsPage,
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
     tab: typeof search.tab === "string" ? search.tab : undefined,
   }),
   head: () => ({ meta: [{ title: "Clients & Vendors — Nexus PMO" }, { name: "description", content: "Manage external parties: clients with active engagements and approved vendor / subcontractor pool." }] }),

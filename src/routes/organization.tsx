@@ -26,14 +26,14 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/organization")({
   component: OrganizationPage,
-  validateSearch: (search: Record<string, unknown>) => ({
-    tab: typeof search.tab === "string" ? search.tab : "business-lines",
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
   }),
   head: () => ({ meta: [{ title: "Organization — Nexus PMO" }, { name: "description", content: "Manage business lines, departments and classification tags." }] }),
 });
 
 function OrganizationPage() {
-  const { tab } = Route.useSearch();
+  const { tab = "business-lines" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   return (
     <div>

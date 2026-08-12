@@ -20,7 +20,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/resources")({
   component: ResourcesPage,
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
     tab: typeof search.tab === "string" ? search.tab : undefined,
   }),
   head: () => ({ meta: [{ title: "Resources — Nexus PMO" }, { name: "description", content: "Capacity planning, allocation vs assignment, utilization heatmap and skill demand." }] }),

@@ -86,7 +86,7 @@ export function AppSidebar() {
                   return (
                     <SidebarMenuItem key={item.url}>
                       <SidebarMenuButton
-                        isActive={active}
+                        isActive={false}
                         tooltip={item.title}
                         onClick={() => setOrgOpen((o) => !o)}
                         className="h-10 rounded-lg px-3 text-sm font-medium"
@@ -111,7 +111,7 @@ export function AppSidebar() {
                                 className={cn(
                                   "flex items-center gap-3 rounded-lg py-2 pl-4 pr-3 text-sm transition-colors",
                                   tabActive
-                                    ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                                    ? "ds02-subnav-active"
                                     : "text-sidebar-foreground/70 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground",
                                 )}
                               >

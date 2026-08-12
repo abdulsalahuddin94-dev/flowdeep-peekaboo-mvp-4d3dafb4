@@ -399,10 +399,10 @@
   --input:                  var(--p-white);
   --ring:                   var(--p-indigo-a-50);
 
-  --rag-green: var(--p-emerald-500);
-  --rag-amber: var(--p-amber-500);
-  --rag-red:   var(--p-red-500);
-  --rag-blue:  var(--p-blue-500);
+  --rag-green: var(--p-emerald-600);
+  --rag-amber: var(--p-amber-600);
+  --rag-red:   var(--p-red-600);
+  --rag-blue:  var(--p-blue-600);
   --rag-grey:  var(--p-slate-500);
 
   /* Chart palette (shared across recharts / SVG visualisations) */
@@ -506,10 +506,10 @@
   --input:                  var(--p-white-a-6);
   --ring:                   var(--p-lavender-a-40);
 
-  --rag-green: var(--p-emerald-500);
-  --rag-amber: var(--p-amber-500);
-  --rag-red:   var(--p-red-500);
-  --rag-blue:  var(--p-blue-500);
+  --rag-green: var(--p-emerald-600);
+  --rag-amber: var(--p-amber-600);
+  --rag-red:   var(--p-red-600);
+  --rag-blue:  var(--p-blue-600);
   --rag-grey:  var(--p-slate-500);
 
   /* Chart palette — dark */

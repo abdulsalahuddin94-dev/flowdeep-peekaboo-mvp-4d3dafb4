@@ -413,8 +413,6 @@ export type FilterGroup = {
 
 /** Shared search + filter toolbar (side-drawer filters) used by every Organization tab. */
 function FilterBar({
-  title,
-  desc,
   query,
   onQueryChange,
   placeholder,

@@ -35,6 +35,9 @@ const COST_ITEMS = [
 
 export const Route = createFileRoute("/financials")({
   component: FinancialsPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
   head: () => ({ meta: [{ title: "Financials â€” Nexus PMO" }, { name: "description", content: "Portfolio-wide budgets, CAPEX/OPEX split, change requests and milestone-linked revenue recognition." }] }),
 });
 
@@ -149,6 +152,7 @@ function FinancialsPage() {
     <div>
       <PageHeader
         title="Financials"
+        current={FIN_TAB_LABELS[tab] ?? "Overview (P&L)"}
         subtitle="Portfolio budgets, burn rates, CRs and revenue recognition"
         actions={
           <>
@@ -158,12 +162,8 @@ function FinancialsPage() {
         }
       />
 
-      <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTrigger value="overview">Overview (P&L)</TabsTrigger>
-          <TabsTrigger value="cost">Cost Recognition</TabsTrigger>
-          <TabsTrigger value="rev">Revenue Recognition</TabsTrigger>
-        </TabsList>
+      {/* Subpages live in the sidebar (?tab=) */}
+      <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
 
         <TabsContent value="overview" className="mt-5">
           {/* KPI row */}

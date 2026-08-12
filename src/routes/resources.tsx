@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +20,9 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/resources")({
   component: ResourcesPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
   head: () => ({ meta: [{ title: "Resources — Nexus PMO" }, { name: "description", content: "Capacity planning, allocation vs assignment, utilization heatmap and skill demand." }] }),
 });
 
@@ -36,9 +39,16 @@ const PRIORITY_STYLE: Record<Priority, string> = {
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
+const RES_TAB_LABELS: Record<string, string> = {
+  requests: "Requests", people: "People", heatmap: "Utilization Heatmap",
+  planning: "Manpower Planning", skills: "Skill Demand",
+};
+
 type PoolResource = typeof resources[number];
 
 function ResourcesPage() {
+  const { tab = "requests" } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const [pool, setPool] = useState<PoolResource[]>(resources.map((r) => ({ ...r })));
   const { resourceRequests: requests, updateResourceRequest } = useResourceRequests();
 
@@ -66,6 +76,7 @@ function ResourcesPage() {
     <div>
       <PageHeader
         title="Resources"
+        current={RES_TAB_LABELS[tab] ?? "Requests"}
         subtitle="People, capacity & allocation across the portfolio"
         actions={
           <>
@@ -91,21 +102,9 @@ function ResourcesPage() {
         ))}
       </div>
 
-      <Tabs defaultValue="requests">
-        <TabsList>
-          <TabsTrigger value="requests" className="relative">
-            Requests
-            {pendingCount > 0 && (
-              <span className="ml-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-rag-amber px-1 text-[10px] font-bold text-black">
-                {pendingCount}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="people">People</TabsTrigger>
-          <TabsTrigger value="heatmap">Utilization Heatmap</TabsTrigger>
-          <TabsTrigger value="planning">Manpower Planning</TabsTrigger>
-          <TabsTrigger value="skills">Skill Demand</TabsTrigger>
-        </TabsList>
+      {/* Subpages live in the sidebar (?tab=) */}
+      <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
+
 
         {/* ── Requests tab ──────────────────────────────────────────────────── */}
         <TabsContent value="requests" className="mt-5 space-y-3">

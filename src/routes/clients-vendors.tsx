@@ -21,6 +21,9 @@ import { clients, vendors, projects, contracts } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/clients-vendors")({
   component: ClientsVendorsPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
   head: () => ({ meta: [{ title: "Clients & Vendors — Nexus PMO" }, { name: "description", content: "Manage external parties: clients with active engagements and approved vendor / subcontractor pool." }] }),
 });
 
@@ -52,16 +55,19 @@ const RAG_BAR: Record<string, string> = {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 function ClientsVendorsPage() {
+  const { tab = "clients" } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const [clientView, setClientView] = useState<typeof clients[number] | null>(null);
 
   return (
     <div>
-      <PageHeader title="Clients & Vendors" subtitle="External parties — clients with engagements, vendors and subcontractors approved for procurement" />
-      <Tabs defaultValue="clients">
-        <TabsList>
-          <TabsTrigger value="clients">Clients ({clients.length})</TabsTrigger>
-          <TabsTrigger value="vendors">Vendors ({vendors.length})</TabsTrigger>
-        </TabsList>
+      <PageHeader
+        title="Clients & Vendors"
+        current={tab === "vendors" ? "Vendors" : "Clients"}
+        subtitle="External parties — clients with engagements, vendors and subcontractors approved for procurement"
+      />
+      {/* Subpages live in the sidebar (?tab=) */}
+      <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
 
         {/* ── Clients tab ──────────────────────────────────────────────── */}
         <TabsContent value="clients" className="mt-5">

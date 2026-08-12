@@ -7,7 +7,7 @@ export const StyledTableCell = TableCell;
 export const StyledTableHead = TableHead;
 
 export const StyledTableRow = ({ className = "", ...props }: React.ComponentProps<typeof TableRow>) => (
-  <TableRow className={`bg-[#1D1D23] hover:bg-[#252530] border-0 ${className}`} {...props} />
+  <TableRow className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${className}`} {...props} />
 );
 
 export const StyledTableHeaderRow = ({ className = "", ...props }: React.ComponentProps<typeof TableRow>) => (

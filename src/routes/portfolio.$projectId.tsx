@@ -2031,7 +2031,7 @@ function BusinessTripsTab({ pm }: { pm: string }) {
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Trip</TableHead><TableHead>Purpose</TableHead><TableHead>Destination</TableHead><TableHead>Dates</TableHead><TableHead>Travelers</TableHead><TableHead>Cost</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
           <TableBody>{trips.map((r) => (
-            <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+            <TableRow key={r.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
               <TableCell className="font-medium text-foreground">{r.id}</TableCell>
               <TableCell>{r.purpose}</TableCell>
               <TableCell>{r.dest}</TableCell>
@@ -2189,7 +2189,7 @@ function FinancialsTab({ project, milestones }: { project: typeof projects[numbe
           </TableHeader>
           <TableBody>
             {displayRev.map((r, idx) => (
-              <TableRow key={r.ms} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+              <TableRow key={r.ms} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                 <TableCell className="font-medium text-foreground">
                   <div className="flex items-center gap-2">
                     <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${r.linkKind === "fixed" ? "bg-secondary/40 text-muted-foreground" : "bg-accent/15 text-accent"}`}>
@@ -3378,7 +3378,7 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>ID</TableHead><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Score</TableHead><TableHead>Owner</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
           <TableBody>{displayItems.map((r) => (
-            <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+            <TableRow key={r.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
               <TableCell className="num-mono text-xs">{r.id}</TableCell>
               <TableCell className="font-medium">{r.title}</TableCell>
               <TableCell>{r.kind}</TableCell>
@@ -3628,7 +3628,7 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
           <TableBody>
             {packages.map((pkg) => (
               <Fragment key={pkg.id}>
-                <TableRow className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                <TableRow className="bg-table-row-bg hover:bg-table-row-hover border-0">
                   <TableCell className="font-medium text-foreground">{pkg.id}</TableCell>
                   <TableCell>{pkg.scope}</TableCell>
                   <TableCell className="num-mono">{pkg.est}</TableCell>
@@ -3720,7 +3720,7 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Contract</TableHead><TableHead>Vendor</TableHead><TableHead>Value</TableHead><TableHead>End</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
           <TableBody>{contracts.map((c) => (
-            <TableRow key={c.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+            <TableRow key={c.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
               <TableCell className="num-mono text-xs text-accent">{c.id}</TableCell>
               <TableCell>{c.vendor}</TableCell>
               <TableCell className="num-mono">{c.value}</TableCell>
@@ -3736,7 +3736,7 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>RFP</TableHead><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Due</TableHead><TableHead>Bidders</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
           <TableBody>{rfps.map((r) => (
-            <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+            <TableRow key={r.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
               <TableCell className="num-mono text-xs text-accent">{r.id}</TableCell>
               <TableCell>{r.title}</TableCell>
               <TableCell>{r.type}</TableCell>
@@ -3844,7 +3844,7 @@ function StakeholdersTab() {
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Name</TableHead><TableHead>Org</TableHead><TableHead>Influence</TableHead><TableHead>Interest</TableHead><TableHead>Strategy</TableHead></TableRow></TableHeader>
           <TableBody>{displayStk.map((s) => (
-            <TableRow key={s.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+            <TableRow key={s.name} className="bg-table-row-bg hover:bg-table-row-hover border-0">
               <TableCell className="font-medium">{s.name}</TableCell>
               <TableCell>{s.org}</TableCell>
               <TableCell className={colorFor(s.influence)}>{s.influence}</TableCell>
@@ -5300,7 +5300,7 @@ function TeamAllocationTab({
                       { r: "Security Reviewer",  f: 0.5, sk: "Senior", p: "Aug",     src: "Subcontract", s: "green", sl: "Confirmed" },
                       { r: "Change Manager",     f: 0.5, sk: "Mid",    p: "Sep",     src: "Internal",  s: "amber", sl: "Pending" },
                     ].map((m) => (
-                      <TableRow key={m.r} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                      <TableRow key={m.r} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                         <TableCell className="font-medium text-foreground">{m.r}</TableCell>
                         <TableCell className="num-mono">{m.f}</TableCell>
                         <TableCell>{m.sk}</TableCell>
@@ -5346,7 +5346,7 @@ function TeamAllocationTab({
                   </TableHeader>
                   <TableBody>
                     {teamMembers.map((m) => (
-                      <TableRow key={m.n} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                      <TableRow key={m.n} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                         <TableCell className="font-medium">{m.n}</TableCell>
                         <TableCell>{m.r}</TableCell>
                         <TableCell>

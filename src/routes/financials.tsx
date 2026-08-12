@@ -136,7 +136,7 @@ function FinancialsPage() {
 
   const chartTooltip = {
     contentStyle: {
-      background: "#1D1D23",
+      background: "var(--table-row-bg)",
       border: "1px solid rgba(255,255,255,0.08)",
       borderRadius: 8,
       fontSize: 12,
@@ -324,7 +324,7 @@ function FinancialsPage() {
             </TableRow></TableHeader>
             <TableBody>{pnlRows.map(({ p, revenue, expectedProfit, expectedProfitPct, margin, burnPct }) => {
               return (
-                <TableRow key={p.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                <TableRow key={p.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                   <TableCell className="font-medium text-foreground">{p.name}</TableCell>
                   <TableCell className="text-muted-foreground">{p.businessLine}</TableCell>
                   <TableCell className="num-mono">${revenue.toFixed(2)}M</TableCell>
@@ -369,7 +369,7 @@ function FinancialsPage() {
               <TableHead>Linked Milestone</TableHead><TableHead>Due</TableHead><TableHead>Status</TableHead>
             </TableRow></TableHeader>
             <TableBody>{COST_ITEMS.map((c) => (
-              <TableRow key={`${c.project}-${c.item}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+              <TableRow key={`${c.project}-${c.item}`} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                 <TableCell className="font-medium">{c.project}</TableCell>
                 <TableCell className="text-sm">{c.item}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{c.cat}</TableCell>
@@ -406,7 +406,7 @@ function FinancialsPage() {
               const daysStatus = daysNum < 0 ? "text-rag-red" : daysNum < 7 ? "text-rag-amber" : "text-rag-green";
               const payment = r.payment ?? "";
               return (
-                <TableRow key={r.project} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+                <TableRow key={r.project} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                   <TableCell className="font-medium">{r.project}</TableCell>
                   <TableCell className="text-sm">{r.milestone}</TableCell>
                   <TableCell className="text-xs">{r.due}</TableCell>

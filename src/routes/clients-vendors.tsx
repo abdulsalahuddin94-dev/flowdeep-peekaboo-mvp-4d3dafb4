@@ -314,7 +314,7 @@ function VendorsTab() {
           </TableRow></TableHeader>
           <TableBody>
             {list.map((v) => (
-              <TableRow key={v.name} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+              <TableRow key={v.name} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                 <TableCell className="font-medium text-foreground">{v.name}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={v.type === "Vendor" ? "border-rag-blue/40 bg-rag-blue/10 text-rag-blue" : "border-role-exec/40 bg-role-exec/10 text-role-exec"}>

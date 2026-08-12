@@ -460,7 +460,7 @@
   --sidebar-accent-foreground:  var(--p-white);
   --sidebar-border:             var(--p-white-a-8);
   --sidebar-ring:               var(--p-lavender-a-40);
-  --sidebar-active-bg:          linear-gradient(180deg, var(--p-lavender-200) 0%, var(--p-lavender-500) 100%);
+  --sidebar-active-bg:          linear-gradient(180deg, #DEC9FF 0%, #A596BE 100%);
   --sidebar-active-fg:          var(--p-indigo-800);
 
   --sidebar-badge-bg:           var(--p-white-a-15);

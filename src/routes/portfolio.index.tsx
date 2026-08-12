@@ -342,6 +342,13 @@ function ProjectListView({ items, onOpen, pendingByProject }: { items: Project[]
 }
 
 function GanttView({ items }: { items: Project[] }) {
+  const ragColor: Record<Rag, string> = {
+    green: "bg-rag-green/45",
+    amber: "bg-rag-amber/45",
+    red: "bg-rag-red/45",
+    blue: "bg-rag-blue/45",
+    grey: "bg-rag-grey/45",
+  };
   return (
     <div className="glass-card overflow-x-auto p-4">
       <div className="mb-2 grid grid-cols-[180px_repeat(12,minmax(40px,1fr))] gap-px text-[10px] text-muted-foreground">
@@ -353,18 +360,26 @@ function GanttView({ items }: { items: Project[] }) {
       {items.map((p, i) => {
         const start = (i * 7) % 9;
         const length = 3 + (i % 6);
-        const color = p.rag === "green" ? "#10B981" : p.rag === "amber" ? "#F59E0B" : p.rag === "red" ? "#EF4444" : p.rag === "blue" ? "#3B82F6" : "#64748B";
         return (
           <div key={p.id} className="grid grid-cols-[180px_repeat(12,minmax(40px,1fr))] items-center gap-px py-1 text-xs">
             <div className="truncate pr-2 text-foreground">{p.name}</div>
             {Array.from({ length: 12 }).map((_, c) => (
               <div key={c} className="h-5 border-l border-border/40">
-                {c >= start && c < start + length && <div className="h-full rounded-sm" style={{ background: color, opacity: 0.7 }} />}
+                {c >= start && c < start + length && <div className={cn("h-full rounded-sm", ragColor[p.rag])} />}
               </div>
             ))}
           </div>
         );
       })}
+      <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border pt-3 text-[11px] text-muted-foreground">
+        <span className="text-xs font-medium text-foreground">Status:</span>
+        {ALL_RAGS.map(({ v, l }) => (
+          <span key={v} className="inline-flex items-center gap-1.5">
+            <span className={cn("h-2 w-2 rounded-full", `bg-rag-${v}`)} />
+            {l}
+          </span>
+        ))}
+      </div>
     </div>
   );
 }

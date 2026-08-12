@@ -474,7 +474,7 @@ function ProjectDetail() {
             <RagBadge rag={project.rag} />
             <Badge variant="outline" className="border-border bg-secondary/40">{project.stage}</Badge>
             <Button variant="outline" size="sm" onClick={() => window.print()}>Export</Button>
-            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setReportOpen(true)}>Submit status</Button>
+            <Button size="sm" variant="primary" onClick={() => setReportOpen(true)}>Submit status</Button>
           </div>
         }
       />
@@ -1432,7 +1432,7 @@ function AddTeamMemberDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Add Member</Button>
+          <Button variant="primary" onClick={submit}>Add Member</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -1512,7 +1512,7 @@ function RequestResourceDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Submit Request</Button>
+          <Button variant="primary" onClick={submit}>Submit Request</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -1951,8 +1951,7 @@ function ProgressUpdateDialog({
             <div className="flex flex-col gap-2">
               <Button
                 onClick={save}
-                disabled={!current}
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
+                disabled={!current} variant="primary"
               >
                 Save update
               </Button>
@@ -2364,7 +2363,7 @@ function RequestResourcesDialog({ projectName }: { projectName: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button size="sm" variant="primary">
           <UserPlus className="mr-1.5 h-3.5 w-3.5" />Request Resources
         </Button>
       </DialogTrigger>
@@ -2441,7 +2440,7 @@ function RequestResourcesDialog({ projectName }: { projectName: string }) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSubmit}>
+          <Button variant="primary" onClick={handleSubmit}>
             Submit request
           </Button>
         </DialogFooter>
@@ -2912,7 +2911,7 @@ function AddMilestoneDialog({
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       {!hideTrigger && (
         <DialogTrigger asChild>
-          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Item</Button>
+          <Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Item</Button>
         </DialogTrigger>
       )}
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -3179,7 +3178,7 @@ function AddMilestoneDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>{isEditing ? `Save ${kind}` : `Add ${kind}`}</Button>
+          <Button variant="primary" onClick={submit}>{isEditing ? `Save ${kind}` : `Add ${kind}`}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -3207,7 +3206,7 @@ function LogTripDialog({ onAdd, teamMembers }: { onAdd: (t: Omit<Trip, "id">) =>
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Log Trip</Button>
+        <Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Log Trip</Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>Log Business Trip</DialogTitle></DialogHeader>
@@ -3243,7 +3242,7 @@ function LogTripDialog({ onAdd, teamMembers }: { onAdd: (t: Omit<Trip, "id">) =>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Log Trip</Button>
+          <Button variant="primary" onClick={submit}>Log Trip</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -3312,7 +3311,7 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
         <div className="label-eyebrow">Project Risks & Issues</div>
         {canEdit && <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button size="sm" variant="primary">
               <AlertTriangle className="mr-1 h-4 w-4" />Log Risk / Issue
             </Button>
           </DialogTrigger>
@@ -3369,7 +3368,7 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Log {kind}</Button>
+              <Button variant="primary" onClick={submit}>Log {kind}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>}
@@ -3420,7 +3419,7 @@ function StatusReportsTab({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="label-eyebrow">{reports.length} status reports</div>
-        <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => onExternalOpenChange(true)}>
+        <Button size="sm" variant="primary" onClick={() => onExternalOpenChange(true)}>
           Submit Week {nextWeek} Report
         </Button>
       </div>
@@ -3461,7 +3460,7 @@ function StatusReportsTab({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => onExternalOpenChange(false)}>Cancel</Button>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Submit Report</Button>
+            <Button variant="primary" onClick={submit}>Submit Report</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -3612,7 +3611,7 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setNewPkgOpen(false)}>Cancel</Button>
-                  <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleNewPackage}>Create Request</Button>
+                  <Button variant="primary" onClick={handleNewPackage}>Create Request</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -3799,7 +3798,7 @@ function StakeholdersTab() {
         <div className="label-eyebrow">Stakeholder matrix · {displayStk.length} stakeholders</div>
         {canEdit && <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><UserPlus className="mr-1 h-4 w-4" />Add Stakeholder</Button>
+            <Button size="sm" variant="primary"><UserPlus className="mr-1 h-4 w-4" />Add Stakeholder</Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader><DialogTitle>Add Stakeholder</DialogTitle></DialogHeader>
@@ -3834,7 +3833,7 @@ function StakeholdersTab() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Add Stakeholder</Button>
+              <Button variant="primary" onClick={submit}>Add Stakeholder</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>}
@@ -4182,7 +4181,7 @@ function AddFinanceLinkDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Add link</Button>
+          <Button variant="primary" onClick={submit}>Add link</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -4284,7 +4283,7 @@ function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Add Entry</Button>
+          <Button variant="primary" onClick={submit}>Add Entry</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -4323,7 +4322,7 @@ function AddRevenueDialog({ onAdd }: { onAdd: (e: RevEntry) => void }) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Add Event</Button>
+          <Button variant="primary" onClick={submit}>Add Event</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -4518,7 +4517,7 @@ function LessonsTab({ project }: { project: typeof projects[number] }) {
         <div className="label-eyebrow">{items.length} lessons recorded</div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />Add Lesson</Button>
+            <Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Lesson</Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader><DialogTitle>Add Lesson Learned</DialogTitle></DialogHeader>
@@ -4553,7 +4552,7 @@ function LessonsTab({ project }: { project: typeof projects[number] }) {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={submit}>Add Lesson</Button>
+              <Button variant="primary" onClick={submit}>Add Lesson</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -4867,8 +4866,7 @@ function ChangeRequestDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
+          <Button variant="primary"
             onClick={handleSubmit}
             disabled={changes.length === 0}
           >
@@ -5208,8 +5206,7 @@ function DependencyDialog({
               </div>
 
               <Button
-                size="sm"
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
+                size="sm" variant="primary"
                 onClick={addDependency}
                 disabled={!selectedPred}
               >
@@ -5221,7 +5218,7 @@ function DependencyDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={save}>Save Dependencies</Button>
+          <Button variant="primary" onClick={save}>Save Dependencies</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -210,7 +210,7 @@ export function PageToolbar({
           )}
           <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-4">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={apply}>Apply</Button>
+            <Button variant="primary" onClick={apply}>Apply</Button>
           </div>
         </SheetContent>
       </Sheet>

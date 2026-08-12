@@ -408,7 +408,7 @@ function FulfillDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button size="sm" variant="primary">
           <CheckCircle2 className="mr-1 h-3.5 w-3.5" />Fulfill
         </Button>
       </DialogTrigger>
@@ -493,7 +493,7 @@ function FulfillDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSave}>
+          <Button variant="primary" onClick={handleSave}>
             <CheckCircle2 className="mr-1 h-3.5 w-3.5" />Confirm assignment
           </Button>
         </DialogFooter>
@@ -590,7 +590,7 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button size="sm" variant="primary">
           <Plus className="mr-1 h-4 w-4" />Add Resource
         </Button>
       </DialogTrigger>
@@ -665,7 +665,7 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSave}>
+          <Button variant="primary" onClick={handleSave}>
             <Plus className="mr-1 h-3.5 w-3.5" />Add to pool
           </Button>
         </DialogFooter>
@@ -769,7 +769,7 @@ function AssignDialog({ resource, onAssign }: { resource: PoolResource; onAssign
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSave}>Confirm assignment</Button>
+          <Button variant="primary" onClick={handleSave}>Confirm assignment</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

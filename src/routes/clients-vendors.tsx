@@ -285,7 +285,7 @@ function ClientSheet({ client, onClose }: { client: typeof clients[number] | nul
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setConnectOpen(false); setConnectSel([]); setConnectSearch(""); }}>Cancel</Button>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleConnect}>
+            <Button variant="primary" onClick={handleConnect}>
               Link {connectSel.length > 0 ? `${connectSel.length} project${connectSel.length !== 1 ? "s" : ""}` : "selected"}
             </Button>
           </DialogFooter>
@@ -551,7 +551,7 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setConnectOpen(false); setConnectSel([]); }}>Cancel</Button>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleConnect}>
+            <Button variant="primary" onClick={handleConnect}>
               Link {connectSel.length > 0 ? `${connectSel.length} contract${connectSel.length !== 1 ? "s" : ""}` : "selected"}
             </Button>
           </DialogFooter>
@@ -600,7 +600,7 @@ function AddClientDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button size="sm" variant="primary">
           <Plus className="mr-1 h-4 w-4" />Add Client
         </Button>
       </DialogTrigger>
@@ -710,7 +710,7 @@ function AddClientDialog() {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSave}>
+          <Button variant="primary" onClick={handleSave}>
             <Plus className="mr-1 h-3.5 w-3.5" />Add Client
           </Button>
         </DialogFooter>
@@ -745,7 +745,7 @@ function AddVendorDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button size="sm" variant="primary">
           <Plus className="mr-1 h-4 w-4" />Add Vendor
         </Button>
       </DialogTrigger>
@@ -841,7 +841,7 @@ function AddVendorDialog() {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSave}>
+          <Button variant="primary" onClick={handleSave}>
             <Plus className="mr-1 h-3.5 w-3.5" />Add to pool
           </Button>
         </DialogFooter>

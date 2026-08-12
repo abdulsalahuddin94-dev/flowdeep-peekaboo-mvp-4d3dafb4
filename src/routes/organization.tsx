@@ -151,7 +151,7 @@ function BusinessLinesTab() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
-            <Button className="bg-accent text-accent-foreground" onClick={() => {
+            <Button variant="primary" onClick={() => {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Name is required"); return; }
@@ -252,7 +252,7 @@ function DepartmentsTab() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
-            <Button className="bg-accent text-accent-foreground" onClick={() => {
+            <Button variant="primary" onClick={() => {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Name is required"); return; }
@@ -354,7 +354,7 @@ function TagsTab() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
-            <Button className="bg-accent text-accent-foreground" onClick={() => {
+            <Button variant="primary" onClick={() => {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Tag name is required"); return; }
@@ -439,7 +439,7 @@ function AddBusinessLineDialog({ onAdd }: { onAdd: (name: string, description: s
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={() => {
+          <Button variant="primary" onClick={() => {
             const trimmed = name.trim();
             if (!trimmed) { toast.error("Name is required"); return; }
             onAdd(trimmed, description.trim());
@@ -467,7 +467,7 @@ function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, head: string) =>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={() => {
+          <Button variant="primary" onClick={() => {
             const trimmed = name.trim();
             if (!trimmed) { toast.error("Name is required"); return; }
             onAdd(trimmed, head.trim());
@@ -564,7 +564,7 @@ function AddTagDialog() {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={save}>Save</Button>
+          <Button variant="primary" onClick={save}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -848,7 +848,7 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={save}>
+          <Button variant="primary" onClick={save}>
             {isEdit ? "Save changes" : "Create Calendar"}
           </Button>
         </DialogFooter>
@@ -945,7 +945,7 @@ function CostCategoriesTab() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
-            <Button className="bg-accent text-accent-foreground" onClick={() => {
+            <Button variant="primary" onClick={() => {
               if (!editing) return;
               const name = editing.name.trim();
               const number = editing.number.trim();
@@ -1028,7 +1028,7 @@ function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={save}>Save</Button>
+          <Button variant="primary" onClick={save}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -1146,7 +1146,7 @@ function JobRolesTab() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
-            <Button className="bg-accent text-accent-foreground" onClick={() => {
+            <Button variant="primary" onClick={() => {
               if (!editing) return;
               const t = editing.title.trim();
               if (!t) { toast.error("Role title is required"); return; }
@@ -1214,7 +1214,7 @@ function AddJobRoleDialog({ onAdd }: { onAdd: (title: string, skills: string[]) 
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={save}>Save</Button>
+          <Button variant="primary" onClick={save}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

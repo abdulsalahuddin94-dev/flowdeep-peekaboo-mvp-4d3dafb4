@@ -216,7 +216,7 @@ export function ProjectGantt({ projectId, defaultAssignee }: { projectId: string
           <Button variant="outline" size="sm" onClick={() => setWeekStart(addDays(weekStart, -7))}>‹ Prev</Button>
           <Button variant="outline" size="sm" onClick={() => setWeekStart(startOfWeek(new Date()))}>Today</Button>
           <Button variant="outline" size="sm" onClick={() => setWeekStart(addDays(weekStart, 7))}>Next ›</Button>
-          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => { setEditing(null); setDialogOpen(true); }}>
+          <Button size="sm" variant="primary" onClick={() => { setEditing(null); setDialogOpen(true); }}>
             <Plus className="mr-1 h-3.5 w-3.5" /> Add task
           </Button>
         </div>
@@ -411,7 +411,7 @@ function TaskDialog({
           ) : <span />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={submit} className="bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button onClick={submit} variant="primary">
               {editing ? "Save" : "Create"}
             </Button>
           </div>

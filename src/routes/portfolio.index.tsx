@@ -622,7 +622,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); setOpen(o); }}>
       <DialogTrigger asChild>
-        <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button variant="primary">
           <Plus className="mr-1 h-4 w-4" />New Project
         </Button>
       </DialogTrigger>
@@ -735,7 +735,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => { reset(); setOpen(false); }}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleCreate}>Create Project</Button>
+          <Button variant="primary" onClick={handleCreate}>Create Project</Button>
         </DialogFooter>
         </>
         )}
@@ -809,7 +809,7 @@ function NewBusinessCaseDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />New Business Case</Button>
+        <Button variant="primary"><Plus className="mr-1 h-4 w-4" />New Business Case</Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
@@ -843,7 +843,7 @@ function NewBusinessCaseDialog() {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Save draft</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={() => { toast.success("Business Case submitted for review"); setOpen(false); }}>Submit</Button>
+          <Button variant="primary" onClick={() => { toast.success("Business Case submitted for review"); setOpen(false); }}>Submit</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

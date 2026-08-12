@@ -555,8 +555,7 @@ export function TabChangeRequestDialog<TSnapshot>({
           <Button variant="outline" onClick={() => setCrDialogOpen(false)}>
             Cancel
           </Button>
-          <Button
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
+          <Button variant="primary"
             onClick={handleSubmit}
             disabled={pendingChanges.length === 0 || approverPool.length === 0}
           >

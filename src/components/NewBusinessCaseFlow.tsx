@@ -118,13 +118,12 @@ export function NewBusinessCaseFlow({ open, onOpenChange }: { open: boolean; onO
                       <ChevronLeft className="mr-1 h-3 w-3" />Back
                     </Button>
                     {!isLast ? (
-                      <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => setStep((s) => s + 1)}>
+                      <Button size="sm" variant="primary" onClick={() => setStep((s) => s + 1)}>
                         Next<ChevronRight className="ml-1 h-3 w-3" />
                       </Button>
                     ) : (
                       <Button
-                        size="sm"
-                        className="bg-accent text-accent-foreground hover:bg-accent/90"
+                        size="sm" variant="primary"
                         onClick={() => { toast.success(`${type === "capital" ? "Capital" : "Commercial"} business case submitted for review`); close(); }}
                       >
                         Submit for review

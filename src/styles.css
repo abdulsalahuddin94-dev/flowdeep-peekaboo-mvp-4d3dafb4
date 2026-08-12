@@ -1141,21 +1141,38 @@
    Figma: Design System — NERA · Form Elements
    States: default · hover · focused · filled · disabled · error */
 :root {
-  --field-bg:            #16161c;
-  --field-bg-filled:     #1f1f26;
-  --field-bg-disabled:   #17171c;
-  --field-fg:            #ffffff;
-  --field-placeholder:   #737373;
-  --field-border:        rgba(255, 255, 255, 0.12);
-  --field-border-hover:  rgba(255, 255, 255, 0.28);
-  --field-border-focus:  #a78bfa;
-  --field-ring-focus:    rgba(167, 139, 250, 0.25);
-  --field-border-error:  #ef4444;
-  --field-ring-error:    rgba(239, 68, 68, 0.2);
-  --field-error-fg:      #f87171;
-  --field-hint-fg:       #737373;
-  --field-chip-bg:       rgba(255, 255, 255, 0.08);
-  --field-chip-fg:       #e5e5e5;
+  --field-bg:            var(--p-neutral-800);   /* Input fields · Gray 800 */
+  --field-bg-filled:     var(--p-neutral-700);   /* Tags · Gray 700 */
+  --field-bg-disabled:   var(--p-neutral-900);
+  --field-fg:            var(--p-white);
+  --field-placeholder:   var(--p-neutral-500);   /* Placeholder · Gray 500 */
+  --field-border:        var(--p-neutral-600);   /* Border · Gray 600 */
+  --field-border-hover:  var(--p-neutral-500);
+  --field-border-focus:  var(--p-lavender-400);
+  --field-ring-focus:    rgba(206, 177, 255, 0.25);
+  --field-border-error:  var(--p-red-500);
+  --field-ring-error:    var(--p-red-a-20);
+  --field-error-fg:      var(--p-red-400);
+  --field-hint-fg:       var(--p-neutral-400);
+  --field-chip-bg:       var(--p-neutral-700);
+  --field-chip-fg:       var(--p-neutral-100);
+}
+
+/* Light theme field counterparts */
+[data-theme="light"] {
+  --field-bg:            var(--p-white);
+  --field-bg-filled:     var(--p-neutral-50);
+  --field-bg-disabled:   var(--p-neutral-50);
+  --field-fg:            var(--p-neutral-900);
+  --field-placeholder:   var(--p-neutral-400);
+  --field-border:        var(--p-neutral-200);
+  --field-border-hover:  var(--p-neutral-300);
+  --field-border-focus:  var(--p-lavender-500);
+  --field-ring-focus:    rgba(152, 72, 255, 0.18);
+  --field-error-fg:      var(--p-red-700);
+  --field-hint-fg:       var(--p-neutral-500);
+  --field-chip-bg:       var(--p-neutral-100);
+  --field-chip-fg:       var(--p-neutral-800);
 }
 
 /* Unlayered so field states beat Tailwind utilities from earlier code. */

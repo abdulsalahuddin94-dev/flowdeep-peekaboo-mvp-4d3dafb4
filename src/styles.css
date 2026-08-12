@@ -82,18 +82,18 @@
   --p-indigo-950: #060b2c;
 
 
-  /* Color · Emerald (role: pm / rag: green) */
-  --p-emerald-50:  #ecfdf5;
-  --p-emerald-100: #d1fae5;
-  --p-emerald-200: #a7f3d0;
-  --p-emerald-300: #6ee7b7;
-  --p-emerald-400: #34d399;
-  --p-emerald-500: #10B981;                  /* ← anchor role-pm / rag-green */
-  --p-emerald-600: #059669;
-  --p-emerald-700: #047857;
-  --p-emerald-800: #065f46;
-  --p-emerald-900: #064e3b;
-  --p-emerald-950: #022c22;
+  /* Color · Success / Emerald (Green 50 → 900) */
+  --p-emerald-50:  #d7fff6;                  /* Success Lighter · Green 50  */
+  --p-emerald-100: #c5fff3;
+  --p-emerald-200: #b2fff1;                  /* Success Light   · Green 200 */
+  --p-emerald-300: #7cffe5;                  /* Success Medium  · Green 300 */
+  --p-emerald-400: #3ee9c6;
+  --p-emerald-500: #04d5ac;                  /* Success         · Green 500 */
+  --p-emerald-600: #00ab8b;
+  --p-emerald-700: #007e6c;                  /* Success Dark    · Green 700 */
+  --p-emerald-800: #005449;
+  --p-emerald-900: #011d18;                  /* Green BG        · Green 900 */
+  --p-emerald-950: #001210;
 
   /* Color · Slate (role: viewer / rag: grey) */
   --p-slate-50:  #f8fafc;
@@ -108,44 +108,44 @@
   --p-slate-900: #0f172a;
   --p-slate-950: #020617;
 
-  /* Color · Amber (rag) */
-  --p-amber-50:  #fffbeb;
-  --p-amber-100: #fef3c7;
-  --p-amber-200: #fde68a;
-  --p-amber-300: #fcd34d;
-  --p-amber-400: #fbbf24;
-  --p-amber-500: #F59E0B;                    /* ← anchor rag-amber */
-  --p-amber-600: #d97706;
-  --p-amber-700: #b45309;
-  --p-amber-800: #92400e;
-  --p-amber-900: #78350f;
-  --p-amber-950: #451a03;
+  /* Color · Warning / Amber (Yellow 0 → 900) */
+  --p-amber-50:  #fff6e3;                    /* Warning Lighter · Yellow 0   */
+  --p-amber-100: #ffeba9;                    /* Warning Light   · Yellow 100 */
+  --p-amber-200: #ffe48d;
+  --p-amber-300: #fede70;                    /* Warning Medium  · Yellow 300 */
+  --p-amber-400: #ffcc46;
+  --p-amber-500: #ffbc1c;                    /* Warning         · Yellow 500 */
+  --p-amber-600: #d9a000;
+  --p-amber-700: #b18800;                    /* Warning Dark    · Yellow 700 */
+  --p-amber-800: #6d4f0a;
+  --p-amber-900: #452615;                    /* Yellow BG       · Yellow 900 */
+  --p-amber-950: #2b1a0d;
 
-  /* Color · Red (rag / destructive) */
-  --p-red-50:  #fef2f2;
-  --p-red-100: #fee2e2;
-  --p-red-200: #fecaca;
-  --p-red-300: #fca5a5;
-  --p-red-400: #f87171;
-  --p-red-500: #EF4444;                      /* ← anchor rag-red */
-  --p-red-600: #dc2626;
-  --p-red-700: #b91c1c;
-  --p-red-800: #991b1b;
-  --p-red-900: #7f1d1d;
-  --p-red-950: #450a0a;
+  /* Color · Danger / Red (Red 50 → 900) */
+  --p-red-50:  #ffe7e7;                      /* Danger Lighter · Red 50  */
+  --p-red-100: #ffd0d0;
+  --p-red-200: #ffbbbb;                      /* Danger Light   · Red 200 */
+  --p-red-300: #ffa4a5;
+  --p-red-400: #ff8f91;                      /* Danger Medium  · Red 400 */
+  --p-red-500: #ff6867;                      /* Danger         · Red 500 */
+  --p-red-600: #e5434a;
+  --p-red-700: #c8222f;                      /* Danger Dark    · Red 700 */
+  --p-red-800: #7c1119;
+  --p-red-900: #300302;                      /* Red BG         · Red 900 */
+  --p-red-950: #1c0201;
 
-  /* Color · Blue (rag) */
-  --p-blue-50:  #eff6ff;
-  --p-blue-100: #dbeafe;
-  --p-blue-200: #bfdbfe;
-  --p-blue-300: #93c5fd;
-  --p-blue-400: #60a5fa;
-  --p-blue-500: #3B82F6;                     /* ← anchor rag-blue */
-  --p-blue-600: #2563eb;
-  --p-blue-700: #1d4ed8;
-  --p-blue-800: #1e40af;
-  --p-blue-900: #1e3a8a;
-  --p-blue-950: #172554;
+  /* Color · Info / Blue (Blue 50 → 900) */
+  --p-blue-50:  #dbeaff;                     /* Info Lighter · Blue 50  */
+  --p-blue-100: #bee2ff;
+  --p-blue-200: #9fd9fe;                     /* Info Light   · Blue 200 */
+  --p-blue-300: #61bfff;                     /* Info Medium  · Blue 300 */
+  --p-blue-400: #38b2ff;
+  --p-blue-500: #17a1ff;                     /* Info         · Blue 500 */
+  --p-blue-600: #0b81d6;
+  --p-blue-700: #0670b8;
+  --p-blue-800: #0060a1;                     /* Info Dark    · Blue 800 */
+  --p-blue-900: #151e2f;                     /* Blue BG      · Blue 900 */
+  --p-blue-950: #0b1220;
 
   /* ── Alpha ramps — name = opacity % (a-5 → a-90) ─────────────────────── */
   /* White */
@@ -181,14 +181,14 @@
   --p-black-a-80: rgba(0,0,0,0.80);
   --p-black-a-90: rgba(0,0,0,0.90);
 
-  /* Lavender (#DEC9FF) */
-  --p-lavender-a-10: rgba(222,201,255,0.10);
-  --p-lavender-a-15: rgba(222,201,255,0.15);
-  --p-lavender-a-20: rgba(222,201,255,0.20);
-  --p-lavender-a-30: rgba(222,201,255,0.30);
-  --p-lavender-a-40: rgba(222,201,255,0.40);
-  --p-lavender-a-50: rgba(222,201,255,0.50);
-  --p-lavender-a-60: rgba(222,201,255,0.60);
+  /* Lavender (#DDC9FF) */
+  --p-lavender-a-10: rgba(221,201,255,0.10);
+  --p-lavender-a-15: rgba(221,201,255,0.15);
+  --p-lavender-a-20: rgba(221,201,255,0.20);
+  --p-lavender-a-30: rgba(221,201,255,0.30);
+  --p-lavender-a-40: rgba(221,201,255,0.40);
+  --p-lavender-a-50: rgba(221,201,255,0.50);
+  --p-lavender-a-60: rgba(221,201,255,0.60);
 
   /* Indigo (#515B92) */
   --p-indigo-a-10: rgba(81,91,146,0.10);
@@ -200,12 +200,19 @@
   --p-indigo-a-50: rgba(81,91,146,0.50);
   --p-indigo-a-60: rgba(81,91,146,0.60);
 
-  /* Red (#EF4444) */
-  --p-red-a-10: rgba(239,68,68,0.10);
-  --p-red-a-20: rgba(239,68,68,0.20);
-  --p-red-a-30: rgba(239,68,68,0.30);
-  --p-red-a-40: rgba(239,68,68,0.40);
-  --p-red-a-50: rgba(239,68,68,0.50);
+  /* Red (#FF6867) */
+  --p-red-a-10: rgba(255,104,103,0.10);
+  --p-red-a-20: rgba(255,104,103,0.20);
+  --p-red-a-30: rgba(255,104,103,0.30);
+  --p-red-a-40: rgba(255,104,103,0.40);
+  --p-red-a-50: rgba(255,104,103,0.50);
+
+  /* Custom tinted backgrounds (dark surfaces) */
+  --p-bg-red:    var(--p-red-900);
+  --p-bg-blue:   var(--p-blue-900);
+  --p-bg-green:  var(--p-emerald-900);
+  --p-bg-yellow: var(--p-amber-900);
+  --p-bg-purple: var(--p-lavender-800);
 
   /* Color · Teal (categorical) */
   --p-teal-50:  #effbf7;

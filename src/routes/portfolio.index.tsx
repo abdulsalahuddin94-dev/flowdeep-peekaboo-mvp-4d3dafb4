@@ -23,6 +23,9 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/portfolio/")({
   component: PortfolioPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: typeof search.tab === "string" ? search.tab : "list",
+  }),
   head: () => ({ meta: [{ title: "Portfolio — Nexus PMO" }, { name: "description", content: "All active projects, governance, and business case intake across the enterprise portfolio." }] }),
 });
 
@@ -41,10 +44,12 @@ const ALL_CLIENTS = Array.from(new Set(projects.map((p) => p.client).filter(Bool
 
 function PortfolioPage() {
   const { projects: projectList, addProject } = useProjects();
+  const { tab } = Route.useSearch();
   return (
     <div>
       <PageHeader
         title="Portfolio"
+        current={tab === "gantt" ? "Portfolio Gantt" : "All Projects"}
         subtitle={`${projectList.length} active projects · FY2026`}
         actions={
           <div className="flex gap-2">
@@ -52,15 +57,17 @@ function PortfolioPage() {
           </div>
         }
       />
-      {/* Portfolio tabs hidden for MVP demo — All Projects is the default view */}
-      <div className="mt-5"><AllProjectsTab projectList={projectList} /></div>
+      {/* Portfolio subpages live in the sidebar (?tab=) — no in-page top tabs for MVP */}
+      <div className="mt-5">
+        <AllProjectsTab projectList={projectList} initialView={tab === "gantt" ? "gantt" : "grid"} />
+      </div>
     </div>
   );
 }
 
-function AllProjectsTab({ restrict, projectList }: { restrict?: boolean; projectList: Project[] }) {
+function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restrict?: boolean; projectList: Project[]; initialView?: View }) {
   const [line, setLine]           = useState<(typeof LINES)[number]>("All");
-  const [view, setView]           = useState<View>("grid");
+  const [view, setView]           = useState<View>(initialView);
   const [query, setQuery]         = useState("");
   const [active, setActive]       = useState<Project | null>(null);
   const navigate = useNavigate();

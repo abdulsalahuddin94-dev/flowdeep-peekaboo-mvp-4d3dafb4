@@ -25,9 +25,6 @@ export function PageToolbar({
   onQueryChange,
   placeholder,
   filterGroups = [],
-  resultCount,
-  totalCount,
-  onReset,
   cta,
 }: {
   title?: string;
@@ -36,9 +33,9 @@ export function PageToolbar({
   onQueryChange: (v: string) => void;
   placeholder?: string;
   filterGroups?: FilterGroup[];
-  resultCount: number;
-  totalCount: number;
-  onReset: () => void;
+  resultCount?: number;
+  totalCount?: number;
+  onReset?: () => void;
   cta?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -142,13 +139,13 @@ export function PageToolbar({
                       >
                         <span
                           aria-hidden
-                          className={`grid h-4 w-4 shrink-0 place-content-center rounded-sm border ${
+                          className={`grid h-5 w-5 shrink-0 place-content-center rounded-lg border ${
                             selected
-                              ? "border-[hsl(258_90%_76%)] bg-[hsl(258_90%_76%)] text-[#12121a]"
+                              ? "border-accent bg-accent text-accent-foreground"
                               : "border-border"
                           }`}
                         >
-                          {selected && <Check className="h-3 w-3" />}
+                          {selected && <Check className="h-3.5 w-3.5" />}
                         </span>
                         <span className="truncate">{o.label}</span>
                       </button>

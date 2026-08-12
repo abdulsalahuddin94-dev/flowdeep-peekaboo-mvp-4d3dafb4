@@ -3,7 +3,7 @@
  * Single source of truth for iconography — swap a mapping here to restyle globally.
  */
 import * as Sax from "iconsax-react";
-import { X as LucideX } from "lucide-react";
+import { X as LucideX, Check as LucideCheck } from "lucide-react";
 import type { SVGProps } from "react";
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {
@@ -114,8 +114,13 @@ export const UserCheck = sax("UserTick");
 export const UserPlus = sax("UserAdd");
 export const Users = sax("Profile2User");
 export const Wallet = sax("Wallet");
-/** Close (✕) — used by every dialog/sheet/chip close button. */
-export const X = LucideX;
+/** Close (✕) — plain thin X used by every dialog/sheet/chip close button. */
+export const X = ({ strokeWidth = 1.5, ...rest }: IconProps) => (
+  <LucideX strokeWidth={Number(strokeWidth)} {...(rest as Record<string, unknown>)} />
+);
+X.displayName = "CloseX";
+/** Plain checkmark (no circle) — checkbox indicator. */
+export const CheckMark = LucideCheck;
 export const XIcon = X;
 export const XCircle = sax("CloseCircle");
 export const Zap = sax("Flash");

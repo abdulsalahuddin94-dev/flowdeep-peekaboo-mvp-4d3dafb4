@@ -1,6 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { PageHeader } from "@/components/PageHeader";
 import { SkillsTagsInput } from "@/components/SkillsTagsInput";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,44 +26,39 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/organization")({
   component: OrganizationPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: typeof search.tab === "string" ? search.tab : "business-lines",
+  }),
   head: () => ({ meta: [{ title: "Organization — Nexus PMO" }, { name: "description", content: "Manage business lines, departments and classification tags." }] }),
 });
 
 function OrganizationPage() {
+  const { tab } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   return (
     <div>
-      <PageHeader title="Organization" subtitle="Define internal structure — required before projects can be created" />
-      <Tabs defaultValue="business-lines">
-        <TabsList>
-          <TabsTrigger value="business-lines">Project Types</TabsTrigger>
-          <TabsTrigger value="tags">Tags & Classifications</TabsTrigger>
-          <TabsTrigger value="cost-categories">Cost Categories</TabsTrigger>
-          <TabsTrigger value="departments">Departments</TabsTrigger>
-          <TabsTrigger value="job-roles">Job Roles</TabsTrigger>
-          <TabsTrigger value="calendars">Calendars</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="business-lines" className="mt-5">
+      <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
+        <TabsContent value="business-lines">
           <BusinessLinesTab />
         </TabsContent>
 
-        <TabsContent value="tags" className="mt-5">
+        <TabsContent value="tags">
           <TagsTab />
         </TabsContent>
 
-        <TabsContent value="cost-categories" className="mt-5">
+        <TabsContent value="cost-categories">
           <CostCategoriesTab />
         </TabsContent>
 
-        <TabsContent value="departments" className="mt-5">
+        <TabsContent value="departments">
           <DepartmentsTab />
         </TabsContent>
 
-        <TabsContent value="job-roles" className="mt-5">
+        <TabsContent value="job-roles">
           <JobRolesTab />
         </TabsContent>
 
-        <TabsContent value="calendars" className="mt-5">
+        <TabsContent value="calendars">
           <CalendarsTab />
         </TabsContent>
       </Tabs>
@@ -419,8 +413,6 @@ export type FilterGroup = {
 
 /** Shared search + filter toolbar (side-drawer filters) used by every Organization tab. */
 function FilterBar({
-  title,
-  desc,
   query,
   onQueryChange,
   placeholder,
@@ -476,13 +468,7 @@ function FilterBar({
     : [];
 
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-end gap-3">
-      {(title || desc) && (
-        <div className="mr-auto min-w-0 max-w-[46%]">
-          {title && <h2 className="truncate text-lg font-medium text-foreground">{title}</h2>}
-          {desc && <p className="truncate text-sm text-muted-foreground" title={desc}>{desc}</p>}
-        </div>
-      )}
+    <div className="mb-4 flex flex-wrap items-center gap-3">
       <div className="relative w-full min-w-[220px] sm:w-72">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -511,7 +497,7 @@ function FilterBar({
         </Button>
       )}
 
-      {cta}
+      {cta && <div className="ml-auto">{cta}</div>}
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className="flex w-[380px] flex-col gap-0 border-l border-border bg-surface p-0 sm:max-w-[380px]">

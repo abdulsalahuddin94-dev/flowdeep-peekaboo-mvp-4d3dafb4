@@ -114,7 +114,7 @@ function BusinessLinesTab() {
             {pager.pageItems.map((b) => {
               const i = b.index;
               return (
-              <TableRow key={`${b.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+              <TableRow key={`${b.name}-${i}`} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
                 <TableCell className="w-72 text-muted-foreground">{b.description || "—"}</TableCell>
                 <TableCell className="text-center num-mono">{b.projects}</TableCell>
@@ -216,7 +216,7 @@ function DepartmentsTab() {
             {pager.pageItems.map((d) => {
               const i = d.index;
               return (
-              <TableRow key={`${d.name}-${i}`} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+              <TableRow key={`${d.name}-${i}`} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
                 <TableCell>{d.head || "—"}</TableCell>
                 <TableCell>
@@ -1115,7 +1115,7 @@ function CostCategoriesTab() {
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={6} />}
             {pager.pageItems.map((c) => (
-              <TableRow key={c.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+              <TableRow key={c.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                 <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{c.number}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{c.name}</TableCell>
                 <TableCell className="text-muted-foreground">{c.description || "—"}</TableCell>
@@ -1302,7 +1302,7 @@ function JobRolesTab() {
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={4} />}
             {pager.pageItems.map((r) => (
-              <TableRow key={r.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+              <TableRow key={r.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{r.title}</TableCell>
                 <TableCell>
                   {r.skills?.length ? (

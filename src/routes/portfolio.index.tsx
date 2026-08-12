@@ -318,7 +318,7 @@ function ProjectListView({ items, onOpen, pendingByProject }: { items: Project[]
         </TableRow></TableHeader>
         <TableBody>
           {items.map((p) => (
-            <TableRow key={p.id} onClick={() => onOpen(p)} className="cursor-pointer bg-[#1D1D23] hover:bg-[#252530] border-0">
+            <TableRow key={p.id} onClick={() => onOpen(p)} className="cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0">
               <TableCell><RagDot rag={p.rag} /></TableCell>
               <TableCell className="font-medium text-foreground">
                 <div className="flex items-center gap-2">
@@ -456,7 +456,7 @@ function ArchivedTab() {
             { n: "North Site Upgrade", bl: "EPC", pm: "John Smith", c: "Oct 2025", r: "amber" as const, b: "+11%", o: "Closed — partial" },
             { n: "POS Modernization", bl: "Software", pm: "Priya Iyer", c: "Aug 2025", r: "red" as const, b: "+24%", o: "Cancelled" },
           ].map((r) => (
-            <TableRow key={r.n} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+            <TableRow key={r.n} className="bg-table-row-bg hover:bg-table-row-hover border-0">
               <TableCell className="font-medium text-foreground">{r.n}</TableCell>
               <TableCell className="text-muted-foreground">{r.bl}</TableCell>
               <TableCell>{r.pm}</TableCell>
@@ -484,7 +484,7 @@ function BusinessCasesTab() {
         </TableRow></TableHeader>
         <TableBody>
           {pipelineItems.map((b) => (
-            <TableRow key={b.id} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+            <TableRow key={b.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
               <TableCell className="num-mono text-xs text-muted-foreground">{b.id}</TableCell>
               <TableCell className="font-medium text-foreground">{b.title}</TableCell>
               <TableCell className="text-xs text-muted-foreground">{b.pillar}</TableCell>
@@ -528,7 +528,7 @@ function GovernanceTab() {
       <Table>
         <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Date</TableHead><TableHead>Actor</TableHead><TableHead>Action</TableHead><TableHead>Target</TableHead><TableHead>Note</TableHead></TableRow></TableHeader>
         <TableBody>{entries.map((e, i) => (
-          <TableRow key={i} className="bg-[#1D1D23] hover:bg-[#252530] border-0">
+          <TableRow key={i} className="bg-table-row-bg hover:bg-table-row-hover border-0">
             <TableCell className="text-xs text-muted-foreground">{e.d}</TableCell>
             <TableCell>{e.actor}</TableCell>
             <TableCell><Badge variant="outline" className="border-accent/40 bg-accent-dim text-accent">{e.action}</Badge></TableCell>

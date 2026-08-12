@@ -24,46 +24,47 @@
    Anchor shades marked ← preserve the exact hex used before this refactor.
    ─────────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Color · Neutral (warm gray) */
-  --p-neutral-50:   #fafafa;
-  --p-neutral-100:  #f5efeb;                 /* ← anchor */
-  --p-neutral-200:  #e9e4df;                 /* ← anchor */
-  --p-neutral-300:  #e5dfd9;                 /* ← anchor */
-  --p-neutral-400:  #d4d4d4;                 /* ← anchor */
-  --p-neutral-500:  #a3a3a3;                 /* ← anchor */
-  --p-neutral-600:  #737373;                 /* ← anchor */
-  --p-neutral-700:  #525252;                 /* ← anchor */
-  --p-neutral-800:  #3d3d44;                 /* ← anchor */
-  --p-neutral-900:  #262626;                 /* ← anchor */
-  --p-neutral-950:  #1c1c24;                 /* ← anchor */
+  /* Color · Neutral / Greyscale — DS reference ramp (Gray 0 … Gray 950).
+     Semantic naming below keeps the 50→950 API: 50 = lightest, 950 = black. */
+  --p-neutral-50:   #f6f6f6;                 /* Gray 50   · Neutral 800 */
+  --p-neutral-100:  #e5e7eb;                 /* Gray 100  · Neutral 700 */
+  --p-neutral-200:  #e0e0e0;                 /* Gray 200  · Neutral 600 */
+  --p-neutral-300:  #d4d4d4;                 /* Gray 300  · Neutral 500 */
+  --p-neutral-400:  #a0a0a0;                 /* Gray 400  · Description  */
+  --p-neutral-500:  #75767f;                 /* Gray 500  · Placeholder / border darker */
+  --p-neutral-600:  #45464f;                 /* Gray 600  · Border / table header */
+  --p-neutral-700:  #282a30;                 /* Gray 700  · Tags */
+  --p-neutral-800:  #1d1d1f;                 /* Gray 800  · Input fields / page */
+  --p-neutral-900:  #12131a;                 /* Gray 900  · Main section / side menu */
+  --p-neutral-950:  #000000;                 /* Gray 950  */
   --p-white:        #ffffff;                 /* absolute white */
   --p-black:        #000000;                 /* absolute black */
 
-  /* Color · Charcoal (dark UI surfaces) */
-  --p-charcoal-50:  #e6e6ea;
-  --p-charcoal-100: #c9c9d0;
-  --p-charcoal-200: #a8a8b3;
-  --p-charcoal-300: #838391;
-  --p-charcoal-400: #5f5f6d;
-  --p-charcoal-500: #46464f;
-  --p-charcoal-600: #3a3a41;
-  --p-charcoal-700: #303036;                 /* ← anchor (row hover) */
-  --p-charcoal-800: #29292F;                 /* ← anchor (table header) */
-  --p-charcoal-850: #1D1D23;                 /* ← anchor (page bg) */
-  --p-charcoal-900: #121318;                 /* ← anchor (sidebar/card) */
-  --p-charcoal-950: #0a0a0e;
+  /* Color · Charcoal (dark UI surfaces) — aliases onto the reference greyscale */
+  --p-charcoal-50:  var(--p-neutral-100);
+  --p-charcoal-100: var(--p-neutral-300);
+  --p-charcoal-200: var(--p-neutral-400);
+  --p-charcoal-300: var(--p-neutral-500);
+  --p-charcoal-400: #5b5c66;
+  --p-charcoal-500: var(--p-neutral-600);
+  --p-charcoal-600: var(--p-neutral-700);
+  --p-charcoal-700: var(--p-neutral-600);    /* row hover      · Gray 600 */
+  --p-charcoal-800: var(--p-neutral-600);    /* table header   · Gray 600 */
+  --p-charcoal-850: var(--p-neutral-800);    /* page color     · Gray 800 */
+  --p-charcoal-900: var(--p-neutral-900);    /* main / sidebar · Gray 900 */
+  --p-charcoal-950: var(--p-neutral-950);
 
-  /* Color · Lavender */
-  --p-lavender-50:  #f7f1ff;
-  --p-lavender-100: #ecdfff;
-  --p-lavender-200: #DEC9FF;                 /* ← anchor (primary/dark accent) */
-  --p-lavender-300: #c4a9f0;
-  --p-lavender-400: #a891d2;
-  --p-lavender-500: #857999;                 /* ← anchor (sidebar gradient end) */
-  --p-lavender-600: #6d637d;
-  --p-lavender-700: #565060;
-  --p-lavender-800: #3f3a47;
-  --p-lavender-900: #2a2731;
+  /* Color · Lavender / Primary (Purple 0 → 400) */
+  --p-lavender-50:  #f1edfa;                 /* Primary Lighter · Purple 0   */
+  --p-lavender-100: #efe4fe;                 /* Primary Light   · Purple 50  */
+  --p-lavender-200: #ddc9ff;                 /* Primary         · Purple 100 */
+  --p-lavender-300: #c8b5e6;                 /* Primary Medium  · Purple 200 */
+  --p-lavender-400: #ceb1ff;                 /* Primary Dark    · Purple 300 */
+  --p-lavender-500: #9848ff;                 /* Primary Darker  · Purple 400 */
+  --p-lavender-600: #7a30d8;
+  --p-lavender-700: #5f24a8;
+  --p-lavender-800: #39304c;                 /* Purple BG · Purple 500 */
+  --p-lavender-900: #2a2438;
   --p-lavender-950: #17151b;
 
   /* Color · Indigo (deep blue-purple — sidebar in light mode, primary in light)
@@ -81,18 +82,18 @@
   --p-indigo-950: #060b2c;
 
 
-  /* Color · Emerald (role: pm / rag: green) */
-  --p-emerald-50:  #ecfdf5;
-  --p-emerald-100: #d1fae5;
-  --p-emerald-200: #a7f3d0;
-  --p-emerald-300: #6ee7b7;
-  --p-emerald-400: #34d399;
-  --p-emerald-500: #10B981;                  /* ← anchor role-pm / rag-green */
-  --p-emerald-600: #059669;
-  --p-emerald-700: #047857;
-  --p-emerald-800: #065f46;
-  --p-emerald-900: #064e3b;
-  --p-emerald-950: #022c22;
+  /* Color · Success / Emerald (Green 50 → 900) */
+  --p-emerald-50:  #d7fff6;                  /* Success Lighter · Green 50  */
+  --p-emerald-100: #c5fff3;
+  --p-emerald-200: #b2fff1;                  /* Success Light   · Green 200 */
+  --p-emerald-300: #7cffe5;                  /* Success Medium  · Green 300 */
+  --p-emerald-400: #3ee9c6;
+  --p-emerald-500: #04d5ac;                  /* Success         · Green 500 */
+  --p-emerald-600: #00ab8b;
+  --p-emerald-700: #007e6c;                  /* Success Dark    · Green 700 */
+  --p-emerald-800: #005449;
+  --p-emerald-900: #011d18;                  /* Green BG        · Green 900 */
+  --p-emerald-950: #001210;
 
   /* Color · Slate (role: viewer / rag: grey) */
   --p-slate-50:  #f8fafc;
@@ -107,44 +108,44 @@
   --p-slate-900: #0f172a;
   --p-slate-950: #020617;
 
-  /* Color · Amber (rag) */
-  --p-amber-50:  #fffbeb;
-  --p-amber-100: #fef3c7;
-  --p-amber-200: #fde68a;
-  --p-amber-300: #fcd34d;
-  --p-amber-400: #fbbf24;
-  --p-amber-500: #F59E0B;                    /* ← anchor rag-amber */
-  --p-amber-600: #d97706;
-  --p-amber-700: #b45309;
-  --p-amber-800: #92400e;
-  --p-amber-900: #78350f;
-  --p-amber-950: #451a03;
+  /* Color · Warning / Amber (Yellow 0 → 900) */
+  --p-amber-50:  #fff6e3;                    /* Warning Lighter · Yellow 0   */
+  --p-amber-100: #ffeba9;                    /* Warning Light   · Yellow 100 */
+  --p-amber-200: #ffe48d;
+  --p-amber-300: #fede70;                    /* Warning Medium  · Yellow 300 */
+  --p-amber-400: #ffcc46;
+  --p-amber-500: #ffbc1c;                    /* Warning         · Yellow 500 */
+  --p-amber-600: #d9a000;
+  --p-amber-700: #b18800;                    /* Warning Dark    · Yellow 700 */
+  --p-amber-800: #6d4f0a;
+  --p-amber-900: #452615;                    /* Yellow BG       · Yellow 900 */
+  --p-amber-950: #2b1a0d;
 
-  /* Color · Red (rag / destructive) */
-  --p-red-50:  #fef2f2;
-  --p-red-100: #fee2e2;
-  --p-red-200: #fecaca;
-  --p-red-300: #fca5a5;
-  --p-red-400: #f87171;
-  --p-red-500: #EF4444;                      /* ← anchor rag-red */
-  --p-red-600: #dc2626;
-  --p-red-700: #b91c1c;
-  --p-red-800: #991b1b;
-  --p-red-900: #7f1d1d;
-  --p-red-950: #450a0a;
+  /* Color · Danger / Red (Red 50 → 900) */
+  --p-red-50:  #ffe7e7;                      /* Danger Lighter · Red 50  */
+  --p-red-100: #ffd0d0;
+  --p-red-200: #ffbbbb;                      /* Danger Light   · Red 200 */
+  --p-red-300: #ffa4a5;
+  --p-red-400: #ff8f91;                      /* Danger Medium  · Red 400 */
+  --p-red-500: #ff6867;                      /* Danger         · Red 500 */
+  --p-red-600: #e5434a;
+  --p-red-700: #c8222f;                      /* Danger Dark    · Red 700 */
+  --p-red-800: #7c1119;
+  --p-red-900: #300302;                      /* Red BG         · Red 900 */
+  --p-red-950: #1c0201;
 
-  /* Color · Blue (rag) */
-  --p-blue-50:  #eff6ff;
-  --p-blue-100: #dbeafe;
-  --p-blue-200: #bfdbfe;
-  --p-blue-300: #93c5fd;
-  --p-blue-400: #60a5fa;
-  --p-blue-500: #3B82F6;                     /* ← anchor rag-blue */
-  --p-blue-600: #2563eb;
-  --p-blue-700: #1d4ed8;
-  --p-blue-800: #1e40af;
-  --p-blue-900: #1e3a8a;
-  --p-blue-950: #172554;
+  /* Color · Info / Blue (Blue 50 → 900) */
+  --p-blue-50:  #dbeaff;                     /* Info Lighter · Blue 50  */
+  --p-blue-100: #bee2ff;
+  --p-blue-200: #9fd9fe;                     /* Info Light   · Blue 200 */
+  --p-blue-300: #61bfff;                     /* Info Medium  · Blue 300 */
+  --p-blue-400: #38b2ff;
+  --p-blue-500: #17a1ff;                     /* Info         · Blue 500 */
+  --p-blue-600: #0b81d6;
+  --p-blue-700: #0670b8;
+  --p-blue-800: #0060a1;                     /* Info Dark    · Blue 800 */
+  --p-blue-900: #151e2f;                     /* Blue BG      · Blue 900 */
+  --p-blue-950: #0b1220;
 
   /* ── Alpha ramps — name = opacity % (a-5 → a-90) ─────────────────────── */
   /* White */
@@ -180,14 +181,14 @@
   --p-black-a-80: rgba(0,0,0,0.80);
   --p-black-a-90: rgba(0,0,0,0.90);
 
-  /* Lavender (#DEC9FF) */
-  --p-lavender-a-10: rgba(222,201,255,0.10);
-  --p-lavender-a-15: rgba(222,201,255,0.15);
-  --p-lavender-a-20: rgba(222,201,255,0.20);
-  --p-lavender-a-30: rgba(222,201,255,0.30);
-  --p-lavender-a-40: rgba(222,201,255,0.40);
-  --p-lavender-a-50: rgba(222,201,255,0.50);
-  --p-lavender-a-60: rgba(222,201,255,0.60);
+  /* Lavender (#DDC9FF) */
+  --p-lavender-a-10: rgba(221,201,255,0.10);
+  --p-lavender-a-15: rgba(221,201,255,0.15);
+  --p-lavender-a-20: rgba(221,201,255,0.20);
+  --p-lavender-a-30: rgba(221,201,255,0.30);
+  --p-lavender-a-40: rgba(221,201,255,0.40);
+  --p-lavender-a-50: rgba(221,201,255,0.50);
+  --p-lavender-a-60: rgba(221,201,255,0.60);
 
   /* Indigo (#515B92) */
   --p-indigo-a-10: rgba(81,91,146,0.10);
@@ -199,12 +200,19 @@
   --p-indigo-a-50: rgba(81,91,146,0.50);
   --p-indigo-a-60: rgba(81,91,146,0.60);
 
-  /* Red (#EF4444) */
-  --p-red-a-10: rgba(239,68,68,0.10);
-  --p-red-a-20: rgba(239,68,68,0.20);
-  --p-red-a-30: rgba(239,68,68,0.30);
-  --p-red-a-40: rgba(239,68,68,0.40);
-  --p-red-a-50: rgba(239,68,68,0.50);
+  /* Red (#FF6867) */
+  --p-red-a-10: rgba(255,104,103,0.10);
+  --p-red-a-20: rgba(255,104,103,0.20);
+  --p-red-a-30: rgba(255,104,103,0.30);
+  --p-red-a-40: rgba(255,104,103,0.40);
+  --p-red-a-50: rgba(255,104,103,0.50);
+
+  /* Custom tinted backgrounds (dark surfaces) */
+  --p-bg-red:    var(--p-red-900);
+  --p-bg-blue:   var(--p-blue-900);
+  --p-bg-green:  var(--p-emerald-900);
+  --p-bg-yellow: var(--p-amber-900);
+  --p-bg-purple: var(--p-lavender-800);
 
   /* Color · Teal (categorical) */
   --p-teal-50:  #effbf7;
@@ -367,17 +375,17 @@
 [data-theme="light"] {
   --background:          var(--p-white);
   --foreground:          var(--p-neutral-900);
-  --surface:             var(--p-neutral-100);
-  --card:                var(--p-neutral-100);
+  --surface:             var(--p-neutral-50);
+  --card:                var(--p-neutral-50);
   --card-foreground:     var(--p-neutral-900);
   --popover:             var(--p-white);
   --popover-foreground:  var(--p-neutral-900);
 
   --primary:              var(--p-indigo-500);
   --primary-foreground:   var(--p-white);
-  --secondary:            var(--p-neutral-400);
+  --secondary:            var(--p-neutral-100);
   --secondary-foreground: var(--p-neutral-800);
-  --muted:                var(--p-neutral-400);
+  --muted:                var(--p-neutral-100);
   --muted-foreground:     var(--p-neutral-600);
 
   --accent:               var(--p-indigo-500);
@@ -387,7 +395,7 @@
 
   --destructive:            var(--p-red-500);
   --destructive-foreground: var(--p-white);
-  --border:                 var(--p-neutral-400);
+  --border:                 var(--p-neutral-200);
   --input:                  var(--p-white);
   --ring:                   var(--p-indigo-a-50);
 
@@ -432,15 +440,15 @@
   --cat-slate-deep: var(--p-slate-600);
 
   /* Table */
-  --table-header-bg: var(--p-neutral-200);
+  --table-header-bg: var(--p-neutral-100);
   --table-header-fg: var(--p-neutral-900);
-  --table-row-bg:    var(--p-neutral-100);
-  --table-row-hover: var(--p-neutral-300);
+  --table-row-bg:    var(--p-white);
+  --table-row-hover: var(--p-neutral-50);
 
   /* Header */
   --header:            var(--p-white);
   --header-foreground: var(--p-neutral-900);
-  --header-border:     var(--p-neutral-400);
+  --header-border:     var(--p-neutral-200);
 
   /* Sidebar */
   --sidebar:                    var(--p-indigo-900);
@@ -482,10 +490,10 @@
 
   --primary:              var(--p-lavender-200);
   --primary-foreground:   var(--p-neutral-950);
-  --secondary:            var(--p-charcoal-600);
-  --secondary-foreground: var(--p-charcoal-100);
-  --muted:                var(--p-charcoal-600);
-  --muted-foreground:     var(--p-neutral-600);
+  --secondary:            var(--p-neutral-700);
+  --secondary-foreground: var(--p-neutral-300);
+  --muted:                var(--p-neutral-700);
+  --muted-foreground:     var(--p-neutral-400);
 
   --accent:               var(--p-lavender-200);
   --accent-foreground:    var(--p-neutral-950);
@@ -1059,77 +1067,112 @@
   border-radius: 8px;
 }
 
-/* ── DS02 button tokens (semantic, per-state) ───────────────────────────── */
+/* ── DS02 button tokens (semantic, per-state) — mapped to the reference palette
+   Primary  default Purple 100 → hover Purple 400
+   Secondary default Gray 800 → hover Gray 600
+   Outline  Purple 300 border → hover Purple 400
+   Danger   Red 700 → hover Red BG (Red 900)
+   Warning  Yellow 300 → hover Yellow 700                                    */
 :root {
-  --btn-primary-bg:            #ddd0ff;
-  --btn-primary-fg:            #1f1235;
-  --btn-primary-bg-hover:      #8b2bf2;
-  --btn-primary-fg-hover:      #ffffff;
+  --btn-primary-bg:            var(--p-lavender-200);
+  --btn-primary-fg:            var(--p-neutral-800);
+  --btn-primary-bg-hover:      var(--p-lavender-500);
+  --btn-primary-fg-hover:      var(--p-white);
 
-  --btn-secondary-bg:          #1f1f26;
-  --btn-secondary-fg:          #ffffff;
-  --btn-secondary-bg-hover:    #4a4a55;
-  --btn-secondary-border:      rgba(255, 255, 255, 0.14);
+  --btn-secondary-bg:          var(--p-neutral-800);
+  --btn-secondary-fg:          var(--p-white);
+  --btn-secondary-bg-hover:    var(--p-neutral-600);
+  --btn-secondary-border:      var(--p-white-a-12);
 
-  --btn-outline-border:        #a78bfa;
+  --btn-outline-border:        var(--p-lavender-400);
   --btn-outline-fg:            var(--foreground);
-  --btn-outline-border-hover:  #8b2bf2;
-  --btn-outline-fg-hover:      #8b2bf2;
-  --btn-outline-bg-hover:      rgba(139, 43, 242, 0.12);
+  --btn-outline-border-hover:  var(--p-lavender-500);
+  --btn-outline-fg-hover:      var(--p-lavender-500);
+  --btn-outline-bg-hover:      rgba(152, 72, 255, 0.12);
 
-  --btn-outline-2-bg:          #ffffff;
-  --btn-outline-2-fg:          #1c274c;
-  --btn-outline-2-border:      #e5e5e5;
-  --btn-outline-2-bg-hover:    #f4f4f5;
+  --btn-outline-2-bg:          var(--p-white);
+  --btn-outline-2-fg:          var(--p-neutral-900);
+  --btn-outline-2-border:      var(--p-neutral-200);
+  --btn-outline-2-bg-hover:    var(--p-neutral-50);
 
-  --btn-danger-bg:             #dc2626;
-  --btn-danger-fg:             #ffffff;
-  --btn-danger-bg-hover:       #3d0a0a;
+  --btn-danger-bg:             var(--p-red-700);
+  --btn-danger-fg:             var(--p-white);
+  --btn-danger-bg-hover:       var(--p-red-900);
 
-  --btn-warning-bg:            #fbde7b;
-  --btn-warning-fg:            #1f1235;
-  --btn-warning-bg-hover:      #a88400;
-  --btn-warning-fg-hover:      #241d05;
+  --btn-warning-bg:            var(--p-amber-300);
+  --btn-warning-fg:            var(--p-neutral-800);
+  --btn-warning-bg-hover:      var(--p-amber-700);
+  --btn-warning-fg-hover:      var(--p-amber-50);
+}
+
+/* Light theme: only the neutral-driven button surfaces flip */
+[data-theme="light"] {
+  --btn-secondary-bg:       var(--p-white);
+  --btn-secondary-fg:       var(--p-neutral-900);
+  --btn-secondary-bg-hover: var(--p-neutral-50);
+  --btn-secondary-border:   var(--p-neutral-200);
+
+  --btn-outline-2-bg:       var(--p-neutral-900);
+  --btn-outline-2-fg:       var(--p-white);
+  --btn-outline-2-border:   var(--p-neutral-700);
+  --btn-outline-2-bg-hover: var(--p-neutral-800);
 }
 
 /* ── DS02 confirmation popup tokens (success / info / warning / danger) ──── */
 :root {
-  --confirm-success-icon:   #14b8a6;
-  --confirm-success-surface: #e0f7f3;
-  --confirm-success-ring:   #14b8a6;
+  --confirm-success-icon:    var(--p-emerald-500);
+  --confirm-success-surface: var(--p-emerald-50);
+  --confirm-success-ring:    var(--p-emerald-500);
 
-  --confirm-info-icon:      #2b93f5;
-  --confirm-info-surface:   #dceeff;
-  --confirm-info-ring:      #2b93f5;
+  --confirm-info-icon:       var(--p-blue-500);
+  --confirm-info-surface:    var(--p-blue-50);
+  --confirm-info-ring:       var(--p-blue-500);
 
-  --confirm-warning-icon:   #d9a300;
-  --confirm-warning-surface: #fdf3d3;
-  --confirm-warning-ring:   #e8bb3a;
+  --confirm-warning-icon:    var(--p-amber-600);
+  --confirm-warning-surface: var(--p-amber-50);
+  --confirm-warning-ring:    var(--p-amber-500);
 
-  --confirm-danger-icon:    #dc2626;
-  --confirm-danger-surface: #fde3e3;
-  --confirm-danger-ring:    #ef4444;
+  --confirm-danger-icon:     var(--p-red-700);
+  --confirm-danger-surface:  var(--p-red-50);
+  --confirm-danger-ring:     var(--p-red-500);
 }
 
 /* ── DS02 form field tokens + states (input / textarea / select) ────────────
    Figma: Design System — NERA · Form Elements
    States: default · hover · focused · filled · disabled · error */
 :root {
-  --field-bg:            #16161c;
-  --field-bg-filled:     #1f1f26;
-  --field-bg-disabled:   #17171c;
-  --field-fg:            #ffffff;
-  --field-placeholder:   #737373;
-  --field-border:        rgba(255, 255, 255, 0.12);
-  --field-border-hover:  rgba(255, 255, 255, 0.28);
-  --field-border-focus:  #a78bfa;
-  --field-ring-focus:    rgba(167, 139, 250, 0.25);
-  --field-border-error:  #ef4444;
-  --field-ring-error:    rgba(239, 68, 68, 0.2);
-  --field-error-fg:      #f87171;
-  --field-hint-fg:       #737373;
-  --field-chip-bg:       rgba(255, 255, 255, 0.08);
-  --field-chip-fg:       #e5e5e5;
+  --field-bg:            var(--p-neutral-800);   /* Input fields · Gray 800 */
+  --field-bg-filled:     var(--p-neutral-700);   /* Tags · Gray 700 */
+  --field-bg-disabled:   var(--p-neutral-900);
+  --field-fg:            var(--p-white);
+  --field-placeholder:   var(--p-neutral-500);   /* Placeholder · Gray 500 */
+  --field-border:        var(--p-neutral-600);   /* Border · Gray 600 */
+  --field-border-hover:  var(--p-neutral-500);
+  --field-border-focus:  var(--p-lavender-400);
+  --field-ring-focus:    rgba(206, 177, 255, 0.25);
+  --field-border-error:  var(--p-red-500);
+  --field-ring-error:    var(--p-red-a-20);
+  --field-error-fg:      var(--p-red-400);
+  --field-hint-fg:       var(--p-neutral-400);
+  --field-chip-bg:       var(--p-neutral-700);
+  --field-chip-fg:       var(--p-neutral-100);
+}
+
+/* Light theme field counterparts */
+[data-theme="light"] {
+  --field-bg:            var(--p-white);
+  --field-bg-filled:     var(--p-neutral-50);
+  --field-bg-disabled:   var(--p-neutral-50);
+  --field-fg:            var(--p-neutral-900);
+  --field-placeholder:   var(--p-neutral-400);
+  --field-border:        var(--p-neutral-200);
+  --field-border-hover:  var(--p-neutral-300);
+  --field-border-focus:  var(--p-lavender-500);
+  --field-ring-focus:    rgba(152, 72, 255, 0.18);
+  --field-error-fg:      var(--p-red-700);
+  --field-hint-fg:       var(--p-neutral-500);
+  --field-chip-bg:       var(--p-neutral-100);
+  --field-chip-fg:       var(--p-neutral-800);
 }
 
 /* Unlayered so field states beat Tailwind utilities from earlier code. */

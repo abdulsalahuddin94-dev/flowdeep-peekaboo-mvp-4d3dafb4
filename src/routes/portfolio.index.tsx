@@ -23,6 +23,9 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/portfolio/")({
   component: PortfolioPage,
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
   head: () => ({ meta: [{ title: "Portfolio — Nexus PMO" }, { name: "description", content: "All active projects, governance, and business case intake across the enterprise portfolio." }] }),
 });
 
@@ -41,10 +44,12 @@ const ALL_CLIENTS = Array.from(new Set(projects.map((p) => p.client).filter(Bool
 
 function PortfolioPage() {
   const { projects: projectList, addProject } = useProjects();
+  const { tab } = Route.useSearch();
   return (
     <div>
       <PageHeader
         title="Portfolio"
+        current={tab === "gantt" ? "Portfolio Gantt" : "All Projects"}
         subtitle={`${projectList.length} active projects · FY2026`}
         actions={
           <div className="flex gap-2">
@@ -52,15 +57,17 @@ function PortfolioPage() {
           </div>
         }
       />
-      {/* Portfolio tabs hidden for MVP demo — All Projects is the default view */}
-      <div className="mt-5"><AllProjectsTab projectList={projectList} /></div>
+      {/* Portfolio subpages live in the sidebar (?tab=) — no in-page top tabs for MVP */}
+      <div className="mt-5">
+        <AllProjectsTab projectList={projectList} initialView={tab === "gantt" ? "gantt" : "grid"} />
+      </div>
     </div>
   );
 }
 
-function AllProjectsTab({ restrict, projectList }: { restrict?: boolean; projectList: Project[] }) {
+function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restrict?: boolean; projectList: Project[]; initialView?: View }) {
   const [line, setLine]           = useState<(typeof LINES)[number]>("All");
-  const [view, setView]           = useState<View>("grid");
+  const [view, setView]           = useState<View>(initialView);
   const [query, setQuery]         = useState("");
   const [active, setActive]       = useState<Project | null>(null);
   const navigate = useNavigate();
@@ -169,9 +176,15 @@ function AllProjectsTab({ restrict, projectList }: { restrict?: boolean; project
             {l}
           </button>
         ))}
-        <div className="relative ml-auto w-64">
-          <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search projects…" value={query} onChange={(e) => setQuery(e.target.value)} className="pl-8" />
+        <div className="relative ml-auto w-full min-w-[220px] sm:w-72">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search projects…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="rounded-md pl-9"
+            aria-label="Search projects"
+          />
         </div>
         <FilterDrawer
           groups={[
@@ -182,7 +195,7 @@ function AllProjectsTab({ restrict, projectList }: { restrict?: boolean; project
             { key: "client", label: "Client", value: clientFilter, onChange: setClientFilter as never, options: ALL_CLIENTS.map((c) => ({ value: c, label: c })) },
           ]}
         />
-        <div className="flex overflow-hidden rounded-md border border-border bg-secondary/40">
+        <div className="flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
           {([["grid", LayoutGrid], ["list", List], ["gantt", GanttChartSquare]] as const).map(([k, Icon]) => (
             <button key={k} onClick={() => setView(k as View)} className={`p-2 ${view === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}><Icon className="h-4 w-4" /></button>
           ))}
@@ -609,7 +622,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); setOpen(o); }}>
       <DialogTrigger asChild>
-        <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button variant="primary">
           <Plus className="mr-1 h-4 w-4" />New Project
         </Button>
       </DialogTrigger>
@@ -722,7 +735,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => { reset(); setOpen(false); }}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleCreate}>Create Project</Button>
+          <Button variant="primary" onClick={handleCreate}>Create Project</Button>
         </DialogFooter>
         </>
         )}
@@ -796,7 +809,7 @@ function NewBusinessCaseDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-accent text-accent-foreground hover:bg-accent/90"><Plus className="mr-1 h-4 w-4" />New Business Case</Button>
+        <Button variant="primary"><Plus className="mr-1 h-4 w-4" />New Business Case</Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
@@ -830,7 +843,7 @@ function NewBusinessCaseDialog() {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Save draft</Button>
-          <Button className="bg-accent text-accent-foreground" onClick={() => { toast.success("Business Case submitted for review"); setOpen(false); }}>Submit</Button>
+          <Button variant="primary" onClick={() => { toast.success("Business Case submitted for review"); setOpen(false); }}>Submit</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

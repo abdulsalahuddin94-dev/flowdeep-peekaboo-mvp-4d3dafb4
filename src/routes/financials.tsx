@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -33,12 +34,21 @@ const COST_ITEMS = [
   { project: "Smart Grid Pilot", item: "Field engineers travel", cat: "Business Trips", type: "OpEx", amount: "$0.3M", milestone: "Fixed date", due: "Aug 05", status: "Pending" },
 ];
 
+const FIN_TAB_LABELS: Record<string, string> = {
+  overview: "Overview (P&L)", cost: "Cost Recognition", rev: "Revenue Recognition",
+};
+
 export const Route = createFileRoute("/financials")({
   component: FinancialsPage,
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
   head: () => ({ meta: [{ title: "Financials â€” Nexus PMO" }, { name: "description", content: "Portfolio-wide budgets, CAPEX/OPEX split, change requests and milestone-linked revenue recognition." }] }),
 });
 
 function FinancialsPage() {
+  const { tab = "overview" } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const [selectedYear, setSelectedYear] = useState("all");
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 3 }, (_, i) => (currentYear - 2 + i).toString());
@@ -149,6 +159,7 @@ function FinancialsPage() {
     <div>
       <PageHeader
         title="Financials"
+        current={FIN_TAB_LABELS[tab] ?? "Overview (P&L)"}
         subtitle="Portfolio budgets, burn rates, CRs and revenue recognition"
         actions={
           <>
@@ -158,12 +169,8 @@ function FinancialsPage() {
         }
       />
 
-      <Tabs defaultValue="overview">
-        <TabsList>
-          <TabsTrigger value="overview">Overview (P&L)</TabsTrigger>
-          <TabsTrigger value="cost">Cost Recognition</TabsTrigger>
-          <TabsTrigger value="rev">Revenue Recognition</TabsTrigger>
-        </TabsList>
+      {/* Subpages live in the sidebar (?tab=) */}
+      <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
 
         <TabsContent value="overview" className="mt-5">
           {/* KPI row */}

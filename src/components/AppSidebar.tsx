@@ -20,26 +20,63 @@ import teamsmartLogo from "@/assets/teamsmart-logo.png.asset.json";
  * or inline color styles in this file — edit the tokens instead.
  */
 
-const main = [
-  { title: "Dashboard",         url: "/",                icon: LayoutDashboard },
-  { title: "Portfolio",         url: "/portfolio",       icon: Target },
-  { title: "Resources",         url: "/resources",       icon: Users },
-  { title: "Clients & Vendors", url: "/clients-vendors", icon: Handshake },
-  { title: "Financials",        url: "/financials",      icon: DollarSign },
-  { title: "Organization",      url: "/organization",    icon: Building2 },
-];
+type NavChild = { title: string; tab: string };
+type NavItem = {
+  title: string;
+  url: string;
+  icon: typeof LayoutDashboard;
+  children?: NavChild[];
+  defaultTab?: string;
+  badge?: number;
+  badgeTone?: "red";
+};
 
-const mgmt: typeof main = [];
-
-const allItems = [...main, ...mgmt];
-
-const orgTabs = [
-  { title: "Project Types", tab: "business-lines" },
-  { title: "Tags & Classifications", tab: "tags" },
-  { title: "Cost Categories", tab: "cost-categories" },
-  { title: "Departments", tab: "departments" },
-  { title: "Job Roles", tab: "job-roles" },
-  { title: "Calendars", tab: "calendars" },
+/* Page + Subpages (two levels only — anything deeper stays as in-page tabs). */
+const allItems: NavItem[] = [
+  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  {
+    title: "Portfolio", url: "/portfolio", icon: Target, defaultTab: "list",
+    children: [
+      { title: "All Projects", tab: "list" },
+      { title: "Portfolio Gantt", tab: "gantt" },
+    ],
+  },
+  {
+    title: "Resources", url: "/resources", icon: Users, defaultTab: "requests",
+    children: [
+      { title: "Requests", tab: "requests" },
+      { title: "People", tab: "people" },
+      { title: "Utilization Heatmap", tab: "heatmap" },
+      { title: "Manpower Planning", tab: "planning" },
+      { title: "Skill Demand", tab: "skills" },
+    ],
+  },
+  {
+    title: "Clients & Vendors", url: "/clients-vendors", icon: Handshake, defaultTab: "clients",
+    children: [
+      { title: "Clients", tab: "clients" },
+      { title: "Vendors", tab: "vendors" },
+    ],
+  },
+  {
+    title: "Financials", url: "/financials", icon: DollarSign, defaultTab: "overview",
+    children: [
+      { title: "Overview (P&L)", tab: "overview" },
+      { title: "Cost Recognition", tab: "cost" },
+      { title: "Revenue Recognition", tab: "rev" },
+    ],
+  },
+  {
+    title: "Organization", url: "/organization", icon: Building2, defaultTab: "business-lines",
+    children: [
+      { title: "Project Types", tab: "business-lines" },
+      { title: "Tags & Classifications", tab: "tags" },
+      { title: "Cost Categories", tab: "cost-categories" },
+      { title: "Departments", tab: "departments" },
+      { title: "Job Roles", tab: "job-roles" },
+      { title: "Calendars", tab: "calendars" },
+    ],
+  },
 ];
 
 export function AppSidebar() {
@@ -48,12 +85,10 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const search = useRouterState({ select: (r) => r.location.search as { tab?: string } });
   const isActive = (url: string) => url === "/" ? pathname === "/" : pathname.startsWith(url);
-  const onOrg = pathname.startsWith("/organization");
-  const [orgOpen, setOrgOpen] = useState(onOrg);
-  const activeTab = search?.tab ?? "business-lines";
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const { myPending, currentUser } = useApprovals();
   const canApprove = ["Director", "Portfolio Director", "Project Manager"].includes(currentUser.role);
-  const items = canApprove
+  const items: NavItem[] = canApprove
     ? [...allItems, { title: "Approvals", url: "/approvals", icon: CheckSquare, badge: myPending.length || undefined }]
     : allItems;
 
@@ -79,16 +114,18 @@ export function AppSidebar() {
             <SidebarMenu className="gap-3">
               {items.map((item) => {
                 const active = isActive(item.url);
-                const badge = ("badge" in item ? item.badge : undefined) as number | string | undefined;
-                const badgeDanger = "badgeTone" in item && item.badgeTone === "red";
-                if (item.url === "/organization") {
-                  const open = orgOpen || onOrg;
+                const badge = item.badge;
+                const badgeDanger = item.badgeTone === "red";
+                if (item.children) {
+                  const onModule = isActive(item.url);
+                  const open = openGroups[item.url] ?? onModule;
+                  const activeTab = search?.tab ?? item.defaultTab;
                   return (
                     <SidebarMenuItem key={item.url}>
                       <SidebarMenuButton
                         isActive={false}
                         tooltip={item.title}
-                        onClick={() => setOrgOpen((o) => !o)}
+                        onClick={() => setOpenGroups((g) => ({ ...g, [item.url]: !open }))}
                         className="h-10 rounded-lg px-3 text-sm font-medium"
                       >
                         <item.icon className="h-5 w-5 shrink-0" />
@@ -101,12 +138,12 @@ export function AppSidebar() {
                       </SidebarMenuButton>
                       {!collapsed && open && (
                         <div className="mt-2 flex flex-col gap-1">
-                          {orgTabs.map((t) => {
-                            const tabActive = onOrg && activeTab === t.tab;
+                          {item.children.map((t) => {
+                            const tabActive = onModule && activeTab === t.tab;
                             return (
                               <Link
                                 key={t.tab}
-                                to="/organization"
+                                to={item.url}
                                 search={{ tab: t.tab }}
                                 className={cn(
                                   "flex items-center gap-3 rounded-lg py-2 pl-4 pr-3 text-sm transition-colors",

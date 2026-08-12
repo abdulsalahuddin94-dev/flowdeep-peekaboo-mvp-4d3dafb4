@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
+import { PageToolbar } from "@/components/ds/PageToolbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,9 @@ import { clients, vendors, projects, contracts } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/clients-vendors")({
   component: ClientsVendorsPage,
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
   head: () => ({ meta: [{ title: "Clients & Vendors — Nexus PMO" }, { name: "description", content: "Manage external parties: clients with active engagements and approved vendor / subcontractor pool." }] }),
 });
 
@@ -52,16 +56,19 @@ const RAG_BAR: Record<string, string> = {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 function ClientsVendorsPage() {
+  const { tab = "clients" } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const [clientView, setClientView] = useState<typeof clients[number] | null>(null);
 
   return (
     <div>
-      <PageHeader title="Clients & Vendors" subtitle="External parties — clients with engagements, vendors and subcontractors approved for procurement" />
-      <Tabs defaultValue="clients">
-        <TabsList>
-          <TabsTrigger value="clients">Clients ({clients.length})</TabsTrigger>
-          <TabsTrigger value="vendors">Vendors ({vendors.length})</TabsTrigger>
-        </TabsList>
+      <PageHeader
+        title="Clients & Vendors"
+        current={tab === "vendors" ? "Vendors" : "Clients"}
+        subtitle="External parties — clients with engagements, vendors and subcontractors approved for procurement"
+      />
+      {/* Subpages live in the sidebar (?tab=) */}
+      <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
 
         {/* ── Clients tab ──────────────────────────────────────────────── */}
         <TabsContent value="clients" className="mt-5">
@@ -278,7 +285,7 @@ function ClientSheet({ client, onClose }: { client: typeof clients[number] | nul
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setConnectOpen(false); setConnectSel([]); setConnectSearch(""); }}>Cancel</Button>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleConnect}>
+            <Button variant="primary" onClick={handleConnect}>
               Link {connectSel.length > 0 ? `${connectSel.length} project${connectSel.length !== 1 ? "s" : ""}` : "selected"}
             </Button>
           </DialogFooter>
@@ -544,7 +551,7 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setConnectOpen(false); setConnectSel([]); }}>Cancel</Button>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleConnect}>
+            <Button variant="primary" onClick={handleConnect}>
               Link {connectSel.length > 0 ? `${connectSel.length} contract${connectSel.length !== 1 ? "s" : ""}` : "selected"}
             </Button>
           </DialogFooter>
@@ -555,16 +562,9 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
 }
 
 // ── Toolbar ───────────────────────────────────────────────────────────────────
-function Toolbar({ add }: { add: React.ReactNode }) {
-  return (
-    <div className="mb-3 flex items-center gap-2">
-      <div className="relative max-w-xs flex-1">
-        <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search…" className="pl-8" />
-      </div>
-      <div className="ml-auto">{add}</div>
-    </div>
-  );
+function Toolbar({ add, placeholder = "Search name, contact or category…" }: { add: React.ReactNode; placeholder?: string }) {
+  const [query, setQuery] = useState("");
+  return <PageToolbar query={query} onQueryChange={setQuery} placeholder={placeholder} cta={add} />;
 }
 
 // ── Add client dialog ─────────────────────────────────────────────────────────
@@ -600,7 +600,7 @@ function AddClientDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button size="sm" variant="primary">
           <Plus className="mr-1 h-4 w-4" />Add Client
         </Button>
       </DialogTrigger>
@@ -710,7 +710,7 @@ function AddClientDialog() {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSave}>
+          <Button variant="primary" onClick={handleSave}>
             <Plus className="mr-1 h-3.5 w-3.5" />Add Client
           </Button>
         </DialogFooter>
@@ -745,7 +745,7 @@ function AddVendorDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Button size="sm" variant="primary">
           <Plus className="mr-1 h-4 w-4" />Add Vendor
         </Button>
       </DialogTrigger>
@@ -841,7 +841,7 @@ function AddVendorDialog() {
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSave}>
+          <Button variant="primary" onClick={handleSave}>
             <Plus className="mr-1 h-3.5 w-3.5" />Add to pool
           </Button>
         </DialogFooter>

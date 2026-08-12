@@ -1,64 +1,51 @@
-## Goal
+# تعميم تجربة Organization على البروجيكت كله
 
-Centralize all theme colors for sidebar, header, and cards into CSS variables in `src/styles.css`, and remove hardcoded hex/rgba values scattered across components. After the refactor, changing any color (light or dark mode) happens in **one place only**: the `:root` / `[data-theme="dark"]` token blocks.
+الهدف: كل صفحة في التطبيق تبقى بنفس الـ pattern اللي شوفته في Cost Categories — Breadcrumb، Subpages في الـ Sidebar، Toolbar موحد (Search + Filter + Main CTA)، وجداول/Popups/Buttons من نفس الـ Design System.
 
-## Current problems
+## 1) مكوّنات مشتركة جديدة (Design System layer)
 
-- `src/components/AppSidebar.tsx` defines a `SIDEBAR_COLORS` JS object with hardcoded hex values (`#0B154B`, `#DEC9FF`, `#1C274C`, gradients, rgba whites) used via inline `style={{...}}` on ~15 elements.
-- `src/styles.css` repeats the same hex values (`#0B154B`, `#121318`, `#DEC9FF`, lavender gradient) inside `.ds02-sidebar` rules with `!important`, duplicating what should be tokens.
-- `src/components/AppTopbar.tsx` mixes utility classes and is fine, but the header background is hard-pinned via `bg-card/80`; we'll keep token-driven but rename intent.
-- Theme tokens exist (`--sidebar`, `--card`, etc.) but the sidebar component bypasses them with inline styles.
+- `PageShell` — Breadcrumb (Parent > Current) + Title اختياري، بدل ما كل صفحة تعمل header بشكل مختلف.
+- `Toolbar` — Search (rounded, 36px) + Filter button (بعدّاد الفلاتر) على الشمال، Main CTA على اليمين. نفس اللي في Organization بالحرف.
+- `DataTable` wrapper — يجمع StyledTable + TableRowActions (hover: edit/delete دائرية) + TablePagination بشكل ثابت.
+- توحيد `PageHeader` القديم ليستخدم PageShell (أو يتشال).
+- كل الألوان/المقاسات من tokens في `src/styles.css` — مفيش hex في الكومبوننتس.
 
-## Token model (new)
+## 2) Sidebar — Page + Subpages لكل موديول
 
-Add a single source of truth in `src/styles.css`, defined once per theme:
+نفس أسلوب Organization (collapsible + gradient pill على الـ subpage النشط):
 
-```text
-Sidebar          Header           Cards
---sidebar        --header         --card
---sidebar-fg     --header-fg      --card-foreground
---sidebar-border --header-border  --border
---sidebar-muted-fg
---sidebar-hover-bg
---sidebar-active-bg     (gradient or solid)
---sidebar-active-fg
---sidebar-logo-bg
---sidebar-logo-fg
---sidebar-badge-bg
---sidebar-badge-fg
---sidebar-badge-danger-bg
---sidebar-badge-danger-fg
-```
+- Portfolio → All Projects / Gantt (والـ tabs الأعمق تفضل جوة الصفحة)
+- Resources → Capacity / Requests
+- Financials → Overview (P&L) / Costs / CapEx-OpEx / Recognition
+- Clients & Vendors → Clients / Vendors
+- Approvals يفضل زي ما هو (badge)
+- الصفحات المخفية (Pipeline / Risks / Reports / Procurement / Settings) تتجهّز بنفس الشكل عشان لما تتفتح تبقى متسقة
 
-Light and dark blocks each set every token. No `!important`, no hex anywhere outside these two blocks.
+كل subpage بتشتغل بـ `?tab=` في URL زي Organization.
 
-## Changes
+## 3) تطبيق على الصفحات (واحدة واحدة)
 
-### 1. `src/styles.css`
-- Extend `:root` (light) and `[data-theme="dark"]` with the full sidebar token set above plus `--header` / `--header-fg` / `--header-border`.
-- Map them under `@theme inline` so Tailwind utilities (`bg-sidebar`, `bg-header`, `text-sidebar-foreground`, etc.) work.
-- Replace the `.ds02-sidebar` block (and the duplicate dark override) with token-driven rules — no hex, no `!important`. The class becomes a thin styling hook: `background: var(--sidebar); color: var(--sidebar-foreground); border-color: var(--sidebar-border);`.
-- Keep the active-item gradient as a token (`--sidebar-active-bg`) so themes can swap solid vs gradient.
+| صفحة | التعديل |
+|---|---|
+| Dashboard (`index.tsx`) | Breadcrumb + KPI cards على tokens الجديدة |
+| Portfolio list | Breadcrumb، Toolbar موحّد، جدول موحّد + pagination، ألوان RAG الهادية |
+| Project detail | Breadcrumb (Portfolio > اسم المشروع)، الـ tabs تفضل جوة الصفحة، Toolbars داخلية موحّدة |
+| Resources | Breadcrumb + subpages + Toolbar + جدول موحّد |
+| Financials | Breadcrumb + subpages + Toolbar + جداول موحّدة |
+| Clients & Vendors | Breadcrumb + subpages + Toolbar + جدول موحّد |
+| Approvals | Breadcrumb + جدول موحّد |
+| Auth | ألوان/buttons/inputs بالتوكنز الجديدة فقط |
+| Hidden pages | نفس المعالجة لو موجودة في الكود |
 
-### 2. `src/components/AppSidebar.tsx`
-- Delete the `SIDEBAR_COLORS` constant.
-- Remove every `style={{...}}` color override. Replace with Tailwind utilities bound to tokens: `bg-sidebar`, `text-sidebar-foreground`, `border-sidebar-border`, `hover:bg-sidebar-accent`, `data-[active=true]:bg-sidebar-primary`, etc.
-- Badges use `bg-sidebar-badge` / `bg-sidebar-badge-danger` utilities (added via `@theme inline`).
-- Logo chip and avatar use `bg-sidebar-primary text-sidebar-primary-foreground`.
+## 4) توحيد الـ Components القديمة
 
-### 3. `src/components/AppTopbar.tsx`
-- Change `bg-card/80` → `bg-header/80`, and the bottom border uses `border-header-border` (falls back to `--border` token if we alias).
-- No other behavioral changes.
+- كل الـ Dialogs تتحول لـ `form-dialog` (16px radius, Iconsax close) و `confirm-dialog` للتأكيدات (success/info/warning/danger).
+- كل الـ buttons/inputs/selects: 36px height، 8px radius، states من الـ palette الجديد.
+- Checkbox 20×20 + الأيقونة الحالية.
+- كل الأيقونات من Iconsax عبر `@/lib/icons` (مفيش imports مباشرة).
+- Tables: hover row token، actions دائرية عند الـ hover، pagination موحّد.
 
-### 4. Card surfaces
-- Already token-driven via `.glass-card { background: var(--card); border-color: var(--border); }`. No code changes — just confirm KpiCard and other consumers don't hardcode colors. (Spot check: `KpiCard.tsx` uses semantic classes only ✓.)
+## ملاحظات تقنية
 
-## Result
-
-To recolor the sidebar, header, or cards (in either theme), edit only the token block in `src/styles.css`. No component file needs to change. The `ds02-sidebar` class stays as a structural hook but contains zero color literals.
-
-## Out of scope
-
-- RAG colors, role colors, accent — already tokenized, untouched.
-- Auth/route logic, layout structure, fonts — untouched.
-- No new components, no design changes; pixels stay visually identical.
+- مفيش تغيير في الـ business logic أو الداتا — عرض وتنسيق فقط.
+- التغييرات الأساسية في `src/styles.css` + كومبوننتس مشتركة، والصفحات تستهلكها، فأي تعديل مستقبلي يبقى في مكان واحد.

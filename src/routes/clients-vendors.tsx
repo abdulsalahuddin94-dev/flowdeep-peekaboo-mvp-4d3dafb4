@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
+import { PageToolbar } from "@/components/ds/PageToolbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -561,16 +562,9 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
 }
 
 // ── Toolbar ───────────────────────────────────────────────────────────────────
-function Toolbar({ add }: { add: React.ReactNode }) {
-  return (
-    <div className="mb-3 flex items-center gap-2">
-      <div className="relative max-w-xs flex-1">
-        <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Search…" className="pl-8" />
-      </div>
-      <div className="ml-auto">{add}</div>
-    </div>
-  );
+function Toolbar({ add, placeholder = "Search name, contact or category…" }: { add: React.ReactNode; placeholder?: string }) {
+  const [query, setQuery] = useState("");
+  return <PageToolbar query={query} onQueryChange={setQuery} placeholder={placeholder} cta={add} />;
 }
 
 // ── Add client dialog ─────────────────────────────────────────────────────────

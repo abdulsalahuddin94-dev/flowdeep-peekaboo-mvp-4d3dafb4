@@ -176,9 +176,15 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
             {l}
           </button>
         ))}
-        <div className="relative ml-auto w-64">
-          <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search projects…" value={query} onChange={(e) => setQuery(e.target.value)} className="pl-8" />
+        <div className="relative ml-auto w-full min-w-[220px] sm:w-72">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search projects…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="rounded-md pl-9"
+            aria-label="Search projects"
+          />
         </div>
         <FilterDrawer
           groups={[
@@ -189,7 +195,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
             { key: "client", label: "Client", value: clientFilter, onChange: setClientFilter as never, options: ALL_CLIENTS.map((c) => ({ value: c, label: c })) },
           ]}
         />
-        <div className="flex overflow-hidden rounded-md border border-border bg-secondary/40">
+        <div className="flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
           {([["grid", LayoutGrid], ["list", List], ["gantt", GanttChartSquare]] as const).map(([k, Icon]) => (
             <button key={k} onClick={() => setView(k as View)} className={`p-2 ${view === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}><Icon className="h-4 w-4" /></button>
           ))}

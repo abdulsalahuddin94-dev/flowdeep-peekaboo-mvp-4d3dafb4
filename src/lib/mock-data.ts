@@ -116,12 +116,12 @@ export const businessLines = [
 ];
 
 export const departments = [
-  { name: "Engineering", parent: "—", head: "Sara Al-Rashid", members: 42 },
-  { name: "IT", parent: "—", head: "Mei Chen", members: 18 },
-  { name: "Operations", parent: "—", head: "Omar Haddad", members: 31 },
-  { name: "R&D", parent: "Engineering", head: "Priya Iyer", members: 12 },
-  { name: "Finance", parent: "—", head: "Liam Walker", members: 9 },
-  { name: "Procurement", parent: "Operations", head: "Hana Tanaka", members: 7 },
+  { name: "Engineering", parent: "—", head: "Sara Al-Rashid", members: 42, description: "Product engineering, delivery squads and technical leadership" },
+  { name: "IT", parent: "—", head: "Mei Chen", members: 18, description: "Internal systems, infrastructure and end-user support" },
+  { name: "Operations", parent: "—", head: "Omar Haddad", members: 31, description: "Service delivery operations and field execution" },
+  { name: "R&D", parent: "Engineering", head: "Priya Iyer", members: 12, description: "Research, prototyping and innovation initiatives" },
+  { name: "Finance", parent: "—", head: "Liam Walker", members: 9, description: "Budgeting, accounting and financial control" },
+  { name: "Procurement", parent: "Operations", head: "Hana Tanaka", members: 7, description: "Vendor sourcing, contracts and purchasing" },
 ];
 
 export const workCalendars: WorkCalendar[] = [

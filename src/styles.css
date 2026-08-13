@@ -57,7 +57,7 @@
   /* Color · Lavender / Primary (Purple 0 → 400) */
   --p-lavender-50:  #f1edfa;                 /* Primary Lighter · Purple 0   */
   --p-lavender-100: #efe4fe;                 /* Primary Light   · Purple 50  */
-  --p-lavender-200: #ddc9ff;                 /* Primary         · Purple 100 */
+  --p-lavender-200: #dec9ff;                 /* Primary         · Purple 100 */
   --p-lavender-300: #c8b5e6;                 /* Primary Medium  · Purple 200 */
   --p-lavender-400: #ceb1ff;                 /* Primary Dark    · Purple 300 */
   --p-lavender-500: #9848ff;                 /* Primary Darker  · Purple 400 */
@@ -181,14 +181,14 @@
   --p-black-a-80: rgba(0,0,0,0.80);
   --p-black-a-90: rgba(0,0,0,0.90);
 
-  /* Lavender (#DDC9FF) */
-  --p-lavender-a-10: rgba(221,201,255,0.10);
-  --p-lavender-a-15: rgba(221,201,255,0.15);
-  --p-lavender-a-20: rgba(221,201,255,0.20);
-  --p-lavender-a-30: rgba(221,201,255,0.30);
-  --p-lavender-a-40: rgba(221,201,255,0.40);
-  --p-lavender-a-50: rgba(221,201,255,0.50);
-  --p-lavender-a-60: rgba(221,201,255,0.60);
+  /* Lavender (#DEC9FF) */
+  --p-lavender-a-10: rgba(222,201,255,0.10);
+  --p-lavender-a-15: rgba(222,201,255,0.15);
+  --p-lavender-a-20: rgba(222,201,255,0.20);
+  --p-lavender-a-30: rgba(222,201,255,0.30);
+  --p-lavender-a-40: rgba(222,201,255,0.40);
+  --p-lavender-a-50: rgba(222,201,255,0.50);
+  --p-lavender-a-60: rgba(222,201,255,0.60);
 
   /* Indigo (#515B92) */
   --p-indigo-a-10: rgba(81,91,146,0.10);

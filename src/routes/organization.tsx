@@ -327,7 +327,7 @@ function TagsTab() {
         totalCount={tags.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
         cta={<AddTagDialog />}
-        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All tags" },{ value: "used", label: "In use" },{ value: "unused", label: "Unused" },] }]}
+        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All tags" },{ value: "used", label: "With active projects" },{ value: "unused", label: "No projects" },] }]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (

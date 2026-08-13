@@ -4,6 +4,19 @@
 
 ---
 
+## Session 43 — 2026-08-13
+
+**What was done:**
+1. Renamed all "Usage" / "Usage in Projects" columns to "Active Projects" in the Organization module.
+2. Aligned Job Roles and Cost Categories tables with the Departments "Active Projects" pattern.
+3. Updated related filter labels and empty-state text to use "Active Projects" terminology.
+4. Updated tag cards to show "X active projects" instead of "Used by X projects".
+
+**Files updated:**
+- `src/routes/organization.tsx`
+
+---
+
 ## Session 42 — 2026-07-12
 
 **What was done:**

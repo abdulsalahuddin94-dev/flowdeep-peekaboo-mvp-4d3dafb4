@@ -494,10 +494,10 @@ function AddBusinessLineDialog({ onAdd }: { onAdd: (name: string, description: s
   );
 }
 
-function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, head: string) => void }) {
+function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, description: string) => void }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [head, setHead] = useState("");
+  const [description, setDescription] = useState("");
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Department</Button></DialogTrigger>
@@ -505,16 +505,16 @@ function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, head: string) =>
         <DialogHeader><DialogTitle>New Department</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Quality Assurance" /></div>
-          <div><Label>Head</Label><Input value={head} onChange={(e) => setHead(e.target.value)} placeholder="Search user…" /></div>
+          <div><Label>Description</Label><Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description" /></div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={() => {
             const trimmed = name.trim();
             if (!trimmed) { toast.error("Name is required"); return; }
-            onAdd(trimmed, head.trim());
+            onAdd(trimmed, description.trim());
             toast.success("Department created");
-            setName(""); setHead(""); setOpen(false);
+            setName(""); setDescription(""); setOpen(false);
           }}>Save</Button>
         </DialogFooter>
       </DialogContent>

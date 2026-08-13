@@ -363,7 +363,7 @@ function TagsTab() {
           {(() => {
             const connected = projects.filter((p) => p.tags.includes(viewing ?? ""));
             if (connected.length === 0) {
-              return <p className="py-6 text-center text-sm text-muted-foreground">Not used by any project yet</p>;
+              return <p className="py-6 text-center text-sm text-muted-foreground">No active projects</p>;
             }
             return (
               <ScrollArea className="max-h-72">

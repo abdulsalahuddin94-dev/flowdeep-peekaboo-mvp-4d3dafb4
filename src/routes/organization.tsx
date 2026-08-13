@@ -183,61 +183,61 @@ function BusinessLinesTab() {
   );
 }
 
-type OrgDepartment = { name: string; head: string };
+type OrgDepartment = { name: string; description: string };
 
 function DepartmentsTab() {
-  const [rows, setRows] = useState<OrgDepartment[]>(departments.map((d) => ({ name: d.name, head: d.head ?? "" })));
-  const [editing, setEditing] = useState<{ index: number; name: string; head: string } | null>(null);
+  const { projects } = useProjects();
+  const [rows, setRows] = useState<OrgDepartment[]>(departments.map((d) => ({ name: d.name, description: d.description ?? "" })));
+  const [editing, setEditing] = useState<{ index: number; name: string; description: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ index: number; name: string } | null>(null);
   const [query, setQuery] = useState("");
-  const [head, setHead] = useState("all");
+  const [usage, setUsage] = useState("all");
 
-  const heads = useMemo(
-    () => Array.from(new Set(rows.map((d) => d.head).filter(Boolean))).sort(),
-    [rows],
-  );
+  const countFor = (name: string) => projects.filter((p) => p.department === name).length;
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows
-      .map((d, index) => ({ ...d, index }))
-      .filter((d) => !q || d.name.toLowerCase().includes(q) || d.head.toLowerCase().includes(q))
-      .filter((d) => head === "all" || d.head === head);
-  }, [rows, query, head]);
+      .map((d, index) => ({ ...d, index, projects: projects.filter((p) => p.department === d.name).length }))
+      .filter((d) => !q || d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q))
+      .filter((d) => usage === "all" || (usage === "active" ? d.projects > 0 : d.projects === 0));
+  }, [rows, query, usage, projects]);
 
   const pager = usePagination(visible);
 
   return (
     <>
       <FilterBar
-        title="Departments / Units"
+        title="Departments"
         desc="Org chart units; a project may span multiple."
         query={query}
         onQueryChange={setQuery}
-        placeholder="Search department or head…"
+        placeholder="Search name or description…"
         resultCount={visible.length}
         totalCount={rows.length}
-        onReset={() => { setQuery(""); setHead("all"); }}
-        cta={<AddDepartmentDialog onAdd={(name, head) => setRows((prev) => [...prev, { name, head }])} />}
-        filterGroups={[{ key: "head", label: "Head", value: head, onChange: setHead, options: [{ value: "all", label: "All heads" }, ...heads.map((h) => ({ value: h, label: h }))] }]}
+        onReset={() => { setQuery(""); setUsage("all"); }}
+        cta={<AddDepartmentDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description }])} />}
+        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All departments" }, { value: "active", label: "With active projects" }, { value: "empty", label: "No projects" }] }]}
       />
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
             <TableHead className="w-64">Department</TableHead>
-            <TableHead>Head</TableHead>
+            <TableHead className="w-72">Description</TableHead>
+            <TableHead className="text-center">Active Projects</TableHead>
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
-            {visible.length === 0 && <EmptyRow colSpan={3} />}
+            {visible.length === 0 && <EmptyRow colSpan={4} />}
             {pager.pageItems.map((d) => {
               const i = d.index;
               return (
               <TableRow key={`${d.name}-${i}`} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
-                <TableCell>{d.head || "—"}</TableCell>
+                <TableCell className="text-muted-foreground">{d.description || "—"}</TableCell>
+                <TableCell className="text-center num-mono">{d.projects}</TableCell>
                 <TableCell>
                   <RowActions
-                    onEdit={() => setEditing({ index: i, name: d.name, head: d.head })}
+                    onEdit={() => setEditing({ index: i, name: d.name, description: d.description })}
                     onDelete={() => setPendingDelete({ index: i, name: d.name })}
                   />
                 </TableCell>
@@ -251,10 +251,10 @@ function DepartmentsTab() {
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Edit Department</DialogTitle><DialogDescription>Update the department name or its head.</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle>Edit Department</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div><Label>Name</Label><Input value={editing?.name ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, name: e.target.value } : p)} /></div>
-            <div><Label>Head</Label><Input value={editing?.head ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, head: e.target.value } : p)} /></div>
+            <div><Label>Description</Label><Textarea value={editing?.description ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, description: e.target.value } : p)} placeholder="Brief description" /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
@@ -262,7 +262,7 @@ function DepartmentsTab() {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Name is required"); return; }
-              setRows((prev) => prev.map((r, idx) => idx === editing.index ? { name, head: editing.head.trim() } : r));
+              setRows((prev) => prev.map((r, idx) => idx === editing.index ? { name, description: editing.description.trim() } : r));
               toast.success("Department updated");
               setEditing(null);
             }}>Save</Button>

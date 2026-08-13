@@ -1130,7 +1130,7 @@ function JobRolesTab() {
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
             <TableHead className="w-56">Role Title</TableHead>
             <TableHead className="w-48">Skills</TableHead>
-            <TableHead className="w-40 text-center">Usage in Projects</TableHead>
+            <TableHead className="w-40 text-center">Active Projects</TableHead>
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>

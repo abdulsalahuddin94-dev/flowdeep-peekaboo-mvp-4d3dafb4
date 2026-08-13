@@ -1123,7 +1123,7 @@ function JobRolesTab() {
         totalCount={jobRoles.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
         cta={<AddJobRoleDialog onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
-        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "Used in projects" },{ value: "unused", label: "Not used" },{ value: "with-skills", label: "With skills" },{ value: "no-skills", label: "Without skills" },] }]}
+        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "With active projects" },{ value: "unused", label: "No projects" },{ value: "with-skills", label: "With skills" },{ value: "no-skills", label: "Without skills" },] }]}
       />
       <div className="">
         <Table>

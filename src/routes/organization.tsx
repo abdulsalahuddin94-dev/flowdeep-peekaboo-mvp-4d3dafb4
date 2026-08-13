@@ -115,7 +115,7 @@ function BusinessLinesTab() {
         totalCount={rows.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
         cta={<AddBusinessLineDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />}
-        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All types" },{ value: "active", label: "With active projects" },{ value: "empty", label: "No projects" },] }]}
+        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All types" },{ value: "active", label: "With active projects" },{ value: "empty", label: "No projects" },] }]}
       />
       <div className="">
         <Table>
@@ -216,7 +216,7 @@ function DepartmentsTab() {
         totalCount={rows.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
         cta={<AddDepartmentDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description }])} />}
-        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All departments" }, { value: "active", label: "With active projects" }, { value: "empty", label: "No projects" }] }]}
+        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All departments" }, { value: "active", label: "With active projects" }, { value: "empty", label: "No projects" }] }]}
       />
       <div className="">
         <Table>
@@ -327,7 +327,7 @@ function TagsTab() {
         totalCount={tags.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
         cta={<AddTagDialog />}
-        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All tags" },{ value: "used", label: "In use" },{ value: "unused", label: "Unused" },] }]}
+        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All tags" },{ value: "used", label: "With active projects" },{ value: "unused", label: "No projects" },] }]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (
@@ -343,7 +343,7 @@ function TagsTab() {
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: t.color }} aria-hidden />
               <div>
                 <div className="font-medium text-foreground group-hover:underline">{t.name}</div>
-                <div className="text-xs text-muted-foreground">Used by {t.usage} projects</div>
+                <div className="text-xs text-muted-foreground">{t.usage} active projects</div>
               </div>
             </button>
             <RowActions
@@ -363,7 +363,7 @@ function TagsTab() {
           {(() => {
             const connected = projects.filter((p) => p.tags.includes(viewing ?? ""));
             if (connected.length === 0) {
-              return <p className="py-6 text-center text-sm text-muted-foreground">Not used by any project yet</p>;
+              return <p className="py-6 text-center text-sm text-muted-foreground">No active projects</p>;
             }
             return (
               <ScrollArea className="max-h-72">
@@ -943,7 +943,7 @@ function CostCategoriesTab() {
             <TableHead className="w-56">Category Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead className="w-28">Type</TableHead>
-            <TableHead className="w-28 text-right">Usage</TableHead>
+            <TableHead className="w-28 text-center">Active Projects</TableHead>
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
@@ -956,7 +956,7 @@ function CostCategoriesTab() {
                 <TableCell>
                   <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium ${c.type === "CapEx" ? "bg-rag-blue/15 text-rag-blue" : "bg-accent-dim text-accent"}`}>{c.type}</span>
                 </TableCell>
-                <TableCell className="text-right text-xs text-muted-foreground">— projects</TableCell>
+                <TableCell className="text-center num-mono">0</TableCell>
                 <TableCell>
                   <RowActions onEdit={() => setEditing(c)} onDelete={() => setPendingDelete(c)} />
                 </TableCell>
@@ -1123,14 +1123,14 @@ function JobRolesTab() {
         totalCount={jobRoles.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
         cta={<AddJobRoleDialog onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
-        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "Used in projects" },{ value: "unused", label: "Not used" },{ value: "with-skills", label: "With skills" },{ value: "no-skills", label: "Without skills" },] }]}
+        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "With active projects" },{ value: "unused", label: "No projects" },{ value: "with-skills", label: "With skills" },{ value: "no-skills", label: "Without skills" },] }]}
       />
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
             <TableHead className="w-56">Role Title</TableHead>
             <TableHead className="w-48">Skills</TableHead>
-            <TableHead className="w-40 text-center">Usage in Projects</TableHead>
+            <TableHead className="w-40 text-center">Active Projects</TableHead>
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
@@ -1147,13 +1147,11 @@ function JobRolesTab() {
                     </div>
                   ) : <span className="text-xs text-muted-foreground">—</span>}
                 </TableCell>
-                <TableCell className="text-center text-xs">
+                <TableCell className="text-center num-mono">
                   {(() => {
                     const projects = usageByRole.get(r.title.trim().toLowerCase());
                     const count = projects?.size ?? 0;
-                    return count === 0
-                      ? <span className="text-muted-foreground">Not used</span>
-                      : <span className="text-foreground" title={[...projects!].join(", ")}>{count} project{count > 1 ? "s" : ""}</span>;
+                    return <span title={count > 0 ? [...projects!].join(", ") : undefined}>{count}</span>;
                   })()}
                 </TableCell>
                 <TableCell>

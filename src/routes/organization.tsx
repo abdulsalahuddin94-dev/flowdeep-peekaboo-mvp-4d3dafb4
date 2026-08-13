@@ -1147,13 +1147,11 @@ function JobRolesTab() {
                     </div>
                   ) : <span className="text-xs text-muted-foreground">—</span>}
                 </TableCell>
-                <TableCell className="text-center text-xs">
+                <TableCell className="text-center num-mono">
                   {(() => {
                     const projects = usageByRole.get(r.title.trim().toLowerCase());
                     const count = projects?.size ?? 0;
-                    return count === 0
-                      ? <span className="text-muted-foreground">Not used</span>
-                      : <span className="text-foreground" title={[...projects!].join(", ")}>{count} project{count > 1 ? "s" : ""}</span>;
+                    return <span title={count > 0 ? [...projects!].join(", ") : undefined}>{count}</span>;
                   })()}
                 </TableCell>
                 <TableCell>

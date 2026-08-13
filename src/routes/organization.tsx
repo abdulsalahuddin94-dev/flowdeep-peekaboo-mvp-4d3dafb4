@@ -343,7 +343,7 @@ function TagsTab() {
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: t.color }} aria-hidden />
               <div>
                 <div className="font-medium text-foreground group-hover:underline">{t.name}</div>
-                <div className="text-xs text-muted-foreground">Used by {t.usage} projects</div>
+                <div className="text-xs text-muted-foreground">{t.usage} active projects</div>
               </div>
             </button>
             <RowActions

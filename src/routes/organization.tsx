@@ -295,8 +295,10 @@ function ConfirmDeleteDialog({ label, onCancel, onConfirm }: { label?: string; o
 
 function TagsTab() {
   const { tags, updateTag, removeTag } = useTags();
+  const { projects } = useProjects();
   const [editing, setEditing] = useState<{ name: string; color: string; original: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [usage, setUsage] = useState("all");
 
@@ -327,13 +329,17 @@ function TagsTab() {
         )}
         {visible.map((t) => (
           <div key={t.name} className="group glass-card flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setViewing(t.name)}
+              className="flex flex-1 items-center gap-3 text-left"
+            >
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: t.color }} aria-hidden />
               <div>
-                <div className="font-medium text-foreground">{t.name}</div>
+                <div className="font-medium text-foreground group-hover:underline">{t.name}</div>
                 <div className="text-xs text-muted-foreground">Used by {t.usage} projects</div>
               </div>
-            </div>
+            </button>
             <RowActions
               onEdit={() => setEditing({ name: t.name, color: t.color, original: t.name })}
               onDelete={() => setPendingDelete(t.name)}
@@ -341,6 +347,36 @@ function TagsTab() {
           </div>
         ))}
       </div>
+
+      <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{viewing}</DialogTitle>
+            <DialogDescription>Projects connected to this tag.</DialogDescription>
+          </DialogHeader>
+          {(() => {
+            const connected = projects.filter((p) => p.tags.includes(viewing ?? ""));
+            if (connected.length === 0) {
+              return <p className="py-6 text-center text-sm text-muted-foreground">Not used by any project yet</p>;
+            }
+            return (
+              <ScrollArea className="max-h-72">
+                <div className="space-y-1 pr-2">
+                  {connected.map((p) => (
+                    <div key={p.id} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-secondary/40">
+                      <span className="truncate text-foreground">{p.name}</span>
+                      <span className="ml-3 shrink-0 text-xs text-muted-foreground">{p.id}</span>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            );
+          })()}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewing(null)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>

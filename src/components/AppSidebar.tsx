@@ -34,13 +34,7 @@ type NavItem = {
 /* Page + Subpages (two levels only — anything deeper stays as in-page tabs). */
 const allItems: NavItem[] = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  {
-    title: "Portfolio", url: "/portfolio", icon: Target, defaultTab: "list",
-    children: [
-      { title: "All Projects", tab: "list" },
-      { title: "Portfolio Gantt", tab: "gantt" },
-    ],
-  },
+  { title: "Portfolio", url: "/portfolio", icon: Target },
   {
     title: "Resources", url: "/resources", icon: Users, defaultTab: "requests",
     children: [

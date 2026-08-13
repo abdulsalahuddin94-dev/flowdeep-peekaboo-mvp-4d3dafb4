@@ -956,7 +956,7 @@ function CostCategoriesTab() {
                 <TableCell>
                   <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium ${c.type === "CapEx" ? "bg-rag-blue/15 text-rag-blue" : "bg-accent-dim text-accent"}`}>{c.type}</span>
                 </TableCell>
-                <TableCell className="text-right text-xs text-muted-foreground">— projects</TableCell>
+                <TableCell className="text-center num-mono">0</TableCell>
                 <TableCell>
                   <RowActions onEdit={() => setEditing(c)} onDelete={() => setPendingDelete(c)} />
                 </TableCell>

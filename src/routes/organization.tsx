@@ -943,7 +943,7 @@ function CostCategoriesTab() {
             <TableHead className="w-56">Category Name</TableHead>
             <TableHead>Description</TableHead>
             <TableHead className="w-28">Type</TableHead>
-            <TableHead className="w-28 text-right">Usage</TableHead>
+            <TableHead className="w-28 text-center">Active Projects</TableHead>
             <TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>

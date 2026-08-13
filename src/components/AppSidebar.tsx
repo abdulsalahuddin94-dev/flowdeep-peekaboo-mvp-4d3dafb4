@@ -118,7 +118,7 @@ export function AppSidebar() {
                 const badgeDanger = item.badgeTone === "red";
                 if (item.children) {
                   const onModule = isActive(item.url);
-                  const open = openGroups[item.url] ?? onModule;
+                  const open = openGroups[item.url] ?? true;
                   const activeTab = search?.tab ?? item.defaultTab;
                   return (
                     <SidebarMenuItem key={item.url}>

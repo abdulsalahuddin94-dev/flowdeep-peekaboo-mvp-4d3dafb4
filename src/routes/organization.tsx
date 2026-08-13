@@ -115,7 +115,7 @@ function BusinessLinesTab() {
         totalCount={rows.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
         cta={<AddBusinessLineDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />}
-        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All types" },{ value: "active", label: "With active projects" },{ value: "empty", label: "No projects" },] }]}
+        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All types" },{ value: "active", label: "With active projects" },{ value: "empty", label: "No projects" },] }]}
       />
       <div className="">
         <Table>

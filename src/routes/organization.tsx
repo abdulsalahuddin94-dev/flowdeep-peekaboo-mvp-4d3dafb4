@@ -17,6 +17,7 @@ import { Breadcrumbs } from "@/components/ds/PageShell";
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
+import { RulesThresholdsTab } from "@/components/org/RulesThresholds";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,6 +31,7 @@ const ORG_TAB_LABELS: Record<string, string> = {
   "business-lines": "Project Types", tags: "Tags & Classifications",
   "cost-categories": "Cost Categories", departments: "Departments",
   "job-roles": "Job Roles", calendars: "Calendars",
+  "rules": "Rules & Thresholds",
 };
 
 export const Route = createFileRoute("/organization")({
@@ -70,6 +72,10 @@ function OrganizationPage() {
 
         <TabsContent value="calendars">
           <CalendarsTab />
+        </TabsContent>
+
+        <TabsContent value="rules">
+          <RulesThresholdsTab />
         </TabsContent>
       </Tabs>
     </div>

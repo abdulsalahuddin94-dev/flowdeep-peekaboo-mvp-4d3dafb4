@@ -25,7 +25,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parseISO } from "date-fns";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 const ORG_TAB_LABELS: Record<string, string> = {
   "business-lines": "Project Types", tags: "Tags & Classifications",

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, XCircle, Send, Pencil } from "@/lib/icons";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { useParams } from "@tanstack/react-router";
 import { useApprovals, useProjects } from "@/lib/projects-store";
 

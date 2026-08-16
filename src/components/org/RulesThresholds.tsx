@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RagBadge } from "@/components/RagBadge";
 import { DEFAULT_ORG_RULES, loadOrgRules, saveOrgRules, type OrgRules } from "@/lib/org-rules";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 function NumField({
   label, hint, value, onChange, suffix,

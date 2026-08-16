@@ -16,7 +16,7 @@ import { resources, projects, departments } from "@/lib/mock-data";
 import { useResourceRequests } from "@/lib/projects-store";
 import type { ResourceRequest } from "@/lib/projects-store";
 import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck } from "@/lib/icons";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 export const Route = createFileRoute("/resources")({
   component: ResourcesPage,

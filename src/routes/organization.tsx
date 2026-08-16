@@ -48,7 +48,9 @@ function OrganizationPage() {
   const label = ORG_TAB_LABELS[tab] ?? "Project Types";
   return (
     <div>
-      <div className="mb-4"><Breadcrumbs current={label} /></div>
+      <div className="mb-4">
+        <h1 className="text-2xl font-medium text-foreground">{label}</h1>
+      </div>
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
         <TabsContent value="business-lines">
           <BusinessLinesTab />

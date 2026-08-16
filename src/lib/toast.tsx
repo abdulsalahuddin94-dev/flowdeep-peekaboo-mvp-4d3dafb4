@@ -10,11 +10,11 @@ import type { ReactNode } from "react";
 
 type Kind = "info" | "success" | "warning" | "error";
 
-const KINDS: Record<Kind, { label: string; Icon: typeof InfoCircle; bg: string; border: string; title: string }> = {
-  info:    { label: "Information", Icon: InfoCircle,   bg: "var(--toast-info-bg)",    border: "var(--toast-info-border)",    title: "var(--toast-info-title)" },
-  success: { label: "Success",     Icon: TickCircle,   bg: "var(--toast-success-bg)", border: "var(--toast-success-border)", title: "var(--toast-success-title)" },
-  warning: { label: "Warning",     Icon: Warning2,     bg: "var(--toast-warning-bg)", border: "var(--toast-warning-border)", title: "var(--toast-warning-title)" },
-  error:   { label: "Error",       Icon: CloseCircle,  bg: "var(--toast-error-bg)",   border: "var(--toast-error-border)",   title: "var(--toast-error-title)" },
+const KINDS: Record<Kind, { label: string; Icon: typeof InfoCircle; bg: string; border: string; title: string; subtitle: string }> = {
+  info:    { label: "Information", Icon: InfoCircle,   bg: "var(--toast-info-bg)",    border: "var(--toast-info-border)",    title: "var(--toast-info-title)",    subtitle: "var(--toast-info-subtitle)" },
+  success: { label: "Success",     Icon: TickCircle,   bg: "var(--toast-success-bg)", border: "var(--toast-success-border)", title: "var(--toast-success-title)",    subtitle: "var(--toast-success-subtitle)" },
+  warning: { label: "Warning",     Icon: Warning2,     bg: "var(--toast-warning-bg)", border: "var(--toast-warning-border)", title: "var(--toast-warning-title)",    subtitle: "var(--toast-warning-subtitle)" },
+  error:   { label: "Error",       Icon: CloseCircle,  bg: "var(--toast-error-bg)",   border: "var(--toast-error-border)",   title: "var(--toast-error-title)",    subtitle: "var(--toast-error-subtitle)" },
 };
 
 type Opts = ExternalToast & { title?: ReactNode };

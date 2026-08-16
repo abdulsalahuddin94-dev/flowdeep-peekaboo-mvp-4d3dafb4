@@ -106,8 +106,9 @@ export function FormDialog({
               <DialogPrimitive.Title className="text-xl font-semibold text-foreground">
                 {title}
               </DialogPrimitive.Title>
+              {/* DS02: popup subtitles are not displayed — kept for a11y only. */}
               {description ? (
-                <DialogPrimitive.Description className="text-sm text-muted-foreground">
+                <DialogPrimitive.Description className="sr-only">
                   {description}
                 </DialogPrimitive.Description>
               ) : null}

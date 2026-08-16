@@ -111,7 +111,7 @@ function RootComponent() {
               </div>
             </div>
           </SidebarProvider>
-        <Toaster richColors theme="dark" position="bottom-right" />
+        <Toaster theme="dark" position="top-right" />
       </TooltipProvider>
       </ProjectsProvider>
     </QueryClientProvider>

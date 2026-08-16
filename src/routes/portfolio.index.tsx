@@ -49,7 +49,6 @@ function PortfolioPage() {
     <div>
       <PageHeader
         title="Portfolio"
-        current={tab === "gantt" ? "Portfolio Gantt" : "All Projects"}
         subtitle={`${projectList.length} active projects · FY2026`}
         actions={
           <div className="flex gap-2">

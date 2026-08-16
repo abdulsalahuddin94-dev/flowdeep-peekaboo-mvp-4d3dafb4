@@ -24,19 +24,19 @@ function ToastCard({ kind, title, message, onClose }: { kind: Kind; title: React
   const { Icon } = c;
   return (
     <div
-      className="flex w-full items-start gap-3 rounded-lg border px-5 py-3.5"
+      className="flex w-full items-center gap-3 rounded-lg border px-6 py-2"
       style={{ background: c.bg, borderColor: c.border, color: "var(--toast-fg)" }}
     >
-      <Icon size={24} variant="Outline" color={c.title} className="mt-0.5 shrink-0" />
+      <Icon size={24} variant="Outline" color={c.title} className="shrink-0" />
       <div className="min-w-0 flex-1">
         <div className="text-[15px] font-semibold leading-tight" style={{ color: c.title }}>{title}</div>
-        <div className="mt-0.5 text-sm leading-snug opacity-95">{message}</div>
+        <div className="mt-0.5 text-sm leading-snug" style={{ color: c.subtitle }}>{message}</div>
       </div>
       <button
         type="button"
         aria-label="Close"
         onClick={onClose}
-        className="mt-0.5 shrink-0 opacity-75 transition-opacity hover:opacity-100"
+        className="shrink-0 opacity-75 transition-opacity hover:opacity-100"
       >
         <X className="h-[18px] w-[18px]" />
       </button>

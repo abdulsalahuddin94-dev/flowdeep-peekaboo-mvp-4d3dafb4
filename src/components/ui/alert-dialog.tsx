@@ -74,7 +74,8 @@ const AlertDialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    // DS02: popup subtitles are hidden globally — kept in the DOM for a11y.
+    className={cn("sr-only", className)}
     {...props}
   />
 ));

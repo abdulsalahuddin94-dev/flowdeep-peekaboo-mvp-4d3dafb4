@@ -780,27 +780,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
           </div>
           <div className="col-span-2">
             <Label>Tags (optional)</Label>
-            <div className="mt-1 flex flex-wrap gap-1.5">
-              {orgTags.map((t) => {
-                const on = selectedTags.includes(t.name);
-                return (
-                  <button
-                    key={t.name}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => setSelectedTags((prev) => on ? prev.filter((x) => x !== t.name) : [...prev, t.name])}
-                    className="rounded-full border px-2 py-0.5 text-[11px] transition"
-                    style={{
-                      color: t.color,
-                      borderColor: on ? t.color : `${t.color}55`,
-                      backgroundColor: on ? `${t.color}33` : "transparent",
-                    }}
-                  >
-                    {t.name}
-                  </button>
-                );
-              })}
-            </div>
+            <TagPicker options={orgTags} value={selectedTags} onChange={setSelectedTags} />
             <p className="mt-1 text-[11px] text-muted-foreground">Tags come from Organization → Tags &amp; Classifications.</p>
           </div>
         </div>

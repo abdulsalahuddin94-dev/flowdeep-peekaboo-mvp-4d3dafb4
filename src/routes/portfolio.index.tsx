@@ -574,23 +574,36 @@ const PM_LIST = ["Sara Al-Rashid", "John Smith", "Mei Chen", "Omar Haddad", "Pri
 
 function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
   const { calendars } = useCalendars();
+  const { tags: orgTags } = useTags();
   const [open, setOpen] = useState(false);
   const [projectType, setProjectType] = useState<"capital" | "commercial" | null>(null);
   const [name, setName] = useState("");
+  const [code, setCode] = useState("");
   const [businessLine, setBusinessLine] = useState("Software Solutions");
   const [department, setDepartment] = useState("Engineering");
   const [client, setClient] = useState("Internal");
-  const [pm, setPm] = useState("Sara Al-Rashid");
   const [stage, setStage] = useState<Project["stage"]>("Initiation");
   const [startDate, setStartDate] = useState("");
   const [duration, setDuration] = useState("");
   const [endDate, setEndDate] = useState("");
   const [budget, setBudget] = useState("");
   const [revenue, setRevenue] = useState("");
-  const [tagsInput, setTagsInput] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [calendarId, setCalendarId] = useState<string>(calendars[0]?.id ?? "");
 
-  function reset() { setName(""); setBudget(""); setRevenue(""); setStartDate(""); setDuration(""); setEndDate(""); setTagsInput(""); setProjectType(null); }
+  function reset() { setName(""); setCode(""); setBudget(""); setRevenue(""); setStartDate(""); setDuration(""); setEndDate(""); setSelectedTags([]); setProjectType(null); }
+
+  /** Auto-generated, editable project code. Prefix follows the selected type. */
+  function autoCode(type: "capital" | "commercial") {
+    const prefix = type === "capital" ? "CAP" : "COM";
+    return `${prefix}-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
+  }
+  const isAutoCode = (v: string) => /^(CAP|COM)-\d{4}-\d{4}$/.test(v.trim());
+  function pickType(t: "capital" | "commercial") {
+    setProjectType(t);
+    /* Keep everything the user already typed; only the code prefix follows the type. */
+    setCode((prev) => (!prev.trim() || isAutoCode(prev) ? autoCode(t) : prev));
+  }
 
   const DAY = 86_400_000;
   /** Duration is calendar days, inclusive of both start and end. */
@@ -620,7 +633,6 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
 
   function handleCreate() {
     if (!name.trim()) { toast.error("Project name is required"); return; }
-    const avatar = pm.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
     const finalClient = projectType === "capital" ? "Internal" : client;
     const newProject: Project = {
       id: `p-${Date.now()}`,
@@ -628,8 +640,8 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
       businessLine,
       department,
       client: finalClient,
-      pm,
-      pmAvatar: avatar,
+      pm: "Unassigned",
+      pmAvatar: "—",
       progress: 0,
       budgetUsed: 0,
       budgetTotal: parseFloat(budget) || 0,
@@ -638,7 +650,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
       risks: 0,
       issues: 0,
       stage,
-      tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
+      tags: selectedTags,
       ragNote: "New",
       calendarId: calendarId || undefined,
     };
@@ -661,22 +673,48 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
           <DialogDescription>Create a project directly in the portfolio. For new initiatives requiring approval, use Submit Business Case instead.</DialogDescription>
         </DialogHeader>
         {!projectType ? (
-          <ProjectTypePicker onPick={(t) => setProjectType(t)} />
+          <ProjectTypePicker onPick={pickType} />
         ) : (
         <>
         <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2 flex items-center justify-between rounded-md border border-border bg-secondary/20 px-3 py-2">
-            <div className="flex items-center gap-2 text-xs">
-              <span className="text-muted-foreground">Type:</span>
-              <Badge variant="outline" className="border-accent/40 bg-accent-dim text-accent">
-                {projectType === "capital" ? "Capital / Internal" : "Commercial / External"}
-              </Badge>
-            </div>
-            <Button variant="ghost" size="sm" onClick={() => setProjectType(null)}>← Change type</Button>
+          <div className="col-span-2 flex overflow-hidden rounded-md border border-border bg-secondary/20 p-1">
+            {([["capital", "Capital / Internal"], ["commercial", "Commercial / External"]] as const).map(([k, l]) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => pickType(k)}
+                aria-selected={projectType === k}
+                className={cn(
+                  "flex-1 rounded-[6px] px-3 py-1.5 text-xs font-medium transition",
+                  projectType === k
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {l}
+              </button>
+            ))}
           </div>
-          <div className="col-span-2">
+          <div className={projectType === "commercial" ? "" : "col-span-2"}>
             <Label>Project name *</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. ERP Integration Phase 2" />
+          </div>
+          {projectType === "commercial" && (
+            <div>
+              <Label>Client</Label>
+              <Select value={client} onValueChange={setClient}>
+                <SelectTrigger><SelectValue placeholder="Select a client…" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACME Energy">ACME Energy</SelectItem>
+                  <SelectItem value="Northwind Logistics">Northwind Logistics</SelectItem>
+                  <SelectItem value="Global Tech">Global Tech</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="col-span-2">
+            <Label>Project code</Label>
+            <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Auto-generated" />
           </div>
           <div>
             <Label>Business Line</Label>
@@ -700,28 +738,6 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <Label>Project Manager</Label>
-            <Select value={pm} onValueChange={setPm}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {PM_LIST.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          {projectType === "commercial" && (
-            <div>
-              <Label>Client</Label>
-              <Select value={client} onValueChange={setClient}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACME Energy">ACME Energy</SelectItem>
-                  <SelectItem value="Northwind Logistics">Northwind Logistics</SelectItem>
-                  <SelectItem value="Global Tech">Global Tech</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
           <div>
             <Label>Stage</Label>
             <Select value={stage} onValueChange={(v) => setStage(v as Project["stage"])}>
@@ -766,8 +782,29 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
             <p className="mt-1 text-[11px] text-muted-foreground">Working days and holidays applied to this project's schedule. Manage calendars in Organization → Calendars.</p>
           </div>
           <div className="col-span-2">
-            <Label>Tags (comma-separated, optional)</Label>
-            <Input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="Strategic, Innovation…" />
+            <Label>Tags (optional)</Label>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {orgTags.map((t) => {
+                const on = selectedTags.includes(t.name);
+                return (
+                  <button
+                    key={t.name}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setSelectedTags((prev) => on ? prev.filter((x) => x !== t.name) : [...prev, t.name])}
+                    className="rounded-full border px-2 py-0.5 text-[11px] transition"
+                    style={{
+                      color: t.color,
+                      borderColor: on ? t.color : `${t.color}55`,
+                      backgroundColor: on ? `${t.color}33` : "transparent",
+                    }}
+                  >
+                    {t.name}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-1 text-[11px] text-muted-foreground">Tags come from Organization → Tags &amp; Classifications.</p>
           </div>
         </div>
         <DialogFooter>

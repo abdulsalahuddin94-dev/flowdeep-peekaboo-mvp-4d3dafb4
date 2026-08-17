@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useApprovals } from "@/lib/projects-store";
 import sansLogo from "@/assets/sans-logo.png.asset.json";
 import teamsmartLogo from "@/assets/teamsmart-logo.png.asset.json";
+import teamsmartMark from "@/assets/teamsmart-mark.png.asset.json";
 
 /*
  * Sidebar is fully token-driven. All colors come from CSS variables defined
@@ -91,13 +92,13 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="ds02-sidebar border-r-0">
       {/* Header — centered logo */}
-      <SidebarHeader className="px-3 py-5">
+      <SidebarHeader className={cn("py-5", collapsed ? "px-1" : "px-3")}>
         <div className="flex items-center justify-center">
-          <Link to="/" className={cn("flex items-center justify-center", collapsed && "hidden")} aria-label="Home">
+          <Link to="/" className="flex items-center justify-center" aria-label="Home">
             <img
-              src={teamsmartLogo.url}
+              src={collapsed ? teamsmartMark.url : teamsmartLogo.url}
               alt="TeamSmart"
-              className="h-7 w-auto object-contain"
+              className={cn("object-contain", collapsed ? "h-6 w-6" : "h-7 w-auto")}
             />
           </Link>
         </div>
@@ -148,9 +149,10 @@ export function AppSidebar() {
                             <SidebarMenuButton
                               isActive={false}
                               tooltip={item.title}
-                              className="h-10 rounded-lg px-3 text-sm font-medium"
+                              className="group/collapsed h-10 w-full justify-center gap-0.5 rounded-lg px-1 text-sm font-medium group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!p-1"
                             >
                               <item.icon className="h-5 w-5 shrink-0" />
+                              <ChevronDown className="h-4 w-4 shrink-0 opacity-70 transition-transform group-data-[state=open]/collapsed:rotate-180" />
                             </SidebarMenuButton>
                           </PopoverTrigger>
                           <PopoverContent

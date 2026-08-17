@@ -76,6 +76,15 @@ const allItems: NavItem[] = [
   },
 ];
 
+const iconSize = "h-6 w-6";
+
+function buttonBaseClasses(collapsed = false) {
+  return cn(
+    "h-10 rounded-lg px-3 text-sm font-medium justify-start",
+    collapsed && "group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!px-0 group-data-[collapsible=icon]:justify-center"
+  );
+}
+
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
@@ -98,7 +107,7 @@ export function AppSidebar() {
             <img
               src={collapsed ? teamsmartMark.url : teamsmartLogo.url}
               alt="TeamSmart"
-              className={cn("object-contain", collapsed ? "h-6 w-6" : "h-7 w-auto")}
+              className={cn("object-contain", collapsed ? "h-10 w-10" : "h-7 w-auto")}
             />
           </Link>
         </div>
@@ -108,7 +117,7 @@ export function AppSidebar() {
       <SidebarContent className="px-2 py-3">
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
-            <SidebarMenu className="gap-3">
+            <SidebarMenu className="gap-3 group-data-[collapsible=icon]:gap-7">
               {items.map((item) => {
                 const active = isActive(item.url);
                 const badge = item.badge;
@@ -149,10 +158,15 @@ export function AppSidebar() {
                             <SidebarMenuButton
                               isActive={false}
                               tooltip={item.title}
-                              className="group/collapsed h-10 w-full justify-center gap-0.5 rounded-lg px-1 text-sm font-medium group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!p-1"
+                              className={cn(
+                                buttonBaseClasses(true),
+                                "group/collapsed"
+                              )}
                             >
-                              <item.icon className="h-5 w-5 shrink-0" />
-                              <ChevronDown className="h-4 w-4 shrink-0 opacity-70 transition-transform group-data-[state=open]/collapsed:rotate-180" />
+                              <span className="relative flex h-6 w-6 items-center justify-center">
+                                <item.icon className={iconSize} />
+                                <ChevronDown className="absolute left-[calc(100%+4px)] top-1/2 h-3.5 w-3.5 -translate-y-1/2 shrink-0 opacity-70 transition-transform group-data-[state=open]/collapsed:rotate-180" />
+                              </span>
                             </SidebarMenuButton>
                           </PopoverTrigger>
                           <PopoverContent
@@ -174,9 +188,9 @@ export function AppSidebar() {
                         isActive={false}
                         tooltip={item.title}
                         onClick={() => setOpenGroups((g) => ({ ...g, [item.url]: !open }))}
-                        className="h-10 rounded-lg px-3 text-sm font-medium"
+                        className={buttonBaseClasses()}
                       >
-                        <item.icon className="h-5 w-5 shrink-0" />
+                        <item.icon className={iconSize} />
                         {!collapsed && (
                           <>
                             <span className="flex-1 truncate text-left">{item.title}</span>
@@ -196,10 +210,10 @@ export function AppSidebar() {
                       asChild
                       isActive={active}
                       tooltip={item.title}
-                      className="h-10 rounded-lg px-3 text-sm font-medium"
+                      className={buttonBaseClasses(true)}
                     >
-                      <Link to={item.url} className="flex w-full items-center gap-3">
-                        <item.icon className="h-5 w-5 shrink-0" />
+                      <Link to={item.url} className="flex w-full items-center gap-3 justify-start group-data-[collapsible=icon]:justify-center">
+                        <item.icon className={iconSize} />
                         {!collapsed && (
                           <>
                             <span className="flex-1 truncate">{item.title}</span>
@@ -233,7 +247,7 @@ export function AppSidebar() {
           <img
             src={sansLogo.url}
             alt="SANS"
-            className={cn("opacity-70", collapsed ? "h-7 w-7 object-contain" : "h-12 w-auto")}
+            className={cn("opacity-70", collapsed ? "h-10 w-10 object-contain" : "h-12 w-auto")}
           />
         </div>
       </SidebarFooter>

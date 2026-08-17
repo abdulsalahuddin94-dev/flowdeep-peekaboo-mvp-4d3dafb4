@@ -169,13 +169,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
 
       {/* Toolbar */}
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        {LINES.map((l) => (
-          <button key={l} onClick={() => setLine(l)}
-            className={`rounded-full border px-3 py-1 text-xs ${line === l ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground"}`}>
-            {l}
-          </button>
-        ))}
-        <div className="relative ml-auto w-full min-w-[220px] sm:w-72">
+        <div className="relative w-full min-w-[220px] sm:w-72">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search projects…"
@@ -194,7 +188,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
             { key: "client", label: "Client", value: clientFilter, onChange: setClientFilter as never, options: ALL_CLIENTS.map((c) => ({ value: c, label: c })) },
           ]}
         />
-        <div className="flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
+        <div className="ml-auto flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
           {([["grid", LayoutGrid], ["list", List], ["gantt", GanttChartSquare]] as const).map(([k, Icon]) => (
             <button key={k} onClick={() => setView(k as View)} className={`p-2 ${view === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}><Icon className="h-4 w-4" /></button>
           ))}

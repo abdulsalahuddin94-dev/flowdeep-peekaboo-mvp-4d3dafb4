@@ -695,6 +695,11 @@
   --ease-in-out: var(--p-ease-in-out);
   --ease-spring: var(--p-ease-spring);
 
+  /* Modal */
+  --color-modal-bg:    var(--modal-bg);
+  --color-modal-border: var(--modal-border);
+  --radius-modal:      var(--modal-radius);
+
   /* Categorical */
   --color-cat-teal:   var(--cat-teal);
   --color-cat-orange: var(--cat-orange);

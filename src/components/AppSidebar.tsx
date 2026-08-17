@@ -84,7 +84,7 @@ function buttonBaseClasses(collapsed = false, isFirst = false) {
     "group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:!w-full",
     collapsed && isFirst
       ? "group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!px-0"
-      : "group-data-[collapsible=icon]:!justify-start group-data-[collapsible=icon]:!pl-4 group-data-[collapsible=icon]:!pr-3"
+      : "group-data-[collapsible=icon]:!justify-start group-data-[collapsible=icon]:!pl-[41px] group-data-[collapsible=icon]:!pr-3"
   );
 }
 

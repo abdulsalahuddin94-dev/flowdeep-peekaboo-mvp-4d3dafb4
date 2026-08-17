@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Check, ChevronRight, Clock } from "@/lib/icons";
 import { FilterDrawer } from "@/components/FilterDrawer";
+import { TablePagination, usePagination } from "@/components/TablePagination";
 import { projects, pipelineItems, type Project, type Rag } from "@/lib/mock-data";
 import { useProjects, useCalendars, useApprovals } from "@/lib/projects-store";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -29,7 +30,6 @@ export const Route = createFileRoute("/portfolio/")({
   head: () => ({ meta: [{ title: "Portfolio — Nexus PMO" }, { name: "description", content: "All active projects, governance, and business case intake across the enterprise portfolio." }] }),
 });
 
-const LINES = ["All", "Software Solutions", "EPC", "Consultation", "Maintenance"] as const;
 const VIEWS = ["grid", "list", "gantt"] as const;
 type View = typeof VIEWS[number];
 
@@ -65,7 +65,6 @@ function PortfolioPage() {
 }
 
 function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restrict?: boolean; projectList: Project[]; initialView?: View }) {
-  const [line, setLine]           = useState<(typeof LINES)[number]>("All");
   const [view, setView]           = useState<View>(initialView);
   const [query, setQuery]         = useState("");
   const [active, setActive]       = useState<Project | null>(null);
@@ -92,7 +91,6 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const list = useMemo(() => {
     let l = projectList;
     if (restrict) l = l.slice(0, 6);
-    if (line !== "All") l = l.filter((p) => p.businessLine === line);
     if (query) l = l.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
     if (ragFilter.length > 0) l = l.filter((p) => ragFilter.includes(p.rag));
     if (stageFilter.length > 0) l = l.filter((p) => stageFilter.includes(p.stage));
@@ -101,7 +99,9 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
     if (clientFilter) l = l.filter((p) => p.client === clientFilter);
     if (onlyPending) l = l.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
     return l;
-  }, [projectList, line, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, onlyPending, pendingByProject]);
+  }, [projectList, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, onlyPending, pendingByProject]);
+
+  const pagination = usePagination(list, 10);
 
   const projectsAwaiting = projectList.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
   const pendingTotal = projectsAwaiting.reduce((s, p) => s + (pendingByProject.get(p.name) ?? 0), 0);
@@ -169,13 +169,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
 
       {/* Toolbar */}
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        {LINES.map((l) => (
-          <button key={l} onClick={() => setLine(l)}
-            className={`rounded-full border px-3 py-1 text-xs ${line === l ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground"}`}>
-            {l}
-          </button>
-        ))}
-        <div className="relative ml-auto w-full min-w-[220px] sm:w-72">
+        <div className="relative w-full min-w-[220px] sm:w-72">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search projects…"
@@ -194,7 +188,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
             { key: "client", label: "Client", value: clientFilter, onChange: setClientFilter as never, options: ALL_CLIENTS.map((c) => ({ value: c, label: c })) },
           ]}
         />
-        <div className="flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
+        <div className="ml-auto flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
           {([["grid", LayoutGrid], ["list", List], ["gantt", GanttChartSquare]] as const).map(([k, Icon]) => (
             <button key={k} onClick={() => setView(k as View)} className={`p-2 ${view === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}><Icon className="h-4 w-4" /></button>
           ))}
@@ -242,9 +236,10 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
-      {view === "grid" && list.length > 0 && <ProjectGrid items={list} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
-      {view === "list" && list.length > 0 && <ProjectListView items={list} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "grid" && list.length > 0 && <ProjectGrid items={pagination.pageItems} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "list" && list.length > 0 && <ProjectListView items={pagination.pageItems} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
       {view === "gantt" && list.length > 0 && <GanttView items={list} />}
+      {view !== "gantt" && list.length > 0 && <TablePagination {...pagination} itemLabel="projects" />}
     </>
   );
 }

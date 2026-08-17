@@ -796,6 +796,101 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
 }
 
 function ProjectTypePicker({ onPick }: { onPick: (t: "capital" | "commercial") => void }) {
+  return <ProjectTypePickerInner onPick={onPick} />;
+}
+
+function TagPicker({
+  options,
+  value,
+  onChange,
+}: {
+  options: { name: string; color: string }[];
+  value: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const colorOf = (n: string) => options.find((t) => t.name === n)?.color ?? "#94A3B8";
+  const filtered = options.filter((t) => t.name.toLowerCase().includes(q.trim().toLowerCase()));
+  const toggle = (n: string) =>
+    onChange(value.includes(n) ? value.filter((x) => x !== n) : [...value, n]);
+
+  const shown = value.slice(0, 4);
+  const extra = value.length - shown.length;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="mt-1 flex min-h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 py-1.5 text-left text-sm"
+        >
+          <span className="flex flex-1 flex-wrap items-center gap-1.5">
+            {value.length === 0 && <span className="text-muted-foreground">Select tags…</span>}
+            {shown.map((n) => (
+              <span
+                key={n}
+                className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]"
+                style={{ color: colorOf(n), borderColor: `${colorOf(n)}66`, backgroundColor: `${colorOf(n)}22` }}
+              >
+                {n}
+                <X
+                  className="h-3 w-3 opacity-70 hover:opacity-100"
+                  onClick={(e) => { e.stopPropagation(); toggle(n); }}
+                />
+              </span>
+            ))}
+            {extra > 0 && (
+              <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+                +{extra} more
+              </span>
+            )}
+          </span>
+          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[320px] p-0">
+        <div className="border-b border-border p-2">
+          <Input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search tags…"
+            className="h-9"
+          />
+        </div>
+        <div className="max-h-64 overflow-y-auto p-1">
+          {filtered.length === 0 && (
+            <p className="px-3 py-6 text-center text-xs text-muted-foreground">No tags found</p>
+          )}
+          {filtered.map((t) => {
+            const on = value.includes(t.name);
+            return (
+              <button
+                key={t.name}
+                type="button"
+                onClick={() => toggle(t.name)}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/60"
+              >
+                <Checkbox checked={on} className="pointer-events-none" />
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.color }} />
+                <span className="flex-1 truncate" style={{ color: t.color }}>{t.name}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center justify-between border-t border-border px-2 py-1.5">
+          <span className="text-[11px] text-muted-foreground">{value.length} selected</span>
+          <Button variant="ghost" size="sm" onClick={() => onChange([])} disabled={value.length === 0}>
+            Clear all
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ProjectTypePickerInner({ onPick }: { onPick: (t: "capital" | "commercial") => void }) {
   const cards = [
     {
       key: "capital" as const,

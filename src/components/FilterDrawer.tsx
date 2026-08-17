@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Filter, X, Check, ChevronRight, ChevronLeft } from "@/lib/icons";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Filter, X, ChevronRight, ChevronLeft } from "@/lib/icons";
 
 export type DrawerFilterGroup = {
   key: string;
@@ -103,14 +104,10 @@ export function FilterDrawer({ groups }: { groups: DrawerFilterGroup[] }) {
                       onClick={() => setDraft((d) => ({ ...d, [activePanel.key]: activePanel.multi ? [] : "" }))}
                       className="flex w-full items-center gap-3 rounded-md px-1 py-2 text-left text-sm text-foreground hover:bg-secondary/40"
                     >
-                      <span
-                        aria-hidden
-                        className={`grid h-5 w-5 shrink-0 place-content-center rounded-lg border ${
-                          allSelected ? "border-accent bg-accent text-accent-foreground" : "border-border"
-                        }`}
-                      >
-                        {allSelected && <Check className="h-3 w-3" />}
-                      </span>
+                      <Checkbox
+                        checked={allSelected}
+                        className="pointer-events-none"
+                      />
                       <span className="truncate">All {activePanel.label}</span>
                     </button>
                   )}
@@ -125,14 +122,10 @@ export function FilterDrawer({ groups }: { groups: DrawerFilterGroup[] }) {
                         onClick={() => toggle(activePanel, o.value)}
                         className="flex w-full items-center gap-3 rounded-md px-1 py-2 text-left text-sm text-foreground hover:bg-secondary/40"
                       >
-                        <span
-                          aria-hidden
-                          className={`grid h-5 w-5 shrink-0 place-content-center rounded-lg border ${
-                            selected ? "border-accent bg-accent text-accent-foreground" : "border-border"
-                          }`}
-                        >
-                          {selected && <Check className="h-3 w-3" />}
-                        </span>
+                        <Checkbox
+                          checked={selected}
+                          className="pointer-events-none"
+                        />
                         <span className="truncate">{o.label}</span>
                       </button>
                     );

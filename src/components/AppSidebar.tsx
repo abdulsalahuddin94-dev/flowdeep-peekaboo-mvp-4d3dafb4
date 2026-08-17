@@ -149,7 +149,7 @@ export function AppSidebar() {
                             <SidebarMenuButton
                               isActive={false}
                               tooltip={item.title}
-                              className="group/collapsed h-10 w-full justify-start gap-1 rounded-lg px-2 text-sm font-medium"
+                              className="group/collapsed h-10 w-full justify-center gap-0.5 rounded-lg px-1 text-sm font-medium group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!p-1"
                             >
                               <item.icon className="h-5 w-5 shrink-0" />
                               <ChevronDown className="h-4 w-4 shrink-0 opacity-70 transition-transform group-data-[state=open]/collapsed:rotate-180" />

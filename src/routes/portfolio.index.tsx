@@ -30,7 +30,6 @@ export const Route = createFileRoute("/portfolio/")({
   head: () => ({ meta: [{ title: "Portfolio — Nexus PMO" }, { name: "description", content: "All active projects, governance, and business case intake across the enterprise portfolio." }] }),
 });
 
-const LINES = ["All", "Software Solutions", "EPC", "Consultation", "Maintenance"] as const;
 const VIEWS = ["grid", "list", "gantt"] as const;
 type View = typeof VIEWS[number];
 

@@ -569,6 +569,10 @@
   --sidebar-scrollbar-thumb:        var(--p-white-a-18);
   --sidebar-scrollbar-thumb-hover: var(--p-white-a-32);
 
+  --modal-bg:           #121319;
+  --modal-border:       #767680;
+  --modal-radius:       12px;
+
   --shadow-sm:     0 1px 3px  var(--p-black-a-40);
   --shadow-md:     0 4px 12px var(--p-black-a-50);
   --shadow-lg:     0 8px 32px var(--p-black-a-60);

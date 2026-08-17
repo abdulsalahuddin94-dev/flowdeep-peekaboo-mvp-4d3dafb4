@@ -81,7 +81,8 @@ const iconSize = "h-6 w-6";
 function buttonBaseClasses(collapsed = false) {
   return cn(
     "h-10 rounded-lg px-3 text-sm font-medium justify-start",
-    collapsed && "group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!px-0 group-data-[collapsible=icon]:justify-center"
+    collapsed &&
+      "group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!justify-start group-data-[collapsible=icon]:!pl-6 group-data-[collapsible=icon]:!pr-2"
   );
 }
 
@@ -163,9 +164,11 @@ export function AppSidebar() {
                                 "group/collapsed"
                               )}
                             >
-                              <span className="relative flex h-6 w-6 items-center justify-center">
-                                <item.icon className={iconSize} />
-                                <ChevronDown className="absolute left-[calc(100%+4px)] top-1/2 h-3.5 w-3.5 -translate-y-1/2 shrink-0 opacity-70 transition-transform group-data-[state=open]/collapsed:rotate-180" />
+                              <span className="flex items-center gap-1">
+                                <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                                  <item.icon className={iconSize} />
+                                </span>
+                                <ChevronDown className="h-4 w-4 shrink-0 opacity-70 transition-transform group-data-[state=open]/collapsed:rotate-180" />
                               </span>
                             </SidebarMenuButton>
                           </PopoverTrigger>
@@ -212,8 +215,10 @@ export function AppSidebar() {
                       tooltip={item.title}
                       className={buttonBaseClasses(true)}
                     >
-                      <Link to={item.url} className="flex w-full items-center gap-3 justify-start group-data-[collapsible=icon]:justify-center">
-                        <item.icon className={iconSize} />
+                      <Link to={item.url} className="flex w-full items-center gap-3 justify-start">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                          <item.icon className={iconSize} />
+                        </span>
                         {!collapsed && (
                           <>
                             <span className="flex-1 truncate">{item.title}</span>

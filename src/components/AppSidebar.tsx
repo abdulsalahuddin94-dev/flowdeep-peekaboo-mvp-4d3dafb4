@@ -220,7 +220,7 @@ export function AppSidebar() {
                       asChild
                       isActive={active}
                       tooltip={item.title}
-                      className={buttonBaseClasses(true)}
+                      className={buttonBaseClasses(true, isFirst)}
                     >
                       <Link to={item.url} className="flex w-full items-center gap-3 justify-start">
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center">

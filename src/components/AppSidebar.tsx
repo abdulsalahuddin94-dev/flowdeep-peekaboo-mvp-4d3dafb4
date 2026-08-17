@@ -78,10 +78,13 @@ const allItems: NavItem[] = [
 
 const iconSize = "h-6 w-6";
 
-function buttonBaseClasses(collapsed = false) {
+function buttonBaseClasses(collapsed = false, isFirst = false) {
   return cn(
     "h-10 rounded-lg pl-4 pr-3 text-sm font-medium justify-start",
-    "group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!justify-start group-data-[collapsible=icon]:!pl-4 group-data-[collapsible=icon]:!pr-3"
+    "group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:!w-full",
+    collapsed && isFirst
+      ? "group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!px-0"
+      : "group-data-[collapsible=icon]:!justify-start group-data-[collapsible=icon]:!pl-[41px] group-data-[collapsible=icon]:!pr-3"
   );
 }
 
@@ -118,10 +121,11 @@ export function AppSidebar() {
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
             <SidebarMenu className="gap-3">
-              {items.map((item) => {
+              {items.map((item, index) => {
                 const active = isActive(item.url);
                 const badge = item.badge;
                 const badgeDanger = item.badgeTone === "red";
+                const isFirst = index === 0;
                 if (item.children) {
                   const onModule = isActive(item.url);
                   const open = openGroups[item.url] ?? false;
@@ -163,12 +167,10 @@ export function AppSidebar() {
                                 "group/collapsed"
                               )}
                             >
-                              <span className="flex items-center gap-1">
-                                <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                                  <item.icon className={iconSize} />
-                                </span>
-                                <ChevronDown className="h-4 w-4 shrink-0 opacity-70 transition-transform group-data-[state=open]/collapsed:rotate-180" />
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                                <item.icon className={iconSize} />
                               </span>
+                              <ChevronDown className="ml-auto h-4 w-4 shrink-0 opacity-70 transition-transform group-data-[state=open]/collapsed:rotate-180" />
                             </SidebarMenuButton>
                           </PopoverTrigger>
                           <PopoverContent
@@ -218,7 +220,7 @@ export function AppSidebar() {
                       asChild
                       isActive={active}
                       tooltip={item.title}
-                      className={buttonBaseClasses(true)}
+                      className={buttonBaseClasses(true, isFirst)}
                     >
                       <Link to={item.url} className="flex w-full items-center gap-3 justify-start">
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center">

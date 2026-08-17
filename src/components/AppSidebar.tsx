@@ -78,10 +78,13 @@ const allItems: NavItem[] = [
 
 const iconSize = "h-6 w-6";
 
-function buttonBaseClasses(collapsed = false) {
+function buttonBaseClasses(collapsed = false, isFirst = false) {
   return cn(
     "h-10 rounded-lg pl-4 pr-3 text-sm font-medium justify-start",
-    "group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!justify-start group-data-[collapsible=icon]:!pl-4 group-data-[collapsible=icon]:!pr-3"
+    "group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:!w-full",
+    collapsed && isFirst
+      ? "group-data-[collapsible=icon]:!justify-center group-data-[collapsible=icon]:!px-0"
+      : "group-data-[collapsible=icon]:!justify-start group-data-[collapsible=icon]:!pl-4 group-data-[collapsible=icon]:!pr-3"
   );
 }
 

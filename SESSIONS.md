@@ -4,6 +4,21 @@
 
 ---
 
+## Session 44 — 2026-08-17
+
+**What was done:**
+1. Created a styled `DatePicker` component (`src/components/ui/date-picker.tsx`) using the shadcn Calendar + Popover.
+2. Replaced native `Input type="date"` fields in the New Project dialog with the new styled date pickers.
+3. Polished the Calendar component styling to match DS02 tokens (selected day, today highlight, hover states, disabled days).
+4. Date picker supports Clear, Today, and min/max constraints (e.g., end date cannot be before start date).
+
+**Files updated:**
+- `src/components/ui/date-picker.tsx` — new reusable date picker component.
+- `src/components/ui/calendar.tsx` — refined calendar styling for DS02 tokens.
+- `src/routes/portfolio.index.tsx` — New Project dialog uses DatePicker for Start date and Target end date.
+
+---
+
 ## Session 43 — 2026-08-13
 
 **What was done:**

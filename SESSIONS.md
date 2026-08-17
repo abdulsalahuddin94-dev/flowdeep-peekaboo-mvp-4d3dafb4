@@ -3,6 +3,21 @@
 > Every session that touches this project is logged here. Newest session at the top.
 
 ---
+## Session 45 — 2026-08-17
+
+**What was done:**
+1. Tightened collapsed-sidebar alignment to match DS02 specs: 122px rail width, 24×24px icons, 28px vertical gaps.
+2. Centered all module icons vertically; added a small chevron beside items with children that flips when the sub-page menu is open.
+3. Hid sub-page labels in collapsed mode; they now appear in a floating popover with dot-bullets and the lavender active state.
+4. Updated `SidebarMenuButton` base sizing (40px height / 8px radius) and made sure leaf and parent items share the same centered alignment in the collapsed rail.
+
+**Files updated:**
+- `src/components/AppSidebar.tsx` — collapsed layout, icon/chevron alignment, popover children.
+- `src/components/ui/sidebar.tsx` — `SIDEBAR_WIDTH` 280px, `SIDEBAR_WIDTH_ICON` 122px.
+- `src/styles.css` — verified sidebar tokens used by collapsed states.
+
+---
+
 
 ## Session 44 — 2026-08-17
 

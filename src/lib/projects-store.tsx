@@ -256,6 +256,11 @@ type AppContextValue = {
   addJobRole: (title: string, skills?: string[]) => void;
   updateJobRole: (id: string, title: string, skills?: string[]) => void;
   removeJobRole: (id: string) => void;
+  // Skills lookup (Organization-level catalog used by Job Roles)
+  skillsCatalog: string[];
+  addSkill: (name: string) => void;
+  updateSkill: (oldName: string, name: string) => void;
+  removeSkill: (name: string) => void;
   // Identity (demo "view as" switcher)
   currentUser: AppUser;
   setCurrentUserId: (id: string) => void;
@@ -281,6 +286,9 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   const [tagList, setTagList] = useState<OrgTag[]>(initialTags.map(({ name, color }) => ({ name, color })));
   const [calendars, setCalendars] = useState<WorkCalendar[]>(initialCalendars);
   const [jobRoles, setJobRoles] = useState<JobRole[]>(SEED_JOB_ROLES);
+  const [skillsCatalog, setSkillsCatalog] = useState<string[]>(
+    Array.from(new Set(SEED_JOB_ROLES.flatMap((r) => r.skills ?? []))).sort((a, b) => a.localeCompare(b)),
+  );
   const [currentUserId, setCurrentUserId] = useState<string>("u-aisha");
   const [approvals, setApprovals] = useState<ApprovalRequest[]>(SEED_APPROVALS);
   // approvalId -> per-project adoption of an already-applied calendar edit.
@@ -416,6 +424,24 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     setJobRoles((prev) => prev.filter((r) => r.id !== id));
   }
 
+  function addSkill(name: string) {
+    const s = name.trim();
+    if (!s) return;
+    setSkillsCatalog((prev) => prev.some((x) => x.toLowerCase() === s.toLowerCase())
+      ? prev
+      : [...prev, s].sort((a, b) => a.localeCompare(b)));
+  }
+  function updateSkill(oldName: string, name: string) {
+    const s = name.trim();
+    if (!s) return;
+    setSkillsCatalog((prev) => prev.map((x) => x === oldName ? s : x).sort((a, b) => a.localeCompare(b)));
+    setJobRoles((prev) => prev.map((r) => ({ ...r, skills: (r.skills ?? []).map((x) => x === oldName ? s : x) })));
+  }
+  function removeSkill(name: string) {
+    setSkillsCatalog((prev) => prev.filter((x) => x !== name));
+    setJobRoles((prev) => prev.map((r) => ({ ...r, skills: (r.skills ?? []).filter((x) => x !== name) })));
+  }
+
   const tags = useMemo(
     () => tagList.map((t) => ({ ...t, usage: projects.filter((p) => p.tags.includes(t.name)).length })),
     [tagList, projects],
@@ -485,6 +511,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       tags, addTag, updateTag, removeTag,
       calendars, addCalendar, updateCalendar, removeCalendar,
       jobRoles, addJobRole, updateJobRole, removeJobRole,
+      skillsCatalog, addSkill, updateSkill, removeSkill,
       currentUser, setCurrentUserId,
       approvals, addApprovalRequest, decideApproval, remindApproval,
       updateCalendarWithAdoption, pendingCalendarIds,
@@ -532,6 +559,11 @@ export function useCalendars() {
 export function useJobRoles() {
   const { jobRoles, addJobRole, updateJobRole, removeJobRole } = useAppContext();
   return { jobRoles, addJobRole, updateJobRole, removeJobRole };
+}
+
+export function useSkills() {
+  const { skillsCatalog, addSkill, updateSkill, removeSkill } = useAppContext();
+  return { skillsCatalog, addSkill, updateSkill, removeSkill };
 }
 
 export function useCurrentUser() {

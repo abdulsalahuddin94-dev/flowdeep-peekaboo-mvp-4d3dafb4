@@ -41,14 +41,12 @@ export function PageToolbar({
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [panel, setPanel] = useState<string | null>(null);
-  const [panelQuery, setPanelQuery] = useState("");
 
   const activeCount = filterGroups.filter((g) => g.value !== g.options[0]?.value).length;
 
   function openDrawer() {
     setDraft(Object.fromEntries(filterGroups.map((g) => [g.key, g.value])));
     setPanel(null);
-    setPanelQuery("");
     setOpen(true);
   }
 
@@ -68,9 +66,13 @@ export function PageToolbar({
   });
 
   const activePanel = filterGroups.find((g) => g.key === panel);
-  const panelOptions = activePanel
-    ? activePanel.options.filter((o) => o.label.toLowerCase().includes(panelQuery.trim().toLowerCase()))
-    : [];
+  /** Drop the leading "All …" row when there are only two real choices. */
+  const panelOptions = (() => {
+    if (!activePanel) return [];
+    const opts = activePanel.options;
+    const firstIsAll = /^all\b/i.test(opts[0]?.label ?? "");
+    return firstIsAll && opts.length <= 3 ? opts.slice(1) : opts;
+  })();
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -109,21 +111,10 @@ export function PageToolbar({
           {activePanel ? (
             <>
               <div className="flex items-center gap-2 px-5 py-4">
-                <button type="button" aria-label="Back" onClick={() => { setPanel(null); setPanelQuery(""); }} className="text-muted-foreground hover:text-foreground">
+                <button type="button" aria-label="Back" onClick={() => setPanel(null)} className="text-muted-foreground hover:text-foreground">
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 <SheetTitle className="text-sm font-medium text-foreground">{activePanel.label}</SheetTitle>
-              </div>
-              <div className="px-5 pb-3">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={panelQuery}
-                    onChange={(e) => setPanelQuery(e.target.value)}
-                    placeholder={`Search by ${activePanel.label}`}
-                    className="rounded-md pl-8 text-xs"
-                  />
-                </div>
               </div>
               <ScrollArea className="flex-1 px-5">
                 <div className="space-y-1 pb-4">
@@ -134,7 +125,12 @@ export function PageToolbar({
                         key={o.value}
                         type="button"
                         aria-pressed={selected}
-                        onClick={() => setDraft((d) => ({ ...d, [activePanel.key]: o.value }))}
+                        onClick={() => setDraft((d) => ({
+                          ...d,
+                          [activePanel.key]: (d[activePanel.key] ?? activePanel.value) === o.value
+                            ? (activePanel.options[0]?.value ?? "")
+                            : o.value,
+                        }))}
                         className="flex w-full items-center gap-3 rounded-md px-1 py-2 text-left text-sm text-foreground hover:bg-secondary/40"
                       >
                         <span
@@ -168,7 +164,7 @@ export function PageToolbar({
                     <button
                       key={g.key}
                       type="button"
-                      onClick={() => { setPanel(g.key); setPanelQuery(""); }}
+                      onClick={() => setPanel(g.key)}
                       className="flex w-full items-center justify-between rounded-md py-3 text-left text-sm text-foreground hover:bg-secondary/30"
                     >
                       <span>{g.label}</span>

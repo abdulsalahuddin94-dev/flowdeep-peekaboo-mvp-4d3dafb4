@@ -2,8 +2,7 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, Filter, X, Check, ChevronRight, ChevronLeft } from "@/lib/icons";
+import { Filter, X, Check, ChevronRight, ChevronLeft } from "@/lib/icons";
 
 export type DrawerFilterGroup = {
   key: string;
@@ -22,7 +21,6 @@ export function FilterDrawer({ groups }: { groups: DrawerFilterGroup[] }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Draft>({});
   const [panel, setPanel] = useState<string | null>(null);
-  const [panelQuery, setPanelQuery] = useState("");
 
   const countOf = (v: string[] | string) => (Array.isArray(v) ? v.length : v ? 1 : 0);
   const activeCount = groups.reduce((n, g) => n + countOf(g.value), 0);
@@ -30,7 +28,6 @@ export function FilterDrawer({ groups }: { groups: DrawerFilterGroup[] }) {
   function openDrawer() {
     setDraft(Object.fromEntries(groups.map((g) => [g.key, Array.isArray(g.value) ? [...g.value] : g.value])));
     setPanel(null);
-    setPanelQuery("");
     setOpen(true);
   }
 
@@ -65,9 +62,10 @@ export function FilterDrawer({ groups }: { groups: DrawerFilterGroup[] }) {
   });
 
   const activePanel = groups.find((g) => g.key === panel);
-  const panelOptions = activePanel
-    ? activePanel.options.filter((o) => o.label.toLowerCase().includes(panelQuery.trim().toLowerCase()))
-    : [];
+  const panelOptions = activePanel ? activePanel.options : [];
+  /** "All …" reset row only makes sense when there are more than two choices. */
+  const showAllRow = !!activePanel && activePanel.options.length > 2;
+  const allSelected = activePanel ? countOf(draft[activePanel.key] ?? activePanel.value) === 0 : false;
 
   return (
     <>
@@ -91,24 +89,31 @@ export function FilterDrawer({ groups }: { groups: DrawerFilterGroup[] }) {
           {activePanel ? (
             <>
               <div className="flex items-center gap-2 px-5 py-4">
-                <button type="button" aria-label="Back" onClick={() => { setPanel(null); setPanelQuery(""); }} className="text-muted-foreground hover:text-foreground">
+                <button type="button" aria-label="Back" onClick={() => setPanel(null)} className="text-muted-foreground hover:text-foreground">
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 <SheetTitle className="text-sm font-medium text-foreground">{activePanel.label}</SheetTitle>
               </div>
-              <div className="px-5 pb-3">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={panelQuery}
-                    onChange={(e) => setPanelQuery(e.target.value)}
-                    placeholder={`Search by ${activePanel.label}`}
-                    className="rounded-md pl-8 text-xs"
-                  />
-                </div>
-              </div>
               <ScrollArea className="flex-1 px-5">
                 <div className="space-y-1 pb-4">
+                  {showAllRow && (
+                    <button
+                      type="button"
+                      aria-pressed={allSelected}
+                      onClick={() => setDraft((d) => ({ ...d, [activePanel.key]: activePanel.multi ? [] : "" }))}
+                      className="flex w-full items-center gap-3 rounded-md px-1 py-2 text-left text-sm text-foreground hover:bg-secondary/40"
+                    >
+                      <span
+                        aria-hidden
+                        className={`grid h-5 w-5 shrink-0 place-content-center rounded-lg border ${
+                          allSelected ? "border-accent bg-accent text-accent-foreground" : "border-border"
+                        }`}
+                      >
+                        {allSelected && <Check className="h-3 w-3" />}
+                      </span>
+                      <span className="truncate">All {activePanel.label}</span>
+                    </button>
+                  )}
                   {panelOptions.map((o) => {
                     const cur = draft[activePanel.key] ?? activePanel.value;
                     const selected = Array.isArray(cur) ? cur.includes(o.value) : cur === o.value;
@@ -147,7 +152,7 @@ export function FilterDrawer({ groups }: { groups: DrawerFilterGroup[] }) {
                     <button
                       key={g.key}
                       type="button"
-                      onClick={() => { setPanel(g.key); setPanelQuery(""); }}
+                      onClick={() => setPanel(g.key)}
                       className="flex w-full items-center justify-between rounded-md py-3 text-left text-sm text-foreground hover:bg-secondary/30"
                     >
                       <span>{g.label}</span>

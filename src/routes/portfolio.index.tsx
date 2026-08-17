@@ -811,9 +811,8 @@ function TagPicker({
   onChange: (next: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [q, setQ] = useState("");
   const colorOf = (n: string) => options.find((t) => t.name === n)?.color ?? "#94A3B8";
-  const filtered = options.filter((t) => t.name.toLowerCase().includes(q.trim().toLowerCase()));
+  const filtered = options;
   const toggle = (n: string) =>
     onChange(value.includes(n) ? value.filter((x) => x !== n) : [...value, n]);
 
@@ -848,19 +847,10 @@ function TagPicker({
               </span>
             )}
           </span>
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[320px] p-0">
-        <div className="border-b border-border p-2">
-          <Input
-            autoFocus
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search tags…"
-            className="h-9"
-          />
-        </div>
         <div className="max-h-64 overflow-y-auto p-1">
           {filtered.length === 0 && (
             <p className="px-3 py-6 text-center text-xs text-muted-foreground">No tags found</p>
@@ -874,7 +864,7 @@ function TagPicker({
                 onClick={() => toggle(t.name)}
                 className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/60"
               >
-                <Checkbox checked={on} className="pointer-events-none" />
+                <Checkbox checked={on} className="pointer-events-none rounded-[4px]" />
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.color }} />
                 <span className="flex-1 truncate" style={{ color: t.color }}>{t.name}</span>
               </button>

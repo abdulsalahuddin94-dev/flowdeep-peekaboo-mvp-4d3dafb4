@@ -65,7 +65,6 @@ function PortfolioPage() {
 }
 
 function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restrict?: boolean; projectList: Project[]; initialView?: View }) {
-  const [line, setLine]           = useState<(typeof LINES)[number]>("All");
   const [view, setView]           = useState<View>(initialView);
   const [query, setQuery]         = useState("");
   const [active, setActive]       = useState<Project | null>(null);
@@ -92,7 +91,6 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const list = useMemo(() => {
     let l = projectList;
     if (restrict) l = l.slice(0, 6);
-    if (line !== "All") l = l.filter((p) => p.businessLine === line);
     if (query) l = l.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
     if (ragFilter.length > 0) l = l.filter((p) => ragFilter.includes(p.rag));
     if (stageFilter.length > 0) l = l.filter((p) => stageFilter.includes(p.stage));
@@ -101,7 +99,9 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
     if (clientFilter) l = l.filter((p) => p.client === clientFilter);
     if (onlyPending) l = l.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
     return l;
-  }, [projectList, line, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, onlyPending, pendingByProject]);
+  }, [projectList, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, onlyPending, pendingByProject]);
+
+  const pagination = usePagination(list, 10);
 
   const projectsAwaiting = projectList.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
   const pendingTotal = projectsAwaiting.reduce((s, p) => s + (pendingByProject.get(p.name) ?? 0), 0);
@@ -236,9 +236,10 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
-      {view === "grid" && list.length > 0 && <ProjectGrid items={list} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
-      {view === "list" && list.length > 0 && <ProjectListView items={list} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "grid" && list.length > 0 && <ProjectGrid items={pagination.pageItems} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "list" && list.length > 0 && <ProjectListView items={pagination.pageItems} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
       {view === "gantt" && list.length > 0 && <GanttView items={list} />}
+      {view !== "gantt" && list.length > 0 && <TablePagination {...pagination} itemLabel="projects" />}
     </>
   );
 }

@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
  * Anatomy (fixed):
  *   bold left-aligned title  ·  large ✕ top-right
  *   body (form fields, lists, content) — left aligned, gap-5
- *   footer: two equal-width buttons side by side — outlineSecondary (cancel)
- *           then primary (submit). Full-width split, no right alignment.
+ *   footer: primary and secondary actions aligned to the bottom-right,
+ *           secondary (cancel) then primary (submit). Buttons do not fill width.
  */
 export type FormDialogSize = "sm" | "md" | "lg" | "xl";
 
@@ -67,11 +67,10 @@ export function FormDialog({
     <>
       <div className="flex flex-col gap-5 text-left">{children}</div>
       {!hideFooter && (
-        <div className="mt-7 grid grid-cols-2 gap-4">
+        <div className="mt-7 flex items-center justify-end gap-3">
           <Button
             type="button"
             variant="outlineSecondary"
-            className="w-full"
             onClick={() => onOpenChange(false)}
           >
             {cancelLabel}
@@ -79,7 +78,6 @@ export function FormDialog({
           <Button
             type={asForm ? "submit" : "button"}
             variant="primary"
-            className="w-full"
             disabled={submitDisabled || loading}
             onClick={asForm ? undefined : () => submit()}
           >
@@ -96,7 +94,7 @@ export function FormDialog({
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/70 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content
           className={cn(
-            "fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl border border-border bg-card p-7 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+            "fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-modal border border-modal-border bg-modal-bg p-7 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
             SIZES[size],
             className,
           )}

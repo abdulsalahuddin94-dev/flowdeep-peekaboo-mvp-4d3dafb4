@@ -470,6 +470,10 @@
   --sidebar-scrollbar-thumb:        var(--p-white-a-18);
   --sidebar-scrollbar-thumb-hover:  var(--p-white-a-32);
 
+  --modal-bg:           #121319;
+  --modal-border:       #767680;
+  --modal-radius:       12px;
+
   --shadow-sm:     0 1px 2px var(--p-black-a-6),  0 1px 3px  var(--p-black-a-10);
   --shadow-md:     0 2px 4px var(--p-black-a-6),  0 4px 6px  var(--p-black-a-10);
   --shadow-lg:     0 4px 6px var(--p-black-a-7),  0 10px 15px var(--p-black-a-10);
@@ -564,6 +568,10 @@
   --sidebar-badge-danger-fg:    var(--p-red-500);
   --sidebar-scrollbar-thumb:        var(--p-white-a-18);
   --sidebar-scrollbar-thumb-hover: var(--p-white-a-32);
+
+  --modal-bg:           #121319;
+  --modal-border:       #767680;
+  --modal-radius:       12px;
 
   --shadow-sm:     0 1px 3px  var(--p-black-a-40);
   --shadow-md:     0 4px 12px var(--p-black-a-50);
@@ -686,6 +694,11 @@
   --ease-out:    var(--p-ease-out);
   --ease-in-out: var(--p-ease-in-out);
   --ease-spring: var(--p-ease-spring);
+
+  /* Modal */
+  --color-modal-bg:    var(--modal-bg);
+  --color-modal-border: var(--modal-border);
+  --radius-modal:      var(--modal-radius);
 
   /* Categorical */
   --color-cat-teal:   var(--cat-teal);

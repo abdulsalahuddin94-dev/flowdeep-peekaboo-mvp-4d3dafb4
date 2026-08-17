@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Search, Filter, Check, ChevronRight, ChevronLeft, X } from "@/lib/icons";
+import { Search, Filter, ChevronRight, ChevronLeft, X } from "@/lib/icons";
 
 /*
  * DS02 page toolbar — search (left) + filter drawer + main CTA (right).
@@ -133,16 +134,10 @@ export function PageToolbar({
                         }))}
                         className="flex w-full items-center gap-3 rounded-md px-1 py-2 text-left text-sm text-foreground hover:bg-secondary/40"
                       >
-                        <span
-                          aria-hidden
-                          className={`grid h-5 w-5 shrink-0 place-content-center rounded-lg border ${
-                            selected
-                              ? "border-accent bg-accent text-accent-foreground"
-                              : "border-border"
-                          }`}
-                        >
-                          {selected && <Check className="h-3.5 w-3.5" />}
-                        </span>
+                        <Checkbox
+                          checked={selected}
+                          className="pointer-events-none"
+                        />
                         <span className="truncate">{o.label}</span>
                       </button>
                     );

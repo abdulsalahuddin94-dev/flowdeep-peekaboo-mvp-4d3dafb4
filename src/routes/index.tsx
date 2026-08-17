@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge, RagDot } from "@/components/RagBadge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -574,7 +575,7 @@ function TeamMemberView() {
               onClick={() => toggle(t)}
               className={`flex cursor-pointer items-center gap-2 rounded-md border border-border bg-background/30 p-2.5 transition-opacity ${done.includes(t) ? "opacity-50" : ""}`}
             >
-              <input type="checkbox" className="pointer-events-none accent-accent" checked={done.includes(t)} readOnly />
+              <Checkbox className="pointer-events-none" checked={done.includes(t)} />
               <span className={`text-foreground ${done.includes(t) ? "text-muted-foreground line-through" : ""}`}>{t}</span>
             </li>
           ))}

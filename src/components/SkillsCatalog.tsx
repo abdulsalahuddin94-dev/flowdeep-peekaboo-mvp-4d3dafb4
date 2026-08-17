@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Check, X, Pencil, Trash2 } from "@/lib/icons";
@@ -114,12 +115,7 @@ export function SkillsSelect({ value, onChange }: { value: string[]; onChange: (
               onClick={() => toggle(s)}
               className="flex w-full items-center gap-3 rounded-md px-1 py-1.5 text-left text-sm text-foreground hover:bg-secondary/40"
             >
-              <span
-                aria-hidden
-                className={`grid h-5 w-5 shrink-0 place-content-center rounded-lg border ${on ? "border-accent bg-accent text-accent-foreground" : "border-border"}`}
-              >
-                {on && <Check className="h-3 w-3" />}
-              </span>
+              <Checkbox checked={on} className="pointer-events-none" />
               <span className="truncate">{s}</span>
             </button>
           );

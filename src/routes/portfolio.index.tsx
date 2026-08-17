@@ -823,9 +823,8 @@ function ProjectTypePicker({ onPick }: { onPick: (t: "capital" | "commercial") =
     {
       key: "capital" as const,
       label: "Capital / Internal",
-      blurb: "Internally-funded initiatives, transformation projects, infra upgrades, R&D.",
+      blurb: "Internally-funded initiatives",
       icon: Building2,
-      bullets: ["Strategic alignment", "CAPEX/OPEX tracking", "Internal sponsor & DoA"],
       color: "text-accent",
       ring: "ring-accent/40",
     },
@@ -834,7 +833,6 @@ function ProjectTypePicker({ onPick }: { onPick: (t: "capital" | "commercial") =
       label: "Commercial / External",
       blurb: "Client engagements, delivery projects, third-party bids won.",
       icon: Briefcase,
-      bullets: ["Client & revenue profile", "Margin & payment terms", "Delivery SLA & risk"],
       color: "text-rag-blue",
       ring: "ring-rag-blue/40",
     },
@@ -851,25 +849,11 @@ function ProjectTypePicker({ onPick }: { onPick: (t: "capital" | "commercial") =
               onClick={() => onPick(c.key)}
               className={cn("glass-card group p-5 text-left transition hover:ring-2", c.ring)}
             >
-              <div className="flex items-center gap-3">
-                <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/50", c.color)}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-base font-medium text-foreground">{c.label}</div>
-                  <div className="text-xs text-muted-foreground">{c.blurb}</div>
-                </div>
+              <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl bg-secondary/50", c.color)}>
+                <Icon className="h-6 w-6" />
               </div>
-              <ul className="mt-4 space-y-1.5 text-xs text-muted-foreground">
-                {c.bullets.map((b) => (
-                  <li key={b} className="flex items-center gap-2">
-                    <Check className={cn("h-3 w-3", c.color)} />{b}
-                  </li>
-                ))}
-              </ul>
-              <div className={cn("mt-4 inline-flex items-center text-xs font-medium opacity-0 transition group-hover:opacity-100", c.color)}>
-                Continue <ChevronRight className="ml-1 h-3 w-3" />
-              </div>
+              <div className="mt-4 text-base font-medium text-foreground">{c.label}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{c.blurb}</div>
             </button>
           );
         })}

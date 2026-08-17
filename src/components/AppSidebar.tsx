@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useApprovals } from "@/lib/projects-store";
 import sansLogo from "@/assets/sans-logo.png.asset.json";
 import teamsmartLogo from "@/assets/teamsmart-logo.png.asset.json";
@@ -115,6 +116,56 @@ export function AppSidebar() {
                   const onModule = isActive(item.url);
                   const open = openGroups[item.url] ?? false;
                   const activeTab = search?.tab ?? item.defaultTab;
+                  const childLinks = (
+                    <>
+                      {item.children.map((t) => {
+                        const tabActive = onModule && activeTab === t.tab;
+                        return (
+                          <Link
+                            key={t.tab}
+                            to={item.url}
+                            search={{ tab: t.tab }}
+                            className={cn(
+                              "flex items-center gap-3 rounded-lg py-2 pl-4 pr-3 text-sm transition-colors",
+                              tabActive
+                                ? "ds02-subnav-active"
+                                : "text-sidebar-foreground/70 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground",
+                            )}
+                          >
+                            <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", tabActive ? "bg-current" : "bg-current opacity-50")} />
+                            <span className="truncate">{t.title}</span>
+                          </Link>
+                        );
+                      })}
+                    </>
+                  );
+
+                  if (collapsed) {
+                    return (
+                      <SidebarMenuItem key={item.url}>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <SidebarMenuButton
+                              isActive={false}
+                              tooltip={item.title}
+                              className="h-10 rounded-lg px-3 text-sm font-medium"
+                            >
+                              <item.icon className="h-5 w-5 shrink-0" />
+                            </SidebarMenuButton>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            side="right"
+                            align="start"
+                            sideOffset={8}
+                            className="ds02-sidebar w-56 rounded-xl border-sidebar-border bg-sidebar p-2 text-sidebar-foreground shadow-lg"
+                          >
+                            <div className="flex flex-col gap-1">{childLinks}</div>
+                          </PopoverContent>
+                        </Popover>
+                      </SidebarMenuItem>
+                    );
+                  }
+
                   return (
                     <SidebarMenuItem key={item.url}>
                       <SidebarMenuButton
@@ -132,27 +183,7 @@ export function AppSidebar() {
                         )}
                       </SidebarMenuButton>
                       {!collapsed && open && (
-                        <div className="mt-2 flex flex-col gap-1">
-                          {item.children.map((t) => {
-                            const tabActive = onModule && activeTab === t.tab;
-                            return (
-                              <Link
-                                key={t.tab}
-                                to={item.url}
-                                search={{ tab: t.tab }}
-                                className={cn(
-                                  "flex items-center gap-3 rounded-lg py-2 pl-4 pr-3 text-sm transition-colors",
-                                  tabActive
-                                    ? "ds02-subnav-active"
-                                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground",
-                                )}
-                              >
-                                <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", tabActive ? "bg-current" : "bg-current opacity-50")} />
-                                <span className="truncate">{t.title}</span>
-                              </Link>
-                            );
-                          })}
-                        </div>
+                        <div className="mt-2 flex flex-col gap-1">{childLinks}</div>
                       )}
                     </SidebarMenuItem>
                   );

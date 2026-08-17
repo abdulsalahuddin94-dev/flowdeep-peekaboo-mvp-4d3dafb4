@@ -121,10 +121,11 @@ export function AppSidebar() {
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
             <SidebarMenu className="gap-3">
-              {items.map((item) => {
+              {items.map((item, index) => {
                 const active = isActive(item.url);
                 const badge = item.badge;
                 const badgeDanger = item.badgeTone === "red";
+                const isFirst = index === 0;
                 if (item.children) {
                   const onModule = isActive(item.url);
                   const open = openGroups[item.url] ?? false;

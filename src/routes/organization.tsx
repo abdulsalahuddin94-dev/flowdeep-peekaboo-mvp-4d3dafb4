@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { SkillsTagsInput } from "@/components/SkillsTagsInput";
+import { ManageSkillsDialog, SkillsSelect } from "@/components/SkillsCatalog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -1124,7 +1124,12 @@ function JobRolesTab() {
         resultCount={visible.length}
         totalCount={jobRoles.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
-        cta={<AddJobRoleDialog onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
+        cta={
+          <div className="flex items-center gap-2">
+            <ManageSkillsDialog />
+            <AddJobRoleDialog onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />
+          </div>
+        }
         filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "With active projects" },{ value: "unused", label: "No projects" },{ value: "with-skills", label: "With skills" },{ value: "no-skills", label: "Without skills" },] }]}
       />
       <div className="">
@@ -1182,8 +1187,8 @@ function JobRolesTab() {
             </div>
             <div>
               <Label>Skills</Label>
-              <SkillsTagsInput value={editing?.skills ?? []} onChange={(skills) => setEditing((prev) => prev ? { ...prev, skills } : prev)} />
-              <p className="mt-1 text-[11px] text-muted-foreground">Press Enter, Tab or double space to add a skill.</p>
+              <SkillsSelect value={editing?.skills ?? []} onChange={(skills) => setEditing((prev) => prev ? { ...prev, skills } : prev)} />
+              <p className="mt-1 text-[11px] text-muted-foreground">Pick from the organization skills lookup.</p>
             </div>
           </div>
           <DialogFooter>
@@ -1250,8 +1255,8 @@ function AddJobRoleDialog({ onAdd }: { onAdd: (title: string, skills: string[]) 
           </div>
           <div>
             <Label>Skills</Label>
-            <SkillsTagsInput value={skills} onChange={setSkills} />
-            <p className="mt-1 text-[11px] text-muted-foreground">Press Enter, Tab or double space to add a skill.</p>
+            <SkillsSelect value={skills} onChange={setSkills} />
+            <p className="mt-1 text-[11px] text-muted-foreground">Pick from the organization skills lookup.</p>
           </div>
         </div>
         <DialogFooter>

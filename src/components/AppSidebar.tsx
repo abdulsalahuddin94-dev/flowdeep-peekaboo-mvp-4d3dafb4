@@ -192,13 +192,13 @@ export function AppSidebar() {
                         onClick={() => setOpenGroups((g) => ({ ...g, [item.url]: !open }))}
                         className={buttonBaseClasses()}
                       >
-                        <item.icon className={iconSize} />
-                        {!collapsed && (
-                          <>
-                            <span className="flex-1 truncate text-left">{item.title}</span>
-                            <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")} />
-                          </>
-                        )}
+                        <span className="flex items-center gap-1">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                            <item.icon className={iconSize} />
+                          </span>
+                          <ChevronDown className={cn("h-4 w-4 shrink-0 opacity-70 transition-transform", open && "rotate-180")} />
+                        </span>
+                        {!collapsed && <span className="flex-1 truncate text-left">{item.title}</span>}
                       </SidebarMenuButton>
                       {!collapsed && open && (
                         <div className="mt-2 flex flex-col gap-1">{childLinks}</div>

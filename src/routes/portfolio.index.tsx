@@ -731,7 +731,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
           </div>
           <div>
             <Label>Start date</Label>
-            <Input type="date" value={startDate} onChange={(e) => onStartChange(e.target.value)} />
+            <DatePicker value={startDate} onChange={onStartChange} placeholder="Pick start date" />
           </div>
           <div>
             <Label>Duration (days)</Label>
@@ -739,7 +739,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
           </div>
           <div>
             <Label>Target end date</Label>
-            <Input type="date" min={startDate || undefined} value={endDate} onChange={(e) => onEndChange(e.target.value)} />
+            <DatePicker value={endDate} onChange={onEndChange} min={startDate || undefined} placeholder="Pick end date" />
           </div>
           <div>
             <Label>Budget total ($M)</Label>

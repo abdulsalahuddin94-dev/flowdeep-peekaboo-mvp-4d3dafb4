@@ -265,6 +265,8 @@ function PendingApprovalsChip({ count, projectName, className }: { count: number
 }
 
 function ProjectGrid({ items, onOpen, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; pendingByProject: Map<string, number> }) {
+  const { tags: orgTags } = useTags();
+  const colorOf = (name: string) => orgTags.find((t) => t.name === name)?.color;
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {items.map((p) => {
@@ -294,19 +296,22 @@ function ProjectGrid({ items, onOpen, pendingByProject }: { items: Project[]; on
           </div>
           {p.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
-              {p.tags.map((tag) => (
-                <span key={tag} className="rounded-full border border-accent/20 bg-accent-dim/30 px-1.5 py-px text-[10px] text-accent">
-                  {tag}
-                </span>
-              ))}
+              {p.tags.map((tag) => {
+                const c = colorOf(tag);
+                return (
+                  <span
+                    key={tag}
+                    className="rounded-full border px-1.5 py-px text-[10px]"
+                    style={c
+                      ? { color: c, borderColor: `${c}55`, backgroundColor: `${c}1f` }
+                      : undefined}
+                  >
+                    {tag}
+                  </span>
+                );
+              })}
             </div>
           )}
-          <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span>{p.risks} risks</span><span>{p.issues} issues</span>
-            </div>
-            <Avatar className="h-6 w-6"><AvatarFallback className="bg-accent-dim text-[10px] text-accent">{p.pmAvatar}</AvatarFallback></Avatar>
-          </div>
         </button>
         );
       })}

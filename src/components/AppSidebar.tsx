@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useApprovals } from "@/lib/projects-store";
 import sansLogo from "@/assets/sans-logo.png.asset.json";
 import teamsmartLogo from "@/assets/teamsmart-logo.png.asset.json";
+import teamsmartMark from "@/assets/teamsmart-mark.png.asset.json";
 
 /*
  * Sidebar is fully token-driven. All colors come from CSS variables defined
@@ -93,11 +94,11 @@ export function AppSidebar() {
       {/* Header — centered logo */}
       <SidebarHeader className="px-3 py-5">
         <div className="flex items-center justify-center">
-          <Link to="/" className={cn("flex items-center justify-center", collapsed && "hidden")} aria-label="Home">
+          <Link to="/" className="flex items-center justify-center" aria-label="Home">
             <img
-              src={teamsmartLogo.url}
+              src={collapsed ? teamsmartMark.url : teamsmartLogo.url}
               alt="TeamSmart"
-              className="h-7 w-auto object-contain"
+              className={cn("object-contain", collapsed ? "h-7 w-7" : "h-7 w-auto")}
             />
           </Link>
         </div>
@@ -148,9 +149,10 @@ export function AppSidebar() {
                             <SidebarMenuButton
                               isActive={false}
                               tooltip={item.title}
-                              className="h-10 rounded-lg px-3 text-sm font-medium"
+                              className="group/collapsed h-10 w-full justify-start gap-1 rounded-lg px-2 text-sm font-medium"
                             >
                               <item.icon className="h-5 w-5 shrink-0" />
+                              <ChevronDown className="h-4 w-4 shrink-0 opacity-70 transition-transform group-data-[state=open]/collapsed:rotate-180" />
                             </SidebarMenuButton>
                           </PopoverTrigger>
                           <PopoverContent

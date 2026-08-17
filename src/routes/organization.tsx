@@ -1188,7 +1188,7 @@ function JobRolesTab() {
             <div>
               <Label>Skills</Label>
               <SkillsSelect value={editing?.skills ?? []} onChange={(skills) => setEditing((prev) => prev ? { ...prev, skills } : prev)} />
-              <p className="mt-1 text-[11px] text-muted-foreground">Pick from the organization skills lookup.</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">Use Add Skills to populate the lookup, then assign skills here.</p>
             </div>
           </div>
           <DialogFooter>
@@ -1256,7 +1256,7 @@ function AddJobRoleDialog({ onAdd }: { onAdd: (title: string, skills: string[]) 
           <div>
             <Label>Skills</Label>
             <SkillsSelect value={skills} onChange={setSkills} />
-            <p className="mt-1 text-[11px] text-muted-foreground">Pick from the organization skills lookup.</p>
+            <p className="mt-1 text-[11px] text-muted-foreground">Use Add Skills to populate the lookup, then assign skills here.</p>
           </div>
         </div>
         <DialogFooter>

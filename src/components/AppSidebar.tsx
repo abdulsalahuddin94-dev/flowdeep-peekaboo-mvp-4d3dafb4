@@ -215,8 +215,10 @@ export function AppSidebar() {
                       tooltip={item.title}
                       className={buttonBaseClasses(true)}
                     >
-                      <Link to={item.url} className="flex w-full items-center gap-3 justify-start group-data-[collapsible=icon]:justify-center">
-                        <item.icon className={iconSize} />
+                      <Link to={item.url} className="flex w-full items-center gap-3 justify-start">
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                          <item.icon className={iconSize} />
+                        </span>
                         {!collapsed && (
                           <>
                             <span className="flex-1 truncate">{item.title}</span>

@@ -166,12 +166,10 @@ export function AppSidebar() {
                                 "group/collapsed"
                               )}
                             >
-                              <span className="flex items-center gap-1">
-                                <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                                  <item.icon className={iconSize} />
-                                </span>
-                                <ChevronDown className="h-4 w-4 shrink-0 opacity-70 transition-transform group-data-[state=open]/collapsed:rotate-180" />
+                              <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                                <item.icon className={iconSize} />
                               </span>
+                              <ChevronDown className="ml-auto h-4 w-4 shrink-0 opacity-70 transition-transform group-data-[state=open]/collapsed:rotate-180" />
                             </SidebarMenuButton>
                           </PopoverTrigger>
                           <PopoverContent

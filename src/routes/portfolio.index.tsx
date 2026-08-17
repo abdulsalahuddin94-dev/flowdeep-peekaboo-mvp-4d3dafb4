@@ -14,7 +14,7 @@ import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2,
 import { FilterDrawer } from "@/components/FilterDrawer";
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { projects, pipelineItems, type Project, type Rag } from "@/lib/mock-data";
-import { useProjects, useCalendars, useApprovals } from "@/lib/projects-store";
+import { useProjects, useCalendars, useApprovals, useTags } from "@/lib/projects-store";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,7 +50,6 @@ function PortfolioPage() {
     <div>
       <PageHeader
         title="Portfolio"
-        subtitle={`${projectList.length} active projects · FY2026`}
         actions={
           <div className="flex gap-2">
             <NewProjectDialog onAdd={addProject} />

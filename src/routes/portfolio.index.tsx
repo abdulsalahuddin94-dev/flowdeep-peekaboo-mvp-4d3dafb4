@@ -18,6 +18,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -780,27 +782,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
           </div>
           <div className="col-span-2">
             <Label>Tags (optional)</Label>
-            <div className="mt-1 flex flex-wrap gap-1.5">
-              {orgTags.map((t) => {
-                const on = selectedTags.includes(t.name);
-                return (
-                  <button
-                    key={t.name}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => setSelectedTags((prev) => on ? prev.filter((x) => x !== t.name) : [...prev, t.name])}
-                    className="rounded-full border px-2 py-0.5 text-[11px] transition"
-                    style={{
-                      color: t.color,
-                      borderColor: on ? t.color : `${t.color}55`,
-                      backgroundColor: on ? `${t.color}33` : "transparent",
-                    }}
-                  >
-                    {t.name}
-                  </button>
-                );
-              })}
-            </div>
+            <TagPicker options={orgTags} value={selectedTags} onChange={setSelectedTags} />
             <p className="mt-1 text-[11px] text-muted-foreground">Tags come from Organization → Tags &amp; Classifications.</p>
           </div>
         </div>
@@ -816,6 +798,101 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
 }
 
 function ProjectTypePicker({ onPick }: { onPick: (t: "capital" | "commercial") => void }) {
+  return <ProjectTypePickerInner onPick={onPick} />;
+}
+
+function TagPicker({
+  options,
+  value,
+  onChange,
+}: {
+  options: { name: string; color: string }[];
+  value: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const colorOf = (n: string) => options.find((t) => t.name === n)?.color ?? "#94A3B8";
+  const filtered = options.filter((t) => t.name.toLowerCase().includes(q.trim().toLowerCase()));
+  const toggle = (n: string) =>
+    onChange(value.includes(n) ? value.filter((x) => x !== n) : [...value, n]);
+
+  const shown = value.slice(0, 4);
+  const extra = value.length - shown.length;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="mt-1 flex min-h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 py-1.5 text-left text-sm"
+        >
+          <span className="flex flex-1 flex-wrap items-center gap-1.5">
+            {value.length === 0 && <span className="text-muted-foreground">Select tags…</span>}
+            {shown.map((n) => (
+              <span
+                key={n}
+                className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]"
+                style={{ color: colorOf(n), borderColor: `${colorOf(n)}66`, backgroundColor: `${colorOf(n)}22` }}
+              >
+                {n}
+                <X
+                  className="h-3 w-3 opacity-70 hover:opacity-100"
+                  onClick={(e) => { e.stopPropagation(); toggle(n); }}
+                />
+              </span>
+            ))}
+            {extra > 0 && (
+              <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+                +{extra} more
+              </span>
+            )}
+          </span>
+          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[320px] p-0">
+        <div className="border-b border-border p-2">
+          <Input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search tags…"
+            className="h-9"
+          />
+        </div>
+        <div className="max-h-64 overflow-y-auto p-1">
+          {filtered.length === 0 && (
+            <p className="px-3 py-6 text-center text-xs text-muted-foreground">No tags found</p>
+          )}
+          {filtered.map((t) => {
+            const on = value.includes(t.name);
+            return (
+              <button
+                key={t.name}
+                type="button"
+                onClick={() => toggle(t.name)}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/60"
+              >
+                <Checkbox checked={on} className="pointer-events-none" />
+                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.color }} />
+                <span className="flex-1 truncate" style={{ color: t.color }}>{t.name}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center justify-between border-t border-border px-2 py-1.5">
+          <span className="text-[11px] text-muted-foreground">{value.length} selected</span>
+          <Button variant="ghost" size="sm" onClick={() => onChange([])} disabled={value.length === 0}>
+            Clear all
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ProjectTypePickerInner({ onPick }: { onPick: (t: "capital" | "commercial") => void }) {
   const cards = [
     {
       key: "capital" as const,

@@ -577,13 +577,41 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
   const [client, setClient] = useState("Internal");
   const [pm, setPm] = useState("Sara Al-Rashid");
   const [stage, setStage] = useState<Project["stage"]>("Initiation");
+  const [startDate, setStartDate] = useState("");
+  const [duration, setDuration] = useState("");
   const [endDate, setEndDate] = useState("");
   const [budget, setBudget] = useState("");
   const [revenue, setRevenue] = useState("");
   const [tagsInput, setTagsInput] = useState("");
   const [calendarId, setCalendarId] = useState<string>(calendars[0]?.id ?? "");
 
-  function reset() { setName(""); setBudget(""); setRevenue(""); setEndDate(""); setTagsInput(""); setProjectType(null); }
+  function reset() { setName(""); setBudget(""); setRevenue(""); setStartDate(""); setDuration(""); setEndDate(""); setTagsInput(""); setProjectType(null); }
+
+  const DAY = 86_400_000;
+  /** Duration is calendar days, inclusive of both start and end. */
+  function addDays(iso: string, days: number) {
+    return new Date(new Date(`${iso}T00:00:00`).getTime() + days * DAY).toISOString().slice(0, 10);
+  }
+  function diffDays(a: string, b: string) {
+    return Math.round((new Date(`${b}T00:00:00`).getTime() - new Date(`${a}T00:00:00`).getTime()) / DAY) + 1;
+  }
+
+  function onStartChange(v: string) {
+    setStartDate(v);
+    if (!v) return;
+    const d = parseInt(duration, 10);
+    if (d > 0) { setEndDate(addDays(v, d - 1)); return; }
+    if (endDate) { const n = diffDays(v, endDate); setDuration(n > 0 ? String(n) : ""); }
+  }
+  function onDurationChange(v: string) {
+    setDuration(v);
+    const d = parseInt(v, 10);
+    if (startDate && d > 0) setEndDate(addDays(startDate, d - 1));
+  }
+  function onEndChange(v: string) {
+    setEndDate(v);
+    if (startDate && v) { const n = diffDays(startDate, v); setDuration(n > 0 ? String(n) : ""); }
+  }
 
   function handleCreate() {
     if (!name.trim()) { toast.error("Project name is required"); return; }

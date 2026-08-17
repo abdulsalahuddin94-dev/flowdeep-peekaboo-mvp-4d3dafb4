@@ -80,9 +80,8 @@ const iconSize = "h-6 w-6";
 
 function buttonBaseClasses(collapsed = false) {
   return cn(
-    "h-10 rounded-lg px-3 text-sm font-medium justify-start",
-    collapsed &&
-      "group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!justify-start group-data-[collapsible=icon]:!pl-6 group-data-[collapsible=icon]:!pr-2"
+    "h-10 rounded-lg pl-4 pr-3 text-sm font-medium justify-start",
+    "group-data-[collapsible=icon]:!h-10 group-data-[collapsible=icon]:!w-full group-data-[collapsible=icon]:!justify-start group-data-[collapsible=icon]:!pl-4 group-data-[collapsible=icon]:!pr-3"
   );
 }
 
@@ -102,8 +101,8 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="ds02-sidebar border-r-0">
       {/* Header — centered logo */}
-      <SidebarHeader className={cn("py-5", collapsed ? "px-1" : "px-3")}>
-        <div className="flex items-center justify-center">
+      <SidebarHeader className="px-3 py-5 group-data-[collapsible=icon]:px-1">
+        <div className="flex h-10 items-center justify-center">
           <Link to="/" className="flex items-center justify-center" aria-label="Home">
             <img
               src={collapsed ? teamsmartMark.url : teamsmartLogo.url}
@@ -118,7 +117,7 @@ export function AppSidebar() {
       <SidebarContent className="px-2 py-3">
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
-            <SidebarMenu className="gap-3 group-data-[collapsible=icon]:gap-7">
+            <SidebarMenu className="gap-3">
               {items.map((item) => {
                 const active = isActive(item.url);
                 const badge = item.badge;
@@ -193,13 +192,13 @@ export function AppSidebar() {
                         onClick={() => setOpenGroups((g) => ({ ...g, [item.url]: !open }))}
                         className={buttonBaseClasses()}
                       >
-                        <item.icon className={iconSize} />
-                        {!collapsed && (
-                          <>
-                            <span className="flex-1 truncate text-left">{item.title}</span>
-                            <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")} />
-                          </>
-                        )}
+                        <span className="flex items-center gap-1">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                            <item.icon className={iconSize} />
+                          </span>
+                          <ChevronDown className={cn("h-4 w-4 shrink-0 opacity-70 transition-transform", open && "rotate-180")} />
+                        </span>
+                        {!collapsed && <span className="flex-1 truncate text-left">{item.title}</span>}
                       </SidebarMenuButton>
                       {!collapsed && open && (
                         <div className="mt-2 flex flex-col gap-1">{childLinks}</div>

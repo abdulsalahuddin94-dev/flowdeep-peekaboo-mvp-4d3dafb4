@@ -114,7 +114,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       {/* Navigation */}
-      <SidebarContent className="px-2 py-3">
+      <SidebarContent className="px-2 py-0">
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
             <SidebarMenu className="gap-3">

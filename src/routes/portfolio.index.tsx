@@ -7,10 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Check, ChevronRight, Clock } from "@/lib/icons";
+import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Clock } from "@/lib/icons";
 import { FilterDrawer } from "@/components/FilterDrawer";
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { projects, pipelineItems, type Project, type Rag } from "@/lib/mock-data";
@@ -569,8 +568,6 @@ function GovernanceTab() {
     </div>
   );
 }
-
-const PM_LIST = ["Sara Al-Rashid", "John Smith", "Mei Chen", "Omar Haddad", "Priya Iyer", "Liam Walker", "Hana Tanaka", "Diego Ortiz"];
 
 function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
   const { calendars } = useCalendars();

@@ -101,7 +101,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="ds02-sidebar border-r-0">
       {/* Header — centered logo */}
-      <SidebarHeader className="px-3 py-5 group-data-[collapsible=icon]:px-1">
+      <SidebarHeader className="px-3 pt-5 pb-3 group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:pb-3">
         <div className="flex h-10 items-center justify-center">
           <Link to="/" className="flex items-center justify-center" aria-label="Home">
             <img
@@ -114,7 +114,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       {/* Navigation */}
-      <SidebarContent className="px-2 py-3">
+      <SidebarContent className="px-2 py-0">
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
             <SidebarMenu className="gap-3">

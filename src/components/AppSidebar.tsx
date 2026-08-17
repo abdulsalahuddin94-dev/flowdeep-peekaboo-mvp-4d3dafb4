@@ -92,13 +92,13 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="ds02-sidebar border-r-0">
       {/* Header — centered logo */}
-      <SidebarHeader className="px-3 py-5">
+      <SidebarHeader className={cn("py-5", collapsed ? "px-1" : "px-3")}>
         <div className="flex items-center justify-center">
           <Link to="/" className="flex items-center justify-center" aria-label="Home">
             <img
               src={collapsed ? teamsmartMark.url : teamsmartLogo.url}
               alt="TeamSmart"
-              className={cn("object-contain", collapsed ? "h-7 w-7" : "h-7 w-auto")}
+              className={cn("object-contain", collapsed ? "h-6 w-6" : "h-7 w-auto")}
             />
           </Link>
         </div>

@@ -1201,7 +1201,7 @@ function SkillsTable() {
         title={`Delete "${pendingDelete ?? ""}"?`}
         description="This skill will be removed from the lookup. Job roles already using it are not affected."
         confirmLabel="Delete"
-        destructive
+        tone="danger"
         onConfirm={() => {
           if (!pendingDelete) return;
           removeSkill(pendingDelete);

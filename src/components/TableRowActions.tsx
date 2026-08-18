@@ -60,7 +60,7 @@ export function TableRowActions({
             isActive ? "text-rag-green" : "text-[#D4D4D4]",
           )}
         >
-          <ToggleActive className={cn("h-4 w-4", !isActive && "-scale-y-100")} />
+          <ToggleActive className={cn("h-5 w-5", !isActive && "-scale-x-100")} />
         </Button>
       )}
       {onDelete && (

@@ -98,7 +98,21 @@ export const Phone = sax("Call");
 export const PiggyBank = sax("Wallet2");
 export const Power = sax("ToggleOffCircle");
 /** Activate / deactivate toggle used by table row actions + confirm popups. */
-export const ToggleActive = sax("ToggleOnCircle");
+/** Pill switch (knob on the right when active) — clearer than the circle variant at 16px. */
+export const ToggleActive = ({ size = 20, ...rest }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    {...(rest as Record<string, unknown>)}
+  >
+    <rect x="2" y="6" width="20" height="12" rx="6" stroke="currentColor" strokeWidth="1.6" />
+    <circle cx="16" cy="12" r="3" fill="currentColor" />
+  </svg>
+);
+ToggleActive.displayName = "ToggleActive";
 export const Plus = sax("Add");
 export const Search = sax("SearchNormal1");
 export const SearchIcon = Search;

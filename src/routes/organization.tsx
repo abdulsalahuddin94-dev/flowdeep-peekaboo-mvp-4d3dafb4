@@ -10,7 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch, Search, Filter, Check, ChevronRight, ChevronLeft, X } from "@/lib/icons";
+import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch, Search, Filter, Check, ChevronRight, ChevronLeft, X, ToggleActive } from "@/lib/icons";
+import { cn } from "@/lib/utils";
+import { useOrgActive } from "@/lib/org-active";
 import { TableRowActions } from "@/components/TableRowActions";
 import { PageToolbar as FilterBar, EmptyRow, type FilterGroup } from "@/components/ds/PageToolbar";
 
@@ -92,6 +94,8 @@ function BusinessLinesTab() {
   );
   const [editing, setEditing] = useState<{ index: number; name: string; description: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ index: number; name: string } | null>(null);
+  const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
+  const { isActive, setActive } = useOrgActive("business-line");
   const [query, setQuery] = useState("");
   const [usage, setUsage] = useState("all");
 
@@ -132,13 +136,15 @@ function BusinessLinesTab() {
             {pager.pageItems.map((b) => {
               const i = b.index;
               return (
-              <TableRow key={`${b.name}-${i}`} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+              <TableRow key={`${b.name}-${i}`} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(b.name) && "opacity-60")}>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
                 <TableCell className="w-72 text-muted-foreground">{b.description || "—"}</TableCell>
                 <TableCell className="text-center num-mono">{b.projects}</TableCell>
                 <TableCell>
                   <RowActions
                     onEdit={() => setEditing({ index: i, name: b.name, description: b.description })}
+                    isActive={isActive(b.name)}
+                    onToggleActive={() => setPendingToggle({ name: b.name, active: isActive(b.name) })}
                     onDelete={() => setPendingDelete({ index: i, name: b.name })}
                   />
                 </TableCell>
@@ -181,6 +187,18 @@ function BusinessLinesTab() {
           setPendingDelete(null);
         }}
       />
+
+      <ToggleActiveConfirm
+        pending={pendingToggle ? { label: pendingToggle.name, active: pendingToggle.active } : null}
+        entity="Project Type"
+        onCancel={() => setPendingToggle(null)}
+        onConfirm={() => {
+          if (!pendingToggle) return;
+          setActive(pendingToggle.name, !pendingToggle.active);
+          toast.success(`"${pendingToggle.name}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          setPendingToggle(null);
+        }}
+      />
     </>
   );
 }
@@ -192,6 +210,8 @@ function DepartmentsTab() {
   const [rows, setRows] = useState<OrgDepartment[]>(departments.map((d) => ({ name: d.name, description: d.description ?? "" })));
   const [editing, setEditing] = useState<{ index: number; name: string; description: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ index: number; name: string } | null>(null);
+  const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
+  const { isActive, setActive } = useOrgActive("department");
   const [query, setQuery] = useState("");
   const [usage, setUsage] = useState("all");
 
@@ -233,13 +253,15 @@ function DepartmentsTab() {
             {pager.pageItems.map((d) => {
               const i = d.index;
               return (
-              <TableRow key={`${d.name}-${i}`} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+              <TableRow key={`${d.name}-${i}`} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(d.name) && "opacity-60")}>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
                 <TableCell className="text-muted-foreground">{d.description || "—"}</TableCell>
                 <TableCell className="text-center num-mono">{d.projects}</TableCell>
                 <TableCell>
                   <RowActions
                     onEdit={() => setEditing({ index: i, name: d.name, description: d.description })}
+                    isActive={isActive(d.name)}
+                    onToggleActive={() => setPendingToggle({ name: d.name, active: isActive(d.name) })}
                     onDelete={() => setPendingDelete({ index: i, name: d.name })}
                   />
                 </TableCell>
@@ -282,6 +304,18 @@ function DepartmentsTab() {
           setPendingDelete(null);
         }}
       />
+
+      <ToggleActiveConfirm
+        pending={pendingToggle ? { label: pendingToggle.name, active: pendingToggle.active } : null}
+        entity="Department"
+        onCancel={() => setPendingToggle(null)}
+        onConfirm={() => {
+          if (!pendingToggle) return;
+          setActive(pendingToggle.name, !pendingToggle.active);
+          toast.success(`"${pendingToggle.name}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          setPendingToggle(null);
+        }}
+      />
     </>
   );
 }
@@ -301,11 +335,43 @@ function ConfirmDeleteDialog({ label, onCancel, onConfirm }: { label?: string; o
   );
 }
 
+/** DS02 confirm popup for Deactivate / Activate on organization master data. */
+function ToggleActiveConfirm({
+  pending,
+  entity,
+  onCancel,
+  onConfirm,
+}: {
+  pending: { label: string; active: boolean } | null;
+  entity: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const deactivating = pending?.active ?? true;
+  return (
+    <ConfirmDialog
+      open={!!pending}
+      onOpenChange={(o) => !o && onCancel()}
+      tone={deactivating ? "warning" : "success"}
+      icon={({ className }) => (
+        <ToggleActive className={cn(className, deactivating && "-scale-y-100")} />
+      )}
+      title={`${deactivating ? "Deactivate" : "Activate"} "${pending?.label ?? ""}"?`}
+      description={`Are you sure you want to ${deactivating ? "deactivate" : "activate"} this ${entity}?`}
+      cancelLabel="Cancel"
+      confirmLabel={deactivating ? "Deactivate" : "Activate"}
+      onConfirm={onConfirm}
+    />
+  );
+}
+
 function TagsTab() {
   const { tags, updateTag, removeTag } = useTags();
   const { projects } = useProjects();
   const [editing, setEditing] = useState<{ name: string; color: string; original: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
+  const { isActive, setActive } = useOrgActive("tag");
   const [viewing, setViewing] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [usage, setUsage] = useState("all");
@@ -336,7 +402,7 @@ function TagsTab() {
           <div className="col-span-full py-8 text-center text-sm text-muted-foreground">No matching tags</div>
         )}
         {visible.map((t) => (
-          <div key={t.name} className="group glass-card flex items-center justify-between p-4">
+          <div key={t.name} className={cn("group glass-card flex items-center justify-between p-4", !isActive(t.name) && "opacity-60")}>
             <button
               type="button"
               onClick={() => setViewing(t.name)}
@@ -350,6 +416,8 @@ function TagsTab() {
             </button>
             <RowActions
               onEdit={() => setEditing({ name: t.name, color: t.color, original: t.name })}
+              isActive={isActive(t.name)}
+              onToggleActive={() => setPendingToggle({ name: t.name, active: isActive(t.name) })}
               onDelete={() => setPendingDelete(t.name)}
             />
           </div>
@@ -418,6 +486,18 @@ function TagsTab() {
           removeTag(pendingDelete);
           toast.success(`Deleted "${pendingDelete}"`);
           setPendingDelete(null);
+        }}
+      />
+
+      <ToggleActiveConfirm
+        pending={pendingToggle ? { label: pendingToggle.name, active: pendingToggle.active } : null}
+        entity="Tag"
+        onCancel={() => setPendingToggle(null)}
+        onConfirm={() => {
+          if (!pendingToggle) return;
+          setActive(pendingToggle.name, !pendingToggle.active);
+          toast.success(`"${pendingToggle.name}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          setPendingToggle(null);
         }}
       />
     </>
@@ -623,6 +703,7 @@ function CalendarsTab() {
   const { projects } = useProjects();
   const [editing, setEditing] = useState<WorkCalendar | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [pendingToggle, setPendingToggle] = useState<{ id: string; name: string; active: boolean } | null>(null);
   const [query, setQuery] = useState("");
   const [link, setLink] = useState("all");
 
@@ -674,7 +755,7 @@ function CalendarsTab() {
             (a) => a.type === "calendar-change" && a.ref === c.name && a.status !== "pending",
           );
           return (
-          <div key={c.id} className="group glass-card p-4">
+          <div key={c.id} className={cn("group glass-card p-4", !isActive && "opacity-60")}>
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-accent" />
@@ -691,8 +772,7 @@ function CalendarsTab() {
                     toast.error("Calendar is linked to active projects — unlink them first");
                     return;
                   }
-                  updateCalendar(c.id, { active: !isActive });
-                  toast.success(isActive ? `Calendar "${c.name}" deactivated` : `Calendar "${c.name}" activated`);
+                  setPendingToggle({ id: c.id, name: c.name, active: isActive });
                 }}
                 onDelete={() => deleteCalendar(c)}
               />
@@ -725,6 +805,17 @@ function CalendarsTab() {
       </div>
       <CalendarDialog open={createOpen} onOpenChange={setCreateOpen} />
       {editing && <CalendarDialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)} calendar={editing} />}
+      <ToggleActiveConfirm
+        pending={pendingToggle ? { label: pendingToggle.name, active: pendingToggle.active } : null}
+        entity="Calendar"
+        onCancel={() => setPendingToggle(null)}
+        onConfirm={() => {
+          if (!pendingToggle) return;
+          updateCalendar(pendingToggle.id, { active: !pendingToggle.active });
+          toast.success(`"${pendingToggle.name}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          setPendingToggle(null);
+        }}
+      />
     </>
   );
 }
@@ -912,6 +1003,8 @@ function CostCategoriesTab() {
   ]);
   const [editing, setEditing] = useState<CostCategory | null>(null);
   const [pendingDelete, setPendingDelete] = useState<CostCategory | null>(null);
+  const [pendingToggle, setPendingToggle] = useState<{ id: string; name: string; active: boolean } | null>(null);
+  const { isActive, setActive } = useOrgActive("cost-category");
   const [query, setQuery] = useState("");
   const [type, setType] = useState("all");
 
@@ -951,7 +1044,7 @@ function CostCategoriesTab() {
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={6} />}
             {pager.pageItems.map((c) => (
-              <TableRow key={c.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+              <TableRow key={c.id} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(c.id) && "opacity-60")}>
                 <TableCell className="num-mono whitespace-nowrap text-muted-foreground">{c.number}</TableCell>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{c.name}</TableCell>
                 <TableCell className="text-muted-foreground">{c.description || "—"}</TableCell>
@@ -960,7 +1053,12 @@ function CostCategoriesTab() {
                 </TableCell>
                 <TableCell className="text-center num-mono">0</TableCell>
                 <TableCell>
-                  <RowActions onEdit={() => setEditing(c)} onDelete={() => setPendingDelete(c)} />
+                  <RowActions
+                    onEdit={() => setEditing(c)}
+                    isActive={isActive(c.id)}
+                    onToggleActive={() => setPendingToggle({ id: c.id, name: c.name, active: isActive(c.id) })}
+                    onDelete={() => setPendingDelete(c)}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -1010,6 +1108,18 @@ function CostCategoriesTab() {
           setCategories((prev) => prev.filter((c) => c.id !== pendingDelete.id));
           toast.success(`Deleted "${pendingDelete.name}"`);
           setPendingDelete(null);
+        }}
+      />
+
+      <ToggleActiveConfirm
+        pending={pendingToggle ? { label: pendingToggle.name, active: pendingToggle.active } : null}
+        entity="Cost Category"
+        onCancel={() => setPendingToggle(null)}
+        onConfirm={() => {
+          if (!pendingToggle) return;
+          setActive(pendingToggle.id, !pendingToggle.active);
+          toast.success(`"${pendingToggle.name}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          setPendingToggle(null);
         }}
       />
     </>
@@ -1105,6 +1215,8 @@ function SkillsTable() {
   const [usage, setUsage] = useState("all");
   const [editing, setEditing] = useState<{ original: string; value: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
+  const { isActive, setActive } = useOrgActive("skill");
 
   const stats = useMemo(() => {
     const projectsByRole = new Map<string, Set<string>>();
@@ -1161,12 +1273,17 @@ function SkillsTable() {
         <TableBody>
           {visible.length === 0 && <EmptyRow colSpan={4} />}
           {pager.pageItems.map((s) => (
-            <TableRow key={s} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+            <TableRow key={s} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(s) && "opacity-60")}>
               <TableCell className="whitespace-nowrap font-medium text-foreground">{s}</TableCell>
               <TableCell className="text-center num-mono">{stats.get(s)?.roles ?? 0}</TableCell>
               <TableCell className="text-center num-mono">{stats.get(s)?.projects ?? 0}</TableCell>
               <TableCell>
-                <TableRowActions onEdit={() => setEditing({ original: s, value: s })} onDelete={() => setPendingDelete(s)} />
+                <TableRowActions
+                  onEdit={() => setEditing({ original: s, value: s })}
+                  isActive={isActive(s)}
+                  onToggleActive={() => setPendingToggle({ name: s, active: isActive(s) })}
+                  onDelete={() => setPendingDelete(s)}
+                />
               </TableCell>
             </TableRow>
           ))}
@@ -1207,6 +1324,18 @@ function SkillsTable() {
           removeSkill(pendingDelete);
           toast.success(`Deleted "${pendingDelete}"`);
           setPendingDelete(null);
+        }}
+      />
+
+      <ToggleActiveConfirm
+        pending={pendingToggle ? { label: pendingToggle.name, active: pendingToggle.active } : null}
+        entity="Skill"
+        onCancel={() => setPendingToggle(null)}
+        onConfirm={() => {
+          if (!pendingToggle) return;
+          setActive(pendingToggle.name, !pendingToggle.active);
+          toast.success(`"${pendingToggle.name}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          setPendingToggle(null);
         }}
       />
     </>
@@ -1254,6 +1383,8 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
   }, [resourceRequests]);
   const [editing, setEditing] = useState<{ id: string; title: string; skills: string[] }  | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(null);
+  const [pendingToggle, setPendingToggle] = useState<{ id: string; title: string; active: boolean } | null>(null);
+  const { isActive, setActive } = useOrgActive("job-role");
   const [query, setQuery] = useState("");
   const [usage, setUsage] = useState("all");
 
@@ -1299,7 +1430,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={4} />}
             {pager.pageItems.map((r) => (
-              <TableRow key={r.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+              <TableRow key={r.id} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(r.id) && "opacity-60")}>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{r.title}</TableCell>
                 <TableCell>
                   {r.skills?.length ? (
@@ -1320,6 +1451,8 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
                 <TableCell>
                   <TableRowActions
                     onEdit={() => setEditing({ id: r.id, title: r.title, skills: r.skills ?? [] })}
+                    isActive={isActive(r.id)}
+                    onToggleActive={() => setPendingToggle({ id: r.id, title: r.title, active: isActive(r.id) })}
                     onDelete={() => setPendingDelete({ id: r.id, title: r.title })}
                   />
                 </TableCell>
@@ -1389,6 +1522,18 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ToggleActiveConfirm
+        pending={pendingToggle ? { label: pendingToggle.title, active: pendingToggle.active } : null}
+        entity="Job Role"
+        onCancel={() => setPendingToggle(null)}
+        onConfirm={() => {
+          if (!pendingToggle) return;
+          setActive(pendingToggle.id, !pendingToggle.active);
+          toast.success(`"${pendingToggle.title}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          setPendingToggle(null);
+        }}
+      />
     </>
   );
 }

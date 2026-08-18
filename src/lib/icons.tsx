@@ -97,6 +97,8 @@ export const Pencil = sax("Edit");
 export const Phone = sax("Call");
 export const PiggyBank = sax("Wallet2");
 export const Power = sax("ToggleOffCircle");
+/** Activate / deactivate toggle used by table row actions + confirm popups. */
+export const ToggleActive = sax("ToggleOnCircle");
 export const Plus = sax("Add");
 export const Search = sax("SearchNormal1");
 export const SearchIcon = Search;

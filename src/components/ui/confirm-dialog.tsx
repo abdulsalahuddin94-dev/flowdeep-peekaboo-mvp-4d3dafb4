@@ -53,11 +53,14 @@ const TONES: Record<
 export function ConfirmIcon({
   tone,
   className,
+  icon: IconOverride,
 }: {
   tone: ConfirmTone;
   className?: string;
+  icon?: React.ComponentType<{ className?: string; size?: number }>;
 }) {
   const t = TONES[tone];
+  const Icon = IconOverride ?? t.Icon;
   return (
     <span
       className={cn(
@@ -66,7 +69,7 @@ export function ConfirmIcon({
       )}
       style={{ background: t.surface, borderColor: t.ring, color: t.icon }}
     >
-      <t.Icon className="h-5 w-5" />
+      <Icon className="h-5 w-5" />
     </span>
   );
 }
@@ -76,6 +79,8 @@ export interface ConfirmDialogProps {
   onOpenChange: (open: boolean) => void;
   tone?: ConfirmTone;
   title: string;
+  /** Override the tone icon (e.g. toggle icon for activate/deactivate). */
+  icon?: React.ComponentType<{ className?: string; size?: number }>;
   description?: React.ReactNode;
   cancelLabel?: string;
   confirmLabel?: string;
@@ -91,6 +96,7 @@ export function ConfirmDialog({
   onOpenChange,
   tone = "info",
   title,
+  icon,
   description,
   cancelLabel = "Cancel",
   confirmLabel = "Confirm",
@@ -115,7 +121,7 @@ export function ConfirmDialog({
           </DialogPrimitive.Close>
 
           <div className="flex flex-col items-center gap-3">
-            <ConfirmIcon tone={tone} />
+            <ConfirmIcon tone={tone} icon={icon} />
             <DialogPrimitive.Title className="text-lg font-semibold text-foreground">
               {title}
             </DialogPrimitive.Title>

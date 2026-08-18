@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { EditAction, DeleteAction, Power } from "@/lib/icons";
+import { EditAction, DeleteAction, ToggleActive } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -57,10 +57,10 @@ export function TableRowActions({
           onClick={onToggleActive}
           className={cn(
             "h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] hover:!bg-[var(--btn-secondary-bg-hover)]",
-            isActive ? "text-rag-amber" : "text-rag-green",
+            isActive ? "text-rag-green" : "text-[#D4D4D4]",
           )}
         >
-          <Power className="h-4 w-4" />
+          <ToggleActive className={cn("h-4 w-4", !isActive && "-scale-y-100")} />
         </Button>
       )}
       {onDelete && (

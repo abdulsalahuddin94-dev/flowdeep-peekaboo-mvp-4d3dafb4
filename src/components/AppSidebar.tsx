@@ -69,7 +69,7 @@ const allItems: NavItem[] = [
       { title: "Tags & Classifications", tab: "tags" },
       { title: "Cost Categories", tab: "cost-categories" },
       { title: "Departments", tab: "departments" },
-      { title: "Job Roles", tab: "job-roles" },
+      { title: "Roles & Skills", tab: "job-roles" },
       { title: "Calendars", tab: "calendars" },
       { title: "Rules & Thresholds", tab: "rules" },
     ],

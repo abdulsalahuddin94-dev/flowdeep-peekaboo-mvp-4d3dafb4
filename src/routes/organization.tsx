@@ -1382,7 +1382,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
   );
 }
 
-function AddJobRoleDialog({ onAdd }: { onAdd: (title: string, skills: string[]) => void }) {
+function AddJobRoleDialog({ onAdd, hasSkills, onGoToSkills }: { onAdd: (title: string, skills: string[]) => void; hasSkills: boolean; onGoToSkills: () => void }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
@@ -1411,8 +1411,19 @@ function AddJobRoleDialog({ onAdd }: { onAdd: (title: string, skills: string[]) 
           </div>
           <div>
             <Label>Skills</Label>
-            <SkillsSelect value={skills} onChange={setSkills} />
-            <p className="mt-1 text-[11px] text-muted-foreground">Use Add Skills to populate the lookup, then assign skills here.</p>
+            {hasSkills ? (
+              <>
+                <SkillsSelect value={skills} onChange={setSkills} />
+                <p className="mt-1 text-[11px] text-muted-foreground">Pick from the organization skills lookup.</p>
+              </>
+            ) : (
+              <div className="flex flex-col items-start gap-2 rounded-md border border-input p-4">
+                <p className="text-[11px] text-muted-foreground">No skills in the lookup yet.</p>
+                <Button size="sm" variant="outline" onClick={() => { setOpen(false); onGoToSkills(); }}>
+                  <Plus className="mr-1 h-4 w-4" />Add Skills
+                </Button>
+              </div>
+            )}
           </div>
         </div>
         <DialogFooter>

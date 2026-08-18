@@ -354,7 +354,7 @@ function ToggleActiveConfirm({
       onOpenChange={(o) => !o && onCancel()}
       tone={deactivating ? "warning" : "success"}
       icon={({ className }) => (
-        <ToggleActive className={cn(className, deactivating && "-scale-y-100")} />
+        <ToggleActive className={cn(className, !deactivating && "-scale-x-100")} />
       )}
       title={`${deactivating ? "Deactivate" : "Activate"} "${pending?.label ?? ""}"?`}
       description={`Are you sure you want to ${deactivating ? "deactivate" : "activate"} this ${entity}?`}

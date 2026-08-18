@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { ManageSkillsDialog, SkillsSelect } from "@/components/SkillsCatalog";
+import { SkillsSelect } from "@/components/SkillsCatalog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,7 +18,7 @@ import { TablePagination, usePagination } from "@/components/TablePagination";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
 import { RulesThresholdsTab } from "@/components/org/RulesThresholds";
-import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests } from "@/lib/projects-store";
+import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests, useSkills } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -30,7 +30,7 @@ import { toast } from "@/lib/toast";
 const ORG_TAB_LABELS: Record<string, string> = {
   "business-lines": "Project Types", tags: "Tags & Classifications",
   "cost-categories": "Cost Categories", departments: "Departments",
-  "job-roles": "Job Roles", calendars: "Calendars",
+  "job-roles": "Roles & Skills", calendars: "Calendars",
   "rules": "Rules & Thresholds",
 };
 

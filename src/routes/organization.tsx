@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
-import { ManageSkillsDialog, SkillsSelect } from "@/components/SkillsCatalog";
+import { SkillsSelect } from "@/components/SkillsCatalog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,7 +18,7 @@ import { TablePagination, usePagination } from "@/components/TablePagination";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
 import { RulesThresholdsTab } from "@/components/org/RulesThresholds";
-import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests } from "@/lib/projects-store";
+import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests, useSkills } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -30,7 +30,7 @@ import { toast } from "@/lib/toast";
 const ORG_TAB_LABELS: Record<string, string> = {
   "business-lines": "Project Types", tags: "Tags & Classifications",
   "cost-categories": "Cost Categories", departments: "Departments",
-  "job-roles": "Job Roles", calendars: "Calendars",
+  "job-roles": "Roles & Skills", calendars: "Calendars",
   "rules": "Rules & Thresholds",
 };
 
@@ -1080,7 +1080,168 @@ function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }
 }
 
 function JobRolesTab() {
+  const [inner, setInner] = useState<"roles" | "skills">("roles");
+  return (
+    <Tabs value={inner} onValueChange={(v) => setInner(v as "roles" | "skills")}>
+      <TabsList className="mb-4">
+        <TabsTrigger value="roles">Job Roles</TabsTrigger>
+        <TabsTrigger value="skills">Skills</TabsTrigger>
+      </TabsList>
+      <TabsContent value="roles">
+        <RolesTable onGoToSkills={() => setInner("skills")} />
+      </TabsContent>
+      <TabsContent value="skills">
+        <SkillsTable />
+      </TabsContent>
+    </Tabs>
+  );
+}
+
+function SkillsTable() {
+  const { skillsCatalog, addSkill, updateSkill, removeSkill } = useSkills();
+  const { jobRoles } = useJobRoles();
+  const { resourceRequests } = useResourceRequests();
+  const [query, setQuery] = useState("");
+  const [usage, setUsage] = useState("all");
+  const [editing, setEditing] = useState<{ original: string; value: string } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+
+  const stats = useMemo(() => {
+    const projectsByRole = new Map<string, Set<string>>();
+    for (const r of resourceRequests) {
+      const key = r.role.trim().toLowerCase();
+      if (!projectsByRole.has(key)) projectsByRole.set(key, new Set());
+      projectsByRole.get(key)!.add(r.project);
+    }
+    const map = new Map<string, { roles: number; projects: number }>();
+    for (const skill of skillsCatalog) {
+      const roles = jobRoles.filter((r) => (r.skills ?? []).some((s) => s.toLowerCase() === skill.toLowerCase()));
+      const projects = new Set<string>();
+      roles.forEach((r) => projectsByRole.get(r.title.trim().toLowerCase())?.forEach((p) => projects.add(p)));
+      map.set(skill, { roles: roles.length, projects: projects.size });
+    }
+    return map;
+  }, [skillsCatalog, jobRoles, resourceRequests]);
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return skillsCatalog
+      .filter((s) => !q || s.toLowerCase().includes(q))
+      .filter((s) => {
+        const st = stats.get(s);
+        if (usage === "all") return true;
+        if (usage === "used") return (st?.roles ?? 0) > 0;
+        return (st?.roles ?? 0) === 0;
+      });
+  }, [skillsCatalog, query, usage, stats]);
+
+  const pager = usePagination(visible);
+
+  return (
+    <>
+      <FilterBar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search skill…"
+        cta={<AddSkillDialog onAdd={(s) => {
+          if (skillsCatalog.some((x) => x.toLowerCase() === s.toLowerCase())) { toast.error(`"${s}" already exists`); return false; }
+          addSkill(s);
+          toast.success(`Skill "${s}" added`);
+          return true;
+        }} />}
+        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All skills" }, { value: "used", label: "Used in job roles" }, { value: "unused", label: "Not used" }] }]}
+      />
+      <Table>
+        <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
+          <TableHead className="w-64">Skill</TableHead>
+          <TableHead className="w-40 text-center">Job Roles</TableHead>
+          <TableHead className="w-40 text-center">Active Projects</TableHead>
+          <TableHead className="w-24" />
+        </TableRow></TableHeader>
+        <TableBody>
+          {visible.length === 0 && <EmptyRow colSpan={4} />}
+          {pager.pageItems.map((s) => (
+            <TableRow key={s} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+              <TableCell className="whitespace-nowrap font-medium text-foreground">{s}</TableCell>
+              <TableCell className="text-center num-mono">{stats.get(s)?.roles ?? 0}</TableCell>
+              <TableCell className="text-center num-mono">{stats.get(s)?.projects ?? 0}</TableCell>
+              <TableCell>
+                <TableRowActions onEdit={() => setEditing({ original: s, value: s })} onDelete={() => setPendingDelete(s)} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination {...pager} itemLabel="skills" />
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Skill</DialogTitle><DialogDescription>Rename this skill.</DialogDescription></DialogHeader>
+          <div>
+            <Label>Skill</Label>
+            <Input value={editing?.value ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, value: e.target.value } : p)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button variant="primary" onClick={() => {
+              if (!editing) return;
+              const v = editing.value.trim();
+              if (!v) { toast.error("Skill name is required"); return; }
+              updateSkill(editing.original, v);
+              toast.success("Skill updated");
+              setEditing(null);
+            }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onOpenChange={(o) => !o && setPendingDelete(null)}
+        title={`Delete "${pendingDelete ?? ""}"?`}
+        description="This skill will be removed from the lookup. Job roles already using it are not affected."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          removeSkill(pendingDelete);
+          toast.success(`Deleted "${pendingDelete}"`);
+          setPendingDelete(null);
+        }}
+      />
+    </>
+  );
+}
+
+function AddSkillDialog({ onAdd }: { onAdd: (skill: string) => boolean }) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+  function save() {
+    const v = value.trim();
+    if (!v) { toast.error("Skill name is required"); return; }
+    if (onAdd(v)) { setValue(""); setOpen(false); }
+  }
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Skill</Button></DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>New Skill</DialogTitle><DialogDescription>Add a skill to the organization lookup.</DialogDescription></DialogHeader>
+        <div>
+          <Label>Skill</Label>
+          <Input value={value} onChange={(e) => setValue(e.target.value)} placeholder="e.g. Kubernetes" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); save(); } }} />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="primary" onClick={save}>Add</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
   const { jobRoles, addJobRole, updateJobRole, removeJobRole } = useJobRoles();
+  const { skillsCatalog } = useSkills();
   const { resourceRequests } = useResourceRequests();
   const usageByRole = useMemo(() => {
     const map = new Map<string, Set<string>>();
@@ -1124,12 +1285,7 @@ function JobRolesTab() {
         resultCount={visible.length}
         totalCount={jobRoles.length}
         onReset={() => { setQuery(""); setUsage("all"); }}
-        cta={
-          <div className="flex items-center gap-2">
-            <ManageSkillsDialog />
-            <AddJobRoleDialog onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />
-          </div>
-        }
+        cta={<AddJobRoleDialog hasSkills={skillsCatalog.length > 0} onGoToSkills={onGoToSkills} onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
         filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "With active projects" },{ value: "unused", label: "No projects" },{ value: "with-skills", label: "With skills" },{ value: "no-skills", label: "Without skills" },] }]}
       />
       <div className="">
@@ -1187,8 +1343,19 @@ function JobRolesTab() {
             </div>
             <div>
               <Label>Skills</Label>
-              <SkillsSelect value={editing?.skills ?? []} onChange={(skills) => setEditing((prev) => prev ? { ...prev, skills } : prev)} />
-              <p className="mt-1 text-[11px] text-muted-foreground">Use Add Skills to populate the lookup, then assign skills here.</p>
+              {skillsCatalog.length > 0 ? (
+                <>
+                  <SkillsSelect value={editing?.skills ?? []} onChange={(skills) => setEditing((prev) => prev ? { ...prev, skills } : prev)} />
+                  <p className="mt-1 text-[11px] text-muted-foreground">Pick from the organization skills lookup.</p>
+                </>
+              ) : (
+                <div className="flex flex-col items-start gap-2 rounded-md border border-input p-4">
+                  <p className="text-[11px] text-muted-foreground">No skills in the lookup yet.</p>
+                  <Button size="sm" variant="outline" onClick={() => { setEditing(null); onGoToSkills(); }}>
+                    <Plus className="mr-1 h-4 w-4" />Add Skills
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -1226,7 +1393,7 @@ function JobRolesTab() {
   );
 }
 
-function AddJobRoleDialog({ onAdd }: { onAdd: (title: string, skills: string[]) => void }) {
+function AddJobRoleDialog({ onAdd, hasSkills, onGoToSkills }: { onAdd: (title: string, skills: string[]) => void; hasSkills: boolean; onGoToSkills: () => void }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
@@ -1255,8 +1422,19 @@ function AddJobRoleDialog({ onAdd }: { onAdd: (title: string, skills: string[]) 
           </div>
           <div>
             <Label>Skills</Label>
-            <SkillsSelect value={skills} onChange={setSkills} />
-            <p className="mt-1 text-[11px] text-muted-foreground">Use Add Skills to populate the lookup, then assign skills here.</p>
+            {hasSkills ? (
+              <>
+                <SkillsSelect value={skills} onChange={setSkills} />
+                <p className="mt-1 text-[11px] text-muted-foreground">Pick from the organization skills lookup.</p>
+              </>
+            ) : (
+              <div className="flex flex-col items-start gap-2 rounded-md border border-input p-4">
+                <p className="text-[11px] text-muted-foreground">No skills in the lookup yet.</p>
+                <Button size="sm" variant="outline" onClick={() => { setOpen(false); onGoToSkills(); }}>
+                  <Plus className="mr-1 h-4 w-4" />Add Skills
+                </Button>
+              </div>
+            )}
           </div>
         </div>
         <DialogFooter>

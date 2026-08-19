@@ -1399,9 +1399,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         if (usage === "all") return true;
         const used = (usageByRole.get(r.title.trim().toLowerCase())?.size ?? 0) > 0;
         if (usage === "used") return used;
-        if (usage === "unused") return !used;
-        if (usage === "with-skills") return (r.skills ?? []).length > 0;
-        return (r.skills ?? []).length === 0;
+        return !used;
       });
   }, [jobRoles, query, usage, selectedSkills, usageByRole]);
 
@@ -1420,7 +1418,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         onReset={() => { setQuery(""); setUsage("all"); setSelectedSkills([]); }}
         cta={<AddJobRoleDialog hasSkills={skillsCatalog.length > 0} onGoToSkills={onGoToSkills} onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
         filterGroups={[
-          { key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "With active projects" },{ value: "unused", label: "No projects" },{ value: "with-skills", label: "With skills" },{ value: "no-skills", label: "Without skills" },] },
+          { key: "usage", label: "Related Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "With projects" },{ value: "unused", label: "No projects" },] },
           { key: "skill", label: "Skills", value: selectedSkills, onChange: setSelectedSkills, mode: "multi", options: [{ value: "all", label: "All skills" }, ...skillsCatalog.map((s) => ({ value: s, label: s }))] },
         ]}
       />

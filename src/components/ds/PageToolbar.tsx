@@ -47,6 +47,8 @@ function groupFirstValue(g: FilterGroup): string {
   return g.options[0]?.value ?? "";
 }
 
+type Chip = { key: string; label: string; group: FilterGroup; removeValue: string };
+
 /** Shared search + filter toolbar (side-drawer filters) used by every Organization tab. */
 export function PageToolbar({
   query,
@@ -92,10 +94,9 @@ export function PageToolbar({
     setOpen(false);
   }
 
-  const appliedChips = filterGroups.flatMap((g) => {
-    const current = isMultiGroup(g) ? g.value : [];
+  const appliedChips: Chip[] = filterGroups.flatMap((g) => {
     if (isMultiGroup(g)) {
-      return current.map((v) => ({
+      return g.value.map((v) => ({
         key: `${g.key}-${v}`,
         label: g.options.find((o) => o.value === v)?.label ?? v,
         group: g,
@@ -295,5 +296,3 @@ export function EmptyRow({ colSpan }: { colSpan: number }) {
     </TableRow>
   );
 }
-
-

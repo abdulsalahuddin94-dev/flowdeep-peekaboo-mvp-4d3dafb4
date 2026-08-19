@@ -129,7 +129,7 @@ function BusinessLinesTab() {
             <TableHead className="w-56">Name</TableHead>
             <TableHead className="w-72">Description</TableHead>
             <TableHead className="w-36 text-center">Active Projects</TableHead>
-            <TableHead className="w-24" />
+            <TableHead className="w-28 text-right">Status</TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={4} />}
@@ -246,7 +246,7 @@ function DepartmentsTab() {
             <TableHead className="w-64">Department</TableHead>
             <TableHead className="w-72">Description</TableHead>
             <TableHead className="text-center">Active Projects</TableHead>
-            <TableHead className="w-24" />
+            <TableHead className="w-28 text-right">Status</TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={4} />}
@@ -1039,7 +1039,7 @@ function CostCategoriesTab() {
             <TableHead>Description</TableHead>
             <TableHead className="w-28">Type</TableHead>
             <TableHead className="w-28 text-center">Active Projects</TableHead>
-            <TableHead className="w-24" />
+            <TableHead className="w-28 text-right">Status</TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={6} />}
@@ -1268,7 +1268,7 @@ function SkillsTable() {
           <TableHead className="w-64">Skill</TableHead>
           <TableHead className="w-40 text-center">Job Roles</TableHead>
           <TableHead className="w-40 text-center">Active Projects</TableHead>
-          <TableHead className="w-24" />
+          <TableHead className="w-28 text-right">Status</TableHead>
         </TableRow></TableHeader>
         <TableBody>
           {visible.length === 0 && <EmptyRow colSpan={4} />}
@@ -1425,7 +1425,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
             <TableHead className="w-56">Role Title</TableHead>
             <TableHead className="w-48">Skills</TableHead>
             <TableHead className="w-40 text-center">Active Projects</TableHead>
-            <TableHead className="w-24" />
+            <TableHead className="w-28 text-right">Status</TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={4} />}

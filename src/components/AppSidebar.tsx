@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Building2, Handshake, Target, Users,
+  LayoutDashboard, Building2, Handshake, FolderFavorite, Users,
   DollarSign, CheckSquare, ChevronDown,
 } from "@/lib/icons";
 import {

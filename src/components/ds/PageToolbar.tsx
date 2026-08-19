@@ -94,20 +94,29 @@ export function PageToolbar({
     setOpen(false);
   }
 
-  const appliedChips: Chip[] = filterGroups.flatMap((g) => {
+  const appliedChips: Chip[] = filterGroups.reduce((acc, g) => {
     if (isMultiGroup(g)) {
-      return g.value.map((v) => ({
-        key: `${g.key}-${v}`,
+      for (const v of g.value) {
+        acc.push({
+          key: `${g.key}-${v}`,
+          label: g.options.find((o) => o.value === v)?.label ?? v,
+          group: g,
+          removeValue: v,
+        });
+      }
+    } else {
+      const v = g.value;
+      if (!v || v === groupFirstValue(g)) return acc;
+      acc.push({
+        key: g.key,
         label: g.options.find((o) => o.value === v)?.label ?? v,
         group: g,
         removeValue: v,
-      }));
+      });
     }
-    const v = g.value;
-    if (!v || v === groupFirstValue(g)) return [];
-    const label = g.options.find((o) => o.value === v)?.label ?? v;
-    return [{ key: g.key, label, group: g, removeValue: v }];
-  });
+    return acc;
+  }, [] as Chip[]);
+
 
   const activePanel = filterGroups.find((g) => g.key === panel);
   /** Drop the leading "All …" row when there are only two real choices. */

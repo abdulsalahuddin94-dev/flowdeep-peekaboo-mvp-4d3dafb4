@@ -72,7 +72,7 @@ export function PageToolbar({
   const [draft, setDraft] = useState<Record<string, string | string[]>>({});
   const [panel, setPanel] = useState<string | null>(null);
 
-  const activeCount = filterGroups.filter(isGroupActive).length;
+  const activeCount = filterGroups.reduce((acc, g) => acc + (isMultiGroup(g) ? g.value.length : isGroupActive(g) ? 1 : 0), 0);
 
   function openDrawer() {
     setDraft(Object.fromEntries(filterGroups.map((g) => [g.key, g.value])));

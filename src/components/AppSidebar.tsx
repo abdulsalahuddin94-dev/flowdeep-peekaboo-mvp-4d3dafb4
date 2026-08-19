@@ -169,7 +169,7 @@ export function AppSidebar() {
                               )}
                             >
                               <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                                <item.icon className={iconSize} />
+                                <item.icon className={iconSize} isActive={active} />
                               </span>
                               <ChevronDown className="ml-auto h-4 w-4 shrink-0 opacity-70 transition-transform group-data-[state=open]/collapsed:rotate-180" />
                             </SidebarMenuButton>
@@ -196,7 +196,7 @@ export function AppSidebar() {
                         className={buttonBaseClasses()}
                       >
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                          <item.icon className={iconSize} />
+                          <item.icon className={iconSize} isActive={active} />
                         </span>
                         {!collapsed && (
                           <span className="flex-1 truncate text-left">{item.title}</span>
@@ -225,7 +225,7 @@ export function AppSidebar() {
                     >
                       <Link to={item.url} className="flex w-full items-center gap-3 justify-start">
                         <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                          <item.icon className={iconSize} />
+                          <item.icon className={iconSize} isActive={active} />
                         </span>
                         {!collapsed && (
                           <>

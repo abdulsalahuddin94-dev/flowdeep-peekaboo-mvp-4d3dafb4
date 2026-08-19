@@ -49,19 +49,22 @@ export function TableRowActions({
   className?: string;
 }) {
   const withStatus = (showStatus ?? !!onToggleActive) && !alwaysVisible;
+  // DS02: status columns are always centered so the pill and the hover actions
+  // share the same optical center; action-only columns stay right-aligned.
+  const align = withStatus ? "justify-center" : "justify-end";
   const visibility = alwaysVisible
     ? ""
     : withStatus
       ? "hidden group-hover:flex group-focus-within:flex"
       : "opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100";
   return (
-    <div className="relative h-9 min-w-32 flex items-center justify-end">
+    <div className={cn("relative h-9 min-w-32 flex items-center", align)}>
       {withStatus && (
-        <div className="flex h-7 items-center justify-end group-hover:hidden group-focus-within:hidden">
+        <div className="flex h-7 items-center justify-center group-hover:hidden group-focus-within:hidden">
           <StatusPill isActive={isActive} />
         </div>
       )}
-      <div className={cn("flex h-9 items-center justify-end gap-1.5", visibility, className)}>
+      <div className={cn("flex h-9 items-center gap-1.5", align, visibility, className)}>
         {onEdit && (
           <Button
             type="button"

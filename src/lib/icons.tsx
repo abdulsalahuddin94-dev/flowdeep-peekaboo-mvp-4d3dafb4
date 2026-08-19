@@ -3,12 +3,14 @@
  * Single source of truth for iconography — swap a mapping here to restyle globally.
  */
 import * as Sax from "iconsax-react";
+import { Icon } from "@iconify/react";
 import { X as LucideX, Check as LucideCheck } from "lucide-react";
 import type { SVGProps } from "react";
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {
   size?: number | string;
   strokeWidth?: number | string;
+  isActive?: boolean;
 };
 
 type SaxComponent = (typeof Sax)["Add"];

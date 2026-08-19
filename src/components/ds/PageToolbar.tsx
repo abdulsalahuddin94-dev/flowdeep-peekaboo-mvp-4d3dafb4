@@ -12,13 +12,40 @@ import { Search, Filter, ChevronRight, ChevronLeft, X } from "@/lib/icons";
  * Single source of truth: every module page uses this instead of ad-hoc toolbars.
  */
 
-export type FilterGroup = {
+export type SingleFilterGroup = {
   key: string;
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
+  mode?: "single";
 };
+
+export type MultiFilterGroup = {
+  key: string;
+  label: string;
+  value: string[];
+  onChange: (v: string[]) => void;
+  options: { value: string; label: string }[];
+  mode: "multi";
+};
+
+export type FilterGroup = SingleFilterGroup | MultiFilterGroup;
+
+function isMultiGroup(g: FilterGroup): g is MultiFilterGroup {
+  return g.mode === "multi";
+}
+
+function isGroupActive(g: FilterGroup): boolean {
+  if (isMultiGroup(g)) {
+    return g.value.length > 0;
+  }
+  return g.value !== g.options[0]?.value;
+}
+
+function groupFirstValue(g: FilterGroup): string {
+  return g.options[0]?.value ?? "";
+}
 
 /** Shared search + filter toolbar (side-drawer filters) used by every Organization tab. */
 export function PageToolbar({
@@ -40,10 +67,10 @@ export function PageToolbar({
   cta?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [draft, setDraft] = useState<Record<string, string | string[]>>({});
   const [panel, setPanel] = useState<string | null>(null);
 
-  const activeCount = filterGroups.filter((g) => g.value !== g.options[0]?.value).length;
+  const activeCount = filterGroups.filter(isGroupActive).length;
 
   function openDrawer() {
     setDraft(Object.fromEntries(filterGroups.map((g) => [g.key, g.value])));
@@ -54,16 +81,31 @@ export function PageToolbar({
   function apply() {
     filterGroups.forEach((g) => {
       const next = draft[g.key];
-      if (next !== undefined && next !== g.value) g.onChange(next);
+      if (next === undefined) return;
+      if (isMultiGroup(g)) {
+        const arr = Array.isArray(next) ? next : [];
+        if (JSON.stringify(arr) !== JSON.stringify(g.value)) g.onChange(arr);
+      } else if (next !== g.value) {
+        g.onChange(String(next));
+      }
     });
     setOpen(false);
   }
 
   const appliedChips = filterGroups.flatMap((g) => {
-    const v = draft[g.key] ?? g.value;
-    if (!v || v === g.options[0]?.value) return [];
+    const current = isMultiGroup(g) ? g.value : [];
+    if (isMultiGroup(g)) {
+      return current.map((v) => ({
+        key: `${g.key}-${v}`,
+        label: g.options.find((o) => o.value === v)?.label ?? v,
+        group: g,
+        removeValue: v,
+      }));
+    }
+    const v = g.value;
+    if (!v || v === groupFirstValue(g)) return [];
     const label = g.options.find((o) => o.value === v)?.label ?? v;
-    return [{ key: g.key, label, group: g }];
+    return [{ key: g.key, label, group: g, removeValue: v }];
   });
 
   const activePanel = filterGroups.find((g) => g.key === panel);
@@ -119,29 +161,59 @@ export function PageToolbar({
               </div>
               <ScrollArea className="flex-1 px-5">
                 <div className="space-y-1 pb-4">
-                  {panelOptions.map((o) => {
-                    const selected = (draft[activePanel.key] ?? activePanel.value) === o.value;
-                    return (
-                      <button
-                        key={o.value}
-                        type="button"
-                        aria-pressed={selected}
-                        onClick={() => setDraft((d) => ({
-                          ...d,
-                          [activePanel.key]: (d[activePanel.key] ?? activePanel.value) === o.value
-                            ? (activePanel.options[0]?.value ?? "")
-                            : o.value,
-                        }))}
-                        className="flex w-full items-center gap-3 rounded-md px-1 py-2 text-left text-sm text-foreground hover:bg-secondary/40"
-                      >
-                        <Checkbox
-                          checked={selected}
-                          className="pointer-events-none"
-                        />
-                        <span className="truncate">{o.label}</span>
-                      </button>
-                    );
-                  })}
+                  {isMultiGroup(activePanel) ? (
+                    panelOptions.map((o) => {
+                      const allValue = groupFirstValue(activePanel);
+                      const isAll = o.value === allValue;
+                      const selected = isAll
+                        ? activePanel.value.length === 0
+                        : activePanel.value.includes(o.value);
+                      return (
+                        <button
+                          key={o.value}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() => {
+                            setDraft((d) => {
+                              const current = Array.isArray(d[activePanel.key]) ? (d[activePanel.key] as string[]) : activePanel.value;
+                              if (isAll) {
+                                return { ...d, [activePanel.key]: [] };
+                              }
+                              const next = current.includes(o.value)
+                                ? current.filter((v) => v !== o.value)
+                                : [...current, o.value];
+                              return { ...d, [activePanel.key]: next };
+                            });
+                          }}
+                          className="flex w-full items-center gap-3 rounded-md px-1 py-2 text-left text-sm text-foreground hover:bg-secondary/40"
+                        >
+                          <Checkbox checked={selected} className="pointer-events-none" />
+                          <span className="truncate">{o.label}</span>
+                        </button>
+                      );
+                    })
+                  ) : (
+                    panelOptions.map((o) => {
+                      const selected = (draft[activePanel.key] ?? activePanel.value) === o.value;
+                      return (
+                        <button
+                          key={o.value}
+                          type="button"
+                          aria-pressed={selected}
+                          onClick={() => setDraft((d) => ({
+                            ...d,
+                            [activePanel.key]: (d[activePanel.key] ?? activePanel.value) === o.value
+                              ? groupFirstValue(activePanel)
+                              : o.value,
+                          }))}
+                          className="flex w-full items-center gap-3 rounded-md px-1 py-2 text-left text-sm text-foreground hover:bg-secondary/40"
+                        >
+                          <Checkbox checked={selected} className="pointer-events-none" />
+                          <span className="truncate">{o.label}</span>
+                        </button>
+                      );
+                    })
+                  )}
                   {panelOptions.length === 0 && (
                     <p className="py-6 text-center text-xs text-muted-foreground">No options</p>
                   )}
@@ -174,7 +246,7 @@ export function PageToolbar({
                     <span className="text-xs font-medium text-foreground">Applied Filters</span>
                     <button
                       type="button"
-                      onClick={() => setDraft(Object.fromEntries(filterGroups.map((g) => [g.key, g.options[0]?.value ?? ""])))}
+                      onClick={() => setDraft(Object.fromEntries(filterGroups.map((g) => [g.key, isMultiGroup(g) ? [] : groupFirstValue(g)])))}
                       className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
                     >
                       Clear Filters <X className="h-3 w-3" />
@@ -187,7 +259,14 @@ export function PageToolbar({
                         <button
                           type="button"
                           aria-label={`Remove ${c.label}`}
-                          onClick={() => setDraft((d) => ({ ...d, [c.key]: c.group.options[0]?.value ?? "" }))}
+                          onClick={() => setDraft((d) => {
+                            if (isMultiGroup(c.group)) {
+                              const current = Array.isArray(d[c.group.key]) ? (d[c.group.key] as string[]) : c.group.value;
+                              const next = current.filter((v) => v !== c.removeValue);
+                              return { ...d, [c.group.key]: next };
+                            }
+                            return { ...d, [c.group.key]: groupFirstValue(c.group) };
+                          })}
                           className="text-muted-foreground hover:text-foreground"
                         >
                           <X className="h-3 w-3" />
@@ -216,4 +295,5 @@ export function EmptyRow({ colSpan }: { colSpan: number }) {
     </TableRow>
   );
 }
+
 

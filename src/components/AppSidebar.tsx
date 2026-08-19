@@ -26,7 +26,7 @@ type NavChild = { title: string; tab: string };
 type NavItem = {
   title: string;
   url: string;
-  icon: typeof LayoutDashboard;
+  icon: React.ComponentType<{ size?: number | string; isActive?: boolean }>;
   children?: NavChild[];
   defaultTab?: string;
   badge?: number;

@@ -2,9 +2,27 @@ import { Button } from "@/components/ui/button";
 import { EditAction, DeleteAction, ToggleActive } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
+/** Active / Inactive status pill (DS02): outlined green when active, amber when not. */
+export function StatusPill({ isActive, className }: { isActive: boolean; className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex h-7 items-center justify-center whitespace-nowrap rounded-full border px-3 text-xs font-medium",
+        isActive
+          ? "border-rag-green/60 bg-rag-green/10 text-rag-green"
+          : "border-rag-amber/60 bg-rag-amber/10 text-rag-amber",
+        className,
+      )}
+    >
+      {isActive ? "Active" : "Inactive"}
+    </span>
+  );
+}
+
 /**
  * Standard table row actions (DS02): circular Edit + Delete buttons that appear
- * on row hover. Icons come from Iconsax (Edit-2 / Trash).
+ * on row hover. When the row supports deactivate/reactivate, the cell shows the
+ * Active/Inactive status pill at rest and swaps to the actions on hover.
  * Place inside a `<TableCell>` of a row rendered by `TableRow` (which sets `group`).
  */
 export function TableRowActions({
@@ -16,6 +34,7 @@ export function TableRowActions({
   deleteLabel = "Delete",
   deleteDisabled,
   alwaysVisible,
+  showStatus,
   className,
 }: {
   onEdit?: () => void;
@@ -26,13 +45,23 @@ export function TableRowActions({
   deleteLabel?: string;
   deleteDisabled?: boolean;
   alwaysVisible?: boolean;
+  showStatus?: boolean;
   className?: string;
 }) {
+  const withStatus = (showStatus ?? !!onToggleActive) && !alwaysVisible;
   const visibility = alwaysVisible
     ? ""
-    : "opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100";
+    : withStatus
+      ? "hidden group-hover:flex group-focus-within:flex"
+      : "opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100";
   return (
-    <div className={cn("flex justify-end gap-2", visibility, className)}>
+    <>
+      {withStatus && (
+        <div className="flex justify-end group-hover:hidden group-focus-within:hidden">
+          <StatusPill isActive={isActive} />
+        </div>
+      )}
+      <div className={cn("flex justify-end gap-2", visibility, className)}>
       {onEdit && (
         <Button
           type="button"
@@ -77,7 +106,8 @@ export function TableRowActions({
           <DeleteAction size={16} />
         </Button>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

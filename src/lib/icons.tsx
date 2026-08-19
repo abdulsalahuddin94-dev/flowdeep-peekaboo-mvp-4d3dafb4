@@ -15,6 +15,20 @@ export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {
 
 type SaxComponent = (typeof Sax)["Add"];
 
+/** Solar (iconify) icon that swaps outline -> bold when active. Used by the sidebar. */
+function solar(name: string) {
+  const Component = ({ size, isActive, strokeWidth: _sw, ...rest }: IconProps) => (
+    <Icon
+      icon={isActive ? `solar:${name}-bold` : `solar:${name}-outline`}
+      width={size ?? 20}
+      height={size ?? 20}
+      {...(rest as Record<string, unknown>)}
+    />
+  );
+  Component.displayName = `Solar(${name})`;
+  return Component;
+}
+
 /** Wrap an Iconsax (vuesax) icon so it accepts the lucide-style prop shape. */
 function sax(name: keyof typeof Sax) {
   const Base = Sax[name] as SaxComponent;

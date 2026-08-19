@@ -1387,14 +1387,14 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
   const { isActive, setActive } = useOrgActive("job-role");
   const [query, setQuery] = useState("");
   const [usage, setUsage] = useState("all");
-  const [skill, setSkill] = useState("all");
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return jobRoles
       .map((r, index) => ({ ...r, index }))
       .filter((r) => !q || r.title.toLowerCase().includes(q) || (r.skills ?? []).some((sk) => sk.toLowerCase().includes(q)))
-      .filter((r) => skill === "all" || (r.skills ?? []).some((sk) => sk.toLowerCase() === skill.toLowerCase()))
+      .filter((r) => selectedSkills.length === 0 || (r.skills ?? []).some((sk) => selectedSkills.some((s) => s.toLowerCase() === sk.toLowerCase())))
       .filter((r) => {
         if (usage === "all") return true;
         const used = (usageByRole.get(r.title.trim().toLowerCase())?.size ?? 0) > 0;
@@ -1403,7 +1403,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         if (usage === "with-skills") return (r.skills ?? []).length > 0;
         return (r.skills ?? []).length === 0;
       });
-  }, [jobRoles, query, usage, skill, usageByRole]);
+  }, [jobRoles, query, usage, selectedSkills, usageByRole]);
 
   const pager = usePagination(visible);
 
@@ -1417,13 +1417,14 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         placeholder="Search role title or skill…"
         resultCount={visible.length}
         totalCount={jobRoles.length}
-        onReset={() => { setQuery(""); setUsage("all"); setSkill("all"); }}
+        onReset={() => { setQuery(""); setUsage("all"); setSelectedSkills([]); }}
         cta={<AddJobRoleDialog hasSkills={skillsCatalog.length > 0} onGoToSkills={onGoToSkills} onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
         filterGroups={[
           { key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "With active projects" },{ value: "unused", label: "No projects" },{ value: "with-skills", label: "With skills" },{ value: "no-skills", label: "Without skills" },] },
-          { key: "skill", label: "Skills", value: skill, onChange: setSkill, options: [{ value: "all", label: "All skills" }, ...skillsCatalog.map((s) => ({ value: s, label: s }))] },
+          { key: "skill", label: "Skills", value: selectedSkills, onChange: setSelectedSkills, mode: "multi", options: [{ value: "all", label: "All skills" }, ...skillsCatalog.map((s) => ({ value: s, label: s }))] },
         ]}
       />
+
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">

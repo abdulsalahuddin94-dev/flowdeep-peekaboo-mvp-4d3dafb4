@@ -36,16 +36,19 @@ function persist(next: Set<string>) {
 
 export function useOrgActive(scope: string) {
   const [, force] = useState(0);
+  /** SSR has no localStorage — treat everything as active until hydrated. */
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    setHydrated(true);
     const listener = () => force((n) => n + 1);
     listeners.add(listener);
     return () => listeners.delete(listener) as unknown as void;
   }, []);
 
   const isActive = useCallback(
-    (id: string) => !current().has(`${scope}:${id}`),
-    [scope],
+    (id: string) => (hydrated ? !current().has(`${scope}:${id}`) : true),
+    [scope, hydrated],
   );
 
   const setActive = useCallback(

@@ -99,7 +99,7 @@ export function AppSidebar() {
   const { myPending, currentUser } = useApprovals();
   const canApprove = ["Director", "Portfolio Director", "Project Manager"].includes(currentUser.role);
   const items: NavItem[] = canApprove
-    ? [...allItems, { title: "Approvals", url: "/approvals", icon: CheckSquare, badge: myPending.length || undefined }]
+    ? [...allItems, { title: "Approvals", url: "/approvals", icon: NavApprovals, badge: myPending.length || undefined }]
     : allItems;
 
   return (

@@ -3,12 +3,14 @@
  * Single source of truth for iconography — swap a mapping here to restyle globally.
  */
 import * as Sax from "iconsax-react";
+import { Icon } from "@iconify/react";
 import { X as LucideX, Check as LucideCheck } from "lucide-react";
 import type { SVGProps } from "react";
 
 export type IconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {
   size?: number | string;
   strokeWidth?: number | string;
+  isActive?: boolean;
 };
 
 type SaxComponent = (typeof Sax)["Add"];
@@ -36,7 +38,15 @@ export const ArrowRight = sax("ArrowRight");
 export const ArrowUpRight = sax("ArrowUp");
 export const Bell = sax("Notification");
 export const Briefcase = sax("Briefcase");
-export const Building2 = sax("Buliding");
+export const Building2 = ({ size, isActive, ...rest }: IconProps) => (
+  <Icon
+    icon={isActive ? "solar:buildings-bold" : "solar:buildings-outline"}
+    width={size ?? 20}
+    height={size ?? 20}
+    {...(rest as Record<string, unknown>)}
+  />
+);
+Building2.displayName = "SolarBuildings";
 export const CalendarDays = sax("Calendar");
 export const CalendarIcon = CalendarDays;
 export const Calendar = CalendarDays;

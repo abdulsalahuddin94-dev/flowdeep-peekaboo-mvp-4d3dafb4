@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Building2, Handshake, Target, Users,
+  LayoutDashboard, Building2, Handshake, FolderFavorite, Users,
   DollarSign, CheckSquare, ChevronDown,
 } from "@/lib/icons";
 import {
@@ -36,7 +36,7 @@ type NavItem = {
 /* Page + Subpages (two levels only — anything deeper stays as in-page tabs). */
 const allItems: NavItem[] = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Portfolio", url: "/portfolio", icon: Target },
+  { title: "Portfolio", url: "/portfolio", icon: FolderFavorite },
   {
     title: "Resources", url: "/resources", icon: Users, defaultTab: "requests",
     children: [

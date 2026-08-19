@@ -69,6 +69,7 @@ export const Filter = sax("Setting4");
 export const EditAction = sax("Edit2");
 export const DeleteAction = sax("Trash");
 export const Flame = sax("Flash");
+export const FolderFavorite = sax("FolderFavorite");
 export const GanttChartSquare = sax("ChartSquare");
 export const GitBranch = sax("Hierarchy");
 export const GripVertical = sax("Sort");

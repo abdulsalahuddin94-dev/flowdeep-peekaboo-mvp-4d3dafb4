@@ -61,6 +61,18 @@ export const Building2 = ({ size, isActive, ...rest }: IconProps) => (
   />
 );
 Building2.displayName = "SolarBuildings";
+
+/**
+ * Sidebar navigation icons — Solar library, outline by default and bold when active.
+ * Keep these in sync with src/components/AppSidebar.tsx.
+ */
+export const NavDashboard = solar("widget-4");
+export const NavPortfolio = solar("folder");
+export const NavResources = solar("users-group-rounded");
+export const NavClientsVendors = solar("users-group-two-rounded");
+export const NavFinancials = solar("dollar-minimalistic");
+export const NavOrganization = solar("buildings");
+export const NavApprovals = solar("clipboard-check");
 export const CalendarDays = sax("Calendar");
 export const CalendarIcon = CalendarDays;
 export const Calendar = CalendarDays;

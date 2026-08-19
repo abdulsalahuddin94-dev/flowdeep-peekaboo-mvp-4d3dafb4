@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Building2, Handshake, Folder, Users,
-  DollarSign, CheckSquare, ChevronDown,
+  NavDashboard, NavOrganization, NavClientsVendors, NavPortfolio, NavResources,
+  NavFinancials, NavApprovals, ChevronDown,
 } from "@/lib/icons";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -36,10 +36,10 @@ type NavItem = {
 
 /* Page + Subpages (two levels only — anything deeper stays as in-page tabs). */
 const allItems: NavItem[] = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Portfolio", url: "/portfolio", icon: Folder },
+  { title: "Dashboard", url: "/", icon: NavDashboard },
+  { title: "Portfolio", url: "/portfolio", icon: NavPortfolio },
   {
-    title: "Resources", url: "/resources", icon: Users, defaultTab: "requests",
+    title: "Resources", url: "/resources", icon: NavResources, defaultTab: "requests",
     children: [
       { title: "Requests", tab: "requests" },
       { title: "People", tab: "people" },
@@ -49,14 +49,14 @@ const allItems: NavItem[] = [
     ],
   },
   {
-    title: "Clients & Vendors", url: "/clients-vendors", icon: Handshake, defaultTab: "clients",
+    title: "Clients & Vendors", url: "/clients-vendors", icon: NavClientsVendors, defaultTab: "clients",
     children: [
       { title: "Clients", tab: "clients" },
       { title: "Vendors", tab: "vendors" },
     ],
   },
   {
-    title: "Financials", url: "/financials", icon: DollarSign, defaultTab: "overview",
+    title: "Financials", url: "/financials", icon: NavFinancials, defaultTab: "overview",
     children: [
       { title: "Overview (P&L)", tab: "overview" },
       { title: "Cost Recognition", tab: "cost" },
@@ -64,7 +64,7 @@ const allItems: NavItem[] = [
     ],
   },
   {
-    title: "Organization", url: "/organization", icon: Building2, defaultTab: "business-lines",
+    title: "Organization", url: "/organization", icon: NavOrganization, defaultTab: "business-lines",
     children: [
       { title: "Project Types", tab: "business-lines" },
       { title: "Tags & Classifications", tab: "tags" },

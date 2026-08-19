@@ -55,59 +55,59 @@ export function TableRowActions({
       ? "hidden group-hover:flex group-focus-within:flex"
       : "opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100";
   return (
-    <>
+    <div className="relative h-9 min-w-32 flex items-center justify-end">
       {withStatus && (
-        <div className="flex justify-end group-hover:hidden group-focus-within:hidden">
+        <div className="flex h-7 items-center justify-end group-hover:hidden group-focus-within:hidden">
           <StatusPill isActive={isActive} />
         </div>
       )}
-      <div className={cn("flex justify-end gap-2", visibility, className)}>
-      {onEdit && (
-        <Button
-          type="button"
-          aria-label={editLabel}
-          size="icon"
-          variant="secondary"
-          data-ds-size="auto"
-          onClick={onEdit}
-          className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
-        >
-          <EditAction size={16} />
-        </Button>
-      )}
-      {onToggleActive && (
-        <Button
-          type="button"
-          aria-label={isActive ? "Deactivate" : "Activate"}
-          title={isActive ? "Deactivate" : "Activate"}
-          size="icon"
-          variant="secondary"
-          data-ds-size="auto"
-          onClick={onToggleActive}
-          className={cn(
-            "h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] hover:!bg-[var(--btn-secondary-bg-hover)]",
-            isActive ? "text-rag-green" : "text-[#D4D4D4]",
-          )}
-        >
-          <ToggleActive className={cn("h-5 w-5", !isActive && "-scale-x-100")} />
-        </Button>
-      )}
-      {onDelete && (
-        <Button
-          type="button"
-          aria-label={deleteLabel}
-          size="icon"
-          variant="secondary"
-          data-ds-size="auto"
-          disabled={deleteDisabled}
-          onClick={onDelete}
-          className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-rag-red hover:!bg-[var(--btn-secondary-bg-hover)]"
-        >
-          <DeleteAction size={16} />
-        </Button>
-      )}
+      <div className={cn("flex h-9 items-center justify-end gap-1.5", visibility, className)}>
+        {onEdit && (
+          <Button
+            type="button"
+            aria-label={editLabel}
+            size="icon"
+            variant="secondary"
+            data-ds-size="auto"
+            onClick={onEdit}
+            className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
+          >
+            <EditAction size={16} />
+          </Button>
+        )}
+        {onToggleActive && (
+          <Button
+            type="button"
+            aria-label={isActive ? "Deactivate" : "Activate"}
+            title={isActive ? "Deactivate" : "Activate"}
+            size="icon"
+            variant="secondary"
+            data-ds-size="auto"
+            onClick={onToggleActive}
+            className={cn(
+              "h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] hover:!bg-[var(--btn-secondary-bg-hover)]",
+              isActive ? "text-rag-green" : "text-[#D4D4D4]",
+            )}
+          >
+            <ToggleActive className={cn("h-5 w-5", !isActive && "-scale-x-100")} />
+          </Button>
+        )}
+        {onDelete && (
+          <Button
+            type="button"
+            aria-label={deleteLabel}
+            size="icon"
+            variant="secondary"
+            data-ds-size="auto"
+            disabled={deleteDisabled}
+            onClick={onDelete}
+            className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-rag-red hover:!bg-[var(--btn-secondary-bg-hover)]"
+          >
+            <DeleteAction size={16} />
+          </Button>
+        )}
       </div>
-    </>
+    </div>
   );
 }
 

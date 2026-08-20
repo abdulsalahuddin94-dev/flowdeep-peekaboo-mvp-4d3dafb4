@@ -1022,7 +1022,7 @@ function CostCategoriesTab() {
     return categories
       .filter((c) => !q || c.name.toLowerCase().includes(q) || c.number.toLowerCase().includes(q) || c.description.toLowerCase().includes(q))
       .filter((c) => type === "all" || c.type === type)
-      .filter(() => matchRelated(related, 0) || related === "all")
+      .filter(() => matchRelated(related, 0))
       .filter((c) => matchStatus(status, isActive(c.id)));
   }, [categories, query, type, related, status, isActive]);
 

@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { useOrgActive } from "@/lib/org-active";
 import { TableRowActions } from "@/components/TableRowActions";
 import { PageToolbar as FilterBar, EmptyRow, type FilterGroup } from "@/components/ds/PageToolbar";
+import { relatedProjectsGroup, usageGroup, capexOpexGroup, statusGroup, skillsGroup, matchRelated, matchUsage, matchStatus } from "@/components/ds/filters";
 
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -97,15 +98,17 @@ function BusinessLinesTab() {
   const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
   const { isActive, setActive } = useOrgActive("business-line");
   const [query, setQuery] = useState("");
-  const [usage, setUsage] = useState("all");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows
       .map((b, index) => ({ ...b, index }))
       .filter((b) => !q || b.name.toLowerCase().includes(q) || b.description.toLowerCase().includes(q))
-      .filter((b) => usage === "all" || (usage === "active" ? b.projects > 0 : b.projects === 0));
-  }, [rows, query, usage]);
+      .filter((b) => matchRelated(related, b.projects))
+      .filter((b) => matchStatus(status, isActive(b.name)));
+  }, [rows, query, related, status, isActive]);
 
   const pager = usePagination(visible);
 
@@ -119,9 +122,9 @@ function BusinessLinesTab() {
         placeholder="Search name or description…"
         resultCount={visible.length}
         totalCount={rows.length}
-        onReset={() => { setQuery(""); setUsage("all"); }}
+        onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
         cta={<AddBusinessLineDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />}
-        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All types" },{ value: "active", label: "With active projects" },{ value: "empty", label: "No projects" },] }]}
+        filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
       <div className="">
         <Table>

@@ -589,12 +589,6 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
   );
 }
 
-// ── Toolbar ───────────────────────────────────────────────────────────────────
-function Toolbar({ add, placeholder = "Search name, contact or category…" }: { add: React.ReactNode; placeholder?: string }) {
-  const [query, setQuery] = useState("");
-  return <PageToolbar query={query} onQueryChange={setQuery} placeholder={placeholder} cta={add} />;
-}
-
 // ── Add client dialog ─────────────────────────────────────────────────────────
 function AddClientDialog() {
   const [open, setOpen]             = useState(false);

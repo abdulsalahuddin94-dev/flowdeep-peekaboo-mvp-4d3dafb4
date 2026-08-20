@@ -321,7 +321,10 @@ function FinancialsPage() {
               <TableHead>Project</TableHead><TableHead>Business Line</TableHead><TableHead>Expected Revenue</TableHead><TableHead>Total Budget</TableHead>
               <TableHead>Spent</TableHead><TableHead>Expected Profit</TableHead><TableHead>Expected Profit %</TableHead><TableHead>Margin %</TableHead><TableHead>Status</TableHead>
             </TableRow></TableHeader>
-            <TableBody>{pnlRows.map(({ p, revenue, expectedProfit, expectedProfitPct, margin, burnPct }) => {
+            <TableBody>{pnlRows.filter(({ p }) => {
+              const q = pnlQuery.trim().toLowerCase();
+              return !q || p.name.toLowerCase().includes(q) || p.businessLine.toLowerCase().includes(q);
+            }).map(({ p, revenue, expectedProfit, expectedProfitPct, margin, burnPct }) => {
               return (
                 <TableRow key={p.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                   <TableCell className="font-medium text-foreground">{p.name}</TableCell>
@@ -332,7 +335,7 @@ function FinancialsPage() {
                   <TableCell className={`num-mono text-xs ${expectedProfit > 0 ? "text-rag-green" : "text-rag-red"}`}>${expectedProfit.toFixed(2)}M</TableCell>
                   <TableCell className={`num-mono text-xs ${expectedProfitPct > 15 ? "text-rag-green" : expectedProfitPct > 5 ? "text-rag-amber" : "text-rag-red"}`}>{Math.round(expectedProfitPct)}%</TableCell>
                   <TableCell className={`num-mono text-xs ${margin > 20 ? "text-rag-green" : margin > 10 ? "text-rag-amber" : "text-rag-red"}`}>{Math.round(margin)}%</TableCell>
-                  <TableCell><span className={`px-2 py-1 rounded text-[11px] font-medium ${burnPct > 90 ? "bg-rag-red/20 text-rag-red" : burnPct > 70 ? "bg-rag-amber/20 text-rag-amber" : "bg-rag-green/20 text-rag-green"}`}>{Math.round(burnPct)}%</span></TableCell>
+                  <TableCell><span className={`px-2 py-1 rounded-full text-[11px] font-medium ${burnPct > 90 ? "bg-rag-red/20 text-rag-red" : burnPct > 70 ? "bg-rag-amber/20 text-rag-amber" : "bg-rag-green/20 text-rag-green"}`}>{Math.round(burnPct)}%</span></TableCell>
                 </TableRow>
               );
             })}</TableBody>

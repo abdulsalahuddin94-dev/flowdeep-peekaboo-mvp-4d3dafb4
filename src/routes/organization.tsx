@@ -712,7 +712,8 @@ function CalendarsTab() {
   const [createOpen, setCreateOpen] = useState(false);
   const [pendingToggle, setPendingToggle] = useState<{ id: string; name: string; active: boolean } | null>(null);
   const [query, setQuery] = useState("");
-  const [link, setLink] = useState("all");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -720,13 +721,9 @@ function CalendarsTab() {
       .filter((c) => !q || c.name.toLowerCase().includes(q) || c.holidays.some((h) => h.label.toLowerCase().includes(q)))
       .filter((c) => {
         const linkedCount = projects.filter((p) => p.calendarId === c.id).length;
-        if (link === "linked") return linkedCount > 0;
-        if (link === "unlinked") return linkedCount === 0;
-        if (link === "active") return c.active !== false;
-        if (link === "inactive") return c.active === false;
-        return true;
+        return matchRelated(related, linkedCount) && matchStatus(status, c.active !== false);
       });
-  }, [calendars, projects, query, link]);
+  }, [calendars, projects, query, related, status]);
 
   function deleteCalendar(calendar: WorkCalendar) {
     if (projects.some((p) => p.calendarId === calendar.id)) {
@@ -747,9 +744,9 @@ function CalendarsTab() {
         placeholder="Search calendar or holiday…"
         resultCount={visible.length}
         totalCount={calendars.length}
-        onReset={() => { setQuery(""); setLink("all"); }}
+        onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
         cta={<Button size="sm" variant="primary" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
-        filterGroups={[{ key: "link", label: "Linked Projects", value: link, onChange: setLink, options: [{ value: "all", label: "All calendars" },{ value: "linked", label: "Linked to projects" },{ value: "unlinked", label: "Not linked" },{ value: "active", label: "Active" },{ value: "inactive", label: "Deactivated" },] }]}
+        filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (

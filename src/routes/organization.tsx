@@ -216,7 +216,8 @@ function DepartmentsTab() {
   const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
   const { isActive, setActive } = useOrgActive("department");
   const [query, setQuery] = useState("");
-  const [usage, setUsage] = useState("all");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
 
   const countFor = (name: string) => projects.filter((p) => p.department === name).length;
   const visible = useMemo(() => {
@@ -224,8 +225,9 @@ function DepartmentsTab() {
     return rows
       .map((d, index) => ({ ...d, index, projects: projects.filter((p) => p.department === d.name).length }))
       .filter((d) => !q || d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q))
-      .filter((d) => usage === "all" || (usage === "active" ? d.projects > 0 : d.projects === 0));
-  }, [rows, query, usage, projects]);
+      .filter((d) => matchRelated(related, d.projects))
+      .filter((d) => matchStatus(status, isActive(d.name)));
+  }, [rows, query, related, status, projects, isActive]);
 
   const pager = usePagination(visible);
 
@@ -239,9 +241,9 @@ function DepartmentsTab() {
         placeholder="Search name or description…"
         resultCount={visible.length}
         totalCount={rows.length}
-        onReset={() => { setQuery(""); setUsage("all"); }}
+        onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
         cta={<AddDepartmentDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description }])} />}
-        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All departments" }, { value: "active", label: "With active projects" }, { value: "empty", label: "No projects" }] }]}
+        filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
       <div className="">
         <Table>

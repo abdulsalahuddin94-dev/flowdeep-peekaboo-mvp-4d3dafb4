@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
+import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ function FinancialsPage() {
   const { tab = "overview" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const [selectedYear, setSelectedYear] = useState("all");
+  const [pnlQuery, setPnlQuery] = useState("");
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 3 }, (_, i) => (currentYear - 2 + i).toString());
 
@@ -197,24 +199,15 @@ function FinancialsPage() {
             })}
           </div>
 
-          {/* Filters */}
-          <div className="mb-4 flex items-center gap-3">
-            <label className="text-sm font-medium">Filter by Year:</label>
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All years</SelectItem>
-                {years.map((year) => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <span className="text-xs text-muted-foreground">
-              {selectedYear === "all" ? "Showing all fiscal years" : `Showing FY${selectedYear}`}
-            </span>
-          </div>
+          {/* Search + filters (DS02 toolbar) */}
+          <PageToolbar
+            query={pnlQuery}
+            onQueryChange={setPnlQuery}
+            placeholder="Search project or business line…"
+            filterGroups={[
+              { key: "year", label: "Fiscal Year", value: selectedYear, onChange: setSelectedYear, options: [{ value: "all", label: "All years" }, ...years.map((y) => ({ value: y, label: `FY${y}` }))] },
+            ]}
+          />
 
           {/* Charts row */}
           <div className="mb-5 grid gap-4 lg:grid-cols-3">

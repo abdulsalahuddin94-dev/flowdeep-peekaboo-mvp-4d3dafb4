@@ -1394,7 +1394,8 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
   const [pendingToggle, setPendingToggle] = useState<{ id: string; title: string; active: boolean } | null>(null);
   const { isActive, setActive } = useOrgActive("job-role");
   const [query, setQuery] = useState("");
-  const [usage, setUsage] = useState("all");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
   const visible = useMemo(() => {
@@ -1403,13 +1404,9 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
       .map((r, index) => ({ ...r, index }))
       .filter((r) => !q || r.title.toLowerCase().includes(q) || (r.skills ?? []).some((sk) => sk.toLowerCase().includes(q)))
       .filter((r) => selectedSkills.length === 0 || (r.skills ?? []).some((sk) => selectedSkills.some((s) => s.toLowerCase() === sk.toLowerCase())))
-      .filter((r) => {
-        if (usage === "all") return true;
-        const used = (usageByRole.get(r.title.trim().toLowerCase())?.size ?? 0) > 0;
-        if (usage === "used") return used;
-        return !used;
-      });
-  }, [jobRoles, query, usage, selectedSkills, usageByRole]);
+      .filter((r) => matchRelated(related, usageByRole.get(r.title.trim().toLowerCase())?.size ?? 0))
+      .filter((r) => matchStatus(status, isActive(r.id)));
+  }, [jobRoles, query, related, status, selectedSkills, usageByRole, isActive]);
 
   const pager = usePagination(visible);
 
@@ -1423,11 +1420,12 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         placeholder="Search role title or skill…"
         resultCount={visible.length}
         totalCount={jobRoles.length}
-        onReset={() => { setQuery(""); setUsage("all"); setSelectedSkills([]); }}
+        onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); setSelectedSkills([]); }}
         cta={<AddJobRoleDialog hasSkills={skillsCatalog.length > 0} onGoToSkills={onGoToSkills} onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
         filterGroups={[
-          { key: "usage", label: "Related Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "With projects" },{ value: "unused", label: "No projects" },] },
-          { key: "skill", label: "Skills", value: selectedSkills, onChange: setSelectedSkills, mode: "multi", options: [{ value: "all", label: "All skills" }, ...skillsCatalog.map((s) => ({ value: s, label: s }))] },
+          relatedProjectsGroup(related, setRelated),
+          skillsGroup(selectedSkills, setSelectedSkills, skillsCatalog),
+          statusGroup(status, setStatus),
         ]}
       />
 

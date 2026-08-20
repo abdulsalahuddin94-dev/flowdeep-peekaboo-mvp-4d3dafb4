@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
+import { relatedProjectsGroup, matchRelated } from "@/components/ds/filters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -50,6 +52,9 @@ function ResourcesPage() {
   const { tab = "requests" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const [pool, setPool] = useState<PoolResource[]>(resources.map((r) => ({ ...r })));
+  const [peopleQuery, setPeopleQuery] = useState("");
+  const [peopleDept, setPeopleDept] = useState("all");
+  const [peopleRelated, setPeopleRelated] = useState("all");
   const { resourceRequests: requests, updateResourceRequest } = useResourceRequests();
 
   const pendingCount = requests.filter((r) => r.status === "Pending").length;
@@ -77,7 +82,6 @@ function ResourcesPage() {
       <PageHeader
         title="Resources"
         current={RES_TAB_LABELS[tab] ?? "Requests"}
-        subtitle="People, capacity & allocation across the portfolio"
         actions={
           <>
             <Button variant="outline" size="sm"><Upload className="mr-1 h-4 w-4" />Import Excel</Button>
@@ -118,6 +122,15 @@ function ResourcesPage() {
 
         {/* ── People tab ────────────────────────────────────────────────────── */}
         <TabsContent value="people" className="mt-5">
+          <PageToolbar
+            query={peopleQuery}
+            onQueryChange={setPeopleQuery}
+            placeholder="Search member or role…"
+            filterGroups={[
+              relatedProjectsGroup(peopleRelated, setPeopleRelated),
+              { key: "dept", label: "Department", value: peopleDept, onChange: setPeopleDept, options: [{ value: "all", label: "All departments" }, ...departments.map((d) => ({ value: d.name, label: d.name }))] },
+            ]}
+          />
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -126,7 +139,14 @@ function ResourcesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pool.map((r) => (
+              {(() => {
+                const q = peopleQuery.trim().toLowerCase();
+                const list = pool
+                  .filter((r) => !q || r.name.toLowerCase().includes(q) || r.role.toLowerCase().includes(q))
+                  .filter((r) => peopleDept === "all" || r.dept === peopleDept)
+                  .filter((r) => matchRelated(peopleRelated, r.projects.length));
+                if (list.length === 0) return <EmptyRow colSpan={7} />;
+                return list.map((r) => (
                 <TableRow key={r.name} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                   <TableCell className="font-medium text-foreground">
                     <div className="flex items-center gap-2">
@@ -153,7 +173,8 @@ function ResourcesPage() {
                   <TableCell className="text-xs text-muted-foreground">{r.projects.join(", ")}</TableCell>
                   <TableCell><AssignDialog resource={r} onAssign={(projectName, alloc) => setPool((prev) => prev.map((x) => x.name === r.name ? { ...x, util: Math.min(x.util + alloc, 200), projects: x.projects.includes(projectName) ? x.projects : [...x.projects, projectName] } : x))} /></TableCell>
                 </TableRow>
-              ))}
+                ));
+              })()}
             </TableBody>
           </Table>
         </TabsContent>

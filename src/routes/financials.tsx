@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
+import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ function FinancialsPage() {
   const { tab = "overview" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const [selectedYear, setSelectedYear] = useState("all");
+  const [pnlQuery, setPnlQuery] = useState("");
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 3 }, (_, i) => (currentYear - 2 + i).toString());
 
@@ -160,7 +162,6 @@ function FinancialsPage() {
       <PageHeader
         title="Financials"
         current={FIN_TAB_LABELS[tab] ?? "Overview (P&L)"}
-        subtitle="Portfolio budgets, burn rates, CRs and revenue recognition"
         actions={
           <>
             <Button variant="outline" size="sm"><Download className="mr-1 h-4 w-4" />Export</Button>
@@ -198,24 +199,15 @@ function FinancialsPage() {
             })}
           </div>
 
-          {/* Filters */}
-          <div className="mb-4 flex items-center gap-3">
-            <label className="text-sm font-medium">Filter by Year:</label>
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All years</SelectItem>
-                {years.map((year) => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <span className="text-xs text-muted-foreground">
-              {selectedYear === "all" ? "Showing all fiscal years" : `Showing FY${selectedYear}`}
-            </span>
-          </div>
+          {/* Search + filters (DS02 toolbar) */}
+          <PageToolbar
+            query={pnlQuery}
+            onQueryChange={setPnlQuery}
+            placeholder="Search project or business line…"
+            filterGroups={[
+              { key: "year", label: "Fiscal Year", value: selectedYear, onChange: setSelectedYear, options: [{ value: "all", label: "All years" }, ...years.map((y) => ({ value: y, label: `FY${y}` }))] },
+            ]}
+          />
 
           {/* Charts row */}
           <div className="mb-5 grid gap-4 lg:grid-cols-3">
@@ -329,7 +321,10 @@ function FinancialsPage() {
               <TableHead>Project</TableHead><TableHead>Business Line</TableHead><TableHead>Expected Revenue</TableHead><TableHead>Total Budget</TableHead>
               <TableHead>Spent</TableHead><TableHead>Expected Profit</TableHead><TableHead>Expected Profit %</TableHead><TableHead>Margin %</TableHead><TableHead>Status</TableHead>
             </TableRow></TableHeader>
-            <TableBody>{pnlRows.map(({ p, revenue, expectedProfit, expectedProfitPct, margin, burnPct }) => {
+            <TableBody>{pnlRows.filter(({ p }) => {
+              const q = pnlQuery.trim().toLowerCase();
+              return !q || p.name.toLowerCase().includes(q) || p.businessLine.toLowerCase().includes(q);
+            }).map(({ p, revenue, expectedProfit, expectedProfitPct, margin, burnPct }) => {
               return (
                 <TableRow key={p.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                   <TableCell className="font-medium text-foreground">{p.name}</TableCell>
@@ -340,7 +335,7 @@ function FinancialsPage() {
                   <TableCell className={`num-mono text-xs ${expectedProfit > 0 ? "text-rag-green" : "text-rag-red"}`}>${expectedProfit.toFixed(2)}M</TableCell>
                   <TableCell className={`num-mono text-xs ${expectedProfitPct > 15 ? "text-rag-green" : expectedProfitPct > 5 ? "text-rag-amber" : "text-rag-red"}`}>{Math.round(expectedProfitPct)}%</TableCell>
                   <TableCell className={`num-mono text-xs ${margin > 20 ? "text-rag-green" : margin > 10 ? "text-rag-amber" : "text-rag-red"}`}>{Math.round(margin)}%</TableCell>
-                  <TableCell><span className={`px-2 py-1 rounded text-[11px] font-medium ${burnPct > 90 ? "bg-rag-red/20 text-rag-red" : burnPct > 70 ? "bg-rag-amber/20 text-rag-amber" : "bg-rag-green/20 text-rag-green"}`}>{Math.round(burnPct)}%</span></TableCell>
+                  <TableCell><span className={`px-2 py-1 rounded-full text-[11px] font-medium ${burnPct > 90 ? "bg-rag-red/20 text-rag-red" : burnPct > 70 ? "bg-rag-amber/20 text-rag-amber" : "bg-rag-green/20 text-rag-green"}`}>{Math.round(burnPct)}%</span></TableCell>
                 </TableRow>
               );
             })}</TableBody>

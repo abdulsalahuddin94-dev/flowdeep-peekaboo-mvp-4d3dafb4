@@ -3,7 +3,7 @@ import { EditAction, DeleteAction, ToggleActive } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 /** Active / Inactive status pill (DS02): outlined green when active, amber when not. */
-export function StatusPill({ isActive, className }: { isActive: boolean; className?: string }) {
+export function StatusPill({ isActive, label, className }: { isActive: boolean; label?: string; className?: string }) {
   return (
     <span
       className={cn(
@@ -14,7 +14,7 @@ export function StatusPill({ isActive, className }: { isActive: boolean; classNa
         className,
       )}
     >
-      {isActive ? "Active" : "Inactive"}
+      {label ?? (isActive ? "Active" : "Inactive")}
     </span>
   );
 }

@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { useOrgActive } from "@/lib/org-active";
 import { TableRowActions } from "@/components/TableRowActions";
 import { PageToolbar as FilterBar, EmptyRow, type FilterGroup } from "@/components/ds/PageToolbar";
+import { relatedProjectsGroup, usageGroup, capexOpexGroup, statusGroup, skillsGroup, matchRelated, matchUsage, matchStatus } from "@/components/ds/filters";
 
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -97,15 +98,17 @@ function BusinessLinesTab() {
   const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
   const { isActive, setActive } = useOrgActive("business-line");
   const [query, setQuery] = useState("");
-  const [usage, setUsage] = useState("all");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows
       .map((b, index) => ({ ...b, index }))
       .filter((b) => !q || b.name.toLowerCase().includes(q) || b.description.toLowerCase().includes(q))
-      .filter((b) => usage === "all" || (usage === "active" ? b.projects > 0 : b.projects === 0));
-  }, [rows, query, usage]);
+      .filter((b) => matchRelated(related, b.projects))
+      .filter((b) => matchStatus(status, isActive(b.name)));
+  }, [rows, query, related, status, isActive]);
 
   const pager = usePagination(visible);
 
@@ -119,9 +122,9 @@ function BusinessLinesTab() {
         placeholder="Search name or description…"
         resultCount={visible.length}
         totalCount={rows.length}
-        onReset={() => { setQuery(""); setUsage("all"); }}
+        onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
         cta={<AddBusinessLineDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />}
-        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All types" },{ value: "active", label: "With active projects" },{ value: "empty", label: "No projects" },] }]}
+        filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
       <div className="">
         <Table>
@@ -213,7 +216,8 @@ function DepartmentsTab() {
   const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
   const { isActive, setActive } = useOrgActive("department");
   const [query, setQuery] = useState("");
-  const [usage, setUsage] = useState("all");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
 
   const countFor = (name: string) => projects.filter((p) => p.department === name).length;
   const visible = useMemo(() => {
@@ -221,8 +225,9 @@ function DepartmentsTab() {
     return rows
       .map((d, index) => ({ ...d, index, projects: projects.filter((p) => p.department === d.name).length }))
       .filter((d) => !q || d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q))
-      .filter((d) => usage === "all" || (usage === "active" ? d.projects > 0 : d.projects === 0));
-  }, [rows, query, usage, projects]);
+      .filter((d) => matchRelated(related, d.projects))
+      .filter((d) => matchStatus(status, isActive(d.name)));
+  }, [rows, query, related, status, projects, isActive]);
 
   const pager = usePagination(visible);
 
@@ -236,9 +241,9 @@ function DepartmentsTab() {
         placeholder="Search name or description…"
         resultCount={visible.length}
         totalCount={rows.length}
-        onReset={() => { setQuery(""); setUsage("all"); }}
+        onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
         cta={<AddDepartmentDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description }])} />}
-        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All departments" }, { value: "active", label: "With active projects" }, { value: "empty", label: "No projects" }] }]}
+        filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
       <div className="">
         <Table>
@@ -375,14 +380,16 @@ function TagsTab() {
   const [viewing, setViewing] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [usage, setUsage] = useState("all");
+  const [status, setStatus] = useState("all");
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return tags
       .map((t, index) => ({ ...t, index }))
       .filter((t) => !q || t.name.toLowerCase().includes(q))
-      .filter((t) => usage === "all" || (usage === "used" ? (t.usage ?? 0) > 0 : (t.usage ?? 0) === 0));
-  }, [tags, query, usage]);
+      .filter((t) => matchUsage(usage, t.usage ?? 0))
+      .filter((t) => matchStatus(status, isActive(t.name)));
+  }, [tags, query, usage, status, isActive]);
   return (
     <>
       <FilterBar
@@ -393,9 +400,9 @@ function TagsTab() {
         placeholder="Search tags…"
         resultCount={visible.length}
         totalCount={tags.length}
-        onReset={() => { setQuery(""); setUsage("all"); }}
+        onReset={() => { setQuery(""); setUsage("all"); setStatus("all"); }}
         cta={<AddTagDialog />}
-        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All tags" },{ value: "used", label: "With active projects" },{ value: "unused", label: "No projects" },] }]}
+        filterGroups={[usageGroup(usage, setUsage), statusGroup(status, setStatus)]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (
@@ -705,7 +712,8 @@ function CalendarsTab() {
   const [createOpen, setCreateOpen] = useState(false);
   const [pendingToggle, setPendingToggle] = useState<{ id: string; name: string; active: boolean } | null>(null);
   const [query, setQuery] = useState("");
-  const [link, setLink] = useState("all");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -713,13 +721,9 @@ function CalendarsTab() {
       .filter((c) => !q || c.name.toLowerCase().includes(q) || c.holidays.some((h) => h.label.toLowerCase().includes(q)))
       .filter((c) => {
         const linkedCount = projects.filter((p) => p.calendarId === c.id).length;
-        if (link === "linked") return linkedCount > 0;
-        if (link === "unlinked") return linkedCount === 0;
-        if (link === "active") return c.active !== false;
-        if (link === "inactive") return c.active === false;
-        return true;
+        return matchRelated(related, linkedCount) && matchStatus(status, c.active !== false);
       });
-  }, [calendars, projects, query, link]);
+  }, [calendars, projects, query, related, status]);
 
   function deleteCalendar(calendar: WorkCalendar) {
     if (projects.some((p) => p.calendarId === calendar.id)) {
@@ -740,9 +744,9 @@ function CalendarsTab() {
         placeholder="Search calendar or holiday…"
         resultCount={visible.length}
         totalCount={calendars.length}
-        onReset={() => { setQuery(""); setLink("all"); }}
+        onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
         cta={<Button size="sm" variant="primary" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
-        filterGroups={[{ key: "link", label: "Linked Projects", value: link, onChange: setLink, options: [{ value: "all", label: "All calendars" },{ value: "linked", label: "Linked to projects" },{ value: "unlinked", label: "Not linked" },{ value: "active", label: "Active" },{ value: "inactive", label: "Deactivated" },] }]}
+        filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (
@@ -1007,13 +1011,17 @@ function CostCategoriesTab() {
   const { isActive, setActive } = useOrgActive("cost-category");
   const [query, setQuery] = useState("");
   const [type, setType] = useState("all");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return categories
       .filter((c) => !q || c.name.toLowerCase().includes(q) || c.number.toLowerCase().includes(q) || c.description.toLowerCase().includes(q))
-      .filter((c) => type === "all" || c.type === type);
-  }, [categories, query, type]);
+      .filter((c) => type === "all" || c.type === type)
+      .filter(() => matchRelated(related, 0))
+      .filter((c) => matchStatus(status, isActive(c.id)));
+  }, [categories, query, type, related, status, isActive]);
 
   const pager = usePagination(visible);
 
@@ -1027,9 +1035,9 @@ function CostCategoriesTab() {
         placeholder="Search name, ID or description…"
         resultCount={visible.length}
         totalCount={categories.length}
-        onReset={() => { setQuery(""); setType("all"); }}
+        onReset={() => { setQuery(""); setType("all"); setRelated("all"); setStatus("all"); }}
         cta={<AddCostCategoryDialog onAdd={(cat) => setCategories([...categories, cat])} />}
-        filterGroups={[{ key: "type", label: "Type", value: type, onChange: setType, options: [{ value: "all", label: "All types" },{ value: "CapEx", label: "CapEx only" },{ value: "OpEx", label: "OpEx only" },] }]}
+        filterGroups={[relatedProjectsGroup(related, setRelated), capexOpexGroup(type, setType), statusGroup(status, setStatus)]}
       />
       <div className="">
         <Table>
@@ -1214,6 +1222,7 @@ function SkillsTable() {
   const [query, setQuery] = useState("");
   const [usage, setUsage] = useState("all");
   const [editing, setEditing] = useState<{ original: string; value: string } | null>(null);
+  const [status, setStatus] = useState("all");
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
   const { isActive, setActive } = useOrgActive("skill");
@@ -1241,11 +1250,9 @@ function SkillsTable() {
       .filter((s) => !q || s.toLowerCase().includes(q))
       .filter((s) => {
         const st = stats.get(s);
-        if (usage === "all") return true;
-        if (usage === "used") return (st?.roles ?? 0) > 0;
-        return (st?.roles ?? 0) === 0;
+        return matchUsage(usage, st?.roles ?? 0) && matchStatus(status, isActive(s));
       });
-  }, [skillsCatalog, query, usage, stats]);
+  }, [skillsCatalog, query, usage, status, stats, isActive]);
 
   const pager = usePagination(visible);
 
@@ -1261,7 +1268,7 @@ function SkillsTable() {
           toast.success(`Skill "${s}" added`);
           return true;
         }} />}
-        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All skills" }, { value: "used", label: "Used in job roles" }, { value: "unused", label: "Not used" }] }]}
+        filterGroups={[usageGroup(usage, setUsage), statusGroup(status, setStatus)]}
       />
       <Table>
         <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -1386,7 +1393,8 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
   const [pendingToggle, setPendingToggle] = useState<{ id: string; title: string; active: boolean } | null>(null);
   const { isActive, setActive } = useOrgActive("job-role");
   const [query, setQuery] = useState("");
-  const [usage, setUsage] = useState("all");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
   const visible = useMemo(() => {
@@ -1395,13 +1403,9 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
       .map((r, index) => ({ ...r, index }))
       .filter((r) => !q || r.title.toLowerCase().includes(q) || (r.skills ?? []).some((sk) => sk.toLowerCase().includes(q)))
       .filter((r) => selectedSkills.length === 0 || (r.skills ?? []).some((sk) => selectedSkills.some((s) => s.toLowerCase() === sk.toLowerCase())))
-      .filter((r) => {
-        if (usage === "all") return true;
-        const used = (usageByRole.get(r.title.trim().toLowerCase())?.size ?? 0) > 0;
-        if (usage === "used") return used;
-        return !used;
-      });
-  }, [jobRoles, query, usage, selectedSkills, usageByRole]);
+      .filter((r) => matchRelated(related, usageByRole.get(r.title.trim().toLowerCase())?.size ?? 0))
+      .filter((r) => matchStatus(status, isActive(r.id)));
+  }, [jobRoles, query, related, status, selectedSkills, usageByRole, isActive]);
 
   const pager = usePagination(visible);
 
@@ -1415,11 +1419,12 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         placeholder="Search role title or skill…"
         resultCount={visible.length}
         totalCount={jobRoles.length}
-        onReset={() => { setQuery(""); setUsage("all"); setSelectedSkills([]); }}
+        onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); setSelectedSkills([]); }}
         cta={<AddJobRoleDialog hasSkills={skillsCatalog.length > 0} onGoToSkills={onGoToSkills} onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
         filterGroups={[
-          { key: "usage", label: "Related Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All roles" },{ value: "used", label: "With projects" },{ value: "unused", label: "No projects" },] },
-          { key: "skill", label: "Skills", value: selectedSkills, onChange: setSelectedSkills, mode: "multi", options: [{ value: "all", label: "All skills" }, ...skillsCatalog.map((s) => ({ value: s, label: s }))] },
+          relatedProjectsGroup(related, setRelated),
+          skillsGroup(selectedSkills, setSelectedSkills, skillsCatalog),
+          statusGroup(status, setStatus),
         ]}
       />
 

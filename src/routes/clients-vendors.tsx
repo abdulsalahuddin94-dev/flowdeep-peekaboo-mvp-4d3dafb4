@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
-import { PageToolbar } from "@/components/ds/PageToolbar";
+import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
+import { relatedProjectsGroup, statusGroup, matchRelated, matchStatus } from "@/components/ds/filters";
+import { StatusPill } from "@/components/TableRowActions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -58,55 +60,19 @@ const RAG_BAR: Record<string, string> = {
 function ClientsVendorsPage() {
   const { tab = "clients" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
-  const [clientView, setClientView] = useState<typeof clients[number] | null>(null);
 
   return (
     <div>
       <PageHeader
         title="Clients & Vendors"
         current={tab === "vendors" ? "Vendors" : "Clients"}
-        subtitle="External parties — clients with engagements, vendors and subcontractors approved for procurement"
       />
       {/* Subpages live in the sidebar (?tab=) */}
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
 
         {/* ── Clients tab ──────────────────────────────────────────────── */}
         <TabsContent value="clients" className="mt-5">
-          <Toolbar add={<AddClientDialog />} />
-          <div className="">
-            <Table>
-              <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-                <TableHead>Client</TableHead><TableHead>Primary Contact</TableHead>
-                <TableHead className="text-right">Active Projects</TableHead>
-                <TableHead className="text-right">Revenue (FY26)</TableHead>
-                <TableHead>Status</TableHead><TableHead className="w-24" />
-              </TableRow></TableHeader>
-              <TableBody>
-                {clients.map((c) => (
-                  <TableRow key={c.name} className="hover:bg-accent-dim/30">
-                    <TableCell className="font-medium text-foreground">
-                      <span className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-accent" />{c.name}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{c.contact}</TableCell>
-                    <TableCell className="text-right num-mono">{c.projects}</TableCell>
-                    <TableCell className="text-right num-mono">${c.revenue.toFixed(1)}M</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={c.status === "Active" ? "border-rag-green/40 bg-rag-green/10 text-rag-green" : "border-rag-blue/40 bg-rag-blue/10 text-rag-blue"}>
-                        {c.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="outline" onClick={() => setClientView(c)}>
-                        View <ChevronRight className="ml-1 h-3 w-3" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <ClientsTab />
         </TabsContent>
 
         {/* ── Vendors tab ───────────────────────────────────────────────── */}
@@ -114,10 +80,64 @@ function ClientsVendorsPage() {
           <VendorsTab />
         </TabsContent>
       </Tabs>
-
-      {/* ── Client detail sheet ───────────────────────────────────────── */}
-      <ClientSheet client={clientView} onClose={() => setClientView(null)} />
     </div>
+  );
+}
+
+// ── Clients tab ───────────────────────────────────────────────────────────────
+function ClientsTab() {
+  const [clientView, setClientView] = useState<typeof clients[number] | null>(null);
+  const [query, setQuery] = useState("");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
+
+  const q = query.trim().toLowerCase();
+  const list = clients
+    .filter((c) => !q || c.name.toLowerCase().includes(q) || c.contact.toLowerCase().includes(q))
+    .filter((c) => matchRelated(related, c.projects))
+    .filter((c) => matchStatus(status, c.status === "Active"));
+
+  return (
+    <>
+      <PageToolbar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search client or contact…"
+        filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
+        cta={<AddClientDialog />}
+      />
+      <Table>
+        <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
+          <TableHead>Client</TableHead><TableHead>Primary Contact</TableHead>
+          <TableHead className="text-center">Active Projects</TableHead>
+          <TableHead className="text-center">Revenue (FY26)</TableHead>
+          <TableHead className="w-32 text-center">Status</TableHead><TableHead className="w-24" />
+        </TableRow></TableHeader>
+        <TableBody>
+          {list.length === 0 && <EmptyRow colSpan={6} />}
+          {list.map((c) => (
+            <TableRow key={c.name} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+              <TableCell className="font-medium text-foreground">
+                <span className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-accent" />{c.name}
+                </span>
+              </TableCell>
+              <TableCell className="text-muted-foreground">{c.contact}</TableCell>
+              <TableCell className="text-center num-mono">{c.projects}</TableCell>
+              <TableCell className="text-center num-mono">${c.revenue.toFixed(1)}M</TableCell>
+              <TableCell className="text-center"><StatusPill isActive={c.status === "Active"} label={c.status} /></TableCell>
+              <TableCell>
+                <Button size="sm" variant="outline" onClick={() => setClientView(c)}>
+                  View <ChevronRight className="ml-1 h-3 w-3" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      <ClientSheet client={clientView} onClose={() => setClientView(null)} />
+    </>
   );
 }
 
@@ -297,40 +317,48 @@ function ClientSheet({ client, onClose }: { client: typeof clients[number] | nul
 
 // ── Vendors tab ───────────────────────────────────────────────────────────────
 function VendorsTab() {
-  const [type, setType] = useState<"All" | "Vendor" | "Subcontractor">("All");
+  const [type, setType] = useState("all");
+  const [query, setQuery] = useState("");
+  const [related, setRelated] = useState("all");
   const [vendorView, setVendorView] = useState<typeof vendors[number] | null>(null);
-  const list = vendors.filter((v) => type === "All" || v.type === type);
+  const q = query.trim().toLowerCase();
+  const list = vendors
+    .filter((v) => !q || v.name.toLowerCase().includes(q) || v.category.toLowerCase().includes(q))
+    .filter((v) => type === "all" || v.type === type)
+    .filter((v) => matchRelated(related, v.contracts));
 
   return (
     <>
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        {(["All", "Vendor", "Subcontractor"] as const).map((t) => (
-          <button key={t} onClick={() => setType(t)}
-            className={`rounded-full border px-3 py-1 text-xs ${type === t ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground"}`}>
-            {t}
-          </button>
-        ))}
-        <div className="ml-auto"><AddVendorDialog /></div>
-      </div>
+      <PageToolbar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search vendor or category…"
+        filterGroups={[
+          { key: "related", label: "Related Contracts", value: related, onChange: setRelated, options: [{ value: "all", label: "All records" }, { value: "with", label: "With Contracts" }, { value: "without", label: "No Contracts" }] },
+          { key: "type", label: "Types", value: type, onChange: setType, options: [{ value: "all", label: "All types" }, { value: "Vendor", label: "Vendor" }, { value: "Subcontractor", label: "Subcontractor" }] },
+        ]}
+        cta={<AddVendorDialog />}
+      />
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
             <TableHead>Vendor</TableHead><TableHead>Type</TableHead><TableHead>Category</TableHead>
-            <TableHead className="text-right">Contracts</TableHead><TableHead className="text-right">Total Spend</TableHead>
+            <TableHead className="text-center">Contracts</TableHead><TableHead className="text-center">Total Spend</TableHead>
             <TableHead>Evaluation</TableHead><TableHead className="w-24" />
           </TableRow></TableHeader>
           <TableBody>
+            {list.length === 0 && <EmptyRow colSpan={7} />}
             {list.map((v) => (
               <TableRow key={v.name} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                 <TableCell className="font-medium text-foreground">{v.name}</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={v.type === "Vendor" ? "border-rag-blue/40 bg-rag-blue/10 text-rag-blue" : "border-role-exec/40 bg-role-exec/10 text-role-exec"}>
+                  <Badge variant="outline" className={`rounded-full ${v.type === "Vendor" ? "border-rag-blue/40 bg-rag-blue/10 text-rag-blue" : "border-role-exec/40 bg-role-exec/10 text-role-exec"}`}>
                     {v.type}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground">{v.category}</TableCell>
-                <TableCell className="text-right num-mono">{v.contracts}</TableCell>
-                <TableCell className="text-right num-mono">${v.spend.toFixed(1)}M</TableCell>
+                <TableCell className="text-center num-mono">{v.contracts}</TableCell>
+                <TableCell className="text-center num-mono">${v.spend.toFixed(1)}M</TableCell>
                 <TableCell>
                   <span className="inline-flex items-center gap-1">
                     <Star className="h-3 w-3 fill-rag-amber text-rag-amber" />
@@ -559,12 +587,6 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
       </Dialog>
     </Sheet>
   );
-}
-
-// ── Toolbar ───────────────────────────────────────────────────────────────────
-function Toolbar({ add, placeholder = "Search name, contact or category…" }: { add: React.ReactNode; placeholder?: string }) {
-  const [query, setQuery] = useState("");
-  return <PageToolbar query={query} onQueryChange={setQuery} placeholder={placeholder} cta={add} />;
 }
 
 // ── Add client dialog ─────────────────────────────────────────────────────────

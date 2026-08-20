@@ -1222,6 +1222,7 @@ function SkillsTable() {
   const [query, setQuery] = useState("");
   const [usage, setUsage] = useState("all");
   const [editing, setEditing] = useState<{ original: string; value: string } | null>(null);
+  const [status, setStatus] = useState("all");
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
   const { isActive, setActive } = useOrgActive("skill");

@@ -160,7 +160,6 @@ function FinancialsPage() {
       <PageHeader
         title="Financials"
         current={FIN_TAB_LABELS[tab] ?? "Overview (P&L)"}
-        subtitle="Portfolio budgets, burn rates, CRs and revenue recognition"
         actions={
           <>
             <Button variant="outline" size="sm"><Download className="mr-1 h-4 w-4" />Export</Button>

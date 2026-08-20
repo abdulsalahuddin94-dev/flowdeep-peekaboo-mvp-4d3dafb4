@@ -77,7 +77,6 @@ function ResourcesPage() {
       <PageHeader
         title="Resources"
         current={RES_TAB_LABELS[tab] ?? "Requests"}
-        subtitle="People, capacity & allocation across the portfolio"
         actions={
           <>
             <Button variant="outline" size="sm"><Upload className="mr-1 h-4 w-4" />Import Excel</Button>

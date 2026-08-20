@@ -1014,13 +1014,17 @@ function CostCategoriesTab() {
   const { isActive, setActive } = useOrgActive("cost-category");
   const [query, setQuery] = useState("");
   const [type, setType] = useState("all");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return categories
       .filter((c) => !q || c.name.toLowerCase().includes(q) || c.number.toLowerCase().includes(q) || c.description.toLowerCase().includes(q))
-      .filter((c) => type === "all" || c.type === type);
-  }, [categories, query, type]);
+      .filter((c) => type === "all" || c.type === type)
+      .filter(() => matchRelated(related, 0) || related === "all")
+      .filter((c) => matchStatus(status, isActive(c.id)));
+  }, [categories, query, type, related, status, isActive]);
 
   const pager = usePagination(visible);
 
@@ -1034,9 +1038,9 @@ function CostCategoriesTab() {
         placeholder="Search name, ID or description…"
         resultCount={visible.length}
         totalCount={categories.length}
-        onReset={() => { setQuery(""); setType("all"); }}
+        onReset={() => { setQuery(""); setType("all"); setRelated("all"); setStatus("all"); }}
         cta={<AddCostCategoryDialog onAdd={(cat) => setCategories([...categories, cat])} />}
-        filterGroups={[{ key: "type", label: "Type", value: type, onChange: setType, options: [{ value: "all", label: "All types" },{ value: "CapEx", label: "CapEx only" },{ value: "OpEx", label: "OpEx only" },] }]}
+        filterGroups={[relatedProjectsGroup(related, setRelated), capexOpexGroup(type, setType), statusGroup(status, setStatus)]}
       />
       <div className="">
         <Table>

@@ -380,14 +380,16 @@ function TagsTab() {
   const [viewing, setViewing] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [usage, setUsage] = useState("all");
+  const [status, setStatus] = useState("all");
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return tags
       .map((t, index) => ({ ...t, index }))
       .filter((t) => !q || t.name.toLowerCase().includes(q))
-      .filter((t) => usage === "all" || (usage === "used" ? (t.usage ?? 0) > 0 : (t.usage ?? 0) === 0));
-  }, [tags, query, usage]);
+      .filter((t) => matchUsage(usage, t.usage ?? 0))
+      .filter((t) => matchStatus(status, isActive(t.name)));
+  }, [tags, query, usage, status, isActive]);
   return (
     <>
       <FilterBar
@@ -398,9 +400,9 @@ function TagsTab() {
         placeholder="Search tags…"
         resultCount={visible.length}
         totalCount={tags.length}
-        onReset={() => { setQuery(""); setUsage("all"); }}
+        onReset={() => { setQuery(""); setUsage("all"); setStatus("all"); }}
         cta={<AddTagDialog />}
-        filterGroups={[{ key: "usage", label: "Active Projects", value: usage, onChange: setUsage, options: [{ value: "all", label: "All tags" },{ value: "used", label: "With active projects" },{ value: "unused", label: "No projects" },] }]}
+        filterGroups={[usageGroup(usage, setUsage), statusGroup(status, setStatus)]}
       />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (

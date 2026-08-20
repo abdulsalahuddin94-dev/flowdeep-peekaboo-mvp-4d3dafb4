@@ -1249,11 +1249,9 @@ function SkillsTable() {
       .filter((s) => !q || s.toLowerCase().includes(q))
       .filter((s) => {
         const st = stats.get(s);
-        if (usage === "all") return true;
-        if (usage === "used") return (st?.roles ?? 0) > 0;
-        return (st?.roles ?? 0) === 0;
+        return matchUsage(usage, st?.roles ?? 0) && matchStatus(status, isActive(s));
       });
-  }, [skillsCatalog, query, usage, stats]);
+  }, [skillsCatalog, query, usage, status, stats, isActive]);
 
   const pager = usePagination(visible);
 
@@ -1269,7 +1267,7 @@ function SkillsTable() {
           toast.success(`Skill "${s}" added`);
           return true;
         }} />}
-        filterGroups={[{ key: "usage", label: "Usage", value: usage, onChange: setUsage, options: [{ value: "all", label: "All skills" }, { value: "used", label: "Used in job roles" }, { value: "unused", label: "Not used" }] }]}
+        filterGroups={[usageGroup(usage, setUsage), statusGroup(status, setStatus)]}
       />
       <Table>
         <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">

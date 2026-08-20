@@ -125,7 +125,7 @@ function ClientsTab() {
               <TableCell className="text-muted-foreground">{c.contact}</TableCell>
               <TableCell className="text-center num-mono">{c.projects}</TableCell>
               <TableCell className="text-center num-mono">${c.revenue.toFixed(1)}M</TableCell>
-              <TableCell className="text-center"><StatusPill isActive={c.status === "Active"} /></TableCell>
+              <TableCell className="text-center"><StatusPill isActive={c.status === "Active"} label={c.status} /></TableCell>
               <TableCell>
                 <Button size="sm" variant="outline" onClick={() => setClientView(c)}>
                   View <ChevronRight className="ml-1 h-3 w-3" />

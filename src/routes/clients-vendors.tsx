@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
-import { PageToolbar } from "@/components/ds/PageToolbar";
+import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
+import { relatedProjectsGroup, statusGroup, matchRelated, matchStatus } from "@/components/ds/filters";
+import { StatusPill } from "@/components/TableRowActions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -58,55 +60,19 @@ const RAG_BAR: Record<string, string> = {
 function ClientsVendorsPage() {
   const { tab = "clients" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
-  const [clientView, setClientView] = useState<typeof clients[number] | null>(null);
 
   return (
     <div>
       <PageHeader
         title="Clients & Vendors"
         current={tab === "vendors" ? "Vendors" : "Clients"}
-        subtitle="External parties — clients with engagements, vendors and subcontractors approved for procurement"
       />
       {/* Subpages live in the sidebar (?tab=) */}
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
 
         {/* ── Clients tab ──────────────────────────────────────────────── */}
         <TabsContent value="clients" className="mt-5">
-          <Toolbar add={<AddClientDialog />} />
-          <div className="">
-            <Table>
-              <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-                <TableHead>Client</TableHead><TableHead>Primary Contact</TableHead>
-                <TableHead className="text-right">Active Projects</TableHead>
-                <TableHead className="text-right">Revenue (FY26)</TableHead>
-                <TableHead>Status</TableHead><TableHead className="w-24" />
-              </TableRow></TableHeader>
-              <TableBody>
-                {clients.map((c) => (
-                  <TableRow key={c.name} className="hover:bg-accent-dim/30">
-                    <TableCell className="font-medium text-foreground">
-                      <span className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-accent" />{c.name}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{c.contact}</TableCell>
-                    <TableCell className="text-right num-mono">{c.projects}</TableCell>
-                    <TableCell className="text-right num-mono">${c.revenue.toFixed(1)}M</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={c.status === "Active" ? "border-rag-green/40 bg-rag-green/10 text-rag-green" : "border-rag-blue/40 bg-rag-blue/10 text-rag-blue"}>
-                        {c.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="outline" onClick={() => setClientView(c)}>
-                        View <ChevronRight className="ml-1 h-3 w-3" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <ClientsTab />
         </TabsContent>
 
         {/* ── Vendors tab ───────────────────────────────────────────────── */}
@@ -114,10 +80,64 @@ function ClientsVendorsPage() {
           <VendorsTab />
         </TabsContent>
       </Tabs>
-
-      {/* ── Client detail sheet ───────────────────────────────────────── */}
-      <ClientSheet client={clientView} onClose={() => setClientView(null)} />
     </div>
+  );
+}
+
+// ── Clients tab ───────────────────────────────────────────────────────────────
+function ClientsTab() {
+  const [clientView, setClientView] = useState<typeof clients[number] | null>(null);
+  const [query, setQuery] = useState("");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
+
+  const q = query.trim().toLowerCase();
+  const list = clients
+    .filter((c) => !q || c.name.toLowerCase().includes(q) || c.contact.toLowerCase().includes(q))
+    .filter((c) => matchRelated(related, c.projects))
+    .filter((c) => matchStatus(status, c.status === "Active"));
+
+  return (
+    <>
+      <PageToolbar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search client or contact…"
+        filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
+        cta={<AddClientDialog />}
+      />
+      <Table>
+        <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
+          <TableHead>Client</TableHead><TableHead>Primary Contact</TableHead>
+          <TableHead className="text-center">Active Projects</TableHead>
+          <TableHead className="text-center">Revenue (FY26)</TableHead>
+          <TableHead className="w-32 text-center">Status</TableHead><TableHead className="w-24" />
+        </TableRow></TableHeader>
+        <TableBody>
+          {list.length === 0 && <EmptyRow colSpan={6} />}
+          {list.map((c) => (
+            <TableRow key={c.name} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+              <TableCell className="font-medium text-foreground">
+                <span className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-accent" />{c.name}
+                </span>
+              </TableCell>
+              <TableCell className="text-muted-foreground">{c.contact}</TableCell>
+              <TableCell className="text-center num-mono">{c.projects}</TableCell>
+              <TableCell className="text-center num-mono">${c.revenue.toFixed(1)}M</TableCell>
+              <TableCell className="text-center"><StatusPill isActive={c.status === "Active"} /></TableCell>
+              <TableCell>
+                <Button size="sm" variant="outline" onClick={() => setClientView(c)}>
+                  View <ChevronRight className="ml-1 h-3 w-3" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      <ClientSheet client={clientView} onClose={() => setClientView(null)} />
+    </>
   );
 }
 

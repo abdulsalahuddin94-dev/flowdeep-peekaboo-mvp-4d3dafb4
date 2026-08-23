@@ -186,11 +186,14 @@ const SelectTrigger = React.forwardRef<HTMLInputElement, React.ComponentProps<"d
           {...props}
         >
           <input
-            ref={(node) => {
-              inputRef.current = node;
-              if (typeof ref === "function") ref(node);
-              else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
-            }}
+            ref={React.useCallback(
+              (node: HTMLInputElement | null) => {
+                inputRef.current = node;
+                if (typeof ref === "function") ref(node);
+                else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
+              },
+              [ref],
+            )}
             role="combobox"
             aria-expanded={ctx.open}
             autoComplete="off"

@@ -284,8 +284,8 @@ function ClientSheet({ client, onClose }: { client: typeof clients[number] | nul
             <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-12 text-center">
               <FileText className="h-8 w-8 text-muted-foreground/40" />
               <p className="text-sm text-muted-foreground">No projects linked to {client.name} yet.</p>
-              <button className="mt-1 text-xs text-accent hover:underline" onClick={() => setConnectOpen(true)}>+ Connect existing project</button>
             </div>
+
           ) : (
             <div className="space-y-2">
               {linked.map((p) => (

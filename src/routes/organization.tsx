@@ -687,6 +687,23 @@ function AddTagDialog() {
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+/** Calendar cards use a chip instead of a numeric cell, same popup underneath. */
+function LinkedProjectsChip({ label, projects }: { label: string; projects: { id: string; name: string }[] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-1 rounded-md bg-secondary/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+      >
+        <Link2 className="h-3 w-3" />{projects.length} linked project{projects.length === 1 ? "" : "s"}
+      </button>
+      <RelatedProjectsDialog open={open} onOpenChange={setOpen} label={label} projects={projects} />
+    </>
+  );
+}
+
 function CalendarsTab() {
   const { calendars, removeCalendar, updateCalendar } = useCalendars();
   const { approvals } = useApprovals();

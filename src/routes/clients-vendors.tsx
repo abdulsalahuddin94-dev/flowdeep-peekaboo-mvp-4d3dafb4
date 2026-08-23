@@ -21,7 +21,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ProjectsSelect } from "@/components/ProjectsSelect";
 import { toast } from "@/lib/toast";
 import { Plus, Search, Star, Building2, ChevronRight, FileText, Mail, Phone, X } from "@/lib/icons";
 import { clients, vendors, projects, contracts } from "@/lib/mock-data";

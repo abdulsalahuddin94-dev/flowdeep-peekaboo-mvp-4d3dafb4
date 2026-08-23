@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
+import { RelatedProjectsCount } from "@/components/ds/RelatedProjectsDialog";
 import { relatedProjectsGroup, statusGroup, matchRelated, matchStatus } from "@/components/ds/filters";
 import { TableRowActions } from "@/components/TableRowActions";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";

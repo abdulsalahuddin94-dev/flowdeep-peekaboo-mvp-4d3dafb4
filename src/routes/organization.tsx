@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { SkillsSelect } from "@/components/SkillsCatalog";
-import { RelatedProjectsCount, RelatedProjectsDialog } from "@/components/ds/RelatedProjectsDialog";
+import { RelatedProjectsDialog, useRelatedProjectsDialog } from "@/components/ds/RelatedProjectsDialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -92,6 +92,7 @@ type OrgBusinessLine = { name: string; description: string; projects: number };
 
 function BusinessLinesTab() {
   const { projects: allProjects } = useProjects();
+  const related$ = useRelatedProjectsDialog();
   const [rows, setRows] = useState<OrgBusinessLine[]>(
     businessLines.map((b) => ({ name: b.name, description: b.description ?? "", projects: b.projects ?? 0 })),
   );
@@ -141,12 +142,14 @@ function BusinessLinesTab() {
             {pager.pageItems.map((b) => {
               const i = b.index;
               return (
-              <TableRow key={`${b.name}-${i}`} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(b.name) && "opacity-60")}>
+              <TableRow
+                key={`${b.name}-${i}`}
+                onClick={() => related$.openFor({ label: b.name, projects: b.linked.map((p) => ({ id: p.id, name: p.name })) })}
+                className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(b.name) && "opacity-60")}
+              >
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
                 <TableCell className="w-72 text-muted-foreground">{b.description || "—"}</TableCell>
-                <TableCell className="text-center">
-                  <RelatedProjectsCount label={b.name} projects={b.linked.map((p) => ({ id: p.id, name: p.name }))} />
-                </TableCell>
+                <TableCell className="text-center num-mono">{b.linked.length}</TableCell>
                 <TableCell>
                   <RowActions
                     onEdit={() => setEditing({ index: i, name: b.name, description: b.description })}
@@ -262,12 +265,14 @@ function DepartmentsTab() {
             {pager.pageItems.map((d) => {
               const i = d.index;
               return (
-              <TableRow key={`${d.name}-${i}`} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(d.name) && "opacity-60")}>
+              <TableRow
+                key={`${d.name}-${i}`}
+                onClick={() => related$.openFor({ label: d.name, projects: d.linked.map((p) => ({ id: p.id, name: p.name })) })}
+                className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(d.name) && "opacity-60")}
+              >
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
                 <TableCell className="text-muted-foreground">{d.description || "—"}</TableCell>
-                <TableCell className="text-center">
-                  <RelatedProjectsCount label={d.name} projects={d.linked.map((p) => ({ id: p.id, name: p.name }))} />
-                </TableCell>
+                <TableCell className="text-center num-mono">{d.linked.length}</TableCell>
                 <TableCell>
                   <RowActions
                     onEdit={() => setEditing({ index: i, name: d.name, description: d.description })}

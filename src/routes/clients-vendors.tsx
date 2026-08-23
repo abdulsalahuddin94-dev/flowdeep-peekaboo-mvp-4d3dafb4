@@ -370,11 +370,18 @@ function VendorsTab() {
                     <span className="num-mono">{v.eval.toFixed(1)}</span>
                   </span>
                 </TableCell>
-                <TableCell>
-                  <Button size="sm" variant="outline" onClick={() => setVendorView(v)}>
-                    View <ChevronRight className="ml-1 h-3 w-3" />
+                <TableCell className="text-right">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setVendorView(v)}
+                    className="group h-8 gap-1 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                  >
+                    View
+                    <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                   </Button>
                 </TableCell>
+
               </TableRow>
             ))}
           </TableBody>

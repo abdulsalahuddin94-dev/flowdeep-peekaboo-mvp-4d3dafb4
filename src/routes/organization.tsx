@@ -227,7 +227,7 @@ function DepartmentsTab() {
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows
-      .map((d, index) => ({ ...d, index, projects: projects.filter((p) => p.department === d.name).length }))
+      .map((d, index) => ({ ...d, index, linked: projects.filter((p) => p.department === d.name), projects: projects.filter((p) => p.department === d.name).length }))
       .filter((d) => !q || d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q))
       .filter((d) => matchRelated(related, d.projects))
       .filter((d) => matchStatus(status, isActive(d.name)));

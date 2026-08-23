@@ -384,12 +384,18 @@ function VendorsTab() {
   const [type, setType] = useState("all");
   const [query, setQuery] = useState("");
   const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
   const [vendorView, setVendorView] = useState<typeof vendors[number] | null>(null);
+  const { isActive, setActive } = useOrgActive("vendor");
+  const [rows, setRows] = useState(vendors);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
   const q = query.trim().toLowerCase();
-  const list = vendors
+  const list = rows
     .filter((v) => !q || v.name.toLowerCase().includes(q) || v.category.toLowerCase().includes(q))
     .filter((v) => type === "all" || v.type === type)
-    .filter((v) => matchRelated(related, v.contracts));
+    .filter((v) => matchRelated(related, v.contracts))
+    .filter((v) => matchStatus(status, isActive(v.name)));
 
   return (
     <>
@@ -400,6 +406,7 @@ function VendorsTab() {
         filterGroups={[
           { key: "related", label: "Related Contracts", value: related, onChange: setRelated, options: [{ value: "all", label: "All records" }, { value: "with", label: "With Contracts" }, { value: "without", label: "No Contracts" }] },
           { key: "type", label: "Types", value: type, onChange: setType, options: [{ value: "all", label: "All types" }, { value: "Vendor", label: "Vendor" }, { value: "Subcontractor", label: "Subcontractor" }] },
+          statusGroup(status, setStatus),
         ]}
         cta={<AddVendorDialog />}
       />
@@ -408,12 +415,16 @@ function VendorsTab() {
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
             <TableHead>Vendor</TableHead><TableHead>Type</TableHead><TableHead>Category</TableHead>
             <TableHead className="text-center">Contracts</TableHead><TableHead className="text-center">Total Spend</TableHead>
-            <TableHead>Evaluation</TableHead><TableHead className="w-24" />
+            <TableHead>Evaluation</TableHead><TableHead className="w-32 text-center">Status</TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {list.length === 0 && <EmptyRow colSpan={7} />}
             {list.map((v) => (
-              <TableRow key={v.name} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+              <TableRow
+                key={v.name}
+                onClick={() => setVendorView(v)}
+                className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(v.name) && "opacity-60")}
+              >
                 <TableCell className="font-medium text-foreground">{v.name}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={`rounded-full ${v.type === "Vendor" ? "border-rag-blue/40 bg-rag-blue/10 text-rag-blue" : "border-role-exec/40 bg-role-exec/10 text-role-exec"}`}>
@@ -429,18 +440,13 @@ function VendorsTab() {
                     <span className="num-mono">{v.eval.toFixed(1)}</span>
                   </span>
                 </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setVendorView(v)}
-                    className="group h-8 gap-1 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                  >
-                    View
-                    <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </Button>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableRowActions
+                    isActive={isActive(v.name)}
+                    onToggleActive={() => setPendingToggle({ name: v.name, active: isActive(v.name) })}
+                    onDelete={() => setPendingDelete(v.name)}
+                  />
                 </TableCell>
-
               </TableRow>
             ))}
           </TableBody>
@@ -449,9 +455,41 @@ function VendorsTab() {
 
       {/* Vendor detail sheet */}
       <VendorSheet vendor={vendorView} onClose={() => setVendorView(null)} />
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onOpenChange={(o) => !o && setPendingDelete(null)}
+        title={`Remove "${pendingDelete ?? ""}" from the pool?`}
+        description="Existing contracts stay on record."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={() => {
+          setRows((prev) => prev.filter((r) => r.name !== pendingDelete));
+          toast.success(`Deleted "${pendingDelete}"`);
+          setPendingDelete(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!pendingToggle}
+        onOpenChange={(o) => !o && setPendingToggle(null)}
+        title={pendingToggle?.active ? `Deactivate "${pendingToggle.name}"?` : `Reactivate "${pendingToggle?.name ?? ""}"?`}
+        description={pendingToggle?.active
+          ? "Deactivated vendors stay on record but can't be added to new contracts."
+          : "The vendor becomes available for new contracts again."}
+        confirmLabel={pendingToggle?.active ? "Deactivate" : "Reactivate"}
+        tone={pendingToggle?.active ? "warning" : "success"}
+        onConfirm={() => {
+          if (!pendingToggle) return;
+          setActive(pendingToggle.name, !pendingToggle.active);
+          toast.success(`${pendingToggle.name} ${pendingToggle.active ? "deactivated" : "reactivated"}`);
+          setPendingToggle(null);
+        }}
+      />
     </>
   );
 }
+
 
 // ── Vendor detail sheet ───────────────────────────────────────────────────────
 function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | null; onClose: () => void }) {

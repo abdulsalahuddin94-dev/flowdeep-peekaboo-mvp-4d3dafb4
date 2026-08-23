@@ -437,35 +437,12 @@ function TagsTab() {
         ))}
       </div>
 
-      <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{viewing}</DialogTitle>
-            <DialogDescription>Projects connected to this tag.</DialogDescription>
-          </DialogHeader>
-          {(() => {
-            const connected = projects.filter((p) => p.tags.includes(viewing ?? ""));
-            if (connected.length === 0) {
-              return <p className="py-6 text-center text-sm text-muted-foreground">No active projects</p>;
-            }
-            return (
-              <ScrollArea className="max-h-72">
-                <div className="space-y-1 pr-2">
-                  {connected.map((p) => (
-                    <div key={p.id} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-secondary/40">
-                      <span className="truncate text-foreground">{p.name}</span>
-                      <span className="ml-3 shrink-0 text-xs text-muted-foreground">{p.id}</span>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            );
-          })()}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setViewing(null)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <RelatedProjectsDialog
+        open={!!viewing}
+        onOpenChange={(o) => !o && setViewing(null)}
+        label={viewing ?? ""}
+        projects={projects.filter((p) => p.tags.includes(viewing ?? "")).map((p) => ({ id: p.id, name: p.name }))}
+      />
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
+import { RelatedProjectsCount } from "@/components/ds/RelatedProjectsDialog";
 import { relatedProjectsGroup, statusGroup, matchRelated, matchStatus } from "@/components/ds/filters";
 import { TableRowActions } from "@/components/TableRowActions";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -99,7 +100,6 @@ function clientRevenue(name: string) {
 
 // ── Clients tab ───────────────────────────────────────────────────────────────
 function ClientsTab() {
-  const [clientView, setClientView] = useState<typeof clients[number] | null>(null);
   const [query, setQuery] = useState("");
   const [related, setRelated] = useState("all");
   const [status, setStatus] = useState("all");
@@ -138,16 +138,17 @@ function ClientsTab() {
             return (
               <TableRow
                 key={c.name}
-                onClick={() => setClientView(c)}
-                className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(c.name) && "opacity-60")}
+                className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(c.name) && "opacity-60")}
               >
                 <TableCell className="font-medium text-foreground">{c.name}</TableCell>
                 <TableCell className="text-muted-foreground">{c.contact}</TableCell>
-                <TableCell className="text-center num-mono">{linkedCount}</TableCell>
+                <TableCell className="text-center">
+                  <RelatedProjectsCount label={c.name} projects={clientProjects(c.name).map((p) => ({ id: p.id, name: p.name }))} />
+                </TableCell>
                 <TableCell className="text-center num-mono">
                   {linkedCount === 0 ? "—" : `$${clientRevenue(c.name).toFixed(1)}M`}
                 </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
+                <TableCell>
                   <TableRowActions
                     onEdit={() => setEditing(c)}
                     isActive={isActive(c.name)}
@@ -161,7 +162,6 @@ function ClientsTab() {
         </TableBody>
       </Table>
 
-      <ClientSheet client={clientView} onClose={() => setClientView(null)} />
 
       {editing && (
         <ClientFormDialog
@@ -206,108 +206,6 @@ function ClientsTab() {
   );
 }
 
-
-// ── Client detail sheet ───────────────────────────────────────────────────────
-function ClientSheet({ client, onClose }: { client: typeof clients[number] | null; onClose: () => void }) {
-  if (!client) return null;
-
-  const detail  = CLIENT_DETAILS[client.name];
-  const linked  = projects.filter((p) => p.client === client.name);
-  const revenue = clientRevenue(client.name).toFixed(1);
-
-
-  return (
-    <Sheet open={!!client} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" className="w-[480px] max-w-full p-0 flex flex-col">
-        {/* Header */}
-        <SheetHeader className="px-6 pt-6 pb-4 border-b border-border">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-dim">
-              <Building2 className="h-5 w-5 text-accent" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <SheetTitle className="text-lg">{client.name}</SheetTitle>
-              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                <span>{detail?.industry ?? "—"}</span>
-                <Badge variant="outline" className={client.status === "Active" ? "border-rag-green/40 bg-rag-green/10 text-rag-green text-[10px]" : "border-rag-blue/40 bg-rag-blue/10 text-rag-blue text-[10px]"}>
-                  {client.status}
-                </Badge>
-              </div>
-            </div>
-          </div>
-          {detail && (
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><Mail className="h-3 w-3" /><a href={`mailto:${detail.email}`} className="hover:text-accent">{detail.email}</a></span>
-              <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{detail.phone}</span>
-            </div>
-          )}
-        </SheetHeader>
-
-        {/* KPI strip */}
-        <div className="grid grid-cols-3 divide-x divide-border border-b border-border">
-          {[
-            { l: "Revenue FY26", v: `$${revenue}M` },
-            { l: "Linked projects", v: String(linked.length) },
-            { l: "Contact", v: client.contact },
-          ].map((k) => (
-            <div key={k.l} className="px-4 py-3">
-              <div className="label-eyebrow text-[10px]">{k.l}</div>
-              <div className="mt-0.5 text-sm font-medium text-foreground num-mono">{k.v}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Projects list */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          <div className="label-eyebrow mb-3">Projects</div>
-          {linked.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-12 text-center">
-              <FileText className="h-8 w-8 text-muted-foreground/40" />
-              <p className="text-sm text-muted-foreground">No projects linked to {client.name} yet.</p>
-            </div>
-
-          ) : (
-            <div className="space-y-2">
-              {linked.map((p) => (
-                <Link key={p.id} to="/portfolio/$projectId" params={{ projectId: p.id }} onClick={onClose} className="group block">
-                  <div className="glass-card p-3 transition-all hover:border-accent/40 hover:bg-accent-dim/20">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className={`h-2 w-2 shrink-0 rounded-full ${RAG_DOT[p.rag]}`} />
-                          <span className="text-sm font-medium text-foreground truncate">{p.name}</span>
-                        </div>
-                        <div className="mt-1.5 flex items-center gap-2">
-                          <Progress value={p.progress} className={`h-1 flex-1 ${RAG_BAR[p.rag]}`} />
-                          <span className="num-mono text-xs text-muted-foreground">{p.progress}%</span>
-                        </div>
-                        <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
-                          <Badge variant="outline" className="border-border bg-secondary/40 text-[10px] text-muted-foreground py-0">{p.stage}</Badge>
-                          <span>Ends {p.endDate}</span>
-                          <span>PM: {p.pm}</span>
-                        </div>
-                      </div>
-                      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40 transition-colors group-hover:text-accent mt-1" />
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="border-t border-border px-6 py-4">
-          <Button variant="outline" className="w-full" onClick={onClose}>Close</Button>
-        </div>
-
-      </SheetContent>
-
-
-
-    </Sheet>
-  );
-}
 
 // ── Vendors tab ───────────────────────────────────────────────────────────────
 function VendorsTab() {

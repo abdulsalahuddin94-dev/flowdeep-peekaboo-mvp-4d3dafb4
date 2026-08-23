@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { SkillsSelect } from "@/components/SkillsCatalog";
+import { RelatedProjectsCount, RelatedProjectsDialog } from "@/components/ds/RelatedProjectsDialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,7 +20,7 @@ import { relatedProjectsGroup, usageGroup, capexOpexGroup, statusGroup, skillsGr
 
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
+import { businessLines, departments, projects as mockProjects, type WorkCalendar } from "@/lib/mock-data";
 import { RulesThresholdsTab } from "@/components/org/RulesThresholds";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests, useSkills } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
@@ -90,6 +91,7 @@ function OrganizationPage() {
 type OrgBusinessLine = { name: string; description: string; projects: number };
 
 function BusinessLinesTab() {
+  const { projects: allProjects } = useProjects();
   const [rows, setRows] = useState<OrgBusinessLine[]>(
     businessLines.map((b) => ({ name: b.name, description: b.description ?? "", projects: b.projects ?? 0 })),
   );
@@ -104,11 +106,11 @@ function BusinessLinesTab() {
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows
-      .map((b, index) => ({ ...b, index }))
+      .map((b, index) => ({ ...b, index, linked: allProjects.filter((p) => p.businessLine === b.name) }))
       .filter((b) => !q || b.name.toLowerCase().includes(q) || b.description.toLowerCase().includes(q))
-      .filter((b) => matchRelated(related, b.projects))
+      .filter((b) => matchRelated(related, b.linked.length))
       .filter((b) => matchStatus(status, isActive(b.name)));
-  }, [rows, query, related, status, isActive]);
+  }, [rows, query, related, status, isActive, allProjects]);
 
   const pager = usePagination(visible);
 
@@ -142,7 +144,9 @@ function BusinessLinesTab() {
               <TableRow key={`${b.name}-${i}`} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(b.name) && "opacity-60")}>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
                 <TableCell className="w-72 text-muted-foreground">{b.description || "—"}</TableCell>
-                <TableCell className="text-center num-mono">{b.projects}</TableCell>
+                <TableCell className="text-center">
+                  <RelatedProjectsCount label={b.name} projects={b.linked.map((p) => ({ id: p.id, name: p.name }))} />
+                </TableCell>
                 <TableCell>
                   <RowActions
                     onEdit={() => setEditing({ index: i, name: b.name, description: b.description })}
@@ -223,7 +227,7 @@ function DepartmentsTab() {
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows
-      .map((d, index) => ({ ...d, index, projects: projects.filter((p) => p.department === d.name).length }))
+      .map((d, index) => ({ ...d, index, linked: projects.filter((p) => p.department === d.name), projects: projects.filter((p) => p.department === d.name).length }))
       .filter((d) => !q || d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q))
       .filter((d) => matchRelated(related, d.projects))
       .filter((d) => matchStatus(status, isActive(d.name)));
@@ -261,7 +265,9 @@ function DepartmentsTab() {
               <TableRow key={`${d.name}-${i}`} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(d.name) && "opacity-60")}>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
                 <TableCell className="text-muted-foreground">{d.description || "—"}</TableCell>
-                <TableCell className="text-center num-mono">{d.projects}</TableCell>
+                <TableCell className="text-center">
+                  <RelatedProjectsCount label={d.name} projects={d.linked.map((p) => ({ id: p.id, name: p.name }))} />
+                </TableCell>
                 <TableCell>
                   <RowActions
                     onEdit={() => setEditing({ index: i, name: d.name, description: d.description })}
@@ -431,35 +437,12 @@ function TagsTab() {
         ))}
       </div>
 
-      <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{viewing}</DialogTitle>
-            <DialogDescription>Projects connected to this tag.</DialogDescription>
-          </DialogHeader>
-          {(() => {
-            const connected = projects.filter((p) => p.tags.includes(viewing ?? ""));
-            if (connected.length === 0) {
-              return <p className="py-6 text-center text-sm text-muted-foreground">No active projects</p>;
-            }
-            return (
-              <ScrollArea className="max-h-72">
-                <div className="space-y-1 pr-2">
-                  {connected.map((p) => (
-                    <div key={p.id} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-secondary/40">
-                      <span className="truncate text-foreground">{p.name}</span>
-                      <span className="ml-3 shrink-0 text-xs text-muted-foreground">{p.id}</span>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            );
-          })()}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setViewing(null)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <RelatedProjectsDialog
+        open={!!viewing}
+        onOpenChange={(o) => !o && setViewing(null)}
+        label={viewing ?? ""}
+        projects={projects.filter((p) => p.tags.includes(viewing ?? "")).map((p) => ({ id: p.id, name: p.name }))}
+      />
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
@@ -704,6 +687,23 @@ function AddTagDialog() {
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+/** Calendar cards use a chip instead of a numeric cell, same popup underneath. */
+function LinkedProjectsChip({ label, projects }: { label: string; projects: { id: string; name: string }[] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-1 rounded-md bg-secondary/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+      >
+        <Link2 className="h-3 w-3" />{projects.length} linked project{projects.length === 1 ? "" : "s"}
+      </button>
+      <RelatedProjectsDialog open={open} onOpenChange={setOpen} label={label} projects={projects} />
+    </>
+  );
+}
+
 function CalendarsTab() {
   const { calendars, removeCalendar, updateCalendar } = useCalendars();
   const { approvals } = useApprovals();
@@ -782,9 +782,7 @@ function CalendarsTab() {
               />
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 rounded-md bg-secondary/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                <Link2 className="h-3 w-3" />{linked.length} linked project{linked.length === 1 ? "" : "s"}
-              </span>
+              <LinkedProjectsChip label={c.name} projects={linked.map((p) => ({ id: p.id, name: p.name }))} />
               {!isActive && (
                 <span className="inline-flex items-center gap-1 rounded-md bg-secondary/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                   Deactivated
@@ -1234,12 +1232,12 @@ function SkillsTable() {
       if (!projectsByRole.has(key)) projectsByRole.set(key, new Set());
       projectsByRole.get(key)!.add(r.project);
     }
-    const map = new Map<string, { roles: number; projects: number }>();
+    const map = new Map<string, { roles: number; projects: number; roleNames: string[]; projectNames: string[] }>();
     for (const skill of skillsCatalog) {
       const roles = jobRoles.filter((r) => (r.skills ?? []).some((s) => s.toLowerCase() === skill.toLowerCase()));
       const projects = new Set<string>();
       roles.forEach((r) => projectsByRole.get(r.title.trim().toLowerCase())?.forEach((p) => projects.add(p)));
-      map.set(skill, { roles: roles.length, projects: projects.size });
+      map.set(skill, { roles: roles.length, projects: projects.size, roleNames: roles.map((r) => r.title), projectNames: [...projects] });
     }
     return map;
   }, [skillsCatalog, jobRoles, resourceRequests]);
@@ -1283,7 +1281,13 @@ function SkillsTable() {
             <TableRow key={s} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(s) && "opacity-60")}>
               <TableCell className="whitespace-nowrap font-medium text-foreground">{s}</TableCell>
               <TableCell className="text-center num-mono">{stats.get(s)?.roles ?? 0}</TableCell>
-              <TableCell className="text-center num-mono">{stats.get(s)?.projects ?? 0}</TableCell>
+              <TableCell className="text-center">
+                <RelatedProjectsCount
+                  label={s}
+                  projects={(stats.get(s)?.projectNames ?? []).map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? n, name: n }))}
+                  extraTabs={[{ key: "roles", label: "Job Roles", items: (stats.get(s)?.roleNames ?? []).map((r) => ({ id: "", name: r })), empty: "No job roles use this skill" }]}
+                />
+              </TableCell>
               <TableCell>
                 <TableRowActions
                   onEdit={() => setEditing({ original: s, value: s })}
@@ -1450,12 +1454,11 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
                     </div>
                   ) : <span className="text-xs text-muted-foreground">—</span>}
                 </TableCell>
-                <TableCell className="text-center num-mono">
-                  {(() => {
-                    const projects = usageByRole.get(r.title.trim().toLowerCase());
-                    const count = projects?.size ?? 0;
-                    return <span title={count > 0 ? [...projects!].join(", ") : undefined}>{count}</span>;
-                  })()}
+                <TableCell className="text-center">
+                  <RelatedProjectsCount
+                    label={r.title}
+                    projects={[...(usageByRole.get(r.title.trim().toLowerCase()) ?? [])].map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? "", name: n }))}
+                  />
                 </TableCell>
                 <TableCell>
                   <TableRowActions

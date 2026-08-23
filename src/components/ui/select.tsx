@@ -1,213 +1,395 @@
 "use client";
 
+/**
+ * Combobox-style Select: the trigger is an editable field. Typing filters the
+ * options underneath (search-box feel) but free text is never kept — the user
+ * must pick one of the listed options. The public API matches the shadcn Select
+ * it replaces, so existing call sites keep working.
+ */
+
 import * as React from "react";
-import * as SelectPrimitive from "@radix-ui/react-select";
+import { createPortal } from "react-dom";
 import { Check, ChevronDown, ChevronUp } from "@/lib/icons";
 
 import { cn } from "@/lib/utils";
 
-const Select = SelectPrimitive.Root;
-
-const SelectGroup = SelectPrimitive.Group;
-
-const SelectValue = SelectPrimitive.Value;
-
-const SelectTrigger = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Trigger
-    ref={ref}
-    data-ui="control"
-    className={cn(
-      "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background cursor-pointer data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
-      className,
-    )}
-    {...props}
-  >
-    {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
-    </SelectPrimitive.Icon>
-  </SelectPrimitive.Trigger>
-));
-SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
-
-const SelectScrollUpButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollUpButton
-    ref={ref}
-    className={cn("flex cursor-default items-center justify-center py-1", className)}
-    {...props}
-  >
-    <ChevronUp className="h-4 w-4" />
-  </SelectPrimitive.ScrollUpButton>
-));
-SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
-
-const SelectScrollDownButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollDownButton
-    ref={ref}
-    className={cn("flex cursor-default items-center justify-center py-1", className)}
-    {...props}
-  >
-    <ChevronDown className="h-4 w-4" />
-  </SelectPrimitive.ScrollDownButton>
-));
-SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayName;
-
-/**
- * Typeahead ("combobox") support: SelectContent renders a filter field and every
- * SelectItem hides itself when its label doesn't match what was typed.
- */
-type SelectFilterCtx = {
+type Ctx = {
+  value: string | undefined;
+  select: (v: string, label: string) => void;
+  open: boolean;
+  setOpen: (o: boolean) => void;
   query: string;
-  report: (key: string, matched: boolean) => void;
+  setQuery: (q: string) => void;
+  label: string;
+  registerLabel: (v: string, label: string) => void;
+  disabled?: boolean;
+  searchable: boolean;
+  activeValue: string | null;
+  setActiveValue: (v: string | null) => void;
+  registerOption: (v: string, matched: boolean) => void;
+  matchedValues: React.MutableRefObject<string[]>;
+  anchorRef: React.MutableRefObject<HTMLDivElement | null>;
 };
-const SelectFilterContext = React.createContext<SelectFilterCtx | null>(null);
 
-function itemText(node: React.ReactNode): string {
+const SelectContext = React.createContext<Ctx | null>(null);
+const useSelect = () => {
+  const ctx = React.useContext(SelectContext);
+  if (!ctx) throw new Error("Select parts must be used inside <Select>");
+  return ctx;
+};
+
+function nodeText(node: React.ReactNode): string {
   if (node === null || node === undefined || typeof node === "boolean") return "";
   if (typeof node === "string" || typeof node === "number") return String(node);
-  if (Array.isArray(node)) return node.map(itemText).join(" ");
-  if (React.isValidElement(node)) return itemText((node.props as { children?: React.ReactNode }).children);
+  if (Array.isArray(node)) return node.map(nodeText).join(" ");
+  if (React.isValidElement(node))
+    return nodeText((node.props as { children?: React.ReactNode }).children);
   return "";
 }
 
-const SelectContent = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> & { searchable?: boolean }
->(({ className, children, position = "popper", searchable = true, ...props }, ref) => {
-  const [query, setQuery] = React.useState("");
-  const [anyMatch, setAnyMatch] = React.useState(true);
-  const matches = React.useRef(new Map<string, boolean>());
-  const inputRef = React.useRef<HTMLInputElement>(null);
+interface SelectProps {
+  value?: string;
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
+  disabled?: boolean;
+  /** Set to false to make the field read-only (no typing/filtering). */
+  searchable?: boolean;
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
 
-  const report = React.useCallback((key: string, matched: boolean) => {
-    matches.current.set(key, matched);
-    setAnyMatch([...matches.current.values()].some(Boolean));
+const Select = ({
+  value,
+  defaultValue,
+  onValueChange,
+  disabled,
+  searchable = true,
+  children,
+  open: openProp,
+  onOpenChange,
+}: SelectProps) => {
+  const [uncontrolled, setUncontrolled] = React.useState<string | undefined>(defaultValue);
+  const current = value !== undefined ? value : uncontrolled;
+
+  const [openState, setOpenState] = React.useState(false);
+  const open = openProp !== undefined ? openProp : openState;
+  const setOpen = React.useCallback(
+    (o: boolean) => {
+      setOpenState(o);
+      onOpenChange?.(o);
+    },
+    [onOpenChange],
+  );
+
+  const [query, setQuery] = React.useState("");
+  const [activeValue, setActiveValue] = React.useState<string | null>(null);
+  const [labels, setLabels] = React.useState<Record<string, string>>({});
+  const matchedValues = React.useRef<string[]>([]);
+  const anchorRef = React.useRef<HTMLDivElement | null>(null);
+
+  const registerLabel = React.useCallback((v: string, label: string) => {
+    setLabels((prev) => (prev[v] === label ? prev : { ...prev, [v]: label }));
   }, []);
 
-  const ctx = React.useMemo(() => ({ query: query.trim().toLowerCase(), report }), [query, report]);
+  const [, bump] = React.useState(0);
+  const registerOption = React.useCallback((v: string, matched: boolean) => {
+    const list = matchedValues.current;
+    const i = list.indexOf(v);
+    if (matched && i === -1) list.push(v);
+    else if (!matched && i !== -1) list.splice(i, 1);
+    else return;
+    bump((n) => n + 1);
+  }, []);
 
-  React.useEffect(() => {
-    if (!searchable) return;
-    const t = setTimeout(() => inputRef.current?.focus(), 30);
-    return () => clearTimeout(t);
-  }, [searchable]);
-
-  return (
-    <SelectPrimitive.Portal>
-      <SelectPrimitive.Content
-        ref={ref}
-        className={cn(
-          "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-(--radix-select-content-transform-origin)",
-          position === "popper" &&
-            "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-          className,
-        )}
-        position={position}
-        {...props}
-      >
-        {searchable && (
-          <div className="sticky top-0 z-10 border-b bg-popover p-1">
-            <input
-              ref={inputRef}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Type to filter…"
-              autoComplete="off"
-              className="h-8 w-full rounded-md bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground"
-              onKeyDown={(e) => {
-                if (e.key !== "Escape" && e.key !== "Enter" && e.key !== "Tab") e.stopPropagation();
-              }}
-            />
-          </div>
-        )}
-        <SelectScrollUpButton />
-        <SelectPrimitive.Viewport
-          className={cn(
-            "p-1",
-            position === "popper" &&
-              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
-          )}
-        >
-          <SelectFilterContext.Provider value={ctx}>{children}</SelectFilterContext.Provider>
-          {searchable && !anyMatch && (
-            <div className="px-2 py-3 text-center text-sm text-muted-foreground">No results</div>
-          )}
-        </SelectPrimitive.Viewport>
-        <SelectScrollDownButton />
-      </SelectPrimitive.Content>
-    </SelectPrimitive.Portal>
+  const select = React.useCallback(
+    (v: string, label: string) => {
+      registerLabel(v, label);
+      if (value === undefined) setUncontrolled(v);
+      onValueChange?.(v);
+      setQuery("");
+      setOpen(false);
+    },
+    [onValueChange, registerLabel, setOpen, value],
   );
-});
-SelectContent.displayName = SelectPrimitive.Content.displayName;
-
-const SelectLabel = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Label>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.Label
-    ref={ref}
-    className={cn("px-2 py-1.5 text-sm font-semibold", className)}
-    {...props}
-  />
-));
-SelectLabel.displayName = SelectPrimitive.Label.displayName;
-
-const SelectItem = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => {
-  const filter = React.useContext(SelectFilterContext);
-  const key = React.useId();
-  const label = React.useMemo(() => itemText(children).toLowerCase(), [children]);
-  const matched = !filter?.query || !label || label.includes(filter.query);
 
   React.useEffect(() => {
-    filter?.report(key, matched);
-    return () => filter?.report(key, false);
-  }, [filter, key, matched]);
+    if (!open) {
+      setQuery("");
+      setActiveValue(null);
+    }
+  }, [open]);
 
-  if (!matched) return null;
+  const ctx: Ctx = {
+    value: current,
+    select,
+    open,
+    setOpen,
+    query,
+    setQuery,
+    label: current !== undefined ? (labels[current] ?? current) : "",
+    registerLabel,
+    disabled,
+    searchable,
+    activeValue,
+    setActiveValue,
+    registerOption,
+    matchedValues,
+    anchorRef,
+  };
+
+  return <SelectContext.Provider value={ctx}>{children}</SelectContext.Provider>;
+};
+
+const SelectGroup = ({ className, ...props }: React.ComponentProps<"div">) => (
+  <div className={cn(className)} {...props} />
+);
+
+/** Only carries the placeholder; the trigger renders the value itself. */
+const SelectValue = ({
+  placeholder,
+}: {
+  placeholder?: React.ReactNode;
+  children?: React.ReactNode;
+}) => {
+  const ctx = useSelect();
+  return ctx.value ? null : <>{placeholder ?? null}</>;
+};
+
+function findPlaceholder(children: React.ReactNode): string {
+  let found = "";
+  React.Children.forEach(children, (child) => {
+    if (found || !React.isValidElement(child)) return;
+    const props = child.props as { placeholder?: React.ReactNode; children?: React.ReactNode };
+    if (child.type === SelectValue) found = nodeText(props.placeholder);
+    else if (props.children) found = findPlaceholder(props.children);
+  });
+  return found;
+}
+
+const SelectTrigger = React.forwardRef<
+  HTMLInputElement,
+  React.ComponentProps<"div"> & { children?: React.ReactNode }
+>(({ className, children, ...props }, ref) => {
+  const ctx = useSelect();
+  const placeholder = React.useMemo(() => findPlaceholder(children), [children]);
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const setInputRef = React.useCallback(
+    (node: HTMLInputElement | null) => {
+      inputRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
+    },
+    [ref],
+  );
+
+  const text = ctx.open && ctx.searchable ? ctx.query : ctx.label;
 
   return (
-    <SelectPrimitive.Item
-      ref={ref}
+    <div
+      ref={ctx.anchorRef}
+      data-ui="control"
+      data-state={ctx.open ? "open" : "closed"}
       className={cn(
-        "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex h-9 w-full items-center rounded-md border border-input bg-transparent px-3 text-sm shadow-sm ring-offset-background focus-within:ring-1 focus-within:ring-ring",
+        ctx.disabled && "pointer-events-none opacity-50",
         className,
       )}
       {...props}
     >
-      <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
-        <SelectPrimitive.ItemIndicator>
-          <Check className="h-4 w-4" />
-        </SelectPrimitive.ItemIndicator>
-      </span>
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-    </SelectPrimitive.Item>
+      <input
+        ref={setInputRef}
+        role="combobox"
+        aria-expanded={ctx.open}
+        autoComplete="off"
+        disabled={ctx.disabled}
+        readOnly={!ctx.searchable}
+        value={text}
+        placeholder={placeholder || undefined}
+        onChange={(e) => {
+          if (!ctx.searchable) return;
+          ctx.setQuery(e.target.value);
+          ctx.setActiveValue(null);
+          if (!ctx.open) ctx.setOpen(true);
+        }}
+        onMouseDown={() => {
+          if (!ctx.open) ctx.setOpen(true);
+        }}
+        onKeyDown={(e) => {
+          const list = ctx.matchedValues.current;
+          if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+            e.preventDefault();
+            if (!ctx.open) return ctx.setOpen(true);
+            if (!list.length) return;
+            const i = ctx.activeValue ? list.indexOf(ctx.activeValue) : -1;
+            const next =
+              e.key === "ArrowDown"
+                ? list[(i + 1) % list.length]
+                : list[(i - 1 + list.length) % list.length];
+            if (next !== undefined) ctx.setActiveValue(next);
+          } else if (e.key === "Enter") {
+            if (ctx.open) {
+              e.preventDefault();
+              const target = ctx.activeValue ?? list[0];
+              if (target !== undefined) ctx.select(target, target);
+            } else {
+              ctx.setOpen(true);
+            }
+          } else if (e.key === "Escape") {
+            ctx.setOpen(false);
+          }
+        }}
+        className="w-full cursor-pointer bg-transparent pr-6 outline-none placeholder:text-muted-foreground"
+      />
+      <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 opacity-50" />
+    </div>
   );
 });
-SelectItem.displayName = SelectPrimitive.Item.displayName;
+SelectTrigger.displayName = "SelectTrigger";
 
-const SelectSeparator = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Separator>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.Separator
-    ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-muted", className)}
-    {...props}
-  />
-));
-SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
+const SelectContent = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div"> & { position?: "popper" | "item-aligned" }
+>(({ className, children, position: _position, ...props }, ref) => {
+  const ctx = useSelect();
+  const listRef = React.useRef<HTMLDivElement | null>(null);
+  const [rect, setRect] = React.useState<{ top: number; left: number; width: number } | null>(null);
+  const [flipUp, setFlipUp] = React.useState(false);
+
+  const measure = React.useCallback(() => {
+    const el = ctx.anchorRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - r.bottom;
+    const up = spaceBelow < 240 && r.top > spaceBelow;
+    setFlipUp(up);
+    setRect({ top: up ? r.top : r.bottom, left: r.left, width: r.width });
+  }, [ctx.anchorRef]);
+
+  React.useEffect(() => {
+    if (!ctx.open) return;
+    measure();
+    const onScroll = () => measure();
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onScroll);
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (listRef.current?.contains(t) || ctx.anchorRef.current?.contains(t)) return;
+      ctx.setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown, true);
+    return () => {
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onScroll);
+      document.removeEventListener("mousedown", onDown, true);
+    };
+  }, [ctx.open, ctx.anchorRef, ctx.setOpen, measure]);
+
+  if (!ctx.open || typeof document === "undefined" || !rect) return null;
+
+  const empty = ctx.query.trim() !== "" && ctx.matchedValues.current.length === 0;
+
+  return createPortal(
+    <div
+      ref={(node) => {
+        listRef.current = node;
+        if (typeof ref === "function") ref(node);
+        else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      }}
+      role="listbox"
+      style={{
+        position: "fixed",
+        top: flipUp ? undefined : rect.top + 4,
+        bottom: flipUp ? window.innerHeight - rect.top + 4 : undefined,
+        left: rect.left,
+        width: rect.width,
+      }}
+      className={cn(
+        "pointer-events-auto z-[1000] max-h-72 min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-0",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+      {empty && (
+        <div className="px-2 py-3 text-center text-sm text-muted-foreground">No results</div>
+      )}
+    </div>,
+    document.body,
+  );
+});
+SelectContent.displayName = "SelectContent";
+
+const SelectLabel = ({ className, ...props }: React.ComponentProps<"div">) => (
+  <div className={cn("px-2 py-1.5 text-sm font-semibold", className)} {...props} />
+);
+
+const SelectItem = React.forwardRef<
+  HTMLDivElement,
+  Omit<React.ComponentProps<"div">, "value"> & { value: string; disabled?: boolean }
+>(({ className, children, value, disabled, ...props }, ref) => {
+  const ctx = useSelect();
+  const { registerLabel, registerOption } = ctx;
+  const label = React.useMemo(() => nodeText(children), [children]);
+  const matched =
+    !ctx.query.trim() || label.toLowerCase().includes(ctx.query.trim().toLowerCase());
+  const selected = ctx.value === value;
+  const active = ctx.activeValue === value;
+
+  React.useEffect(() => {
+    registerLabel(value, label || value);
+  }, [registerLabel, label, value]);
+
+  React.useEffect(() => {
+    registerOption(value, matched && !disabled);
+    return () => registerOption(value, false);
+  }, [registerOption, value, matched, disabled]);
+
+  if (!matched) return null;
+
+  return (
+    <div
+      ref={ref}
+      role="option"
+      aria-selected={selected}
+      data-disabled={disabled ? "" : undefined}
+      onClick={() => !disabled && ctx.select(value, label || value)}
+      onMouseEnter={() => !disabled && ctx.setActiveValue(value)}
+      className={cn(
+        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none",
+        active && "bg-accent text-accent-foreground",
+        disabled && "pointer-events-none opacity-50",
+        className,
+      )}
+      {...props}
+    >
+      {selected && (
+        <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
+          <Check className="h-4 w-4" />
+        </span>
+      )}
+      {children}
+    </div>
+  );
+});
+SelectItem.displayName = "SelectItem";
+
+const SelectSeparator = ({ className, ...props }: React.ComponentProps<"div">) => (
+  <div className={cn("-mx-1 my-1 h-px bg-muted", className)} {...props} />
+);
+
+const SelectScrollUpButton = ({ className, ...props }: React.ComponentProps<"div">) => (
+  <div className={cn("flex items-center justify-center py-1", className)} {...props}>
+    <ChevronUp className="h-4 w-4" />
+  </div>
+);
+
+const SelectScrollDownButton = ({ className, ...props }: React.ComponentProps<"div">) => (
+  <div className={cn("flex items-center justify-center py-1", className)} {...props}>
+    <ChevronDown className="h-4 w-4" />
+  </div>
+);
 
 export {
   Select,

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { SkillsSelect } from "@/components/SkillsCatalog";
-import { RelatedProjectsCount, RelatedProjectsDialog } from "@/components/ds/RelatedProjectsDialog";
+import { RelatedProjectsDialog, useRelatedProjectsDialog } from "@/components/ds/RelatedProjectsDialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -92,6 +92,7 @@ type OrgBusinessLine = { name: string; description: string; projects: number };
 
 function BusinessLinesTab() {
   const { projects: allProjects } = useProjects();
+  const related$ = useRelatedProjectsDialog();
   const [rows, setRows] = useState<OrgBusinessLine[]>(
     businessLines.map((b) => ({ name: b.name, description: b.description ?? "", projects: b.projects ?? 0 })),
   );
@@ -141,13 +142,15 @@ function BusinessLinesTab() {
             {pager.pageItems.map((b) => {
               const i = b.index;
               return (
-              <TableRow key={`${b.name}-${i}`} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(b.name) && "opacity-60")}>
+              <TableRow
+                key={`${b.name}-${i}`}
+                onClick={() => related$.openFor({ label: b.name, projects: b.linked.map((p) => ({ id: p.id, name: p.name })) })}
+                className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(b.name) && "opacity-60")}
+              >
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
                 <TableCell className="w-72 text-muted-foreground">{b.description || "—"}</TableCell>
-                <TableCell className="text-center">
-                  <RelatedProjectsCount label={b.name} projects={b.linked.map((p) => ({ id: p.id, name: p.name }))} />
-                </TableCell>
-                <TableCell>
+                <TableCell className="text-center num-mono">{b.linked.length}</TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <RowActions
                     onEdit={() => setEditing({ index: i, name: b.name, description: b.description })}
                     isActive={isActive(b.name)}
@@ -162,6 +165,7 @@ function BusinessLinesTab() {
         </Table>
       </div>
       <TablePagination {...pager} itemLabel="project types" />
+      {related$.dialog}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
@@ -213,6 +217,7 @@ function BusinessLinesTab() {
 type OrgDepartment = { name: string; description: string };
 
 function DepartmentsTab() {
+  const related$ = useRelatedProjectsDialog();
   const { projects } = useProjects();
   const [rows, setRows] = useState<OrgDepartment[]>(departments.map((d) => ({ name: d.name, description: d.description ?? "" })));
   const [editing, setEditing] = useState<{ index: number; name: string; description: string } | null>(null);
@@ -262,13 +267,15 @@ function DepartmentsTab() {
             {pager.pageItems.map((d) => {
               const i = d.index;
               return (
-              <TableRow key={`${d.name}-${i}`} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(d.name) && "opacity-60")}>
+              <TableRow
+                key={`${d.name}-${i}`}
+                onClick={() => related$.openFor({ label: d.name, projects: d.linked.map((p) => ({ id: p.id, name: p.name })) })}
+                className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(d.name) && "opacity-60")}
+              >
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
                 <TableCell className="text-muted-foreground">{d.description || "—"}</TableCell>
-                <TableCell className="text-center">
-                  <RelatedProjectsCount label={d.name} projects={d.linked.map((p) => ({ id: p.id, name: p.name }))} />
-                </TableCell>
-                <TableCell>
+                <TableCell className="text-center num-mono">{d.linked.length}</TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <RowActions
                     onEdit={() => setEditing({ index: i, name: d.name, description: d.description })}
                     isActive={isActive(d.name)}
@@ -283,6 +290,7 @@ function DepartmentsTab() {
         </Table>
       </div>
       <TablePagination {...pager} itemLabel="departments" />
+      {related$.dialog}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
@@ -1214,6 +1222,7 @@ function JobRolesTab() {
 }
 
 function SkillsTable() {
+  const related$ = useRelatedProjectsDialog();
   const { skillsCatalog, addSkill, updateSkill, removeSkill } = useSkills();
   const { jobRoles } = useJobRoles();
   const { resourceRequests } = useResourceRequests();
@@ -1278,17 +1287,19 @@ function SkillsTable() {
         <TableBody>
           {visible.length === 0 && <EmptyRow colSpan={4} />}
           {pager.pageItems.map((s) => (
-            <TableRow key={s} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(s) && "opacity-60")}>
+            <TableRow
+              key={s}
+              onClick={() => related$.openFor({
+                label: s,
+                projects: (stats.get(s)?.projectNames ?? []).map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? n, name: n })),
+                extraTabs: [{ key: "roles", label: "Job Roles", items: (stats.get(s)?.roleNames ?? []).map((r) => ({ id: "", name: r })), empty: "No job roles use this skill" }],
+              })}
+              className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(s) && "opacity-60")}
+            >
               <TableCell className="whitespace-nowrap font-medium text-foreground">{s}</TableCell>
               <TableCell className="text-center num-mono">{stats.get(s)?.roles ?? 0}</TableCell>
-              <TableCell className="text-center">
-                <RelatedProjectsCount
-                  label={s}
-                  projects={(stats.get(s)?.projectNames ?? []).map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? n, name: n }))}
-                  extraTabs={[{ key: "roles", label: "Job Roles", items: (stats.get(s)?.roleNames ?? []).map((r) => ({ id: "", name: r })), empty: "No job roles use this skill" }]}
-                />
-              </TableCell>
-              <TableCell>
+              <TableCell className="text-center num-mono">{stats.get(s)?.projects ?? 0}</TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
                 <TableRowActions
                   onEdit={() => setEditing({ original: s, value: s })}
                   isActive={isActive(s)}
@@ -1301,6 +1312,7 @@ function SkillsTable() {
         </TableBody>
       </Table>
       <TablePagination {...pager} itemLabel="skills" />
+      {related$.dialog}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
@@ -1380,6 +1392,7 @@ function AddSkillDialog({ onAdd }: { onAdd: (skill: string) => boolean }) {
 }
 
 function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
+  const related$ = useRelatedProjectsDialog();
   const { jobRoles, addJobRole, updateJobRole, removeJobRole } = useJobRoles();
   const { skillsCatalog } = useSkills();
   const { resourceRequests } = useResourceRequests();
@@ -1443,7 +1456,14 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={4} />}
             {pager.pageItems.map((r) => (
-              <TableRow key={r.id} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(r.id) && "opacity-60")}>
+              <TableRow
+                key={r.id}
+                onClick={() => related$.openFor({
+                  label: r.title,
+                  projects: [...(usageByRole.get(r.title.trim().toLowerCase()) ?? [])].map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? "", name: n })),
+                })}
+                className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(r.id) && "opacity-60")}
+              >
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{r.title}</TableCell>
                 <TableCell>
                   {r.skills?.length ? (
@@ -1454,13 +1474,8 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
                     </div>
                   ) : <span className="text-xs text-muted-foreground">—</span>}
                 </TableCell>
-                <TableCell className="text-center">
-                  <RelatedProjectsCount
-                    label={r.title}
-                    projects={[...(usageByRole.get(r.title.trim().toLowerCase()) ?? [])].map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? "", name: n }))}
-                  />
-                </TableCell>
-                <TableCell>
+                <TableCell className="text-center num-mono">{usageByRole.get(r.title.trim().toLowerCase())?.size ?? 0}</TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
                     onEdit={() => setEditing({ id: r.id, title: r.title, skills: r.skills ?? [] })}
                     isActive={isActive(r.id)}
@@ -1474,6 +1489,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         </Table>
       </div>
       <TablePagination {...pager} itemLabel="job roles" />
+      {related$.dialog}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>

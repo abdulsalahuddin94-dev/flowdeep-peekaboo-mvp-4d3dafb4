@@ -128,3 +128,26 @@ export function RelatedProjectsCount({
     </>
   );
 }
+
+type RelatedPayload = { label: string; projects: RelatedItem[]; extraTabs?: RelatedTab[]; caption?: string };
+
+/**
+ * Row-level trigger: tables call openFor(...) from the whole row's onClick and
+ * render the returned dialog once. Keeps one popup instance per table.
+ */
+export function useRelatedProjectsDialog() {
+  const [payload, setPayload] = useState<RelatedPayload | null>(null);
+  return {
+    openFor: (p: RelatedPayload) => setPayload(p),
+    dialog: (
+      <RelatedProjectsDialog
+        open={!!payload}
+        onOpenChange={(o) => !o && setPayload(null)}
+        label={payload?.label ?? ""}
+        projects={payload?.projects ?? []}
+        extraTabs={payload?.extraTabs}
+        caption={payload?.caption}
+      />
+    ),
+  };
+}

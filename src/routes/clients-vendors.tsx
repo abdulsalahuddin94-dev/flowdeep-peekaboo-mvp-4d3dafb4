@@ -117,11 +117,8 @@ function ClientsTab() {
           {list.length === 0 && <EmptyRow colSpan={6} />}
           {list.map((c) => (
             <TableRow key={c.name} className="bg-table-row-bg hover:bg-table-row-hover border-0">
-              <TableCell className="font-medium text-foreground">
-                <span className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-accent" />{c.name}
-                </span>
-              </TableCell>
+              <TableCell className="font-medium text-foreground">{c.name}</TableCell>
+
               <TableCell className="text-muted-foreground">{c.contact}</TableCell>
               <TableCell className="text-center num-mono">{c.projects}</TableCell>
               <TableCell className="text-center num-mono">${c.revenue.toFixed(1)}M</TableCell>

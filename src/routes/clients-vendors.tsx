@@ -786,38 +786,58 @@ function ClientFormDialog({
 }
 
 
-// ── Add vendor dialog ─────────────────────────────────────────────────────────
-function AddVendorDialog() {
-  const [open, setOpen]               = useState(false);
-  const [name, setName]               = useState("");
-  const [type, setType]               = useState("vendor");
-  const [category, setCategory]       = useState("");
-  const [notes, setNotes]             = useState("");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+// ── Add / edit vendor dialog ──────────────────────────────────────────────────
+type VendorRecord = typeof vendors[number];
 
-  function toggle(id: string) {
-    setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  }
+function VendorFormDialog({
+  vendor,
+  open: openProp,
+  onOpenChange,
+  onSave,
+}: {
+  vendor?: VendorRecord;
+  open?: boolean;
+  onOpenChange?: (o: boolean) => void;
+  onSave?: (v: VendorRecord) => void;
+}) {
+  const isEdit = !!vendor;
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (o: boolean) => { onOpenChange?.(o); if (openProp === undefined) setOpenState(o); };
+
+  const [name, setName]         = useState(vendor?.name ?? "");
+  const [type, setType]         = useState(vendor?.type === "Subcontractor" ? "sub" : "vendor");
+  const [category, setCategory] = useState(vendor?.category ?? "");
+  const [notes, setNotes]       = useState("");
 
   function handleSave() {
     if (!name.trim()) { toast.error("Company name is required"); return; }
-    const desc = selectedIds.length > 0
-      ? `${selectedIds.length} project${selectedIds.length > 1 ? "s" : ""} linked`
-      : "No projects linked yet";
-    toast.success(`${name.trim()} added to vendor pool`, { description: desc });
+    onSave?.({
+      name: name.trim(),
+      type: type === "sub" ? "Subcontractor" : "Vendor",
+      category: category.trim() || "—",
+      contracts: vendor?.contracts ?? 0,
+      spend: vendor?.spend ?? 0,
+      eval: vendor?.eval ?? 0,
+    });
+    toast.success(`${name.trim()} ${isEdit ? "updated" : "added to vendor pool"}`);
     setOpen(false);
-    setName(""); setType("vendor"); setCategory(""); setNotes(""); setSelectedIds([]);
+    if (!isEdit) { setName(""); setType("vendor"); setCategory(""); setNotes(""); }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="primary">
-          <Plus className="mr-1 h-4 w-4" />Add Vendor
-        </Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button size="sm" variant="primary">
+            <Plus className="mr-1 h-4 w-4" />Add Vendor
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>New Vendor / Subcontractor</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Edit Vendor / Subcontractor" : "New Vendor / Subcontractor"}</DialogTitle>
+        </DialogHeader>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
@@ -844,23 +864,14 @@ function AddVendorDialog() {
           </div>
         </div>
 
-        {/* ── Link to existing projects ─────────────────────────────────── */}
-        <div>
-          <Label className="text-sm">
-            Link to existing projects
-            <span className="ml-1.5 font-normal text-muted-foreground">(optional)</span>
-          </Label>
-          <ProjectsSelect value={selectedIds} onChange={setSelectedIds} />
-        </div>
-
-
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={handleSave}>
-            <Plus className="mr-1 h-3.5 w-3.5" />Add to pool
+            {isEdit ? "Save changes" : <><Plus className="mr-1 h-3.5 w-3.5" />Add to pool</>}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+

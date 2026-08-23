@@ -412,7 +412,7 @@ function VendorsTab() {
           { key: "type", label: "Types", value: type, onChange: setType, options: [{ value: "all", label: "All types" }, { value: "Vendor", label: "Vendor" }, { value: "Subcontractor", label: "Subcontractor" }] },
           statusGroup(status, setStatus),
         ]}
-        cta={<AddVendorDialog />}
+        cta={<VendorFormDialog onSave={(v) => setRows((prev) => [...prev, v])} />}
       />
       <div className="">
         <Table>
@@ -446,6 +446,7 @@ function VendorsTab() {
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
+                    onEdit={() => setEditing(v)}
                     isActive={isActive(v.name)}
                     onToggleActive={() => setPendingToggle({ name: v.name, active: isActive(v.name) })}
                     onDelete={() => setPendingDelete(v.name)}
@@ -459,6 +460,15 @@ function VendorsTab() {
 
       {/* Vendor detail sheet */}
       <VendorSheet vendor={vendorView} onClose={() => setVendorView(null)} />
+
+      {editing && (
+        <VendorFormDialog
+          vendor={editing}
+          open
+          onOpenChange={(o) => !o && setEditing(null)}
+          onSave={(v) => setRows((prev) => prev.map((r) => (r.name === editing.name ? v : r)))}
+        />
+      )}
 
       <ConfirmDialog
         open={!!pendingDelete}

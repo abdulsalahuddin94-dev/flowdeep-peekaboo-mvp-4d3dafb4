@@ -1222,6 +1222,7 @@ function JobRolesTab() {
 }
 
 function SkillsTable() {
+  const related$ = useRelatedProjectsDialog();
   const { skillsCatalog, addSkill, updateSkill, removeSkill } = useSkills();
   const { jobRoles } = useJobRoles();
   const { resourceRequests } = useResourceRequests();
@@ -1286,17 +1287,19 @@ function SkillsTable() {
         <TableBody>
           {visible.length === 0 && <EmptyRow colSpan={4} />}
           {pager.pageItems.map((s) => (
-            <TableRow key={s} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(s) && "opacity-60")}>
+            <TableRow
+              key={s}
+              onClick={() => related$.openFor({
+                label: s,
+                projects: (stats.get(s)?.projectNames ?? []).map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? n, name: n })),
+                extraTabs: [{ key: "roles", label: "Job Roles", items: (stats.get(s)?.roleNames ?? []).map((r) => ({ id: "", name: r })), empty: "No job roles use this skill" }],
+              })}
+              className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(s) && "opacity-60")}
+            >
               <TableCell className="whitespace-nowrap font-medium text-foreground">{s}</TableCell>
               <TableCell className="text-center num-mono">{stats.get(s)?.roles ?? 0}</TableCell>
-              <TableCell className="text-center">
-                <RelatedProjectsCount
-                  label={s}
-                  projects={(stats.get(s)?.projectNames ?? []).map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? n, name: n }))}
-                  extraTabs={[{ key: "roles", label: "Job Roles", items: (stats.get(s)?.roleNames ?? []).map((r) => ({ id: "", name: r })), empty: "No job roles use this skill" }]}
-                />
-              </TableCell>
-              <TableCell>
+              <TableCell className="text-center num-mono">{stats.get(s)?.projects ?? 0}</TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
                 <TableRowActions
                   onEdit={() => setEditing({ original: s, value: s })}
                   isActive={isActive(s)}
@@ -1309,6 +1312,7 @@ function SkillsTable() {
         </TableBody>
       </Table>
       <TablePagination {...pager} itemLabel="skills" />
+      {related$.dialog}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
@@ -1451,7 +1455,14 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
           <TableBody>
             {visible.length === 0 && <EmptyRow colSpan={4} />}
             {pager.pageItems.map((r) => (
-              <TableRow key={r.id} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(r.id) && "opacity-60")}>
+              <TableRow
+                key={r.id}
+                onClick={() => related$.openFor({
+                  label: r.title,
+                  projects: [...(usageByRole.get(r.title.trim().toLowerCase()) ?? [])].map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? "", name: n })),
+                })}
+                className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(r.id) && "opacity-60")}
+              >
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{r.title}</TableCell>
                 <TableCell>
                   {r.skills?.length ? (
@@ -1462,13 +1473,8 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
                     </div>
                   ) : <span className="text-xs text-muted-foreground">—</span>}
                 </TableCell>
-                <TableCell className="text-center">
-                  <RelatedProjectsCount
-                    label={r.title}
-                    projects={[...(usageByRole.get(r.title.trim().toLowerCase()) ?? [])].map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? "", name: n }))}
-                  />
-                </TableCell>
-                <TableCell>
+                <TableCell className="text-center num-mono">{usageByRole.get(r.title.trim().toLowerCase())?.size ?? 0}</TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
                     onEdit={() => setEditing({ id: r.id, title: r.title, skills: r.skills ?? [] })}
                     isActive={isActive(r.id)}

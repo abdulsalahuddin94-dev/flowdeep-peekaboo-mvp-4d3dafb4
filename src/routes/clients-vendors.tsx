@@ -100,6 +100,7 @@ function clientRevenue(name: string) {
 
 // ── Clients tab ───────────────────────────────────────────────────────────────
 function ClientsTab() {
+  const related$ = useRelatedProjectsDialog();
   const [query, setQuery] = useState("");
   const [related, setRelated] = useState("all");
   const [status, setStatus] = useState("all");
@@ -160,6 +161,7 @@ function ClientsTab() {
           })}
         </TableBody>
       </Table>
+      {related$.dialog}
 
 
       {editing && (

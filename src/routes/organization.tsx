@@ -1489,6 +1489,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         </Table>
       </div>
       <TablePagination {...pager} itemLabel="job roles" />
+      {related$.dialog}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>

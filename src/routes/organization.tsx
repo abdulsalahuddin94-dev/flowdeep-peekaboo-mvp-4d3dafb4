@@ -1454,12 +1454,11 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
                     </div>
                   ) : <span className="text-xs text-muted-foreground">—</span>}
                 </TableCell>
-                <TableCell className="text-center num-mono">
-                  {(() => {
-                    const projects = usageByRole.get(r.title.trim().toLowerCase());
-                    const count = projects?.size ?? 0;
-                    return <span title={count > 0 ? [...projects!].join(", ") : undefined}>{count}</span>;
-                  })()}
+                <TableCell className="text-center">
+                  <RelatedProjectsCount
+                    label={r.title}
+                    projects={[...(usageByRole.get(r.title.trim().toLowerCase()) ?? [])].map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? "", name: n }))}
+                  />
                 </TableCell>
                 <TableCell>
                   <TableRowActions

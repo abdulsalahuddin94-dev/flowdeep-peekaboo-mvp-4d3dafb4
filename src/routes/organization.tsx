@@ -91,6 +91,7 @@ function OrganizationPage() {
 type OrgBusinessLine = { name: string; description: string; projects: number };
 
 function BusinessLinesTab() {
+  const { projects: allProjects } = useProjects();
   const [rows, setRows] = useState<OrgBusinessLine[]>(
     businessLines.map((b) => ({ name: b.name, description: b.description ?? "", projects: b.projects ?? 0 })),
   );

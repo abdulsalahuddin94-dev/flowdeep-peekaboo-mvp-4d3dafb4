@@ -144,7 +144,9 @@ function BusinessLinesTab() {
               <TableRow key={`${b.name}-${i}`} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(b.name) && "opacity-60")}>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
                 <TableCell className="w-72 text-muted-foreground">{b.description || "—"}</TableCell>
-                <TableCell className="text-center num-mono">{b.projects}</TableCell>
+                <TableCell className="text-center">
+                  <RelatedProjectsCount label={b.name} projects={b.linked.map((p) => ({ id: p.id, name: p.name }))} />
+                </TableCell>
                 <TableCell>
                   <RowActions
                     onEdit={() => setEditing({ index: i, name: b.name, description: b.description })}

@@ -286,11 +286,7 @@ const SelectContent = React.forwardRef<
     };
   }, [ctx.open, ctx.anchorRef, ctx.setOpen, measure]);
 
-  if (!ctx.open || typeof document === "undefined" || !rect) {
-    // Keep options mounted-free while closed; measurement happens on open.
-    if (ctx.open && typeof document !== "undefined") measure();
-    return null;
-  }
+  if (!ctx.open || typeof document === "undefined" || !rect) return null;
 
   const empty = ctx.query.trim() !== "" && ctx.matchedValues.current.length === 0;
 

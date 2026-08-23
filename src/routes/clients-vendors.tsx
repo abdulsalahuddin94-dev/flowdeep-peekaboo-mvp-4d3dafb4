@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ProjectsSelect } from "@/components/ProjectsSelect";
 import { toast } from "@/lib/toast";
 import { Plus, Search, Star, Building2, ChevronRight, FileText, Mail, Phone, X } from "@/lib/icons";
 import { clients, vendors, projects, contracts } from "@/lib/mock-data";
@@ -117,11 +118,8 @@ function ClientsTab() {
           {list.length === 0 && <EmptyRow colSpan={6} />}
           {list.map((c) => (
             <TableRow key={c.name} className="bg-table-row-bg hover:bg-table-row-hover border-0">
-              <TableCell className="font-medium text-foreground">
-                <span className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-accent" />{c.name}
-                </span>
-              </TableCell>
+              <TableCell className="font-medium text-foreground">{c.name}</TableCell>
+
               <TableCell className="text-muted-foreground">{c.contact}</TableCell>
               <TableCell className="text-center num-mono">{c.projects}</TableCell>
               <TableCell className="text-center num-mono">${c.revenue.toFixed(1)}M</TableCell>
@@ -597,12 +595,7 @@ function AddClientDialog() {
   const [email, setEmail]           = useState("");
   const [phone, setPhone]           = useState("");
   const [status, setStatus]         = useState("prospect");
-  const [search, setSearch]         = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-  const filtered = projects.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   function toggle(id: string) {
     setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
@@ -616,7 +609,7 @@ function AddClientDialog() {
     toast.success(`${name.trim()} added`, { description: desc });
     setOpen(false);
     setName(""); setContact(""); setEmail(""); setPhone("");
-    setStatus("prospect"); setSearch(""); setSelectedIds([]);
+    setStatus("prospect"); setSelectedIds([]);
   }
 
   return (
@@ -660,75 +653,14 @@ function AddClientDialog() {
         </div>
 
         {/* ── Link to existing projects ─────────────────────────────────── */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm">
-              Link to existing projects
-              <span className="ml-1.5 text-muted-foreground font-normal">(optional)</span>
-            </Label>
-            {selectedIds.length > 0 && (
-              <span className="text-xs text-accent font-medium">{selectedIds.length} selected</span>
-            )}
-          </div>
-
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search projects…"
-              className="h-8 pl-7 text-sm"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-
-          {/* Project checklist */}
-          <ScrollArea className="h-40 rounded-md border border-border">
-            <div className="p-1.5 space-y-0.5">
-              {filtered.map((p) => {
-                const checked = selectedIds.includes(p.id);
-                return (
-                  <label
-                    key={p.id}
-                    className={`flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 transition-colors ${checked ? "bg-accent-dim/30" : "hover:bg-secondary/40"}`}
-                  >
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={() => toggle(p.id)}
-                      className="shrink-0"
-                    />
-                    <span className={`h-2 w-2 shrink-0 rounded-full ${RAG_DOT[p.rag]}`} />
-                    <span className="flex-1 truncate text-sm text-foreground">{p.name}</span>
-                    <Badge variant="outline" className="shrink-0 border-border bg-secondary/40 text-[10px] text-muted-foreground py-0">
-                      {p.stage}
-                    </Badge>
-                  </label>
-                );
-              })}
-              {filtered.length === 0 && (
-                <p className="py-4 text-center text-xs text-muted-foreground">No projects match "{search}"</p>
-              )}
-            </div>
-          </ScrollArea>
-
-          {/* Selected chips */}
-          {selectedIds.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {selectedIds.map((id) => {
-                const p = projects.find((x) => x.id === id);
-                return (
-                  <span key={id} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-                    <span className={`h-1.5 w-1.5 rounded-full ${RAG_DOT[p?.rag ?? "grey"]}`} />
-                    {p?.name}
-                    <button onClick={() => toggle(id)} className="ml-0.5 hover:text-rag-red">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
-          )}
+        <div>
+          <Label className="text-sm">
+            Link to existing projects
+            <span className="ml-1.5 font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <ProjectsSelect value={selectedIds} onChange={setSelectedIds} />
         </div>
+
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
@@ -757,8 +689,8 @@ function AddVendorDialog() {
   function handleSave() {
     if (!name.trim()) { toast.error("Company name is required"); return; }
     const desc = selectedIds.length > 0
-      ? `${selectedIds.length} contract${selectedIds.length > 1 ? "s" : ""} linked`
-      : "No contracts linked yet";
+      ? `${selectedIds.length} project${selectedIds.length > 1 ? "s" : ""} linked`
+      : "No projects linked yet";
     toast.success(`${name.trim()} added to vendor pool`, { description: desc });
     setOpen(false);
     setName(""); setType("vendor"); setCategory(""); setNotes(""); setSelectedIds([]);
@@ -799,67 +731,15 @@ function AddVendorDialog() {
           </div>
         </div>
 
-        {/* ── Link to existing contracts ────────────────────────────────── */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm">
-              Link to existing contracts
-              <span className="ml-1.5 text-muted-foreground font-normal">(optional)</span>
-            </Label>
-            {selectedIds.length > 0 && (
-              <span className="text-xs text-accent font-medium">{selectedIds.length} selected</span>
-            )}
-          </div>
-
-          {/* Contract checklist — all contracts shown (claim unlinked ones) */}
-          <div className="rounded-md border border-border">
-            <div className="px-2 py-1.5 space-y-0.5">
-              {contracts.map((c) => {
-                const checked = selectedIds.includes(c.id);
-                return (
-                  <label
-                    key={c.id}
-                    className={`flex cursor-pointer items-center gap-2.5 rounded px-2 py-2 transition-colors ${checked ? "bg-accent-dim/30" : "hover:bg-secondary/40"}`}
-                  >
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={() => toggle(c.id)}
-                      className="shrink-0"
-                    />
-                    <span className="num-mono text-[11px] text-muted-foreground shrink-0">{c.id}</span>
-                    <span className="flex-1 truncate text-sm text-foreground">{c.project}</span>
-                    <span className="num-mono text-xs text-accent shrink-0">${c.value}M</span>
-                    <Badge
-                      variant="outline"
-                      className={`shrink-0 text-[10px] py-0 ${c.status === "Active" ? "border-rag-green/40 bg-rag-green/10 text-rag-green" : "border-rag-amber/40 bg-rag-amber/10 text-rag-amber"}`}
-                    >
-                      {c.status}
-                    </Badge>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Selected chips */}
-          {selectedIds.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {selectedIds.map((id) => {
-                const c = contracts.find((x) => x.id === id);
-                return (
-                  <span key={id} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-                    <span className="num-mono">{c?.id}</span>
-                    <span className="text-muted-foreground">·</span>
-                    {c?.project}
-                    <button onClick={() => toggle(id)} className="ml-0.5 hover:text-rag-red">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
-          )}
+        {/* ── Link to existing projects ─────────────────────────────────── */}
+        <div>
+          <Label className="text-sm">
+            Link to existing projects
+            <span className="ml-1.5 font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <ProjectsSelect value={selectedIds} onChange={setSelectedIds} />
         </div>
+
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

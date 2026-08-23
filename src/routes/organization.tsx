@@ -1285,7 +1285,7 @@ function SkillsTable() {
                 <RelatedProjectsCount
                   label={s}
                   projects={(stats.get(s)?.projectNames ?? []).map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? n, name: n }))}
-                  extraTabs={[{ key: "roles", label: "Job Roles", items: (stats.get(s)?.roleNames ?? []).map((r) => ({ id: "", name: r })), empty: "No job roles use this skill" }]}
+                  extraTabs={[{ key: "roles", label: "Job Roles", items: (stats.get(s)?.roleNames ?? []).map((r) => ({ id: "", name: r, key: r })), empty: "No job roles use this skill" }]}
                 />
               </TableCell>
               <TableCell>

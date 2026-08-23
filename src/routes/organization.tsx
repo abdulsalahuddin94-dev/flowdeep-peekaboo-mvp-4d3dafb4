@@ -1281,7 +1281,13 @@ function SkillsTable() {
             <TableRow key={s} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(s) && "opacity-60")}>
               <TableCell className="whitespace-nowrap font-medium text-foreground">{s}</TableCell>
               <TableCell className="text-center num-mono">{stats.get(s)?.roles ?? 0}</TableCell>
-              <TableCell className="text-center num-mono">{stats.get(s)?.projects ?? 0}</TableCell>
+              <TableCell className="text-center">
+                <RelatedProjectsCount
+                  label={s}
+                  projects={(stats.get(s)?.projectNames ?? []).map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? n, name: n }))}
+                  extraTabs={[{ key: "roles", label: "Job Roles", items: (stats.get(s)?.roleNames ?? []).map((r) => ({ id: "", name: r })), empty: "No job roles use this skill" }]}
+                />
+              </TableCell>
               <TableCell>
                 <TableRowActions
                   onEdit={() => setEditing({ original: s, value: s })}

@@ -21,7 +21,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ProjectsSelect } from "@/components/ProjectsSelect";
 import { toast } from "@/lib/toast";
 import { Plus, Search, Star, Building2, ChevronRight, FileText, Mail, Phone, X } from "@/lib/icons";
 import { clients, vendors, projects, contracts } from "@/lib/mock-data";
@@ -391,6 +390,7 @@ function VendorsTab() {
   const [vendorView, setVendorView] = useState<typeof vendors[number] | null>(null);
   const { isActive, setActive } = useOrgActive("vendor");
   const [rows, setRows] = useState(vendors);
+  const [editing, setEditing] = useState<typeof vendors[number] | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
   const q = query.trim().toLowerCase();
@@ -411,7 +411,7 @@ function VendorsTab() {
           { key: "type", label: "Types", value: type, onChange: setType, options: [{ value: "all", label: "All types" }, { value: "Vendor", label: "Vendor" }, { value: "Subcontractor", label: "Subcontractor" }] },
           statusGroup(status, setStatus),
         ]}
-        cta={<AddVendorDialog />}
+        cta={<VendorFormDialog onSave={(v) => setRows((prev) => [...prev, v])} />}
       />
       <div className="">
         <Table>
@@ -445,6 +445,7 @@ function VendorsTab() {
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
+                    onEdit={() => setEditing(v)}
                     isActive={isActive(v.name)}
                     onToggleActive={() => setPendingToggle({ name: v.name, active: isActive(v.name) })}
                     onDelete={() => setPendingDelete(v.name)}
@@ -458,6 +459,15 @@ function VendorsTab() {
 
       {/* Vendor detail sheet */}
       <VendorSheet vendor={vendorView} onClose={() => setVendorView(null)} />
+
+      {editing && (
+        <VendorFormDialog
+          vendor={editing}
+          open
+          onOpenChange={(o) => !o && setEditing(null)}
+          onSave={(v) => setRows((prev) => prev.map((r) => (r.name === editing.name ? v : r)))}
+        />
+      )}
 
       <ConfirmDialog
         open={!!pendingDelete}
@@ -724,28 +734,20 @@ function ClientFormDialog({
   const [contact, setContact] = useState(client?.contact ?? "");
   const [email, setEmail]     = useState(client ? CLIENT_DETAILS[client.name]?.email ?? "" : "");
   const [phone, setPhone]     = useState(client ? CLIENT_DETAILS[client.name]?.phone ?? "" : "");
-  const [status, setStatus]   = useState(client?.status === "Inactive" ? "inactive" : "active");
-  const [selectedIds, setSelectedIds] = useState<string[]>(
-    client ? clientProjects(client.name).map((p) => p.id) : [],
-  );
 
   function handleSave() {
     if (!name.trim()) { toast.error("Company name is required"); return; }
-    const desc = selectedIds.length > 0
-      ? `${selectedIds.length} project${selectedIds.length > 1 ? "s" : ""} linked`
-      : "No projects linked yet";
     onSave?.({
       name: name.trim(),
       contact: contact.trim() || "—",
-      projects: selectedIds.length,
+      projects: client?.projects ?? 0,
       revenue: client?.revenue ?? 0,
-      status: status === "inactive" ? "Inactive" : "Active",
+      status: client?.status ?? "Active",
     });
-    toast.success(`${name.trim()} ${isEdit ? "updated" : "added"}`, { description: desc });
+    toast.success(`${name.trim()} ${isEdit ? "updated" : "added"}`);
     setOpen(false);
     if (!isEdit) {
       setName(""); setContact(""); setEmail(""); setPhone("");
-      setStatus("active"); setSelectedIds([]);
     }
   }
 
@@ -778,26 +780,8 @@ function ClientFormDialog({
             <Label>Phone</Label>
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
-          <div>
-            <Label>Status</Label>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
-        {/* ── Link to existing projects ─────────────────────────────────── */}
-        <div>
-          <Label className="text-sm">
-            Link to existing projects
-            <span className="ml-1.5 font-normal text-muted-foreground">(optional)</span>
-          </Label>
-          <ProjectsSelect value={selectedIds} onChange={setSelectedIds} />
-        </div>
 
 
         <DialogFooter>
@@ -812,38 +796,58 @@ function ClientFormDialog({
 }
 
 
-// ── Add vendor dialog ─────────────────────────────────────────────────────────
-function AddVendorDialog() {
-  const [open, setOpen]               = useState(false);
-  const [name, setName]               = useState("");
-  const [type, setType]               = useState("vendor");
-  const [category, setCategory]       = useState("");
-  const [notes, setNotes]             = useState("");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+// ── Add / edit vendor dialog ──────────────────────────────────────────────────
+type VendorRecord = typeof vendors[number];
 
-  function toggle(id: string) {
-    setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  }
+function VendorFormDialog({
+  vendor,
+  open: openProp,
+  onOpenChange,
+  onSave,
+}: {
+  vendor?: VendorRecord;
+  open?: boolean;
+  onOpenChange?: (o: boolean) => void;
+  onSave?: (v: VendorRecord) => void;
+}) {
+  const isEdit = !!vendor;
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (o: boolean) => { onOpenChange?.(o); if (openProp === undefined) setOpenState(o); };
+
+  const [name, setName]         = useState(vendor?.name ?? "");
+  const [type, setType]         = useState(vendor?.type === "Subcontractor" ? "sub" : "vendor");
+  const [category, setCategory] = useState(vendor?.category ?? "");
+  const [notes, setNotes]       = useState("");
 
   function handleSave() {
     if (!name.trim()) { toast.error("Company name is required"); return; }
-    const desc = selectedIds.length > 0
-      ? `${selectedIds.length} project${selectedIds.length > 1 ? "s" : ""} linked`
-      : "No projects linked yet";
-    toast.success(`${name.trim()} added to vendor pool`, { description: desc });
+    onSave?.({
+      name: name.trim(),
+      type: type === "sub" ? "Subcontractor" : "Vendor",
+      category: category.trim() || "—",
+      contracts: vendor?.contracts ?? 0,
+      spend: vendor?.spend ?? 0,
+      eval: vendor?.eval ?? 0,
+    });
+    toast.success(`${name.trim()} ${isEdit ? "updated" : "added to vendor pool"}`);
     setOpen(false);
-    setName(""); setType("vendor"); setCategory(""); setNotes(""); setSelectedIds([]);
+    if (!isEdit) { setName(""); setType("vendor"); setCategory(""); setNotes(""); }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="primary">
-          <Plus className="mr-1 h-4 w-4" />Add Vendor
-        </Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button size="sm" variant="primary">
+            <Plus className="mr-1 h-4 w-4" />Add Vendor
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>New Vendor / Subcontractor</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Edit Vendor / Subcontractor" : "New Vendor / Subcontractor"}</DialogTitle>
+        </DialogHeader>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
@@ -870,23 +874,14 @@ function AddVendorDialog() {
           </div>
         </div>
 
-        {/* ── Link to existing projects ─────────────────────────────────── */}
-        <div>
-          <Label className="text-sm">
-            Link to existing projects
-            <span className="ml-1.5 font-normal text-muted-foreground">(optional)</span>
-          </Label>
-          <ProjectsSelect value={selectedIds} onChange={setSelectedIds} />
-        </div>
-
-
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={handleSave}>
-            <Plus className="mr-1 h-3.5 w-3.5" />Add to pool
+            {isEdit ? "Save changes" : <><Plus className="mr-1 h-3.5 w-3.5" />Add to pool</>}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+

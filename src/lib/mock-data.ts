@@ -89,7 +89,7 @@ export const projects: Project[] = seed.map((row, i) => {
     issues: (i * 2) % 5,
     stage: stage as Project["stage"],
     tags: [tags[i % tags.length], tags[(i + 2) % tags.length]],
-    client: i % 3 === 0 ? "ACME Energy" : i % 3 === 1 ? "Northwind Logistics" : "Internal",
+    client: ["ACME Energy", "Northwind Logistics", "Helios Solar", "Atlas Mining", "Internal"][i % 5],
     ragNote,
     // Every project is bound to a working calendar so calendar edits always
     // have a visible downstream impact.
@@ -172,7 +172,7 @@ export const clients = [
   { name: "ACME Energy", contact: "R. Hadid", projects: 4, revenue: 18.2, status: "Active" },
   { name: "Northwind Logistics", contact: "K. Bauer", projects: 3, revenue: 6.4, status: "Active" },
   { name: "Helios Solar", contact: "M. Park", projects: 2, revenue: 3.1, status: "Active" },
-  { name: "Atlas Mining", contact: "T. Okafor", projects: 1, revenue: 2.7, status: "Prospect" },
+  { name: "Atlas Mining", contact: "T. Okafor", projects: 1, revenue: 2.7, status: "Active" },
 ];
 
 export const vendors = [

@@ -4,7 +4,10 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { relatedProjectsGroup, statusGroup, matchRelated, matchStatus } from "@/components/ds/filters";
-import { StatusPill } from "@/components/TableRowActions";
+import { TableRowActions } from "@/components/TableRowActions";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useOrgActive } from "@/lib/org-active";
+import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -221,7 +224,7 @@ function ClientSheet({ client, onClose }: { client: typeof clients[number] | nul
   const linkedIds  = new Set(linked.map((p) => p.id));
   const available  = projects.filter((p) => !linkedIds.has(p.id));
   const filteredAvail = available.filter((p) => p.name.toLowerCase().includes(connectSearch.toLowerCase()));
-  const revenue    = client.revenue.toFixed(1);
+  const revenue    = clientRevenue(client.name).toFixed(1);
 
   function toggleConnect(id: string) {
     setConnectSel((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);

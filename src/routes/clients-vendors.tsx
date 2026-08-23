@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ProjectsSelect } from "@/components/ProjectsSelect";
 import { toast } from "@/lib/toast";
 import { Plus, Search, Star, Building2, ChevronRight, FileText, Mail, Phone, X } from "@/lib/icons";
 import { clients, vendors, projects, contracts } from "@/lib/mock-data";
@@ -594,12 +595,7 @@ function AddClientDialog() {
   const [email, setEmail]           = useState("");
   const [phone, setPhone]           = useState("");
   const [status, setStatus]         = useState("prospect");
-  const [search, setSearch]         = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-
-  const filtered = projects.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   function toggle(id: string) {
     setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
@@ -613,7 +609,7 @@ function AddClientDialog() {
     toast.success(`${name.trim()} added`, { description: desc });
     setOpen(false);
     setName(""); setContact(""); setEmail(""); setPhone("");
-    setStatus("prospect"); setSearch(""); setSelectedIds([]);
+    setStatus("prospect"); setSelectedIds([]);
   }
 
   return (
@@ -693,8 +689,8 @@ function AddVendorDialog() {
   function handleSave() {
     if (!name.trim()) { toast.error("Company name is required"); return; }
     const desc = selectedIds.length > 0
-      ? `${selectedIds.length} contract${selectedIds.length > 1 ? "s" : ""} linked`
-      : "No contracts linked yet";
+      ? `${selectedIds.length} project${selectedIds.length > 1 ? "s" : ""} linked`
+      : "No projects linked yet";
     toast.success(`${name.trim()} added to vendor pool`, { description: desc });
     setOpen(false);
     setName(""); setType("vendor"); setCategory(""); setNotes(""); setSelectedIds([]);

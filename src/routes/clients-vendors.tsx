@@ -391,6 +391,7 @@ function VendorsTab() {
   const [vendorView, setVendorView] = useState<typeof vendors[number] | null>(null);
   const { isActive, setActive } = useOrgActive("vendor");
   const [rows, setRows] = useState(vendors);
+  const [editing, setEditing] = useState<typeof vendors[number] | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
   const q = query.trim().toLowerCase();

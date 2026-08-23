@@ -698,40 +698,65 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
   );
 }
 
-// ── Add client dialog ─────────────────────────────────────────────────────────
-function AddClientDialog() {
-  const [open, setOpen]             = useState(false);
-  const [name, setName]             = useState("");
-  const [contact, setContact]       = useState("");
-  const [email, setEmail]           = useState("");
-  const [phone, setPhone]           = useState("");
-  const [status, setStatus]         = useState("prospect");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+// ── Add / edit client dialog ──────────────────────────────────────────────────
+type ClientRecord = typeof clients[number];
 
-  function toggle(id: string) {
-    setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  }
+function ClientFormDialog({
+  client,
+  open: openProp,
+  onOpenChange,
+  onSave,
+}: {
+  client?: ClientRecord;
+  open?: boolean;
+  onOpenChange?: (o: boolean) => void;
+  onSave?: (c: ClientRecord) => void;
+}) {
+  const isEdit = !!client;
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (o: boolean) => { onOpenChange?.(o); if (openProp === undefined) setOpenState(o); };
+
+  const [name, setName]       = useState(client?.name ?? "");
+  const [contact, setContact] = useState(client?.contact ?? "");
+  const [email, setEmail]     = useState(client ? CLIENT_DETAILS[client.name]?.email ?? "" : "");
+  const [phone, setPhone]     = useState(client ? CLIENT_DETAILS[client.name]?.phone ?? "" : "");
+  const [status, setStatus]   = useState(client?.status === "Inactive" ? "inactive" : "active");
+  const [selectedIds, setSelectedIds] = useState<string[]>(
+    client ? clientProjects(client.name).map((p) => p.id) : [],
+  );
 
   function handleSave() {
     if (!name.trim()) { toast.error("Company name is required"); return; }
     const desc = selectedIds.length > 0
       ? `${selectedIds.length} project${selectedIds.length > 1 ? "s" : ""} linked`
       : "No projects linked yet";
-    toast.success(`${name.trim()} added`, { description: desc });
+    onSave?.({
+      name: name.trim(),
+      contact: contact.trim() || "—",
+      projects: selectedIds.length,
+      revenue: client?.revenue ?? 0,
+      status: status === "inactive" ? "Inactive" : "Active",
+    });
+    toast.success(`${name.trim()} ${isEdit ? "updated" : "added"}`, { description: desc });
     setOpen(false);
-    setName(""); setContact(""); setEmail(""); setPhone("");
-    setStatus("prospect"); setSelectedIds([]);
+    if (!isEdit) {
+      setName(""); setContact(""); setEmail(""); setPhone("");
+      setStatus("active"); setSelectedIds([]);
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="primary">
-          <Plus className="mr-1 h-4 w-4" />Add Client
-        </Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button size="sm" variant="primary">
+            <Plus className="mr-1 h-4 w-4" />Add Client
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>New Client</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{isEdit ? "Edit Client" : "New Client"}</DialogTitle></DialogHeader>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
@@ -755,7 +780,6 @@ function AddClientDialog() {
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="prospect">Prospect</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
@@ -776,13 +800,14 @@ function AddClientDialog() {
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={handleSave}>
-            <Plus className="mr-1 h-3.5 w-3.5" />Add Client
+            {isEdit ? "Save changes" : <><Plus className="mr-1 h-3.5 w-3.5" />Add Client</>}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
 
 // ── Add vendor dialog ─────────────────────────────────────────────────────────
 function AddVendorDialog() {

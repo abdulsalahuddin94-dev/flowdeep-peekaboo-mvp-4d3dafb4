@@ -317,12 +317,10 @@ function ClientSheet({ client, onClose }: { client: typeof clients[number] | nul
         </div>
 
         {/* Footer */}
-        <div className="border-t border-border px-6 py-4 space-y-2">
-          <Button variant="outline" className="w-full border-accent/40 text-accent hover:bg-accent-dim" onClick={() => setConnectOpen(true)}>
-            <Plus className="mr-1.5 h-3.5 w-3.5" />Connect existing project
-          </Button>
+        <div className="border-t border-border px-6 py-4">
           <Button variant="outline" className="w-full" onClick={onClose}>Close</Button>
         </div>
+
       </SheetContent>
 
 

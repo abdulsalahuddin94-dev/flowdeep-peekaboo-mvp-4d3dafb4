@@ -306,7 +306,7 @@ const SelectContent = React.forwardRef<
         width: rect.width,
       }}
       className={cn(
-        "z-[1000] max-h-72 min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-0",
+        "pointer-events-auto z-[1000] max-h-72 min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-0",
         className,
       )}
       {...props}

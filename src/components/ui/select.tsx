@@ -282,14 +282,16 @@ const SelectItem = React.forwardRef<
   const selected = ctx.value === value;
   const active = ctx.activeValue === value;
 
-  React.useEffect(() => {
-    ctx.registerLabel(value, label || value);
-  }, [ctx, label, value]);
+  const { registerLabel, registerOption } = ctx;
 
   React.useEffect(() => {
-    ctx.registerOption(value, matched && !disabled);
-    return () => ctx.registerOption(value, false);
-  }, [ctx, value, matched, disabled]);
+    registerLabel(value, label || value);
+  }, [registerLabel, label, value]);
+
+  React.useEffect(() => {
+    registerOption(value, matched && !disabled);
+    return () => registerOption(value, false);
+  }, [registerOption, value, matched, disabled]);
 
   if (!matched) return null;
 

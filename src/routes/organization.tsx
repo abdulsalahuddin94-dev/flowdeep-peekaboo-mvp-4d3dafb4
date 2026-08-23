@@ -150,7 +150,7 @@ function BusinessLinesTab() {
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{b.name}</TableCell>
                 <TableCell className="w-72 text-muted-foreground">{b.description || "—"}</TableCell>
                 <TableCell className="text-center num-mono">{b.linked.length}</TableCell>
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <RowActions
                     onEdit={() => setEditing({ index: i, name: b.name, description: b.description })}
                     isActive={isActive(b.name)}
@@ -165,6 +165,7 @@ function BusinessLinesTab() {
         </Table>
       </div>
       <TablePagination {...pager} itemLabel="project types" />
+      {related$.dialog}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
@@ -216,6 +217,7 @@ function BusinessLinesTab() {
 type OrgDepartment = { name: string; description: string };
 
 function DepartmentsTab() {
+  const related$ = useRelatedProjectsDialog();
   const { projects } = useProjects();
   const [rows, setRows] = useState<OrgDepartment[]>(departments.map((d) => ({ name: d.name, description: d.description ?? "" })));
   const [editing, setEditing] = useState<{ index: number; name: string; description: string } | null>(null);
@@ -273,7 +275,7 @@ function DepartmentsTab() {
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
                 <TableCell className="text-muted-foreground">{d.description || "—"}</TableCell>
                 <TableCell className="text-center num-mono">{d.linked.length}</TableCell>
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <RowActions
                     onEdit={() => setEditing({ index: i, name: d.name, description: d.description })}
                     isActive={isActive(d.name)}
@@ -288,6 +290,7 @@ function DepartmentsTab() {
         </Table>
       </div>
       <TablePagination {...pager} itemLabel="departments" />
+      {related$.dialog}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>

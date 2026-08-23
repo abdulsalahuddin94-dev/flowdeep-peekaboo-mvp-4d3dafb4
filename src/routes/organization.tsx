@@ -265,7 +265,9 @@ function DepartmentsTab() {
               <TableRow key={`${d.name}-${i}`} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(d.name) && "opacity-60")}>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{d.name}</TableCell>
                 <TableCell className="text-muted-foreground">{d.description || "—"}</TableCell>
-                <TableCell className="text-center num-mono">{d.projects}</TableCell>
+                <TableCell className="text-center">
+                  <RelatedProjectsCount label={d.name} projects={d.linked.map((p) => ({ id: p.id, name: p.name }))} />
+                </TableCell>
                 <TableCell>
                   <RowActions
                     onEdit={() => setEditing({ index: i, name: d.name, description: d.description })}

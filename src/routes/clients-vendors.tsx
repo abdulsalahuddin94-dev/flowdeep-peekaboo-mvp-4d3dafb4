@@ -724,28 +724,20 @@ function ClientFormDialog({
   const [contact, setContact] = useState(client?.contact ?? "");
   const [email, setEmail]     = useState(client ? CLIENT_DETAILS[client.name]?.email ?? "" : "");
   const [phone, setPhone]     = useState(client ? CLIENT_DETAILS[client.name]?.phone ?? "" : "");
-  const [status, setStatus]   = useState(client?.status === "Inactive" ? "inactive" : "active");
-  const [selectedIds, setSelectedIds] = useState<string[]>(
-    client ? clientProjects(client.name).map((p) => p.id) : [],
-  );
 
   function handleSave() {
     if (!name.trim()) { toast.error("Company name is required"); return; }
-    const desc = selectedIds.length > 0
-      ? `${selectedIds.length} project${selectedIds.length > 1 ? "s" : ""} linked`
-      : "No projects linked yet";
     onSave?.({
       name: name.trim(),
       contact: contact.trim() || "—",
-      projects: selectedIds.length,
+      projects: client?.projects ?? 0,
       revenue: client?.revenue ?? 0,
-      status: status === "inactive" ? "Inactive" : "Active",
+      status: client?.status ?? "Active",
     });
-    toast.success(`${name.trim()} ${isEdit ? "updated" : "added"}`, { description: desc });
+    toast.success(`${name.trim()} ${isEdit ? "updated" : "added"}`);
     setOpen(false);
     if (!isEdit) {
       setName(""); setContact(""); setEmail(""); setPhone("");
-      setStatus("active"); setSelectedIds([]);
     }
   }
 
@@ -778,26 +770,8 @@ function ClientFormDialog({
             <Label>Phone</Label>
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
-          <div>
-            <Label>Status</Label>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
-        {/* ── Link to existing projects ─────────────────────────────────── */}
-        <div>
-          <Label className="text-sm">
-            Link to existing projects
-            <span className="ml-1.5 font-normal text-muted-foreground">(optional)</span>
-          </Label>
-          <ProjectsSelect value={selectedIds} onChange={setSelectedIds} />
-        </div>
 
 
         <DialogFooter>

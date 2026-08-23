@@ -325,58 +325,8 @@ function ClientSheet({ client, onClose }: { client: typeof clients[number] | nul
         </div>
       </SheetContent>
 
-      {/* Connect dialog (sibling of SheetContent inside Sheet) */}
-      <Dialog open={connectOpen} onOpenChange={(o) => { if (!o) { setConnectOpen(false); setConnectSel([]); setConnectSearch(""); } }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Link projects to {client.name}</DialogTitle></DialogHeader>
-          <div className="space-y-2">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search projects…" className="h-8 pl-7 text-sm" value={connectSearch} onChange={(e) => setConnectSearch(e.target.value)} />
-            </div>
-            <ScrollArea className="h-52 rounded-md border border-border">
-              <div className="p-1.5 space-y-0.5">
-                {filteredAvail.map((p) => {
-                  const checked = connectSel.includes(p.id);
-                  return (
-                    <label key={p.id} className={`flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 ${checked ? "bg-accent-dim/30" : "hover:bg-secondary/40"}`}>
-                      <Checkbox checked={checked} onCheckedChange={() => toggleConnect(p.id)} className="shrink-0" />
-                      <span className={`h-2 w-2 shrink-0 rounded-full ${RAG_DOT[p.rag]}`} />
-                      <span className="flex-1 truncate text-sm text-foreground">{p.name}</span>
-                      <Badge variant="outline" className="shrink-0 border-border bg-secondary/40 text-[10px] text-muted-foreground py-0">{p.stage}</Badge>
-                    </label>
-                  );
-                })}
-                {filteredAvail.length === 0 && (
-                  <p className="py-4 text-center text-xs text-muted-foreground">
-                    {available.length === 0 ? "All projects are already linked." : `No projects match "${connectSearch}"`}
-                  </p>
-                )}
-              </div>
-            </ScrollArea>
-            {connectSel.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {connectSel.map((id) => {
-                  const p = projects.find((x) => x.id === id);
-                  return (
-                    <span key={id} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-                      <span className={`h-1.5 w-1.5 rounded-full ${RAG_DOT[p?.rag ?? "grey"]}`} />
-                      {p?.name}
-                      <button onClick={() => toggleConnect(id)} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setConnectOpen(false); setConnectSel([]); setConnectSearch(""); }}>Cancel</Button>
-            <Button variant="primary" onClick={handleConnect}>
-              Link {connectSel.length > 0 ? `${connectSel.length} project${connectSel.length !== 1 ? "s" : ""}` : "selected"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+
     </Sheet>
   );
 }

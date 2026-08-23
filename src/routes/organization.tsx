@@ -765,9 +765,7 @@ function CalendarsTab() {
               />
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 rounded-md bg-secondary/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                <Link2 className="h-3 w-3" />{linked.length} linked project{linked.length === 1 ? "" : "s"}
-              </span>
+              <LinkedProjectsChip label={c.name} projects={linked.map((p) => ({ id: p.id, name: p.name }))} />
               {!isActive && (
                 <span className="inline-flex items-center gap-1 rounded-md bg-secondary/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                   Deactivated

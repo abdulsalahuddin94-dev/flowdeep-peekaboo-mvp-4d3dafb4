@@ -80,9 +80,9 @@ function ItemList({ items, empty = "Nothing connected yet" }: { items: RelatedIt
     <ScrollArea className="max-h-72">
       <div className="space-y-1 pr-2">
         {items.map((it) => (
-          <div key={it.id} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-secondary/40">
+          <div key={`${it.name}-${it.id}`} className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-secondary/40">
             <span className="truncate text-foreground">{it.name}</span>
-            <span className="ml-3 shrink-0 text-xs text-muted-foreground">{it.id}</span>
+            {it.id && <span className="ml-3 shrink-0 text-xs text-muted-foreground">{it.id}</span>}
           </div>
         ))}
       </div>

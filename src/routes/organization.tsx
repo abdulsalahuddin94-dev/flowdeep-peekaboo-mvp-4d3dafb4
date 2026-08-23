@@ -20,7 +20,7 @@ import { relatedProjectsGroup, usageGroup, capexOpexGroup, statusGroup, skillsGr
 
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { businessLines, departments, type WorkCalendar } from "@/lib/mock-data";
+import { businessLines, departments, projects as mockProjects, type WorkCalendar } from "@/lib/mock-data";
 import { RulesThresholdsTab } from "@/components/org/RulesThresholds";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests, useSkills } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";

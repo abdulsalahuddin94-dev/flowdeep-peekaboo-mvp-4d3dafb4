@@ -106,11 +106,11 @@ function BusinessLinesTab() {
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows
-      .map((b, index) => ({ ...b, index }))
+      .map((b, index) => ({ ...b, index, linked: allProjects.filter((p) => p.businessLine === b.name) }))
       .filter((b) => !q || b.name.toLowerCase().includes(q) || b.description.toLowerCase().includes(q))
-      .filter((b) => matchRelated(related, b.projects))
+      .filter((b) => matchRelated(related, b.linked.length))
       .filter((b) => matchStatus(status, isActive(b.name)));
-  }, [rows, query, related, status, isActive]);
+  }, [rows, query, related, status, isActive, allProjects]);
 
   const pager = usePagination(visible);
 

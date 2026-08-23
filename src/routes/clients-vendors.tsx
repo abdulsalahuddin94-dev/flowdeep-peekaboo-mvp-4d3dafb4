@@ -209,32 +209,12 @@ function ClientsTab() {
 
 // ── Client detail sheet ───────────────────────────────────────────────────────
 function ClientSheet({ client, onClose }: { client: typeof clients[number] | null; onClose: () => void }) {
-  const [extraProjectIds, setExtraProjectIds] = useState<string[]>([]);
-  const [connectOpen, setConnectOpen]         = useState(false);
-  const [connectSearch, setConnectSearch]     = useState("");
-  const [connectSel, setConnectSel]           = useState<string[]>([]);
-
   if (!client) return null;
 
-  const detail     = CLIENT_DETAILS[client.name];
-  const baseLinked = projects.filter((p) => p.client === client.name);
-  const extraLinked = extraProjectIds.map((id) => projects.find((p) => p.id === id)).filter(Boolean) as typeof projects;
-  const linked     = [...baseLinked, ...extraLinked];
-  const linkedIds  = new Set(linked.map((p) => p.id));
-  const available  = projects.filter((p) => !linkedIds.has(p.id));
-  const filteredAvail = available.filter((p) => p.name.toLowerCase().includes(connectSearch.toLowerCase()));
-  const revenue    = clientRevenue(client.name).toFixed(1);
+  const detail  = CLIENT_DETAILS[client.name];
+  const linked  = projects.filter((p) => p.client === client.name);
+  const revenue = clientRevenue(client.name).toFixed(1);
 
-  function toggleConnect(id: string) {
-    setConnectSel((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  }
-
-  function handleConnect() {
-    if (connectSel.length === 0) { toast.error("Select at least one project"); return; }
-    setExtraProjectIds((prev) => [...prev, ...connectSel.filter((id) => !prev.includes(id))]);
-    toast.success(`${connectSel.length} project${connectSel.length !== 1 ? "s" : ""} linked to ${client?.name ?? ""}`);
-    setConnectOpen(false); setConnectSel([]); setConnectSearch("");
-  }
 
   return (
     <Sheet open={!!client} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -284,8 +264,8 @@ function ClientSheet({ client, onClose }: { client: typeof clients[number] | nul
             <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-12 text-center">
               <FileText className="h-8 w-8 text-muted-foreground/40" />
               <p className="text-sm text-muted-foreground">No projects linked to {client.name} yet.</p>
-              <button className="mt-1 text-xs text-accent hover:underline" onClick={() => setConnectOpen(true)}>+ Connect existing project</button>
             </div>
+
           ) : (
             <div className="space-y-2">
               {linked.map((p) => (
@@ -317,66 +297,14 @@ function ClientSheet({ client, onClose }: { client: typeof clients[number] | nul
         </div>
 
         {/* Footer */}
-        <div className="border-t border-border px-6 py-4 space-y-2">
-          <Button variant="outline" className="w-full border-accent/40 text-accent hover:bg-accent-dim" onClick={() => setConnectOpen(true)}>
-            <Plus className="mr-1.5 h-3.5 w-3.5" />Connect existing project
-          </Button>
+        <div className="border-t border-border px-6 py-4">
           <Button variant="outline" className="w-full" onClick={onClose}>Close</Button>
         </div>
+
       </SheetContent>
 
-      {/* Connect dialog (sibling of SheetContent inside Sheet) */}
-      <Dialog open={connectOpen} onOpenChange={(o) => { if (!o) { setConnectOpen(false); setConnectSel([]); setConnectSearch(""); } }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Link projects to {client.name}</DialogTitle></DialogHeader>
-          <div className="space-y-2">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search projects…" className="h-8 pl-7 text-sm" value={connectSearch} onChange={(e) => setConnectSearch(e.target.value)} />
-            </div>
-            <ScrollArea className="h-52 rounded-md border border-border">
-              <div className="p-1.5 space-y-0.5">
-                {filteredAvail.map((p) => {
-                  const checked = connectSel.includes(p.id);
-                  return (
-                    <label key={p.id} className={`flex cursor-pointer items-center gap-2.5 rounded px-2 py-1.5 ${checked ? "bg-accent-dim/30" : "hover:bg-secondary/40"}`}>
-                      <Checkbox checked={checked} onCheckedChange={() => toggleConnect(p.id)} className="shrink-0" />
-                      <span className={`h-2 w-2 shrink-0 rounded-full ${RAG_DOT[p.rag]}`} />
-                      <span className="flex-1 truncate text-sm text-foreground">{p.name}</span>
-                      <Badge variant="outline" className="shrink-0 border-border bg-secondary/40 text-[10px] text-muted-foreground py-0">{p.stage}</Badge>
-                    </label>
-                  );
-                })}
-                {filteredAvail.length === 0 && (
-                  <p className="py-4 text-center text-xs text-muted-foreground">
-                    {available.length === 0 ? "All projects are already linked." : `No projects match "${connectSearch}"`}
-                  </p>
-                )}
-              </div>
-            </ScrollArea>
-            {connectSel.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {connectSel.map((id) => {
-                  const p = projects.find((x) => x.id === id);
-                  return (
-                    <span key={id} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-                      <span className={`h-1.5 w-1.5 rounded-full ${RAG_DOT[p?.rag ?? "grey"]}`} />
-                      {p?.name}
-                      <button onClick={() => toggleConnect(id)} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setConnectOpen(false); setConnectSel([]); setConnectSearch(""); }}>Cancel</Button>
-            <Button variant="primary" onClick={handleConnect}>
-              Link {connectSel.length > 0 ? `${connectSel.length} project${connectSel.length !== 1 ? "s" : ""}` : "selected"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+
     </Sheet>
   );
 }

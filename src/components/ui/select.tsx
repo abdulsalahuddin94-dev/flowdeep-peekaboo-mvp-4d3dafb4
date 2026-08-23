@@ -90,11 +90,14 @@ const Select = ({
     setLabels((prev) => (prev[v] === label ? prev : { ...prev, [v]: label }));
   }, []);
 
+  const [, bump] = React.useState(0);
   const registerOption = React.useCallback((v: string, matched: boolean) => {
     const list = matchedValues.current;
     const i = list.indexOf(v);
     if (matched && i === -1) list.push(v);
-    if (!matched && i !== -1) list.splice(i, 1);
+    else if (!matched && i !== -1) list.splice(i, 1);
+    else return;
+    bump((n) => n + 1);
   }, []);
 
   const select = React.useCallback(

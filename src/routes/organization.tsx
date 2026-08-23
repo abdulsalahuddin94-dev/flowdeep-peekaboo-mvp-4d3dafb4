@@ -1232,12 +1232,12 @@ function SkillsTable() {
       if (!projectsByRole.has(key)) projectsByRole.set(key, new Set());
       projectsByRole.get(key)!.add(r.project);
     }
-    const map = new Map<string, { roles: number; projects: number }>();
+    const map = new Map<string, { roles: number; projects: number; roleNames: string[]; projectNames: string[] }>();
     for (const skill of skillsCatalog) {
       const roles = jobRoles.filter((r) => (r.skills ?? []).some((s) => s.toLowerCase() === skill.toLowerCase()));
       const projects = new Set<string>();
       roles.forEach((r) => projectsByRole.get(r.title.trim().toLowerCase())?.forEach((p) => projects.add(p)));
-      map.set(skill, { roles: roles.length, projects: projects.size });
+      map.set(skill, { roles: roles.length, projects: projects.size, roleNames: roles.map((r) => r.title), projectNames: [...projects] });
     }
     return map;
   }, [skillsCatalog, jobRoles, resourceRequests]);

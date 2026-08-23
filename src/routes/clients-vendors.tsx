@@ -209,32 +209,12 @@ function ClientsTab() {
 
 // ── Client detail sheet ───────────────────────────────────────────────────────
 function ClientSheet({ client, onClose }: { client: typeof clients[number] | null; onClose: () => void }) {
-  const [extraProjectIds, setExtraProjectIds] = useState<string[]>([]);
-  const [connectOpen, setConnectOpen]         = useState(false);
-  const [connectSearch, setConnectSearch]     = useState("");
-  const [connectSel, setConnectSel]           = useState<string[]>([]);
-
   if (!client) return null;
 
-  const detail     = CLIENT_DETAILS[client.name];
-  const baseLinked = projects.filter((p) => p.client === client.name);
-  const extraLinked = extraProjectIds.map((id) => projects.find((p) => p.id === id)).filter(Boolean) as typeof projects;
-  const linked     = [...baseLinked, ...extraLinked];
-  const linkedIds  = new Set(linked.map((p) => p.id));
-  const available  = projects.filter((p) => !linkedIds.has(p.id));
-  const filteredAvail = available.filter((p) => p.name.toLowerCase().includes(connectSearch.toLowerCase()));
-  const revenue    = clientRevenue(client.name).toFixed(1);
+  const detail  = CLIENT_DETAILS[client.name];
+  const linked  = projects.filter((p) => p.client === client.name);
+  const revenue = clientRevenue(client.name).toFixed(1);
 
-  function toggleConnect(id: string) {
-    setConnectSel((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  }
-
-  function handleConnect() {
-    if (connectSel.length === 0) { toast.error("Select at least one project"); return; }
-    setExtraProjectIds((prev) => [...prev, ...connectSel.filter((id) => !prev.includes(id))]);
-    toast.success(`${connectSel.length} project${connectSel.length !== 1 ? "s" : ""} linked to ${client?.name ?? ""}`);
-    setConnectOpen(false); setConnectSel([]); setConnectSearch("");
-  }
 
   return (
     <Sheet open={!!client} onOpenChange={(o) => { if (!o) onClose(); }}>

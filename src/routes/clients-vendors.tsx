@@ -4,7 +4,10 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { relatedProjectsGroup, statusGroup, matchRelated, matchStatus } from "@/components/ds/filters";
-import { StatusPill } from "@/components/TableRowActions";
+import { TableRowActions } from "@/components/TableRowActions";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useOrgActive } from "@/lib/org-active";
+import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -85,18 +88,33 @@ function ClientsVendorsPage() {
   );
 }
 
+// ── Derived client metrics ────────────────────────────────────────────────────
+/** Linked projects of a client (single source of truth for counts + revenue). */
+function clientProjects(name: string) {
+  return projects.filter((p) => p.client === name);
+}
+/** Recognized revenue = Σ(project budget × % complete) — read-only, never typed in. */
+function clientRevenue(name: string) {
+  return clientProjects(name).reduce((s, p) => s + p.budgetTotal * (p.progress / 100), 0);
+}
+
 // ── Clients tab ───────────────────────────────────────────────────────────────
 function ClientsTab() {
   const [clientView, setClientView] = useState<typeof clients[number] | null>(null);
   const [query, setQuery] = useState("");
   const [related, setRelated] = useState("all");
   const [status, setStatus] = useState("all");
+  const { isActive, setActive } = useOrgActive("client");
+  const [rows, setRows] = useState(clients);
+  const [editing, setEditing] = useState<typeof clients[number] | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
 
   const q = query.trim().toLowerCase();
-  const list = clients
+  const list = rows
     .filter((c) => !q || c.name.toLowerCase().includes(q) || c.contact.toLowerCase().includes(q))
-    .filter((c) => matchRelated(related, c.projects))
-    .filter((c) => matchStatus(status, c.status === "Active"));
+    .filter((c) => matchRelated(related, clientProjects(c.name).length))
+    .filter((c) => matchStatus(status, isActive(c.name)));
 
   return (
     <>
@@ -105,46 +123,90 @@ function ClientsTab() {
         onQueryChange={setQuery}
         placeholder="Search client or contact…"
         filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
-        cta={<AddClientDialog />}
+        cta={<ClientFormDialog onSave={(c) => setRows((prev) => [...prev, c])} />}
       />
       <Table>
         <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
           <TableHead>Client</TableHead><TableHead>Primary Contact</TableHead>
           <TableHead className="text-center">Active Projects</TableHead>
           <TableHead className="text-center">Revenue (FY26)</TableHead>
-          <TableHead className="w-32 text-center">Status</TableHead><TableHead className="w-24" />
+          <TableHead className="w-32 text-center">Status</TableHead>
         </TableRow></TableHeader>
         <TableBody>
-          {list.length === 0 && <EmptyRow colSpan={6} />}
-          {list.map((c) => (
-            <TableRow key={c.name} className="bg-table-row-bg hover:bg-table-row-hover border-0">
-              <TableCell className="font-medium text-foreground">{c.name}</TableCell>
-
-              <TableCell className="text-muted-foreground">{c.contact}</TableCell>
-              <TableCell className="text-center num-mono">{c.projects}</TableCell>
-              <TableCell className="text-center num-mono">${c.revenue.toFixed(1)}M</TableCell>
-              <TableCell className="text-center"><StatusPill isActive={c.status === "Active"} label={c.status} /></TableCell>
-              <TableCell className="text-right">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setClientView(c)}
-                  className="group h-8 gap-1 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                >
-                  View
-                  <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                </Button>
-              </TableCell>
-
-            </TableRow>
-          ))}
+          {list.length === 0 && <EmptyRow colSpan={5} />}
+          {list.map((c) => {
+            const linkedCount = clientProjects(c.name).length;
+            return (
+              <TableRow
+                key={c.name}
+                onClick={() => setClientView(c)}
+                className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(c.name) && "opacity-60")}
+              >
+                <TableCell className="font-medium text-foreground">{c.name}</TableCell>
+                <TableCell className="text-muted-foreground">{c.contact}</TableCell>
+                <TableCell className="text-center num-mono">{linkedCount}</TableCell>
+                <TableCell className="text-center num-mono">
+                  {linkedCount === 0 ? "—" : `$${clientRevenue(c.name).toFixed(1)}M`}
+                </TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableRowActions
+                    onEdit={() => setEditing(c)}
+                    isActive={isActive(c.name)}
+                    onToggleActive={() => setPendingToggle({ name: c.name, active: isActive(c.name) })}
+                    onDelete={() => setPendingDelete(c.name)}
+                  />
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
 
       <ClientSheet client={clientView} onClose={() => setClientView(null)} />
+
+      {editing && (
+        <ClientFormDialog
+          client={editing}
+          open
+          onOpenChange={(o) => !o && setEditing(null)}
+          onSave={(c) => setRows((prev) => prev.map((r) => (r.name === editing.name ? c : r)))}
+        />
+      )}
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onOpenChange={(o) => !o && setPendingDelete(null)}
+        title={`Delete "${pendingDelete ?? ""}"?`}
+        description="The client record is removed. Linked projects stay untouched."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={() => {
+          setRows((prev) => prev.filter((r) => r.name !== pendingDelete));
+          toast.success(`Deleted "${pendingDelete}"`);
+          setPendingDelete(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!pendingToggle}
+        onOpenChange={(o) => !o && setPendingToggle(null)}
+        title={pendingToggle?.active ? `Deactivate "${pendingToggle.name}"?` : `Reactivate "${pendingToggle?.name ?? ""}"?`}
+        description={pendingToggle?.active
+          ? "Deactivated clients stay on record but can't be linked to new projects."
+          : "The client becomes available for new projects again."}
+        confirmLabel={pendingToggle?.active ? "Deactivate" : "Reactivate"}
+        tone={pendingToggle?.active ? "warning" : "success"}
+        onConfirm={() => {
+          if (!pendingToggle) return;
+          setActive(pendingToggle.name, !pendingToggle.active);
+          toast.success(`${pendingToggle.name} ${pendingToggle.active ? "deactivated" : "reactivated"}`);
+          setPendingToggle(null);
+        }}
+      />
     </>
   );
 }
+
 
 // ── Client detail sheet ───────────────────────────────────────────────────────
 function ClientSheet({ client, onClose }: { client: typeof clients[number] | null; onClose: () => void }) {
@@ -162,7 +224,7 @@ function ClientSheet({ client, onClose }: { client: typeof clients[number] | nul
   const linkedIds  = new Set(linked.map((p) => p.id));
   const available  = projects.filter((p) => !linkedIds.has(p.id));
   const filteredAvail = available.filter((p) => p.name.toLowerCase().includes(connectSearch.toLowerCase()));
-  const revenue    = client.revenue.toFixed(1);
+  const revenue    = clientRevenue(client.name).toFixed(1);
 
   function toggleConnect(id: string) {
     setConnectSel((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
@@ -325,12 +387,18 @@ function VendorsTab() {
   const [type, setType] = useState("all");
   const [query, setQuery] = useState("");
   const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
   const [vendorView, setVendorView] = useState<typeof vendors[number] | null>(null);
+  const { isActive, setActive } = useOrgActive("vendor");
+  const [rows, setRows] = useState(vendors);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
   const q = query.trim().toLowerCase();
-  const list = vendors
+  const list = rows
     .filter((v) => !q || v.name.toLowerCase().includes(q) || v.category.toLowerCase().includes(q))
     .filter((v) => type === "all" || v.type === type)
-    .filter((v) => matchRelated(related, v.contracts));
+    .filter((v) => matchRelated(related, v.contracts))
+    .filter((v) => matchStatus(status, isActive(v.name)));
 
   return (
     <>
@@ -341,6 +409,7 @@ function VendorsTab() {
         filterGroups={[
           { key: "related", label: "Related Contracts", value: related, onChange: setRelated, options: [{ value: "all", label: "All records" }, { value: "with", label: "With Contracts" }, { value: "without", label: "No Contracts" }] },
           { key: "type", label: "Types", value: type, onChange: setType, options: [{ value: "all", label: "All types" }, { value: "Vendor", label: "Vendor" }, { value: "Subcontractor", label: "Subcontractor" }] },
+          statusGroup(status, setStatus),
         ]}
         cta={<AddVendorDialog />}
       />
@@ -349,12 +418,16 @@ function VendorsTab() {
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
             <TableHead>Vendor</TableHead><TableHead>Type</TableHead><TableHead>Category</TableHead>
             <TableHead className="text-center">Contracts</TableHead><TableHead className="text-center">Total Spend</TableHead>
-            <TableHead>Evaluation</TableHead><TableHead className="w-24" />
+            <TableHead>Evaluation</TableHead><TableHead className="w-32 text-center">Status</TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {list.length === 0 && <EmptyRow colSpan={7} />}
             {list.map((v) => (
-              <TableRow key={v.name} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+              <TableRow
+                key={v.name}
+                onClick={() => setVendorView(v)}
+                className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(v.name) && "opacity-60")}
+              >
                 <TableCell className="font-medium text-foreground">{v.name}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={`rounded-full ${v.type === "Vendor" ? "border-rag-blue/40 bg-rag-blue/10 text-rag-blue" : "border-role-exec/40 bg-role-exec/10 text-role-exec"}`}>
@@ -370,18 +443,13 @@ function VendorsTab() {
                     <span className="num-mono">{v.eval.toFixed(1)}</span>
                   </span>
                 </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setVendorView(v)}
-                    className="group h-8 gap-1 rounded-lg px-2.5 text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                  >
-                    View
-                    <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </Button>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableRowActions
+                    isActive={isActive(v.name)}
+                    onToggleActive={() => setPendingToggle({ name: v.name, active: isActive(v.name) })}
+                    onDelete={() => setPendingDelete(v.name)}
+                  />
                 </TableCell>
-
               </TableRow>
             ))}
           </TableBody>
@@ -390,9 +458,41 @@ function VendorsTab() {
 
       {/* Vendor detail sheet */}
       <VendorSheet vendor={vendorView} onClose={() => setVendorView(null)} />
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onOpenChange={(o) => !o && setPendingDelete(null)}
+        title={`Remove "${pendingDelete ?? ""}" from the pool?`}
+        description="Existing contracts stay on record."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={() => {
+          setRows((prev) => prev.filter((r) => r.name !== pendingDelete));
+          toast.success(`Deleted "${pendingDelete}"`);
+          setPendingDelete(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!pendingToggle}
+        onOpenChange={(o) => !o && setPendingToggle(null)}
+        title={pendingToggle?.active ? `Deactivate "${pendingToggle.name}"?` : `Reactivate "${pendingToggle?.name ?? ""}"?`}
+        description={pendingToggle?.active
+          ? "Deactivated vendors stay on record but can't be added to new contracts."
+          : "The vendor becomes available for new contracts again."}
+        confirmLabel={pendingToggle?.active ? "Deactivate" : "Reactivate"}
+        tone={pendingToggle?.active ? "warning" : "success"}
+        onConfirm={() => {
+          if (!pendingToggle) return;
+          setActive(pendingToggle.name, !pendingToggle.active);
+          toast.success(`${pendingToggle.name} ${pendingToggle.active ? "deactivated" : "reactivated"}`);
+          setPendingToggle(null);
+        }}
+      />
     </>
   );
 }
+
 
 // ── Vendor detail sheet ───────────────────────────────────────────────────────
 function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | null; onClose: () => void }) {
@@ -601,40 +701,65 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
   );
 }
 
-// ── Add client dialog ─────────────────────────────────────────────────────────
-function AddClientDialog() {
-  const [open, setOpen]             = useState(false);
-  const [name, setName]             = useState("");
-  const [contact, setContact]       = useState("");
-  const [email, setEmail]           = useState("");
-  const [phone, setPhone]           = useState("");
-  const [status, setStatus]         = useState("prospect");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+// ── Add / edit client dialog ──────────────────────────────────────────────────
+type ClientRecord = typeof clients[number];
 
-  function toggle(id: string) {
-    setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-  }
+function ClientFormDialog({
+  client,
+  open: openProp,
+  onOpenChange,
+  onSave,
+}: {
+  client?: ClientRecord;
+  open?: boolean;
+  onOpenChange?: (o: boolean) => void;
+  onSave?: (c: ClientRecord) => void;
+}) {
+  const isEdit = !!client;
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (o: boolean) => { onOpenChange?.(o); if (openProp === undefined) setOpenState(o); };
+
+  const [name, setName]       = useState(client?.name ?? "");
+  const [contact, setContact] = useState(client?.contact ?? "");
+  const [email, setEmail]     = useState(client ? CLIENT_DETAILS[client.name]?.email ?? "" : "");
+  const [phone, setPhone]     = useState(client ? CLIENT_DETAILS[client.name]?.phone ?? "" : "");
+  const [status, setStatus]   = useState(client?.status === "Inactive" ? "inactive" : "active");
+  const [selectedIds, setSelectedIds] = useState<string[]>(
+    client ? clientProjects(client.name).map((p) => p.id) : [],
+  );
 
   function handleSave() {
     if (!name.trim()) { toast.error("Company name is required"); return; }
     const desc = selectedIds.length > 0
       ? `${selectedIds.length} project${selectedIds.length > 1 ? "s" : ""} linked`
       : "No projects linked yet";
-    toast.success(`${name.trim()} added`, { description: desc });
+    onSave?.({
+      name: name.trim(),
+      contact: contact.trim() || "—",
+      projects: selectedIds.length,
+      revenue: client?.revenue ?? 0,
+      status: status === "inactive" ? "Inactive" : "Active",
+    });
+    toast.success(`${name.trim()} ${isEdit ? "updated" : "added"}`, { description: desc });
     setOpen(false);
-    setName(""); setContact(""); setEmail(""); setPhone("");
-    setStatus("prospect"); setSelectedIds([]);
+    if (!isEdit) {
+      setName(""); setContact(""); setEmail(""); setPhone("");
+      setStatus("active"); setSelectedIds([]);
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="primary">
-          <Plus className="mr-1 h-4 w-4" />Add Client
-        </Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button size="sm" variant="primary">
+            <Plus className="mr-1 h-4 w-4" />Add Client
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>New Client</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>{isEdit ? "Edit Client" : "New Client"}</DialogTitle></DialogHeader>
 
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
@@ -658,7 +783,6 @@ function AddClientDialog() {
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="prospect">Prospect</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
@@ -679,13 +803,14 @@ function AddClientDialog() {
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={handleSave}>
-            <Plus className="mr-1 h-3.5 w-3.5" />Add Client
+            {isEdit ? "Save changes" : <><Plus className="mr-1 h-3.5 w-3.5" />Add Client</>}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
 
 // ── Add vendor dialog ─────────────────────────────────────────────────────────
 function AddVendorDialog() {

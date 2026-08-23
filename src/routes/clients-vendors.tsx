@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
-import { RelatedProjectsCount } from "@/components/ds/RelatedProjectsDialog";
+import { useRelatedProjectsDialog } from "@/components/ds/RelatedProjectsDialog";
 import { relatedProjectsGroup, statusGroup, matchRelated, matchStatus } from "@/components/ds/filters";
 import { TableRowActions } from "@/components/TableRowActions";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -138,17 +138,16 @@ function ClientsTab() {
             return (
               <TableRow
                 key={c.name}
-                className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(c.name) && "opacity-60")}
+                onClick={() => related$.openFor({ label: c.name, projects: clientProjects(c.name).map((p) => ({ id: p.id, name: p.name })) })}
+                className={cn("cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(c.name) && "opacity-60")}
               >
                 <TableCell className="font-medium text-foreground">{c.name}</TableCell>
                 <TableCell className="text-muted-foreground">{c.contact}</TableCell>
-                <TableCell className="text-center">
-                  <RelatedProjectsCount label={c.name} projects={clientProjects(c.name).map((p) => ({ id: p.id, name: p.name }))} />
-                </TableCell>
+                <TableCell className="text-center num-mono">{linkedCount}</TableCell>
                 <TableCell className="text-center num-mono">
                   {linkedCount === 0 ? "—" : `$${clientRevenue(c.name).toFixed(1)}M`}
                 </TableCell>
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
                     onEdit={() => setEditing(c)}
                     isActive={isActive(c.name)}

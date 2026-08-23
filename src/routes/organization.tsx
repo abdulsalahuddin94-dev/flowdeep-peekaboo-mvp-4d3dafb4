@@ -1392,6 +1392,7 @@ function AddSkillDialog({ onAdd }: { onAdd: (skill: string) => boolean }) {
 }
 
 function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
+  const related$ = useRelatedProjectsDialog();
   const { jobRoles, addJobRole, updateJobRole, removeJobRole } = useJobRoles();
   const { skillsCatalog } = useSkills();
   const { resourceRequests } = useResourceRequests();

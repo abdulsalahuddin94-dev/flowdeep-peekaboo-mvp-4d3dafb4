@@ -2,13 +2,13 @@
 
 /**
  * Combobox-style Select: the trigger is an editable field. Typing filters the
- * options underneath (Google-search feel) but the text is never kept — the user
- * must pick one of the listed options, otherwise the previous value is restored.
- * The public API matches the shadcn Select it replaces.
+ * options underneath (search-box feel) but free text is never kept — the user
+ * must pick one of the listed options. The public API matches the shadcn Select
+ * it replaces, so existing call sites keep working.
  */
 
 import * as React from "react";
-import * as PopoverPrimitive from "@radix-ui/react-popover";
+import { createPortal } from "react-dom";
 import { Check, ChevronDown, ChevronUp } from "@/lib/icons";
 
 import { cn } from "@/lib/utils";
@@ -28,6 +28,7 @@ type Ctx = {
   setActiveValue: (v: string | null) => void;
   registerOption: (v: string, matched: boolean) => void;
   matchedValues: React.MutableRefObject<string[]>;
+  anchorRef: React.MutableRefObject<HTMLDivElement | null>;
 };
 
 const SelectContext = React.createContext<Ctx | null>(null);
@@ -51,7 +52,7 @@ interface SelectProps {
   defaultValue?: string;
   onValueChange?: (value: string) => void;
   disabled?: boolean;
-  /** Set to false to disable typing/filtering. */
+  /** Set to false to make the field read-only (no typing/filtering). */
   searchable?: boolean;
   children?: React.ReactNode;
   open?: boolean;
@@ -85,6 +86,7 @@ const Select = ({
   const [activeValue, setActiveValue] = React.useState<string | null>(null);
   const [labels, setLabels] = React.useState<Record<string, string>>({});
   const matchedValues = React.useRef<string[]>([]);
+  const anchorRef = React.useRef<HTMLDivElement | null>(null);
 
   const registerLabel = React.useCallback((v: string, label: string) => {
     setLabels((prev) => (prev[v] === label ? prev : { ...prev, [v]: label }));
@@ -133,15 +135,10 @@ const Select = ({
     setActiveValue,
     registerOption,
     matchedValues,
+    anchorRef,
   };
 
-  return (
-    <SelectContext.Provider value={ctx}>
-      <PopoverPrimitive.Root open={open} onOpenChange={(o) => !disabled && setOpen(o)}>
-        {children}
-      </PopoverPrimitive.Root>
-    </SelectContext.Provider>
-  );
+  return <SelectContext.Provider value={ctx}>{children}</SelectContext.Provider>;
 };
 
 const SelectGroup = ({ className, ...props }: React.ComponentProps<"div">) => (
@@ -149,7 +146,12 @@ const SelectGroup = ({ className, ...props }: React.ComponentProps<"div">) => (
 );
 
 /** Only carries the placeholder; the trigger renders the value itself. */
-const SelectValue = ({ placeholder }: { placeholder?: React.ReactNode; children?: React.ReactNode }) => {
+const SelectValue = ({
+  placeholder,
+}: {
+  placeholder?: React.ReactNode;
+  children?: React.ReactNode;
+}) => {
   const ctx = useSelect();
   return ctx.value ? null : <>{placeholder ?? null}</>;
 };
@@ -165,108 +167,160 @@ function findPlaceholder(children: React.ReactNode): string {
   return found;
 }
 
-const SelectTrigger = React.forwardRef<HTMLInputElement, React.ComponentProps<"div"> & { children?: React.ReactNode }>(
-  ({ className, children, ...props }, ref) => {
-    const ctx = useSelect();
-    const placeholder = React.useMemo(() => findPlaceholder(children), [children]);
-    const inputRef = React.useRef<HTMLInputElement | null>(null);
+const SelectTrigger = React.forwardRef<
+  HTMLInputElement,
+  React.ComponentProps<"div"> & { children?: React.ReactNode }
+>(({ className, children, ...props }, ref) => {
+  const ctx = useSelect();
+  const placeholder = React.useMemo(() => findPlaceholder(children), [children]);
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
 
-    const text = ctx.open && ctx.searchable ? ctx.query : ctx.label;
+  const setInputRef = React.useCallback(
+    (node: HTMLInputElement | null) => {
+      inputRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
+    },
+    [ref],
+  );
 
-    return (
-      <PopoverPrimitive.Anchor asChild>
-        <div
-          data-ui="control"
-          data-state={ctx.open ? "open" : "closed"}
-          className={cn(
-            "relative flex h-9 w-full items-center rounded-md border border-input bg-transparent px-3 text-sm shadow-sm ring-offset-background focus-within:ring-1 focus-within:ring-ring",
-            ctx.disabled && "pointer-events-none opacity-50",
-            className,
-          )}
-          {...props}
-        >
-          <input
-            ref={React.useCallback(
-              (node: HTMLInputElement | null) => {
-                inputRef.current = node;
-                if (typeof ref === "function") ref(node);
-                else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
-              },
-              [ref],
-            )}
-            role="combobox"
-            aria-expanded={ctx.open}
-            autoComplete="off"
-            disabled={ctx.disabled}
-            readOnly={!ctx.searchable}
-            value={text}
-            placeholder={placeholder || undefined}
-            onChange={(e) => {
-              if (!ctx.searchable) return;
-              ctx.setQuery(e.target.value);
-              ctx.setActiveValue(null);
-              if (!ctx.open) ctx.setOpen(true);
-            }}
-            onMouseDown={(e) => {
+  const text = ctx.open && ctx.searchable ? ctx.query : ctx.label;
+
+  return (
+    <div
+      ref={ctx.anchorRef}
+      data-ui="control"
+      data-state={ctx.open ? "open" : "closed"}
+      className={cn(
+        "relative flex h-9 w-full items-center rounded-md border border-input bg-transparent px-3 text-sm shadow-sm ring-offset-background focus-within:ring-1 focus-within:ring-ring",
+        ctx.disabled && "pointer-events-none opacity-50",
+        className,
+      )}
+      {...props}
+    >
+      <input
+        ref={setInputRef}
+        role="combobox"
+        aria-expanded={ctx.open}
+        autoComplete="off"
+        disabled={ctx.disabled}
+        readOnly={!ctx.searchable}
+        value={text}
+        placeholder={placeholder || undefined}
+        onChange={(e) => {
+          if (!ctx.searchable) return;
+          ctx.setQuery(e.target.value);
+          ctx.setActiveValue(null);
+          if (!ctx.open) ctx.setOpen(true);
+        }}
+        onMouseDown={() => {
+          if (!ctx.open) ctx.setOpen(true);
+        }}
+        onKeyDown={(e) => {
+          const list = ctx.matchedValues.current;
+          if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+            e.preventDefault();
+            if (!ctx.open) return ctx.setOpen(true);
+            if (!list.length) return;
+            const i = ctx.activeValue ? list.indexOf(ctx.activeValue) : -1;
+            const next =
+              e.key === "ArrowDown"
+                ? list[(i + 1) % list.length]
+                : list[(i - 1 + list.length) % list.length];
+            if (next !== undefined) ctx.setActiveValue(next);
+          } else if (e.key === "Enter") {
+            if (ctx.open) {
               e.preventDefault();
-              inputRef.current?.focus();
-              ctx.setOpen(!ctx.open);
-            }}
-            onKeyDown={(e) => {
-              const list = ctx.matchedValues.current;
-              if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-                e.preventDefault();
-                if (!ctx.open) return ctx.setOpen(true);
-                const i = ctx.activeValue ? list.indexOf(ctx.activeValue) : -1;
-                const next =
-                  e.key === "ArrowDown"
-                    ? list[(i + 1) % Math.max(list.length, 1)]
-                    : list[(i - 1 + list.length) % Math.max(list.length, 1)];
-                if (next !== undefined) ctx.setActiveValue(next);
-              } else if (e.key === "Enter") {
-                if (ctx.open) {
-                  e.preventDefault();
-                  const target = ctx.activeValue ?? list[0];
-                  if (target !== undefined) ctx.select(target, target);
-                }
-              } else if (e.key === "Escape") {
-                ctx.setOpen(false);
-              }
-            }}
-            className="w-full cursor-pointer bg-transparent pr-6 outline-none placeholder:text-muted-foreground"
-          />
-          <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 opacity-50" />
-        </div>
-      </PopoverPrimitive.Anchor>
-    );
-  },
-);
+              const target = ctx.activeValue ?? list[0];
+              if (target !== undefined) ctx.select(target, target);
+            } else {
+              ctx.setOpen(true);
+            }
+          } else if (e.key === "Escape") {
+            ctx.setOpen(false);
+          }
+        }}
+        className="w-full cursor-pointer bg-transparent pr-6 outline-none placeholder:text-muted-foreground"
+      />
+      <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 opacity-50" />
+    </div>
+  );
+});
 SelectTrigger.displayName = "SelectTrigger";
 
 const SelectContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<typeof PopoverPrimitive.Content> & { position?: "popper" | "item-aligned" }
+  React.ComponentProps<"div"> & { position?: "popper" | "item-aligned" }
 >(({ className, children, position: _position, ...props }, ref) => {
   const ctx = useSelect();
-  const empty = ctx.open && ctx.query.trim() !== "" && ctx.matchedValues.current.length === 0;
+  const listRef = React.useRef<HTMLDivElement | null>(null);
+  const [rect, setRect] = React.useState<{ top: number; left: number; width: number } | null>(null);
+  const [flipUp, setFlipUp] = React.useState(false);
 
-  return (
-    <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Content
-        ref={ref}
-        align="start"
-        sideOffset={4}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        className={cn(
-          "z-50 max-h-72 w-(--radix-popover-trigger-width) min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-          className,
-        )}
-        {...props}
-      >
-        {children}
-        {empty && <div className="px-2 py-3 text-center text-sm text-muted-foreground">No results</div>}
-      </PopoverPrimitive.Content>
-    </PopoverPrimitive.Portal>
+  const measure = React.useCallback(() => {
+    const el = ctx.anchorRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - r.bottom;
+    const up = spaceBelow < 240 && r.top > spaceBelow;
+    setFlipUp(up);
+    setRect({ top: up ? r.top : r.bottom, left: r.left, width: r.width });
+  }, [ctx.anchorRef]);
+
+  React.useEffect(() => {
+    if (!ctx.open) return;
+    measure();
+    const onScroll = () => measure();
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onScroll);
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (listRef.current?.contains(t) || ctx.anchorRef.current?.contains(t)) return;
+      ctx.setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown, true);
+    return () => {
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onScroll);
+      document.removeEventListener("mousedown", onDown, true);
+    };
+  }, [ctx.open, ctx.anchorRef, ctx.setOpen, measure]);
+
+  if (!ctx.open || typeof document === "undefined" || !rect) {
+    // Keep options mounted-free while closed; measurement happens on open.
+    if (ctx.open && typeof document !== "undefined") measure();
+    return null;
+  }
+
+  const empty = ctx.query.trim() !== "" && ctx.matchedValues.current.length === 0;
+
+  return createPortal(
+    <div
+      ref={(node) => {
+        listRef.current = node;
+        if (typeof ref === "function") ref(node);
+        else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      }}
+      role="listbox"
+      style={{
+        position: "fixed",
+        top: flipUp ? undefined : rect.top + 4,
+        bottom: flipUp ? window.innerHeight - rect.top + 4 : undefined,
+        left: rect.left,
+        width: rect.width,
+      }}
+      className={cn(
+        "z-[60] max-h-72 min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-0",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+      {empty && (
+        <div className="px-2 py-3 text-center text-sm text-muted-foreground">No results</div>
+      )}
+    </div>,
+    document.body,
   );
 });
 SelectContent.displayName = "SelectContent";
@@ -280,12 +334,12 @@ const SelectItem = React.forwardRef<
   Omit<React.ComponentProps<"div">, "value"> & { value: string; disabled?: boolean }
 >(({ className, children, value, disabled, ...props }, ref) => {
   const ctx = useSelect();
+  const { registerLabel, registerOption } = ctx;
   const label = React.useMemo(() => nodeText(children), [children]);
-  const matched = !ctx.query.trim() || label.toLowerCase().includes(ctx.query.trim().toLowerCase());
+  const matched =
+    !ctx.query.trim() || label.toLowerCase().includes(ctx.query.trim().toLowerCase());
   const selected = ctx.value === value;
   const active = ctx.activeValue === value;
-
-  const { registerLabel, registerOption } = ctx;
 
   React.useEffect(() => {
     registerLabel(value, label || value);

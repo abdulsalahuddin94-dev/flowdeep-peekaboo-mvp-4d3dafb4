@@ -716,7 +716,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
             <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Auto-generated" />
           </div>
           <div>
-            <Label>Business Line</Label>
+            <Label>Project type</Label>
             <Select value={businessLine} onValueChange={setBusinessLine}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>

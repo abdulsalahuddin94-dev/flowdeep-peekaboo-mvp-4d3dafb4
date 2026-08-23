@@ -796,67 +796,15 @@ function AddVendorDialog() {
           </div>
         </div>
 
-        {/* ── Link to existing contracts ────────────────────────────────── */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm">
-              Link to existing contracts
-              <span className="ml-1.5 text-muted-foreground font-normal">(optional)</span>
-            </Label>
-            {selectedIds.length > 0 && (
-              <span className="text-xs text-accent font-medium">{selectedIds.length} selected</span>
-            )}
-          </div>
-
-          {/* Contract checklist — all contracts shown (claim unlinked ones) */}
-          <div className="rounded-md border border-border">
-            <div className="px-2 py-1.5 space-y-0.5">
-              {contracts.map((c) => {
-                const checked = selectedIds.includes(c.id);
-                return (
-                  <label
-                    key={c.id}
-                    className={`flex cursor-pointer items-center gap-2.5 rounded px-2 py-2 transition-colors ${checked ? "bg-accent-dim/30" : "hover:bg-secondary/40"}`}
-                  >
-                    <Checkbox
-                      checked={checked}
-                      onCheckedChange={() => toggle(c.id)}
-                      className="shrink-0"
-                    />
-                    <span className="num-mono text-[11px] text-muted-foreground shrink-0">{c.id}</span>
-                    <span className="flex-1 truncate text-sm text-foreground">{c.project}</span>
-                    <span className="num-mono text-xs text-accent shrink-0">${c.value}M</span>
-                    <Badge
-                      variant="outline"
-                      className={`shrink-0 text-[10px] py-0 ${c.status === "Active" ? "border-rag-green/40 bg-rag-green/10 text-rag-green" : "border-rag-amber/40 bg-rag-amber/10 text-rag-amber"}`}
-                    >
-                      {c.status}
-                    </Badge>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Selected chips */}
-          {selectedIds.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {selectedIds.map((id) => {
-                const c = contracts.find((x) => x.id === id);
-                return (
-                  <span key={id} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-                    <span className="num-mono">{c?.id}</span>
-                    <span className="text-muted-foreground">·</span>
-                    {c?.project}
-                    <button onClick={() => toggle(id)} className="ml-0.5 hover:text-rag-red">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
-          )}
+        {/* ── Link to existing projects ─────────────────────────────────── */}
+        <div>
+          <Label className="text-sm">
+            Link to existing projects
+            <span className="ml-1.5 font-normal text-muted-foreground">(optional)</span>
+          </Label>
+          <ProjectsSelect value={selectedIds} onChange={setSelectedIds} />
         </div>
+
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>

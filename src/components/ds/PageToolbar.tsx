@@ -57,6 +57,7 @@ export function PageToolbar({
   placeholder,
   filterGroups = [],
   cta,
+  trailing,
 }: {
   title?: string;
   desc?: string;
@@ -68,6 +69,7 @@ export function PageToolbar({
   totalCount?: number;
   onReset?: () => void;
   cta?: React.ReactNode;
+  trailing?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Record<string, string | string[]>>({});

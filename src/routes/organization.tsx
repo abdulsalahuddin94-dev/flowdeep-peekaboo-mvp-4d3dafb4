@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useOrgActive } from "@/lib/org-active";
 import { TableRowActions } from "@/components/TableRowActions";
 import { PageToolbar as FilterBar, EmptyRow, type FilterGroup } from "@/components/ds/PageToolbar";
+import { PageActionsSlot } from "@/components/ds/PageActionsSlot";
 import { relatedProjectsGroup, usageGroup, capexOpexGroup, statusGroup, skillsGroup, matchRelated, matchUsage, matchStatus } from "@/components/ds/filters";
 
 import { TablePagination, usePagination } from "@/components/TablePagination";
@@ -53,8 +54,9 @@ function OrganizationPage() {
   const label = ORG_TAB_LABELS[tab] ?? "Project Types";
   return (
     <div>
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-medium text-foreground">{label}</h1>
+        <PageActionsSlot />
       </div>
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
         <TabsContent value="business-lines">

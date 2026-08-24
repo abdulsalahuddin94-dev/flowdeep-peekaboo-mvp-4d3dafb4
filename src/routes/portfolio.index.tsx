@@ -240,11 +240,18 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
-      {view === "grid" && list.length > 0 && <ProjectGrid items={pagination.pageItems} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
-      {view === "list" && list.length > 0 && <ProjectListView items={pagination.pageItems} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "grid" && list.length > 0 && <ProjectGrid items={pagination.pageItems} pendingByProject={pendingByProject} onEdit={setEditing} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "list" && list.length > 0 && <ProjectListView items={pagination.pageItems} pendingByProject={pendingByProject} onEdit={setEditing} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
       {view === "gantt" && list.length > 0 && <GanttView items={list} />}
       {view !== "gantt" && list.length > 0 && <TablePagination {...pagination} itemLabel="projects" />}
+      <NewProjectDialog
+        project={editing}
+        open={!!editing}
+        onOpenChange={(o) => { if (!o) setEditing(null); }}
+        onSave={(id, patch) => { updateProject(id, patch); setEditing(null); }}
+      />
     </>
+
   );
 }
 

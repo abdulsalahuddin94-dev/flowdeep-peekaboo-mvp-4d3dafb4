@@ -384,11 +384,7 @@ function ProjectListView({ items, onOpen, onEdit, pendingByProject }: { items: P
   );
 }
 
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
+
 
 function GanttView({ items }: { items: Project[] }) {
   const ragColor: Record<Rag, string> = {

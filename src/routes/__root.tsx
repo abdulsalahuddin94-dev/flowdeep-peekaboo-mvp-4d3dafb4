@@ -107,7 +107,7 @@ function RootComponent() {
               <AppSidebar />
               <div className="flex min-w-0 flex-1 flex-col">
                 <AppTopbar />
-                <main className="flex-1 overflow-x-hidden px-6 py-6 md:px-10 md:py-8">
+                <main className="flex-1 overflow-x-hidden p-6">
                   <Outlet />
                 </main>
               </div>

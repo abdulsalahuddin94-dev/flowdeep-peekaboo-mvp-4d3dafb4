@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { Breadcrumbs, hasBreadcrumb } from "@/components/ds/PageShell";
+import { PageActionsSlot } from "@/components/ds/PageActionsSlot";
 
 /**
  * DS02 page header — always renders the module breadcrumb above the title so
@@ -21,7 +22,10 @@ export function PageHeader({
           <h1 className="text-2xl font-medium text-foreground">{heading}</h1>
           {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        <div className="flex items-center gap-2">
+          {actions}
+          <PageActionsSlot />
+        </div>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Search, Filter, ChevronRight, ChevronLeft, X } from "@/lib/icons";
+import { PageActions } from "@/components/ds/PageActionsSlot";
 
 /*
  * DS02 page toolbar — search (left) + filter drawer + main CTA (right).
@@ -128,7 +129,7 @@ export function PageToolbar({
   })();
 
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-3">
+    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-surface p-3">
       <div className="relative w-full min-w-[220px] sm:w-72">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -157,7 +158,7 @@ export function PageToolbar({
         </Button>
       )}
 
-      {cta && <div className="ml-auto">{cta}</div>}
+      {cta && <PageActions>{cta}</PageActions>}
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className="flex w-[380px] flex-col gap-0 border-l border-border bg-surface p-0 sm:max-w-[380px]">

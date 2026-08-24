@@ -672,6 +672,24 @@ function NewProjectDialog({
   function handleCreate() {
     if (!name.trim()) { toast.error("Project name is required"); return; }
     const finalClient = projectType === "capital" ? "Internal" : client;
+    if (isEdit && project) {
+      onSave?.(project.id, {
+        name: name.trim(),
+        businessLine,
+        department,
+        client: finalClient,
+        stage,
+        budgetTotal: parseFloat(budget) || 0,
+        tags: selectedTags,
+        calendarId: calendarId || undefined,
+        ...(endDate
+          ? { endDate: new Date(endDate).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) }
+          : {}),
+      });
+      toast.success(`Project "${name.trim()}" updated`);
+      setOpen(false);
+      return;
+    }
     const newProject: Project = {
       id: `p-${Date.now()}`,
       name: name.trim(),
@@ -692,7 +710,7 @@ function NewProjectDialog({
       ragNote: "New",
       calendarId: calendarId || undefined,
     };
-    onAdd(newProject);
+    onAdd?.(newProject);
     toast.success(`Project "${newProject.name}" created`);
     reset();
     setOpen(false);
@@ -700,19 +718,26 @@ function NewProjectDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); setOpen(o); }}>
-      <DialogTrigger asChild>
-        <Button variant="primary">
-          <Plus className="mr-1 h-4 w-4" />New Project
-        </Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button variant="primary">
+            <Plus className="mr-1 h-4 w-4" />New Project
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>New Project</DialogTitle>
-          <DialogDescription>Create a project directly in the portfolio. For new initiatives requiring approval, use Submit Business Case instead.</DialogDescription>
+          <DialogTitle>{isEdit ? "Edit Project" : "New Project"}</DialogTitle>
+          <DialogDescription>
+            {isEdit
+              ? "Update project details. Schedule changes are managed inside the project's Schedule tab."
+              : "Create a project directly in the portfolio. For new initiatives requiring approval, use Submit Business Case instead."}
+          </DialogDescription>
         </DialogHeader>
         {!projectType ? (
           <ProjectTypePicker onPick={pickType} />
         ) : (
+
         <>
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2 flex overflow-hidden rounded-md border border-border bg-secondary/20 p-1">

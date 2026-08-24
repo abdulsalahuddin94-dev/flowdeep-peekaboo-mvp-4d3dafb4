@@ -162,6 +162,8 @@ export function PageToolbar({
 
       {cta && <PageActions>{cta}</PageActions>}
 
+      {trailing && <div className="ml-auto flex items-center gap-2">{trailing}</div>}
+
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className="flex w-[380px] flex-col gap-0 border-l border-border bg-surface p-0 sm:max-w-[380px]">
           {activePanel ? (

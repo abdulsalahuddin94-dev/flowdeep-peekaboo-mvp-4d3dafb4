@@ -190,6 +190,7 @@ export function AppTopbar() {
           </SheetContent>
         </Sheet>
 
+        <EmptyStatesSwitcher />
         <ThemeToggle />
         <UserMenu initials={initials} name={currentUser.name} role={currentUser.role} />
       </div>

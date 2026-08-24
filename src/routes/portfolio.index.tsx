@@ -93,7 +93,6 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   }, [approvals]);
   const [onlyPending, setOnlyPending] = useState(false);
 
-  const activeCount = ragFilter.length + stageFilter.length + tagFilter.length + (deptFilter ? 1 : 0) + (clientFilter ? 1 : 0);
 
   const list = useMemo(() => {
     let l = projectList;

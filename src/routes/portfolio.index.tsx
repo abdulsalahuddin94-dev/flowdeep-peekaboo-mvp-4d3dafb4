@@ -571,10 +571,26 @@ function GovernanceTab() {
   );
 }
 
-function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
+function NewProjectDialog({
+  onAdd,
+  project,
+  open: openProp,
+  onOpenChange,
+  onSave,
+}: {
+  onAdd?: (p: Project) => void;
+  /** When provided the dialog runs in edit mode (controlled by the parent). */
+  project?: Project | null;
+  open?: boolean;
+  onOpenChange?: (o: boolean) => void;
+  onSave?: (id: string, patch: Partial<Project>) => void;
+}) {
   const { calendars } = useCalendars();
   const { tags: orgTags } = useTags();
-  const [open, setOpen] = useState(false);
+  const isEdit = !!project;
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (o: boolean) => { onOpenChange ? onOpenChange(o) : setOpenState(o); };
   const [projectType, setProjectType] = useState<"capital" | "commercial" | null>(null);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -592,6 +608,28 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
 
   function reset() { setName(""); setCode(""); setBudget(""); setRevenue(""); setStartDate(""); setDuration(""); setEndDate(""); setSelectedTags([]); setProjectType(null); }
 
+  /** Seed the form from the project being edited each time the dialog opens. */
+  const seedKey = `${project?.id ?? ""}:${open ? "1" : "0"}`;
+  const [seeded, setSeeded] = useState("");
+  if (project && open && seeded !== seedKey) {
+    setSeeded(seedKey);
+    setProjectType(!project.client || project.client === "Internal" ? "capital" : "commercial");
+    setName(project.name);
+    setBusinessLine(project.businessLine);
+    setDepartment(project.department);
+    setClient(project.client ?? "Internal");
+    setStage(project.stage);
+    setBudget(String(project.budgetTotal ?? ""));
+    setSelectedTags(project.tags ?? []);
+    setCalendarId(project.calendarId ?? calendars[0]?.id ?? "");
+    const d = new Date(project.endDate);
+    setEndDate(Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10));
+    setDuration("");
+    setStartDate("");
+    setCode("");
+  }
+  if (!open && seeded) setSeeded("");
+
   /** Auto-generated, editable project code. Prefix follows the selected type. */
   function autoCode(type: "capital" | "commercial") {
     const prefix = type === "capital" ? "CAP" : "COM";
@@ -603,6 +641,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
     /* Keep everything the user already typed; only the code prefix follows the type. */
     setCode((prev) => (!prev.trim() || isAutoCode(prev) ? autoCode(t) : prev));
   }
+
 
   const DAY = 86_400_000;
   /** Duration is calendar days, inclusive of both start and end. */

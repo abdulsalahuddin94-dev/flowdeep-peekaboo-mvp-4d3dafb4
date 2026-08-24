@@ -344,7 +344,7 @@ function ProjectGrid({ items, onOpen, onEdit, pendingByProject }: { items: Proje
   );
 }
 
-function ProjectListView({ items, onOpen, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; pendingByProject: Map<string, number> }) {
+function ProjectListView({ items, onOpen, onEdit, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; onEdit?: (p: Project) => void; pendingByProject: Map<string, number> }) {
   return (
     <div className="">
       <Table>
@@ -352,6 +352,7 @@ function ProjectListView({ items, onOpen, pendingByProject }: { items: Project[]
           <TableHead className="w-6" /><TableHead>Project</TableHead><TableHead>Business Line</TableHead>
           <TableHead>PM</TableHead><TableHead>Department</TableHead><TableHead>Progress</TableHead>
           <TableHead>Budget</TableHead><TableHead>End</TableHead><TableHead>RAID</TableHead>
+          <TableHead className="w-32 text-right" />
         </TableRow></TableHeader>
         <TableBody>
           {items.map((p) => (
@@ -370,8 +371,17 @@ function ProjectListView({ items, onOpen, pendingByProject }: { items: Project[]
               <TableCell className="num-mono text-xs">${p.budgetUsed.toFixed(1)}/${p.budgetTotal.toFixed(1)}M</TableCell>
               <TableCell className="text-xs text-muted-foreground">{p.endDate}</TableCell>
               <TableCell className="text-xs">{p.risks + p.issues}</TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <TableRowActions onEdit={onEdit ? () => onEdit(p) : undefined} />
+              </TableCell>
             </TableRow>
           ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
         </TableBody>
       </Table>
     </div>

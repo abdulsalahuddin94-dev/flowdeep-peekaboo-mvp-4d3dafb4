@@ -112,16 +112,16 @@ function ResourcesPage() {
 
 
         {/* ── Requests tab ──────────────────────────────────────────────────── */}
-        <EmptyRegion id="resources-requests">
         <TabsContent value="requests" className="mt-5 space-y-3">
-          <RequestsTab
-            requests={requests}
-            pool={pool}
-            onFulfill={fulfillRequest}
-            onDecline={declineRequest}
-          />
+          <EmptyRegion id="resources-requests">
+            <RequestsTab
+              requests={requests}
+              pool={pool}
+              onFulfill={fulfillRequest}
+              onDecline={declineRequest}
+            />
+          </EmptyRegion>
         </TabsContent>
-        </EmptyRegion>
 
         {/* ── People tab ────────────────────────────────────────────────────── */}
         <TabsContent value="people" className="mt-5">

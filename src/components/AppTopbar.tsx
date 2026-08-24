@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Bell, Briefcase, Users, Zap, ChevronDown, Sun, Moon } from "@/lib/icons";
+import { Bell, Briefcase, Users, Zap, ChevronDown, Sun, Moon, Sparkles } from "@/lib/icons";
+import { emptyStatesByModule } from "@/lib/empty-states";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -190,10 +191,53 @@ export function AppTopbar() {
           </SheetContent>
         </Sheet>
 
+        <EmptyStatesSwitcher />
         <ThemeToggle />
         <UserMenu initials={initials} name={currentUser.name} role={currentUser.role} />
       </div>
     </header>
+  );
+}
+
+/** Nav switcher to browse every empty state (live or planned) across the app. */
+function EmptyStatesSwitcher() {
+  const navigate = useNavigate();
+  const groups = emptyStatesByModule();
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label="Empty states" className="text-muted-foreground hover:text-foreground">
+          <Sparkles className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="max-h-[70vh] w-72 overflow-y-auto">
+        <DropdownMenuLabel className="text-xs">Empty states</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="text-sm"
+          onSelect={() => navigate({ to: "/empty-states", search: { id: undefined } })}
+        >
+          View all in gallery
+        </DropdownMenuItem>
+        {groups.map((g) => (
+          <div key={g.module}>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-[11px] uppercase tracking-wide text-muted-foreground">
+              {g.module}
+            </DropdownMenuLabel>
+            {g.items.map((e) => (
+              <DropdownMenuItem
+                key={e.id}
+                className="text-sm"
+                onSelect={() => navigate({ to: "/empty-states", search: { id: e.id } })}
+              >
+                <span className="truncate">{e.page}</span>
+              </DropdownMenuItem>
+            ))}
+          </div>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

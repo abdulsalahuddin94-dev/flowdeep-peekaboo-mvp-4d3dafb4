@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
+import { EmptyRegion } from "@/lib/empty-preview";
 import { useRelatedProjectsDialog } from "@/components/ds/RelatedProjectsDialog";
 import { relatedProjectsGroup, statusGroup, matchRelated, matchStatus } from "@/components/ds/filters";
 import { TableRowActions } from "@/components/TableRowActions";
@@ -125,6 +126,7 @@ function ClientsTab() {
         filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
         cta={<ClientFormDialog onSave={(c) => setRows((prev) => [...prev, c])} />}
       />
+      <EmptyRegion id="clients">
       <Table>
         <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
           <TableHead>Client</TableHead><TableHead>Primary Contact</TableHead>
@@ -161,6 +163,7 @@ function ClientsTab() {
           })}
         </TableBody>
       </Table>
+      </EmptyRegion>
       {related$.dialog}
 
 
@@ -241,6 +244,7 @@ function VendorsTab() {
         cta={<VendorFormDialog onSave={(v) => setRows((prev) => [...prev, v])} />}
       />
       <div className="">
+        <EmptyRegion id="vendors">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
             <TableHead>Vendor</TableHead><TableHead>Type</TableHead><TableHead>Category</TableHead>
@@ -282,6 +286,7 @@ function VendorsTab() {
             ))}
           </TableBody>
         </Table>
+        </EmptyRegion>
       </div>
 
       {/* Vendor detail sheet */}

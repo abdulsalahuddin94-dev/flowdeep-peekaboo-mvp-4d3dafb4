@@ -852,7 +852,7 @@ function NewProjectDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => { reset(); setOpen(false); }}>Cancel</Button>
-          <Button variant="primary" onClick={handleCreate}>Create Project</Button>
+          <Button variant="primary" onClick={handleCreate}>{isEdit ? "Save Changes" : "Create Project"}</Button>
         </DialogFooter>
         </>
         )}

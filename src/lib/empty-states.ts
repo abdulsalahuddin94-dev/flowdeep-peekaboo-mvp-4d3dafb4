@@ -25,7 +25,7 @@ export const EMPTY_STATES: EmptyStateEntry[] = [
   { id: "dashboard-notifications", module: "Dashboard", page: "Notifications", path: "/", exact: true, art: "bell", title: "You're all caught up", description: "New approvals, requests and status changes will appear here." },
 
   // Portfolio
-  { id: "portfolio-projects", module: "Portfolio", page: "All Projects", path: "/portfolio", exact: true, art: "building", title: "No Projects added yet", description: "Start by adding the first project", ctaLabel: "Add Project" },
+  { id: "portfolio-projects", module: "Portfolio", page: "All Projects", path: "/portfolio", exact: true, art: "briefcase", title: "No Projects added yet", description: "Start by adding the first project", ctaLabel: "Add Project" },
   { id: "portfolio-search", module: "Portfolio", page: "Search results", path: "/portfolio", exact: true, art: "search", title: "No matching projects", description: "Try a different search term or clear your filters." },
   { id: "portfolio-schedule", module: "Portfolio", page: "Project Schedule", path: "/portfolio/", art: "clock", title: "No Milestones added yet", description: "Start by adding the first milestone", ctaLabel: "Add Milestone" },
   { id: "portfolio-documents", module: "Portfolio", page: "Documents", path: "/portfolio/", art: "note", title: "No Documents uploaded yet", description: "Upload the project charter, contracts or reports", ctaLabel: "Upload Document" },
@@ -35,17 +35,17 @@ export const EMPTY_STATES: EmptyStateEntry[] = [
   { id: "resources-requests", module: "Resources", page: "Requests", path: "/resources", art: "role", title: "No Resource Requests yet", description: "Requests raised from project schedules land here" },
 
   // Clients & Vendors
-  { id: "clients", module: "Clients & Vendors", page: "Clients", path: "/clients-vendors", art: "building", title: "No Clients added yet", description: "Start by adding the first client", ctaLabel: "Add Client" },
-  { id: "vendors", module: "Clients & Vendors", page: "Vendors", path: "/clients-vendors", art: "building", title: "No Vendors added yet", description: "Start by adding the first vendor", ctaLabel: "Add Vendor" },
+  { id: "clients", module: "Clients & Vendors", page: "Clients", path: "/clients-vendors", art: "handshake", title: "No Clients added yet", description: "Start by adding the first client", ctaLabel: "Add Client" },
+  { id: "vendors", module: "Clients & Vendors", page: "Vendors", path: "/clients-vendors", art: "handshake", title: "No Vendors added yet", description: "Start by adding the first vendor", ctaLabel: "Add Vendor" },
 
   // Financials
-  { id: "financials-overview", module: "Financials", page: "Overview (P&L)", path: "/financials", art: "note", title: "No Financial data yet", description: "Budgets and revenue appear here once projects are created" },
-  { id: "financials-costs", module: "Financials", page: "Costs", path: "/financials", art: "map", title: "No Cost Items added yet", description: "Start by adding the first cost item", ctaLabel: "Add Cost Item" },
+  { id: "financials-overview", module: "Financials", page: "Overview (P&L)", path: "/financials", art: "coins", title: "No Financial data yet", description: "Budgets and revenue appear here once projects are created" },
+  { id: "financials-costs", module: "Financials", page: "Costs", path: "/financials", art: "coins", title: "No Cost Items added yet", description: "Start by adding the first cost item", ctaLabel: "Add Cost Item" },
 
   // Organization
-  { id: "org-project-types", module: "Organization", page: "Project Types", path: "/organization", art: "building", title: "No Project Types added yet", description: "Start by adding the first Project Type", ctaLabel: "Add Project Type" },
-  { id: "org-tags", module: "Organization", page: "Tags & Classifications", path: "/organization", art: "note", title: "No Tags added yet", description: "Start by adding the first Tag", ctaLabel: "Add Tag" },
-  { id: "org-cost-categories", module: "Organization", page: "Cost Categories", path: "/organization", art: "map", title: "No Cost Categories added yet", description: "Start by adding the first Category", ctaLabel: "Add Category" },
+  { id: "org-project-types", module: "Organization", page: "Project Types", path: "/organization", art: "briefcase", title: "No Project Types added yet", description: "Start by adding the first Project Type", ctaLabel: "Add Project Type" },
+  { id: "org-tags", module: "Organization", page: "Tags & Classifications", path: "/organization", art: "tag", title: "No Tags added yet", description: "Start by adding the first Tag", ctaLabel: "Add Tag" },
+  { id: "org-cost-categories", module: "Organization", page: "Cost Categories", path: "/organization", art: "tag", title: "No Cost Categories added yet", description: "Start by adding the first Category", ctaLabel: "Add Category" },
   { id: "org-departments", module: "Organization", page: "Departments", path: "/organization", art: "building", title: "No Departments added yet", description: "Start by adding the first Department", ctaLabel: "Add Department" },
   { id: "org-roles", module: "Organization", page: "Roles & Skills — Job Roles", path: "/organization", art: "role", title: "No Job Roles added yet", description: "Start by adding the first Job Role", ctaLabel: "Add Job Role" },
   { id: "org-skills", module: "Organization", page: "Roles & Skills — Skills", path: "/organization", art: "note", title: "No Skills added yet", description: "Start by adding the first Skill", ctaLabel: "Add Skill" },

@@ -275,7 +275,7 @@ function PendingApprovalsChip({ count, projectName, className }: { count: number
   );
 }
 
-function ProjectGrid({ items, onOpen, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; pendingByProject: Map<string, number> }) {
+function ProjectGrid({ items, onOpen, onEdit, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; onEdit?: (p: Project) => void; pendingByProject: Map<string, number> }) {
   const { tags: orgTags } = useTags();
   const colorOf = (name: string) => orgTags.find((t) => t.name === name)?.color;
   return (
@@ -293,8 +293,22 @@ function ProjectGrid({ items, onOpen, pendingByProject }: { items: Project[]; on
             <div className="flex items-center gap-1.5">
               <PendingApprovalsChip count={pending} projectName={p.name} />
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{p.stage}</span>
+              {onEdit && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Edit ${p.name}`}
+                  title="Edit project"
+                  onClick={(e) => { e.stopPropagation(); onEdit(p); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onEdit(p); } }}
+                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border/60 text-accent-secondary opacity-0 transition group-hover:opacity-100 hover:bg-secondary/60"
+                >
+                  <EditAction size={14} />
+                </span>
+              )}
             </div>
           </div>
+
           <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">{p.name}</h3>
           <div className="mt-1 text-xs text-muted-foreground">{p.businessLine} · {p.department}</div>
           <div className="mt-3">

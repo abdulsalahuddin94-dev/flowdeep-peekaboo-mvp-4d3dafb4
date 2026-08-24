@@ -57,6 +57,7 @@ export function PageToolbar({
   placeholder,
   filterGroups = [],
   cta,
+  trailing,
 }: {
   title?: string;
   desc?: string;
@@ -68,6 +69,7 @@ export function PageToolbar({
   totalCount?: number;
   onReset?: () => void;
   cta?: React.ReactNode;
+  trailing?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Record<string, string | string[]>>({});
@@ -159,6 +161,8 @@ export function PageToolbar({
       )}
 
       {cta && <PageActions>{cta}</PageActions>}
+
+      {trailing && <div className="ml-auto flex items-center gap-2">{trailing}</div>}
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className="flex w-[380px] flex-col gap-0 border-l border-border bg-surface p-0 sm:max-w-[380px]">

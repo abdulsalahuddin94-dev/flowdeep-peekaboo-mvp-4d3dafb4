@@ -753,7 +753,7 @@ function NewProjectDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); setOpen(o); }}>
-      {!isEdit && (
+      {!isEdit && openProp === undefined && (
         <DialogTrigger asChild>
           <Button variant="primary">
             <Plus className="mr-1 h-4 w-4" />New Project

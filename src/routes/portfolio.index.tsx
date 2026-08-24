@@ -175,65 +175,25 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
       )}
 
       {/* Toolbar */}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="relative w-full min-w-[220px] sm:w-72">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search projects…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="rounded-md pl-9"
-            aria-label="Search projects"
-          />
-        </div>
-        <FilterDrawer
-          groups={[
-            { key: "rag", label: "RAG", multi: true, value: ragFilter, onChange: setRagFilter as never, options: ALL_RAGS.map(({ v, l }) => ({ value: v, label: l })) },
-            { key: "stage", label: "Stage", multi: true, value: stageFilter, onChange: setStageFilter as never, options: ALL_STAGES.map((s) => ({ value: s, label: s })) },
-            { key: "tags", label: "Tags", multi: true, value: tagFilter, onChange: setTagFilter as never, options: ALL_TAGS.map((t) => ({ value: t, label: t })) },
-            { key: "dept", label: "Department", value: deptFilter, onChange: setDeptFilter as never, options: ALL_DEPTS.map((d) => ({ value: d, label: d })) },
-            { key: "client", label: "Client", value: clientFilter, onChange: setClientFilter as never, options: ALL_CLIENTS.map((c) => ({ value: c, label: c })) },
-          ]}
-        />
-        <div className="ml-auto flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
-          {([["grid", LayoutGrid], ["list", List], ["gantt", GanttChartSquare]] as const).map(([k, Icon]) => (
-            <button key={k} onClick={() => setView(k as View)} className={`p-2 ${view === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}><Icon className="h-4 w-4" /></button>
-          ))}
-        </div>
-      </div>
-      {/* Active filter chips */}
-      {activeCount > 0 && (
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          {ragFilter.map((v) => {
-            const label = ALL_RAGS.find((r) => r.v === v)?.l ?? v;
-            return (
-              <span key={v} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-                {label}<button onClick={() => setRagFilter((p) => p.filter((x) => x !== v))} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-              </span>
-            );
-          })}
-          {stageFilter.map((s) => (
-            <span key={s} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-              {s}<button onClick={() => setStageFilter((p) => p.filter((x) => x !== s))} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-            </span>
-          ))}
-          {tagFilter.map((t) => (
-            <span key={t} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-              {t}<button onClick={() => setTagFilter((p) => p.filter((x) => x !== t))} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-            </span>
-          ))}
-          {deptFilter && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-              Dept: {deptFilter}<button onClick={() => setDeptFilter("")} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-            </span>
-          )}
-          {clientFilter && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-              Client: {clientFilter}<button onClick={() => setClientFilter("")} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-            </span>
-          )}
-        </div>
-      )}
+      <PageToolbar
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search projects…"
+        filterGroups={[
+          { key: "rag", label: "RAG", mode: "multi", value: ragFilter, onChange: setRagFilter, options: ALL_RAGS.map(({ v, l }) => ({ value: v, label: l })) },
+          { key: "stage", label: "Stage", mode: "multi", value: stageFilter, onChange: setStageFilter, options: ALL_STAGES.map((s) => ({ value: s, label: s })) },
+          { key: "tags", label: "Tags", mode: "multi", value: tagFilter, onChange: setTagFilter, options: ALL_TAGS.map((t) => ({ value: t, label: t })) },
+          { key: "dept", label: "Department", value: deptFilter, onChange: setDeptFilter, options: [{ value: "", label: "All departments" }, ...ALL_DEPTS.map((d) => ({ value: d, label: d }))] },
+          { key: "client", label: "Client", value: clientFilter, onChange: setClientFilter, options: [{ value: "", label: "All clients" }, ...ALL_CLIENTS.map((c) => ({ value: c, label: c }))] },
+        ]}
+        trailing={
+          <div className="flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
+            {([["grid", LayoutGrid], ["list", List], ["gantt", GanttChartSquare]] as const).map(([k, Icon]) => (
+              <button key={k} onClick={() => setView(k as View)} className={`p-2 ${view === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}><Icon className="h-4 w-4" /></button>
+            ))}
+          </div>
+        }
+      />
 
       <EmptyRegion id="portfolio-projects">
       {list.length === 0 && (

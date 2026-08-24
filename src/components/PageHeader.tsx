@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { Breadcrumbs, hasBreadcrumb } from "@/components/ds/PageShell";
+import { PageActionsSlot } from "@/components/ds/PageActionsSlot";
 
 /**
  * DS02 page header — always renders the module breadcrumb above the title so

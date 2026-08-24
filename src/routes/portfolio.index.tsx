@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Clock, ChevronDown } from "@/lib/icons";
+import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Clock, ChevronDown, EditAction } from "@/lib/icons";
 import { FilterDrawer } from "@/components/FilterDrawer";
+import { TableRowActions } from "@/components/TableRowActions";
+
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { projects, pipelineItems, type Project, type Rag } from "@/lib/mock-data";
 import { useProjects, useCalendars, useApprovals, useTags } from "@/lib/projects-store";

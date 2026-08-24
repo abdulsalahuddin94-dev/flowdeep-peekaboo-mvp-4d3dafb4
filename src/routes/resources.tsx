@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
+import { EmptyRegion } from "@/lib/empty-preview";
 import { relatedProjectsGroup, matchRelated } from "@/components/ds/filters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -112,12 +113,14 @@ function ResourcesPage() {
 
         {/* ── Requests tab ──────────────────────────────────────────────────── */}
         <TabsContent value="requests" className="mt-5 space-y-3">
-          <RequestsTab
-            requests={requests}
-            pool={pool}
-            onFulfill={fulfillRequest}
-            onDecline={declineRequest}
-          />
+          <EmptyRegion id="resources-requests">
+            <RequestsTab
+              requests={requests}
+              pool={pool}
+              onFulfill={fulfillRequest}
+              onDecline={declineRequest}
+            />
+          </EmptyRegion>
         </TabsContent>
 
         {/* ── People tab ────────────────────────────────────────────────────── */}
@@ -131,6 +134,7 @@ function ResourcesPage() {
               { key: "dept", label: "Department", value: peopleDept, onChange: setPeopleDept, options: [{ value: "all", label: "All departments" }, ...departments.map((d) => ({ value: d.name, label: d.name }))] },
             ]}
           />
+          <EmptyRegion id="resources-capacity">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -177,6 +181,7 @@ function ResourcesPage() {
               })()}
             </TableBody>
           </Table>
+          </EmptyRegion>
         </TabsContent>
 
         {/* ── Heatmap tab ───────────────────────────────────────────────────── */}

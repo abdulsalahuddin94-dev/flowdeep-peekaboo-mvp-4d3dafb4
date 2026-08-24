@@ -14,6 +14,7 @@ import { FilterDrawer } from "@/components/FilterDrawer";
 import { TableRowActions } from "@/components/TableRowActions";
 
 import { TablePagination, usePagination } from "@/components/TablePagination";
+import { EmptyRegion } from "@/lib/empty-preview";
 import { projects, pipelineItems, type Project, type Rag } from "@/lib/mock-data";
 import { useProjects, useCalendars, useApprovals, useTags } from "@/lib/projects-store";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -234,6 +235,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
+      <EmptyRegion id="portfolio-projects">
       {list.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-16 text-center">
           <Filter className="h-8 w-8 text-muted-foreground/40" />
@@ -246,6 +248,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
       {view === "list" && list.length > 0 && <ProjectListView items={pagination.pageItems} pendingByProject={pendingByProject} onEdit={setEditing} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
       {view === "gantt" && list.length > 0 && <GanttView items={list} />}
       {view !== "gantt" && list.length > 0 && <TablePagination {...pagination} itemLabel="projects" />}
+      </EmptyRegion>
       <NewProjectDialog
         project={editing}
         open={!!editing}

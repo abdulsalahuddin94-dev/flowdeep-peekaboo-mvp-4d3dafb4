@@ -1,12 +1,13 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
-import { useRouterState } from "@tanstack/react-router";
 import { EmptyState } from "@/components/ds/EmptyState";
-import { emptyStatesForPath } from "@/lib/empty-states";
+import { EMPTY_STATES } from "@/lib/empty-states";
 
 /*
  * Empty-state preview mode. Toggled from the topbar (same feel as the
- * dark/light switch): while it's on, the current page's content is replaced
- * in place by that page's empty state — no separate gallery screen.
+ * dark/light switch): while it's on, only the *data region* of the page is
+ * swapped for its empty state — the page title, tabs, toolbar and everything
+ * else stay exactly where they are, so the screen is a 1:1 match of the real
+ * page in its empty condition.
  */
 
 type Ctx = { enabled: boolean; setEnabled: (v: boolean) => void };
@@ -22,53 +23,21 @@ export function useEmptyPreview() {
   return useContext(EmptyPreviewContext);
 }
 
-/** Renders the page's empty state instead of `children` while preview mode is on. */
-export function EmptyPreviewBoundary({ children }: { children: ReactNode }) {
+/**
+ * Swaps just this region for its catalog empty state while preview mode is on.
+ * `id` refers to an entry in `EMPTY_STATES`.
+ */
+export function EmptyRegion({ id, children }: { id: string; children: ReactNode }) {
   const { enabled } = useEmptyPreview();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const matches = useMemo(() => emptyStatesForPath(pathname), [pathname]);
-  const [index, setIndex] = useState(0);
-
-  if (!enabled || pathname === "/auth") return <>{children}</>;
-
-  const active = matches[Math.min(index, Math.max(matches.length - 1, 0))];
-
-  if (!active) {
-    return (
-      <EmptyState
-        art="search"
-        title="No empty state for this page yet"
-        description="Turn the switch off to go back, or add one to the catalog."
-      />
-    );
-  }
-
+  if (!enabled) return <>{children}</>;
+  const entry = EMPTY_STATES.find((e) => e.id === id);
+  if (!entry) return <>{children}</>;
   return (
-    <div>
-      {matches.length > 1 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          {matches.map((m, i) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => setIndex(i)}
-              className={`h-9 rounded-lg px-3 text-xs transition-colors ${
-                m.id === active.id
-                  ? "bg-primary/20 text-foreground"
-                  : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-              }`}
-            >
-              {m.page}
-            </button>
-          ))}
-        </div>
-      )}
-      <EmptyState
-        art={active.art}
-        title={active.title}
-        description={active.description}
-        ctaLabel={active.ctaLabel}
-      />
-    </div>
+    <EmptyState
+      art={entry.art}
+      title={entry.title}
+      description={entry.description}
+      ctaLabel={entry.ctaLabel}
+    />
   );
 }

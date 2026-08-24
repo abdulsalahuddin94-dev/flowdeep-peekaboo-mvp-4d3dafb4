@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
+import { EmptyRegion } from "@/lib/empty-preview";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -316,6 +317,7 @@ function FinancialsPage() {
           </div>
 
           <div className="label-eyebrow mb-3">P&L — by project</div>
+          <EmptyRegion id="financials-overview">
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Business Line</TableHead><TableHead>Expected Revenue</TableHead><TableHead>Total Budget</TableHead>
@@ -340,6 +342,7 @@ function FinancialsPage() {
               );
             })}</TableBody>
           </Table>
+          </EmptyRegion>
         </TabsContent>
 
         <TabsContent value="cost" className="mt-5">
@@ -364,6 +367,7 @@ function FinancialsPage() {
           </div>
 
           <div className="label-eyebrow mb-3">Cost items — recognition schedule</div>
+          <EmptyRegion id="financials-costs">
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Cost Item</TableHead><TableHead>Category</TableHead>
@@ -392,6 +396,7 @@ function FinancialsPage() {
               </TableRow>
             ))}</TableBody>
           </Table>
+          </EmptyRegion>
         </TabsContent>
 
         <TabsContent value="rev" className="mt-5">

@@ -30,6 +30,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parseISO } from "date-fns";
 import { toast } from "@/lib/toast";
+import { EmptyRegion } from "@/lib/empty-preview";
 
 const ORG_TAB_LABELS: Record<string, string> = {
   "business-lines": "Project Types", tags: "Tags & Classifications",
@@ -129,6 +130,7 @@ function BusinessLinesTab() {
         cta={<AddBusinessLineDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />}
         filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
+      <EmptyRegion id="org-project-types">
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -165,6 +167,7 @@ function BusinessLinesTab() {
         </Table>
       </div>
       <TablePagination {...pager} itemLabel="project types" />
+      </EmptyRegion>
       {related$.dialog}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
@@ -254,6 +257,7 @@ function DepartmentsTab() {
         cta={<AddDepartmentDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description }])} />}
         filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
+      <EmptyRegion id="org-departments">
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -290,6 +294,7 @@ function DepartmentsTab() {
         </Table>
       </div>
       <TablePagination {...pager} itemLabel="departments" />
+      </EmptyRegion>
       {related$.dialog}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
@@ -418,6 +423,7 @@ function TagsTab() {
         cta={<AddTagDialog />}
         filterGroups={[usageGroup(usage, setUsage), statusGroup(status, setStatus)]}
       />
+      <EmptyRegion id="org-tags">
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (
           <div className="col-span-full py-8 text-center text-sm text-muted-foreground">No matching tags</div>
@@ -444,6 +450,7 @@ function TagsTab() {
           </div>
         ))}
       </div>
+      </EmptyRegion>
 
       <RelatedProjectsDialog
         open={!!viewing}
@@ -756,6 +763,7 @@ function CalendarsTab() {
         cta={<Button size="sm" variant="primary" onClick={() => setCreateOpen(true)}><Plus className="mr-1 h-4 w-4" />New Calendar</Button>}
         filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
+      <EmptyRegion id="org-calendars">
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {visible.length === 0 && (
           <div className="col-span-full py-8 text-center text-sm text-muted-foreground">No matching calendars</div>
@@ -813,6 +821,7 @@ function CalendarsTab() {
           );
         })}
       </div>
+      </EmptyRegion>
       <CalendarDialog open={createOpen} onOpenChange={setCreateOpen} />
       {editing && <CalendarDialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)} calendar={editing} />}
       <ToggleActiveConfirm
@@ -1045,6 +1054,7 @@ function CostCategoriesTab() {
         cta={<AddCostCategoryDialog onAdd={(cat) => setCategories([...categories, cat])} />}
         filterGroups={[relatedProjectsGroup(related, setRelated), capexOpexGroup(type, setType), statusGroup(status, setStatus)]}
       />
+      <EmptyRegion id="org-cost-categories">
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -1080,6 +1090,7 @@ function CostCategoriesTab() {
         </Table>
       </div>
       <TablePagination {...pager} itemLabel="cost categories" />
+      </EmptyRegion>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
@@ -1277,6 +1288,7 @@ function SkillsTable() {
         }} />}
         filterGroups={[usageGroup(usage, setUsage), statusGroup(status, setStatus)]}
       />
+      <EmptyRegion id="org-skills">
       <Table>
         <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
           <TableHead className="w-64">Skill</TableHead>
@@ -1312,6 +1324,7 @@ function SkillsTable() {
         </TableBody>
       </Table>
       <TablePagination {...pager} itemLabel="skills" />
+      </EmptyRegion>
       {related$.dialog}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
@@ -1445,6 +1458,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         ]}
       />
 
+      <EmptyRegion id="org-roles">
       <div className="">
         <Table>
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -1489,6 +1503,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         </Table>
       </div>
       <TablePagination {...pager} itemLabel="job roles" />
+      </EmptyRegion>
       {related$.dialog}
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>

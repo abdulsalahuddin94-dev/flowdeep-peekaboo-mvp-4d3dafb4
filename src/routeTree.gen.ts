@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as OrganizationRouteImport } from './routes/organization'
 import { Route as FinancialsRouteImport } from './routes/financials'
-import { Route as EmptyStatesRouteImport } from './routes/empty-states'
 import { Route as ClientsVendorsRouteImport } from './routes/clients-vendors'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ApprovalsRouteImport } from './routes/approvals'
@@ -33,11 +32,6 @@ const OrganizationRoute = OrganizationRouteImport.update({
 const FinancialsRoute = FinancialsRouteImport.update({
   id: '/financials',
   path: '/financials',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EmptyStatesRoute = EmptyStatesRouteImport.update({
-  id: '/empty-states',
-  path: '/empty-states',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientsVendorsRoute = ClientsVendorsRouteImport.update({
@@ -76,7 +70,6 @@ export interface FileRoutesByFullPath {
   '/approvals': typeof ApprovalsRoute
   '/auth': typeof AuthRoute
   '/clients-vendors': typeof ClientsVendorsRoute
-  '/empty-states': typeof EmptyStatesRoute
   '/financials': typeof FinancialsRoute
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
@@ -88,7 +81,6 @@ export interface FileRoutesByTo {
   '/approvals': typeof ApprovalsRoute
   '/auth': typeof AuthRoute
   '/clients-vendors': typeof ClientsVendorsRoute
-  '/empty-states': typeof EmptyStatesRoute
   '/financials': typeof FinancialsRoute
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
@@ -101,7 +93,6 @@ export interface FileRoutesById {
   '/approvals': typeof ApprovalsRoute
   '/auth': typeof AuthRoute
   '/clients-vendors': typeof ClientsVendorsRoute
-  '/empty-states': typeof EmptyStatesRoute
   '/financials': typeof FinancialsRoute
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
@@ -115,7 +106,6 @@ export interface FileRouteTypes {
     | '/approvals'
     | '/auth'
     | '/clients-vendors'
-    | '/empty-states'
     | '/financials'
     | '/organization'
     | '/resources'
@@ -127,7 +117,6 @@ export interface FileRouteTypes {
     | '/approvals'
     | '/auth'
     | '/clients-vendors'
-    | '/empty-states'
     | '/financials'
     | '/organization'
     | '/resources'
@@ -139,7 +128,6 @@ export interface FileRouteTypes {
     | '/approvals'
     | '/auth'
     | '/clients-vendors'
-    | '/empty-states'
     | '/financials'
     | '/organization'
     | '/resources'
@@ -152,7 +140,6 @@ export interface RootRouteChildren {
   ApprovalsRoute: typeof ApprovalsRoute
   AuthRoute: typeof AuthRoute
   ClientsVendorsRoute: typeof ClientsVendorsRoute
-  EmptyStatesRoute: typeof EmptyStatesRoute
   FinancialsRoute: typeof FinancialsRoute
   OrganizationRoute: typeof OrganizationRoute
   ResourcesRoute: typeof ResourcesRoute
@@ -181,13 +168,6 @@ declare module '@tanstack/react-router' {
       path: '/financials'
       fullPath: '/financials'
       preLoaderRoute: typeof FinancialsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/empty-states': {
-      id: '/empty-states'
-      path: '/empty-states'
-      fullPath: '/empty-states'
-      preLoaderRoute: typeof EmptyStatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clients-vendors': {
@@ -240,7 +220,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApprovalsRoute: ApprovalsRoute,
   AuthRoute: AuthRoute,
   ClientsVendorsRoute: ClientsVendorsRoute,
-  EmptyStatesRoute: EmptyStatesRoute,
   FinancialsRoute: FinancialsRoute,
   OrganizationRoute: OrganizationRoute,
   ResourcesRoute: ResourcesRoute,

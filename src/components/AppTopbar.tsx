@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Bell, Briefcase, Users, Zap, ChevronDown, Sun, Moon, Sparkles } from "@/lib/icons";
-import { emptyStatesByModule } from "@/lib/empty-states";
+import { useEmptyPreview } from "@/lib/empty-preview";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -199,45 +199,28 @@ export function AppTopbar() {
   );
 }
 
-/** Nav switcher to browse every empty state (live or planned) across the app. */
+/** Toggle that swaps the current page for its empty state (same feel as the theme switch). */
 function EmptyStatesSwitcher() {
-  const navigate = useNavigate();
-  const groups = emptyStatesByModule();
+  const { enabled, setEnabled } = useEmptyPreview();
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Empty states" className="text-muted-foreground hover:text-foreground">
-          <Sparkles className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="max-h-[70vh] w-72 overflow-y-auto">
-        <DropdownMenuLabel className="text-xs">Empty states</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="text-sm"
-          onSelect={() => navigate({ to: "/empty-states", search: { id: undefined } })}
-        >
-          View all in gallery
-        </DropdownMenuItem>
-        {groups.map((g) => (
-          <div key={g.module}>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              {g.module}
-            </DropdownMenuLabel>
-            {g.items.map((e) => (
-              <DropdownMenuItem
-                key={e.id}
-                className="text-sm"
-                onSelect={() => navigate({ to: "/empty-states", search: { id: e.id } })}
-              >
-                <span className="truncate">{e.page}</span>
-              </DropdownMenuItem>
-            ))}
-          </div>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <button
+      type="button"
+      onClick={() => setEnabled(!enabled)}
+      aria-pressed={enabled}
+      aria-label="Preview empty state"
+      title={enabled ? "Back to page content" : "Preview this page's empty state"}
+      className={`flex h-9 items-center gap-1 rounded-full p-1 transition-colors ${
+        enabled ? "bg-accent/25" : "bg-secondary/60"
+      }`}
+    >
+      <span
+        className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
+          enabled ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+        }`}
+      >
+        <Sparkles className="h-4 w-4" />
+      </span>
+    </button>
   );
 }
 

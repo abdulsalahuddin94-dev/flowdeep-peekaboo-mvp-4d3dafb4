@@ -12,6 +12,7 @@ import { AppTopbar } from "@/components/AppTopbar";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProjectsProvider } from "@/lib/projects-store";
+import { EmptyPreviewProvider, EmptyPreviewBoundary } from "@/lib/empty-preview";
 import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
@@ -99,6 +100,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ProjectsProvider>
+      <EmptyPreviewProvider>
       <TooltipProvider delayDuration={120}>
           <SidebarProvider defaultOpen>
             <div className="flex min-h-screen w-full bg-background text-foreground">
@@ -106,13 +108,16 @@ function RootComponent() {
               <div className="flex min-w-0 flex-1 flex-col">
                 <AppTopbar />
                 <main className="flex-1 overflow-x-hidden px-6 py-6 md:px-10 md:py-8">
-                  <Outlet />
+                  <EmptyPreviewBoundary>
+                    <Outlet />
+                  </EmptyPreviewBoundary>
                 </main>
               </div>
             </div>
           </SidebarProvider>
         <Toaster theme="dark" position="top-right" />
       </TooltipProvider>
+      </EmptyPreviewProvider>
       </ProjectsProvider>
     </QueryClientProvider>
   );

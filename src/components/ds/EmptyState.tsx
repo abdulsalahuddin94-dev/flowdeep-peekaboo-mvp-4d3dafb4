@@ -11,6 +11,10 @@ import roleGear from "@/assets/empty/role-gear.png";
 import noteGear from "@/assets/empty/note-gear.png";
 import buildingGear from "@/assets/empty/building-gear.png";
 import bell from "@/assets/empty/bell.png";
+import briefcase from "@/assets/empty/briefcase.png";
+import coins from "@/assets/empty/coins.png";
+import tag from "@/assets/empty/tag.png";
+import handshake from "@/assets/empty/handshake.png";
 
 /*
  * DS02 empty state — one shared shape for every "nothing here yet" surface:
@@ -28,6 +32,10 @@ export const EMPTY_ART = {
   note: noteGear,
   building: buildingGear,
   bell,
+  briefcase,
+  coins,
+  tag,
+  handshake,
 } as const;
 
 export type EmptyArt = keyof typeof EMPTY_ART;

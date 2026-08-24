@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Clock, ChevronDown } from "@/lib/icons";
+import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Clock, ChevronDown, EditAction } from "@/lib/icons";
 import { FilterDrawer } from "@/components/FilterDrawer";
+import { TableRowActions } from "@/components/TableRowActions";
+
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { projects, pipelineItems, type Project, type Rag } from "@/lib/mock-data";
 import { useProjects, useCalendars, useApprovals, useTags } from "@/lib/projects-store";
@@ -69,7 +71,10 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const [view, setView]           = useState<View>(initialView);
   const [query, setQuery]         = useState("");
   const [active, setActive]       = useState<Project | null>(null);
+  const [editing, setEditing]     = useState<Project | null>(null);
+  const { updateProject }         = useProjects();
   const navigate = useNavigate();
+
   const [ragFilter, setRagFilter]   = useState<string[]>([]);
   const [stageFilter, setStageFilter] = useState<string[]>([]);
   const [tagFilter, setTagFilter]   = useState<string[]>([]);
@@ -237,11 +242,18 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
-      {view === "grid" && list.length > 0 && <ProjectGrid items={pagination.pageItems} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
-      {view === "list" && list.length > 0 && <ProjectListView items={pagination.pageItems} pendingByProject={pendingByProject} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "grid" && list.length > 0 && <ProjectGrid items={pagination.pageItems} pendingByProject={pendingByProject} onEdit={setEditing} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "list" && list.length > 0 && <ProjectListView items={pagination.pageItems} pendingByProject={pendingByProject} onEdit={setEditing} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
       {view === "gantt" && list.length > 0 && <GanttView items={list} />}
       {view !== "gantt" && list.length > 0 && <TablePagination {...pagination} itemLabel="projects" />}
+      <NewProjectDialog
+        project={editing}
+        open={!!editing}
+        onOpenChange={(o) => { if (!o) setEditing(null); }}
+        onSave={(id, patch) => { updateProject(id, patch); setEditing(null); }}
+      />
     </>
+
   );
 }
 
@@ -265,7 +277,7 @@ function PendingApprovalsChip({ count, projectName, className }: { count: number
   );
 }
 
-function ProjectGrid({ items, onOpen, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; pendingByProject: Map<string, number> }) {
+function ProjectGrid({ items, onOpen, onEdit, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; onEdit?: (p: Project) => void; pendingByProject: Map<string, number> }) {
   const { tags: orgTags } = useTags();
   const colorOf = (name: string) => orgTags.find((t) => t.name === name)?.color;
   return (
@@ -283,8 +295,22 @@ function ProjectGrid({ items, onOpen, pendingByProject }: { items: Project[]; on
             <div className="flex items-center gap-1.5">
               <PendingApprovalsChip count={pending} projectName={p.name} />
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{p.stage}</span>
+              {onEdit && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Edit ${p.name}`}
+                  title="Edit project"
+                  onClick={(e) => { e.stopPropagation(); onEdit(p); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onEdit(p); } }}
+                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border/60 text-accent-secondary opacity-0 transition group-hover:opacity-100 hover:bg-secondary/60"
+                >
+                  <EditAction size={14} />
+                </span>
+              )}
             </div>
           </div>
+
           <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">{p.name}</h3>
           <div className="mt-1 text-xs text-muted-foreground">{p.businessLine} · {p.department}</div>
           <div className="mt-3">
@@ -320,7 +346,7 @@ function ProjectGrid({ items, onOpen, pendingByProject }: { items: Project[]; on
   );
 }
 
-function ProjectListView({ items, onOpen, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; pendingByProject: Map<string, number> }) {
+function ProjectListView({ items, onOpen, onEdit, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; onEdit?: (p: Project) => void; pendingByProject: Map<string, number> }) {
   return (
     <div className="">
       <Table>
@@ -328,6 +354,7 @@ function ProjectListView({ items, onOpen, pendingByProject }: { items: Project[]
           <TableHead className="w-6" /><TableHead>Project</TableHead><TableHead>Business Line</TableHead>
           <TableHead>PM</TableHead><TableHead>Department</TableHead><TableHead>Progress</TableHead>
           <TableHead>Budget</TableHead><TableHead>End</TableHead><TableHead>RAID</TableHead>
+          <TableHead className="w-32 text-right" />
         </TableRow></TableHeader>
         <TableBody>
           {items.map((p) => (
@@ -346,6 +373,9 @@ function ProjectListView({ items, onOpen, pendingByProject }: { items: Project[]
               <TableCell className="num-mono text-xs">${p.budgetUsed.toFixed(1)}/${p.budgetTotal.toFixed(1)}M</TableCell>
               <TableCell className="text-xs text-muted-foreground">{p.endDate}</TableCell>
               <TableCell className="text-xs">{p.risks + p.issues}</TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <TableRowActions onEdit={onEdit ? () => onEdit(p) : undefined} />
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -353,6 +383,8 @@ function ProjectListView({ items, onOpen, pendingByProject }: { items: Project[]
     </div>
   );
 }
+
+
 
 function GanttView({ items }: { items: Project[] }) {
   const ragColor: Record<Rag, string> = {
@@ -571,10 +603,26 @@ function GovernanceTab() {
   );
 }
 
-function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
+function NewProjectDialog({
+  onAdd,
+  project,
+  open: openProp,
+  onOpenChange,
+  onSave,
+}: {
+  onAdd?: (p: Project) => void;
+  /** When provided the dialog runs in edit mode (controlled by the parent). */
+  project?: Project | null;
+  open?: boolean;
+  onOpenChange?: (o: boolean) => void;
+  onSave?: (id: string, patch: Partial<Project>) => void;
+}) {
   const { calendars } = useCalendars();
   const { tags: orgTags } = useTags();
-  const [open, setOpen] = useState(false);
+  const isEdit = !!project;
+  const [openState, setOpenState] = useState(false);
+  const open = openProp ?? openState;
+  const setOpen = (o: boolean) => { onOpenChange ? onOpenChange(o) : setOpenState(o); };
   const [projectType, setProjectType] = useState<"capital" | "commercial" | null>(null);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -592,6 +640,28 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
 
   function reset() { setName(""); setCode(""); setBudget(""); setRevenue(""); setStartDate(""); setDuration(""); setEndDate(""); setSelectedTags([]); setProjectType(null); }
 
+  /** Seed the form from the project being edited each time the dialog opens. */
+  const seedKey = `${project?.id ?? ""}:${open ? "1" : "0"}`;
+  const [seeded, setSeeded] = useState("");
+  if (project && open && seeded !== seedKey) {
+    setSeeded(seedKey);
+    setProjectType(!project.client || project.client === "Internal" ? "capital" : "commercial");
+    setName(project.name);
+    setBusinessLine(project.businessLine);
+    setDepartment(project.department);
+    setClient(project.client ?? "Internal");
+    setStage(project.stage);
+    setBudget(String(project.budgetTotal ?? ""));
+    setSelectedTags(project.tags ?? []);
+    setCalendarId(project.calendarId ?? calendars[0]?.id ?? "");
+    const d = new Date(project.endDate);
+    setEndDate(Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10));
+    setDuration("");
+    setStartDate("");
+    setCode("");
+  }
+  if (!open && seeded) setSeeded("");
+
   /** Auto-generated, editable project code. Prefix follows the selected type. */
   function autoCode(type: "capital" | "commercial") {
     const prefix = type === "capital" ? "CAP" : "COM";
@@ -603,6 +673,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
     /* Keep everything the user already typed; only the code prefix follows the type. */
     setCode((prev) => (!prev.trim() || isAutoCode(prev) ? autoCode(t) : prev));
   }
+
 
   const DAY = 86_400_000;
   /** Duration is calendar days, inclusive of both start and end. */
@@ -633,6 +704,24 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
   function handleCreate() {
     if (!name.trim()) { toast.error("Project name is required"); return; }
     const finalClient = projectType === "capital" ? "Internal" : client;
+    if (isEdit && project) {
+      onSave?.(project.id, {
+        name: name.trim(),
+        businessLine,
+        department,
+        client: finalClient,
+        stage,
+        budgetTotal: parseFloat(budget) || 0,
+        tags: selectedTags,
+        calendarId: calendarId || undefined,
+        ...(endDate
+          ? { endDate: new Date(endDate).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) }
+          : {}),
+      });
+      toast.success(`Project "${name.trim()}" updated`);
+      setOpen(false);
+      return;
+    }
     const newProject: Project = {
       id: `p-${Date.now()}`,
       name: name.trim(),
@@ -653,7 +742,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
       ragNote: "New",
       calendarId: calendarId || undefined,
     };
-    onAdd(newProject);
+    onAdd?.(newProject);
     toast.success(`Project "${newProject.name}" created`);
     reset();
     setOpen(false);
@@ -661,19 +750,26 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); setOpen(o); }}>
-      <DialogTrigger asChild>
-        <Button variant="primary">
-          <Plus className="mr-1 h-4 w-4" />New Project
-        </Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button variant="primary">
+            <Plus className="mr-1 h-4 w-4" />New Project
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>New Project</DialogTitle>
-          <DialogDescription>Create a project directly in the portfolio. For new initiatives requiring approval, use Submit Business Case instead.</DialogDescription>
+          <DialogTitle>{isEdit ? "Edit Project" : "New Project"}</DialogTitle>
+          <DialogDescription>
+            {isEdit
+              ? "Update project details. Schedule changes are managed inside the project's Schedule tab."
+              : "Create a project directly in the portfolio. For new initiatives requiring approval, use Submit Business Case instead."}
+          </DialogDescription>
         </DialogHeader>
         {!projectType ? (
           <ProjectTypePicker onPick={pickType} />
         ) : (
+
         <>
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2 flex overflow-hidden rounded-md border border-border bg-secondary/20 p-1">
@@ -788,7 +884,7 @@ function NewProjectDialog({ onAdd }: { onAdd: (p: Project) => void }) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => { reset(); setOpen(false); }}>Cancel</Button>
-          <Button variant="primary" onClick={handleCreate}>Create Project</Button>
+          <Button variant="primary" onClick={handleCreate}>{isEdit ? "Save Changes" : "Create Project"}</Button>
         </DialogFooter>
         </>
         )}

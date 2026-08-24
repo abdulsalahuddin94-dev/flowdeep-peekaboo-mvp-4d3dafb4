@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+
+import { EmptyRegion } from "@/lib/empty-preview";import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { ViewAsSelect } from "@/components/ViewAsSelect";

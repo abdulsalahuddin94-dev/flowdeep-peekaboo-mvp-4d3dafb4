@@ -429,7 +429,7 @@ function ProjectSlideOver({ project, onClose }: { project: Project | null; onClo
             <div>
               <div className="flex items-center gap-2"><RagBadge rag={project.rag} /><span className="text-xs text-muted-foreground">{project.stage}</span></div>
               <h2 className="mt-2 text-lg font-medium">{project.name}</h2>
-              <p className="text-xs text-muted-foreground">{project.department} · PM: {project.pm}</p>
+              <p className="text-xs text-muted-foreground">{project.department.join(" · ")} · PM: {project.pm}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

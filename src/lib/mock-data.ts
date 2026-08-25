@@ -6,7 +6,7 @@ export interface Project {
   id: string;
   name: string;
   businessLine: string;
-  department: string;
+  department: string[];
   pm: string;
   pmAvatar: string;
   progress: number;

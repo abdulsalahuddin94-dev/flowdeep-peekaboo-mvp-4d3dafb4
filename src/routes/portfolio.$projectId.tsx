@@ -469,7 +469,7 @@ function ProjectDetail() {
       <PageHeader
         title={project.name}
         current={project.name}
-        subtitle={`${project.businessLine} · ${project.department} · Client ${project.client}${projectCalendar ? ` · 📅 ${projectCalendar.name}` : ""}`}
+        subtitle={`${project.businessLine} · ${project.department.join(" · ")} · Client ${project.client}${projectCalendar ? ` · 📅 ${projectCalendar.name}` : ""}`}
         actions={
           <div className="flex items-center gap-2">
             <RagBadge rag={project.rag} />

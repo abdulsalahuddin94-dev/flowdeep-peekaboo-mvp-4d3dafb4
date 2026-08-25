@@ -122,16 +122,20 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
     if (tagFilter.length > 0) l = l.filter((p) => p.tags.some((t) => tagFilter.includes(t)));
     if (deptFilter) l = l.filter((p) => p.department === deptFilter);
     if (clientFilter) l = l.filter((p) => p.client === clientFilter);
+    if (yearFilter) l = l.filter((p) => projectYear(p) === yearFilter);
+    if (baseFilter) l = l.filter((p) => projectBase(p) === baseFilter);
+    if (typeFilter.length > 0) l = l.filter((p) => typeFilter.includes(p.businessLine));
     if (onlyPending) l = l.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
     return l;
-  }, [projectList, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, onlyPending, pendingByProject]);
+  }, [projectList, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, yearFilter, baseFilter, typeFilter, onlyPending, pendingByProject]);
 
   const pagination = usePagination(list, 10);
 
   const projectsAwaiting = projectList.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
   const pendingTotal = projectsAwaiting.reduce((s, p) => s + (pendingByProject.get(p.name) ?? 0), 0);
 
-  function clearAll() { setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter(""); setClientFilter(""); }
+  function clearAll() { setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter(""); setClientFilter(""); setYearFilter(""); setBaseFilter(""); setTypeFilter([]); }
+
 
   return (
     <>

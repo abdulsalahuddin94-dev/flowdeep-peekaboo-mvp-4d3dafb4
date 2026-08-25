@@ -301,7 +301,7 @@ function ProjectGrid({ items, onOpen, onEdit, pendingByProject }: { items: Proje
           </div>
 
           <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">{p.name}</h3>
-          <div className="mt-1 text-xs text-muted-foreground">{p.businessLine} · {p.department}</div>
+          <div className="mt-1 text-xs text-muted-foreground">{p.businessLine} · {p.department.join(" · ")}</div>
           <div className="mt-3">
             <div className="mb-1 flex justify-between text-xs"><span className="text-muted-foreground">Progress</span><span className="num-mono text-foreground">{p.progress}%</span></div>
             <Progress value={p.progress} className="h-1.5" />

@@ -357,7 +357,7 @@ function ProjectListView({ items, onOpen, onEdit, pendingByProject }: { items: P
               </TableCell>
               <TableCell className="text-muted-foreground">{p.businessLine}</TableCell>
               <TableCell>{p.pm}</TableCell>
-              <TableCell className="text-muted-foreground">{p.department}</TableCell>
+              <TableCell className="text-muted-foreground">{p.department.join(" · ")}</TableCell>
               <TableCell className="w-40"><div className="flex items-center gap-2"><Progress value={p.progress} className="h-1.5" /><span className="num-mono text-xs">{p.progress}%</span></div></TableCell>
               <TableCell className="num-mono text-xs">${p.budgetUsed.toFixed(1)}/${p.budgetTotal.toFixed(1)}M</TableCell>
               <TableCell className="text-xs text-muted-foreground">{p.endDate}</TableCell>

@@ -202,7 +202,11 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         onQueryChange={setQuery}
         placeholder="Search projects…"
         filterGroups={[
+          { key: "year", label: "Year", value: yearFilter, onChange: setYearFilter, options: [{ value: "", label: "All years" }, ...yearOptions.map((y) => ({ value: y, label: y }))] },
+          { key: "base", label: "Project Base", value: baseFilter, onChange: setBaseFilter, options: [{ value: "", label: "All bases" }, { value: "internal", label: "Internal" }, { value: "external", label: "External" }] },
+          { key: "ptype", label: "Project Type", mode: "multi", value: typeFilter, onChange: setTypeFilter, options: typeOptions.map((t) => ({ value: t, label: t })) },
           { key: "rag", label: "RAG", mode: "multi", value: ragFilter, onChange: setRagFilter, options: ALL_RAGS.map(({ v, l }) => ({ value: v, label: l })) },
+
           { key: "stage", label: "Stage", mode: "multi", value: stageFilter, onChange: setStageFilter, options: ALL_STAGES.map((s) => ({ value: s, label: s })) },
           { key: "tags", label: "Tags", mode: "multi", value: tagFilter, onChange: setTagFilter, options: ALL_TAGS.map((t) => ({ value: t, label: t })) },
           { key: "dept", label: "Department", value: deptFilter, onChange: setDeptFilter, options: [{ value: "", label: "All departments" }, ...ALL_DEPTS.map((d) => ({ value: d, label: d }))] },

@@ -233,11 +233,11 @@ function DepartmentsTab() {
   const [related, setRelated] = useState("all");
   const [status, setStatus] = useState("all");
 
-  const countFor = (name: string) => projects.filter((p) => p.department === name).length;
+  const countFor = (name: string) => projects.filter((p) => p.department.includes(name)).length;
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return rows
-      .map((d, index) => ({ ...d, index, linked: projects.filter((p) => p.department === d.name), projects: projects.filter((p) => p.department === d.name).length }))
+      .map((d, index) => ({ ...d, index, linked: projects.filter((p) => p.department.includes(d.name)), projects: projects.filter((p) => p.department.includes(d.name)).length }))
       .filter((d) => !q || d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q))
       .filter((d) => matchRelated(related, d.projects))
       .filter((d) => matchStatus(status, isActive(d.name)));

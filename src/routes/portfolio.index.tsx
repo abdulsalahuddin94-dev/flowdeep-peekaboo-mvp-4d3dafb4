@@ -697,7 +697,7 @@ function NewProjectDialog({
       onSave?.(project.id, {
         name: name.trim(),
         businessLine,
-        department,
+        department: departments,
         client: finalClient,
         stage,
         budgetTotal: parseFloat(budget) || 0,

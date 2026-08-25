@@ -627,7 +627,7 @@ function NewProjectDialog({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [calendarId, setCalendarId] = useState<string>(calendars[0]?.id ?? "");
 
-  function reset() { setName(""); setCode(""); setBudget(""); setRevenue(""); setStartDate(""); setDuration(""); setEndDate(""); setSelectedTags([]); setProjectType(null); }
+  function reset() { setName(""); setCode(""); setBudget(""); setRevenue(""); setStartDate(""); setDuration(""); setEndDate(""); setSelectedTags([]); setDepartments(["Engineering"]); setProjectType(null); }
 
   /** Seed the form from the project being edited each time the dialog opens. */
   const seedKey = `${project?.id ?? ""}:${open ? "1" : "0"}`;

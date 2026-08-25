@@ -81,6 +81,25 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const [tagFilter, setTagFilter]   = useState<string[]>([]);
   const [deptFilter, setDeptFilter] = useState("");
   const [clientFilter, setClientFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [baseFilter, setBaseFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string[]>([]);
+
+  /** Project base is derived: internal projects have no external client. */
+  const projectBase = (p: Project) => (!p.client || p.client === "Internal" ? "internal" : "external");
+  const projectYear = (p: Project) => {
+    const m = /(\d{4})/.exec(p.endDate ?? "");
+    return m ? m[1] : "";
+  };
+  const yearOptions = useMemo(
+    () => Array.from(new Set(projectList.map(projectYear).filter(Boolean))).sort(),
+    [projectList],
+  );
+  const typeOptions = useMemo(
+    () => Array.from(new Set(projectList.map((p) => p.businessLine).filter(Boolean))).sort(),
+    [projectList],
+  );
+
 
   const { approvals } = useApprovals();
   const pendingByProject = useMemo(() => {

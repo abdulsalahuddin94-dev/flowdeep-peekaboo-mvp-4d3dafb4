@@ -120,7 +120,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
     if (ragFilter.length > 0) l = l.filter((p) => ragFilter.includes(p.rag));
     if (stageFilter.length > 0) l = l.filter((p) => stageFilter.includes(p.stage));
     if (tagFilter.length > 0) l = l.filter((p) => p.tags.some((t) => tagFilter.includes(t)));
-    if (deptFilter) l = l.filter((p) => p.department === deptFilter);
+    if (deptFilter) l = l.filter((p) => p.department.includes(deptFilter));
     if (clientFilter) l = l.filter((p) => p.client === clientFilter);
     if (yearFilter) l = l.filter((p) => projectYear(p) === yearFilter);
     if (baseFilter) l = l.filter((p) => projectBase(p) === baseFilter);

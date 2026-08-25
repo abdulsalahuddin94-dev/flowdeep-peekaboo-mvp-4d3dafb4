@@ -474,7 +474,6 @@ function ProjectDetail() {
           <div className="flex items-center gap-2">
             <RagBadge rag={project.rag} />
             <Badge variant="outline" className="border-border bg-secondary/40">{project.stage}</Badge>
-            <Button variant="outline" size="sm" onClick={() => window.print()}>Export</Button>
             <Button size="sm" variant="primary" onClick={() => setReportOpen(true)}>Submit status</Button>
           </div>
         }

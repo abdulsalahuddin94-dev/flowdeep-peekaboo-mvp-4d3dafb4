@@ -46,6 +46,10 @@ export const Route = createFileRoute("/portfolio/$projectId")({
     meta: [
       { title: `${loaderData?.project.name ?? "Project"} — Nexus PMO` },
       { name: "description", content: `Full project workspace: planning, milestones, RAID, financials, team & status reporting for ${loaderData?.project.name}.` },
+      { property: "og:title", content: `${loaderData?.project.name ?? "Project"} — Nexus PMO` },
+      { property: "og:description", content: `Full project workspace: planning, milestones, financials, team and status reporting for ${loaderData?.project.name}.` },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });
@@ -462,7 +466,7 @@ function ProjectDetail() {
   return (
     <div>
       <div className="mb-4">
-        <Link to="/portfolio" className="inline-flex items-center text-xs text-muted-foreground hover:text-accent">
+        <Link to="/portfolio" className="inline-flex items-center text-sm text-breadcrumb-current transition-colors hover:text-breadcrumb-hover">
           <ChevronLeft className="mr-1 h-3 w-3" />Back to Portfolio
         </Link>
       </div>

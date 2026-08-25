@@ -1,48 +1,76 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronRight } from "@/lib/icons";
 import type { ReactNode } from "react";
+import { projects } from "@/lib/mock-data";
 
 /*
- * DS02 page shell — breadcrumb (Parent > Current) with optional title/subtitle
- * and right-aligned actions. Two levels max; anything deeper stays as in-page tabs.
+ * DS02 page shell — breadcrumb appears only from the third navigation level.
+ * Module roots stay clean, project details show a back link from the page itself.
  */
 
 /*
- * `standalone: true` means the module root has its own real view, so a crumb
- * linking back to it is meaningful. Modules that are only sub-page containers
- * (Organization, Resources, ...) get a plain page title instead of a crumb.
+ * Module metadata used when building third-level breadcrumb trails.
  */
-const MODULES: Record<string, { label: string; to: string; standalone?: boolean }> = {
-  "": { label: "Dashboard", to: "/", standalone: true },
-  portfolio: { label: "Portfolio", to: "/portfolio", standalone: true },
+const MODULES: Record<string, { label: string; to: string }> = {
+  "": { label: "Dashboard", to: "/" },
+  portfolio: { label: "Portfolio", to: "/portfolio" },
   resources: { label: "Resources", to: "/resources" },
   "clients-vendors": { label: "Clients & Vendors", to: "/clients-vendors" },
   financials: { label: "Financials", to: "/financials" },
   organization: { label: "Organization", to: "/organization" },
-  approvals: { label: "Approvals", to: "/approvals", standalone: true },
+  approvals: { label: "Approvals", to: "/approvals" },
 };
 
-/** True when a `current` page should render as "Parent > Current". */
+type BreadcrumbItem = { label: string; to?: string; params?: Record<string, string> };
+
+function pathSegments(pathname: string) {
+  return pathname.split("/").filter(Boolean);
+}
+
+function buildTrail(pathname: string, current?: string): BreadcrumbItem[] {
+  const segments = pathSegments(pathname);
+  const module = MODULES[segments[0] ?? ""];
+  if (!current || segments.length < 3 || !module) return [];
+
+  const trail: BreadcrumbItem[] = [{ label: module.label, to: module.to }];
+
+  if (segments[0] === "portfolio") {
+    const projectId = segments[1];
+    const projectName = projects.find((project) => project.id === projectId)?.name ?? projectId;
+    trail.push({ label: projectName, to: "/portfolio/$projectId", params: { projectId } });
+  }
+
+  trail.push({ label: current });
+  return trail;
+}
+
+/** True only for third-level pages such as Portfolio > Project > Page. */
 export function hasBreadcrumb(pathname: string, current?: string) {
-  if (!current) return false;
-  const seg = pathname.split("/").filter(Boolean)[0] ?? "";
-  const mod = MODULES[seg];
-  if (!mod?.standalone) return false;
-  // Module root itself (e.g. /portfolio) is the current page — no parent crumb.
-  return pathname.replace(/\/$/, "") !== mod.to.replace(/\/$/, "");
+  return Boolean(current && pathSegments(pathname).length >= 3);
 }
 
 export function Breadcrumbs({ current }: { current?: string }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   if (!hasBreadcrumb(pathname, current)) return null;
-  const seg = pathname.split("/").filter(Boolean)[0] ?? "";
-  const mod = MODULES[seg] ?? { label: seg || "Dashboard", to: pathname };
+  const trail = buildTrail(pathname, current);
 
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-muted-foreground">
-      <Link to={mod.to} className="transition-colors hover:text-foreground">{mod.label}</Link>
-      <ChevronRight className="h-3.5 w-3.5 opacity-60" aria-hidden />
-      <span className="text-foreground">{current}</span>
+    <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-breadcrumb-muted">
+      {trail.map((item, index) => {
+        const isLast = index === trail.length - 1;
+        return (
+          <span key={`${item.label}-${index}`} className="inline-flex items-center gap-2">
+            {item.to && !isLast ? (
+              <Link to={item.to as never} params={item.params as never} className="transition-colors hover:text-breadcrumb-hover">
+                {item.label}
+              </Link>
+            ) : (
+              <span className={isLast ? "text-breadcrumb-current" : undefined}>{item.label}</span>
+            )}
+            {!isLast && <ChevronRight className="h-3.5 w-3.5 opacity-60" aria-hidden />}
+          </span>
+        );
+      })}
     </nav>
   );
 }

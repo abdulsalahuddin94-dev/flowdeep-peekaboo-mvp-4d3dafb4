@@ -14,6 +14,10 @@ export const Route = createFileRoute("/auth")({
     meta: [
       { title: "Sign in — Nexus PMO" },
       { name: "description", content: "Sign in or create an account to access your PMO workspace." },
+      { property: "og:title", content: "Sign in — Nexus PMO" },
+      { property: "og:description", content: "Access your Nexus PMO workspace securely." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });

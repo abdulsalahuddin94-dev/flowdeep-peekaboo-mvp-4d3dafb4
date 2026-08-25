@@ -45,7 +45,16 @@ export const Route = createFileRoute("/organization")({
   validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
     tab: typeof search.tab === "string" ? search.tab : undefined,
   }),
-  head: () => ({ meta: [{ title: "Organization — Nexus PMO" }, { name: "description", content: "Manage business lines, departments and classification tags." }] }),
+  head: () => ({
+    meta: [
+      { title: "Organization — Nexus PMO" },
+      { name: "description", content: "Manage business lines, departments and classification tags." },
+      { property: "og:title", content: "Organization — Nexus PMO" },
+      { property: "og:description", content: "Configure project types, tags, departments, roles, skills, calendars, and rules." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 function OrganizationPage() {

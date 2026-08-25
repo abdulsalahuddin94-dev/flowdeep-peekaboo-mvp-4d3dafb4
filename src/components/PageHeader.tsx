@@ -3,16 +3,13 @@ import { useRouterState } from "@tanstack/react-router";
 import { Breadcrumbs, hasBreadcrumb } from "@/components/ds/PageShell";
 import { PageActionsSlot } from "@/components/ds/PageActionsSlot";
 
-/**
- * DS02 page header — always renders the module breadcrumb above the title so
- * every page in the app shares the same top pattern.
- */
+/** DS02 page header — breadcrumbs only render on third-level pages. */
 export function PageHeader({
   title, subtitle, actions, current,
 }: { title: string; subtitle?: string; actions?: ReactNode; current?: string }) {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const crumbed = hasBreadcrumb(pathname, current);
-  /* No parent view to link back to → the sub-page name becomes the title. */
+  /* First/second level pages keep the clean page title/sub-page title pattern. */
   const heading = crumbed ? title : (current ?? title);
   return (
     <div className="mb-6">

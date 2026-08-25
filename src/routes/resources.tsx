@@ -26,7 +26,16 @@ export const Route = createFileRoute("/resources")({
   validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
     tab: typeof search.tab === "string" ? search.tab : undefined,
   }),
-  head: () => ({ meta: [{ title: "Resources — Nexus PMO" }, { name: "description", content: "Capacity planning, allocation vs assignment, utilization heatmap and skill demand." }] }),
+  head: () => ({
+    meta: [
+      { title: "Resources — Nexus PMO" },
+      { name: "description", content: "Capacity planning, allocation vs assignment, utilization heatmap and skill demand." },
+      { property: "og:title", content: "Resources — Nexus PMO" },
+      { property: "og:description", content: "Plan resource capacity, allocations, utilization, and skill demand across projects." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 // ── Resource request types ────────────────────────────────────────────────────

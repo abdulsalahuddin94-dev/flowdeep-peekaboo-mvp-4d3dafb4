@@ -60,7 +60,7 @@
   --p-lavender-200: #dec9ff;                 /* Primary         · Purple 100 */
   --p-lavender-300: #c8b5e6;                 /* Primary Medium  · Purple 200 */
   --p-lavender-400: #ceb1ff;                 /* Primary Dark    · Purple 300 */
-  --p-lavender-500: #9848ff;                 /* Primary Darker  · Purple 400 */
+  --p-lavender-500: #9747ff;                 /* Primary Darker  · Purple 400 */
   --p-lavender-600: #7a30d8;
   --p-lavender-700: #5f24a8;
   --p-lavender-800: #39304c;                 /* Purple BG · Purple 500 */
@@ -392,6 +392,9 @@
   --accent-foreground:    var(--p-white);
   --accent-dim:           var(--p-indigo-a-12);
   --accent-glow:          var(--p-indigo-a-25);
+  --breadcrumb-muted:      var(--p-neutral-400);
+  --breadcrumb-current:    var(--p-lavender-200);
+  --breadcrumb-hover:      var(--p-lavender-500);
 
   --destructive:            var(--p-red-500);
   --destructive-foreground: var(--p-white);
@@ -503,6 +506,9 @@
   --accent-foreground:    var(--p-neutral-950);
   --accent-dim:           var(--p-lavender-a-15);
   --accent-glow:          var(--p-lavender-a-30);
+  --breadcrumb-muted:      var(--p-neutral-400);
+  --breadcrumb-current:    var(--p-lavender-200);
+  --breadcrumb-hover:      var(--p-lavender-500);
 
   --destructive:            var(--p-red-500);
   --destructive-foreground: var(--p-white);
@@ -608,6 +614,9 @@
   --color-accent-foreground:  var(--accent-foreground);
   --color-accent-dim:         var(--accent-dim);
   --color-accent-glow:        var(--accent-glow);
+  --color-breadcrumb-muted:   var(--breadcrumb-muted);
+  --color-breadcrumb-current: var(--breadcrumb-current);
+  --color-breadcrumb-hover:   var(--breadcrumb-hover);
   --color-destructive:            var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);

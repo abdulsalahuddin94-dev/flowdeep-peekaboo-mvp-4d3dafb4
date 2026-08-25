@@ -616,7 +616,7 @@ function NewProjectDialog({
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [businessLine, setBusinessLine] = useState("Software Solutions");
-  const [department, setDepartment] = useState("Engineering");
+  const [departments, setDepartments] = useState<string[]>(["Engineering"]);
   const [client, setClient] = useState("Internal");
   const [stage, setStage] = useState<Project["stage"]>("Initiation");
   const [startDate, setStartDate] = useState("");

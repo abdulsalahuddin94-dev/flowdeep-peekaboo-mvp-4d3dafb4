@@ -494,21 +494,19 @@ function ProjectDetail() {
           const actualPct = totalW ? Math.round(weightedActual / totalW) : 0;
           const plannedPct = totalW ? Math.round(weightedPlanned / totalW) : 0;
           return (
-            <button
-              type="button"
-              onClick={() => setPlanningProgressOpen(true)}
-              className="glass-card group relative p-3 text-left transition-colors hover:border-accent/40"
-            >
-              <ArrowUpRight className="pointer-events-none absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground/60 transition-colors group-hover:text-accent" />
+            <div className="glass-card relative p-3 text-left">
+              <ArrowUpRight className="pointer-events-none absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground/60" />
               <div className="label-eyebrow">Progress</div>
               <div className="mt-1 text-lg font-medium num-mono text-foreground">{actualPct}%</div>
+              <Progress value={actualPct} className="mt-2 h-1.5" />
               <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
                 <span>Planned <span className="num-mono text-foreground/80">{plannedPct}%</span></span>
                 <span className={actualPct >= plannedPct ? "text-rag-green" : "text-rag-amber"}>
                   {actualPct >= plannedPct ? "On / ahead" : `${plannedPct - actualPct}% behind`}
                 </span>
               </div>
-            </button>
+            </div>
+
           );
         })()}
         <button

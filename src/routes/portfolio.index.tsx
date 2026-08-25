@@ -81,6 +81,25 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const [tagFilter, setTagFilter]   = useState<string[]>([]);
   const [deptFilter, setDeptFilter] = useState("");
   const [clientFilter, setClientFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [baseFilter, setBaseFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string[]>([]);
+
+  /** Project base is derived: internal projects have no external client. */
+  const projectBase = (p: Project) => (!p.client || p.client === "Internal" ? "internal" : "external");
+  const projectYear = (p: Project) => {
+    const m = /(\d{4})/.exec(p.endDate ?? "");
+    return m ? m[1] : "";
+  };
+  const yearOptions = useMemo(
+    () => Array.from(new Set(projectList.map(projectYear).filter(Boolean))).sort(),
+    [projectList],
+  );
+  const typeOptions = useMemo(
+    () => Array.from(new Set(projectList.map((p) => p.businessLine).filter(Boolean))).sort(),
+    [projectList],
+  );
+
 
   const { approvals } = useApprovals();
   const pendingByProject = useMemo(() => {
@@ -103,16 +122,20 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
     if (tagFilter.length > 0) l = l.filter((p) => p.tags.some((t) => tagFilter.includes(t)));
     if (deptFilter) l = l.filter((p) => p.department === deptFilter);
     if (clientFilter) l = l.filter((p) => p.client === clientFilter);
+    if (yearFilter) l = l.filter((p) => projectYear(p) === yearFilter);
+    if (baseFilter) l = l.filter((p) => projectBase(p) === baseFilter);
+    if (typeFilter.length > 0) l = l.filter((p) => typeFilter.includes(p.businessLine));
     if (onlyPending) l = l.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
     return l;
-  }, [projectList, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, onlyPending, pendingByProject]);
+  }, [projectList, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, yearFilter, baseFilter, typeFilter, onlyPending, pendingByProject]);
 
   const pagination = usePagination(list, 10);
 
   const projectsAwaiting = projectList.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
   const pendingTotal = projectsAwaiting.reduce((s, p) => s + (pendingByProject.get(p.name) ?? 0), 0);
 
-  function clearAll() { setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter(""); setClientFilter(""); }
+  function clearAll() { setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter(""); setClientFilter(""); setYearFilter(""); setBaseFilter(""); setTypeFilter([]); }
+
 
   return (
     <>
@@ -179,7 +202,11 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         onQueryChange={setQuery}
         placeholder="Search projects…"
         filterGroups={[
+          { key: "year", label: "Year", value: yearFilter, onChange: setYearFilter, options: [{ value: "", label: "All years" }, ...yearOptions.map((y) => ({ value: y, label: y }))] },
+          { key: "base", label: "Project Base", value: baseFilter, onChange: setBaseFilter, options: [{ value: "", label: "All bases" }, { value: "internal", label: "Internal" }, { value: "external", label: "External" }] },
+          { key: "ptype", label: "Project Type", mode: "multi", value: typeFilter, onChange: setTypeFilter, options: typeOptions.map((t) => ({ value: t, label: t })) },
           { key: "rag", label: "RAG", mode: "multi", value: ragFilter, onChange: setRagFilter, options: ALL_RAGS.map(({ v, l }) => ({ value: v, label: l })) },
+
           { key: "stage", label: "Stage", mode: "multi", value: stageFilter, onChange: setStageFilter, options: ALL_STAGES.map((s) => ({ value: s, label: s })) },
           { key: "tags", label: "Tags", mode: "multi", value: tagFilter, onChange: setTagFilter, options: ALL_TAGS.map((t) => ({ value: t, label: t })) },
           { key: "dept", label: "Department", value: deptFilter, onChange: setDeptFilter, options: [{ value: "", label: "All departments" }, ...ALL_DEPTS.map((d) => ({ value: d, label: d }))] },

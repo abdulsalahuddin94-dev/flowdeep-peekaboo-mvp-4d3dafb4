@@ -1109,9 +1109,9 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
   const [approved, setApproved] = useState(project.stage !== "Initiation");
 
   const [fields, setFields] = useState({
-    objective:   `Deliver ${project.name} on time and within budget, achieving the agreed scope for ${project.client ?? project.department}.`,
+    objective:   `Deliver ${project.name} on time and within budget, achieving the agreed scope for ${project.client ?? project.department.join(" / ")}.`,
     scope:       `In scope: full delivery of ${project.name} across all defined workstreams.\nOut of scope: ongoing operations, post-go-live support beyond 90 days.`,
-    sponsor:     "Executive Director, " + project.department,
+    sponsor:     "Executive Director, " + project.department.join(" / "),
     pm:          project.pm,
     startDate:   "2026-04-01",
     endDate:     project.endDate,

@@ -812,15 +812,8 @@ function NewProjectDialog({
             </Select>
           </div>
           <div>
-            <Label>Department</Label>
-            <Select value={department} onValueChange={setDepartment}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {["Engineering", "IT", "Operations", "R&D", "Finance"].map((d) => (
-                  <SelectItem key={d} value={d}>{d}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Departments</Label>
+            <DepartmentPicker value={departments} onChange={setDepartments} />
           </div>
           <div>
             <Label>Stage</Label>

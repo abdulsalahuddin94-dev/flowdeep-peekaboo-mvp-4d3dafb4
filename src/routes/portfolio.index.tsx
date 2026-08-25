@@ -715,7 +715,7 @@ function NewProjectDialog({
       id: `p-${Date.now()}`,
       name: name.trim(),
       businessLine,
-      department,
+      department: departments,
       client: finalClient,
       pm: "Unassigned",
       pmAvatar: "—",

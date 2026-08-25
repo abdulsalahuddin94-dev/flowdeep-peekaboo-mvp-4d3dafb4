@@ -637,7 +637,7 @@ function NewProjectDialog({
     setProjectType(!project.client || project.client === "Internal" ? "capital" : "commercial");
     setName(project.name);
     setBusinessLine(project.businessLine);
-    setDepartment(project.department);
+    setDepartments(project.department ?? ["Engineering"]);
     setClient(project.client ?? "Internal");
     setStage(project.stage);
     setBudget(String(project.budgetTotal ?? ""));

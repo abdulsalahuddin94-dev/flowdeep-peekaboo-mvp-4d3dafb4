@@ -684,7 +684,7 @@ function AddTagDialog() {
                       <Checkbox checked={checked} onCheckedChange={() => toggle(p.id)} />
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm text-foreground">{p.name}</div>
-                        <div className="truncate text-xs text-muted-foreground">{p.businessLine} · {p.department}</div>
+                        <div className="truncate text-xs text-muted-foreground">{p.businessLine} · {p.department.join(" · ")}</div>
                       </div>
                     </label>
                   );

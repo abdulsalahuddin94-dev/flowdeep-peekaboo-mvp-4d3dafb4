@@ -32,7 +32,16 @@ export const Route = createFileRoute("/clients-vendors")({
   validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
     tab: typeof search.tab === "string" ? search.tab : undefined,
   }),
-  head: () => ({ meta: [{ title: "Clients & Vendors — Nexus PMO" }, { name: "description", content: "Manage external parties: clients with active engagements and approved vendor / subcontractor pool." }] }),
+  head: () => ({
+    meta: [
+      { title: "Clients & Vendors — Nexus PMO" },
+      { name: "description", content: "Manage external parties: clients with active engagements and approved vendor / subcontractor pool." },
+      { property: "og:title", content: "Clients & Vendors — Nexus PMO" },
+      { property: "og:description", content: "Manage client relationships, linked projects, and the approved vendor pool." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 // ── Supplemental contact data (not in mock-data) ──────────────────────────────

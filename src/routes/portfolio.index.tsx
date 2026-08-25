@@ -32,7 +32,16 @@ export const Route = createFileRoute("/portfolio/")({
   validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
     tab: typeof search.tab === "string" ? search.tab : undefined,
   }),
-  head: () => ({ meta: [{ title: "Portfolio — Nexus PMO" }, { name: "description", content: "All active projects, governance, and business case intake across the enterprise portfolio." }] }),
+  head: () => ({
+    meta: [
+      { title: "Portfolio — Nexus PMO" },
+      { name: "description", content: "All active projects, governance, and business case intake across the enterprise portfolio." },
+      { property: "og:title", content: "Portfolio — Nexus PMO" },
+      { property: "og:description", content: "Manage active projects, governance signals, and business case intake across the portfolio." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 const VIEWS = ["grid", "list", "gantt"] as const;

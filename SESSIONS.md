@@ -10,11 +10,13 @@
 2. Kept project detail pages on a simple "Back to Portfolio" link instead of a breadcrumb.
 3. Added semantic breadcrumb color tokens for muted parents, current page, and hover state.
 4. Set the back/breadcrumb text sizing to 14px via `text-sm`.
+5. Completed route-level social metadata and removed root-level preview images so leaf routes own their metadata.
 
 **Files updated:**
 - `src/components/ds/PageShell.tsx` — third-level breadcrumb trail logic.
 - `src/components/PageHeader.tsx` — header behavior aligned to the new breadcrumb rule.
 - `src/routes/portfolio.$projectId.tsx` — project detail back link styling.
+- `src/routes/index.tsx`, `src/routes/portfolio.index.tsx`, `src/routes/resources.tsx`, `src/routes/financials.tsx`, `src/routes/clients-vendors.tsx`, `src/routes/organization.tsx`, `src/routes/auth.tsx`, `src/routes/__root.tsx` — route metadata cleanup.
 - `src/styles.css` — breadcrumb semantic Tailwind tokens.
 
 ---

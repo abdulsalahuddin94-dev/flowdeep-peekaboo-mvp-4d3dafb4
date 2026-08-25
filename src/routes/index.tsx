@@ -22,6 +22,10 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "Dashboard — Nexus PMO MVP" },
       { name: "description", content: "Role-adaptive PMO dashboard: portfolio health, capacity, resources, financials." },
+      { property: "og:title", content: "Dashboard — Nexus PMO MVP" },
+      { property: "og:description", content: "Track portfolio health, capacity, resources, and financials from the PMO dashboard." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });

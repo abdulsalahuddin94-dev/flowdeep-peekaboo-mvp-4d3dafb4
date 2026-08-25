@@ -67,8 +67,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Role-adaptive PMO dashboard: portfolio health, approvals, risks, capacity, schedule." },
       { name: "twitter:title", content: "PMO MVP" },
       { name: "twitter:description", content: "Role-adaptive PMO dashboard: portfolio health, approvals, risks, capacity, schedule." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/22620826-27a7-4c30-8622-5cfffcd30a0e/id-preview-fe5adaf1--f8986191-21e9-4ad6-b2f7-3dd205d75fc5.lovable.app-1779283908595.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/22620826-27a7-4c30-8622-5cfffcd30a0e/id-preview-fe5adaf1--f8986191-21e9-4ad6-b2f7-3dd205d75fc5.lovable.app-1779283908595.png" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],

@@ -44,7 +44,7 @@ const ALL_RAGS = [
 ] as const;
 const ALL_STAGES = ["Initiation", "Planning", "Execution", "Monitoring", "Closure"] as const;
 const ALL_TAGS    = Array.from(new Set(projects.flatMap((p) => p.tags)));
-const ALL_DEPTS   = Array.from(new Set(projects.map((p) => p.department)));
+const ALL_DEPTS   = Array.from(new Set(projects.flatMap((p) => p.department)));
 const ALL_CLIENTS = Array.from(new Set(projects.map((p) => p.client).filter(Boolean))) as string[];
 
 function PortfolioPage() {

@@ -44,7 +44,7 @@ const ALL_RAGS = [
 ] as const;
 const ALL_STAGES = ["Initiation", "Planning", "Execution", "Monitoring", "Closure"] as const;
 const ALL_TAGS    = Array.from(new Set(projects.flatMap((p) => p.tags)));
-const ALL_DEPTS   = Array.from(new Set(projects.map((p) => p.department)));
+const ALL_DEPTS   = Array.from(new Set(projects.flatMap((p) => p.department)));
 const ALL_CLIENTS = Array.from(new Set(projects.map((p) => p.client).filter(Boolean))) as string[];
 
 function PortfolioPage() {
@@ -120,7 +120,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
     if (ragFilter.length > 0) l = l.filter((p) => ragFilter.includes(p.rag));
     if (stageFilter.length > 0) l = l.filter((p) => stageFilter.includes(p.stage));
     if (tagFilter.length > 0) l = l.filter((p) => p.tags.some((t) => tagFilter.includes(t)));
-    if (deptFilter) l = l.filter((p) => p.department === deptFilter);
+    if (deptFilter) l = l.filter((p) => p.department.includes(deptFilter));
     if (clientFilter) l = l.filter((p) => p.client === clientFilter);
     if (yearFilter) l = l.filter((p) => projectYear(p) === yearFilter);
     if (baseFilter) l = l.filter((p) => projectBase(p) === baseFilter);
@@ -301,7 +301,7 @@ function ProjectGrid({ items, onOpen, onEdit, pendingByProject }: { items: Proje
           </div>
 
           <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">{p.name}</h3>
-          <div className="mt-1 text-xs text-muted-foreground">{p.businessLine} · {p.department}</div>
+          <div className="mt-1 text-xs text-muted-foreground">{p.businessLine} · {p.department.join(" · ")}</div>
           <div className="mt-3">
             <div className="mb-1 flex justify-between text-xs"><span className="text-muted-foreground">Progress</span><span className="num-mono text-foreground">{p.progress}%</span></div>
             <Progress value={p.progress} className="h-1.5" />
@@ -357,7 +357,7 @@ function ProjectListView({ items, onOpen, onEdit, pendingByProject }: { items: P
               </TableCell>
               <TableCell className="text-muted-foreground">{p.businessLine}</TableCell>
               <TableCell>{p.pm}</TableCell>
-              <TableCell className="text-muted-foreground">{p.department}</TableCell>
+              <TableCell className="text-muted-foreground">{p.department.join(" · ")}</TableCell>
               <TableCell className="w-40"><div className="flex items-center gap-2"><Progress value={p.progress} className="h-1.5" /><span className="num-mono text-xs">{p.progress}%</span></div></TableCell>
               <TableCell className="num-mono text-xs">${p.budgetUsed.toFixed(1)}/${p.budgetTotal.toFixed(1)}M</TableCell>
               <TableCell className="text-xs text-muted-foreground">{p.endDate}</TableCell>
@@ -429,7 +429,7 @@ function ProjectSlideOver({ project, onClose }: { project: Project | null; onClo
             <div>
               <div className="flex items-center gap-2"><RagBadge rag={project.rag} /><span className="text-xs text-muted-foreground">{project.stage}</span></div>
               <h2 className="mt-2 text-lg font-medium">{project.name}</h2>
-              <p className="text-xs text-muted-foreground">{project.department} · PM: {project.pm}</p>
+              <p className="text-xs text-muted-foreground">{project.department.join(" · ")} · PM: {project.pm}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -616,7 +616,7 @@ function NewProjectDialog({
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [businessLine, setBusinessLine] = useState("Software Solutions");
-  const [department, setDepartment] = useState("Engineering");
+  const [departments, setDepartments] = useState<string[]>(["Engineering"]);
   const [client, setClient] = useState("Internal");
   const [stage, setStage] = useState<Project["stage"]>("Initiation");
   const [startDate, setStartDate] = useState("");
@@ -627,7 +627,7 @@ function NewProjectDialog({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [calendarId, setCalendarId] = useState<string>(calendars[0]?.id ?? "");
 
-  function reset() { setName(""); setCode(""); setBudget(""); setRevenue(""); setStartDate(""); setDuration(""); setEndDate(""); setSelectedTags([]); setProjectType(null); }
+  function reset() { setName(""); setCode(""); setBudget(""); setRevenue(""); setStartDate(""); setDuration(""); setEndDate(""); setSelectedTags([]); setDepartments(["Engineering"]); setProjectType(null); }
 
   /** Seed the form from the project being edited each time the dialog opens. */
   const seedKey = `${project?.id ?? ""}:${open ? "1" : "0"}`;
@@ -637,7 +637,7 @@ function NewProjectDialog({
     setProjectType(!project.client || project.client === "Internal" ? "capital" : "commercial");
     setName(project.name);
     setBusinessLine(project.businessLine);
-    setDepartment(project.department);
+    setDepartments(project.department ?? ["Engineering"]);
     setClient(project.client ?? "Internal");
     setStage(project.stage);
     setBudget(String(project.budgetTotal ?? ""));
@@ -697,7 +697,7 @@ function NewProjectDialog({
       onSave?.(project.id, {
         name: name.trim(),
         businessLine,
-        department,
+        department: departments,
         client: finalClient,
         stage,
         budgetTotal: parseFloat(budget) || 0,
@@ -715,7 +715,7 @@ function NewProjectDialog({
       id: `p-${Date.now()}`,
       name: name.trim(),
       businessLine,
-      department,
+      department: departments,
       client: finalClient,
       pm: "Unassigned",
       pmAvatar: "—",
@@ -812,15 +812,8 @@ function NewProjectDialog({
             </Select>
           </div>
           <div>
-            <Label>Department</Label>
-            <Select value={department} onValueChange={setDepartment}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {["Engineering", "IT", "Operations", "R&D", "Finance"].map((d) => (
-                  <SelectItem key={d} value={d}>{d}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Departments</Label>
+            <DepartmentPicker value={departments} onChange={setDepartments} />
           </div>
           <div>
             <Label>Stage</Label>
@@ -952,6 +945,79 @@ function TagPicker({
                 <Checkbox checked={on} className="pointer-events-none rounded-[4px]" />
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.color }} />
                 <span className="flex-1 truncate" style={{ color: t.color }}>{t.name}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center justify-between border-t border-border px-2 py-1.5">
+          <span className="text-[11px] text-muted-foreground">{value.length} selected</span>
+          <Button variant="ghost" size="sm" onClick={() => onChange([])} disabled={value.length === 0}>
+            Clear all
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function DepartmentPicker({
+  value,
+  onChange,
+}: {
+  value: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const options = ["Engineering", "IT", "Operations", "R&D", "Finance"];
+  const toggle = (n: string) =>
+    onChange(value.includes(n) ? value.filter((x) => x !== n) : [...value, n]);
+
+  const shown = value.slice(0, 3);
+  const extra = value.length - shown.length;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="mt-1 flex min-h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 py-1.5 text-left text-sm"
+        >
+          <span className="flex flex-1 flex-wrap items-center gap-1.5">
+            {value.length === 0 && <span className="text-muted-foreground">Select departments…</span>}
+            {shown.map((n) => (
+              <span
+                key={n}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/40 px-2 py-0.5 text-[11px] text-foreground"
+              >
+                {n}
+                <X
+                  className="h-3 w-3 opacity-70 hover:opacity-100"
+                  onClick={(e) => { e.stopPropagation(); toggle(n); }}
+                />
+              </span>
+            ))}
+            {extra > 0 && (
+              <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+                +{extra} more
+              </span>
+            )}
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[320px] p-0">
+        <div className="max-h-64 overflow-y-auto p-1">
+          {options.map((d) => {
+            const on = value.includes(d);
+            return (
+              <button
+                key={d}
+                type="button"
+                onClick={() => toggle(d)}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/60"
+              >
+                <Checkbox checked={on} className="pointer-events-none rounded-[4px]" />
+                <span className="flex-1 truncate">{d}</span>
               </button>
             );
           })}

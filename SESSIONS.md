@@ -3,6 +3,22 @@
 > Every session that touches this project is logged here. Newest session at the top.
 
 ---
+## Session 46 — 2026-08-25
+
+**What was done:**
+1. Migrated `Project.department` from a single string to a `string[]` array to support multi-department projects.
+2. Added a `DepartmentPicker` multi-select component in the New/Edit Project dialog with checkbox options, selected chips, and a "Clear all" action.
+3. Updated Portfolio grid/list/slide-over, Project Detail subtitle/charter, Organization related-projects dialog, and global search to render departments as joined strings.
+4. Updated Organization department linking logic to use `.includes(name)` against the array.
+
+**Files updated:**
+- `src/lib/mock-data.ts` — `Project.department` typed as `string[]`.
+- `src/routes/portfolio.index.tsx` — `DepartmentPicker`, multi-select state, filter `flatMap`, display joins, create/edit payloads.
+- `src/routes/portfolio.$projectId.tsx` — subtitle and charter now join department arrays.
+- `src/routes/organization.tsx` — department counts and related projects use `.includes()`.
+- `src/components/AppTopbar.tsx` — search value joins department array.
+
+---
 ## Session 45 — 2026-08-17
 
 **What was done:**

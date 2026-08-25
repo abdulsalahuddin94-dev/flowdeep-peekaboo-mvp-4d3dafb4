@@ -469,7 +469,7 @@ function ProjectDetail() {
       <PageHeader
         title={project.name}
         current={project.name}
-        subtitle={`${project.businessLine} · ${project.department} · Client ${project.client}${projectCalendar ? ` · 📅 ${projectCalendar.name}` : ""}`}
+        subtitle={`${project.businessLine} · ${project.department.join(" · ")} · Client ${project.client}${projectCalendar ? ` · 📅 ${projectCalendar.name}` : ""}`}
         actions={
           <div className="flex items-center gap-2">
             <RagBadge rag={project.rag} />
@@ -1109,9 +1109,9 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
   const [approved, setApproved] = useState(project.stage !== "Initiation");
 
   const [fields, setFields] = useState({
-    objective:   `Deliver ${project.name} on time and within budget, achieving the agreed scope for ${project.client ?? project.department}.`,
+    objective:   `Deliver ${project.name} on time and within budget, achieving the agreed scope for ${project.client ?? project.department.join(" / ")}.`,
     scope:       `In scope: full delivery of ${project.name} across all defined workstreams.\nOut of scope: ongoing operations, post-go-live support beyond 90 days.`,
-    sponsor:     "Executive Director, " + project.department,
+    sponsor:     "Executive Director, " + project.department.join(" / "),
     pm:          project.pm,
     startDate:   "2026-04-01",
     endDate:     project.endDate,
@@ -1158,7 +1158,7 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
       <div className="glass-card flex items-center justify-between px-5 py-4">
         <div>
           <h2 className="text-base font-medium text-foreground">Project Charter — {project.name}</h2>
-          <p className="text-xs text-muted-foreground">Version 1.0 · {project.department} · {project.businessLine}</p>
+          <p className="text-xs text-muted-foreground">Version 1.0 · {project.department.join(" · ")} · {project.businessLine}</p>
         </div>
         <div className="flex items-center gap-2">
           <span className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${

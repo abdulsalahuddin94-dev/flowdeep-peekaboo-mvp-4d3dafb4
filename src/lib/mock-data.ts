@@ -6,7 +6,7 @@ export interface Project {
   id: string;
   name: string;
   businessLine: string;
-  department: string;
+  department: string[];
   pm: string;
   pmAvatar: string;
   progress: number;
@@ -77,7 +77,7 @@ export const projects: Project[] = seed.map((row, i) => {
     id: `p-${(i + 1).toString().padStart(3, "0")}`,
     name,
     businessLine: lines[i % lines.length],
-    department: depts[i % depts.length],
+    department: [depts[i % depts.length]],
     pm: pmName,
     pmAvatar,
     progress,

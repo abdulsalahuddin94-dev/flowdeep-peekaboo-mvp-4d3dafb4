@@ -77,7 +77,7 @@ export function AppTopbar() {
                   {projects.map((p) => (
                     <CommandItem
                       key={p.id}
-                      value={`${p.name} ${p.pm} ${p.businessLine} ${p.department} ${p.stage}`}
+                      value={`${p.name} ${p.pm} ${p.businessLine} ${p.department.join(" ")} ${p.stage}`}
                       onSelect={() => {
                         navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } });
                         setOpen(false);

@@ -3,6 +3,21 @@
 > Every session that touches this project is logged here. Newest session at the top.
 
 ---
+## Session 47 — 2026-08-25
+
+**What was done:**
+1. Updated DS02 breadcrumb behavior so breadcrumbs only render on third-level pages.
+2. Kept project detail pages on a simple "Back to Portfolio" link instead of a breadcrumb.
+3. Added semantic breadcrumb color tokens for muted parents, current page, and hover state.
+4. Set the back/breadcrumb text sizing to 14px via `text-sm`.
+
+**Files updated:**
+- `src/components/ds/PageShell.tsx` — third-level breadcrumb trail logic.
+- `src/components/PageHeader.tsx` — header behavior aligned to the new breadcrumb rule.
+- `src/routes/portfolio.$projectId.tsx` — project detail back link styling.
+- `src/styles.css` — breadcrumb semantic Tailwind tokens.
+
+---
 ## Session 46 — 2026-08-25
 
 **What was done:**

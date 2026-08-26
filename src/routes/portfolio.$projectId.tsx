@@ -627,13 +627,7 @@ function ProjectDetail() {
         </TabsList>
 
         <TabsContent value="Overview" className="mt-5">
-          <OverviewTab
-            project={project}
-            isNew={isNewProject}
-            onAddMilestone={() => { setActiveTab("Project Schedule"); setAddFirstMilestoneOpen(true); }}
-            onAddBudget={() => setActiveTab("Financials")}
-            onSubmitReport={() => { setActiveTab("Status Reports"); setReportOpen(true); }}
-          />
+          <OverviewTab project={project} isNew={isNewProject} />
         </TabsContent>
 
         <TabsContent value="Project Schedule" className="mt-5">
@@ -1345,25 +1339,16 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
 }
 
 function OverviewTab({
-  project, isNew, onAddMilestone, onAddBudget, onSubmitReport,
+  project, isNew,
 }: {
   project: typeof projects[number]; isNew: boolean;
-  onAddMilestone: () => void; onAddBudget: () => void; onSubmitReport: () => void;
 }) {
   if (isNew) {
     return (
       <EmptyState
         art="briefcase"
         title="This project is just getting started"
-        description="Add a schedule, budget, and your first status report to bring this project to life."
-        ctaLabel="Add first milestone"
-        onCta={onAddMilestone}
-        actions={
-          <>
-            <Button variant="outline" onClick={onAddBudget}>Add budget</Button>
-            <Button variant="outline" onClick={onSubmitReport}>Submit status report</Button>
-          </>
-        }
+        description="Add a schedule, budget, and your first status report to bring this project to life. Use the Project Schedule, Financials, and Status Reports tabs to get going."
       />
     );
   }

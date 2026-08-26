@@ -476,15 +476,13 @@ export function ProjectFormPage({ project }: { project?: Project }) {
 
       {/* Sticky action bar */}
       {form.projectType && (
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur lg:left-[var(--sidebar-width,256px)]">
-          <div className="flex items-center justify-between gap-3 px-6 py-3">
+        <div className="sticky bottom-0 z-30 -mx-6 mt-6 border-t border-border bg-background/95 px-6 py-3 backdrop-blur">
+          <div className="flex items-center justify-between gap-3">
             <p className="hidden text-xs text-muted-foreground sm:block">
               {dirty ? (isEdit ? "Unsaved changes" : "Draft saved automatically") : "No changes yet"}
             </p>
             <div className="ml-auto flex items-center gap-2">
-              <Button variant="outline" onClick={() => setLeaveOpen(dirty ? true : false) || (!dirty && navigate({ to: "/portfolio" }))}>
-                Cancel
-              </Button>
+              <Button variant="outline" onClick={handleCancel}>Cancel</Button>
               <Button variant="primary" onClick={handleSubmit}>
                 {isEdit ? "Save Changes" : "Create Project"}
               </Button>
@@ -492,6 +490,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
           </div>
         </div>
       )}
+
 
       {/* Explicit cancel confirmation */}
       <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>

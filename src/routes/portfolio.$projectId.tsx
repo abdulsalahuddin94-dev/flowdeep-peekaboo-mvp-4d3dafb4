@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge } from "@/components/RagBadge";
@@ -17,11 +17,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, ArrowUpRight, Clock, Check } from "@/lib/icons";
-import type { Rag } from "@/lib/mock-data";
+import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
 import { toast } from "@/lib/toast";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
+import { EmptyState } from "@/components/ds/EmptyState";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress } from "@/components/ProjectSchedule";
 import {
@@ -39,8 +40,17 @@ export const Route = createFileRoute("/portfolio/$projectId")({
   component: ProjectDetail,
   loader: ({ params }) => {
     const p = projects.find((x) => x.id === params.projectId);
-    if (!p) throw notFound();
-    return { project: p };
+    // The static seed only covers demo projects — anything created at runtime (via the New Project
+    // form) lives in the live ProjectsProvider context instead, which loaders can't reach (no hooks).
+    // A same-id placeholder lets the component's `liveProjects.find(...) ?? loaderProject` fallback
+    // resolve to the real live project on first render, without ever rendering placeholder fields.
+    const placeholder: Project = {
+      id: params.projectId, name: "Project", businessLine: "", department: [],
+      pm: "", pmAvatar: "", progress: 0, budgetUsed: 0, budgetTotal: 0,
+      startDate: "—", endDate: "—", rag: "blue", risks: 0, issues: 0,
+      stage: "Initiation", tags: [],
+    };
+    return { project: p ?? placeholder };
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -121,6 +131,14 @@ function ProjectDetail() {
   const navigate = useNavigate();
   const project = liveProjects.find((p) => p.id === loaderProject.id) ?? loaderProject;
   const [reportOpen, setReportOpen] = useState(false);
+
+  /** A project fresh out of the creation form — its tabs show guided empty states instead of demo content. */
+  const isNewProject = project.ragNote === "New";
+  function clearNewFlag() {
+    if (project.ragNote === "New") updateProject(project.id, { ragNote: undefined });
+  }
+  const [activeTab, setActiveTab] = useState<string>(TABS[0]);
+  const [addFirstMilestoneOpen, setAddFirstMilestoneOpen] = useState(false);
   const [teamMembers, setTeamMembers] = useState([
     { n: project.pm, r: "PM", a: 80, p: "Apr–Sep", s: "green" as Rag },
     { n: "Mei Chen", r: "Security Lead", a: 40, p: "May–Aug", s: "green" as Rag },
@@ -163,7 +181,7 @@ function ProjectDetail() {
     createdAt: string;
     snapshot: Milestone[];
   }>>([]);
-  const [milestones, setMilestones] = useState<Milestone[]>([
+  const [milestones, setMilestones] = useState<Milestone[]>(isNewProject ? [] : [
     // ── Phase 1: Discovery — completed, all green, all assigned ──────────────
     { name: "Discovery & Requirements", kind: "Task", startDate: "2025-04-15", endDate: "2025-05-16", owner: "Sara Al-Rashid", rag: "amber", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "Package Cost", packageId: "PKG-DSC", amount: "$80K" }, progress: 20, parent: "Discovery Sign-off", weightScore: 8 },
     { name: "Stakeholder workshops", kind: "Task", startDate: "2025-04-15", endDate: "2025-04-25", owner: "Sara Al-Rashid", rag: "amber", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 40, parent: "Discovery & Requirements", assignee: "Sara Al-Rashid", weightScore: 5 },
@@ -199,7 +217,7 @@ function ProjectDetail() {
     { name: "Knowledge transfer", kind: "Task", startDate: "2025-10-06", endDate: "2025-10-17", owner: project.pm, rag: "grey", dep: "Production cutover", roles: [{ role: "Trainer", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 0, parent: "Deployment & Hypercare", weightScore: 2 },
     { name: "Go-Live", kind: "Milestone", startDate: project.endDate, endDate: project.endDate, owner: project.pm, rag: "blue", dep: "Deployment & Hypercare", roles: [], payment: { kind: "Client Revenue", amount: "$500K" }, progress: 0, milestoneType: "finish" },
   ]);
-  const [reports, setReports] = useState<StatusReport[]>(() => [
+  const [reports, setReports] = useState<StatusReport[]>(() => isNewProject ? [] : [
     { week: 18, by: project.pm, when: "3 days ago", rag: project.rag, text: "Integration layer testing delayed by 1 week. Fallback plan in review with IT Director. No impact on go-live yet." },
     { week: 17, by: project.pm, when: "10 days ago", rag: "amber", text: "Vendor SOW reviewed. Two open RAID items remain; mitigations scheduled this sprint." },
     { week: 16, by: project.pm, when: "17 days ago", rag: "green", text: "Discovery completed and signed off. Build phase 1 kicked off on plan." },
@@ -601,7 +619,7 @@ function ProjectDetail() {
         })()}
       </div>
 
-      <Tabs defaultValue="Overview">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="overflow-x-auto whitespace-nowrap">
           {TABS.map((t) => (
             <TabsTrigger key={t} value={t} className="text-xs">{t}</TabsTrigger>
@@ -609,10 +627,26 @@ function ProjectDetail() {
         </TabsList>
 
         <TabsContent value="Overview" className="mt-5">
-          <OverviewTab project={project} />
+          <OverviewTab
+            project={project}
+            isNew={isNewProject}
+            onAddMilestone={() => { setActiveTab("Project Schedule"); setAddFirstMilestoneOpen(true); }}
+            onAddBudget={() => setActiveTab("Financials")}
+            onSubmitReport={() => { setActiveTab("Status Reports"); setReportOpen(true); }}
+          />
         </TabsContent>
 
         <TabsContent value="Project Schedule" className="mt-5">
+          {isNewProject && (
+            <EmptyState
+              art="calendar"
+              title="No schedule yet"
+              description="Add your first milestone or task to start planning this project's timeline."
+              ctaLabel="Add first milestone"
+              onCta={() => setAddFirstMilestoneOpen(true)}
+              className="mb-5"
+            />
+          )}
           {planEditMode === "editing" && isViewingCurrent && (
             <div className="mb-3 flex items-start gap-3 rounded-lg border border-rag-amber/40 bg-rag-amber/10 px-4 py-3">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rag-amber" />
@@ -814,7 +848,7 @@ function ProjectDetail() {
                 items={milestones}
                 projectName={project.name}
                 addResourceRequest={addResourceRequest}
-                onAdd={(newItems) => setMilestones((prev) => [...prev, ...newItems])}
+                onAdd={(newItems) => { setMilestones((prev) => [...prev, ...newItems]); clearNewFlag(); }}
                 onUpdateExisting={(name, patch) =>
                   setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, ...patch } : m)))
                 }
@@ -868,7 +902,7 @@ function ProjectDetail() {
             items={milestones}
             projectName={project.name}
             addResourceRequest={addResourceRequest}
-            onAdd={(newItems) => setMilestones((prev) => [...prev, ...newItems])}
+            onAdd={(newItems) => { setMilestones((prev) => [...prev, ...newItems]); clearNewFlag(); }}
             onUpdateExisting={(name, patch) =>
               setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, ...patch } : m)))
             }
@@ -878,6 +912,22 @@ function ProjectDetail() {
             initialParent={ctxDialog?.mode === "subtask" ? ctxDialog.parent : undefined}
             initialKind={ctxDialog?.mode === "subtask" ? "Task" : undefined}
             editingItem={ctxDialog?.mode === "edit" ? (milestones.find((m) => m.name === ctxDialog.name) ?? null) : null}
+          />
+
+          {/* Controlled dialog for the "Add first milestone" CTA in the new-project empty state */}
+          <AddMilestoneDialog
+            defaultOwner={project.pm}
+            packages={SEED_PACKAGES}
+            items={milestones}
+            projectName={project.name}
+            addResourceRequest={addResourceRequest}
+            onAdd={(newItems) => { setMilestones((prev) => [...prev, ...newItems]); clearNewFlag(); }}
+            onUpdateExisting={(name, patch) =>
+              setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, ...patch } : m)))
+            }
+            hideTrigger
+            open={addFirstMilestoneOpen}
+            onOpenChange={setAddFirstMilestoneOpen}
           />
 
           {/* Change Requests Section */}
@@ -1035,7 +1085,7 @@ function ProjectDetail() {
 
 
         <TabsContent value="Financials" className="mt-5">
-          <FinancialsTab project={project} milestones={milestones} />
+          <FinancialsTab project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} />
         </TabsContent>
 
         <TabsContent value="Status Reports" className="mt-5">
@@ -1045,7 +1095,7 @@ function ProjectDetail() {
             setReports={setReports}
             externalOpen={reportOpen}
             onExternalOpenChange={setReportOpen}
-            onRagChange={(rag) => { updateProject(project.id, { rag }); addNotification({ tone: rag === "red" ? "red" : rag === "amber" ? "amber" : "green", title: `${project.name} status updated to ${rag === "red" ? "Off-Track" : rag === "amber" ? "At Risk" : "On Track"}`, time: "Just now" }); }}
+            onRagChange={(rag) => { updateProject(project.id, { rag }); clearNewFlag(); addNotification({ tone: rag === "red" ? "red" : rag === "amber" ? "amber" : "green", title: `${project.name} status updated to ${rag === "red" ? "Off-Track" : rag === "amber" ? "At Risk" : "On Track"}`, time: "Just now" }); }}
           />
         </TabsContent>
 
@@ -1294,7 +1344,30 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
   );
 }
 
-function OverviewTab({ project }: { project: typeof projects[number] }) {
+function OverviewTab({
+  project, isNew, onAddMilestone, onAddBudget, onSubmitReport,
+}: {
+  project: typeof projects[number]; isNew: boolean;
+  onAddMilestone: () => void; onAddBudget: () => void; onSubmitReport: () => void;
+}) {
+  if (isNew) {
+    return (
+      <EmptyState
+        art="briefcase"
+        title="This project is just getting started"
+        description="Add a schedule, budget, and your first status report to bring this project to life."
+        ctaLabel="Add first milestone"
+        onCta={onAddMilestone}
+        actions={
+          <>
+            <Button variant="outline" onClick={onAddBudget}>Add budget</Button>
+            <Button variant="outline" onClick={onSubmitReport}>Submit status report</Button>
+          </>
+        }
+      />
+    );
+  }
+
   const ragMap = {
     green: { label: "On Track", text: "text-rag-green", bg: "bg-rag-green/15", ring: "ring-rag-green/40" },
     amber: { label: "At Risk", text: "text-rag-amber", bg: "bg-rag-amber/15", ring: "ring-rag-amber/40" },
@@ -2089,12 +2162,14 @@ function BusinessTripsTab({ pm }: { pm: string }) {
 }
 
 // ── Financials tab (includes Financial Planning content) ─────────────────────
-function FinancialsTab({ project, milestones }: { project: typeof projects[number]; milestones: Milestone[] }) {
+function FinancialsTab({
+  project, milestones, isNew, onDataAdded,
+}: { project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void }) {
   const milestoneNames = useMemo(
     () => milestones.filter((m) => m.kind === "Milestone").map((m) => m.name),
     [milestones],
   );
-  const [costEntries, setCostEntries] = useState<CostEntry[]>([
+  const [costEntries, setCostEntries] = useState<CostEntry[]>(isNew ? [] : [
     { c: "Labour", b: 1.20, a: 0.84, color: "bg-rag-green", desc: "Core delivery team", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Build Complete", breakdown: [
       { name: "Backend engineers (3)", amount: 0.55, note: "6-month allocation" },
       { name: "Frontend engineers (2)", amount: 0.35 },
@@ -2105,7 +2180,7 @@ function FinancialsTab({ project, milestones }: { project: typeof projects[numbe
     { c: "Business trips", b: 0.10, a: 0.07, color: "bg-rag-amber", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Design Approved" },
     { c: "Contingency", b: 0.60, a: 0.26, color: "bg-muted-foreground", ctype: "internal", classification: "opex", linkKind: "fixed", linkRef: "" },
   ]);
-  const [revEntries, setRevEntries] = useState<RevEntry[]>([
+  const [revEntries, setRevEntries] = useState<RevEntry[]>(isNew ? [] : [
     { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "May 02",        s: "green", sl: "Received", act: 0.96 },
     { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "Jun 30",        s: "amber", sl: "Pending",  act: null },
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null },
@@ -2145,6 +2220,15 @@ function FinancialsTab({ project, milestones }: { project: typeof projects[numbe
       <BaselineHeader state={finBaseline} />
       <TabChangeRequestDialog state={finBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
       <TabApprovalDialog state={finBaseline} />
+      {isNew && (
+        <EmptyState
+          art="coins"
+          title="No budget set up yet"
+          description="Unlock editing to add cost categories and the revenue plan for this project."
+          ctaLabel="Set up budget"
+          onCta={() => finBaseline.setEditMode(true)}
+        />
+      )}
       <div className="grid gap-3 md:grid-cols-4">
         {[
           { l: "Total Budget", v: `$${project.budgetTotal.toFixed(1)}M` },
@@ -2167,8 +2251,8 @@ function FinancialsTab({ project, milestones }: { project: typeof projects[numbe
               <AddFinanceLinkDialog
                 milestoneNames={milestoneNames}
                 defaultType="cost"
-                onAddCost={(e) => setCostEntries((prev) => [...prev, e])}
-                onAddRevenue={(e) => setRevEntries((prev) => [...prev, e])}
+                onAddCost={(e) => { setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
+                onAddRevenue={(e) => { setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
               />
             )}
           </div>
@@ -2210,8 +2294,8 @@ function FinancialsTab({ project, milestones }: { project: typeof projects[numbe
               <AddFinanceLinkDialog
                 milestoneNames={milestoneNames}
                 defaultType="revenue"
-                onAddCost={(e) => setCostEntries((prev) => [...prev, e])}
-                onAddRevenue={(e) => setRevEntries((prev) => [...prev, e])}
+                onAddCost={(e) => { setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
+                onAddRevenue={(e) => { setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
               />
             )}
           </div>
@@ -3465,20 +3549,30 @@ function StatusReportsTab({
           Submit Week {nextWeek} Report
         </Button>
       </div>
-      <div className="space-y-3">
-        {reports.map((r) => (
-          <div key={r.week} className="glass-card p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm font-medium text-foreground">Week {r.week} status report</div>
-                <div className="text-xs text-muted-foreground">Submitted by {r.by} · {r.when}</div>
+      {reports.length === 0 ? (
+        <EmptyState
+          art="note"
+          title="No status reports yet"
+          description="Submit a weekly status report to start tracking this project's history."
+          ctaLabel={`Submit Week ${nextWeek} Report`}
+          onCta={() => onExternalOpenChange(true)}
+        />
+      ) : (
+        <div className="space-y-3">
+          {reports.map((r) => (
+            <div key={r.week} className="glass-card p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-medium text-foreground">Week {r.week} status report</div>
+                  <div className="text-xs text-muted-foreground">Submitted by {r.by} · {r.when}</div>
+                </div>
+                <RagBadge rag={r.rag} />
               </div>
-              <RagBadge rag={r.rag} />
+              <p className="mt-2 text-sm text-muted-foreground">{r.text}</p>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">{r.text}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <Dialog open={externalOpen} onOpenChange={onExternalOpenChange}>
         <DialogContent className="max-w-md">

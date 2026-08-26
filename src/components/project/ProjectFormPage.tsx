@@ -20,7 +20,8 @@ import { cn } from "@/lib/utils";
 
 type ProjectType = "capital" | "commercial";
 
-const DRAFT_KEY = "pmo.project-draft.v1";
+/** Exported so the Portfolio grid can surface/discard the same in-progress draft. */
+export const DRAFT_KEY = "pmo.project-draft.v1";
 
 const SECTIONS = [
   { id: "identity", label: "Identity" },
@@ -41,7 +42,7 @@ const addDays = (iso: string, days: number) =>
 const diffDays = (a: string, b: string) =>
   Math.round((new Date(`${b}T00:00:00`).getTime() - new Date(`${a}T00:00:00`).getTime()) / DAY) + 1;
 
-type FormState = {
+export type FormState = {
   projectType: ProjectType | null;
   name: string;
   code: string;

@@ -1,5 +1,5 @@
 ﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge, RagDot } from "@/components/RagBadge";
 import { Button } from "@/components/ui/button";
@@ -9,17 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Clock, EditAction } from "@/lib/icons";
+import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Clock, EditAction, DeleteAction, ChevronDown } from "@/lib/icons";
 import { TableRowActions } from "@/components/TableRowActions";
 
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { EmptyRegion } from "@/lib/empty-preview";
 import { projects, pipelineItems, projectDurationDays, type Project, type Rag } from "@/lib/mock-data";
 import { useProjects, useCalendars, useApprovals, useTags } from "@/lib/projects-store";
+import { DRAFT_KEY, type FormState } from "@/components/project/ProjectFormPage";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -80,6 +82,26 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const [query, setQuery]         = useState("");
   const [active, setActive]       = useState<Project | null>(null);
   const navigate = useNavigate();
+
+  /** The single autosaved "new project" draft, if any — surfaced as a card so it isn't silently lost. */
+  const [draft, setDraft] = useState<FormState | null>(null);
+  useEffect(() => {
+    function readDraft() {
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        const parsed = raw ? (JSON.parse(raw) as FormState) : null;
+        setDraft(parsed && (parsed.projectType || parsed.name) ? parsed : null);
+      } catch { setDraft(null); }
+    }
+    readDraft();
+    window.addEventListener("focus", readDraft);
+    return () => window.removeEventListener("focus", readDraft);
+  }, []);
+  function discardDraft() {
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+    setDraft(null);
+    toast.success("Draft discarded");
+  }
 
   const [filterOpen, setFilterOpen] = useState(false);
   const [ragFilter, setRagFilter]   = useState<string[]>([]);
@@ -250,6 +272,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         >
           <Filter className="mr-1 h-3.5 w-3.5" />
           Filters{panelActiveCount > 0 ? ` (${panelActiveCount})` : ""}
+          <ChevronDown className={cn("ml-1 h-3.5 w-3.5 transition-transform duration-200", filterOpen && "rotate-180")} />
         </Button>
         <div className="flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
           {([["grid", LayoutGrid], ["list", List], ["gantt", GanttChartSquare]] as const).map(([k, Icon]) => (
@@ -259,7 +282,8 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
       </div>
 
       {/* Expandable filter panel */}
-      {filterOpen && (
+      <Collapsible open={filterOpen}>
+        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
         <div className="mb-3 space-y-3 rounded-lg border border-border bg-secondary/20 p-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="w-14 shrink-0 text-xs text-muted-foreground">RAG</span>
@@ -356,7 +380,8 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
             )}
           </div>
         </div>
-      )}
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Active filter chips (from the expandable panel — quick project-type pills are shown via their own highlighted state) */}
       {panelActiveCount > 0 && (
@@ -402,8 +427,9 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
+      {(() => { const showDraft = !!draft && view === "grid" && pagination.page === 1; return (
       <EmptyRegion id="portfolio-projects">
-      {list.length === 0 && (
+      {list.length === 0 && !showDraft && (
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-16 text-center">
           <Filter className="h-8 w-8 text-muted-foreground/40" />
           <p className="text-sm text-muted-foreground">No projects match the current filters.</p>
@@ -411,11 +437,22 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
-      {view === "grid" && list.length > 0 && <ProjectGrid items={pagination.pageItems} pendingByProject={pendingByProject} onEdit={(p) => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: p.id } })} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "grid" && (list.length > 0 || showDraft) && (
+        <ProjectGrid
+          items={pagination.pageItems}
+          draft={showDraft ? draft : null}
+          onResumeDraft={() => navigate({ to: "/portfolio/new" })}
+          onDiscardDraft={discardDraft}
+          pendingByProject={pendingByProject}
+          onEdit={(p) => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: p.id } })}
+          onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })}
+        />
+      )}
       {view === "list" && list.length > 0 && <ProjectListView items={pagination.pageItems} pendingByProject={pendingByProject} onEdit={(p) => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: p.id } })} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
       {view === "gantt" && list.length > 0 && <GanttView items={list} />}
       {view !== "gantt" && list.length > 0 && <TablePagination {...pagination} itemLabel="projects" />}
       </EmptyRegion>
+      ); })()}
     </>
 
   );
@@ -441,11 +478,52 @@ function PendingApprovalsChip({ count, projectName, className }: { count: number
   );
 }
 
-function ProjectGrid({ items, onOpen, onEdit, pendingByProject }: { items: Project[]; onOpen: (p: Project) => void; onEdit?: (p: Project) => void; pendingByProject: Map<string, number> }) {
+function ProjectGrid({
+  items, onOpen, onEdit, pendingByProject, draft, onResumeDraft, onDiscardDraft,
+}: {
+  items: Project[]; onOpen: (p: Project) => void; onEdit?: (p: Project) => void; pendingByProject: Map<string, number>;
+  draft?: FormState | null; onResumeDraft?: () => void; onDiscardDraft?: () => void;
+}) {
   const { tags: orgTags } = useTags();
   const colorOf = (name: string) => orgTags.find((t) => t.name === name)?.color;
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {draft && onResumeDraft && (
+        <button
+          type="button"
+          onClick={onResumeDraft}
+          className="glass-card group flex flex-col border-2 border-dashed border-border/70 bg-secondary/10 p-4 text-left hover:border-accent/50"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <span className="rounded-full border border-accent/40 bg-accent-dim px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-accent">
+              Draft
+            </span>
+            {onDiscardDraft && (
+              <span
+                role="button"
+                tabIndex={0}
+                aria-label="Delete draft"
+                title="Delete draft"
+                onClick={(e) => { e.stopPropagation(); onDiscardDraft(); }}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onDiscardDraft(); } }}
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:border-rag-red/40 hover:bg-rag-red/10 hover:text-rag-red"
+              >
+                <DeleteAction size={14} />
+              </span>
+            )}
+          </div>
+          <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">
+            {draft.name?.trim() || "Untitled project"}
+          </h3>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {draft.projectType === "commercial" ? (draft.client && draft.client !== "Internal" ? draft.client : "Client TBD") : "Internal"}
+          </div>
+          <div className="mt-4 flex flex-1 flex-col items-center justify-center gap-1 text-center">
+            <p className="text-xs text-muted-foreground">Setup started but not finished</p>
+            <span className="text-xs font-medium text-accent">Continue setup →</span>
+          </div>
+        </button>
+      )}
       {items.map((p) => {
         const pending = pendingByProject.get(p.name) ?? 0;
         return (

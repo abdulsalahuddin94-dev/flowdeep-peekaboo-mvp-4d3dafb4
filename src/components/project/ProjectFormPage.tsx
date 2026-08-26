@@ -252,10 +252,17 @@ export function ProjectFormPage({ project }: { project?: Project }) {
     finish();
   }
 
+  function handleCancel() {
+    if (dirty) { setLeaveOpen(true); return; }
+    if (isEdit && project) navigate({ to: "/portfolio/$projectId", params: { projectId: project.id } });
+    else navigate({ to: "/portfolio" });
+  }
+
   const backTo = isEdit && project ? `Back to ${project.name}` : "Back to Portfolio";
 
   return (
-    <div className="pb-24">
+    <div>
+
       {/* Back link — page is 2nd level so no breadcrumb trail */}
       {isEdit && project ? (
         <Link

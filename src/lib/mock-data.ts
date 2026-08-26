@@ -12,6 +12,7 @@ export interface Project {
   progress: number;
   budgetUsed: number;
   budgetTotal: number;
+  startDate: string;
   endDate: string;
   rag: Rag;
   risks: number;
@@ -21,6 +22,33 @@ export interface Project {
   client?: string;
   ragNote?: string;
   calendarId?: string;
+}
+
+/** Parses the "MMM DD, YYYY" display format used for project dates. Returns null for "—" or unparsable input. */
+export function parseLabelDate(s: string | undefined): Date | null {
+  if (!s || s === "—") return null;
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+export function formatLabelDate(d: Date): string {
+  return d.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+}
+
+/** Formats a Date as a local YYYY-MM-DD (for <input type="date"> values) without the UTC-shift `toISOString` can introduce. */
+export function toIsoDateLocal(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Inclusive day count between two "MMM DD, YYYY" labels, or null if either is missing/unparsable. */
+export function projectDurationDays(p: Pick<Project, "startDate" | "endDate">): number | null {
+  const start = parseLabelDate(p.startDate);
+  const end = parseLabelDate(p.endDate);
+  if (!start || !end) return null;
+  return Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
 }
 
 // Working calendar: which weekdays count as work days (0=Sun..6=Sat),
@@ -73,6 +101,10 @@ const seed = [
 export const projects: Project[] = seed.map((row, i) => {
   const [name, rag, progress, used, total, endDate, ragNote, stage] = row;
   const [pmName, pmAvatar] = pms[i % pms.length];
+  // Deterministic, varied duration per project (90–510 days) used to derive a start date from the seeded end date.
+  const durationDays = 90 + ((i * 53) % 420);
+  const endD = parseLabelDate(endDate);
+  const startDate = endD ? formatLabelDate(new Date(endD.getTime() - durationDays * 86_400_000)) : "—";
   return {
     id: `p-${(i + 1).toString().padStart(3, "0")}`,
     name,
@@ -83,6 +115,7 @@ export const projects: Project[] = seed.map((row, i) => {
     progress,
     budgetUsed: used,
     budgetTotal: total,
+    startDate,
     endDate,
     rag: rag as Rag,
     risks: (i * 3) % 7,

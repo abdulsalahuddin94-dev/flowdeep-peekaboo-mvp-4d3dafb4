@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge, RagDot } from "@/components/RagBadge";
@@ -9,21 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Building2, Briefcase, Clock, ChevronDown, EditAction } from "@/lib/icons";
-import { PageToolbar } from "@/components/ds/PageToolbar";
+import { Plus, LayoutGrid, List, GanttChartSquare, Search, Filter, X, Clock, EditAction } from "@/lib/icons";
 import { TableRowActions } from "@/components/TableRowActions";
 
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { EmptyRegion } from "@/lib/empty-preview";
-import { projects, pipelineItems, type Project, type Rag } from "@/lib/mock-data";
+import { projects, pipelineItems, projectDurationDays, type Project, type Rag } from "@/lib/mock-data";
 import { useProjects, useCalendars, useApprovals, useTags } from "@/lib/projects-store";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -57,7 +53,7 @@ const ALL_DEPTS   = Array.from(new Set(projects.flatMap((p) => p.department)));
 const ALL_CLIENTS = Array.from(new Set(projects.map((p) => p.client).filter(Boolean))) as string[];
 
 function PortfolioPage() {
-  const { projects: projectList, addProject } = useProjects();
+  const { projects: projectList } = useProjects();
   const { tab } = Route.useSearch();
   return (
     <div>
@@ -65,7 +61,9 @@ function PortfolioPage() {
         title="Portfolio"
         actions={
           <div className="flex gap-2">
-            <NewProjectDialog onAdd={addProject} />
+            <Button asChild variant="primary">
+              <Link to="/portfolio/new"><Plus className="mr-1 h-4 w-4" />New Project</Link>
+            </Button>
           </div>
         }
       />
@@ -81,10 +79,9 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const [view, setView]           = useState<View>(initialView);
   const [query, setQuery]         = useState("");
   const [active, setActive]       = useState<Project | null>(null);
-  const [editing, setEditing]     = useState<Project | null>(null);
-  const { updateProject }         = useProjects();
   const navigate = useNavigate();
 
+  const [filterOpen, setFilterOpen] = useState(false);
   const [ragFilter, setRagFilter]   = useState<string[]>([]);
   const [stageFilter, setStageFilter] = useState<string[]>([]);
   const [tagFilter, setTagFilter]   = useState<string[]>([]);
@@ -144,6 +141,10 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const pendingTotal = projectsAwaiting.reduce((s, p) => s + (pendingByProject.get(p.name) ?? 0), 0);
 
   function clearAll() { setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter(""); setClientFilter(""); setYearFilter(""); setBaseFilter(""); setTypeFilter([]); }
+
+  /** Active filters from the expandable panel only — the quick project-type pills show their own state. */
+  const panelActiveCount = ragFilter.length + stageFilter.length + tagFilter.length
+    + (deptFilter ? 1 : 0) + (clientFilter ? 1 : 0) + (yearFilter ? 1 : 0) + (baseFilter ? 1 : 0);
 
 
   return (
@@ -205,30 +206,201 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
-      {/* Toolbar */}
-      <PageToolbar
-        query={query}
-        onQueryChange={setQuery}
-        placeholder="Search projects…"
-        filterGroups={[
-          { key: "year", label: "Year", value: yearFilter, onChange: setYearFilter, options: [{ value: "", label: "All years" }, ...yearOptions.map((y) => ({ value: y, label: y }))] },
-          { key: "base", label: "Project Base", value: baseFilter, onChange: setBaseFilter, options: [{ value: "", label: "All bases" }, { value: "internal", label: "Internal" }, { value: "external", label: "External" }] },
-          { key: "ptype", label: "Project Type", mode: "multi", value: typeFilter, onChange: setTypeFilter, options: typeOptions.map((t) => ({ value: t, label: t })) },
-          { key: "rag", label: "RAG", mode: "multi", value: ragFilter, onChange: setRagFilter, options: ALL_RAGS.map(({ v, l }) => ({ value: v, label: l })) },
+      {/* Quick filters: one-click project type + search + filter drawer + view switch */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setTypeFilter([])}
+          className={cn(
+            "rounded-full border px-3 py-1 text-xs",
+            typeFilter.length === 0
+              ? "border-accent bg-accent text-accent-foreground"
+              : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
+          )}
+        >
+          All
+        </button>
+        {typeOptions.map((t) => {
+          const on = typeFilter.length === 1 && typeFilter[0] === t;
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTypeFilter(on ? [] : [t])}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs",
+                on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t}
+            </button>
+          );
+        })}
 
-          { key: "stage", label: "Stage", mode: "multi", value: stageFilter, onChange: setStageFilter, options: ALL_STAGES.map((s) => ({ value: s, label: s })) },
-          { key: "tags", label: "Tags", mode: "multi", value: tagFilter, onChange: setTagFilter, options: ALL_TAGS.map((t) => ({ value: t, label: t })) },
-          { key: "dept", label: "Department", value: deptFilter, onChange: setDeptFilter, options: [{ value: "", label: "All departments" }, ...ALL_DEPTS.map((d) => ({ value: d, label: d }))] },
-          { key: "client", label: "Client", value: clientFilter, onChange: setClientFilter, options: [{ value: "", label: "All clients" }, ...ALL_CLIENTS.map((c) => ({ value: c, label: c }))] },
-        ]}
-        trailing={
-          <div className="flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
-            {([["grid", LayoutGrid], ["list", List], ["gantt", GanttChartSquare]] as const).map(([k, Icon]) => (
-              <button key={k} onClick={() => setView(k as View)} className={`p-2 ${view === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}><Icon className="h-4 w-4" /></button>
-            ))}
+        <div className="relative ml-auto w-64">
+          <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Search projects…" value={query} onChange={(e) => setQuery(e.target.value)} className="pl-8" />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setFilterOpen((o) => !o)}
+          className={panelActiveCount > 0 ? "border-accent/40 bg-accent-dim text-accent" : ""}
+        >
+          <Filter className="mr-1 h-3.5 w-3.5" />
+          Filters{panelActiveCount > 0 ? ` (${panelActiveCount})` : ""}
+        </Button>
+        <div className="flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
+          {([["grid", LayoutGrid], ["list", List], ["gantt", GanttChartSquare]] as const).map(([k, Icon]) => (
+            <button key={k} onClick={() => setView(k as View)} className={`p-2 ${view === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}><Icon className="h-4 w-4" /></button>
+          ))}
+        </div>
+      </div>
+
+      {/* Expandable filter panel */}
+      {filterOpen && (
+        <div className="mb-3 space-y-3 rounded-lg border border-border bg-secondary/20 p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="w-14 shrink-0 text-xs text-muted-foreground">RAG</span>
+            {ALL_RAGS.map(({ v, l }) => {
+              const on = ragFilter.includes(v);
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setRagFilter((prev) => (on ? prev.filter((x) => x !== v) : [...prev, v]))}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs",
+                    on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <RagDot rag={v as Rag} />{l}
+                </button>
+              );
+            })}
           </div>
-        }
-      />
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="w-14 shrink-0 text-xs text-muted-foreground">Stage</span>
+            {ALL_STAGES.map((s) => {
+              const on = stageFilter.includes(s);
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setStageFilter((prev) => (on ? prev.filter((x) => x !== s) : [...prev, s]))}
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-xs",
+                    on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="w-14 shrink-0 text-xs text-muted-foreground">Tags</span>
+            {ALL_TAGS.map((t) => {
+              const on = tagFilter.includes(t);
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTagFilter((prev) => (on ? prev.filter((x) => x !== t) : [...prev, t]))}
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-xs",
+                    on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {t}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={deptFilter || "all"} onValueChange={(v) => setDeptFilter(v === "all" ? "" : v)}>
+              <SelectTrigger className="h-8 w-44 text-xs"><SelectValue placeholder="Department…" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All departments</SelectItem>
+                {ALL_DEPTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={clientFilter || "all"} onValueChange={(v) => setClientFilter(v === "all" ? "" : v)}>
+              <SelectTrigger className="h-8 w-44 text-xs"><SelectValue placeholder="Client…" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All clients</SelectItem>
+                {ALL_CLIENTS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={yearFilter || "all"} onValueChange={(v) => setYearFilter(v === "all" ? "" : v)}>
+              <SelectTrigger className="h-8 w-36 text-xs"><SelectValue placeholder="Year…" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All years</SelectItem>
+                {yearOptions.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={baseFilter || "all"} onValueChange={(v) => setBaseFilter(v === "all" ? "" : v)}>
+              <SelectTrigger className="h-8 w-36 text-xs"><SelectValue placeholder="Base…" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All bases</SelectItem>
+                <SelectItem value="internal">Internal</SelectItem>
+                <SelectItem value="external">External</SelectItem>
+              </SelectContent>
+            </Select>
+            {panelActiveCount > 0 && (
+              <button type="button" className="ml-auto text-xs text-muted-foreground hover:text-rag-red" onClick={clearAll}>Clear all</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Active filter chips (from the expandable panel — quick project-type pills are shown via their own highlighted state) */}
+      {panelActiveCount > 0 && (
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {ragFilter.map((v) => {
+            const label = ALL_RAGS.find((r) => r.v === v)?.l ?? v;
+            return (
+              <span key={`rag-${v}`} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
+                {label}<button onClick={() => setRagFilter((p) => p.filter((x) => x !== v))} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
+              </span>
+            );
+          })}
+          {stageFilter.map((s) => (
+            <span key={`stage-${s}`} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
+              {s}<button onClick={() => setStageFilter((p) => p.filter((x) => x !== s))} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
+            </span>
+          ))}
+          {tagFilter.map((t) => (
+            <span key={`tag-${t}`} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
+              {t}<button onClick={() => setTagFilter((p) => p.filter((x) => x !== t))} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
+            </span>
+          ))}
+          {deptFilter && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
+              Dept: {deptFilter}<button onClick={() => setDeptFilter("")} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
+            </span>
+          )}
+          {clientFilter && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
+              Client: {clientFilter}<button onClick={() => setClientFilter("")} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
+            </span>
+          )}
+          {yearFilter && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
+              Year: {yearFilter}<button onClick={() => setYearFilter("")} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
+            </span>
+          )}
+          {baseFilter && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
+              {baseFilter === "internal" ? "Internal" : "External"}<button onClick={() => setBaseFilter("")} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
+            </span>
+          )}
+        </div>
+      )}
 
       <EmptyRegion id="portfolio-projects">
       {list.length === 0 && (
@@ -239,17 +411,11 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
-      {view === "grid" && list.length > 0 && <ProjectGrid items={pagination.pageItems} pendingByProject={pendingByProject} onEdit={setEditing} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
-      {view === "list" && list.length > 0 && <ProjectListView items={pagination.pageItems} pendingByProject={pendingByProject} onEdit={setEditing} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "grid" && list.length > 0 && <ProjectGrid items={pagination.pageItems} pendingByProject={pendingByProject} onEdit={(p) => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: p.id } })} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
+      {view === "list" && list.length > 0 && <ProjectListView items={pagination.pageItems} pendingByProject={pendingByProject} onEdit={(p) => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: p.id } })} onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })} />}
       {view === "gantt" && list.length > 0 && <GanttView items={list} />}
       {view !== "gantt" && list.length > 0 && <TablePagination {...pagination} itemLabel="projects" />}
       </EmptyRegion>
-      <NewProjectDialog
-        project={editing}
-        open={!!editing}
-        onOpenChange={(o) => { if (!o) setEditing(null); }}
-        onSave={(id, patch) => { updateProject(id, patch); setEditing(null); }}
-      />
     </>
 
   );
@@ -310,14 +476,20 @@ function ProjectGrid({ items, onOpen, onEdit, pendingByProject }: { items: Proje
           </div>
 
           <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">{p.name}</h3>
-          <div className="mt-1 text-xs text-muted-foreground">{p.businessLine} · {p.department.join(" · ")}</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {p.client && p.client !== "Internal" ? p.client : "Internal"}
+          </div>
           <div className="mt-3">
             <div className="mb-1 flex justify-between text-xs"><span className="text-muted-foreground">Progress</span><span className="num-mono text-foreground">{p.progress}%</span></div>
             <Progress value={p.progress} className="h-1.5" />
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-            <div><div className="label-eyebrow">Budget</div><div className="num-mono text-foreground">${p.budgetUsed.toFixed(1)}M / ${p.budgetTotal.toFixed(1)}M</div></div>
+            <div><div className="label-eyebrow">Start</div><div className="text-foreground">{p.startDate}</div></div>
             <div><div className="label-eyebrow">End</div><div className="text-foreground">{p.endDate}</div></div>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+            <div><div className="label-eyebrow">Budget</div><div className="num-mono text-foreground">${p.budgetUsed.toFixed(1)}M / ${p.budgetTotal.toFixed(1)}M</div></div>
+            <div><div className="label-eyebrow">Duration</div><div className="num-mono text-foreground">{(() => { const d = projectDurationDays(p); return d != null ? `${d}d` : "—"; })()}</div></div>
           </div>
           {p.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
@@ -337,6 +509,11 @@ function ProjectGrid({ items, onOpen, onEdit, pendingByProject }: { items: Proje
               })}
             </div>
           )}
+          <div className="mt-auto flex items-center justify-end border-t border-border pt-3">
+            <span className="rounded-full border border-border/60 bg-secondary/40 px-2 py-0.5 text-[10px] text-muted-foreground">
+              {p.businessLine}
+            </span>
+          </div>
         </button>
         );
       })}
@@ -349,7 +526,7 @@ function ProjectListView({ items, onOpen, onEdit, pendingByProject }: { items: P
     <div className="">
       <Table>
         <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-          <TableHead className="w-6" /><TableHead>Project</TableHead><TableHead>Business Line</TableHead>
+          <TableHead className="w-6" /><TableHead>Project</TableHead><TableHead>Project Type</TableHead>
           <TableHead>PM</TableHead><TableHead>Department</TableHead><TableHead>Progress</TableHead>
           <TableHead>Budget</TableHead><TableHead>End</TableHead><TableHead>RAID</TableHead>
           <TableHead className="w-32 text-right" />
@@ -507,7 +684,7 @@ function ArchivedTab() {
     <div className="">
       <Table>
         <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-          <TableHead>Project</TableHead><TableHead>Business Line</TableHead><TableHead>PM</TableHead>
+          <TableHead>Project</TableHead><TableHead>Project Type</TableHead><TableHead>PM</TableHead>
           <TableHead>Closure</TableHead><TableHead>Final RAG</TableHead><TableHead>Budget vs Actual</TableHead><TableHead>Outcome</TableHead><TableHead />
         </TableRow></TableHeader>
         <TableBody>
@@ -601,490 +778,6 @@ function GovernanceTab() {
   );
 }
 
-function NewProjectDialog({
-  onAdd,
-  project,
-  open: openProp,
-  onOpenChange,
-  onSave,
-}: {
-  onAdd?: (p: Project) => void;
-  /** When provided the dialog runs in edit mode (controlled by the parent). */
-  project?: Project | null;
-  open?: boolean;
-  onOpenChange?: (o: boolean) => void;
-  onSave?: (id: string, patch: Partial<Project>) => void;
-}) {
-  const { calendars } = useCalendars();
-  const { tags: orgTags } = useTags();
-  const isEdit = !!project;
-  const [openState, setOpenState] = useState(false);
-  const open = openProp ?? openState;
-  const setOpen = (o: boolean) => { onOpenChange ? onOpenChange(o) : setOpenState(o); };
-  const [projectType, setProjectType] = useState<"capital" | "commercial" | null>(null);
-  const [name, setName] = useState("");
-  const [code, setCode] = useState("");
-  const [businessLine, setBusinessLine] = useState("Software Solutions");
-  const [departments, setDepartments] = useState<string[]>(["Engineering"]);
-  const [client, setClient] = useState("Internal");
-  const [stage, setStage] = useState<Project["stage"]>("Initiation");
-  const [startDate, setStartDate] = useState("");
-  const [duration, setDuration] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [budget, setBudget] = useState("");
-  const [revenue, setRevenue] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [calendarId, setCalendarId] = useState<string>(calendars[0]?.id ?? "");
-
-  function reset() { setName(""); setCode(""); setBudget(""); setRevenue(""); setStartDate(""); setDuration(""); setEndDate(""); setSelectedTags([]); setDepartments(["Engineering"]); setProjectType(null); }
-
-  /** Seed the form from the project being edited each time the dialog opens. */
-  const seedKey = `${project?.id ?? ""}:${open ? "1" : "0"}`;
-  const [seeded, setSeeded] = useState("");
-  if (project && open && seeded !== seedKey) {
-    setSeeded(seedKey);
-    setProjectType(!project.client || project.client === "Internal" ? "capital" : "commercial");
-    setName(project.name);
-    setBusinessLine(project.businessLine);
-    setDepartments(project.department ?? ["Engineering"]);
-    setClient(project.client ?? "Internal");
-    setStage(project.stage);
-    setBudget(String(project.budgetTotal ?? ""));
-    setSelectedTags(project.tags ?? []);
-    setCalendarId(project.calendarId ?? calendars[0]?.id ?? "");
-    const d = new Date(project.endDate);
-    setEndDate(Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10));
-    setDuration("");
-    setStartDate("");
-    setCode("");
-  }
-  if (!open && seeded) setSeeded("");
-
-  /** Auto-generated, editable project code. Prefix follows the selected type. */
-  function autoCode(type: "capital" | "commercial") {
-    const prefix = type === "capital" ? "CAP" : "COM";
-    return `${prefix}-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
-  }
-  const isAutoCode = (v: string) => /^(CAP|COM)-\d{4}-\d{4}$/.test(v.trim());
-  function pickType(t: "capital" | "commercial") {
-    setProjectType(t);
-    /* Keep everything the user already typed; only the code prefix follows the type. */
-    setCode((prev) => (!prev.trim() || isAutoCode(prev) ? autoCode(t) : prev));
-  }
-
-
-  const DAY = 86_400_000;
-  /** Duration is calendar days, inclusive of both start and end. */
-  function addDays(iso: string, days: number) {
-    return new Date(new Date(`${iso}T00:00:00`).getTime() + days * DAY).toISOString().slice(0, 10);
-  }
-  function diffDays(a: string, b: string) {
-    return Math.round((new Date(`${b}T00:00:00`).getTime() - new Date(`${a}T00:00:00`).getTime()) / DAY) + 1;
-  }
-
-  function onStartChange(v: string) {
-    setStartDate(v);
-    if (!v) return;
-    const d = parseInt(duration, 10);
-    if (d > 0) { setEndDate(addDays(v, d - 1)); return; }
-    if (endDate) { const n = diffDays(v, endDate); setDuration(n > 0 ? String(n) : ""); }
-  }
-  function onDurationChange(v: string) {
-    setDuration(v);
-    const d = parseInt(v, 10);
-    if (startDate && d > 0) setEndDate(addDays(startDate, d - 1));
-  }
-  function onEndChange(v: string) {
-    setEndDate(v);
-    if (startDate && v) { const n = diffDays(startDate, v); setDuration(n > 0 ? String(n) : ""); }
-  }
-
-  function handleCreate() {
-    if (!name.trim()) { toast.error("Project name is required"); return; }
-    const finalClient = projectType === "capital" ? "Internal" : client;
-    if (isEdit && project) {
-      onSave?.(project.id, {
-        name: name.trim(),
-        businessLine,
-        department: departments,
-        client: finalClient,
-        stage,
-        budgetTotal: parseFloat(budget) || 0,
-        tags: selectedTags,
-        calendarId: calendarId || undefined,
-        ...(endDate
-          ? { endDate: new Date(endDate).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) }
-          : {}),
-      });
-      toast.success(`Project "${name.trim()}" updated`);
-      setOpen(false);
-      return;
-    }
-    const newProject: Project = {
-      id: `p-${Date.now()}`,
-      name: name.trim(),
-      businessLine,
-      department: departments,
-      client: finalClient,
-      pm: "Unassigned",
-      pmAvatar: "—",
-      progress: 0,
-      budgetUsed: 0,
-      budgetTotal: parseFloat(budget) || 0,
-      endDate: endDate ? new Date(endDate).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "TBD",
-      rag: "blue" as Rag,
-      risks: 0,
-      issues: 0,
-      stage,
-      tags: selectedTags,
-      ragNote: "New",
-      calendarId: calendarId || undefined,
-    };
-    onAdd?.(newProject);
-    toast.success(`Project "${newProject.name}" created`);
-    reset();
-    setOpen(false);
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); setOpen(o); }}>
-      {!isEdit && openProp === undefined && (
-        <DialogTrigger asChild>
-          <Button variant="primary">
-            <Plus className="mr-1 h-4 w-4" />New Project
-          </Button>
-        </DialogTrigger>
-      )}
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Project" : "New Project"}</DialogTitle>
-          <DialogDescription>
-            {isEdit
-              ? "Update project details. Schedule changes are managed inside the project's Schedule tab."
-              : "Create a project directly in the portfolio. For new initiatives requiring approval, use Submit Business Case instead."}
-          </DialogDescription>
-        </DialogHeader>
-        {!projectType ? (
-          <ProjectTypePicker onPick={pickType} />
-        ) : (
-
-        <>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2 flex overflow-hidden rounded-md border border-border bg-secondary/20 p-1">
-            {([["capital", "Capital / Internal"], ["commercial", "Commercial / External"]] as const).map(([k, l]) => (
-              <button
-                key={k}
-                type="button"
-                onClick={() => pickType(k)}
-                aria-selected={projectType === k}
-                className={cn(
-                  "flex-1 rounded-[6px] px-3 py-1.5 text-xs font-medium transition",
-                  projectType === k
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
-          <div className={projectType === "commercial" ? "" : "col-span-2"}>
-            <Label>Project name *</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. ERP Integration Phase 2" />
-          </div>
-          {projectType === "commercial" && (
-            <div>
-              <Label>Client</Label>
-              <Select value={client} onValueChange={setClient}>
-                <SelectTrigger><SelectValue placeholder="Select a client…" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ACME Energy">ACME Energy</SelectItem>
-                  <SelectItem value="Northwind Logistics">Northwind Logistics</SelectItem>
-                  <SelectItem value="Global Tech">Global Tech</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          <div className="col-span-2">
-            <Label>Project code</Label>
-            <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Auto-generated" />
-          </div>
-          <div>
-            <Label>Project type</Label>
-            <Select value={businessLine} onValueChange={setBusinessLine}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {["Software Solutions", "EPC", "Consultation", "Maintenance"].map((l) => (
-                  <SelectItem key={l} value={l}>{l}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Departments</Label>
-            <DepartmentPicker value={departments} onChange={setDepartments} />
-          </div>
-          <div>
-            <Label>Stage</Label>
-            <Select value={stage} onValueChange={(v) => setStage(v as Project["stage"])}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {(["Initiation", "Planning", "Execution", "Monitoring", "Closure"] as const).map((s) => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Start date</Label>
-            <DatePicker value={startDate} onChange={onStartChange} placeholder="Pick start date" />
-          </div>
-          <div>
-            <Label>Duration (days)</Label>
-            <Input type="number" min="1" step="1" value={duration} onChange={(e) => onDurationChange(e.target.value)} placeholder="e.g. 120" />
-          </div>
-          <div>
-            <Label>Target end date</Label>
-            <DatePicker value={endDate} onChange={onEndChange} min={startDate || undefined} placeholder="Pick end date" />
-          </div>
-          <div>
-            <Label>Budget total ($M)</Label>
-            <Input type="number" min="0" step="0.1" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="e.g. 2.5" />
-          </div>
-          {projectType === "commercial" && (
-            <div>
-              <Label>Expected Revenue ($M)</Label>
-              <Input type="number" min="0" step="0.1" value={revenue} onChange={(e) => setRevenue(e.target.value)} placeholder="e.g. 3.0" />
-            </div>
-          )}
-          <div className="col-span-2">
-            <Label>Working Calendar</Label>
-            <Select value={calendarId} onValueChange={setCalendarId}>
-              <SelectTrigger><SelectValue placeholder="Select a calendar…" /></SelectTrigger>
-              <SelectContent>
-                {calendars.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <p className="mt-1 text-[11px] text-muted-foreground">Working days and holidays applied to this project's schedule. Manage calendars in Organization → Calendars.</p>
-          </div>
-          <div className="col-span-2">
-            <Label>Tags (optional)</Label>
-            <TagPicker options={orgTags} value={selectedTags} onChange={setSelectedTags} />
-            <p className="mt-1 text-[11px] text-muted-foreground">Tags come from Organization → Tags &amp; Classifications.</p>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => { reset(); setOpen(false); }}>Cancel</Button>
-          <Button variant="primary" onClick={handleCreate}>{isEdit ? "Save Changes" : "Create Project"}</Button>
-        </DialogFooter>
-        </>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function ProjectTypePicker({ onPick }: { onPick: (t: "capital" | "commercial") => void }) {
-  return <ProjectTypePickerInner onPick={onPick} />;
-}
-
-function TagPicker({
-  options,
-  value,
-  onChange,
-}: {
-  options: { name: string; color: string }[];
-  value: string[];
-  onChange: (next: string[]) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const colorOf = (n: string) => options.find((t) => t.name === n)?.color ?? "#94A3B8";
-  const filtered = options;
-  const toggle = (n: string) =>
-    onChange(value.includes(n) ? value.filter((x) => x !== n) : [...value, n]);
-
-  const shown = value.slice(0, 4);
-  const extra = value.length - shown.length;
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="mt-1 flex min-h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 py-1.5 text-left text-sm"
-        >
-          <span className="flex flex-1 flex-wrap items-center gap-1.5">
-            {value.length === 0 && <span className="text-muted-foreground">Select tags…</span>}
-            {shown.map((n) => (
-              <span
-                key={n}
-                className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]"
-                style={{ color: colorOf(n), borderColor: `${colorOf(n)}66`, backgroundColor: `${colorOf(n)}22` }}
-              >
-                {n}
-                <X
-                  className="h-3 w-3 opacity-70 hover:opacity-100"
-                  onClick={(e) => { e.stopPropagation(); toggle(n); }}
-                />
-              </span>
-            ))}
-            {extra > 0 && (
-              <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
-                +{extra} more
-              </span>
-            )}
-          </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-[320px] p-0">
-        <div className="max-h-64 overflow-y-auto p-1">
-          {filtered.length === 0 && (
-            <p className="px-3 py-6 text-center text-xs text-muted-foreground">No tags found</p>
-          )}
-          {filtered.map((t) => {
-            const on = value.includes(t.name);
-            return (
-              <button
-                key={t.name}
-                type="button"
-                onClick={() => toggle(t.name)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/60"
-              >
-                <Checkbox checked={on} className="pointer-events-none rounded-[4px]" />
-                <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.color }} />
-                <span className="flex-1 truncate" style={{ color: t.color }}>{t.name}</span>
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex items-center justify-between border-t border-border px-2 py-1.5">
-          <span className="text-[11px] text-muted-foreground">{value.length} selected</span>
-          <Button variant="ghost" size="sm" onClick={() => onChange([])} disabled={value.length === 0}>
-            Clear all
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function DepartmentPicker({
-  value,
-  onChange,
-}: {
-  value: string[];
-  onChange: (next: string[]) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const options = ["Engineering", "IT", "Operations", "R&D", "Finance"];
-  const toggle = (n: string) =>
-    onChange(value.includes(n) ? value.filter((x) => x !== n) : [...value, n]);
-
-  const shown = value.slice(0, 3);
-  const extra = value.length - shown.length;
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="mt-1 flex min-h-9 w-full items-center justify-between gap-2 rounded-lg border border-input bg-background px-3 py-1.5 text-left text-sm"
-        >
-          <span className="flex flex-1 flex-wrap items-center gap-1.5">
-            {value.length === 0 && <span className="text-muted-foreground">Select departments…</span>}
-            {shown.map((n) => (
-              <span
-                key={n}
-                className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/40 px-2 py-0.5 text-[11px] text-foreground"
-              >
-                {n}
-                <X
-                  className="h-3 w-3 opacity-70 hover:opacity-100"
-                  onClick={(e) => { e.stopPropagation(); toggle(n); }}
-                />
-              </span>
-            ))}
-            {extra > 0 && (
-              <span className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
-                +{extra} more
-              </span>
-            )}
-          </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-[320px] p-0">
-        <div className="max-h-64 overflow-y-auto p-1">
-          {options.map((d) => {
-            const on = value.includes(d);
-            return (
-              <button
-                key={d}
-                type="button"
-                onClick={() => toggle(d)}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/60"
-              >
-                <Checkbox checked={on} className="pointer-events-none rounded-[4px]" />
-                <span className="flex-1 truncate">{d}</span>
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex items-center justify-between border-t border-border px-2 py-1.5">
-          <span className="text-[11px] text-muted-foreground">{value.length} selected</span>
-          <Button variant="ghost" size="sm" onClick={() => onChange([])} disabled={value.length === 0}>
-            Clear all
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function ProjectTypePickerInner({ onPick }: { onPick: (t: "capital" | "commercial") => void }) {
-  const cards = [
-    {
-      key: "capital" as const,
-      label: "Capital / Internal",
-      blurb: "Internally-funded initiatives",
-      icon: Building2,
-      color: "text-accent",
-      ring: "ring-accent/40",
-    },
-    {
-      key: "commercial" as const,
-      label: "Commercial / External",
-      blurb: "Client engagements, delivery projects, third-party bids won.",
-      icon: Briefcase,
-      color: "text-rag-blue",
-      ring: "ring-rag-blue/40",
-    },
-  ];
-  return (
-    <div className="pt-2">
-      <p className="mb-4 text-sm text-muted-foreground">Choose the type of project to tailor the intake form.</p>
-      <div className="grid gap-4 md:grid-cols-2">
-        {cards.map((c) => {
-          const Icon = c.icon;
-          return (
-            <button
-              key={c.key}
-              onClick={() => onPick(c.key)}
-              className={cn("glass-card group p-5 text-left transition hover:ring-2", c.ring)}
-            >
-              <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl bg-secondary/50", c.color)}>
-                <Icon className="h-6 w-6" />
-              </div>
-              <div className="mt-4 text-base font-medium text-foreground">{c.label}</div>
-              <div className="mt-1 text-xs text-muted-foreground">{c.blurb}</div>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 function NewBusinessCaseDialog() {
   const [open, setOpen] = useState(false);
@@ -1100,7 +793,7 @@ function NewBusinessCaseDialog() {
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2"><Label>Project name</Label><Input placeholder="e.g. Predictive Maintenance Platform" /></div>
-          <div><Label>Business Line</Label>
+          <div><Label>Project Type</Label>
             <Select defaultValue="sw"><SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="sw">Software Solutions</SelectItem><SelectItem value="epc">EPC</SelectItem>

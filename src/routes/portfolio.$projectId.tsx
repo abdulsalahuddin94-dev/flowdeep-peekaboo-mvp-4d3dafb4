@@ -18,7 +18,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, ArrowUpRight, Clock, Check } from "@/lib/icons";
 import type { Rag } from "@/lib/mock-data";
-import { projects, vendors as vendorList, resources as resourcePool } from "@/lib/mock-data";
+import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
 import { toast } from "@/lib/toast";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
@@ -484,6 +484,74 @@ function ProjectDetail() {
       />
 
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-6">
+        <div className="glass-card p-3">
+          <div className="label-eyebrow">Project Type</div>
+          <div className="mt-1 text-lg font-medium text-foreground">{project.businessLine}</div>
+        </div>
+
+        {(() => {
+          const durationDays = projectDurationDays(project);
+          return (
+            <div className="glass-card p-3">
+              <div className="label-eyebrow">Timeline</div>
+              <div className="mt-1 text-lg font-medium num-mono text-foreground">
+                {durationDays != null ? `${durationDays}d` : "—"}
+              </div>
+              <div className="mt-1 text-[10px] text-muted-foreground">
+                {project.startDate} → {project.endDate}
+              </div>
+            </div>
+          );
+        })()}
+
+        {(() => {
+          const start = parseLabelDate(project.startDate);
+          const end = parseLabelDate(project.endDate);
+          let varianceNode: React.ReactNode = null;
+          if (start && end && end.getTime() > start.getTime()) {
+            const elapsed = Math.min(1, Math.max(0, (Date.now() - start.getTime()) / (end.getTime() - start.getTime())));
+            const expected = project.budgetTotal * elapsed;
+            const variancePct = expected > 0 ? Math.round(((project.budgetUsed - expected) / expected) * 100) : 0;
+            varianceNode = (
+              <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
+                <span>Expected <span className="num-mono text-foreground/80">${expected.toFixed(1)}M</span></span>
+                <span className={variancePct <= 0 ? "text-rag-green" : "text-rag-amber"}>
+                  {variancePct === 0 ? "On plan" : variancePct < 0 ? `${Math.abs(variancePct)}% under` : `${variancePct}% over`}
+                </span>
+              </div>
+            );
+          }
+          return (
+            <div className="glass-card p-3">
+              <div className="label-eyebrow">Budget</div>
+              <div className="mt-1 text-lg font-medium num-mono text-foreground">
+                ${project.budgetUsed.toFixed(2)}M / ${project.budgetTotal.toFixed(1)}M
+              </div>
+              {varianceNode}
+            </div>
+          );
+        })()}
+
+        <button
+          type="button"
+          onClick={() => setStageGateOpen(true)}
+          className="glass-card group relative p-3 text-left transition-colors hover:border-accent/40"
+        >
+          <ArrowUpRight className="pointer-events-none absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground/60 transition-colors group-hover:text-accent" />
+          <div className="label-eyebrow">Stage Gate</div>
+          <div className="mt-1 text-lg font-medium text-foreground">{currentStage.name}</div>
+          <div className="mt-1 flex items-center gap-1">
+            {PLANNING_STAGES.map((s) => (
+              <span
+                key={s.n}
+                className={`h-1.5 flex-1 rounded-full ${
+                  s.state === "done" ? "bg-accent" : s.state === "active" ? "bg-accent/60" : "bg-secondary/60"
+                }`}
+              />
+            ))}
+          </div>
+        </button>
+
         {(() => {
           const derived = computeDerivedSchedule(milestones, resourceRequests);
           const leaves = derived.filter((m) => m.kind === "Task" && !derived.some((c) => c.parent === m.name));
@@ -512,35 +580,7 @@ function ProjectDetail() {
 
           );
         })()}
-        <button
-          type="button"
-          onClick={() => setStageGateOpen(true)}
-          className="glass-card group relative p-3 text-left transition-colors hover:border-accent/40"
-        >
-          <ArrowUpRight className="pointer-events-none absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground/60 transition-colors group-hover:text-accent" />
-          <div className="label-eyebrow">Stage Gate</div>
-          <div className="mt-1 text-lg font-medium text-foreground">{currentStage.name}</div>
-          <div className="mt-1 flex items-center gap-1">
-            {PLANNING_STAGES.map((s) => (
-              <span
-                key={s.n}
-                className={`h-1.5 flex-1 rounded-full ${
-                  s.state === "done" ? "bg-accent" : s.state === "active" ? "bg-accent/60" : "bg-secondary/60"
-                }`}
-              />
-            ))}
-          </div>
-        </button>
-        {[
-          { l: "Budget", v: `$${project.budgetUsed.toFixed(2)}M / $${project.budgetTotal.toFixed(1)}M` },
-          { l: "Variance", v: "+4%", c: "text-rag-amber" },
-          { l: "End date", v: project.endDate },
-        ].map((k) => (
-          <div key={k.l} className="glass-card p-3">
-            <div className="label-eyebrow">{k.l}</div>
-            <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
-          </div>
-        ))}
+
         {(() => {
           const pendingCount = centralApprovals.filter(
             (a) => a.status === "pending" && (a.projectId === project.id || a.projectName === project.name),
@@ -1307,7 +1347,7 @@ function OverviewTab({ project }: { project: typeof projects[number] }) {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Start Date:</span>
-              <span className="num-mono font-medium text-foreground">{(project as any).startDate ?? "2026-01-10"}</span>
+              <span className="num-mono font-medium text-foreground">{project.startDate}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">End Date:</span>

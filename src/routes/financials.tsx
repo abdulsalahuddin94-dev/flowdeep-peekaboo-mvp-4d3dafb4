@@ -249,7 +249,7 @@ function FinancialsPage() {
             </div>
 
             <div className="glass-card p-4">
-              <div className="label-eyebrow">Budget by Business Line</div>
+              <div className="label-eyebrow">Budget by Project Type</div>
               <div className="text-xs text-muted-foreground">Portfolio distribution</div>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
@@ -329,7 +329,7 @@ function FinancialsPage() {
           <EmptyRegion id="financials-overview">
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-              <TableHead>Project</TableHead><TableHead>Business Line</TableHead><TableHead>Expected Revenue</TableHead><TableHead>Total Budget</TableHead>
+              <TableHead>Project</TableHead><TableHead>Project Type</TableHead><TableHead>Expected Revenue</TableHead><TableHead>Total Budget</TableHead>
               <TableHead>Spent</TableHead><TableHead>Expected Profit</TableHead><TableHead>Expected Profit %</TableHead><TableHead>Margin %</TableHead><TableHead>Status</TableHead>
             </TableRow></TableHeader>
             <TableBody>{pnlRows.filter(({ p }) => {

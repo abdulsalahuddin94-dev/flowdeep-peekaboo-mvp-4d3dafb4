@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Building2, Briefcase, ChevronDown, X, Check, ChevronLeft } from "@/lib/icons";
 import { useCalendars, useProjects, useTags } from "@/lib/projects-store";
-import type { Project, Rag } from "@/lib/mock-data";
+import { parseLabelDate, formatLabelDate, toIsoDateLocal, type Project, type Rag } from "@/lib/mock-data";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -68,7 +68,10 @@ function emptyForm(calendarId: string): FormState {
 }
 
 function fromProject(p: Project, fallbackCalendar: string): FormState {
-  const d = new Date(p.endDate);
+  const start = parseLabelDate(p.startDate);
+  const end = parseLabelDate(p.endDate);
+  const startIso = start ? toIsoDateLocal(start) : "";
+  const endIso = end ? toIsoDateLocal(end) : "";
   return {
     projectType: !p.client || p.client === "Internal" ? "capital" : "commercial",
     name: p.name,
@@ -77,9 +80,9 @@ function fromProject(p: Project, fallbackCalendar: string): FormState {
     departments: p.department ?? ["Engineering"],
     client: p.client ?? "Internal",
     stage: p.stage,
-    startDate: "",
-    duration: "",
-    endDate: Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10),
+    startDate: startIso,
+    duration: startIso && endIso ? String(diffDays(startIso, endIso)) : "",
+    endDate: endIso,
     budget: String(p.budgetTotal ?? ""),
     revenue: "",
     tags: p.tags ?? [],
@@ -207,9 +210,8 @@ export function ProjectFormPage({ project }: { project?: Project }) {
     if (!form.projectType) { toast.error("Select a project type first"); return; }
     if (!form.name.trim()) { toast.error("Project name is required"); return; }
     const finalClient = form.projectType === "capital" ? "Internal" : form.client || "Internal";
-    const endDateLabel = form.endDate
-      ? new Date(form.endDate).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })
-      : "TBD";
+    const startDateLabel = form.startDate ? formatLabelDate(new Date(`${form.startDate}T00:00:00`)) : "—";
+    const endDateLabel = form.endDate ? formatLabelDate(new Date(`${form.endDate}T00:00:00`)) : "TBD";
 
     if (isEdit && project) {
       updateProject(project.id, {
@@ -221,6 +223,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
         budgetTotal: parseFloat(form.budget) || 0,
         tags: form.tags,
         calendarId: form.calendarId || undefined,
+        ...(form.startDate ? { startDate: startDateLabel } : {}),
         ...(form.endDate ? { endDate: endDateLabel } : {}),
       });
       toast.success(`Project "${form.name.trim()}" updated`);
@@ -239,6 +242,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
       progress: 0,
       budgetUsed: 0,
       budgetTotal: parseFloat(form.budget) || 0,
+      startDate: startDateLabel,
       endDate: endDateLabel,
       rag: "blue" as Rag,
       risks: 0,

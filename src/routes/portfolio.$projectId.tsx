@@ -1427,10 +1427,12 @@ function OverviewTab({
                     <span className={`flex-1 text-sm ${s.done ? "text-foreground" : "text-muted-foreground"}`}>{s.name}</span>
                     <span className="num-mono text-xs text-muted-foreground">{s.completed}/{s.total}</span>
                   </div>
-                  <Progress
-                    value={pct}
-                    className={cn("mt-2 ml-11 h-1.5", s.done && "[&>div]:bg-rag-green")}
-                  />
+                  <div className="mt-2 ml-11">
+                    <Progress
+                      value={pct}
+                      className={cn("h-1.5", s.done && "[&>div]:bg-rag-green")}
+                    />
+                  </div>
                 </li>
               );
             })}

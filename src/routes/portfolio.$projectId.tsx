@@ -627,7 +627,7 @@ function ProjectDetail() {
         </TabsList>
 
         <TabsContent value="Overview" className="mt-5">
-          <OverviewTab project={project} isNew={isNewProject} />
+          <OverviewTab project={project} isNew={isNewProject} gateData={gateData} />
         </TabsContent>
 
         <TabsContent value="Project Schedule" className="mt-5">
@@ -1339,9 +1339,9 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
 }
 
 function OverviewTab({
-  project, isNew,
+  project, isNew, gateData,
 }: {
-  project: typeof projects[number]; isNew: boolean;
+  project: typeof projects[number]; isNew: boolean; gateData: GateStage[];
 }) {
   if (isNew) {
     return (
@@ -1364,13 +1364,11 @@ function OverviewTab({
   const spentPct = Math.round((project.budgetUsed / project.budgetTotal) * 100);
   const remaining = (project.budgetTotal - project.budgetUsed).toFixed(1);
 
-  const stages = [
-    { n: 1, name: "Initiation", done: true },
-    { n: 2, name: "Planning", done: true },
-    { n: 3, name: "Execution", done: true },
-    { n: 4, name: "Monitoring", done: false },
-    { n: 5, name: "Closure", done: false },
-  ];
+  const stages = gateData.map((g, idx) => {
+    const completed = g.items.filter((i) => i.done).length;
+    const total = g.items.length;
+    return { n: idx + 1, name: g.name, done: total > 0 && completed === total, completed, total };
+  });
 
   const milestones = [
     { name: "Requirements Sign-off", date: "2026-05-15", rag: "green" as const },
@@ -1423,6 +1421,7 @@ function OverviewTab({
                   {s.done ? <span className="text-sm">✓</span> : <span className="num-mono text-xs">{s.n}</span>}
                 </div>
                 <span className={`text-sm ${s.done ? "text-foreground" : "text-muted-foreground"}`}>{s.name}</span>
+                <span className="num-mono text-xs text-muted-foreground">({s.completed}/{s.total})</span>
               </li>
             ))}
           </ul>

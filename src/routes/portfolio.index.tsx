@@ -104,6 +104,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   }
 
   const [filterOpen, setFilterOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"" | "active" | "draft">("");
   const [ragFilter, setRagFilter]   = useState<string[]>([]);
   const [stageFilter, setStageFilter] = useState<string[]>([]);
   const [tagFilter, setTagFilter]   = useState<string[]>([]);
@@ -143,6 +144,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
 
   const list = useMemo(() => {
     let l = projectList;
+    if (statusFilter === "draft") return [];
     if (restrict) l = l.slice(0, 6);
     if (query) l = l.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
     if (ragFilter.length > 0) l = l.filter((p) => ragFilter.includes(p.rag));
@@ -155,17 +157,17 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
     if (typeFilter.length > 0) l = l.filter((p) => typeFilter.includes(p.businessLine));
     if (onlyPending) l = l.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
     return l;
-  }, [projectList, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, yearFilter, baseFilter, typeFilter, onlyPending, pendingByProject]);
+  }, [projectList, query, restrict, statusFilter, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, yearFilter, baseFilter, typeFilter, onlyPending, pendingByProject]);
 
   const pagination = usePagination(list, 10);
 
   const projectsAwaiting = projectList.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
   const pendingTotal = projectsAwaiting.reduce((s, p) => s + (pendingByProject.get(p.name) ?? 0), 0);
 
-  function clearAll() { setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter(""); setClientFilter(""); setYearFilter(""); setBaseFilter(""); setTypeFilter([]); }
+  function clearAll() { setStatusFilter(""); setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter(""); setClientFilter(""); setYearFilter(""); setBaseFilter(""); setTypeFilter([]); }
 
   /** Active filters from the expandable panel only — the quick project-type pills show their own state. */
-  const panelActiveCount = ragFilter.length + stageFilter.length + tagFilter.length
+  const panelActiveCount = (statusFilter ? 1 : 0) + ragFilter.length + stageFilter.length + tagFilter.length
     + (deptFilter ? 1 : 0) + (clientFilter ? 1 : 0) + (yearFilter ? 1 : 0) + (baseFilter ? 1 : 0);
 
 
@@ -286,6 +288,26 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
         <div className="mb-3 space-y-3 rounded-lg border border-border bg-secondary/20 p-4">
           <div className="flex flex-wrap items-center gap-2">
+            <span className="w-14 shrink-0 text-xs text-muted-foreground">Status</span>
+            {([["", "All"], ["active", "Active"], ["draft", "Draft"]] as const).map(([v, l]) => {
+              const on = statusFilter === v;
+              return (
+                <button
+                  key={v || "all"}
+                  type="button"
+                  onClick={() => setStatusFilter(v)}
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-xs",
+                    on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {l}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
             <span className="w-14 shrink-0 text-xs text-muted-foreground">RAG</span>
             {ALL_RAGS.map(({ v, l }) => {
               const on = ragFilter.includes(v);
@@ -386,6 +408,11 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
       {/* Active filter chips (from the expandable panel — quick project-type pills are shown via their own highlighted state) */}
       {panelActiveCount > 0 && (
         <div className="mb-3 flex flex-wrap gap-1.5">
+          {statusFilter && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
+              {statusFilter === "active" ? "Active" : "Draft"}<button onClick={() => setStatusFilter("")} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
+            </span>
+          )}
           {ragFilter.map((v) => {
             const label = ALL_RAGS.find((r) => r.v === v)?.l ?? v;
             return (
@@ -427,12 +454,14 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
-      {(() => { const showDraft = !!draft && view === "grid" && pagination.page === 1; return (
+      {(() => { const showDraft = !!draft && statusFilter !== "active" && view === "grid" && pagination.page === 1; return (
       <EmptyRegion id="portfolio-projects">
       {list.length === 0 && !showDraft && (
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-16 text-center">
           <Filter className="h-8 w-8 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">No projects match the current filters.</p>
+          <p className="text-sm text-muted-foreground">
+            {statusFilter === "draft" ? "No draft in progress." : "No projects match the current filters."}
+          </p>
           <button className="text-xs text-accent hover:underline" onClick={clearAll}>Clear all filters</button>
         </div>
       )}

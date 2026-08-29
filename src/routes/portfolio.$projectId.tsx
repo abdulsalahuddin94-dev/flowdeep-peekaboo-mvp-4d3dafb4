@@ -21,6 +21,7 @@ import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
 import { toast } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { EmptyState } from "@/components/ds/EmptyState";
 import { ProjectGantt } from "@/components/ProjectGantt";
@@ -1414,16 +1415,25 @@ function OverviewTab({
 
         <div className="glass-card p-5">
           <div className="label-eyebrow mb-4">Stage Gates</div>
-          <ul className="space-y-3">
-            {stages.map((s) => (
-              <li key={s.n} className="flex items-center gap-3">
-                <div className={`flex h-8 w-8 items-center justify-center rounded-full ${s.done ? "bg-accent text-accent-foreground" : "border border-border bg-secondary/40 text-muted-foreground"}`}>
-                  {s.done ? <span className="text-sm">✓</span> : <span className="num-mono text-xs">{s.n}</span>}
-                </div>
-                <span className={`text-sm ${s.done ? "text-foreground" : "text-muted-foreground"}`}>{s.name}</span>
-                <span className="num-mono text-xs text-muted-foreground">({s.completed}/{s.total})</span>
-              </li>
-            ))}
+          <ul className="space-y-4">
+            {stages.map((s) => {
+              const pct = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
+              return (
+                <li key={s.n}>
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${s.done ? "bg-accent text-accent-foreground" : "border border-border bg-secondary/40 text-muted-foreground"}`}>
+                      {s.done ? <span className="text-sm">✓</span> : <span className="num-mono text-xs">{s.n}</span>}
+                    </div>
+                    <span className={`flex-1 text-sm ${s.done ? "text-foreground" : "text-muted-foreground"}`}>{s.name}</span>
+                    <span className="num-mono text-xs text-muted-foreground">{s.completed}/{s.total}</span>
+                  </div>
+                  <Progress
+                    value={pct}
+                    className={cn("mt-2 ml-11 h-1.5", s.done && "[&>div]:bg-rag-green")}
+                  />
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>

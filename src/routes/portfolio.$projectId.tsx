@@ -45,7 +45,7 @@ export const Route = createFileRoute("/portfolio/$projectId")({
     // A same-id placeholder lets the component's `liveProjects.find(...) ?? loaderProject` fallback
     // resolve to the real live project on first render, without ever rendering placeholder fields.
     const placeholder: Project = {
-      id: params.projectId, name: "Project", businessLine: "", department: [],
+      id: params.projectId, code: "", name: "Project", businessLine: "", department: [],
       pm: "", pmAvatar: "", progress: 0, budgetUsed: 0, budgetTotal: 0,
       startDate: "—", endDate: "—", rag: "blue", risks: 0, issues: 0,
       stage: "Initiation", tags: [],

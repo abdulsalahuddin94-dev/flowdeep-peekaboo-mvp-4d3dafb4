@@ -76,7 +76,7 @@ function fromProject(p: Project, fallbackCalendar: string): FormState {
   return {
     projectType: !p.client || p.client === "Internal" ? "capital" : "commercial",
     name: p.name,
-    code: "",
+    code: p.code ?? "",
     businessLine: p.businessLine,
     departments: p.department ?? ["Engineering"],
     client: p.client ?? "Internal",
@@ -224,6 +224,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
         budgetTotal: parseFloat(form.budget) || 0,
         tags: form.tags,
         calendarId: form.calendarId || undefined,
+        ...(form.code.trim() ? { code: form.code.trim() } : {}),
         ...(form.startDate ? { startDate: startDateLabel } : {}),
         ...(form.endDate ? { endDate: endDateLabel } : {}),
       });
@@ -234,6 +235,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
 
     addProject({
       id: `p-${Date.now()}`,
+      code: form.code.trim() || autoCode(form.projectType),
       name: form.name.trim(),
       businessLine: form.businessLine,
       department: form.departments,

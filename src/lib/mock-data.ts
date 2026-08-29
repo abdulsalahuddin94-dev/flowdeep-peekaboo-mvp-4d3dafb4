@@ -4,6 +4,7 @@ export type Rag = "green" | "amber" | "red" | "blue" | "grey";
 
 export interface Project {
   id: string;
+  code: string;
   name: string;
   businessLine: string;
   department: string[];
@@ -105,8 +106,13 @@ export const projects: Project[] = seed.map((row, i) => {
   const durationDays = 90 + ((i * 53) % 420);
   const endD = parseLabelDate(endDate);
   const startDate = endD ? formatLabelDate(new Date(endD.getTime() - durationDays * 86_400_000)) : "—";
+  const client = ["ACME Energy", "Northwind Logistics", "Helios Solar", "Atlas Mining", "Internal"][i % 5];
+  const codeYear = endD ? endD.getFullYear() : 2026;
+  const codePrefix = client === "Internal" ? "CAP" : "COM";
+  const code = `${codePrefix}-${codeYear}-${(1000 + i * 37).toString().padStart(4, "0")}`;
   return {
     id: `p-${(i + 1).toString().padStart(3, "0")}`,
+    code,
     name,
     businessLine: lines[i % lines.length],
     department: [depts[i % depts.length]],
@@ -122,7 +128,7 @@ export const projects: Project[] = seed.map((row, i) => {
     issues: (i * 2) % 5,
     stage: stage as Project["stage"],
     tags: [tags[i % tags.length], tags[(i + 2) % tags.length]],
-    client: ["ACME Energy", "Northwind Logistics", "Helios Solar", "Atlas Mining", "Internal"][i % 5],
+    client,
     ragNote,
     // Every project is bound to a working calendar so calendar edits always
     // have a visible downstream impact.

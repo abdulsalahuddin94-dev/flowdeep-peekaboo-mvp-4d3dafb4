@@ -229,6 +229,7 @@ type AppContextValue = {
   projects: Project[];
   addProject: (p: Project) => void;
   updateProject: (id: string, patch: Partial<Project>) => void;
+  removeProject: (id: string) => void;
   // Notifications
   notifications: Notification[];
   unreadCount: number;
@@ -481,6 +482,10 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     setProjects((prev) => prev.map((p) => p.id === id ? { ...p, ...patch } : p));
   }
 
+  function removeProject(id: string) {
+    setProjects((prev) => prev.filter((p) => p.id !== id));
+  }
+
   function addNotification(n: Omit<Notification, "id" | "read">) {
     setNotifications((prev) => [{ ...n, id: `n-${Date.now()}`, read: false }, ...prev]);
   }
@@ -504,7 +509,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      projects, addProject, updateProject,
+      projects, addProject, updateProject, removeProject,
       notifications, unreadCount, addNotification, markAllRead,
       rfps, addRfp,
       resourceRequests, addResourceRequest, updateResourceRequest,

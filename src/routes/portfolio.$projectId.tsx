@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check } from "@/lib/icons";
 import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
@@ -1950,15 +1951,18 @@ function ProgressUpdateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="max-w-4xl gap-4 overflow-hidden p-0">
+        <DialogHeader className="border-b border-border px-6 py-4">
+          <DialogTitle className="text-lg">
             {scopeMilestone ? `Progress Update — ${scopeMilestone}` : "Progress Update"}
           </DialogTitle>
+          <DialogDescription>
+            Update task completion and review the milestone approval gate.
+          </DialogDescription>
         </DialogHeader>
 
         {/* Overall planned vs actual (scoped when applicable) */}
-        <div className="rounded-lg border border-border bg-secondary/30 p-3">
+        <div className="mx-6 rounded-lg border border-border bg-secondary/30 px-4 py-3">
           <div className="mb-2 flex items-center justify-between text-xs">
             <span className="label-eyebrow">{scopeMilestone ? `${scopeLabel} roll-up` : "Overall project"}</span>
             <span className={actualPct >= plannedPct ? "text-rag-green" : "text-rag-amber"}>
@@ -1972,10 +1976,12 @@ function ProgressUpdateDialog({
           </div>
         </div>
 
-        {/* Picker + update form */}
-        <div className="grid gap-3 md:grid-cols-[1fr_220px]">
-          <div className="grid gap-2">
-            <Label className="text-xs">Pick a task to update</Label>
+        {/* Compact asymmetric workspace: task update first, approval gate second. */}
+        <div className="grid min-h-0 gap-4 px-6 pb-2 lg:grid-cols-[minmax(0,1.7fr)_minmax(260px,0.8fr)]">
+          <section className="min-w-0 space-y-3">
+            <div className="grid grid-cols-[minmax(0,1fr)_112px] items-end gap-3">
+              <div className="min-w-0 space-y-1.5">
+                <Label className="text-xs">Pick a task to update</Label>
             <Select value={selected} onValueChange={(v) => {
               setSelected(v);
               const t = leaves.find((x) => x.name === v);
@@ -1996,8 +2002,25 @@ function ProgressUpdateDialog({
                 )}
               </SelectContent>
             </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">New progress</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    className="pr-7 text-right num-mono"
+                    value={draftPct}
+                    onChange={(e) => setDraftPct(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+                  />
+                  <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
+                </div>
+              </div>
+            </div>
+
             {current && (
-              <div className="mt-1 rounded-md border border-border bg-secondary/20 p-3 space-y-2">
+              <div className="rounded-lg border border-border bg-secondary/20 p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium text-foreground">{current.name}</div>
                   {current.requiresApproval && (
@@ -2017,42 +2040,42 @@ function ProgressUpdateDialog({
                   <span>Actual <span className="num-mono text-foreground">{current.progress ?? 0}%</span></span>
                   <span>Planned <span className="num-mono text-foreground">{currentPlanned}%</span></span>
                 </div>
-                <div className="border-t border-border/50 pt-2 space-y-1 text-[11px]">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Start:</span>
-                    <span className="text-foreground">{current.startDate}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">End:</span>
-                    <span className="text-foreground">{current.endDate}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Owner:</span>
-                    <span className="text-foreground">{current.owner || "—"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Assignee:</span>
-                    <span className="text-foreground">{current.assignee || "—"}</span>
-                  </div>
-                  {current.dep && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Depends on:</span>
-                      <span className="text-foreground">{current.dep}</span>
-                    </div>
-                  )}
-                  {current.parent && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Parent:</span>
-                      <span className="text-foreground">{current.parent}</span>
-                    </div>
-                  )}
-                </div>
+                <Collapsible>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 w-full justify-between border-t border-border/50 px-0 pt-2 text-[11px] text-muted-foreground hover:bg-transparent hover:text-foreground">
+                      Task details
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-2">
+                    <dl className="grid grid-cols-2 gap-x-5 gap-y-2 text-[11px]">
+                      <div><dt className="text-muted-foreground">Start</dt><dd className="mt-0.5 text-foreground">{current.startDate}</dd></div>
+                      <div><dt className="text-muted-foreground">End</dt><dd className="mt-0.5 text-foreground">{current.endDate}</dd></div>
+                      <div><dt className="text-muted-foreground">Owner</dt><dd className="mt-0.5 truncate text-foreground">{current.owner || "—"}</dd></div>
+                      <div><dt className="text-muted-foreground">Assignee</dt><dd className="mt-0.5 truncate text-foreground">{current.assignee || "—"}</dd></div>
+                      {current.dep && <div><dt className="text-muted-foreground">Depends on</dt><dd className="mt-0.5 truncate text-foreground">{current.dep}</dd></div>}
+                      {current.parent && <div><dt className="text-muted-foreground">Parent</dt><dd className="mt-0.5 truncate text-foreground">{current.parent}</dd></div>}
+                    </dl>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             )}
+
+            <div className="flex items-center justify-between gap-3">
+              <p className="max-w-md text-[10px] text-muted-foreground">
+                Milestone progress rolls up from child tasks using each task's weight score.
+              </p>
+              <Button onClick={save} disabled={!current} variant="primary" className="shrink-0 px-5">
+                Save update
+              </Button>
+            </div>
+          </section>
+
+          <aside className="min-w-0 rounded-lg border border-border bg-secondary/10 p-4">
             {approvalMilestone && (
-              <div className="mt-2 rounded-md border border-border bg-secondary/10 p-3">
+              <div>
                 {allChildrenAt100 && !msApproved && (
-                  <div className={`mb-2.5 rounded-md border px-2.5 py-2 ${
+                  <div className={`mb-3 rounded-md border px-2.5 py-2 ${
                     approvalMilestone.approvalStatus === "pending"
                       ? "border-rag-amber/40 bg-rag-amber/10"
                       : "border-rag-green/40 bg-rag-green/10"
@@ -2062,7 +2085,7 @@ function ProgressUpdateDialog({
                         Waiting — {(approvalMilestone.approvers ?? []).filter((a) => approvedBy.includes(a.id)).length}/{(approvalMilestone.approvers ?? []).length} approved
                       </div>
                     ) : (
-                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="space-y-2">
                         <span className="text-[11px] font-medium text-rag-green">
                           {approvalMilestone.approvalStatus === "rejected"
                             ? "Rejected — you can revise and re-submit"
@@ -2070,7 +2093,7 @@ function ProgressUpdateDialog({
                         </span>
                         <Button
                           size="sm"
-                          className="h-7 px-2.5 text-[11px] bg-accent text-accent-foreground hover:bg-accent/90"
+                            className="h-7 w-full px-2.5 text-[11px] bg-accent text-accent-foreground hover:bg-accent/90"
                           onClick={saveAndRequestApproval}
                         >
                           {approvalMilestone.approvalStatus === "rejected" ? "Re-send Approval Request" : "Send Approval Request"}
@@ -2080,11 +2103,12 @@ function ProgressUpdateDialog({
                   </div>
                 )}
                 {gateRequest && (
-                  <ApprovalOutcomeBanner request={gateRequest} className="mb-2.5" />
+                  <ApprovalOutcomeBanner request={gateRequest} className="mb-3" />
                 )}
-                <div className="flex items-center justify-between text-[11px]">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 text-[11px]">
                   <span className="font-medium text-foreground">
-                    Approval Task · {approvalMilestone.name}
+                    Approval gate
+                    <span className="mt-0.5 block truncate text-[10px] font-normal text-muted-foreground">{approvalMilestone.name}</span>
                   </span>
                   <span className={`rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${
                     approvalMilestone.approvalStatus === "approved" ? "border-rag-green/40 bg-rag-green/10 text-rag-green"
@@ -2100,17 +2124,17 @@ function ProgressUpdateDialog({
                 {(approvalMilestone.approvers ?? []).length === 0 ? (
                   <div className="mt-1.5 text-[11px] text-muted-foreground">No approvers assigned.</div>
                 ) : (
-                  <ul className="mt-2 space-y-1.5">
+                  <ul className="mt-3 space-y-2">
                     {(approvalMilestone.approvers ?? []).map((a) => {
                       const s = approvalMilestone.approvalStatus;
                       const mine = s === "approved" || approvedBy.includes(a.id);
                       const label = mine ? "Approved" : s === "pending" ? "Pending" : "Not requested";
                       const tone = mine ? "text-rag-green" : s === "pending" ? "text-rag-amber" : "text-muted-foreground";
                       return (
-                        <li key={a.id} className="flex items-center justify-between text-[11px]">
-                          <span className="text-foreground">
-                            {a.name}
-                            <span className="ml-1 text-muted-foreground">· {a.role}{a.department ? ` · ${a.department}` : ""}</span>
+                        <li key={a.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 text-[11px]">
+                          <span className="min-w-0 text-foreground">
+                            <span className="block truncate">{a.name}</span>
+                            <span className="block truncate text-[10px] text-muted-foreground">{a.role}{a.department ? ` · ${a.department}` : ""}</span>
                           </span>
                           <span className={`inline-flex items-center gap-1 ${tone}`}>
                             {mine && <Check className="h-3 w-3" />}
@@ -2137,38 +2161,21 @@ function ProgressUpdateDialog({
                   </div>
                 )}
                 <p className="mt-2 text-[10px] text-muted-foreground">
-                  This gate carries no weight in the milestone roll-up — the milestone only counts as complete once
-                  the Approval Task is signed off.
+                  This 0% weight gate completes the milestone only after sign-off.
                 </p>
               </div>
             )}
-          </div>
-          <div className="grid gap-2">
-            <Label className="text-xs">New progress (%)</Label>
-            <Input
-              type="number"
-              min={0}
-              max={100}
-              value={draftPct}
-              onChange={(e) => setDraftPct(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
-            />
-            <div className="flex flex-col gap-2">
-              <Button
-                onClick={save}
-                disabled={!current} variant="primary"
-              >
-                Save update
-              </Button>
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              Milestones can't be updated directly — their progress is rolled up from their child tasks
-              using each task's weight score.
-            </p>
-          </div>
+            {!approvalMilestone && (
+              <div className="flex h-full min-h-36 flex-col items-center justify-center text-center">
+                <CheckCircle2 className="mb-2 h-5 w-5 text-muted-foreground" />
+                <p className="text-xs font-medium text-foreground">No approval gate</p>
+                <p className="mt-1 max-w-48 text-[10px] text-muted-foreground">This task can complete without milestone approval.</p>
+              </div>
+            )}
+          </aside>
         </div>
 
-
-        <DialogFooter>
+        <DialogFooter className="m-0 border-t border-border px-6 py-3">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
         </DialogFooter>
       </DialogContent>

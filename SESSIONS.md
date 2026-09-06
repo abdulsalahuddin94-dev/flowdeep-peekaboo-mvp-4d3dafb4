@@ -1,5 +1,6 @@
 ## Session — 2026-09-06
 
+- Redesigned the Progress Update popup into a compact asymmetric workspace with a full-width roll-up, inline task progress editing, collapsible task metadata, and a narrower approval-gate panel.
 - Standardized mandatory-field validation as inline red field highlighting and error text instead of error toasts.
 - Extended the shared validation behavior to page forms and popup fields, including inputs, dropdowns, and text areas.
 - Replaced the Project Details delete prompt with the standard DS02 danger confirmation popup.

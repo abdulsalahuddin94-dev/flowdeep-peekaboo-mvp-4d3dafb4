@@ -2511,7 +2511,14 @@ function FinancialsTab({
       {/* Recognition driven by the schedule: dates follow the milestone, status follows approval */}
       <div className="glass-card p-5">
         <div className="mb-1 flex items-center justify-between">
-          <div className="label-eyebrow">Revenue recognition — driven by the schedule</div>
+          <div className="flex items-center gap-2">
+            <div className="label-eyebrow">Revenue recognition — driven by the schedule</div>
+            {revenueIsDemo && (
+              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide bg-secondary/40 text-muted-foreground">
+                Sample
+              </span>
+            )}
+          </div>
           <span className="num-mono text-xs text-muted-foreground">
             Linked: ${scheduleRevenue.reduce((s, r) => s + r.value, 0).toFixed(2)}M
           </span>
@@ -2520,37 +2527,33 @@ function FinancialsTab({
           Expected dates always inherit the linked milestone's planned finish date, so a schedule delay shifts the
           forecast automatically. Revenue is only recognised once the milestone reaches 100% and — where approval is
           required — has been approved.
+          {revenueIsDemo && " Nothing is linked yet, so these rows are a sample — link a revenue item from a milestone's Edit Details panel and the live data replaces them."}
         </p>
-        {scheduleRevenue.length === 0 ? (
-          <p className="text-xs text-muted-foreground">
-            No revenue item is linked to a milestone yet. Link one from the milestone's Edit Details panel in the schedule.
-          </p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent bg-transparent border-0">
-                <TableHead>Revenue item</TableHead>
-                <TableHead>Linked milestone</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Expected date (inherited)</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Recognition status</TableHead>
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent bg-transparent border-0">
+              <TableHead>Revenue item</TableHead>
+              <TableHead>Linked milestone</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+              <TableHead>Expected date (inherited)</TableHead>
+              <TableHead>Progress</TableHead>
+              <TableHead>Recognition status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {scheduleRevenue.map((r) => (
+              <TableRow key={r.itemId} className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${r.demo ? "opacity-70" : ""}`}>
+                <TableCell className="font-medium text-foreground">{r.label}</TableCell>
+                <TableCell className="text-muted-foreground">{r.wbsItem}</TableCell>
+                <TableCell className="num-mono text-right">{r.amount}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{r.date || "—"}</TableCell>
+                <TableCell className="num-mono text-xs">{r.progress}%</TableCell>
+                <TableCell><RagBadge rag={r.rag} label={r.statusLabel} /></TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {scheduleRevenue.map((r) => (
-                <TableRow key={r.itemId} className="bg-table-row-bg hover:bg-table-row-hover border-0">
-                  <TableCell className="font-medium text-foreground">{r.label}</TableCell>
-                  <TableCell className="text-muted-foreground">{r.wbsItem}</TableCell>
-                  <TableCell className="num-mono text-right">{r.amount}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{r.date || "—"}</TableCell>
-                  <TableCell className="num-mono text-xs">{r.progress}%</TableCell>
-                  <TableCell><RagBadge rag={r.rag} label={r.statusLabel} /></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+            ))}
+          </TableBody>
+        </Table>
+
       </div>
     </div>
   );

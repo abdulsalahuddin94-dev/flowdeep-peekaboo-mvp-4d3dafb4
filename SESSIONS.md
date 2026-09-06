@@ -1,5 +1,6 @@
 ## Session — 2026-09-06
 
+- Restyled the shared date picker to the current DS02 calendar pattern and replaced legacy browser date inputs across task creation, milestones, Gantt, financial due dates, and business-case forms.
 - Kept the Progress Update popup height stable by removing the 100% approval notice and changing the existing Save Update button into the approval request action.
 - Redesigned the Progress Update popup into a compact asymmetric workspace with a full-width roll-up, inline task progress editing, collapsible task metadata, and a narrower approval-gate panel.
 - Standardized mandatory-field validation as inline red field highlighting and error text instead of error toasts.

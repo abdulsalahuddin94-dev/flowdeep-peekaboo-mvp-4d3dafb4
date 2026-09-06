@@ -25,7 +25,7 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
-        "bg-background group/calendar p-3 [--cell-size:2rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+        "group/calendar w-[276px] bg-transparent p-3 [--cell-size:2.25rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className,
@@ -37,24 +37,24 @@ function Calendar({
       }}
       classNames={{
         root: cn("w-fit", defaultClassNames.root),
-        months: cn("relative flex flex-col gap-4 md:flex-row", defaultClassNames.months),
-        month: cn("flex w-full flex-col gap-4", defaultClassNames.month),
+        months: cn("relative flex flex-col gap-5 md:flex-row", defaultClassNames.months),
+        month: cn("flex w-full flex-col gap-3", defaultClassNames.month),
         nav: cn(
-          "absolute inset-x-0 top-0 flex w-full items-center justify-between gap-1",
+          "absolute inset-x-0 top-0 flex h-9 w-full items-center justify-between gap-1",
           defaultClassNames.nav,
         ),
         button_previous: cn(
           buttonVariants({ variant: buttonVariant }),
-          "h-(--cell-size) w-(--cell-size) select-none p-0 aria-disabled:opacity-50",
+          "h-9 w-9 select-none rounded-md p-0 text-foreground hover:bg-secondary aria-disabled:opacity-40",
           defaultClassNames.button_previous,
         ),
         button_next: cn(
           buttonVariants({ variant: buttonVariant }),
-          "h-(--cell-size) w-(--cell-size) select-none p-0 aria-disabled:opacity-50",
+          "h-9 w-9 select-none rounded-md p-0 text-foreground hover:bg-secondary aria-disabled:opacity-40",
           defaultClassNames.button_next,
         ),
         month_caption: cn(
-          "flex h-(--cell-size) w-full items-center justify-center px-(--cell-size)",
+          "flex h-9 w-full items-center justify-center px-9",
           defaultClassNames.month_caption,
         ),
         dropdowns: cn(
@@ -67,26 +67,26 @@ function Calendar({
         ),
         dropdown: cn("bg-popover absolute inset-0 opacity-0", defaultClassNames.dropdown),
         caption_label: cn(
-          "select-none font-medium",
+          "select-none font-semibold text-foreground",
           captionLayout === "label"
-            ? "text-sm"
+             ? "text-sm"
             : "[&>svg]:text-muted-foreground flex h-8 items-center gap-1 rounded-md pl-2 pr-1 text-sm [&>svg]:size-3.5",
           defaultClassNames.caption_label,
         ),
         table: "w-full border-collapse",
-        weekdays: cn("flex", defaultClassNames.weekdays),
+        weekdays: cn("flex pt-1", defaultClassNames.weekdays),
         weekday: cn(
-          "text-muted-foreground flex-1 select-none rounded-md text-[0.8rem] font-normal",
+          "flex-1 select-none text-center text-xs font-medium text-muted-foreground",
           defaultClassNames.weekday,
         ),
-        week: cn("mt-2 flex w-full", defaultClassNames.week),
+        week: cn("mt-1 flex w-full", defaultClassNames.week),
         week_number_header: cn("w-(--cell-size) select-none", defaultClassNames.week_number_header),
         week_number: cn(
           "text-muted-foreground select-none text-[0.8rem]",
           defaultClassNames.week_number,
         ),
         day: cn(
-          "group/day relative aspect-square h-full w-full select-none p-0 text-center",
+          "group/day relative h-(--cell-size) w-(--cell-size) select-none p-0 text-center",
           "[&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
           defaultClassNames.day,
         ),
@@ -94,12 +94,12 @@ function Calendar({
         range_middle: cn("rounded-none", defaultClassNames.range_middle),
         range_end: cn("bg-accent rounded-r-md", defaultClassNames.range_end),
         today: cn(
-          "bg-accent/20 text-accent rounded-md font-medium",
-          "data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground data-[selected=true]:rounded-none",
+          "text-accent font-semibold",
+          "data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground",
           defaultClassNames.today,
         ),
         outside: cn(
-          "text-muted-foreground/60 aria-selected:text-muted-foreground/60",
+          "text-muted-foreground/35 aria-selected:text-muted-foreground/50",
           defaultClassNames.outside,
         ),
         disabled: cn("text-muted-foreground/40 opacity-50", defaultClassNames.disabled),
@@ -172,8 +172,8 @@ function CalendarDayButton({
         "data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground",
         "data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground",
         "group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50",
-        "flex aspect-square h-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-md font-normal leading-none",
-        "transition-colors hover:bg-accent/20 hover:text-accent",
+        "flex size-(--cell-size) min-w-(--cell-size) flex-col gap-1 rounded-md text-sm font-medium leading-none",
+        "transition-colors hover:bg-secondary hover:text-foreground",
         "group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px]",
         "[&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,

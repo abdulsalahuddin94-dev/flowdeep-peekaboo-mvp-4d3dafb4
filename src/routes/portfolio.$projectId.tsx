@@ -3176,14 +3176,6 @@ function AddMilestoneDialog({
     return used;
   }, [items, editingItem, globalLinks, projectName]);
 
-  const availableCostItems = (currentId: string) =>
-    FINANCIAL_CATALOG.cost.filter(
-      (i) => i.id === currentId || (!linkedElsewhere.has(i.id) && !costLinkIds.includes(i.id)),
-    );
-  const availableRevenueItems = (currentId: string) =>
-    FINANCIAL_CATALOG.revenue.filter(
-      (i) => i.id === currentId || (!linkedElsewhere.has(i.id) && !revenueLinkIds.includes(i.id)),
-    );
 
 
   function buildPayments(): { payment: PaymentLink; extras: PaymentLink[] } {

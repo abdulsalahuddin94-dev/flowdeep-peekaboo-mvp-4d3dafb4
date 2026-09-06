@@ -16,7 +16,7 @@ const buttonVariants = cva(
         secondary:
           "border border-[var(--btn-secondary-border)] bg-[var(--btn-secondary-bg)] text-[var(--btn-secondary-fg)] shadow-sm hover:bg-[var(--btn-secondary-bg-hover)]",
         outline:
-          "border border-[var(--btn-outline-border)] bg-transparent text-[var(--btn-outline-fg)] hover:border-[var(--btn-outline-border-hover)] hover:bg-[var(--btn-outline-bg-hover)] hover:text-[var(--btn-outline-fg-hover)]",
+          "border border-[var(--btn-outline-border)] bg-[var(--btn-outline-bg)] text-[var(--btn-outline-fg)] hover:border-[var(--btn-outline-border-hover)] hover:bg-[var(--btn-outline-bg-hover)] hover:text-[var(--btn-outline-fg-hover)]",
         outlineSecondary:
           "border border-[var(--btn-outline-2-border)] bg-[var(--btn-outline-2-bg)] text-[var(--btn-outline-2-fg)] shadow-sm hover:bg-[var(--btn-outline-2-bg-hover)]",
         danger:

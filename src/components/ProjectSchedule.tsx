@@ -2096,15 +2096,60 @@ function RolesCell({
               </>
             )}
             {!selectedRole && (
-              <div className="space-y-1">
-                {item.roles.map((r) => (
-                  <div key={r.role} className="flex items-center justify-between rounded bg-secondary/30 p-2 text-xs">
-                    <span>{r.role} ({r.skill}, {r.fte})</span>
-                    <button onClick={() => handleEditRole(r)} className="text-muted-foreground hover:text-foreground">
-                      <Pencil className="h-3 w-3" />
-                    </button>
+              <div className="space-y-2">
+                <div className="space-y-1">
+                  {item.roles.map((r) => (
+                    <div key={r.role} className="flex items-center justify-between rounded bg-secondary/30 p-2 text-xs">
+                      <span>{r.role} ({r.skill}, {r.fte})</span>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => handleEditRole(r)} className="text-muted-foreground hover:text-foreground">
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                        <button onClick={() => handleRemoveRole(r)} className="text-muted-foreground hover:text-destructive">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {item.roles.length === 0 && (
+                    <p className="text-[10px] text-muted-foreground">No roles assigned yet.</p>
+                  )}
+                </div>
+                <div className="space-y-2 border-t border-border pt-2">
+                  <Label className="text-[10px] uppercase">Add role</Label>
+                  <Select value={newRole} onValueChange={setNewRole}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a role" /></SelectTrigger>
+                    <SelectContent>
+                      {roleOptions.filter(r => !item.roles.some(x => x.role === r)).map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {(["Junior", "Mid", "Senior", "Lead"] as const).map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input type="number" min={0.1} step={0.1} value={newFte} onChange={(e) => setNewFte(e.target.value)} className="h-8 text-xs num-mono" />
                   </div>
-                ))}
+                  <Button
+                    size="sm"
+                    className="h-7 w-full text-xs"
+                    disabled={!newRole.trim()}
+                    onClick={() => {
+                      onUpdate([...item.roles, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }]);
+                      setNewRole("");
+                      setNewLevel("Mid");
+                      setNewFte("1");
+                    }}
+                  >
+                    <Plus className="mr-1 h-3 w-3" /> Add role
+                  </Button>
+                </div>
               </div>
             )}
           </div>

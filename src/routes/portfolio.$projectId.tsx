@@ -2065,8 +2065,19 @@ function ProgressUpdateDialog({
               <p className="max-w-md text-[10px] text-muted-foreground">
                 Milestone progress rolls up from child tasks using each task's weight score.
               </p>
-              <Button onClick={save} disabled={!current} variant="primary" className="shrink-0 px-5">
-                Save update
+              <Button
+                onClick={allChildrenAt100 && !msApproved ? saveAndRequestApproval : save}
+                disabled={!current || (allChildrenAt100 && approvalMilestone?.approvalStatus === "pending")}
+                variant="primary"
+                className="shrink-0 px-5"
+              >
+                {allChildrenAt100 && !msApproved
+                  ? approvalMilestone?.approvalStatus === "pending"
+                    ? "Waiting for Approval"
+                    : approvalMilestone?.approvalStatus === "rejected"
+                      ? "Re-send Approval Request"
+                      : "Send Approval Request"
+                  : "Save update"}
               </Button>
             </div>
           </section>
@@ -2074,34 +2085,6 @@ function ProgressUpdateDialog({
           <aside className="min-w-0 rounded-lg border border-border bg-secondary/10 p-4">
             {approvalMilestone && (
               <div>
-                {allChildrenAt100 && !msApproved && (
-                  <div className={`mb-3 rounded-md border px-2.5 py-2 ${
-                    approvalMilestone.approvalStatus === "pending"
-                      ? "border-rag-amber/40 bg-rag-amber/10"
-                      : "border-rag-green/40 bg-rag-green/10"
-                  }`}>
-                    {approvalMilestone.approvalStatus === "pending" ? (
-                      <div className="text-[11px] font-medium text-rag-amber">
-                        Waiting — {(approvalMilestone.approvers ?? []).filter((a) => approvedBy.includes(a.id)).length}/{(approvalMilestone.approvers ?? []).length} approved
-                      </div>
-                    ) : (
-                        <div className="space-y-2">
-                        <span className="text-[11px] font-medium text-rag-green">
-                          {approvalMilestone.approvalStatus === "rejected"
-                            ? "Rejected — you can revise and re-submit"
-                            : "All tasks complete — Approval Task unlocked"}
-                        </span>
-                        <Button
-                          size="sm"
-                            className="h-7 w-full px-2.5 text-[11px] bg-accent text-accent-foreground hover:bg-accent/90"
-                          onClick={saveAndRequestApproval}
-                        >
-                          {approvalMilestone.approvalStatus === "rejected" ? "Re-send Approval Request" : "Send Approval Request"}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
                 {gateRequest && (
                   <ApprovalOutcomeBanner request={gateRequest} className="mb-3" />
                 )}

@@ -496,7 +496,15 @@ function ProjectDetail() {
         title={project.name}
         current={project.name}
         subtitle={`${project.businessLine} · ${project.department.join(" · ")} · Client ${project.client}${projectCalendar ? ` · 📅 ${projectCalendar.name}` : ""}`}
-        actions={
+        actions={(() => {
+          const isAdmin = /director|admin|pmo/i.test(approvalUser.role) || approvalUser.department === "PMO";
+          const hasActuals = project.progress > 0 || project.budgetUsed > 0;
+          const blockReason = !isAdmin
+            ? "Only authorized administrators can delete projects."
+            : hasActuals
+              ? "This project has recorded actual progress or cost entries and cannot be deleted."
+              : null;
+          return (
           <div className="flex items-center gap-2">
             <Button size="sm" variant="primary" onClick={() => setReportOpen(true)}>Submit status</Button>
             <DropdownMenu>
@@ -512,10 +520,16 @@ function ProjectDetail() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } })}>
-                  <Pencil size={14} className="mr-2" />Edit project
+                  <Pencil size={14} className="mr-2" />Edit Basic Info
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-rag-red focus:text-rag-red" onClick={() => setDeleteOpen(true)}>
-                  <DeleteAction size={14} className="mr-2" />Delete project
+                <DropdownMenuItem onClick={() => setReportOpen(true)}>
+                  <Pencil size={14} className="mr-2" />Update Status
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-rag-red focus:text-rag-red"
+                  onClick={() => { if (blockReason) { toast.error(blockReason); return; } setDeleteOpen(true); }}
+                >
+                  <DeleteAction size={14} className="mr-2" />Delete Project
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -528,13 +542,16 @@ function ProjectDetail() {
               cancelLabel="Cancel"
               confirmLabel="Delete"
               onConfirm={() => {
+                if (blockReason) { toast.error(blockReason); return; }
                 removeProject(project.id);
                 toast.success("Project deleted");
                 navigate({ to: "/portfolio" });
               }}
             />
           </div>
-        }
+          );
+        })()}
+
       />
 
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-6">

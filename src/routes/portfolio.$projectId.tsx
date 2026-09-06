@@ -3160,6 +3160,7 @@ function AddMilestoneDialog({
     } else {
       setKind(initialKind ?? "Task");
       setParentName(initialParent ?? "__none__");
+      setParentMode(modeForParent(initialParent));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editingItem?.name, initialParent, initialKind]);

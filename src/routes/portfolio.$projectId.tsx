@@ -3245,7 +3245,10 @@ function AddMilestoneDialog({
       newItems.push({
         name: name.trim(), kind: "Milestone",
         startDate: endDate, endDate, owner: owner || defaultOwner, rag, dep,
-        roles: [], payment: mainPayment, extraPayments: extraPayments.length ? extraPayments : undefined, progress: 0,
+        roles: skillRole.role.trim()
+          ? [{ role: skillRole.role.trim(), skill: skillRole.skill, fte: Number(skillRole.fte) || 0 }]
+          : [],
+        payment: mainPayment, extraPayments: extraPayments.length ? extraPayments : undefined, progress: 0,
         lagDays: Number(lagDays) || 0,
         milestoneType,
         requiresApproval,
@@ -3669,7 +3672,7 @@ function AddMilestoneDialog({
             </div>
           )}
 
-          {kind === "Task" && isEditing && (
+          {isEditing && (
 
             <div className="rounded-md border border-border p-3">
               <div className="mb-2 flex items-center justify-between">

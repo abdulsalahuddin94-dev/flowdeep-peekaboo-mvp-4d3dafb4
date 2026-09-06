@@ -237,6 +237,7 @@ const COLUMNS = [
   { key: "type",     label: "Type",        w: 90 },
   { key: "start",    label: "Start",       w: 100 },
   { key: "end",      label: "End",         w: 100 },
+  { key: "duration", label: "Duration",    w: 90 },
   { key: "owner",    label: "Owner",       w: 150 },
   { key: "assignee", label: "Assignee",    w: 130 },
   { key: "roles",    label: "Roles",       w: 180 },
@@ -312,8 +313,9 @@ export function ProjectSchedule({
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);
   const [visibleCols] = useState<Set<ColKey>>(
-    // Owner + Assignee columns hidden for the MVP demo view
-    () => new Set<ColKey>(["type", "start", "end", "status", "actual", "planned", "dep", "roles", "payment"]),
+    // Owner + Assignee + Roles columns hidden for the MVP demo view
+    // (roles are edited from the item Edit dialog instead)
+    () => new Set<ColKey>(["type", "start", "end", "duration", "status", "actual", "planned", "dep", "payment"]),
   );
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(items.map(i => i.name)));
   const [leftPct, setLeftPct] = useState(48);
@@ -338,6 +340,17 @@ export function ProjectSchedule({
   const splitRef = useRef<HTMLDivElement | null>(null);
   const leftScrollRef = useRef<HTMLDivElement | null>(null);
   const rightScrollRef = useRef<HTMLDivElement | null>(null);
+  // Width of the scroll viewport, so the table can stretch to fill it (no right gap)
+  const [viewportW, setViewportW] = useState(0);
+  useEffect(() => {
+    const el = leftScrollRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => setViewportW(el.clientWidth));
+    ro.observe(el);
+    setViewportW(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
 
   // Auto-collapse app sidebar while viewing the schedule for more horizontal room
   const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebar();
@@ -760,6 +773,12 @@ export function ProjectSchedule({
 
   function colVisible(k: ColKey) { return visibleCols.has(k); }
 
+  // Stretch the Task Name column so the table always fills the viewport width
+  const colsW = COLUMNS.filter(c => colVisible(c.key)).reduce((s, c) => s + widths[c.key], 0);
+  const nameW = Math.max(widths.name, viewportW ? viewportW - colsW : widths.name);
+  const tableW = nameW + colsW;
+
+
   // Inline edit helpers
   const canPatch = !!onItemPatch;
   const editable = canPatch && !restricted;
@@ -995,10 +1014,10 @@ export function ProjectSchedule({
         >
           {/* Body (header is sticky inside so it scrolls horizontally with columns) */}
           <div ref={leftScrollRef} onScroll={onLeftScroll} className="flex-1 overflow-auto">
-            <div style={{ width: widths.name + COLUMNS.filter(c => colVisible(c.key)).reduce((s,c) => s + widths[c.key], 0) }}>
+            <div style={{ width: tableW }}>
               {/* Header */}
               <div className="sticky top-0 z-20 flex border-b border-border bg-secondary/60 backdrop-blur text-xs font-medium text-muted-foreground" style={{ height: HEADER_H }}>
-                <ColHeader label="Task Name" width={widths.name} onResize={(e) => startColResize("name", e)} onAutoFit={() => autoFitCol("name")} first />
+                <ColHeader label="Task Name" width={nameW} onResize={(e) => startColResize("name", e)} onAutoFit={() => autoFitCol("name")} first />
                 {COLUMNS.filter(c => colVisible(c.key)).map(c => (
                   <ColHeader key={c.key} label={c.label} width={widths[c.key]} onResize={(e) => startColResize(c.key, e)} onAutoFit={() => autoFitCol(c.key)} />
                 ))}
@@ -1023,7 +1042,7 @@ export function ProjectSchedule({
                   <ContextMenu key={item.name}>
                     <ContextMenuTrigger asChild>
                   <div className={`flex border-b border-border/60 text-xs ${rowTint}`} style={{ height: ROW_H }}>
-                    <div className="flex items-center gap-1 px-2 overflow-hidden" style={{ width: widths.name, paddingLeft: 8 + depth * 14 }}>
+                    <div className="flex items-center gap-1 px-2 overflow-hidden" style={{ width: nameW, paddingLeft: 8 + depth * 14 }}>
                       {hasChildren ? (
                         <button
                           onClick={() => setExpanded(prev => {
@@ -1085,6 +1104,17 @@ export function ProjectSchedule({
                           editable={editable}
                           onCommit={(p) => patch(item.name, p)}
                         />
+                      </div>
+                    )}
+                    {colVisible("duration") && (
+                      <div className="flex items-center border-l border-border/60 px-3 num-mono overflow-hidden text-muted-foreground" style={{ width: widths.duration }}>
+                        {(() => {
+                          const s = parseISO(item.startDate);
+                          const e = parseISO(item.endDate);
+                          if (!s || !e) return <span>—</span>;
+                          const d = Math.max(1, diffDays(e, s) + 1);
+                          return <span className="truncate">{d}d</span>;
+                        })()}
                       </div>
                     )}
                     {colVisible("owner") && (

@@ -9,41 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApprovalsRouteImport } from './routes/approvals'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as ClientsVendorsRouteImport } from './routes/clients-vendors'
-import { Route as FinancialsRouteImport } from './routes/financials'
-import { Route as OrganizationRouteImport } from './routes/organization'
 import { Route as ResourcesRouteImport } from './routes/resources'
+import { Route as OrganizationRouteImport } from './routes/organization'
+import { Route as FinancialsRouteImport } from './routes/financials'
+import { Route as ClientsVendorsRouteImport } from './routes/clients-vendors'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ApprovalsRouteImport } from './routes/approvals'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortfolioIndexRouteImport } from './routes/portfolio.index'
-import { Route as PortfolioProjectIdRouteImport } from './routes/portfolio.$projectId'
 import { Route as PortfolioNewRouteImport } from './routes/portfolio.new'
+import { Route as PortfolioProjectIdRouteImport } from './routes/portfolio.$projectId'
 import { Route as PortfolioProjectIdEditRouteImport } from './routes/portfolio.$projectId_.edit'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApprovalsRoute = ApprovalsRouteImport.update({
-  id: '/approvals',
-  path: '/approvals',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClientsVendorsRoute = ClientsVendorsRouteImport.update({
-  id: '/clients-vendors',
-  path: '/clients-vendors',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinancialsRoute = FinancialsRouteImport.update({
-  id: '/financials',
-  path: '/financials',
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrganizationRoute = OrganizationRouteImport.update({
@@ -51,9 +31,29 @@ const OrganizationRoute = OrganizationRouteImport.update({
   path: '/organization',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResourcesRoute = ResourcesRouteImport.update({
-  id: '/resources',
-  path: '/resources',
+const FinancialsRoute = FinancialsRouteImport.update({
+  id: '/financials',
+  path: '/financials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientsVendorsRoute = ClientsVendorsRouteImport.update({
+  id: '/clients-vendors',
+  path: '/clients-vendors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApprovalsRoute = ApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortfolioIndexRoute = PortfolioIndexRouteImport.update({
@@ -61,14 +61,14 @@ const PortfolioIndexRoute = PortfolioIndexRouteImport.update({
   path: '/portfolio/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PortfolioProjectIdRoute = PortfolioProjectIdRouteImport.update({
-  id: '/portfolio/$projectId',
-  path: '/portfolio/$projectId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PortfolioNewRoute = PortfolioNewRouteImport.update({
   id: '/portfolio/new',
   path: '/portfolio/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioProjectIdRoute = PortfolioProjectIdRouteImport.update({
+  id: '/portfolio/$projectId',
+  path: '/portfolio/$projectId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortfolioProjectIdEditRoute = PortfolioProjectIdEditRouteImport.update({
@@ -175,39 +175,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/approvals': {
-      id: '/approvals'
-      path: '/approvals'
-      fullPath: '/approvals'
-      preLoaderRoute: typeof ApprovalsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/clients-vendors': {
-      id: '/clients-vendors'
-      path: '/clients-vendors'
-      fullPath: '/clients-vendors'
-      preLoaderRoute: typeof ClientsVendorsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financials': {
-      id: '/financials'
-      path: '/financials'
-      fullPath: '/financials'
-      preLoaderRoute: typeof FinancialsRouteImport
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/organization': {
@@ -217,11 +189,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrganizationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/resources': {
-      id: '/resources'
-      path: '/resources'
-      fullPath: '/resources'
-      preLoaderRoute: typeof ResourcesRouteImport
+    '/financials': {
+      id: '/financials'
+      path: '/financials'
+      fullPath: '/financials'
+      preLoaderRoute: typeof FinancialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clients-vendors': {
+      id: '/clients-vendors'
+      path: '/clients-vendors'
+      fullPath: '/clients-vendors'
+      preLoaderRoute: typeof ClientsVendorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/approvals': {
+      id: '/approvals'
+      path: '/approvals'
+      fullPath: '/approvals'
+      preLoaderRoute: typeof ApprovalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portfolio/': {
@@ -231,18 +231,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortfolioIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/portfolio/$projectId': {
-      id: '/portfolio/$projectId'
-      path: '/portfolio/$projectId'
-      fullPath: '/portfolio/$projectId'
-      preLoaderRoute: typeof PortfolioProjectIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/portfolio/new': {
       id: '/portfolio/new'
       path: '/portfolio/new'
       fullPath: '/portfolio/new'
       preLoaderRoute: typeof PortfolioNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio/$projectId': {
+      id: '/portfolio/$projectId'
+      path: '/portfolio/$projectId'
+      fullPath: '/portfolio/$projectId'
+      preLoaderRoute: typeof PortfolioProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portfolio/$projectId_/edit': {

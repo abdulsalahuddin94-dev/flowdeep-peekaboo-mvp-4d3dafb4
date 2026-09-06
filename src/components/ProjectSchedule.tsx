@@ -318,6 +318,10 @@ export function ProjectSchedule({
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(items.map(i => i.name)));
   const [leftPct, setLeftPct] = useState(48);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
+  // Gantt is collapsed by default: the WBS table uses the full width until the
+  // user slides the chart out from the right edge.
+  const [ganttOpen, setGanttOpen] = useState(false);
+
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingImport, setPendingImport] = useState<ScheduleItem[] | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);

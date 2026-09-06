@@ -1165,7 +1165,14 @@ function ProjectDetail() {
         projectName={project.name}
         onSetProgress={(name, progress) =>
           setMilestones((prev) => {
-            let updated = prev.map((m) => (m.name === name ? { ...m, progress } : m));
+            // Status follows progress: >0% ⇒ In Progress, 0% ⇒ Not Started, 100% ⇒ Completed.
+            const syncRag = (m: Milestone): Rag => {
+              if (progress >= 100) return "green";
+              if (progress > 0) return m.rag === "red" ? "red" : "amber";
+              return m.rag === "red" ? "red" : "blue";
+            };
+            let updated = prev.map((m) => (m.name === name ? { ...m, progress, rag: syncRag(m) } : m));
+
 
             // Auto-rollup: recalculate parent progress from children
             const byName = new Map(updated.map((i) => [i.name, i]));

@@ -3502,15 +3502,11 @@ function AddMilestoneDialog({
                       <SelectContent className="max-h-72">
                         {parentOptions
                           .filter((p) => (parentMode === "milestone" ? p.kind === "Milestone" : p.kind === "Task"))
-                          .map((p) => {
-                            const path = parentPath(p.name);
-                            const prefix = path.length ? `${path.join(" › ")} › ` : "";
-                            return (
-                              <SelectItem key={`${parentMode}-${p.name}`} value={p.name}>
-                                {parentMode === "milestone" ? `◆ ${p.name}` : <><span className="text-muted-foreground">{prefix}</span>{p.name}</>}
-                              </SelectItem>
-                            );
-                          })}
+                          .map((p) => (
+                            <SelectItem key={`${parentMode}-${p.name}`} value={p.name}>
+                              {parentMode === "milestone" ? `◆ ${p.name}` : p.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>

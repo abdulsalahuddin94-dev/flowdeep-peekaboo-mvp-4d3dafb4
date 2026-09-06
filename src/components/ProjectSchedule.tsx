@@ -1989,11 +1989,13 @@ function DateRangeCell({
 // ── RolesCell: Edit roles with approval workflow ──────────────────────────────
 function RolesCell({
   item,
+  label,
   onUpdate,
   onRequestRole,
   roleOptions = ROLE_OPTIONS,
 }: {
   item: ScheduleItem;
+  label?: string;
   onUpdate: (roles: RoleReq[]) => void;
   onRequestRole: (role: RoleReq) => void;
   roleOptions?: readonly string[];

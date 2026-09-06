@@ -3108,7 +3108,8 @@ function AddMilestoneDialog({
   function reset() {
     setKind(initialKind ?? "Task"); setName(""); setOwner(defaultOwner); setStatus("Not Started"); setDep(""); setErrors({});
     setEndDate(""); setLagDays(0); setMilestoneType("finish");
-    setParentName(initialParent ?? "__none__"); setStartDate(""); setEndMode("duration"); setTaskEndDate("");
+    setParentName(initialParent ?? "__none__"); setParentMode(modeForParent(initialParent));
+    setStartDate(""); setEndMode("duration"); setTaskEndDate("");
     setDurationValue(1); setDurationUnit("days"); setWeightScore(1);
     setSkillRole({ role: "", skill: "Mid", fte: 1 });
     setLinkType("none"); setCostLinkIds([""]); setRevenueLinkId("");

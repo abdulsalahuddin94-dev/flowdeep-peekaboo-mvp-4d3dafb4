@@ -21,7 +21,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -108,7 +107,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const [ragFilter, setRagFilter]   = useState<string[]>([]);
   const [stageFilter, setStageFilter] = useState<string[]>([]);
   const [tagFilter, setTagFilter]   = useState<string[]>([]);
-  const [deptFilter, setDeptFilter] = useState("");
+  const [deptFilter, setDeptFilter] = useState<string[]>([]);
   const [clientFilter, setClientFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [baseFilter, setBaseFilter] = useState("");
@@ -150,7 +149,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
     if (ragFilter.length > 0) l = l.filter((p) => ragFilter.includes(p.rag));
     if (stageFilter.length > 0) l = l.filter((p) => stageFilter.includes(p.stage));
     if (tagFilter.length > 0) l = l.filter((p) => p.tags.some((t) => tagFilter.includes(t)));
-    if (deptFilter) l = l.filter((p) => p.department.includes(deptFilter));
+    if (deptFilter.length > 0) l = l.filter((p) => p.department.some((d) => deptFilter.includes(d)));
     if (clientFilter) l = l.filter((p) => p.client === clientFilter);
     if (yearFilter) l = l.filter((p) => projectYear(p) === yearFilter);
     if (baseFilter) l = l.filter((p) => projectBase(p) === baseFilter);
@@ -164,11 +163,18 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const projectsAwaiting = projectList.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
   const pendingTotal = projectsAwaiting.reduce((s, p) => s + (pendingByProject.get(p.name) ?? 0), 0);
 
-  function clearAll() { setStatusFilter(""); setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter(""); setClientFilter(""); setYearFilter(""); setBaseFilter(""); setTypeFilter([]); }
+  function clearAll() { setStatusFilter(""); setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter([]); setClientFilter(""); setYearFilter(""); setBaseFilter(""); setTypeFilter([]); }
 
-  /** Active filters from the expandable panel only — the quick project-type pills show their own state. */
-  const panelActiveCount = (statusFilter ? 1 : 0) + ragFilter.length + stageFilter.length + tagFilter.length
-    + (deptFilter ? 1 : 0) + (clientFilter ? 1 : 0) + (yearFilter ? 1 : 0) + (baseFilter ? 1 : 0);
+  const panelActiveCount = typeFilter.length + ragFilter.length + stageFilter.length + tagFilter.length
+    + deptFilter.length + (clientFilter ? 1 : 0) + (yearFilter ? 1 : 0) + (baseFilter ? 1 : 0);
+
+  const filterChipClass = "inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors";
+  const filterChipState = (selected: boolean) => selected
+    ? "border-accent bg-accent-dim text-accent"
+    : "border-border bg-secondary/50 text-muted-foreground hover:border-accent/50 hover:text-foreground";
+  const toggleMulti = (value: string, current: string[], setValue: (next: string[]) => void) => {
+    setValue(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
+  };
 
 
   return (
@@ -230,227 +236,98 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
-      {/* Quick filters: one-click project type + search + filter drawer + view switch */}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setTypeFilter([])}
-          className={cn(
-            "rounded-full border px-3 py-1 text-xs",
-            typeFilter.length === 0
-              ? "border-accent bg-accent text-accent-foreground"
-              : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
-          )}
-        >
-          All
-        </button>
-        {typeOptions.map((t) => {
-          const on = typeFilter.length === 1 && typeFilter[0] === t;
-          return (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTypeFilter(on ? [] : [t])}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs",
-                on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {t}
-            </button>
-          );
-        })}
-
-        <div className="relative ml-auto w-64">
-          <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Search projects…" value={query} onChange={(e) => setQuery(e.target.value)} className="pl-8" />
+      <div className="mb-3 rounded-lg bg-surface p-3">
+        <div className="flex flex-wrap items-center gap-3">
+        <div className="relative w-full min-w-[240px] sm:w-96">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Search by project name" value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" />
         </div>
         <Button
           type="button"
           variant="outline"
-          size="sm"
           onClick={() => setFilterOpen((o) => !o)}
-          className={panelActiveCount > 0 ? "border-accent/40 bg-accent-dim text-accent" : ""}
+          className={cn("gap-2 px-4", (panelActiveCount > 0 || filterOpen) && "border-accent text-accent")}
+          aria-expanded={filterOpen}
         >
-          <Filter className="mr-1 h-3.5 w-3.5" />
-          Filters{panelActiveCount > 0 ? ` (${panelActiveCount})` : ""}
+          <Filter className="h-4 w-4" />
+          Filter
+          {panelActiveCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-dim px-1.5 text-[11px]">{panelActiveCount}</span>}
           <ChevronDown className={cn("ml-1 h-3.5 w-3.5 transition-transform duration-200", filterOpen && "rotate-180")} />
         </Button>
-        <div className="flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
+        <div className="ml-auto flex h-9 overflow-hidden rounded-md border border-border bg-secondary/40">
           {([["grid", LayoutGrid], ["list", List], ["gantt", GanttChartSquare]] as const).map(([k, Icon]) => (
             <button key={k} onClick={() => setView(k as View)} className={`p-2 ${view === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}><Icon className="h-4 w-4" /></button>
           ))}
         </div>
+        </div>
+
+        {panelActiveCount > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-xs font-medium text-foreground">Applied Filters:</span>
+            {[
+              ...typeFilter.map((value) => ({ key: `type-${value}`, label: value, remove: () => setTypeFilter((items) => items.filter((item) => item !== value)) })),
+              ...deptFilter.map((value) => ({ key: `dept-${value}`, label: value, remove: () => setDeptFilter((items) => items.filter((item) => item !== value)) })),
+              ...ragFilter.map((value) => ({ key: `rag-${value}`, label: ALL_RAGS.find((item) => item.v === value)?.l ?? value, remove: () => setRagFilter((items) => items.filter((item) => item !== value)) })),
+              ...stageFilter.map((value) => ({ key: `stage-${value}`, label: value, remove: () => setStageFilter((items) => items.filter((item) => item !== value)) })),
+              ...tagFilter.map((value) => ({ key: `tag-${value}`, label: value, remove: () => setTagFilter((items) => items.filter((item) => item !== value)) })),
+              ...(yearFilter ? [{ key: `year-${yearFilter}`, label: yearFilter, remove: () => setYearFilter("") }] : []),
+              ...(clientFilter ? [{ key: `client-${clientFilter}`, label: clientFilter, remove: () => setClientFilter("") }] : []),
+              ...(baseFilter ? [{ key: `base-${baseFilter}`, label: baseFilter === "internal" ? "Internal" : "External", remove: () => setBaseFilter("") }] : []),
+            ].map((chip) => (
+              <span key={chip.key} className="inline-flex h-7 items-center gap-1 rounded-full border border-accent/40 bg-accent-dim px-3 text-xs text-accent">
+                {chip.label}
+                <button type="button" aria-label={`Remove ${chip.label}`} onClick={chip.remove} className="text-accent hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
+              </span>
+            ))}
+            <button type="button" onClick={clearAll} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">Clear Filters <X className="h-3.5 w-3.5" /></button>
+          </div>
+        )}
       </div>
 
-      {/* Expandable filter panel */}
-      <Collapsible open={filterOpen}>
-        <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-        <div className="mb-3 space-y-3 rounded-lg border border-border bg-secondary/20 p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="w-14 shrink-0 text-xs text-muted-foreground">Status</span>
-            {([["", "All"], ["active", "Active"], ["draft", "Draft"]] as const).map(([v, l]) => {
-              const on = statusFilter === v;
-              return (
-                <button
-                  key={v || "all"}
-                  type="button"
-                  onClick={() => setStatusFilter(v)}
-                  className={cn(
-                    "rounded-full border px-2.5 py-1 text-xs",
-                    on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {l}
-                </button>
-              );
-            })}
+      {filterOpen && (
+        <div className="mb-4 h-[220px] overflow-y-auto rounded-lg border border-border bg-surface px-4 py-3 [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]">
+          <div className="min-w-[720px] space-y-3 pr-3">
+            {[
+              { label: "Project Types", options: typeOptions, selected: typeFilter, toggle: (value: string) => toggleMulti(value, typeFilter, setTypeFilter) },
+              { label: "Departments", options: ALL_DEPTS, selected: deptFilter, toggle: (value: string) => toggleMulti(value, deptFilter, setDeptFilter) },
+            ].map((group) => (
+              <div key={group.label} className="flex items-start gap-3">
+                <span className="w-28 shrink-0 pt-1.5 text-xs font-medium text-foreground">{group.label}</span>
+                <div className="flex flex-wrap gap-2">
+                  {group.options.map((value) => <button key={value} type="button" onClick={() => group.toggle(value)} className={cn(filterChipClass, filterChipState(group.selected.includes(value)))}>{value}</button>)}
+                </div>
+              </div>
+            ))}
+            <div className="flex items-start gap-3">
+              <span className="w-28 shrink-0 pt-1.5 text-xs font-medium text-foreground">RAG</span>
+              <div className="flex flex-wrap gap-2">
+                {ALL_RAGS.map(({ v, l }) => <button key={v} type="button" onClick={() => toggleMulti(v, ragFilter, setRagFilter)} className={cn(filterChipClass, filterChipState(ragFilter.includes(v)))}><RagDot rag={v as Rag} />{l}</button>)}
+              </div>
+            </div>
+            {[
+              { label: "Stage", options: ALL_STAGES as readonly string[], selected: stageFilter, toggle: (value: string) => toggleMulti(value, stageFilter, setStageFilter) },
+              { label: "Tags", options: ALL_TAGS, selected: tagFilter, toggle: (value: string) => toggleMulti(value, tagFilter, setTagFilter) },
+            ].map((group) => (
+              <div key={group.label} className="flex items-start gap-3">
+                <span className="w-28 shrink-0 pt-1.5 text-xs font-medium text-foreground">{group.label}</span>
+                <div className="flex flex-wrap gap-2">
+                  {group.options.map((value) => <button key={value} type="button" onClick={() => group.toggle(value)} className={cn(filterChipClass, filterChipState(group.selected.includes(value)))}>{value}</button>)}
+                </div>
+              </div>
+            ))}
+            <div className="flex items-start gap-3">
+              <span className="w-28 shrink-0 pt-1.5 text-xs font-medium text-foreground">Years</span>
+              <div className="flex flex-wrap gap-2">{yearOptions.map((value) => <button key={value} type="button" onClick={() => setYearFilter(yearFilter === value ? "" : value)} className={cn(filterChipClass, filterChipState(yearFilter === value))}>{value}</button>)}</div>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="w-28 shrink-0 pt-1.5 text-xs font-medium text-foreground">Clients</span>
+              <div className="flex flex-wrap gap-2">{ALL_CLIENTS.map((value) => <button key={value} type="button" onClick={() => setClientFilter(clientFilter === value ? "" : value)} className={cn(filterChipClass, filterChipState(clientFilter === value))}>{value}</button>)}</div>
+            </div>
+            <div className="flex items-start gap-3 pb-1">
+              <span className="w-28 shrink-0 pt-1.5 text-xs font-medium text-foreground">Bases</span>
+              <div className="flex flex-wrap gap-2">{[["internal", "Internal"], ["external", "External"]].map(([value, label]) => <button key={value} type="button" onClick={() => setBaseFilter(baseFilter === value ? "" : value)} className={cn(filterChipClass, filterChipState(baseFilter === value))}>{label}</button>)}</div>
+            </div>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="w-14 shrink-0 text-xs text-muted-foreground">RAG</span>
-            {ALL_RAGS.map(({ v, l }) => {
-              const on = ragFilter.includes(v);
-              return (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => setRagFilter((prev) => (on ? prev.filter((x) => x !== v) : [...prev, v]))}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs",
-                    on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <RagDot rag={v as Rag} />{l}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="w-14 shrink-0 text-xs text-muted-foreground">Stage</span>
-            {ALL_STAGES.map((s) => {
-              const on = stageFilter.includes(s);
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setStageFilter((prev) => (on ? prev.filter((x) => x !== s) : [...prev, s]))}
-                  className={cn(
-                    "rounded-full border px-2.5 py-1 text-xs",
-                    on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {s}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="w-14 shrink-0 text-xs text-muted-foreground">Tags</span>
-            {ALL_TAGS.map((t) => {
-              const on = tagFilter.includes(t);
-              return (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setTagFilter((prev) => (on ? prev.filter((x) => x !== t) : [...prev, t]))}
-                  className={cn(
-                    "rounded-full border px-2.5 py-1 text-xs",
-                    on ? "border-accent bg-accent text-accent-foreground" : "border-border bg-secondary/40 text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {t}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Select value={deptFilter || "all"} onValueChange={(v) => setDeptFilter(v === "all" ? "" : v)}>
-              <SelectTrigger className="h-8 w-44 text-xs"><SelectValue placeholder="Department…" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All departments</SelectItem>
-                {ALL_DEPTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={clientFilter || "all"} onValueChange={(v) => setClientFilter(v === "all" ? "" : v)}>
-              <SelectTrigger className="h-8 w-44 text-xs"><SelectValue placeholder="Client…" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All clients</SelectItem>
-                {ALL_CLIENTS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={yearFilter || "all"} onValueChange={(v) => setYearFilter(v === "all" ? "" : v)}>
-              <SelectTrigger className="h-8 w-36 text-xs"><SelectValue placeholder="Year…" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All years</SelectItem>
-                {yearOptions.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={baseFilter || "all"} onValueChange={(v) => setBaseFilter(v === "all" ? "" : v)}>
-              <SelectTrigger className="h-8 w-36 text-xs"><SelectValue placeholder="Base…" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All bases</SelectItem>
-                <SelectItem value="internal">Internal</SelectItem>
-                <SelectItem value="external">External</SelectItem>
-              </SelectContent>
-            </Select>
-            {panelActiveCount > 0 && (
-              <button type="button" className="ml-auto text-xs text-muted-foreground hover:text-rag-red" onClick={clearAll}>Clear all</button>
-            )}
-          </div>
-        </div>
-        </CollapsibleContent>
-      </Collapsible>
-
-      {/* Active filter chips (from the expandable panel — quick project-type pills are shown via their own highlighted state) */}
-      {panelActiveCount > 0 && (
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          {statusFilter && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-              {statusFilter === "active" ? "Active" : "Draft"}<button onClick={() => setStatusFilter("")} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-            </span>
-          )}
-          {ragFilter.map((v) => {
-            const label = ALL_RAGS.find((r) => r.v === v)?.l ?? v;
-            return (
-              <span key={`rag-${v}`} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-                {label}<button onClick={() => setRagFilter((p) => p.filter((x) => x !== v))} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-              </span>
-            );
-          })}
-          {stageFilter.map((s) => (
-            <span key={`stage-${s}`} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-              {s}<button onClick={() => setStageFilter((p) => p.filter((x) => x !== s))} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-            </span>
-          ))}
-          {tagFilter.map((t) => (
-            <span key={`tag-${t}`} className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-              {t}<button onClick={() => setTagFilter((p) => p.filter((x) => x !== t))} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-            </span>
-          ))}
-          {deptFilter && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-              Dept: {deptFilter}<button onClick={() => setDeptFilter("")} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-            </span>
-          )}
-          {clientFilter && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-              Client: {clientFilter}<button onClick={() => setClientFilter("")} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-            </span>
-          )}
-          {yearFilter && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-              Year: {yearFilter}<button onClick={() => setYearFilter("")} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-            </span>
-          )}
-          {baseFilter && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-accent/30 bg-accent-dim/20 px-2 py-0.5 text-[11px] text-accent">
-              {baseFilter === "internal" ? "Internal" : "External"}<button onClick={() => setBaseFilter("")} className="ml-0.5 hover:text-rag-red"><X className="h-3 w-3" /></button>
-            </span>
-          )}
         </div>
       )}
 

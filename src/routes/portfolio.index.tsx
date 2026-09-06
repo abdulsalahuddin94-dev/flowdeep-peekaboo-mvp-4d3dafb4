@@ -1,5 +1,5 @@
 ﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge, RagDot } from "@/components/RagBadge";
 import { Button } from "@/components/ui/button";

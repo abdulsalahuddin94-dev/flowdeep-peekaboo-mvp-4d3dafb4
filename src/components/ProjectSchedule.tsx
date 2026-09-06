@@ -1176,28 +1176,50 @@ export function ProjectSchedule({
                           const assigneeRole = a && !isWaiting
                             ? resourceList.find(r => r.name.toLowerCase() === a.toLowerCase())?.role
                             : undefined;
-                          if (assigneeRole) {
+                          const label = item.roles.length
+                            ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ")
+                            : (assigneeRole ?? "");
+                          if (editable) {
                             return (
-                              <span className="truncate text-[11px] text-foreground/80" title={assigneeRole}>
-                                {assigneeRole}
-                              </span>
+                              <RolesCell
+                                item={item}
+                                label={label}
+                                onUpdate={(roles) => patch(item.name, { roles })}
+                                onRequestRole={(role) => onRequestSkill?.(item.name, role)}
+                                roleOptions={jobRoles && jobRoles.length ? jobRoles : ROLE_OPTIONS}
+                              />
                             );
                           }
-                          return editable && item.roles.length > 0 ? (
-                          <RolesCell
-                            item={item}
-                            onUpdate={(roles) => patch(item.name, { roles })}
-                            onRequestRole={(role) => onRequestSkill?.(item.name, role)}
-                            roleOptions={jobRoles && jobRoles.length ? jobRoles : ROLE_OPTIONS}
-                          />
-                        ) : item.roles.length === 0 ? (
-                          <span className="text-muted-foreground">—</span>
-                        ) : (
-                          <span className="truncate text-[10px] text-muted-foreground">
-                            {item.roles.map(r => `${r.role} (${r.fte})`).join(", ")}
-                          </span>
+                          return label ? (
+                            <span className="truncate text-[11px] text-foreground/80" title={label}>{label}</span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
                           );
                         })()}
+                      </div>
+                    )}
+                    {colVisible("weight") && (
+                      <div className="flex items-center border-l border-border/60 px-3 overflow-hidden num-mono" style={{ width: widths.weight }}>
+                        {item.kind === "Task" ? (
+                          editable ? (
+                            <Input
+                              type="number"
+                              min={1}
+                              max={10}
+                              step={1}
+                              value={item.weightScore ?? 1}
+                              onChange={(e) => {
+                                const v = Math.max(1, Math.min(10, Math.round(Number(e.target.value) || 1)));
+                                patch(item.name, { weightScore: v });
+                              }}
+                              className="h-7 w-16 px-2 text-xs num-mono"
+                            />
+                          ) : (
+                            <span className="text-xs">{item.weightScore ?? 1}</span>
+                          )
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </div>
                     )}
                     {colVisible("status") && (

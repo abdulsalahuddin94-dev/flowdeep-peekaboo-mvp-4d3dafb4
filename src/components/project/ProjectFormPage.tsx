@@ -109,7 +109,13 @@ export function ProjectFormPage({ project }: { project?: Project }) {
   const [submitted, setSubmitted] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
 
+  const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
+    setForm((f) => ({ ...f, [key]: value }));
+    setDirty(true);
+  };
+
   /* Unsaved-changes guard */
+
   const blocker = useBlocker({
     shouldBlockFn: () => dirty && !submitted,
     withResolver: true,

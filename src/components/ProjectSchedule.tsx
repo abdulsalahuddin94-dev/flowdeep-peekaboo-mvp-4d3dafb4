@@ -1014,10 +1014,10 @@ export function ProjectSchedule({
         >
           {/* Body (header is sticky inside so it scrolls horizontally with columns) */}
           <div ref={leftScrollRef} onScroll={onLeftScroll} className="flex-1 overflow-auto">
-            <div style={{ width: widths.name + COLUMNS.filter(c => colVisible(c.key)).reduce((s,c) => s + widths[c.key], 0) }}>
+            <div style={{ width: tableW }}>
               {/* Header */}
               <div className="sticky top-0 z-20 flex border-b border-border bg-secondary/60 backdrop-blur text-xs font-medium text-muted-foreground" style={{ height: HEADER_H }}>
-                <ColHeader label="Task Name" width={widths.name} onResize={(e) => startColResize("name", e)} onAutoFit={() => autoFitCol("name")} first />
+                <ColHeader label="Task Name" width={nameW} onResize={(e) => startColResize("name", e)} onAutoFit={() => autoFitCol("name")} first />
                 {COLUMNS.filter(c => colVisible(c.key)).map(c => (
                   <ColHeader key={c.key} label={c.label} width={widths[c.key]} onResize={(e) => startColResize(c.key, e)} onAutoFit={() => autoFitCol(c.key)} />
                 ))}
@@ -1042,7 +1042,7 @@ export function ProjectSchedule({
                   <ContextMenu key={item.name}>
                     <ContextMenuTrigger asChild>
                   <div className={`flex border-b border-border/60 text-xs ${rowTint}`} style={{ height: ROW_H }}>
-                    <div className="flex items-center gap-1 px-2 overflow-hidden" style={{ width: widths.name, paddingLeft: 8 + depth * 14 }}>
+                    <div className="flex items-center gap-1 px-2 overflow-hidden" style={{ width: nameW, paddingLeft: 8 + depth * 14 }}>
                       {hasChildren ? (
                         <button
                           onClick={() => setExpanded(prev => {

@@ -2994,9 +2994,18 @@ function AddMilestoneDialog({
       const r = editingItem.roles?.[0];
       setSkillRole(r ? { role: r.role, skill: r.skill, fte: r.fte } : { role: "", skill: "Mid", fte: 1 });
       const p = editingItem.payment;
-      setPayKind(p?.kind ?? "None");
-      setPayAmount(p?.amount ?? "");
-      setPayPackage(p?.packageId ?? "");
+      if (p?.kind === "Client Revenue") {
+        setLinkType("revenue");
+        setRevenueLinkId(p.packageId ?? "");
+        setCostLinkIds([""]);
+      } else if (p?.kind === "Package Cost") {
+        setLinkType("cost");
+        setRevenueLinkId("");
+        setCostLinkIds([p.packageId ?? "", ...(editingItem.extraPayments ?? []).map((x) => x.packageId ?? "")]);
+      } else {
+        setLinkType("none"); setRevenueLinkId(""); setCostLinkIds([""]);
+      }
+
       setRequiresApproval(editingItem.requiresApproval ?? false);
       setSelectedApprovers(editingItem.approvers?.map((a) => a.id) ?? []);
     } else {

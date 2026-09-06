@@ -3669,7 +3669,7 @@ function AddMilestoneDialog({
             </div>
           )}
 
-          {kind === "Task" && isEditing && (
+          {isEditing && (
 
             <div className="rounded-md border border-border p-3">
               <div className="mb-2 flex items-center justify-between">

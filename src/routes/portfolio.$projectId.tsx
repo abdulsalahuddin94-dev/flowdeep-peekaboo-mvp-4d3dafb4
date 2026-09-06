@@ -484,6 +484,18 @@ function ProjectDetail() {
     }
   }, [milestones]);
 
+  // Publish this project's financial links so a linked item is excluded from
+  // every other dropdown in the system (one item = one WBS element).
+  const { setProjectLinks } = useFinanceLinks();
+  useEffect(() => {
+    const links: { itemId: string; wbsItem: string }[] = [];
+    for (const m of milestones) {
+      if (m.payment?.packageId) links.push({ itemId: m.payment.packageId, wbsItem: m.name });
+      for (const ex of m.extraPayments ?? []) if (ex.packageId) links.push({ itemId: ex.packageId, wbsItem: m.name });
+    }
+    setProjectLinks(project.name, links);
+  }, [milestones, project.name, setProjectLinks]);
+
   const currentStage = PLANNING_STAGES.find((s) => s.state === "active") ?? PLANNING_STAGES[0];
   const planningDone = PLANNING_CHECKLIST.filter((c) => c.done).length;
   return (

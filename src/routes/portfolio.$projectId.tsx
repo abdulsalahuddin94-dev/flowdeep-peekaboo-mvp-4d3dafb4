@@ -3346,60 +3346,119 @@ function AddMilestoneDialog({
 
           <div className="grid grid-cols-2 gap-2">
             <div><Label>Owner</Label><Input value={owner} onChange={(e) => setOwner(e.target.value)} /></div>
-            <div>
-              <Label>Status</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Not Started">Not Started</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Overdue">Overdue</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {isEditing ? (
+              <div>
+                <Label>Status</Label>
+                <Select
+                  value={status}
+                  onValueChange={(v) => {
+                    if (v === "In Progress" && (editingItem?.progress ?? 0) <= 0) {
+                      toast.error("Add progress above 0% first — status follows progress");
+                      return;
+                    }
+                    setStatus(v);
+                  }}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Not Started">Not Started</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                    <SelectItem value="Overdue">Overdue</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div>
+                <Label>Status</Label>
+                <Input value="Not Started" readOnly disabled />
+                <p className="mt-1 text-[10px] text-muted-foreground">New items always start as Not Started.</p>
+              </div>
+            )}
           </div>
 
-          {kind === "Task" && (
+          {/* Financial links — only when editing details (kept out of quick add) */}
+          {isEditing && (
             <div className="rounded-md border border-border p-3 space-y-2">
               <Label className="text-sm">Financial Link</Label>
-              <p className="text-xs text-muted-foreground">Connect this task to a client revenue event or a working-package (contract) payment milestone.</p>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Type</Label>
-                  <Select value={payKind} onValueChange={(v) => setPayKind(v as PaymentLinkKind)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="None">None</SelectItem>
-                      <SelectItem value="Client Revenue">Client revenue (main client)</SelectItem>
-                      <SelectItem value="Package Cost">Working package cost (contract payment)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {payKind !== "None" && (
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Amount</Label>
-                    <Input value={payAmount} onChange={(e) => setPayAmount(e.target.value)} placeholder="e.g. $120K" />
-                  </div>
-                )}
+              <p className="text-xs text-muted-foreground">
+                Link this item to financial items defined in the Financials tab. Amounts and categories are managed there.
+              </p>
+              <div>
+                <Label className="text-xs text-muted-foreground">Financial type</Label>
+                <Select
+                  value={linkType}
+                  onValueChange={(v) => {
+                    setLinkType(v as typeof linkType);
+                    setCostLinkIds([""]);
+                    setRevenueLinkId("");
+                  }}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="cost">Cost</SelectItem>
+                    <SelectItem value="revenue">Revenue</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              {payKind === "Package Cost" && (
+
+              {linkType === "revenue" && (
                 <div>
-                  <Label className="text-xs text-muted-foreground">Working package</Label>
-                  <Select value={payPackage} onValueChange={setPayPackage}>
-                    <SelectTrigger><SelectValue placeholder="Select package" /></SelectTrigger>
+                  <Label className="text-xs text-muted-foreground">Revenue item (unlinked only)</Label>
+                  <Select value={revenueLinkId} onValueChange={setRevenueLinkId}>
+                    <SelectTrigger><SelectValue placeholder="Select revenue item" /></SelectTrigger>
                     <SelectContent>
-                      {packages.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>{p.id} · {p.scope} ({p.est})</SelectItem>
+                      {availableRevenueItems.map((i) => (
+                        <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {kind === "Task" && (
+                    <p className="mt-1 text-[10px] text-muted-foreground">Revenue is normally mapped to major milestones.</p>
+                  )}
+                </div>
+              )}
+
+              {linkType === "cost" && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Cost items (unlinked only)</Label>
+                  {costLinkIds.map((id, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <Select
+                          value={id}
+                          onValueChange={(v) => setCostLinkIds((prev) => prev.map((x, i) => (i === idx ? v : x)))}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Select cost item" /></SelectTrigger>
+                          <SelectContent>
+                            {availableCostItems(id).map((i) => (
+                              <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {costLinkIds.length > 1 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCostLinkIds((prev) => prev.filter((_, i) => i !== idx))}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button variant="outline" size="sm" onClick={() => setCostLinkIds((prev) => [...prev, ""])}>
+                    <Plus className="mr-1 h-3.5 w-3.5" />Add Cost
+                  </Button>
                 </div>
               )}
             </div>
           )}
 
-          {kind === "Task" && (
+          {kind === "Task" && isEditing && (
+
             <div className="rounded-md border border-border p-3">
               <div className="mb-2 flex items-center justify-between">
                 <Label className="text-sm">Skill required</Label>

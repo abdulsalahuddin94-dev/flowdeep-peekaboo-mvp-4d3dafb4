@@ -617,10 +617,10 @@ globally through `data-ui="control"` (inputs, selects, single-line controls) and
 
 | State | Rule |
 |---|---|
-| Default | bg `--field-bg`, 1px `--field-border`, radius 8px, height 36px |
+| Default | bg `--field-bg` (#1D1D1F), 1px `--field-border`, radius 8px, height 36px |
 | Hover | border `--field-border-hover` |
 | Focused | border `--field-border-focus` (lavender) + 3px ring `--field-ring-focus` |
-| Filled | bg `--field-bg-filled` (auto via `:not(:placeholder-shown)` / `data-filled`) |
+| Filled | bg `--field-bg-filled` = #1D1D1F (auto via `:not(:placeholder-shown)` / `data-filled`) — fill never changes from default |
 | Error | `aria-invalid="true"` → red border + red ring, error text `--field-error-fg` |
 | Disabled | `disabled` → muted bg, 50% opacity, `not-allowed` cursor |
 

@@ -548,7 +548,8 @@ function ProjectDetail() {
                   <Pencil size={14} className="mr-2" />Update Status
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-rag-red focus:text-rag-red"
+                  className={blockReason ? "text-muted-foreground" : "text-rag-red focus:text-rag-red"}
+                  title={blockReason ?? undefined}
                   onClick={() => { if (blockReason) { toast.error(blockReason); return; } setDeleteOpen(true); }}
                 >
                   <DeleteAction size={14} className="mr-2" />Delete Project

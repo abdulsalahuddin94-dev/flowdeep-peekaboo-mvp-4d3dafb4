@@ -24,6 +24,7 @@ import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
 import { FINANCIAL_CATALOG, findFinancialItem, useFinanceLinks } from "@/lib/finance-links";
+import { FinancialLinkField } from "@/components/schedule/FinancialLinkField";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";

@@ -22,6 +22,7 @@ import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, Ch
 import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
+import { FINANCIAL_CATALOG, findFinancialItem, useFinanceLinks } from "@/lib/finance-links";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
@@ -483,6 +484,18 @@ function ProjectDetail() {
     }
   }, [milestones]);
 
+  // Publish this project's financial links so a linked item is excluded from
+  // every other dropdown in the system (one item = one WBS element).
+  const { setProjectLinks } = useFinanceLinks();
+  useEffect(() => {
+    const links: { itemId: string; wbsItem: string }[] = [];
+    for (const m of milestones) {
+      if (m.payment?.packageId) links.push({ itemId: m.payment.packageId, wbsItem: m.name });
+      for (const ex of m.extraPayments ?? []) if (ex.packageId) links.push({ itemId: ex.packageId, wbsItem: m.name });
+    }
+    setProjectLinks(project.name, links);
+  }, [milestones, project.name, setProjectLinks]);
+
   const currentStage = PLANNING_STAGES.find((s) => s.state === "active") ?? PLANNING_STAGES[0];
   const planningDone = PLANNING_CHECKLIST.filter((c) => c.done).length;
   return (
@@ -497,12 +510,21 @@ function ProjectDetail() {
         current={project.name}
         subtitle={`${project.businessLine} · ${project.department.join(" · ")} · Client ${project.client}${projectCalendar ? ` · 📅 ${projectCalendar.name}` : ""}`}
         actions={(() => {
-          const isAdmin = /director|admin|pmo/i.test(approvalUser.role) || approvalUser.department === "PMO";
-          const hasActuals = project.progress > 0 || project.budgetUsed > 0;
+          /**
+           * Deletion rules: only administrative roles may delete, and never once
+           * the project carries ANY recorded actual — schedule progress on a
+           * task, reported project progress, or spend.
+           */
+          const ADMIN_ROLES = ["Director", "PMO Lead", "Portfolio Director", "Administrator", "System Admin"];
+          const isAdmin =
+            ADMIN_ROLES.some((r) => r.toLowerCase() === approvalUser.role.toLowerCase()) ||
+            approvalUser.department === "PMO";
+          const scheduleActuals = milestones.some((m) => (m.progress ?? 0) > 0);
+          const hasActuals = project.progress > 0 || project.budgetUsed > 0 || scheduleActuals;
           const blockReason = !isAdmin
-            ? "Only authorized administrators can delete projects."
+            ? `Deleting a project is restricted to administrators (you are signed in as ${approvalUser.role}).`
             : hasActuals
-              ? "This project has recorded actual progress or cost entries and cannot be deleted."
+              ? "This project already has recorded actual progress or cost. It can no longer be deleted — close or cancel it instead."
               : null;
           return (
           <div className="flex items-center gap-2">
@@ -526,7 +548,8 @@ function ProjectDetail() {
                   <Pencil size={14} className="mr-2" />Update Status
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-rag-red focus:text-rag-red"
+                  className={blockReason ? "text-muted-foreground" : "text-rag-red focus:text-rag-red"}
+                  title={blockReason ?? undefined}
                   onClick={() => { if (blockReason) { toast.error(blockReason); return; } setDeleteOpen(true); }}
                 >
                   <DeleteAction size={14} className="mr-2" />Delete Project
@@ -1709,28 +1732,11 @@ const SEED_PACKAGES: TenderPackage[] = [
 ];
 
 /**
- * Financial items are DEFINED in the project Financials tab. The WBS only links
- * tasks/milestones to these predefined items — no amounts are entered here.
+ * Financial items are DEFINED in the project Financials tab (see
+ * `src/lib/finance-links.tsx`). The WBS only links tasks/milestones to those
+ * predefined items — no amounts are entered here.
  */
-export type FinancialItem = { id: string; label: string; amount: string; classification?: "capex" | "opex" };
-const FINANCIAL_CATALOG: { cost: FinancialItem[]; revenue: FinancialItem[] } = {
-  cost: [
-    { id: "FIN-C-LAB", label: "Labour — core delivery team", amount: "$1.20M", classification: "opex" },
-    { id: "FIN-C-HW", label: "Hardware — servers & peripherals", amount: "$0.90M", classification: "capex" },
-    { id: "FIN-C-LIC", label: "Software licenses", amount: "$0.40M", classification: "opex" },
-    { id: "FIN-C-TRV", label: "Business trips", amount: "$0.10M", classification: "opex" },
-    { id: "FIN-C-HOT", label: "Accommodation & hotels", amount: "$0.06M", classification: "opex" },
-    { id: "FIN-C-CTG", label: "Contingency", amount: "$0.60M", classification: "opex" },
-  ],
-  revenue: [
-    { id: "FIN-R-ADV", label: "Advance payment (30%)", amount: "$0.96M" },
-    { id: "FIN-R-P1", label: "Progress invoice (20%)", amount: "$0.64M" },
-    { id: "FIN-R-P2", label: "Progress invoice (25%)", amount: "$0.80M" },
-    { id: "FIN-R-FIN", label: "Final payment (25%)", amount: "$0.80M" },
-  ],
-};
-const findFinancialItem = (id: string) =>
-  FINANCIAL_CATALOG.cost.find((i) => i.id === id) ?? FINANCIAL_CATALOG.revenue.find((i) => i.id === id);
+
 
 
 
@@ -2296,6 +2302,44 @@ function FinancialsTab({
   const canEdit = finBaseline.canEdit;
   const displayCost = (finBaseline.viewedSnapshot?.costEntries as CostEntry[] | undefined) ?? costEntries;
   const displayRev = (finBaseline.viewedSnapshot?.revEntries as RevEntry[] | undefined) ?? revEntries;
+
+  /**
+   * Revenue items linked from the schedule. The expected recognition date is the
+   * linked milestone's planned finish date (dynamic), and recognition is locked
+   * behind approval whenever the milestone requires it.
+   */
+  const scheduleRevenue = useMemo(() => {
+    const rows: {
+      itemId: string; label: string; amount: string; value: number;
+      wbsItem: string; date: string; progress: number; statusLabel: string; rag: Rag;
+    }[] = [];
+    for (const m of milestones) {
+      const links = [m.payment, ...(m.extraPayments ?? [])].filter(
+        (p): p is NonNullable<typeof p> => !!p && p.kind === "Client Revenue" && !!p.packageId,
+      );
+      for (const link of links) {
+        const item = findFinancialItem(link.packageId);
+        if (!item) continue;
+        const progress = Math.round(m.progress ?? 0);
+        const gated = !!m.requiresApproval;
+        const approved = m.approvalStatus === "approved";
+        const recognised = progress >= 100 && (!gated || approved);
+        const awaiting = progress >= 100 && gated && !approved;
+        rows.push({
+          itemId: link.packageId!,
+          label: item.label,
+          amount: item.amount,
+          value: Number(item.amount.replace(/[^0-9.]/g, "")) || 0,
+          wbsItem: m.name,
+          date: m.endDate,
+          progress,
+          statusLabel: recognised ? "Recognised" : awaiting ? "Awaiting approval" : progress > 0 ? "In progress" : "Planned",
+          rag: recognised ? "green" : awaiting ? "amber" : progress > 0 ? "blue" : "grey",
+        });
+      }
+    }
+    return rows;
+  }, [milestones]);
   return (
     <div className="space-y-4">
       <BaselineHeader state={finBaseline} />
@@ -2423,6 +2467,51 @@ function FinancialsTab({
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Recognition driven by the schedule: dates follow the milestone, status follows approval */}
+      <div className="glass-card p-5">
+        <div className="mb-1 flex items-center justify-between">
+          <div className="label-eyebrow">Revenue recognition — driven by the schedule</div>
+          <span className="num-mono text-xs text-muted-foreground">
+            Linked: ${scheduleRevenue.reduce((s, r) => s + r.value, 0).toFixed(2)}M
+          </span>
+        </div>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Expected dates always inherit the linked milestone's planned finish date, so a schedule delay shifts the
+          forecast automatically. Revenue is only recognised once the milestone reaches 100% and — where approval is
+          required — has been approved.
+        </p>
+        {scheduleRevenue.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            No revenue item is linked to a milestone yet. Link one from the milestone's Edit Details panel in the schedule.
+          </p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent bg-transparent border-0">
+                <TableHead>Revenue item</TableHead>
+                <TableHead>Linked milestone</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Expected date (inherited)</TableHead>
+                <TableHead>Progress</TableHead>
+                <TableHead>Recognition status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {scheduleRevenue.map((r) => (
+                <TableRow key={r.itemId} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+                  <TableCell className="font-medium text-foreground">{r.label}</TableCell>
+                  <TableCell className="text-muted-foreground">{r.wbsItem}</TableCell>
+                  <TableCell className="num-mono text-right">{r.amount}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{r.date || "—"}</TableCell>
+                  <TableCell className="num-mono text-xs">{r.progress}%</TableCell>
+                  <TableCell><RagBadge rag={r.rag} label={r.statusLabel} /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
     </div>
   );
@@ -3022,7 +3111,12 @@ function AddMilestoneDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editingItem?.name, initialParent, initialKind]);
 
-  /** Financial item ids already linked to another WBS item (duplicates are not allowed). */
+  /**
+   * A financial item can only ever be attached to ONE WBS item — anywhere in the
+   * system. `globalLinks` covers every project that has been opened, `items`
+   * covers the current schedule (including unsaved edits).
+   */
+  const { links: globalLinks } = useFinanceLinks();
   const linkedElsewhere = useMemo(() => {
     const used = new Set<string>();
     for (const it of items) {
@@ -3030,8 +3124,12 @@ function AddMilestoneDialog({
       if (it.payment?.packageId) used.add(it.payment.packageId);
       for (const ex of it.extraPayments ?? []) if (ex.packageId) used.add(ex.packageId);
     }
+    for (const l of globalLinks) {
+      if (l.project === projectName && editingItem && l.wbsItem === editingItem.name) continue;
+      used.add(l.itemId);
+    }
     return used;
-  }, [items, editingItem]);
+  }, [items, editingItem, globalLinks, projectName]);
 
   const availableCostItems = (currentId: string) =>
     FINANCIAL_CATALOG.cost.filter(
@@ -3040,6 +3138,7 @@ function AddMilestoneDialog({
   const availableRevenueItems = FINANCIAL_CATALOG.revenue.filter(
     (i) => i.id === revenueLinkId || !linkedElsewhere.has(i.id),
   );
+
 
   function buildPayments(): { payment: PaymentLink; extras: PaymentLink[] } {
     if (linkType === "revenue" && revenueLinkId) {
@@ -3421,6 +3520,12 @@ function AddMilestoneDialog({
                       ))}
                     </SelectContent>
                   </Select>
+                  {revenueLinkId && (
+                    <div className="mt-2 flex items-center justify-between rounded-md bg-secondary/30 px-2 py-1.5 text-xs">
+                      <span className="text-muted-foreground">Amount (read-only)</span>
+                      <span className="num-mono text-foreground">{findFinancialItem(revenueLinkId)?.amount ?? "—"}</span>
+                    </div>
+                  )}
                   {kind === "Task" && (
                     <p className="mt-1 text-[10px] text-muted-foreground">Revenue is normally mapped to major milestones.</p>
                   )}
@@ -3459,6 +3564,17 @@ function AddMilestoneDialog({
                   <Button variant="outline" size="sm" onClick={() => setCostLinkIds((prev) => [...prev, ""])}>
                     <Plus className="mr-1 h-3.5 w-3.5" />Add Cost
                   </Button>
+                  {costLinkIds.filter(Boolean).length > 0 && (
+                    <div className="space-y-1 rounded-md bg-secondary/30 px-2 py-1.5 text-xs">
+                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Amounts (read-only)</div>
+                      {costLinkIds.filter(Boolean).map((id) => (
+                        <div key={id} className="flex items-center justify-between">
+                          <span className="text-muted-foreground">{findFinancialItem(id)?.label ?? id}</span>
+                          <span className="num-mono text-foreground">{findFinancialItem(id)?.amount ?? "—"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

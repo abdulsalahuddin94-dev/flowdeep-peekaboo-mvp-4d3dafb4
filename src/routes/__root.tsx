@@ -13,6 +13,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProjectsProvider } from "@/lib/projects-store";
 import { EmptyPreviewProvider } from "@/lib/empty-preview";
+import { FinanceLinksProvider } from "@/lib/finance-links";
 import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
@@ -98,6 +99,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ProjectsProvider>
+      <FinanceLinksProvider>
       <EmptyPreviewProvider>
       <TooltipProvider delayDuration={120}>
           <SidebarProvider defaultOpen>
@@ -114,6 +116,7 @@ function RootComponent() {
         <Toaster theme="dark" position="top-right" />
       </TooltipProvider>
       </EmptyPreviewProvider>
+      </FinanceLinksProvider>
       </ProjectsProvider>
     </QueryClientProvider>
   );

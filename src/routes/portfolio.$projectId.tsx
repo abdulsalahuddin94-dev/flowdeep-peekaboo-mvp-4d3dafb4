@@ -2309,10 +2309,11 @@ function FinancialsTab({
    * behind approval whenever the milestone requires it.
    */
   const scheduleRevenue = useMemo(() => {
-    const rows: {
+    type Row = {
       itemId: string; label: string; amount: string; value: number;
-      wbsItem: string; date: string; progress: number; statusLabel: string; rag: Rag;
-    }[] = [];
+      wbsItem: string; date: string; progress: number; statusLabel: string; rag: Rag; demo?: boolean;
+    };
+    const rows: Row[] = [];
     for (const m of milestones) {
       const links = [m.payment, ...(m.extraPayments ?? [])].filter(
         (p): p is NonNullable<typeof p> => !!p && p.kind === "Client Revenue" && !!p.packageId,
@@ -2338,8 +2339,46 @@ function FinancialsTab({
         });
       }
     }
-    return rows;
+    if (rows.length > 0) return rows;
+
+    /**
+     * Nothing linked yet — show a small illustrative sample so the behaviour of
+     * this panel is understandable. As soon as a real link is made in the
+     * schedule, these sample rows disappear and the live ones take over.
+     */
+    const msNames = milestones.filter((m) => m.kind === "Milestone");
+    const demoStatus = (progress: number, gated: boolean, approved: boolean): { statusLabel: string; rag: Rag } => {
+      if (progress >= 100 && (!gated || approved)) return { statusLabel: "Recognised", rag: "green" };
+      if (progress >= 100 && gated && !approved) return { statusLabel: "Awaiting approval", rag: "amber" };
+      if (progress > 0) return { statusLabel: "In progress", rag: "blue" };
+      return { statusLabel: "Planned", rag: "grey" };
+    };
+    const sample: { itemId: string; progress: number; gated: boolean; approved: boolean }[] = [
+      { itemId: "FIN-R-ADV", progress: 100, gated: false, approved: true },
+      { itemId: "FIN-R-P1", progress: 100, gated: true, approved: false },
+      { itemId: "FIN-R-P2", progress: 45, gated: true, approved: false },
+      { itemId: "FIN-R-FIN", progress: 0, gated: true, approved: false },
+    ];
+    return sample.map((s, i) => {
+      const item = findFinancialItem(s.itemId)!;
+      const ms = msNames[i] ?? msNames[msNames.length - 1];
+      const st = demoStatus(s.progress, s.gated, s.approved);
+      return {
+        itemId: s.itemId,
+        label: item.label,
+        amount: item.amount,
+        value: Number(item.amount.replace(/[^0-9.]/g, "")) || 0,
+        wbsItem: ms?.name ?? `Milestone ${i + 1}`,
+        date: ms?.endDate ?? "",
+        progress: s.progress,
+        statusLabel: st.statusLabel,
+        rag: st.rag,
+        demo: true,
+      } satisfies Row;
+    });
   }, [milestones]);
+  const revenueIsDemo = scheduleRevenue.some((r) => r.demo);
+
   return (
     <div className="space-y-4">
       <BaselineHeader state={finBaseline} />

@@ -429,7 +429,7 @@ function ProjectGrid({
               })}
             </div>
           )}
-          <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3">
+          <div className="mt-auto flex items-center justify-between gap-2 pt-4">
             <span className="shrink-0 text-[10px] text-muted-foreground/70">{p.code}</span>
             <span className="rounded-full border border-border/60 bg-secondary/40 px-2 py-0.5 text-[10px] text-muted-foreground">
               {p.businessLine}

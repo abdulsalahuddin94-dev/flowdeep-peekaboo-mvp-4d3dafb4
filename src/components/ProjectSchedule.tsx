@@ -564,6 +564,11 @@ export function ProjectSchedule({
         case "dep": txt = item.dep || "—"; break;
         case "roles":
           txt = item.roles.length ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ") : "—";
+          extra = 24;
+          break;
+        case "weight":
+          txt = item.kind === "Task" ? String(item.weightScore ?? 1) : "—";
+          extra = 24;
           break;
         case "payment":
           if (!item.payment || item.payment.kind === "None") txt = "—";

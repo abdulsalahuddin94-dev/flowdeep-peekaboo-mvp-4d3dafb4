@@ -82,28 +82,8 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const [active, setActive]       = useState<Project | null>(null);
   const navigate = useNavigate();
 
-  /** The single autosaved "new project" draft, if any — surfaced as a card so it isn't silently lost. */
-  const [draft, setDraft] = useState<FormState | null>(null);
-  useEffect(() => {
-    function readDraft() {
-      try {
-        const raw = localStorage.getItem(DRAFT_KEY);
-        const parsed = raw ? (JSON.parse(raw) as FormState) : null;
-        setDraft(parsed && (parsed.projectType || parsed.name) ? parsed : null);
-      } catch { setDraft(null); }
-    }
-    readDraft();
-    window.addEventListener("focus", readDraft);
-    return () => window.removeEventListener("focus", readDraft);
-  }, []);
-  function discardDraft() {
-    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
-    setDraft(null);
-    toast.success("Draft discarded");
-  }
-
   const [filterOpen, setFilterOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<"" | "active" | "draft">("");
+
   const [ragFilter, setRagFilter]   = useState<string[]>([]);
   const [stageFilter, setStageFilter] = useState<string[]>([]);
   const [tagFilter, setTagFilter]   = useState<string[]>([]);

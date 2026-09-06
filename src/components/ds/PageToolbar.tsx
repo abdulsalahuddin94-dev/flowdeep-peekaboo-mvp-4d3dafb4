@@ -131,7 +131,7 @@ export function PageToolbar({
   })();
 
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-surface p-3">
+    <div className="mb-4 flex flex-wrap items-center gap-3">
       <div className="relative w-full min-w-[220px] sm:w-72">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input

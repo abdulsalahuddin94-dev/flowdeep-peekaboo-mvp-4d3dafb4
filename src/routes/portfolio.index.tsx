@@ -236,7 +236,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
-      <div className="mb-3 rounded-lg bg-surface p-3">
+      <div className="mb-3">
         <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-full min-w-[240px] sm:w-96">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

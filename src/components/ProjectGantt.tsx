@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { Field } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -383,7 +384,7 @@ function TaskDialog({
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Start date" htmlFor="start" required error={errors.startDate}>
-              <Input id="start" type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); setErrors((p) => ({ ...p, startDate: undefined })); }} />
+              <DatePicker id="start" value={startDate} onChange={(value) => { setStartDate(value); setErrors((p) => ({ ...p, startDate: undefined })); }} placeholder="Pick start date" />
             </Field>
             <div className="grid gap-1.5">
               <Label htmlFor="dur">Duration (days)</Label>

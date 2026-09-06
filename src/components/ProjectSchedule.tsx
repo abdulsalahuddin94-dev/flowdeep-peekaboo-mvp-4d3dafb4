@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
@@ -1935,19 +1936,18 @@ function DateRangeCell({
         <div className="mb-3 grid grid-cols-3 gap-3">
           <div>
             <Label className="mb-1 block text-[10px] uppercase tracking-wide text-muted-foreground">Start date</Label>
-            <Input
-              type="date"
+            <DatePicker
               value={item.startDate || ""}
-              onChange={(e) => onCommit({ startDate: e.target.value })}
+              onChange={(value) => onCommit({ startDate: value })}
               className="h-8 text-xs"
             />
           </div>
           <div>
             <Label className="mb-1 block text-[10px] uppercase tracking-wide text-muted-foreground">Due date</Label>
-            <Input
-              type="date"
+            <DatePicker
               value={item.endDate || ""}
-              onChange={(e) => onCommit({ endDate: e.target.value })}
+              min={item.startDate || undefined}
+              onChange={(value) => onCommit({ endDate: value })}
               className="h-8 text-xs"
             />
           </div>

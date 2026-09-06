@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -212,7 +213,7 @@ function CapitalSteps({ stepKey }: { stepKey: string }) {
         </Field>
         <Field label="Executive sponsor"><Input placeholder="e.g. V. Mansour" /></Field>
         <Field label="Proposed PM"><Input placeholder="e.g. John Smith" /></Field>
-        <Field label="Target start date"><Input type="date" /></Field>
+        <Field label="Target start date"><DatePicker placeholder="Pick target date" /></Field>
         <Field label="Expected duration"><Input placeholder="e.g. 8 months" /></Field>
         <Field className="md:col-span-2" label="Problem statement">
           <Textarea placeholder="What problem does this solve? What happens if we don't act?" rows={4} />
@@ -317,7 +318,7 @@ function CommercialSteps({ stepKey }: { stepKey: string }) {
           <SelectBox options={["Energy", "Government", "Financial Services", "Healthcare", "Industrial", "Telecom"]} placeholder="Select industry" />
         </Field>
         <Field label="RFP / Tender ID"><Input placeholder="RFP-2026-014" /></Field>
-        <Field label="Submission deadline"><Input type="date" /></Field>
+        <Field label="Submission deadline"><DatePicker placeholder="Pick deadline" /></Field>
         <Field className="md:col-span-2" label="Client problem / brief">
           <Textarea placeholder="Summary of the client's need and decision criteria." rows={4} />
         </Field>
@@ -380,8 +381,8 @@ function CommercialSteps({ stepKey }: { stepKey: string }) {
       <FormGrid title="Resources & Timeline" subtitle="Delivery team and high-level plan.">
         <Field label="Proposed delivery lead"><Input placeholder="e.g. K. Bauer" /></Field>
         <Field label="Team size (FTE)"><Input placeholder="11" /></Field>
-        <Field label="Mobilization date"><Input type="date" /></Field>
-        <Field label="Go-live target"><Input type="date" /></Field>
+        <Field label="Mobilization date"><DatePicker placeholder="Pick mobilization date" /></Field>
+        <Field label="Go-live target"><DatePicker placeholder="Pick go-live date" /></Field>
         <Field label="Subcontractors needed">
           <SelectBox options={["None", "1 specialist", "2–3 specialists", "Multiple"]} placeholder="Select" />
         </Field>

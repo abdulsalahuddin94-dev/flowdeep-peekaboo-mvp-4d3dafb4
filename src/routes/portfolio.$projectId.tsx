@@ -15,6 +15,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Label } from "@/components/ui/label";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -3343,7 +3344,7 @@ function AddMilestoneDialog({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <Field label="Date" htmlFor="milestone-date" required error={errors.endDate}>
-                  <Input id="milestone-date" type="date" value={endDate} onChange={(e) => { setEndDate(e.target.value); setErrors((p) => ({ ...p, endDate: undefined })); }} />
+                  <DatePicker id="milestone-date" value={endDate} onChange={(value) => { setEndDate(value); setErrors((p) => ({ ...p, endDate: undefined })); }} placeholder="Pick milestone date" />
                 </Field>
                 <div>
                   <Label>Lag (days)</Label>
@@ -3465,7 +3466,7 @@ function AddMilestoneDialog({
               </div>
 
               <Field label="Start date" htmlFor="task-start-date" required error={errors.startDate}>
-                <Input id="task-start-date" type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); setErrors((p) => ({ ...p, startDate: undefined })); }} />
+                <DatePicker id="task-start-date" value={startDate} onChange={(value) => { setStartDate(value); setErrors((p) => ({ ...p, startDate: undefined })); }} placeholder="Pick start date" />
               </Field>
 
               <div>
@@ -3486,7 +3487,7 @@ function AddMilestoneDialog({
                 </RadioGroup>
                 {endMode === "date" ? (
                   <Field htmlFor="task-end-date" required error={errors.taskEndDate}>
-                    <Input id="task-end-date" className="mt-2" type="date" value={taskEndDate} onChange={(e) => { setTaskEndDate(e.target.value); setErrors((p) => ({ ...p, taskEndDate: undefined })); }} />
+                    <DatePicker id="task-end-date" className="mt-2" value={taskEndDate} min={startDate || undefined} onChange={(value) => { setTaskEndDate(value); setErrors((p) => ({ ...p, taskEndDate: undefined })); }} placeholder="Pick end date" />
                   </Field>
                 ) : (
                   <Field className="mt-2" htmlFor="task-duration" required error={errors.duration}>
@@ -4592,7 +4593,7 @@ function AddFinanceLinkDialog({
             </Select>
           </div>
           {linkKind === "fixed" && (
-            <div><Label>Due Date</Label><Input type="date" value={linkDate} onChange={(e) => setLinkDate(e.target.value)} /></div>
+            <div><Label>Due Date</Label><DatePicker value={linkDate} onChange={setLinkDate} placeholder="Pick due date" /></div>
           )}
           {linkKind === "milestone" && (
             <div>
@@ -4707,7 +4708,7 @@ function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
             </Select>
           </div>
           {linkType === "fixed" && (
-            <div><Label>Due Date</Label><Input type="date" value={linkDate} onChange={(e) => setLinkDate(e.target.value)} /></div>
+            <div><Label>Due Date</Label><DatePicker value={linkDate} onChange={setLinkDate} placeholder="Pick due date" /></div>
           )}
           {linkType === "milestone" && (
             <div><Label>Milestone Name</Label><Input value={linkDate} onChange={(e) => setLinkDate(e.target.value)} placeholder="e.g. Design Approved" /></div>

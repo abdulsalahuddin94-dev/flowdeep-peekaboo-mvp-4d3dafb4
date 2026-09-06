@@ -19,6 +19,8 @@ export interface DatePickerProps {
   max?: string;
   className?: string;
   id?: string;
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 }
 
 export function DatePicker({
@@ -30,22 +32,31 @@ export function DatePicker({
   max,
   className,
   id,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
-  const date = value ? parseISO(value) : undefined;
+  const [internalValue, setInternalValue] = React.useState("");
+  const resolvedValue = value ?? internalValue;
+  const date = resolvedValue ? parseISO(resolvedValue) : undefined;
 
   const handleSelect = (d: Date | undefined) => {
-    onChange?.(d ? format(d, "yyyy-MM-dd") : "");
+    const nextValue = d ? format(d, "yyyy-MM-dd") : "";
+    if (value === undefined) setInternalValue(nextValue);
+    onChange?.(nextValue);
     setOpen(false);
   };
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (value === undefined) setInternalValue("");
     onChange?.("");
   };
 
   const handleToday = () => {
-    onChange?.(format(new Date(), "yyyy-MM-dd"));
+    const nextValue = format(new Date(), "yyyy-MM-dd");
+    if (value === undefined) setInternalValue(nextValue);
+    onChange?.(nextValue);
     setOpen(false);
   };
 
@@ -66,10 +77,12 @@ export function DatePicker({
           type="button"
           variant="outline"
           disabled={disabled}
+          aria-invalid={ariaInvalid}
+          aria-describedby={ariaDescribedBy}
           data-ui="control"
           className={cn(
             "w-full justify-between bg-transparent px-3 font-normal",
-            !value && "text-muted-foreground",
+            !resolvedValue && "text-muted-foreground",
             className,
           )}
         >
@@ -90,7 +103,7 @@ export function DatePicker({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+      <PopoverContent className="w-auto overflow-hidden border-border bg-popover p-0 pointer-events-auto shadow-lg" align="start">
         <Calendar
           mode="single"
           selected={date}
@@ -99,21 +112,26 @@ export function DatePicker({
           disabled={disabledMatcher}
           className="pointer-events-auto"
         />
-        <div className="flex items-center justify-between border-t border-border px-3 py-2">
-          <button
+        <div className="flex items-center justify-between border-t border-border px-3 py-1.5">
+          <Button
             type="button"
-            onClick={() => onChange?.("")}
-            className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            variant="ghost"
+            size="sm"
+            onClick={handleClear}
+            className="h-8 px-0 text-xs font-medium text-muted-foreground hover:bg-transparent hover:text-foreground"
           >
             Clear
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
+            size="sm"
             onClick={handleToday}
-            className="text-xs font-medium text-accent transition-colors hover:text-accent-foreground"
+            disabled={disabledMatcher(new Date())}
+            className="h-8 px-0 text-xs font-semibold text-accent hover:bg-transparent hover:text-accent"
           >
             Today
-          </button>
+          </Button>
         </div>
       </PopoverContent>
     </Popover>

@@ -385,51 +385,15 @@ function PendingApprovalsChip({ count, projectName, className }: { count: number
 }
 
 function ProjectGrid({
-  items, onOpen, onEdit, pendingByProject, draft, onResumeDraft, onDiscardDraft,
+  items, onOpen, onEdit, pendingByProject,
 }: {
   items: Project[]; onOpen: (p: Project) => void; onEdit?: (p: Project) => void; pendingByProject: Map<string, number>;
-  draft?: FormState | null; onResumeDraft?: () => void; onDiscardDraft?: () => void;
 }) {
   const { tags: orgTags } = useTags();
   const colorOf = (name: string) => orgTags.find((t) => t.name === name)?.color;
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {draft && onResumeDraft && (
-        <button
-          type="button"
-          onClick={onResumeDraft}
-          className="glass-card group flex flex-col border-2 border-dashed border-border/70 bg-secondary/10 p-4 text-left hover:border-accent/50"
-        >
-          <div className="flex items-start justify-between gap-2">
-            <span className="rounded-full border border-accent/40 bg-accent-dim px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-accent">
-              Draft
-            </span>
-            {onDiscardDraft && (
-              <span
-                role="button"
-                tabIndex={0}
-                aria-label="Delete draft"
-                title="Delete draft"
-                onClick={(e) => { e.stopPropagation(); onDiscardDraft(); }}
-                onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onDiscardDraft(); } }}
-                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:border-rag-red/40 hover:bg-rag-red/10 hover:text-rag-red"
-              >
-                <DeleteAction size={14} />
-              </span>
-            )}
-          </div>
-          <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">
-            {draft.name?.trim() || "Untitled project"}
-          </h3>
-          <div className="mt-1 text-xs text-muted-foreground">
-            {draft.projectType === "commercial" ? (draft.client && draft.client !== "Internal" ? draft.client : "Client TBD") : "Internal"}
-          </div>
-          <div className="mt-4 flex flex-1 flex-col items-center justify-center gap-1 text-center">
-            <p className="text-xs text-muted-foreground">Setup started but not finished</p>
-            <span className="text-xs font-medium text-accent">Continue setup →</span>
-          </div>
-        </button>
-      )}
+
       {items.map((p) => {
         const pending = pendingByProject.get(p.name) ?? 0;
         return (

@@ -3,6 +3,18 @@
 > Every session that touches this project is logged here. Newest session at the top.
 
 ---
+## Session 48 — 2026-09-06
+
+**What was done:**
+1. Rebuilt the Portfolio filter as an inline expandable panel matching the supplied reference.
+2. Added compact selectable chips for Project Types, Departments, RAG, Stage, Tags, Years, Clients, and Bases.
+3. Added applied-filter chips, a live filter count, clear controls, and an internal right-side scrollbar.
+4. Kept search, filter, and view controls aligned inside the existing toolbar surface.
+
+**Files updated:**
+- `src/routes/portfolio.index.tsx` — inline scrollable Portfolio filter experience.
+
+---
 ## Session 47 — 2026-08-25
 
 **What was done:**

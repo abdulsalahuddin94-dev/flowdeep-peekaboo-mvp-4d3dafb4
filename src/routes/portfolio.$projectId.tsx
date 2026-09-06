@@ -2302,6 +2302,44 @@ function FinancialsTab({
   const canEdit = finBaseline.canEdit;
   const displayCost = (finBaseline.viewedSnapshot?.costEntries as CostEntry[] | undefined) ?? costEntries;
   const displayRev = (finBaseline.viewedSnapshot?.revEntries as RevEntry[] | undefined) ?? revEntries;
+
+  /**
+   * Revenue items linked from the schedule. The expected recognition date is the
+   * linked milestone's planned finish date (dynamic), and recognition is locked
+   * behind approval whenever the milestone requires it.
+   */
+  const scheduleRevenue = useMemo(() => {
+    const rows: {
+      itemId: string; label: string; amount: string; value: number;
+      wbsItem: string; date: string; progress: number; statusLabel: string; rag: Rag;
+    }[] = [];
+    for (const m of milestones) {
+      const links = [m.payment, ...(m.extraPayments ?? [])].filter(
+        (p): p is NonNullable<typeof p> => !!p && p.kind === "Client Revenue" && !!p.packageId,
+      );
+      for (const link of links) {
+        const item = findFinancialItem(link.packageId);
+        if (!item) continue;
+        const progress = Math.round(m.progress ?? 0);
+        const gated = !!m.requiresApproval;
+        const approved = m.approvalStatus === "approved";
+        const recognised = progress >= 100 && (!gated || approved);
+        const awaiting = progress >= 100 && gated && !approved;
+        rows.push({
+          itemId: link.packageId!,
+          label: item.label,
+          amount: item.amount,
+          value: Number(item.amount.replace(/[^0-9.]/g, "")) || 0,
+          wbsItem: m.name,
+          date: m.endDate,
+          progress,
+          statusLabel: recognised ? "Recognised" : awaiting ? "Awaiting approval" : progress > 0 ? "In progress" : "Planned",
+          rag: recognised ? "green" : awaiting ? "amber" : progress > 0 ? "blue" : "grey",
+        });
+      }
+    }
+    return rows;
+  }, [milestones]);
   return (
     <div className="space-y-4">
       <BaselineHeader state={finBaseline} />

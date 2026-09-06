@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Label } from "@/components/ui/label";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -3069,6 +3070,7 @@ function AddMilestoneDialog({
   // Milestone approval workflow
   const [requiresApproval, setRequiresApproval] = useState(false);
   const [selectedApprovers, setSelectedApprovers] = useState<string[]>([]);
+  const [errors, setErrors] = useState<{ name?: string; endDate?: string; startDate?: string; taskEndDate?: string; duration?: string; status?: string }>({});
   const availableApprovers = [
     { id: "sara", name: "Sara Al-Rashid", role: "Director", dept: "Engineering" },
     { id: "john", name: "John Smith", role: "Project Manager", dept: "IT" },
@@ -3097,7 +3099,7 @@ function AddMilestoneDialog({
   }, [items, editingItem]);
 
   function reset() {
-    setKind(initialKind ?? "Task"); setName(""); setOwner(defaultOwner); setStatus("Not Started"); setDep("");
+    setKind(initialKind ?? "Task"); setName(""); setOwner(defaultOwner); setStatus("Not Started"); setDep(""); setErrors({});
     setEndDate(""); setLagDays(0); setMilestoneType("finish");
     setParentName(initialParent ?? "__none__"); setStartDate(""); setEndMode("duration"); setTaskEndDate("");
     setDurationValue(1); setDurationUnit("days"); setWeightScore(1);
@@ -3203,13 +3205,13 @@ function AddMilestoneDialog({
 
 
   function submit() {
-    if (!name.trim()) { toast.error("Name is required"); return; }
+    const nextErrors: typeof errors = {};
+    if (!name.trim()) nextErrors.name = "Name is required.";
     // New items always start as Not Started; "In Progress" needs real progress.
     const effectiveStatus = isEditing ? status : "Not Started";
     const currentProgress = editingItem?.progress ?? 0;
     if (effectiveStatus === "In Progress" && currentProgress <= 0) {
-      toast.error("Enter a progress value above 0% before setting the status to In Progress");
-      return;
+      nextErrors.status = "Enter progress above 0% before selecting In Progress.";
     }
     const rag = ragMap[effectiveStatus] ?? "blue";
     const { payment: mainPayment, extras: extraPayments } = buildPayments();
@@ -3217,7 +3219,8 @@ function AddMilestoneDialog({
 
 
     if (kind === "Milestone") {
-      if (!endDate) { toast.error("End date is required"); return; }
+      if (!endDate) nextErrors.endDate = "Date is required.";
+      if (Object.values(nextErrors).some(Boolean)) { setErrors(nextErrors); return; }
       const approvers = requiresApproval
         ? selectedApprovers.map((id) => {
             const approver = availableApprovers.find((a) => a.id === id);
@@ -3242,16 +3245,16 @@ function AddMilestoneDialog({
     }
 
     if (kind === "Task") {
-      if (!startDate) { toast.error("Start date is required"); return; }
+      if (!startDate) nextErrors.startDate = "Start date is required.";
       let computedEnd: string;
       let durVal: number | undefined;
       let durUnit: "hours" | "days" | undefined;
       if (endMode === "date") {
-        if (!taskEndDate) { toast.error("End date is required"); return; }
-        if (taskEndDate < startDate) { toast.error("End date must be on/after start date"); return; }
+        if (!taskEndDate) nextErrors.taskEndDate = "End date is required.";
+        else if (startDate && taskEndDate < startDate) nextErrors.taskEndDate = "End date must be on or after start date.";
         computedEnd = taskEndDate;
       } else {
-        if (!durationValue || durationValue <= 0) { toast.error("Duration must be > 0"); return; }
+        if (!durationValue || durationValue <= 0) nextErrors.duration = "Duration must be greater than 0.";
         const days = durationUnit === "hours"
           ? Math.max(1, Math.ceil(Number(durationValue) / 8))
           : Math.max(1, Number(durationValue));
@@ -3259,6 +3262,7 @@ function AddMilestoneDialog({
         durVal = Number(durationValue);
         durUnit = durationUnit;
       }
+      if (Object.values(nextErrors).some(Boolean)) { setErrors(nextErrors); return; }
       const parent = parentName === "__none__" ? undefined : parentName;
 
       // One task = one skill = at most one resource request
@@ -3331,7 +3335,9 @@ function AddMilestoneDialog({
               </SelectContent>
             </Select>
           </div>
-          <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. UAT Sign-off" /></div>
+          <Field label="Name" htmlFor="schedule-item-name" required error={errors.name}>
+            <Input id="schedule-item-name" value={name} onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: undefined })); }} placeholder="e.g. UAT Sign-off" />
+          </Field>
 
           {/* MILESTONE: subtype + end date + lag */}
           {kind === "Milestone" && (
@@ -3348,7 +3354,9 @@ function AddMilestoneDialog({
                 <p className="mt-1 text-[10px] text-muted-foreground">Progress is rolled up automatically from child tasks (weighted by score).</p>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div><Label>Date</Label><Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} /></div>
+                <Field label="Date" htmlFor="milestone-date" required error={errors.endDate}>
+                  <Input id="milestone-date" type="date" value={endDate} onChange={(e) => { setEndDate(e.target.value); setErrors((p) => ({ ...p, endDate: undefined })); }} />
+                </Field>
                 <div>
                   <Label>Lag (days)</Label>
                   <Input type="number" min="0" value={lagDays} onChange={(e) => setLagDays(Number(e.target.value))} />

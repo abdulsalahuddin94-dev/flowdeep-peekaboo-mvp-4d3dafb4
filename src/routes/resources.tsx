@@ -722,12 +722,13 @@ function AssignDialog({ resource, onAssign }: { resource: PoolResource; onAssign
   const [alloc, setAlloc] = useState(50);
   const [from, setFrom] = useState("");
   const [until, setUntil] = useState("");
+  const [projectError, setProjectError] = useState("");
 
   const projected = Math.min(resource.util + alloc, 200);
   const projColor = projected > 100 ? "text-rag-red" : projected > 80 ? "text-rag-amber" : "text-rag-green";
 
   function handleSave() {
-    if (!projectId) { toast.error("Please select a project"); return; }
+    if (!projectId) { setProjectError("Project is required."); return; }
     const proj = projects.find((p) => p.id === projectId);
     const projectName = proj?.name ?? projectId;
     onAssign?.(projectName, alloc);
@@ -766,10 +767,9 @@ function AssignDialog({ resource, onAssign }: { resource: PoolResource; onAssign
         </div>
 
         <div className="grid gap-3">
-          <div>
-            <Label>Project</Label>
-            <Select onValueChange={setProjectId}>
-              <SelectTrigger><SelectValue placeholder="Select project…" /></SelectTrigger>
+          <Field label="Project" htmlFor="assignment-project" required error={projectError}>
+            <Select onValueChange={(value) => { setProjectId(value); setProjectError(""); }}>
+              <SelectTrigger id="assignment-project"><SelectValue placeholder="Select project…" /></SelectTrigger>
               <SelectContent>
                 {projects.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
@@ -781,7 +781,7 @@ function AssignDialog({ resource, onAssign }: { resource: PoolResource; onAssign
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </Field>
           <div>
             <Label>Role on this project</Label>
             <Input value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. Solution Architect" />

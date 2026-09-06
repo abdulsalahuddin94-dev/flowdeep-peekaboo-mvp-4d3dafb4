@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -518,24 +519,20 @@ function ProjectDetail() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete project?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {project.name} will be removed from the portfolio. This cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => { removeProject(project.id); toast.success("Project deleted"); navigate({ to: "/portfolio" }); }}
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <ConfirmDialog
+              open={deleteOpen}
+              onOpenChange={setDeleteOpen}
+              tone="danger"
+              title={`Delete “${project.name}”?`}
+              description="This project will be removed from the portfolio. This action cannot be undone."
+              cancelLabel="Cancel"
+              confirmLabel="Delete"
+              onConfirm={() => {
+                removeProject(project.id);
+                toast.success("Project deleted");
+                navigate({ to: "/portfolio" });
+              }}
+            />
           </div>
         }
       />

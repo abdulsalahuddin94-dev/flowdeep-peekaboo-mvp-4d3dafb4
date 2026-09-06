@@ -1106,6 +1106,17 @@ export function ProjectSchedule({
                         />
                       </div>
                     )}
+                    {colVisible("duration") && (
+                      <div className="flex items-center border-l border-border/60 px-3 num-mono overflow-hidden text-muted-foreground" style={{ width: widths.duration }}>
+                        {(() => {
+                          const s = parseISO(item.startDate);
+                          const e = parseISO(item.endDate);
+                          if (!s || !e) return <span>—</span>;
+                          const d = Math.max(1, diffDays(e, s) + 1);
+                          return <span className="truncate">{d}d</span>;
+                        })()}
+                      </div>
+                    )}
                     {colVisible("owner") && (
                       <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.owner }}>
                         {editable ? (

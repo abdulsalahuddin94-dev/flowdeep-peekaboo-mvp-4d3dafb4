@@ -31,7 +31,7 @@
   --p-neutral-200:  #e0e0e0;                 /* Gray 200  · Neutral 600 */
   --p-neutral-300:  #d4d4d4;                 /* Gray 300  · Neutral 500 */
   --p-neutral-400:  #a0a0a0;                 /* Gray 400  · Description  */
-  --p-neutral-500:  #75767f;                 /* Gray 500  · Placeholder / border darker */
+  --p-neutral-500:  #767680;                 /* Gray 500  · Secondary CTA border */
   --p-neutral-600:  #45464f;                 /* Gray 600  · Border / table header */
   --p-neutral-700:  #282a30;                 /* Gray 700  · Tags */
   --p-neutral-800:  #1d1d1f;                 /* Gray 800  · Input fields / page */
@@ -1097,8 +1097,8 @@
 
 /* ── DS02 button tokens (semantic, per-state) — mapped to the reference palette
    Primary  default Purple 100 → hover Purple 400
-   Secondary default Gray 800 → hover Gray 600
-   Outline  Purple 300 border → hover Purple 400
+   Secondary default Gray 800 with Gray 500 border → hover Gray 700
+   Outline  shares the secondary CTA surface and border
    Danger   Red 700 → hover Red BG (Red 900)
    Warning  Yellow 300 → hover Yellow 700                                    */
 :root {
@@ -1109,14 +1109,15 @@
 
   --btn-secondary-bg:          var(--p-neutral-800);
   --btn-secondary-fg:          var(--p-white);
-  --btn-secondary-bg-hover:    var(--p-neutral-600);
-  --btn-secondary-border:      var(--p-white-a-12);
+  --btn-secondary-bg-hover:    var(--p-neutral-700);
+  --btn-secondary-border:      var(--p-neutral-500);
 
-  --btn-outline-border:        var(--p-lavender-400);
-  --btn-outline-fg:            var(--foreground);
-  --btn-outline-border-hover:  var(--p-lavender-500);
-  --btn-outline-fg-hover:      var(--p-lavender-500);
-  --btn-outline-bg-hover:      rgba(152, 72, 255, 0.12);
+  --btn-outline-bg:            var(--btn-secondary-bg);
+  --btn-outline-border:        var(--btn-secondary-border);
+  --btn-outline-fg:            var(--btn-secondary-fg);
+  --btn-outline-border-hover:  var(--btn-secondary-border);
+  --btn-outline-fg-hover:      var(--btn-secondary-fg);
+  --btn-outline-bg-hover:      var(--btn-secondary-bg-hover);
 
   --btn-outline-2-bg:          var(--p-white);
   --btn-outline-2-fg:          var(--p-neutral-900);
@@ -1133,12 +1134,12 @@
   --btn-warning-fg-hover:      var(--p-amber-50);
 }
 
-/* Light theme: only the neutral-driven button surfaces flip */
+/* Secondary CTAs stay dark in both themes for a consistent action hierarchy. */
 [data-theme="light"] {
-  --btn-secondary-bg:       var(--p-white);
-  --btn-secondary-fg:       var(--p-neutral-900);
-  --btn-secondary-bg-hover: var(--p-neutral-50);
-  --btn-secondary-border:   var(--p-neutral-200);
+  --btn-secondary-bg:       var(--p-neutral-800);
+  --btn-secondary-fg:       var(--p-white);
+  --btn-secondary-bg-hover: var(--p-neutral-700);
+  --btn-secondary-border:   var(--p-neutral-500);
 
   --btn-outline-2-bg:       var(--p-neutral-900);
   --btn-outline-2-fg:       var(--p-white);

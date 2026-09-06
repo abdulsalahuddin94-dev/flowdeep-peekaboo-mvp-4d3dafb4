@@ -465,7 +465,7 @@ Sidebar (240px, collapsible to 44px) + Topbar (48px) + main (px-10 py-8)
 | Variant | Usage |
 |---|---|
 | `bg-accent text-accent-foreground hover:bg-accent/90` | Primary CTA — one per section |
-| `variant="outline"` | Secondary actions |
+| `variant="outline"` | Secondary actions — `#1D1D1F` fill, `#767680` border |
 | `variant="ghost"` | Tertiary / icon-only |
 | `variant="destructive"` | Delete, reject, remove |
 

@@ -3063,9 +3063,9 @@ function AddMilestoneDialog({
   // Single skill (one task = one assignee)
   const [skillRole, setSkillRole] = useState<RoleReq>({ role: "", skill: "Mid", fte: 1 });
   // Financial linking (items are defined in the Financials tab — here we only link)
-  const [linkType, setLinkType] = useState<"none" | "cost" | "revenue">("none");
-  const [costLinkIds, setCostLinkIds] = useState<string[]>([""]);
-  const [revenueLinkId, setRevenueLinkId] = useState<string>("");
+  // Costs and revenue can be linked together on the same item, several of each.
+  const [costLinkIds, setCostLinkIds] = useState<string[]>([]);
+  const [revenueLinkIds, setRevenueLinkIds] = useState<string[]>([]);
 
 
   // Milestone approval workflow

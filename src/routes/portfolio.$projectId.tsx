@@ -3099,6 +3099,12 @@ function AddMilestoneDialog({
     return items.filter((i) => (i.kind === "Milestone" || i.kind === "Task") && !excluded.has(i.name));
   }, [items, editingItem]);
 
+  // Which radio group option matches a stored parent name
+  const modeForParent = (n?: string): "none" | "milestone" | "task" => {
+    if (!n || n === "__none__") return "none";
+    return items.find((i) => i.name === n)?.kind === "Milestone" ? "milestone" : "task";
+  };
+
   function reset() {
     setKind(initialKind ?? "Task"); setName(""); setOwner(defaultOwner); setStatus("Not Started"); setDep(""); setErrors({});
     setEndDate(""); setLagDays(0); setMilestoneType("finish");

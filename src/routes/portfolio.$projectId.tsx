@@ -3099,23 +3099,6 @@ function AddMilestoneDialog({
     return items.filter((i) => (i.kind === "Milestone" || i.kind === "Task") && !excluded.has(i.name));
   }, [items, editingItem]);
 
-  // Breadcrumb path of an item (its ancestor chain), e.g. "Milestone › Task › This".
-  // Tasks can share names; showing the path makes each option unambiguous.
-  const parentPath = useMemo(() => {
-    const byName = new Map(items.map((i) => [i.name, i]));
-    return (name: string): string[] => {
-      const chain: string[] = [];
-      let cur = byName.get(name);
-      const guard = new Set<string>();
-      while (cur?.parent && !guard.has(cur.parent)) {
-        guard.add(cur.parent);
-        chain.unshift(cur.parent);
-        cur = byName.get(cur.parent);
-      }
-      return chain;
-    };
-  }, [items]);
-
   // Which radio group option matches a stored parent name
   const modeForParent = (n?: string): "none" | "milestone" | "task" => {
     if (!n || n === "__none__") return "none";
@@ -3502,15 +3485,11 @@ function AddMilestoneDialog({
                       <SelectContent className="max-h-72">
                         {parentOptions
                           .filter((p) => (parentMode === "milestone" ? p.kind === "Milestone" : p.kind === "Task"))
-                          .map((p) => {
-                            const path = parentPath(p.name);
-                            const prefix = path.length ? `${path.join(" › ")} › ` : "";
-                            return (
-                              <SelectItem key={`${parentMode}-${p.name}`} value={p.name}>
-                                {parentMode === "milestone" ? `◆ ${p.name}` : <><span className="text-muted-foreground">{prefix}</span>{p.name}</>}
-                              </SelectItem>
-                            );
-                          })}
+                          .map((p) => (
+                            <SelectItem key={`${parentMode}-${p.name}`} value={p.name}>
+                              {parentMode === "milestone" ? `◆ ${p.name}` : p.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>

@@ -510,12 +510,21 @@ function ProjectDetail() {
         current={project.name}
         subtitle={`${project.businessLine} · ${project.department.join(" · ")} · Client ${project.client}${projectCalendar ? ` · 📅 ${projectCalendar.name}` : ""}`}
         actions={(() => {
-          const isAdmin = /director|admin|pmo/i.test(approvalUser.role) || approvalUser.department === "PMO";
-          const hasActuals = project.progress > 0 || project.budgetUsed > 0;
+          /**
+           * Deletion rules: only administrative roles may delete, and never once
+           * the project carries ANY recorded actual — schedule progress on a
+           * task, reported project progress, or spend.
+           */
+          const ADMIN_ROLES = ["Director", "PMO Lead", "Portfolio Director", "Administrator", "System Admin"];
+          const isAdmin =
+            ADMIN_ROLES.some((r) => r.toLowerCase() === approvalUser.role.toLowerCase()) ||
+            approvalUser.department === "PMO";
+          const scheduleActuals = milestones.some((m) => (m.progress ?? 0) > 0);
+          const hasActuals = project.progress > 0 || project.budgetUsed > 0 || scheduleActuals;
           const blockReason = !isAdmin
-            ? "Only authorized administrators can delete projects."
+            ? `Deleting a project is restricted to administrators (you are signed in as ${approvalUser.role}).`
             : hasActuals
-              ? "This project has recorded actual progress or cost entries and cannot be deleted."
+              ? "This project already has recorded actual progress or cost. It can no longer be deleted — close or cancel it instead."
               : null;
           return (
           <div className="flex items-center gap-2">

@@ -318,6 +318,10 @@ export function ProjectSchedule({
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(items.map(i => i.name)));
   const [leftPct, setLeftPct] = useState(48);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
+  // Gantt is collapsed by default: the WBS table uses the full width until the
+  // user slides the chart out from the right edge.
+  const [ganttOpen, setGanttOpen] = useState(false);
+
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingImport, setPendingImport] = useState<ScheduleItem[] | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
@@ -985,8 +989,9 @@ export function ProjectSchedule({
       <div ref={splitRef} className="relative flex" style={{ height: 560 }}>
         {/* LEFT: table */}
         <div
-          className={`flex flex-col overflow-hidden border-r border-border transition-[width] duration-200 ${leftCollapsed ? "border-r-0" : ""}`}
-          style={{ width: leftCollapsed ? 0 : `${leftPct}%` }}
+          className={`flex flex-col overflow-hidden border-r border-border transition-[width] duration-200 ${leftCollapsed && ganttOpen ? "border-r-0" : ""}`}
+          style={{ width: !ganttOpen ? "100%" : leftCollapsed ? 0 : `${leftPct}%` }}
+
         >
           {/* Body (header is sticky inside so it scrolls horizontally with columns) */}
           <div ref={leftScrollRef} onScroll={onLeftScroll} className="flex-1 overflow-auto">
@@ -1173,12 +1178,20 @@ export function ProjectSchedule({
                               {ragOptions.map((r) => (
                                 <DropdownMenuItem
                                   key={r}
-                                  onClick={() => patch(item.name, { rag: r })}
+                                  onClick={() => {
+                                    // "In Progress" requires a positive progress value.
+                                    if (r === "amber" && (item.progress ?? 0) <= 0) {
+                                      toast.error("Add progress above 0% before setting In Progress");
+                                      return;
+                                    }
+                                    patch(item.name, { rag: r });
+                                  }}
                                   className="gap-2"
                                 >
                                   <RagBadge rag={r} label={statusText[r]} />
                                 </DropdownMenuItem>
                               ))}
+
                             </DropdownMenuContent>
                           </DropdownMenu>
                         ) : (
@@ -1324,29 +1337,42 @@ export function ProjectSchedule({
           </div>
         </div>
 
-        {/* Divider with collapse toggle */}
-        <div className="relative flex items-stretch" style={{ zIndex: 10, width: leftCollapsed ? 0 : 4 }}>
-          {!leftCollapsed && (
-            <div
-              onPointerDown={startDrag}
-              className="w-1 cursor-col-resize bg-border hover:bg-accent/60 transition-colors"
-              aria-label="Resize panes"
-            />
-          )}
-          <button
-            type="button"
-            onClick={() => setLeftCollapsed((v) => !v)}
-            title={leftCollapsed ? "Show table" : "Hide table"}
-            aria-label={leftCollapsed ? "Show table" : "Hide table"}
-            className="absolute top-1/2 -translate-y-1/2 left-0 -translate-x-1/2 z-30 flex h-7 w-5 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-accent transition-colors"
-          >
-            {leftCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
-          </button>
-        </div>
+        {/* Divider with collapse toggle (only when the Gantt is open) */}
+        {ganttOpen && (
+          <div className="relative flex items-stretch" style={{ zIndex: 10, width: leftCollapsed ? 0 : 4 }}>
+            {!leftCollapsed && (
+              <div
+                onPointerDown={startDrag}
+                className="w-1 cursor-col-resize bg-border hover:bg-accent/60 transition-colors"
+                aria-label="Resize panes"
+              />
+            )}
+            <button
+              type="button"
+              onClick={() => setLeftCollapsed((v) => !v)}
+              title={leftCollapsed ? "Show table" : "Hide table"}
+              aria-label={leftCollapsed ? "Show table" : "Hide table"}
+              className="absolute top-1/2 -translate-y-1/2 left-0 -translate-x-1/2 z-30 flex h-7 w-5 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground shadow-sm hover:bg-accent hover:text-accent-foreground hover:border-accent transition-colors"
+            >
+              {leftCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
+            </button>
+          </div>
+        )}
 
+        {/* Slide-out toggle for the Gantt chart, pinned to the right edge */}
+        <button
+          type="button"
+          onClick={() => { setGanttOpen((v) => !v); setLeftCollapsed(false); }}
+          title={ganttOpen ? "Hide Gantt chart" : "Show Gantt chart"}
+          aria-label={ganttOpen ? "Hide Gantt chart" : "Show Gantt chart"}
+          className="absolute right-0 top-1/2 z-40 flex h-9 w-6 -translate-y-1/2 items-center justify-center rounded-l-lg border border-r-0 border-border bg-secondary text-muted-foreground shadow-sm transition-colors hover:border-accent hover:bg-accent hover:text-accent-foreground"
+        >
+          {ganttOpen ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+        </button>
 
         {/* RIGHT: gantt */}
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className={ganttOpen ? "flex flex-1 flex-col overflow-hidden" : "hidden"}>
+
           <div ref={rightScrollRef} onScroll={onRightScroll} className="flex-1 overflow-auto">
             <div style={{ width: chartWidth, minWidth: "100%" }}>
               {/* Header */}

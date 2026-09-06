@@ -496,7 +496,15 @@ function ProjectDetail() {
         title={project.name}
         current={project.name}
         subtitle={`${project.businessLine} · ${project.department.join(" · ")} · Client ${project.client}${projectCalendar ? ` · 📅 ${projectCalendar.name}` : ""}`}
-        actions={
+        actions={(() => {
+          const isAdmin = /director|admin|pmo/i.test(approvalUser.role) || approvalUser.department === "PMO";
+          const hasActuals = project.progress > 0 || project.budgetUsed > 0;
+          const blockReason = !isAdmin
+            ? "Only authorized administrators can delete projects."
+            : hasActuals
+              ? "This project has recorded actual progress or cost entries and cannot be deleted."
+              : null;
+          return (
           <div className="flex items-center gap-2">
             <Button size="sm" variant="primary" onClick={() => setReportOpen(true)}>Submit status</Button>
             <DropdownMenu>
@@ -512,10 +520,16 @@ function ProjectDetail() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } })}>
-                  <Pencil size={14} className="mr-2" />Edit project
+                  <Pencil size={14} className="mr-2" />Edit Basic Info
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-rag-red focus:text-rag-red" onClick={() => setDeleteOpen(true)}>
-                  <DeleteAction size={14} className="mr-2" />Delete project
+                <DropdownMenuItem onClick={() => setReportOpen(true)}>
+                  <Pencil size={14} className="mr-2" />Update Status
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-rag-red focus:text-rag-red"
+                  onClick={() => { if (blockReason) { toast.error(blockReason); return; } setDeleteOpen(true); }}
+                >
+                  <DeleteAction size={14} className="mr-2" />Delete Project
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -528,13 +542,16 @@ function ProjectDetail() {
               cancelLabel="Cancel"
               confirmLabel="Delete"
               onConfirm={() => {
+                if (blockReason) { toast.error(blockReason); return; }
                 removeProject(project.id);
                 toast.success("Project deleted");
                 navigate({ to: "/portfolio" });
               }}
             />
           </div>
-        }
+          );
+        })()}
+
       />
 
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-6">
@@ -1148,7 +1165,14 @@ function ProjectDetail() {
         projectName={project.name}
         onSetProgress={(name, progress) =>
           setMilestones((prev) => {
-            let updated = prev.map((m) => (m.name === name ? { ...m, progress } : m));
+            // Status follows progress: >0% ⇒ In Progress, 0% ⇒ Not Started, 100% ⇒ Completed.
+            const syncRag = (m: Milestone): Rag => {
+              if (progress >= 100) return "green";
+              if (progress > 0) return m.rag === "red" ? "red" : "amber";
+              return m.rag === "red" ? "red" : "blue";
+            };
+            let updated = prev.map((m) => (m.name === name ? { ...m, progress, rag: syncRag(m) } : m));
+
 
             // Auto-rollup: recalculate parent progress from children
             const byName = new Map(updated.map((i) => [i.name, i]));
@@ -1683,6 +1707,32 @@ const SEED_PACKAGES: TenderPackage[] = [
   { id: "PKG-003", scope: "Training services rollout", est: "$95K", status: "Sent for Tendering", rfp: "RFP-016", issued: "Jun 01", closes: "Jun 28" },
   { id: "PKG-004", scope: "Managed support (1 year)", est: "$285K", status: "Draft" },
 ];
+
+/**
+ * Financial items are DEFINED in the project Financials tab. The WBS only links
+ * tasks/milestones to these predefined items — no amounts are entered here.
+ */
+export type FinancialItem = { id: string; label: string; amount: string; classification?: "capex" | "opex" };
+const FINANCIAL_CATALOG: { cost: FinancialItem[]; revenue: FinancialItem[] } = {
+  cost: [
+    { id: "FIN-C-LAB", label: "Labour — core delivery team", amount: "$1.20M", classification: "opex" },
+    { id: "FIN-C-HW", label: "Hardware — servers & peripherals", amount: "$0.90M", classification: "capex" },
+    { id: "FIN-C-LIC", label: "Software licenses", amount: "$0.40M", classification: "opex" },
+    { id: "FIN-C-TRV", label: "Business trips", amount: "$0.10M", classification: "opex" },
+    { id: "FIN-C-HOT", label: "Accommodation & hotels", amount: "$0.06M", classification: "opex" },
+    { id: "FIN-C-CTG", label: "Contingency", amount: "$0.60M", classification: "opex" },
+  ],
+  revenue: [
+    { id: "FIN-R-ADV", label: "Advance payment (30%)", amount: "$0.96M" },
+    { id: "FIN-R-P1", label: "Progress invoice (20%)", amount: "$0.64M" },
+    { id: "FIN-R-P2", label: "Progress invoice (25%)", amount: "$0.80M" },
+    { id: "FIN-R-FIN", label: "Final payment (25%)", amount: "$0.80M" },
+  ],
+};
+const findFinancialItem = (id: string) =>
+  FINANCIAL_CATALOG.cost.find((i) => i.id === id) ?? FINANCIAL_CATALOG.revenue.find((i) => i.id === id);
+
+
 
 // ── Progress Update dialog (shown when the Progress KPI is clicked) ─────────
 function ProgressUpdateDialog({
@@ -2618,6 +2668,9 @@ type Milestone = {
   name: string; kind: ItemKind; startDate: string; endDate: string;
   owner: string; rag: Rag; dep: string; roles: RoleReq[];
   payment?: PaymentLink; progress?: number; parent?: string;
+  /** Additional cost links (a task can carry several cost items). */
+  extraPayments?: PaymentLink[];
+
   assignee?: string;
   lagDays?: number;              // milestone only — buffer added after last child
   milestoneType?: MilestoneType; // milestone only — "start" | "finish" (visual)
@@ -2874,11 +2927,13 @@ function AddMilestoneDialog({
   const [durationUnit, setDurationUnit] = useState<"hours" | "days">("days");
   const [weightScore, setWeightScore] = useState<number>(1);
 
-  // Single skill (one task = one assignee) + payment (shared)
+  // Single skill (one task = one assignee)
   const [skillRole, setSkillRole] = useState<RoleReq>({ role: "", skill: "Mid", fte: 1 });
-  const [payKind, setPayKind] = useState<PaymentLinkKind>("None");
-  const [payAmount, setPayAmount] = useState("");
-  const [payPackage, setPayPackage] = useState<string>("");
+  // Financial linking (items are defined in the Financials tab — here we only link)
+  const [linkType, setLinkType] = useState<"none" | "cost" | "revenue">("none");
+  const [costLinkIds, setCostLinkIds] = useState<string[]>([""]);
+  const [revenueLinkId, setRevenueLinkId] = useState<string>("");
+
 
   // Milestone approval workflow
   const [requiresApproval, setRequiresApproval] = useState(false);
@@ -2916,7 +2971,7 @@ function AddMilestoneDialog({
     setParentName(initialParent ?? "__none__"); setStartDate(""); setEndMode("duration"); setTaskEndDate("");
     setDurationValue(1); setDurationUnit("days"); setWeightScore(1);
     setSkillRole({ role: "", skill: "Mid", fte: 1 });
-    setPayKind("None"); setPayAmount(""); setPayPackage("");
+    setLinkType("none"); setCostLinkIds([""]); setRevenueLinkId("");
     setRequiresApproval(false); setSelectedApprovers([]);
   }
 
@@ -2946,9 +3001,18 @@ function AddMilestoneDialog({
       const r = editingItem.roles?.[0];
       setSkillRole(r ? { role: r.role, skill: r.skill, fte: r.fte } : { role: "", skill: "Mid", fte: 1 });
       const p = editingItem.payment;
-      setPayKind(p?.kind ?? "None");
-      setPayAmount(p?.amount ?? "");
-      setPayPackage(p?.packageId ?? "");
+      if (p?.kind === "Client Revenue") {
+        setLinkType("revenue");
+        setRevenueLinkId(p.packageId ?? "");
+        setCostLinkIds([""]);
+      } else if (p?.kind === "Package Cost") {
+        setLinkType("cost");
+        setRevenueLinkId("");
+        setCostLinkIds([p.packageId ?? "", ...(editingItem.extraPayments ?? []).map((x) => x.packageId ?? "")]);
+      } else {
+        setLinkType("none"); setRevenueLinkId(""); setCostLinkIds([""]);
+      }
+
       setRequiresApproval(editingItem.requiresApproval ?? false);
       setSelectedApprovers(editingItem.approvers?.map((a) => a.id) ?? []);
     } else {
@@ -2958,16 +3022,58 @@ function AddMilestoneDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editingItem?.name, initialParent, initialKind]);
 
-  function buildPayment(): PaymentLink {
-    if (payKind === "None") return { kind: "None", amount: "" };
-    if (payKind === "Client Revenue") return { kind: "Client Revenue", amount: payAmount.trim() };
-    return { kind: "Package Cost", packageId: payPackage, amount: payAmount.trim() };
+  /** Financial item ids already linked to another WBS item (duplicates are not allowed). */
+  const linkedElsewhere = useMemo(() => {
+    const used = new Set<string>();
+    for (const it of items) {
+      if (editingItem && it.name === editingItem.name) continue;
+      if (it.payment?.packageId) used.add(it.payment.packageId);
+      for (const ex of it.extraPayments ?? []) if (ex.packageId) used.add(ex.packageId);
+    }
+    return used;
+  }, [items, editingItem]);
+
+  const availableCostItems = (currentId: string) =>
+    FINANCIAL_CATALOG.cost.filter(
+      (i) => i.id === currentId || (!linkedElsewhere.has(i.id) && !costLinkIds.includes(i.id)),
+    );
+  const availableRevenueItems = FINANCIAL_CATALOG.revenue.filter(
+    (i) => i.id === revenueLinkId || !linkedElsewhere.has(i.id),
+  );
+
+  function buildPayments(): { payment: PaymentLink; extras: PaymentLink[] } {
+    if (linkType === "revenue" && revenueLinkId) {
+      const item = findFinancialItem(revenueLinkId);
+      return { payment: { kind: "Client Revenue", packageId: revenueLinkId, amount: item?.amount ?? "" }, extras: [] };
+    }
+    if (linkType === "cost") {
+      const ids = costLinkIds.filter(Boolean);
+      if (ids.length) {
+        const links = ids.map((id) => ({
+          kind: "Package Cost" as PaymentLinkKind,
+          packageId: id,
+          amount: findFinancialItem(id)?.amount ?? "",
+        }));
+        return { payment: links[0], extras: links.slice(1) };
+      }
+    }
+    return { payment: { kind: "None", amount: "" }, extras: [] };
   }
+
 
   function submit() {
     if (!name.trim()) { toast.error("Name is required"); return; }
-    const rag = ragMap[status] ?? "blue";
+    // New items always start as Not Started; "In Progress" needs real progress.
+    const effectiveStatus = isEditing ? status : "Not Started";
+    const currentProgress = editingItem?.progress ?? 0;
+    if (effectiveStatus === "In Progress" && currentProgress <= 0) {
+      toast.error("Enter a progress value above 0% before setting the status to In Progress");
+      return;
+    }
+    const rag = ragMap[effectiveStatus] ?? "blue";
+    const { payment: mainPayment, extras: extraPayments } = buildPayments();
     const newItems: Milestone[] = [];
+
 
     if (kind === "Milestone") {
       if (!endDate) { toast.error("End date is required"); return; }
@@ -2985,7 +3091,7 @@ function AddMilestoneDialog({
       newItems.push({
         name: name.trim(), kind: "Milestone",
         startDate: endDate, endDate, owner: owner || defaultOwner, rag, dep,
-        roles: [], payment: buildPayment(), progress: 0,
+        roles: [], payment: mainPayment, extraPayments: extraPayments.length ? extraPayments : undefined, progress: 0,
         lagDays: Number(lagDays) || 0,
         milestoneType,
         requiresApproval,
@@ -3039,7 +3145,7 @@ function AddMilestoneDialog({
       newItems.push({
         name: name.trim(), kind: "Task",
         startDate, endDate: computedEnd, owner: owner || defaultOwner, rag, dep,
-        roles: taskRoles, payment: buildPayment(), progress: 0, parent,
+        roles: taskRoles, payment: mainPayment, extraPayments: extraPayments.length ? extraPayments : undefined, progress: 0, parent,
         durationValue: durVal, durationUnit: durUnit,
         weightScore: Math.max(1, Math.min(10, Number(weightScore) || 1)),
         resourceRequestIds: requestIds.length ? requestIds : undefined,
@@ -3247,60 +3353,119 @@ function AddMilestoneDialog({
 
           <div className="grid grid-cols-2 gap-2">
             <div><Label>Owner</Label><Input value={owner} onChange={(e) => setOwner(e.target.value)} /></div>
-            <div>
-              <Label>Status</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Not Started">Not Started</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Overdue">Overdue</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {isEditing ? (
+              <div>
+                <Label>Status</Label>
+                <Select
+                  value={status}
+                  onValueChange={(v) => {
+                    if (v === "In Progress" && (editingItem?.progress ?? 0) <= 0) {
+                      toast.error("Add progress above 0% first — status follows progress");
+                      return;
+                    }
+                    setStatus(v);
+                  }}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Not Started">Not Started</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                    <SelectItem value="Overdue">Overdue</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div>
+                <Label>Status</Label>
+                <Input value="Not Started" readOnly disabled />
+                <p className="mt-1 text-[10px] text-muted-foreground">New items always start as Not Started.</p>
+              </div>
+            )}
           </div>
 
-          {kind === "Task" && (
+          {/* Financial links — only when editing details (kept out of quick add) */}
+          {isEditing && (
             <div className="rounded-md border border-border p-3 space-y-2">
               <Label className="text-sm">Financial Link</Label>
-              <p className="text-xs text-muted-foreground">Connect this task to a client revenue event or a working-package (contract) payment milestone.</p>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label className="text-xs text-muted-foreground">Type</Label>
-                  <Select value={payKind} onValueChange={(v) => setPayKind(v as PaymentLinkKind)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="None">None</SelectItem>
-                      <SelectItem value="Client Revenue">Client revenue (main client)</SelectItem>
-                      <SelectItem value="Package Cost">Working package cost (contract payment)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {payKind !== "None" && (
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Amount</Label>
-                    <Input value={payAmount} onChange={(e) => setPayAmount(e.target.value)} placeholder="e.g. $120K" />
-                  </div>
-                )}
+              <p className="text-xs text-muted-foreground">
+                Link this item to financial items defined in the Financials tab. Amounts and categories are managed there.
+              </p>
+              <div>
+                <Label className="text-xs text-muted-foreground">Financial type</Label>
+                <Select
+                  value={linkType}
+                  onValueChange={(v) => {
+                    setLinkType(v as typeof linkType);
+                    setCostLinkIds([""]);
+                    setRevenueLinkId("");
+                  }}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="cost">Cost</SelectItem>
+                    <SelectItem value="revenue">Revenue</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              {payKind === "Package Cost" && (
+
+              {linkType === "revenue" && (
                 <div>
-                  <Label className="text-xs text-muted-foreground">Working package</Label>
-                  <Select value={payPackage} onValueChange={setPayPackage}>
-                    <SelectTrigger><SelectValue placeholder="Select package" /></SelectTrigger>
+                  <Label className="text-xs text-muted-foreground">Revenue item (unlinked only)</Label>
+                  <Select value={revenueLinkId} onValueChange={setRevenueLinkId}>
+                    <SelectTrigger><SelectValue placeholder="Select revenue item" /></SelectTrigger>
                     <SelectContent>
-                      {packages.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>{p.id} · {p.scope} ({p.est})</SelectItem>
+                      {availableRevenueItems.map((i) => (
+                        <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {kind === "Task" && (
+                    <p className="mt-1 text-[10px] text-muted-foreground">Revenue is normally mapped to major milestones.</p>
+                  )}
+                </div>
+              )}
+
+              {linkType === "cost" && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Cost items (unlinked only)</Label>
+                  {costLinkIds.map((id, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <Select
+                          value={id}
+                          onValueChange={(v) => setCostLinkIds((prev) => prev.map((x, i) => (i === idx ? v : x)))}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Select cost item" /></SelectTrigger>
+                          <SelectContent>
+                            {availableCostItems(id).map((i) => (
+                              <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {costLinkIds.length > 1 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCostLinkIds((prev) => prev.filter((_, i) => i !== idx))}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button variant="outline" size="sm" onClick={() => setCostLinkIds((prev) => [...prev, ""])}>
+                    <Plus className="mr-1 h-3.5 w-3.5" />Add Cost
+                  </Button>
                 </div>
               )}
             </div>
           )}
 
-          {kind === "Task" && (
+          {kind === "Task" && isEditing && (
+
             <div className="rounded-md border border-border p-3">
               <div className="mb-2 flex items-center justify-between">
                 <Label className="text-sm">Skill required</Label>

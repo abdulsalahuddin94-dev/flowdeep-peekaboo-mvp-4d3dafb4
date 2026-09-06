@@ -429,7 +429,7 @@ function ProjectGrid({
               })}
             </div>
           )}
-          <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3">
+          <div className="mt-auto flex items-center justify-between gap-2 pt-4">
             <span className="shrink-0 text-[10px] text-muted-foreground/70">{p.code}</span>
             <span className="rounded-full border border-border/60 bg-secondary/40 px-2 py-0.5 text-[10px] text-muted-foreground">
               {p.businessLine}
@@ -447,7 +447,7 @@ function ProjectListView({ items, onOpen, onEdit, pendingByProject }: { items: P
     <div className="">
       <Table>
         <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-          <TableHead className="w-6" /><TableHead>Project</TableHead><TableHead>Project Type</TableHead>
+          <TableHead className="w-[120px] text-center whitespace-nowrap">Status</TableHead><TableHead>Project</TableHead><TableHead>Project Type</TableHead>
           <TableHead>PM</TableHead><TableHead>Department</TableHead><TableHead>Progress</TableHead>
           <TableHead>Budget</TableHead><TableHead>End</TableHead><TableHead>RAID</TableHead>
           <TableHead className="w-32 text-right" />
@@ -455,7 +455,8 @@ function ProjectListView({ items, onOpen, onEdit, pendingByProject }: { items: P
         <TableBody>
           {items.map((p) => (
             <TableRow key={p.id} onClick={() => onOpen(p)} className="cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0">
-              <TableCell><RagDot rag={p.rag} /></TableCell>
+              <TableCell className="w-[120px] text-center"><div className="flex justify-center"><RagBadge rag={p.rag} /></div></TableCell>
+
               <TableCell className="font-medium text-foreground">
                 <div className="flex items-center gap-2">
                   <span>{p.name}</span>

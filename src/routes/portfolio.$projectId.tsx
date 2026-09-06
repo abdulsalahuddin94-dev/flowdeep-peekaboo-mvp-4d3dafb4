@@ -2309,10 +2309,11 @@ function FinancialsTab({
    * behind approval whenever the milestone requires it.
    */
   const scheduleRevenue = useMemo(() => {
-    const rows: {
+    type Row = {
       itemId: string; label: string; amount: string; value: number;
-      wbsItem: string; date: string; progress: number; statusLabel: string; rag: Rag;
-    }[] = [];
+      wbsItem: string; date: string; progress: number; statusLabel: string; rag: Rag; demo?: boolean;
+    };
+    const rows: Row[] = [];
     for (const m of milestones) {
       const links = [m.payment, ...(m.extraPayments ?? [])].filter(
         (p): p is NonNullable<typeof p> => !!p && p.kind === "Client Revenue" && !!p.packageId,
@@ -2338,8 +2339,46 @@ function FinancialsTab({
         });
       }
     }
-    return rows;
+    if (rows.length > 0) return rows;
+
+    /**
+     * Nothing linked yet — show a small illustrative sample so the behaviour of
+     * this panel is understandable. As soon as a real link is made in the
+     * schedule, these sample rows disappear and the live ones take over.
+     */
+    const msNames = milestones.filter((m) => m.kind === "Milestone");
+    const demoStatus = (progress: number, gated: boolean, approved: boolean): { statusLabel: string; rag: Rag } => {
+      if (progress >= 100 && (!gated || approved)) return { statusLabel: "Recognised", rag: "green" };
+      if (progress >= 100 && gated && !approved) return { statusLabel: "Awaiting approval", rag: "amber" };
+      if (progress > 0) return { statusLabel: "In progress", rag: "blue" };
+      return { statusLabel: "Planned", rag: "grey" };
+    };
+    const sample: { itemId: string; progress: number; gated: boolean; approved: boolean }[] = [
+      { itemId: "FIN-R-ADV", progress: 100, gated: false, approved: true },
+      { itemId: "FIN-R-P1", progress: 100, gated: true, approved: false },
+      { itemId: "FIN-R-P2", progress: 45, gated: true, approved: false },
+      { itemId: "FIN-R-FIN", progress: 0, gated: true, approved: false },
+    ];
+    return sample.map((s, i) => {
+      const item = findFinancialItem(s.itemId)!;
+      const ms = msNames[i] ?? msNames[msNames.length - 1];
+      const st = demoStatus(s.progress, s.gated, s.approved);
+      return {
+        itemId: s.itemId,
+        label: item.label,
+        amount: item.amount,
+        value: Number(item.amount.replace(/[^0-9.]/g, "")) || 0,
+        wbsItem: ms?.name ?? `Milestone ${i + 1}`,
+        date: ms?.endDate ?? "",
+        progress: s.progress,
+        statusLabel: st.statusLabel,
+        rag: st.rag,
+        demo: true,
+      } satisfies Row;
+    });
   }, [milestones]);
+  const revenueIsDemo = scheduleRevenue.some((r) => r.demo);
+
   return (
     <div className="space-y-4">
       <BaselineHeader state={finBaseline} />
@@ -2472,7 +2511,14 @@ function FinancialsTab({
       {/* Recognition driven by the schedule: dates follow the milestone, status follows approval */}
       <div className="glass-card p-5">
         <div className="mb-1 flex items-center justify-between">
-          <div className="label-eyebrow">Revenue recognition — driven by the schedule</div>
+          <div className="flex items-center gap-2">
+            <div className="label-eyebrow">Revenue recognition — driven by the schedule</div>
+            {revenueIsDemo && (
+              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide bg-secondary/40 text-muted-foreground">
+                Sample
+              </span>
+            )}
+          </div>
           <span className="num-mono text-xs text-muted-foreground">
             Linked: ${scheduleRevenue.reduce((s, r) => s + r.value, 0).toFixed(2)}M
           </span>
@@ -2481,37 +2527,33 @@ function FinancialsTab({
           Expected dates always inherit the linked milestone's planned finish date, so a schedule delay shifts the
           forecast automatically. Revenue is only recognised once the milestone reaches 100% and — where approval is
           required — has been approved.
+          {revenueIsDemo && " Nothing is linked yet, so these rows are a sample — link a revenue item from a milestone's Edit Details panel and the live data replaces them."}
         </p>
-        {scheduleRevenue.length === 0 ? (
-          <p className="text-xs text-muted-foreground">
-            No revenue item is linked to a milestone yet. Link one from the milestone's Edit Details panel in the schedule.
-          </p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent bg-transparent border-0">
-                <TableHead>Revenue item</TableHead>
-                <TableHead>Linked milestone</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Expected date (inherited)</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Recognition status</TableHead>
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent bg-transparent border-0">
+              <TableHead>Revenue item</TableHead>
+              <TableHead>Linked milestone</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+              <TableHead>Expected date (inherited)</TableHead>
+              <TableHead>Progress</TableHead>
+              <TableHead>Recognition status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {scheduleRevenue.map((r) => (
+              <TableRow key={r.itemId} className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${r.demo ? "opacity-70" : ""}`}>
+                <TableCell className="font-medium text-foreground">{r.label}</TableCell>
+                <TableCell className="text-muted-foreground">{r.wbsItem}</TableCell>
+                <TableCell className="num-mono text-right">{r.amount}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{r.date || "—"}</TableCell>
+                <TableCell className="num-mono text-xs">{r.progress}%</TableCell>
+                <TableCell><RagBadge rag={r.rag} label={r.statusLabel} /></TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {scheduleRevenue.map((r) => (
-                <TableRow key={r.itemId} className="bg-table-row-bg hover:bg-table-row-hover border-0">
-                  <TableCell className="font-medium text-foreground">{r.label}</TableCell>
-                  <TableCell className="text-muted-foreground">{r.wbsItem}</TableCell>
-                  <TableCell className="num-mono text-right">{r.amount}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{r.date || "—"}</TableCell>
-                  <TableCell className="num-mono text-xs">{r.progress}%</TableCell>
-                  <TableCell><RagBadge rag={r.rag} label={r.statusLabel} /></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+            ))}
+          </TableBody>
+        </Table>
+
       </div>
     </div>
   );

@@ -2920,11 +2920,13 @@ function AddMilestoneDialog({
   const [durationUnit, setDurationUnit] = useState<"hours" | "days">("days");
   const [weightScore, setWeightScore] = useState<number>(1);
 
-  // Single skill (one task = one assignee) + payment (shared)
+  // Single skill (one task = one assignee)
   const [skillRole, setSkillRole] = useState<RoleReq>({ role: "", skill: "Mid", fte: 1 });
-  const [payKind, setPayKind] = useState<PaymentLinkKind>("None");
-  const [payAmount, setPayAmount] = useState("");
-  const [payPackage, setPayPackage] = useState<string>("");
+  // Financial linking (items are defined in the Financials tab — here we only link)
+  const [linkType, setLinkType] = useState<"none" | "cost" | "revenue">("none");
+  const [costLinkIds, setCostLinkIds] = useState<string[]>([""]);
+  const [revenueLinkId, setRevenueLinkId] = useState<string>("");
+
 
   // Milestone approval workflow
   const [requiresApproval, setRequiresApproval] = useState(false);

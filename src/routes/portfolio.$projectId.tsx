@@ -24,6 +24,7 @@ import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
 import { FINANCIAL_CATALOG, findFinancialItem, useFinanceLinks } from "@/lib/finance-links";
+import { FinancialLinkField } from "@/components/schedule/FinancialLinkField";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
@@ -3176,14 +3177,6 @@ function AddMilestoneDialog({
     return used;
   }, [items, editingItem, globalLinks, projectName]);
 
-  const availableCostItems = (currentId: string) =>
-    FINANCIAL_CATALOG.cost.filter(
-      (i) => i.id === currentId || (!linkedElsewhere.has(i.id) && !costLinkIds.includes(i.id)),
-    );
-  const availableRevenueItems = (currentId: string) =>
-    FINANCIAL_CATALOG.revenue.filter(
-      (i) => i.id === currentId || (!linkedElsewhere.has(i.id) && !revenueLinkIds.includes(i.id)),
-    );
 
 
   function buildPayments(): { payment: PaymentLink; extras: PaymentLink[] } {
@@ -3569,95 +3562,16 @@ function AddMilestoneDialog({
 
           {/* Financial links — only when editing details (kept out of quick add) */}
           {isEditing && (
-            <div className="rounded-md border border-border p-3 space-y-4">
-              <div>
-                <Label className="text-sm">Financial Link</Label>
-                <p className="text-xs text-muted-foreground">
-                  Link this item to financial items defined in the Financials tab. Costs and revenue can be linked together, and you can add several of each. Amounts and categories are managed there.
-                </p>
-              </div>
-
-              {/* Costs */}
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Cost items (unlinked only)</Label>
-                {costLinkIds.length === 0 && (
-                  <p className="text-[10px] text-muted-foreground">No cost linked yet.</p>
-                )}
-                {costLinkIds.map((id, idx) => (
-                  <div key={`cost-${idx}`} className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <Select
-                        value={id}
-                        onValueChange={(v) => setCostLinkIds((prev) => prev.map((x, i) => (i === idx ? v : x)))}
-                      >
-                        <SelectTrigger><SelectValue placeholder="Select cost item" /></SelectTrigger>
-                        <SelectContent>
-                          {availableCostItems(id).map((i) => (
-                            <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <span className="num-mono w-24 shrink-0 text-right text-xs text-foreground">
-                      {findFinancialItem(id)?.amount ?? "—"}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Remove cost link"
-                      onClick={() => setCostLinkIds((prev) => prev.filter((_, i) => i !== idx))}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button variant="outline" size="sm" onClick={() => setCostLinkIds((prev) => [...prev, ""])}>
-                  <Plus className="mr-1 h-3.5 w-3.5" />Add Cost
-                </Button>
-              </div>
-
-              {/* Revenue */}
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Revenue items (unlinked only)</Label>
-                {revenueLinkIds.length === 0 && (
-                  <p className="text-[10px] text-muted-foreground">No revenue linked yet.</p>
-                )}
-                {revenueLinkIds.map((id, idx) => (
-                  <div key={`rev-${idx}`} className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <Select
-                        value={id}
-                        onValueChange={(v) => setRevenueLinkIds((prev) => prev.map((x, i) => (i === idx ? v : x)))}
-                      >
-                        <SelectTrigger><SelectValue placeholder="Select revenue item" /></SelectTrigger>
-                        <SelectContent>
-                          {availableRevenueItems(id).map((i) => (
-                            <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <span className="num-mono w-24 shrink-0 text-right text-xs text-foreground">
-                      {findFinancialItem(id)?.amount ?? "—"}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Remove revenue link"
-                      onClick={() => setRevenueLinkIds((prev) => prev.filter((_, i) => i !== idx))}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button variant="outline" size="sm" onClick={() => setRevenueLinkIds((prev) => [...prev, ""])}>
-                  <Plus className="mr-1 h-3.5 w-3.5" />Add Revenue
-                </Button>
-                {kind === "Task" && (
-                  <p className="text-[10px] text-muted-foreground">Revenue is normally mapped to major milestones.</p>
-                )}
-              </div>
-            </div>
+            <FinancialLinkField
+              costIds={costLinkIds.filter(Boolean)}
+              revenueIds={revenueLinkIds.filter(Boolean)}
+              linkedElsewhere={linkedElsewhere}
+              onChange={({ cost, revenue }) => {
+                setCostLinkIds(cost);
+                setRevenueLinkIds(revenue);
+              }}
+              hint={kind === "Task" ? "Revenue is normally mapped to major milestones." : undefined}
+            />
           )}
 
           {isEditing && (

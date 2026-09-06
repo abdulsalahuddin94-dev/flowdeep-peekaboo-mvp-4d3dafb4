@@ -3015,11 +3015,44 @@ function AddMilestoneDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editingItem?.name, initialParent, initialKind]);
 
-  function buildPayment(): PaymentLink {
-    if (payKind === "None") return { kind: "None", amount: "" };
-    if (payKind === "Client Revenue") return { kind: "Client Revenue", amount: payAmount.trim() };
-    return { kind: "Package Cost", packageId: payPackage, amount: payAmount.trim() };
+  /** Financial item ids already linked to another WBS item (duplicates are not allowed). */
+  const linkedElsewhere = useMemo(() => {
+    const used = new Set<string>();
+    for (const it of items) {
+      if (editingItem && it.name === editingItem.name) continue;
+      if (it.payment?.packageId) used.add(it.payment.packageId);
+      for (const ex of it.extraPayments ?? []) if (ex.packageId) used.add(ex.packageId);
+    }
+    return used;
+  }, [items, editingItem]);
+
+  const availableCostItems = (currentId: string) =>
+    FINANCIAL_CATALOG.cost.filter(
+      (i) => i.id === currentId || (!linkedElsewhere.has(i.id) && !costLinkIds.includes(i.id)),
+    );
+  const availableRevenueItems = FINANCIAL_CATALOG.revenue.filter(
+    (i) => i.id === revenueLinkId || !linkedElsewhere.has(i.id),
+  );
+
+  function buildPayments(): { payment: PaymentLink; extras: PaymentLink[] } {
+    if (linkType === "revenue" && revenueLinkId) {
+      const item = findFinancialItem(revenueLinkId);
+      return { payment: { kind: "Client Revenue", packageId: revenueLinkId, amount: item?.amount ?? "" }, extras: [] };
+    }
+    if (linkType === "cost") {
+      const ids = costLinkIds.filter(Boolean);
+      if (ids.length) {
+        const links = ids.map((id) => ({
+          kind: "Package Cost" as PaymentLinkKind,
+          packageId: id,
+          amount: findFinancialItem(id)?.amount ?? "",
+        }));
+        return { payment: links[0], extras: links.slice(1) };
+      }
+    }
+    return { payment: { kind: "None", amount: "" }, extras: [] };
   }
+
 
   function submit() {
     if (!name.trim()) { toast.error("Name is required"); return; }

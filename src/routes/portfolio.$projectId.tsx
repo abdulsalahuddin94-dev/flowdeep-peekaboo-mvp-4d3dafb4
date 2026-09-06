@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check } from "@/lib/icons";
 import type { Rag, Project } from "@/lib/mock-data";
@@ -3448,36 +3449,26 @@ function AddMilestoneDialog({
           {kind === "Task" && (
             <>
               <div>
-                <Label>Place under</Label>
-                <div className="mt-1.5 flex flex-wrap gap-2">
+                <Label>Parent</Label>
+                <RadioGroup
+                  value={parentMode}
+                  onValueChange={(v) => { setParentMode(v as "none" | "milestone" | "task"); setParentName("__none__"); }}
+                  className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2"
+                >
                   {([
                     { id: "none", label: "None (top level)" },
                     { id: "milestone", label: "Milestone" },
                     { id: "task", label: "Task" },
                   ] as const).map((opt) => {
-                    const active = parentMode === opt.id;
                     const count = opt.id === "none" ? 1 : parentOptions.filter((p) => (opt.id === "milestone" ? p.kind === "Milestone" : p.kind === "Task")).length;
                     return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={active}
-                        disabled={count === 0}
-                        onClick={() => { setParentMode(opt.id); setParentName("__none__"); }}
-                        className={cn(
-                          "inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-sm transition-colors disabled:opacity-40",
-                          active ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:text-foreground",
-                        )}
-                      >
-                        <span className={cn("grid h-4 w-4 place-items-center rounded-full border", active ? "border-primary" : "border-border")}>
-                          {active && <span className="h-2 w-2 rounded-full bg-primary" />}
-                        </span>
-                        {opt.label}
-                      </button>
+                      <div key={opt.id} className="flex items-center gap-2">
+                        <RadioGroupItem id={`parent-${opt.id}`} value={opt.id} disabled={count === 0} />
+                        <Label htmlFor={`parent-${opt.id}`} className={cn("cursor-pointer text-sm", count === 0 && "opacity-40")}>{opt.label}</Label>
+                      </div>
                     );
                   })}
-                </div>
+                </RadioGroup>
 
                 {parentMode !== "none" && (
                   <div className="mt-2">
@@ -3504,11 +3495,21 @@ function AddMilestoneDialog({
               </Field>
 
               <div>
-                <Label>End</Label>
-                <ToggleGroup type="single" value={endMode} onValueChange={(v) => v && setEndMode(v as "date" | "duration")} className="justify-start">
-                  <ToggleGroupItem value="date" className="h-8 px-3 text-xs">End date</ToggleGroupItem>
-                  <ToggleGroupItem value="duration" className="h-8 px-3 text-xs">Duration</ToggleGroupItem>
-                </ToggleGroup>
+                <Label>End Date Or Duration</Label>
+                <RadioGroup
+                  value={endMode}
+                  onValueChange={(v) => v && setEndMode(v as "date" | "duration")}
+                  className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem id="end-mode-date" value="date" />
+                    <Label htmlFor="end-mode-date" className="cursor-pointer text-sm">End date</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem id="end-mode-duration" value="duration" />
+                    <Label htmlFor="end-mode-duration" className="cursor-pointer text-sm">Duration</Label>
+                  </div>
+                </RadioGroup>
                 {endMode === "date" ? (
                   <Field htmlFor="task-end-date" required error={errors.taskEndDate}>
                     <Input id="task-end-date" className="mt-2" type="date" value={taskEndDate} onChange={(e) => { setTaskEndDate(e.target.value); setErrors((p) => ({ ...p, taskEndDate: undefined })); }} />

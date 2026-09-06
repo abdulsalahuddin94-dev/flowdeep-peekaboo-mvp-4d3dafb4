@@ -3056,8 +3056,17 @@ function AddMilestoneDialog({
 
   function submit() {
     if (!name.trim()) { toast.error("Name is required"); return; }
-    const rag = ragMap[status] ?? "blue";
+    // New items always start as Not Started; "In Progress" needs real progress.
+    const effectiveStatus = isEditing ? status : "Not Started";
+    const currentProgress = editingItem?.progress ?? 0;
+    if (effectiveStatus === "In Progress" && currentProgress <= 0) {
+      toast.error("Enter a progress value above 0% before setting the status to In Progress");
+      return;
+    }
+    const rag = ragMap[effectiveStatus] ?? "blue";
+    const { payment: mainPayment, extras: extraPayments } = buildPayments();
     const newItems: Milestone[] = [];
+
 
     if (kind === "Milestone") {
       if (!endDate) { toast.error("End date is required"); return; }

@@ -16,7 +16,6 @@ import { TablePagination, usePagination } from "@/components/TablePagination";
 import { EmptyRegion } from "@/lib/empty-preview";
 import { projects, pipelineItems, projectDurationDays, type Project, type Rag } from "@/lib/mock-data";
 import { useProjects, useCalendars, useApprovals, useTags } from "@/lib/projects-store";
-import { DRAFT_KEY, type FormState } from "@/components/project/ProjectFormPage";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -123,7 +122,6 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
 
   const list = useMemo(() => {
     let l = projectList;
-    if (statusFilter === "draft") return [];
     if (restrict) l = l.slice(0, 6);
     if (query) l = l.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
     if (ragFilter.length > 0) l = l.filter((p) => ragFilter.includes(p.rag));
@@ -136,14 +134,14 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
     if (typeFilter.length > 0) l = l.filter((p) => typeFilter.includes(p.businessLine));
     if (onlyPending) l = l.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
     return l;
-  }, [projectList, query, restrict, statusFilter, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, yearFilter, baseFilter, typeFilter, onlyPending, pendingByProject]);
+  }, [projectList, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, yearFilter, baseFilter, typeFilter, onlyPending, pendingByProject]);
 
   const pagination = usePagination(list, 10);
 
   const projectsAwaiting = projectList.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
   const pendingTotal = projectsAwaiting.reduce((s, p) => s + (pendingByProject.get(p.name) ?? 0), 0);
 
-  function clearAll() { setStatusFilter(""); setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter([]); setClientFilter(""); setYearFilter(""); setBaseFilter(""); setTypeFilter([]); }
+  function clearAll() { setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter([]); setClientFilter(""); setYearFilter(""); setBaseFilter(""); setTypeFilter([]); }
 
   const panelActiveCount = typeFilter.length + ragFilter.length + stageFilter.length + tagFilter.length
     + deptFilter.length + (clientFilter ? 1 : 0) + (yearFilter ? 1 : 0) + (baseFilter ? 1 : 0);

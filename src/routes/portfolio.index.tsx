@@ -396,9 +396,8 @@ function ProjectGrid({
           </div>
 
           <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">{p.name}</h3>
-          <div className="mt-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+          <div className="mt-1 text-xs text-muted-foreground">
             <span className="truncate">{p.client && p.client !== "Internal" ? p.client : "Internal"}</span>
-            <span className="shrink-0 text-[10px] text-muted-foreground/70">{p.code}</span>
           </div>
           <div className="mt-3">
             <div className="mb-1 flex justify-between text-xs"><span className="text-muted-foreground">Progress</span><span className="num-mono text-foreground">{p.progress}%</span></div>
@@ -430,7 +429,8 @@ function ProjectGrid({
               })}
             </div>
           )}
-          <div className="mt-auto flex items-center justify-end border-t border-border pt-3">
+          <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3">
+            <span className="shrink-0 text-[10px] text-muted-foreground/70">{p.code}</span>
             <span className="rounded-full border border-border/60 bg-secondary/40 px-2 py-0.5 text-[10px] text-muted-foreground">
               {p.businessLine}
             </span>

@@ -3180,28 +3180,29 @@ function AddMilestoneDialog({
     FINANCIAL_CATALOG.cost.filter(
       (i) => i.id === currentId || (!linkedElsewhere.has(i.id) && !costLinkIds.includes(i.id)),
     );
-  const availableRevenueItems = FINANCIAL_CATALOG.revenue.filter(
-    (i) => i.id === revenueLinkId || !linkedElsewhere.has(i.id),
-  );
+  const availableRevenueItems = (currentId: string) =>
+    FINANCIAL_CATALOG.revenue.filter(
+      (i) => i.id === currentId || (!linkedElsewhere.has(i.id) && !revenueLinkIds.includes(i.id)),
+    );
 
 
   function buildPayments(): { payment: PaymentLink; extras: PaymentLink[] } {
-    if (linkType === "revenue" && revenueLinkId) {
-      const item = findFinancialItem(revenueLinkId);
-      return { payment: { kind: "Client Revenue", packageId: revenueLinkId, amount: item?.amount ?? "" }, extras: [] };
-    }
-    if (linkType === "cost") {
-      const ids = costLinkIds.filter(Boolean);
-      if (ids.length) {
-        const links = ids.map((id) => ({
-          kind: "Package Cost" as PaymentLinkKind,
-          packageId: id,
-          amount: findFinancialItem(id)?.amount ?? "",
-        }));
-        return { payment: links[0], extras: links.slice(1) };
-      }
-    }
-    return { payment: { kind: "None", amount: "" }, extras: [] };
+    const links: PaymentLink[] = [
+      ...costLinkIds.filter(Boolean).map((id) => ({
+        kind: "Package Cost" as PaymentLinkKind,
+        packageId: id,
+        amount: findFinancialItem(id)?.amount ?? "",
+      })),
+      ...revenueLinkIds.filter(Boolean).map((id) => ({
+        kind: "Client Revenue" as PaymentLinkKind,
+        packageId: id,
+        amount: findFinancialItem(id)?.amount ?? "",
+      })),
+    ];
+    if (!links.length) return { payment: { kind: "None", amount: "" }, extras: [] };
+    // Revenue leads when present so milestone-level revenue recognition keeps working.
+    const revenueFirst = [...links].sort((a, b) => (a.kind === "Client Revenue" ? -1 : 0) - (b.kind === "Client Revenue" ? -1 : 0));
+    return { payment: revenueFirst[0], extras: revenueFirst.slice(1) };
   }
 
 

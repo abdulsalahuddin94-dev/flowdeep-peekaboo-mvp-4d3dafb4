@@ -241,6 +241,7 @@ const COLUMNS = [
   { key: "owner",    label: "Owner",       w: 150 },
   { key: "assignee", label: "Assignee",    w: 130 },
   { key: "roles",    label: "Roles",       w: 180 },
+  { key: "weight",   label: "Weight",      w: 90 },
   { key: "status",   label: "Status",      w: 110 },
   { key: "actual",   label: "% Actual",    w: 130 },
   { key: "planned",  label: "% Plan",      w: 130 },
@@ -313,9 +314,8 @@ export function ProjectSchedule({
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);
   const [visibleCols] = useState<Set<ColKey>>(
-    // Owner + Assignee + Roles columns hidden for the MVP demo view
-    // (roles are edited from the item Edit dialog instead)
-    () => new Set<ColKey>(["type", "start", "end", "duration", "status", "actual", "planned", "dep", "payment"]),
+    // Owner + Assignee columns hidden for the MVP demo view
+    () => new Set<ColKey>(["type", "start", "end", "duration", "roles", "weight", "status", "actual", "planned", "dep", "payment"]),
   );
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(items.map(i => i.name)));
   const [leftPct, setLeftPct] = useState(48);
@@ -564,6 +564,11 @@ export function ProjectSchedule({
         case "dep": txt = item.dep || "—"; break;
         case "roles":
           txt = item.roles.length ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ") : "—";
+          extra = 24;
+          break;
+        case "weight":
+          txt = item.kind === "Task" ? String(item.weightScore ?? 1) : "—";
+          extra = 24;
           break;
         case "payment":
           if (!item.payment || item.payment.kind === "None") txt = "—";
@@ -1171,28 +1176,50 @@ export function ProjectSchedule({
                           const assigneeRole = a && !isWaiting
                             ? resourceList.find(r => r.name.toLowerCase() === a.toLowerCase())?.role
                             : undefined;
-                          if (assigneeRole) {
+                          const label = item.roles.length
+                            ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ")
+                            : (assigneeRole ?? "");
+                          if (editable) {
                             return (
-                              <span className="truncate text-[11px] text-foreground/80" title={assigneeRole}>
-                                {assigneeRole}
-                              </span>
+                              <RolesCell
+                                item={item}
+                                label={label}
+                                onUpdate={(roles) => patch(item.name, { roles })}
+                                onRequestRole={(role) => onRequestSkill?.(item.name, role)}
+                                roleOptions={jobRoles && jobRoles.length ? jobRoles : ROLE_OPTIONS}
+                              />
                             );
                           }
-                          return editable && item.roles.length > 0 ? (
-                          <RolesCell
-                            item={item}
-                            onUpdate={(roles) => patch(item.name, { roles })}
-                            onRequestRole={(role) => onRequestSkill?.(item.name, role)}
-                            roleOptions={jobRoles && jobRoles.length ? jobRoles : ROLE_OPTIONS}
-                          />
-                        ) : item.roles.length === 0 ? (
-                          <span className="text-muted-foreground">—</span>
-                        ) : (
-                          <span className="truncate text-[10px] text-muted-foreground">
-                            {item.roles.map(r => `${r.role} (${r.fte})`).join(", ")}
-                          </span>
+                          return label ? (
+                            <span className="truncate text-[11px] text-foreground/80" title={label}>{label}</span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
                           );
                         })()}
+                      </div>
+                    )}
+                    {colVisible("weight") && (
+                      <div className="flex items-center border-l border-border/60 px-3 overflow-hidden num-mono" style={{ width: widths.weight }}>
+                        {item.kind === "Task" ? (
+                          editable ? (
+                            <Input
+                              type="number"
+                              min={1}
+                              max={10}
+                              step={1}
+                              value={item.weightScore ?? 1}
+                              onChange={(e) => {
+                                const v = Math.max(1, Math.min(10, Math.round(Number(e.target.value) || 1)));
+                                patch(item.name, { weightScore: v });
+                              }}
+                              className="h-7 w-16 px-2 text-xs num-mono"
+                            />
+                          ) : (
+                            <span className="text-xs">{item.weightScore ?? 1}</span>
+                          )
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </div>
                     )}
                     {colVisible("status") && (
@@ -1962,11 +1989,13 @@ function DateRangeCell({
 // ── RolesCell: Edit roles with approval workflow ──────────────────────────────
 function RolesCell({
   item,
+  label,
   onUpdate,
   onRequestRole,
   roleOptions = ROLE_OPTIONS,
 }: {
   item: ScheduleItem;
+  label?: string;
   onUpdate: (roles: RoleReq[]) => void;
   onRequestRole: (role: RoleReq) => void;
   roleOptions?: readonly string[];
@@ -2011,8 +2040,8 @@ function RolesCell({
 
   return (
     <div className="flex items-center gap-1">
-      <div className="truncate text-[10px] text-muted-foreground flex-1">
-        {item.roles.map(r => `${r.role} (${r.fte})`).join(", ")}
+      <div className="truncate text-[11px] text-foreground/80 flex-1" title={label ?? ""}>
+        {label || <span className="text-muted-foreground">—</span>}
       </div>
       <Popover open={editOpen} onOpenChange={setEditOpen}>
         <PopoverTrigger asChild>
@@ -2067,15 +2096,60 @@ function RolesCell({
               </>
             )}
             {!selectedRole && (
-              <div className="space-y-1">
-                {item.roles.map((r) => (
-                  <div key={r.role} className="flex items-center justify-between rounded bg-secondary/30 p-2 text-xs">
-                    <span>{r.role} ({r.skill}, {r.fte})</span>
-                    <button onClick={() => handleEditRole(r)} className="text-muted-foreground hover:text-foreground">
-                      <Pencil className="h-3 w-3" />
-                    </button>
+              <div className="space-y-2">
+                <div className="space-y-1">
+                  {item.roles.map((r) => (
+                    <div key={r.role} className="flex items-center justify-between rounded bg-secondary/30 p-2 text-xs">
+                      <span>{r.role} ({r.skill}, {r.fte})</span>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => handleEditRole(r)} className="text-muted-foreground hover:text-foreground">
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                        <button onClick={() => handleRemoveRole(r)} className="text-muted-foreground hover:text-destructive">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {item.roles.length === 0 && (
+                    <p className="text-[10px] text-muted-foreground">No roles assigned yet.</p>
+                  )}
+                </div>
+                <div className="space-y-2 border-t border-border pt-2">
+                  <Label className="text-[10px] uppercase">Add role</Label>
+                  <Select value={newRole} onValueChange={setNewRole}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a role" /></SelectTrigger>
+                    <SelectContent>
+                      {roleOptions.filter(r => !item.roles.some(x => x.role === r)).map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {(["Junior", "Mid", "Senior", "Lead"] as const).map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input type="number" min={0.1} step={0.1} value={newFte} onChange={(e) => setNewFte(e.target.value)} className="h-8 text-xs num-mono" />
                   </div>
-                ))}
+                  <Button
+                    size="sm"
+                    className="h-7 w-full text-xs"
+                    disabled={!newRole.trim()}
+                    onClick={() => {
+                      onUpdate([...item.roles, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }]);
+                      setNewRole("");
+                      setNewLevel("Mid");
+                      setNewFte("1");
+                    }}
+                  >
+                    <Plus className="mr-1 h-3 w-3" /> Add role
+                  </Button>
+                </div>
               </div>
             )}
           </div>

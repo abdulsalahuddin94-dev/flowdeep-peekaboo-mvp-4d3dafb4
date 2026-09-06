@@ -340,6 +340,17 @@ export function ProjectSchedule({
   const splitRef = useRef<HTMLDivElement | null>(null);
   const leftScrollRef = useRef<HTMLDivElement | null>(null);
   const rightScrollRef = useRef<HTMLDivElement | null>(null);
+  // Width of the scroll viewport, so the table can stretch to fill it (no right gap)
+  const [viewportW, setViewportW] = useState(0);
+  useEffect(() => {
+    const el = leftScrollRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => setViewportW(el.clientWidth));
+    ro.observe(el);
+    setViewportW(el.clientWidth);
+    return () => ro.disconnect();
+  }, []);
+
 
   // Auto-collapse app sidebar while viewing the schedule for more horizontal room
   const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebar();

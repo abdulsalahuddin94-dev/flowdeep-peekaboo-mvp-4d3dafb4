@@ -3052,6 +3052,7 @@ function AddMilestoneDialog({
 
   // Task-specific
   const [parentName, setParentName] = useState<string>("__none__");
+  const [parentMode, setParentMode] = useState<"none" | "milestone" | "task">("none");
   const [startDate, setStartDate] = useState("");
   const [endMode, setEndMode] = useState<"date" | "duration">("duration");
   const [taskEndDate, setTaskEndDate] = useState("");

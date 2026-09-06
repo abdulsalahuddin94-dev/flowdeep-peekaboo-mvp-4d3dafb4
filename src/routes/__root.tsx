@@ -98,6 +98,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ProjectsProvider>
+      <FinanceLinksProvider>
       <EmptyPreviewProvider>
       <TooltipProvider delayDuration={120}>
           <SidebarProvider defaultOpen>

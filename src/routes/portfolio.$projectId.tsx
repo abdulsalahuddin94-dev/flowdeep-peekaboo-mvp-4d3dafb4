@@ -3460,10 +3460,9 @@ function AddMilestoneDialog({
                 </Select>
               </div>
 
-              <div>
-                <Label>Start date</Label>
-                <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-              </div>
+              <Field label="Start date" htmlFor="task-start-date" required error={errors.startDate}>
+                <Input id="task-start-date" type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); setErrors((p) => ({ ...p, startDate: undefined })); }} />
+              </Field>
 
               <div>
                 <Label>End</Label>
@@ -3472,10 +3471,13 @@ function AddMilestoneDialog({
                   <ToggleGroupItem value="duration" className="h-8 px-3 text-xs">Duration</ToggleGroupItem>
                 </ToggleGroup>
                 {endMode === "date" ? (
-                  <Input className="mt-2" type="date" value={taskEndDate} onChange={(e) => setTaskEndDate(e.target.value)} />
+                  <Field htmlFor="task-end-date" required error={errors.taskEndDate}>
+                    <Input id="task-end-date" className="mt-2" type="date" value={taskEndDate} onChange={(e) => { setTaskEndDate(e.target.value); setErrors((p) => ({ ...p, taskEndDate: undefined })); }} />
+                  </Field>
                 ) : (
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <Input type="number" min="0" step="0.5" value={durationValue} onChange={(e) => setDurationValue(Number(e.target.value))} placeholder="Duration" />
+                  <Field className="mt-2" htmlFor="task-duration" required error={errors.duration}>
+                    <div className="grid grid-cols-2 gap-2">
+                    <Input id="task-duration" type="number" min="0" step="0.5" value={durationValue} onChange={(e) => { setDurationValue(Number(e.target.value)); setErrors((p) => ({ ...p, duration: undefined })); }} placeholder="Duration" />
                     <Select value={durationUnit} onValueChange={(v) => setDurationUnit(v as "hours" | "days")}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -3483,7 +3485,8 @@ function AddMilestoneDialog({
                         <SelectItem value="days">Days</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
+                    </div>
+                  </Field>
                 )}
                 <p className="mt-1 text-[10px] text-muted-foreground">
                   {endMode === "duration"

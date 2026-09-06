@@ -773,6 +773,12 @@ export function ProjectSchedule({
 
   function colVisible(k: ColKey) { return visibleCols.has(k); }
 
+  // Stretch the Task Name column so the table always fills the viewport width
+  const colsW = COLUMNS.filter(c => colVisible(c.key)).reduce((s, c) => s + widths[c.key], 0);
+  const nameW = Math.max(widths.name, viewportW ? viewportW - colsW : widths.name);
+  const tableW = nameW + colsW;
+
+
   // Inline edit helpers
   const canPatch = !!onItemPatch;
   const editable = canPatch && !restricted;

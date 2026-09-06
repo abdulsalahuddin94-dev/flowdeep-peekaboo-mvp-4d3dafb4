@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -16,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, ArrowUpRight, Clock, Check } from "@/lib/icons";
+import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check } from "@/lib/icons";
 import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
@@ -121,7 +122,8 @@ const INITIAL_GATE_DATA: GateStage[] = [
 
 function ProjectDetail() {
   const { project: loaderProject } = Route.useLoaderData();
-  const { projects: liveProjects, updateProject } = useProjects();
+  const { projects: liveProjects, updateProject, removeProject } = useProjects();
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const { calendars } = useCalendars();
   const projectCalendar = calendars.find((c) => c.id === (liveProjects.find((p) => p.id === loaderProject.id)?.calendarId ?? loaderProject.calendarId));
   const { addNotification } = useNotifications();
@@ -495,9 +497,45 @@ function ProjectDetail() {
         subtitle={`${project.businessLine} · ${project.department.join(" · ")} · Client ${project.client}${projectCalendar ? ` · 📅 ${projectCalendar.name}` : ""}`}
         actions={
           <div className="flex items-center gap-2">
-            <RagBadge rag={project.rag} />
-            <Badge variant="outline" className="border-border bg-secondary/40">{project.stage}</Badge>
             <Button size="sm" variant="primary" onClick={() => setReportOpen(true)}>Submit status</Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  aria-label="Project actions"
+                  className="h-9 w-9 rounded-lg border-border"
+                >
+                  <MoreHorizontal size={16} className="rotate-90" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } })}>
+                  <Pencil size={14} className="mr-2" />Edit project
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-rag-red focus:text-rag-red" onClick={() => setDeleteOpen(true)}>
+                  <DeleteAction size={14} className="mr-2" />Delete project
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete project?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {project.name} will be removed from the portfolio. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => { removeProject(project.id); toast.success("Project deleted"); navigate({ to: "/portfolio" }); }}
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         }
       />

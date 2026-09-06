@@ -33,7 +33,7 @@ export function Field({ label, htmlFor, required, optional, info, hint, error, c
       {label ? (
         <div className="flex items-center gap-1.5">
           <label htmlFor={htmlFor} className="text-xs font-semibold text-foreground">
-            {label}{required ? <span className="text-destructive" aria-hidden="true"> *</span> : null}
+            {label}
           </label>
           {optional ? <span className="text-[0.65rem] text-muted-foreground">(Optional)</span> : null}
           {info ? (

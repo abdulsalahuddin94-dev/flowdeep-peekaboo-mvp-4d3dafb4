@@ -3464,6 +3464,17 @@ function AddMilestoneDialog({
                   <Button variant="outline" size="sm" onClick={() => setCostLinkIds((prev) => [...prev, ""])}>
                     <Plus className="mr-1 h-3.5 w-3.5" />Add Cost
                   </Button>
+                  {costLinkIds.filter(Boolean).length > 0 && (
+                    <div className="space-y-1 rounded-md bg-secondary/30 px-2 py-1.5 text-xs">
+                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Amounts (read-only)</div>
+                      {costLinkIds.filter(Boolean).map((id) => (
+                        <div key={id} className="flex items-center justify-between">
+                          <span className="text-muted-foreground">{findFinancialItem(id)?.label ?? id}</span>
+                          <span className="num-mono text-foreground">{findFinancialItem(id)?.amount ?? "—"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

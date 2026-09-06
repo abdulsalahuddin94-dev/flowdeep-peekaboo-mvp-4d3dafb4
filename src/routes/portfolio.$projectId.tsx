@@ -3569,98 +3569,94 @@ function AddMilestoneDialog({
 
           {/* Financial links — only when editing details (kept out of quick add) */}
           {isEditing && (
-            <div className="rounded-md border border-border p-3 space-y-2">
-              <Label className="text-sm">Financial Link</Label>
-              <p className="text-xs text-muted-foreground">
-                Link this item to financial items defined in the Financials tab. Amounts and categories are managed there.
-              </p>
+            <div className="rounded-md border border-border p-3 space-y-4">
               <div>
-                <Label className="text-xs text-muted-foreground">Financial type</Label>
-                <Select
-                  value={linkType}
-                  onValueChange={(v) => {
-                    setLinkType(v as typeof linkType);
-                    setCostLinkIds([""]);
-                    setRevenueLinkId("");
-                  }}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="cost">Cost</SelectItem>
-                    <SelectItem value="revenue">Revenue</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm">Financial Link</Label>
+                <p className="text-xs text-muted-foreground">
+                  Link this item to financial items defined in the Financials tab. Costs and revenue can be linked together, and you can add several of each. Amounts and categories are managed there.
+                </p>
               </div>
 
-              {linkType === "revenue" && (
-                <div>
-                  <Label className="text-xs text-muted-foreground">Revenue item (unlinked only)</Label>
-                  <Select value={revenueLinkId} onValueChange={setRevenueLinkId}>
-                    <SelectTrigger><SelectValue placeholder="Select revenue item" /></SelectTrigger>
-                    <SelectContent>
-                      {availableRevenueItems.map((i) => (
-                        <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {revenueLinkId && (
-                    <div className="mt-2 flex items-center justify-between rounded-md bg-secondary/30 px-2 py-1.5 text-xs">
-                      <span className="text-muted-foreground">Amount (read-only)</span>
-                      <span className="num-mono text-foreground">{findFinancialItem(revenueLinkId)?.amount ?? "—"}</span>
+              {/* Costs */}
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Cost items (unlinked only)</Label>
+                {costLinkIds.length === 0 && (
+                  <p className="text-[10px] text-muted-foreground">No cost linked yet.</p>
+                )}
+                {costLinkIds.map((id, idx) => (
+                  <div key={`cost-${idx}`} className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <Select
+                        value={id}
+                        onValueChange={(v) => setCostLinkIds((prev) => prev.map((x, i) => (i === idx ? v : x)))}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select cost item" /></SelectTrigger>
+                        <SelectContent>
+                          {availableCostItems(id).map((i) => (
+                            <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  )}
-                  {kind === "Task" && (
-                    <p className="mt-1 text-[10px] text-muted-foreground">Revenue is normally mapped to major milestones.</p>
-                  )}
-                </div>
-              )}
+                    <span className="num-mono w-24 shrink-0 text-right text-xs text-foreground">
+                      {findFinancialItem(id)?.amount ?? "—"}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remove cost link"
+                      onClick={() => setCostLinkIds((prev) => prev.filter((_, i) => i !== idx))}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => setCostLinkIds((prev) => [...prev, ""])}>
+                  <Plus className="mr-1 h-3.5 w-3.5" />Add Cost
+                </Button>
+              </div>
 
-              {linkType === "cost" && (
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Cost items (unlinked only)</Label>
-                  {costLinkIds.map((id, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <div className="flex-1">
-                        <Select
-                          value={id}
-                          onValueChange={(v) => setCostLinkIds((prev) => prev.map((x, i) => (i === idx ? v : x)))}
-                        >
-                          <SelectTrigger><SelectValue placeholder="Select cost item" /></SelectTrigger>
-                          <SelectContent>
-                            {availableCostItems(id).map((i) => (
-                              <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      {costLinkIds.length > 1 && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCostLinkIds((prev) => prev.filter((_, i) => i !== idx))}
-                        >
-                          Remove
-                        </Button>
-                      )}
+              {/* Revenue */}
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Revenue items (unlinked only)</Label>
+                {revenueLinkIds.length === 0 && (
+                  <p className="text-[10px] text-muted-foreground">No revenue linked yet.</p>
+                )}
+                {revenueLinkIds.map((id, idx) => (
+                  <div key={`rev-${idx}`} className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <Select
+                        value={id}
+                        onValueChange={(v) => setRevenueLinkIds((prev) => prev.map((x, i) => (i === idx ? v : x)))}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select revenue item" /></SelectTrigger>
+                        <SelectContent>
+                          {availableRevenueItems(id).map((i) => (
+                            <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ))}
-                  <Button variant="outline" size="sm" onClick={() => setCostLinkIds((prev) => [...prev, ""])}>
-                    <Plus className="mr-1 h-3.5 w-3.5" />Add Cost
-                  </Button>
-                  {costLinkIds.filter(Boolean).length > 0 && (
-                    <div className="space-y-1 rounded-md bg-secondary/30 px-2 py-1.5 text-xs">
-                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Amounts (read-only)</div>
-                      {costLinkIds.filter(Boolean).map((id) => (
-                        <div key={id} className="flex items-center justify-between">
-                          <span className="text-muted-foreground">{findFinancialItem(id)?.label ?? id}</span>
-                          <span className="num-mono text-foreground">{findFinancialItem(id)?.amount ?? "—"}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                    <span className="num-mono w-24 shrink-0 text-right text-xs text-foreground">
+                      {findFinancialItem(id)?.amount ?? "—"}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remove revenue link"
+                      onClick={() => setRevenueLinkIds((prev) => prev.filter((_, i) => i !== idx))}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => setRevenueLinkIds((prev) => [...prev, ""])}>
+                  <Plus className="mr-1 h-3.5 w-3.5" />Add Revenue
+                </Button>
+                {kind === "Task" && (
+                  <p className="text-[10px] text-muted-foreground">Revenue is normally mapped to major milestones.</p>
+                )}
+              </div>
             </div>
           )}
 

@@ -2062,8 +2062,8 @@ function ProgressUpdateDialog({
             )}
 
             <div className="flex items-center justify-between gap-3">
-              <p className="max-w-md text-[10px] text-muted-foreground">
-                Milestone progress rolls up from child tasks using each task's weight score.
+              <p className="max-w-[14rem] text-[10px] leading-tight text-muted-foreground">
+                Progress rolls up from child tasks by weight.
               </p>
               <Button
                 onClick={allChildrenAt100 && !msApproved ? saveAndRequestApproval : save}

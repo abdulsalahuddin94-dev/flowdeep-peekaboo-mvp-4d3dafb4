@@ -3084,7 +3084,7 @@ function AddMilestoneDialog({
       newItems.push({
         name: name.trim(), kind: "Milestone",
         startDate: endDate, endDate, owner: owner || defaultOwner, rag, dep,
-        roles: [], payment: buildPayment(), progress: 0,
+        roles: [], payment: mainPayment, extraPayments: extraPayments.length ? extraPayments : undefined, progress: 0,
         lagDays: Number(lagDays) || 0,
         milestoneType,
         requiresApproval,
@@ -3138,7 +3138,7 @@ function AddMilestoneDialog({
       newItems.push({
         name: name.trim(), kind: "Task",
         startDate, endDate: computedEnd, owner: owner || defaultOwner, rag, dep,
-        roles: taskRoles, payment: buildPayment(), progress: 0, parent,
+        roles: taskRoles, payment: mainPayment, extraPayments: extraPayments.length ? extraPayments : undefined, progress: 0, parent,
         durationValue: durVal, durationUnit: durUnit,
         weightScore: Math.max(1, Math.min(10, Number(weightScore) || 1)),
         resourceRequestIds: requestIds.length ? requestIds : undefined,

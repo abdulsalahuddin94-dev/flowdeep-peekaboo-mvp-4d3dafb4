@@ -1,5 +1,6 @@
 ## Session — 2026-09-06
 
+- Standardized mandatory-field validation as inline red field highlighting and error text instead of error toasts.
 - Replaced the Project Details delete prompt with the standard DS02 danger confirmation popup.
 - Removed the colored background container behind search and filter controls across all shared page toolbars and the Portfolio toolbar.
 

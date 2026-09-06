@@ -3006,7 +3006,12 @@ function AddMilestoneDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, editingItem?.name, initialParent, initialKind]);
 
-  /** Financial item ids already linked to another WBS item (duplicates are not allowed). */
+  /**
+   * A financial item can only ever be attached to ONE WBS item — anywhere in the
+   * system. `globalLinks` covers every project that has been opened, `items`
+   * covers the current schedule (including unsaved edits).
+   */
+  const { links: globalLinks } = useFinanceLinks();
   const linkedElsewhere = useMemo(() => {
     const used = new Set<string>();
     for (const it of items) {
@@ -3014,8 +3019,17 @@ function AddMilestoneDialog({
       if (it.payment?.packageId) used.add(it.payment.packageId);
       for (const ex of it.extraPayments ?? []) if (ex.packageId) used.add(ex.packageId);
     }
+    for (const l of globalLinks) {
+      if (l.project === projectName && editingItem && l.wbsItem === editingItem.name) continue;
+      used.add(l.itemId);
+    }
     return used;
-  }, [items, editingItem]);
+  }, [items, editingItem, globalLinks, projectName]);
+
+  const linkOwnerLabel = (itemId: string) => {
+    const l = globalLinks.find((x) => x.itemId === itemId);
+    return l ? `${l.project} · ${l.wbsItem}` : null;
+  };
 
   const availableCostItems = (currentId: string) =>
     FINANCIAL_CATALOG.cost.filter(
@@ -3024,6 +3038,7 @@ function AddMilestoneDialog({
   const availableRevenueItems = FINANCIAL_CATALOG.revenue.filter(
     (i) => i.id === revenueLinkId || !linkedElsewhere.has(i.id),
   );
+
 
   function buildPayments(): { payment: PaymentLink; extras: PaymentLink[] } {
     if (linkType === "revenue" && revenueLinkId) {

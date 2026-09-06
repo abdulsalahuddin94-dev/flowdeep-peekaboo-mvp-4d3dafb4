@@ -21,7 +21,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check } from "@/lib/icons";
 import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
-import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
+import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, useCurrentUser, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
+import { FINANCIAL_CATALOG, findFinancialItem, useFinanceLinks, type FinancialItem } from "@/lib/finance-links";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
@@ -1709,28 +1710,11 @@ const SEED_PACKAGES: TenderPackage[] = [
 ];
 
 /**
- * Financial items are DEFINED in the project Financials tab. The WBS only links
- * tasks/milestones to these predefined items — no amounts are entered here.
+ * Financial items are DEFINED in the project Financials tab (see
+ * `src/lib/finance-links.tsx`). The WBS only links tasks/milestones to those
+ * predefined items — no amounts are entered here.
  */
-export type FinancialItem = { id: string; label: string; amount: string; classification?: "capex" | "opex" };
-const FINANCIAL_CATALOG: { cost: FinancialItem[]; revenue: FinancialItem[] } = {
-  cost: [
-    { id: "FIN-C-LAB", label: "Labour — core delivery team", amount: "$1.20M", classification: "opex" },
-    { id: "FIN-C-HW", label: "Hardware — servers & peripherals", amount: "$0.90M", classification: "capex" },
-    { id: "FIN-C-LIC", label: "Software licenses", amount: "$0.40M", classification: "opex" },
-    { id: "FIN-C-TRV", label: "Business trips", amount: "$0.10M", classification: "opex" },
-    { id: "FIN-C-HOT", label: "Accommodation & hotels", amount: "$0.06M", classification: "opex" },
-    { id: "FIN-C-CTG", label: "Contingency", amount: "$0.60M", classification: "opex" },
-  ],
-  revenue: [
-    { id: "FIN-R-ADV", label: "Advance payment (30%)", amount: "$0.96M" },
-    { id: "FIN-R-P1", label: "Progress invoice (20%)", amount: "$0.64M" },
-    { id: "FIN-R-P2", label: "Progress invoice (25%)", amount: "$0.80M" },
-    { id: "FIN-R-FIN", label: "Final payment (25%)", amount: "$0.80M" },
-  ],
-};
-const findFinancialItem = (id: string) =>
-  FINANCIAL_CATALOG.cost.find((i) => i.id === id) ?? FINANCIAL_CATALOG.revenue.find((i) => i.id === id);
+
 
 
 

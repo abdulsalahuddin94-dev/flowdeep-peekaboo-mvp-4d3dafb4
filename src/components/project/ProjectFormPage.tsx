@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,9 +19,6 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 type ProjectType = "capital" | "commercial";
-
-/** Exported so the Portfolio grid can surface/discard the same in-progress draft. */
-export const DRAFT_KEY = "pmo.project-draft.v1";
 
 const SECTIONS = [
   { id: "identity", label: "Identity" },
@@ -111,34 +108,14 @@ export function ProjectFormPage({ project }: { project?: Project }) {
   const [dirty, setDirty] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
-  const draftRestored = useRef(false);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
     setDirty(true);
   };
 
-  /* Draft autosave — create mode only, so an accidental exit never loses input. */
-  useEffect(() => {
-    if (isEdit || draftRestored.current) return;
-    draftRestored.current = true;
-    try {
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-      const saved = JSON.parse(raw) as FormState;
-      if (saved?.projectType || saved?.name) {
-        setForm({ ...emptyForm(fallbackCalendar), ...saved });
-        toast.success("Draft restored");
-      }
-    } catch { /* ignore malformed drafts */ }
-  }, [isEdit, fallbackCalendar]);
-
-  useEffect(() => {
-    if (isEdit || !dirty) return;
-    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(form)); } catch { /* quota */ }
-  }, [form, dirty, isEdit]);
-
   /* Unsaved-changes guard */
+
   const blocker = useBlocker({
     shouldBlockFn: () => dirty && !submitted,
     withResolver: true,
@@ -200,7 +177,6 @@ export function ProjectFormPage({ project }: { project?: Project }) {
 
   function finish() {
     setSubmitted(true);
-    try { if (!isEdit) localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
     setTimeout(() => {
       if (isEdit && project) navigate({ to: "/portfolio/$projectId", params: { projectId: project.id } });
       else navigate({ to: "/portfolio" });
@@ -493,7 +469,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
         <div className="sticky bottom-0 z-30 -mx-6 mt-6 border-t border-border bg-background/95 px-6 py-3 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <p className="hidden text-xs text-muted-foreground sm:block">
-              {dirty ? (isEdit ? "Unsaved changes" : "Draft saved automatically") : "No changes yet"}
+              {dirty ? "Unsaved changes" : "No changes yet"}
             </p>
             <div className="ml-auto flex items-center gap-2">
               <Button variant="outline" onClick={handleCancel}>Cancel</Button>
@@ -512,9 +488,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
           <DialogHeader>
             <DialogTitle>Discard changes?</DialogTitle>
             <DialogDescription>
-              {isEdit
-                ? "Your edits will be lost."
-                : "Your draft is saved locally and will be restored next time you open this page."}
+              Your changes will be lost.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -542,7 +516,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
           <DialogHeader>
             <DialogTitle>Leave this page?</DialogTitle>
             <DialogDescription>
-              You have unsaved changes.{!isEdit && " Your draft is saved locally and will be restored when you return."}
+              You have unsaved changes.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -1,5 +1,5 @@
 ﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge, RagDot } from "@/components/RagBadge";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,6 @@ import { TablePagination, usePagination } from "@/components/TablePagination";
 import { EmptyRegion } from "@/lib/empty-preview";
 import { projects, pipelineItems, projectDurationDays, type Project, type Rag } from "@/lib/mock-data";
 import { useProjects, useCalendars, useApprovals, useTags } from "@/lib/projects-store";
-import { DRAFT_KEY, type FormState } from "@/components/project/ProjectFormPage";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -82,28 +81,8 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const [active, setActive]       = useState<Project | null>(null);
   const navigate = useNavigate();
 
-  /** The single autosaved "new project" draft, if any — surfaced as a card so it isn't silently lost. */
-  const [draft, setDraft] = useState<FormState | null>(null);
-  useEffect(() => {
-    function readDraft() {
-      try {
-        const raw = localStorage.getItem(DRAFT_KEY);
-        const parsed = raw ? (JSON.parse(raw) as FormState) : null;
-        setDraft(parsed && (parsed.projectType || parsed.name) ? parsed : null);
-      } catch { setDraft(null); }
-    }
-    readDraft();
-    window.addEventListener("focus", readDraft);
-    return () => window.removeEventListener("focus", readDraft);
-  }, []);
-  function discardDraft() {
-    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
-    setDraft(null);
-    toast.success("Draft discarded");
-  }
-
   const [filterOpen, setFilterOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<"" | "active" | "draft">("");
+
   const [ragFilter, setRagFilter]   = useState<string[]>([]);
   const [stageFilter, setStageFilter] = useState<string[]>([]);
   const [tagFilter, setTagFilter]   = useState<string[]>([]);
@@ -143,7 +122,6 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
 
   const list = useMemo(() => {
     let l = projectList;
-    if (statusFilter === "draft") return [];
     if (restrict) l = l.slice(0, 6);
     if (query) l = l.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
     if (ragFilter.length > 0) l = l.filter((p) => ragFilter.includes(p.rag));
@@ -156,14 +134,14 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
     if (typeFilter.length > 0) l = l.filter((p) => typeFilter.includes(p.businessLine));
     if (onlyPending) l = l.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
     return l;
-  }, [projectList, query, restrict, statusFilter, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, yearFilter, baseFilter, typeFilter, onlyPending, pendingByProject]);
+  }, [projectList, query, restrict, ragFilter, stageFilter, tagFilter, deptFilter, clientFilter, yearFilter, baseFilter, typeFilter, onlyPending, pendingByProject]);
 
   const pagination = usePagination(list, 10);
 
   const projectsAwaiting = projectList.filter((p) => (pendingByProject.get(p.name) ?? 0) > 0);
   const pendingTotal = projectsAwaiting.reduce((s, p) => s + (pendingByProject.get(p.name) ?? 0), 0);
 
-  function clearAll() { setStatusFilter(""); setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter([]); setClientFilter(""); setYearFilter(""); setBaseFilter(""); setTypeFilter([]); }
+  function clearAll() { setRagFilter([]); setStageFilter([]); setTagFilter([]); setDeptFilter([]); setClientFilter(""); setYearFilter(""); setBaseFilter(""); setTypeFilter([]); }
 
   const panelActiveCount = typeFilter.length + ragFilter.length + stageFilter.length + tagFilter.length
     + deptFilter.length + (clientFilter ? 1 : 0) + (yearFilter ? 1 : 0) + (baseFilter ? 1 : 0);
@@ -331,24 +309,18 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
-      {(() => { const showDraft = !!draft && statusFilter !== "active" && view === "grid" && pagination.page === 1; return (
       <EmptyRegion id="portfolio-projects">
-      {list.length === 0 && !showDraft && (
+      {list.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-16 text-center">
           <Filter className="h-8 w-8 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">
-            {statusFilter === "draft" ? "No draft in progress." : "No projects match the current filters."}
-          </p>
+          <p className="text-sm text-muted-foreground">No projects match the current filters.</p>
           <button className="text-xs text-accent hover:underline" onClick={clearAll}>Clear all filters</button>
         </div>
       )}
 
-      {view === "grid" && (list.length > 0 || showDraft) && (
+      {view === "grid" && list.length > 0 && (
         <ProjectGrid
           items={pagination.pageItems}
-          draft={showDraft ? draft : null}
-          onResumeDraft={() => navigate({ to: "/portfolio/new" })}
-          onDiscardDraft={discardDraft}
           pendingByProject={pendingByProject}
           onEdit={(p) => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: p.id } })}
           onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })}
@@ -358,7 +330,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
       {view === "gantt" && list.length > 0 && <GanttView items={list} />}
       {view !== "gantt" && list.length > 0 && <TablePagination {...pagination} itemLabel="projects" />}
       </EmptyRegion>
-      ); })()}
+
     </>
 
   );
@@ -385,51 +357,15 @@ function PendingApprovalsChip({ count, projectName, className }: { count: number
 }
 
 function ProjectGrid({
-  items, onOpen, onEdit, pendingByProject, draft, onResumeDraft, onDiscardDraft,
+  items, onOpen, onEdit, pendingByProject,
 }: {
   items: Project[]; onOpen: (p: Project) => void; onEdit?: (p: Project) => void; pendingByProject: Map<string, number>;
-  draft?: FormState | null; onResumeDraft?: () => void; onDiscardDraft?: () => void;
 }) {
   const { tags: orgTags } = useTags();
   const colorOf = (name: string) => orgTags.find((t) => t.name === name)?.color;
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {draft && onResumeDraft && (
-        <button
-          type="button"
-          onClick={onResumeDraft}
-          className="glass-card group flex flex-col border-2 border-dashed border-border/70 bg-secondary/10 p-4 text-left hover:border-accent/50"
-        >
-          <div className="flex items-start justify-between gap-2">
-            <span className="rounded-full border border-accent/40 bg-accent-dim px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-accent">
-              Draft
-            </span>
-            {onDiscardDraft && (
-              <span
-                role="button"
-                tabIndex={0}
-                aria-label="Delete draft"
-                title="Delete draft"
-                onClick={(e) => { e.stopPropagation(); onDiscardDraft(); }}
-                onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onDiscardDraft(); } }}
-                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border/60 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:border-rag-red/40 hover:bg-rag-red/10 hover:text-rag-red"
-              >
-                <DeleteAction size={14} />
-              </span>
-            )}
-          </div>
-          <h3 className="mt-2 line-clamp-2 text-base font-medium text-foreground group-hover:text-accent">
-            {draft.name?.trim() || "Untitled project"}
-          </h3>
-          <div className="mt-1 text-xs text-muted-foreground">
-            {draft.projectType === "commercial" ? (draft.client && draft.client !== "Internal" ? draft.client : "Client TBD") : "Internal"}
-          </div>
-          <div className="mt-4 flex flex-1 flex-col items-center justify-center gap-1 text-center">
-            <p className="text-xs text-muted-foreground">Setup started but not finished</p>
-            <span className="text-xs font-medium text-accent">Continue setup →</span>
-          </div>
-        </button>
-      )}
+
       {items.map((p) => {
         const pending = pendingByProject.get(p.name) ?? 0;
         return (
@@ -802,7 +738,7 @@ function NewBusinessCaseDialog() {
           <div className="col-span-2"><Label>Tags (optional)</Label><Input placeholder="Strategic, Compliance…" /></div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Save draft</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={() => { toast.success("Business Case submitted for review"); setOpen(false); }}>Submit</Button>
         </DialogFooter>
       </DialogContent>

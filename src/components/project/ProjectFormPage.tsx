@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Field } from "@/components/ui/field";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -55,6 +56,8 @@ export type FormState = {
   tags: string[];
   calendarId: string;
 };
+
+type FormErrors = Partial<Record<"name" | "client", string>>;
 
 function emptyForm(calendarId: string): FormState {
   return {
@@ -108,9 +111,13 @@ export function ProjectFormPage({ project }: { project?: Project }) {
   const [dirty, setDirty] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
+    if (key === "name" || key === "client") {
+      setErrors((current) => ({ ...current, [key]: undefined }));
+    }
     setDirty(true);
   };
 
@@ -184,8 +191,18 @@ export function ProjectFormPage({ project }: { project?: Project }) {
   }
 
   function handleSubmit() {
-    if (!form.projectType) { toast.error("Select a project type first"); return; }
-    if (!form.name.trim()) { toast.error("Project name is required"); return; }
+    if (!form.projectType) return;
+    const nextErrors: FormErrors = {};
+    if (!form.name.trim()) nextErrors.name = "Project Name is required.";
+    if (form.projectType === "commercial" && (!form.client || form.client === "Internal")) {
+      nextErrors.client = "Client is required.";
+    }
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      const firstInvalidId = nextErrors.name ? "project-name" : "project-client";
+      requestAnimationFrame(() => document.getElementById(firstInvalidId)?.focus());
+      return;
+    }
     const finalClient = form.projectType === "capital" ? "Internal" : form.client || "Internal";
     const startDateLabel = form.startDate ? formatLabelDate(new Date(`${form.startDate}T00:00:00`)) : "—";
     const endDateLabel = form.endDate ? formatLabelDate(new Date(`${form.endDate}T00:00:00`)) : "TBD";
@@ -291,10 +308,16 @@ export function ProjectFormPage({ project }: { project?: Project }) {
             <TypeSwitch value={form.projectType} onChange={pickType} />
 
             <Section id="identity" title="Identity" subtitle="What this project is called and how it's referenced.">
-              <div className="sm:col-span-2">
-                <Label>Project name *</Label>
-                <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. ERP Integration Phase 2" />
-              </div>
+              <Field className="sm:col-span-2" label="Project name *" htmlFor="project-name" error={errors.name}>
+                <Input
+                  id="project-name"
+                  value={form.name}
+                  onChange={(e) => set("name", e.target.value)}
+                  placeholder="e.g. ERP Integration Phase 2"
+                  aria-invalid={!!errors.name}
+                  aria-describedby={errors.name ? "project-name-error" : undefined}
+                />
+              </Field>
               <div>
                 <Label>Project code</Label>
                 <Input value={form.code} onChange={(e) => set("code", e.target.value)} placeholder="Auto-generated" />
@@ -330,15 +353,16 @@ export function ProjectFormPage({ project }: { project?: Project }) {
                 />
               </div>
               {form.projectType === "commercial" && (
-                <div className="sm:col-span-2">
-                  <Label>Client</Label>
+                <Field className="sm:col-span-2" label="Client *" htmlFor="project-client" error={errors.client}>
                   <Select value={form.client} onValueChange={(v) => set("client", v)}>
-                    <SelectTrigger><SelectValue placeholder="Select a client…" /></SelectTrigger>
+                    <SelectTrigger id="project-client" aria-invalid={!!errors.client} aria-describedby={errors.client ? "project-client-error" : undefined}>
+                      <SelectValue placeholder="Select a client…" />
+                    </SelectTrigger>
                     <SelectContent>
                       {CLIENTS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                </div>
+                </Field>
               )}
             </Section>
 

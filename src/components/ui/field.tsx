@@ -41,7 +41,7 @@ export function Field({ label, htmlFor, optional, info, hint, error, className, 
       ) : null}
       {children}
       {error ? (
-        <p className="text-[0.7rem]" style={{ color: "var(--field-error-fg)" }}>
+        <p id={htmlFor ? `${htmlFor}-error` : undefined} className="text-[0.7rem]" style={{ color: "var(--field-error-fg)" }}>
           {error}
         </p>
       ) : hint ? (

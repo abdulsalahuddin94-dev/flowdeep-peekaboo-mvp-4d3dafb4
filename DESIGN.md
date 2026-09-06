@@ -624,6 +624,11 @@ globally through `data-ui="control"` (inputs, selects, single-line controls) and
 | Error | `aria-invalid="true"` → red border + red ring, error text `--field-error-fg` |
 | Disabled | `disabled` → muted bg, 50% opacity, `not-allowed` cursor |
 
+Mandatory-field validation is always shown inline: set `aria-invalid="true"`
+on the control and render the specific error through `Field`. Do not use a
+toast for missing or invalid field values; reserve toasts for form-level or
+operation outcomes.
+
 Escape hatch: `data-ds-field="off"` on a control opts out of the state styling.
 
 ### Field wrapper

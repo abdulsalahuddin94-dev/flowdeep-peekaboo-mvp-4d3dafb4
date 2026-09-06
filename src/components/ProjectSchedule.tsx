@@ -989,8 +989,9 @@ export function ProjectSchedule({
       <div ref={splitRef} className="relative flex" style={{ height: 560 }}>
         {/* LEFT: table */}
         <div
-          className={`flex flex-col overflow-hidden border-r border-border transition-[width] duration-200 ${leftCollapsed ? "border-r-0" : ""}`}
-          style={{ width: leftCollapsed ? 0 : `${leftPct}%` }}
+          className={`flex flex-col overflow-hidden border-r border-border transition-[width] duration-200 ${leftCollapsed && ganttOpen ? "border-r-0" : ""}`}
+          style={{ width: !ganttOpen ? "100%" : leftCollapsed ? 0 : `${leftPct}%` }}
+
         >
           {/* Body (header is sticky inside so it scrolls horizontally with columns) */}
           <div ref={leftScrollRef} onScroll={onLeftScroll} className="flex-1 overflow-auto">

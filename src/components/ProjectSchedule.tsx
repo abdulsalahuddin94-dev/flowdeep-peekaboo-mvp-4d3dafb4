@@ -2040,8 +2040,8 @@ function RolesCell({
 
   return (
     <div className="flex items-center gap-1">
-      <div className="truncate text-[10px] text-muted-foreground flex-1">
-        {item.roles.map(r => `${r.role} (${r.fte})`).join(", ")}
+      <div className="truncate text-[11px] text-foreground/80 flex-1" title={label ?? ""}>
+        {label || <span className="text-muted-foreground">—</span>}
       </div>
       <Popover open={editOpen} onOpenChange={setEditOpen}>
         <PopoverTrigger asChild>

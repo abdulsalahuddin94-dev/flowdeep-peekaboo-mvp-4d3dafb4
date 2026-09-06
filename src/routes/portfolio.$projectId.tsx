@@ -3535,7 +3535,7 @@ function AddMilestoneDialog({
           )}
 
           <div className="grid grid-cols-2 gap-2">
-            <div><Label>Owner</Label><Input value={owner} onChange={(e) => setOwner(e.target.value)} /></div>
+
             {isEditing ? (
               <div>
                 <Label>Status</Label>

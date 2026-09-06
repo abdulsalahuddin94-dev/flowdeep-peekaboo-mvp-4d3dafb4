@@ -241,6 +241,7 @@ const COLUMNS = [
   { key: "owner",    label: "Owner",       w: 150 },
   { key: "assignee", label: "Assignee",    w: 130 },
   { key: "roles",    label: "Roles",       w: 180 },
+  { key: "weight",   label: "Weight",      w: 90 },
   { key: "status",   label: "Status",      w: 110 },
   { key: "actual",   label: "% Actual",    w: 130 },
   { key: "planned",  label: "% Plan",      w: 130 },

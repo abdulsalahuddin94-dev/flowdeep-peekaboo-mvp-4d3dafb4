@@ -624,10 +624,12 @@ globally through `data-ui="control"` (inputs, selects, single-line controls) and
 | Error | `aria-invalid="true"` → red border + red ring, error text `--field-error-fg` |
 | Disabled | `disabled` → muted bg, 50% opacity, `not-allowed` cursor |
 
-Mandatory-field validation is always shown inline: set `aria-invalid="true"`
-on the control and render the specific error through `Field`. Do not use a
-toast for missing or invalid field values; reserve toasts for form-level or
-operation outcomes.
+Mandatory-field validation is always shown inline in both full pages and every
+dialog, sheet, or popover. Wrap each validated control in `Field`, pass its
+`error`, and let `Field` propagate `aria-invalid` and `aria-describedby` to the
+control. Error text uses `role="alert"`. Clear that field's error when its value
+changes. Do not use a toast for missing or invalid field values; reserve toasts
+for form-level failures and operation outcomes.
 
 Escape hatch: `data-ds-field="off"` on a control opts out of the state styling.
 
@@ -639,8 +641,8 @@ hint (`--field-hint-fg`) or error (`--field-error-fg`, replaces the hint).
 Use `FieldSuffix` for trailing units (e.g. "Minutes").
 
 ```tsx
-<Field label="Email" optional info="Work email" hint="Hint Goes Here" error={err}>
-  <Input aria-invalid={!!err} placeholder="Option 1" />
+<Field label="Email" htmlFor="email" required info="Work email" error={err}>
+  <Input id="email" placeholder="Option 1" />
 </Field>
 ```
 

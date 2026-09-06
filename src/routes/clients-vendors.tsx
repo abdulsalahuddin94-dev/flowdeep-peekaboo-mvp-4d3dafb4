@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Field } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -575,9 +576,10 @@ function ClientFormDialog({
   const [contact, setContact] = useState(client?.contact ?? "");
   const [email, setEmail]     = useState(client ? CLIENT_DETAILS[client.name]?.email ?? "" : "");
   const [phone, setPhone]     = useState(client ? CLIENT_DETAILS[client.name]?.phone ?? "" : "");
+  const [nameError, setNameError] = useState("");
 
   function handleSave() {
-    if (!name.trim()) { toast.error("Company name is required"); return; }
+    if (!name.trim()) { setNameError("Company name is required."); return; }
     onSave?.({
       name: name.trim(),
       contact: contact.trim() || "—",
@@ -605,10 +607,9 @@ function ClientFormDialog({
         <DialogHeader><DialogTitle>{isEdit ? "Edit Client" : "New Client"}</DialogTitle></DialogHeader>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
-            <Label>Company name <span className="text-rag-red">*</span></Label>
-            <Input placeholder="ACME Energy" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
+           <Field className="col-span-2" label="Company name" htmlFor="client-company-name" required error={nameError}>
+             <Input id="client-company-name" placeholder="ACME Energy" value={name} onChange={(e) => { setName(e.target.value); setNameError(""); }} />
+           </Field>
           <div>
             <Label>Primary contact</Label>
             <Input placeholder="Full name" value={contact} onChange={(e) => setContact(e.target.value)} />
@@ -660,9 +661,10 @@ function VendorFormDialog({
   const [type, setType]         = useState(vendor?.type === "Subcontractor" ? "sub" : "vendor");
   const [category, setCategory] = useState(vendor?.category ?? "");
   const [notes, setNotes]       = useState("");
+  const [nameError, setNameError] = useState("");
 
   function handleSave() {
-    if (!name.trim()) { toast.error("Company name is required"); return; }
+    if (!name.trim()) { setNameError("Company name is required."); return; }
     onSave?.({
       name: name.trim(),
       type: type === "sub" ? "Subcontractor" : "Vendor",
@@ -691,10 +693,9 @@ function VendorFormDialog({
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
-            <Label>Company name <span className="text-rag-red">*</span></Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
+           <Field className="col-span-2" label="Company name" htmlFor="vendor-company-name" required error={nameError}>
+             <Input id="vendor-company-name" value={name} onChange={(e) => { setName(e.target.value); setNameError(""); }} />
+           </Field>
           <div>
             <Label>Type</Label>
             <Select value={type} onValueChange={setType}>

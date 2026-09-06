@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -428,13 +429,14 @@ function FulfillDialog({
   const [open, setOpen] = useState(false);
   const [personName, setPersonName] = useState("");
   const [alloc, setAlloc] = useState(50);
+  const [personError, setPersonError] = useState("");
 
   const selectedPerson = pool.find((r) => r.name === personName);
   const projected = selectedPerson ? Math.min(selectedPerson.util + alloc, 200) : null;
   const projColor = projected == null ? "" : projected > 100 ? "text-rag-red" : projected > 80 ? "text-rag-amber" : "text-rag-green";
 
   function handleSave() {
-    if (!personName) { toast.error("Select a person to assign"); return; }
+    if (!personName) { setPersonError("Select a person to assign."); return; }
     onFulfill(req.id, personName, alloc);
     setOpen(false);
     setPersonName(""); setAlloc(50);
@@ -463,10 +465,9 @@ function FulfillDialog({
 
         <div className="grid gap-3">
           {/* Person picker */}
-          <div>
-            <Label>Assign person</Label>
-            <Select onValueChange={setPersonName}>
-              <SelectTrigger><SelectValue placeholder="Select from resource pool…" /></SelectTrigger>
+          <Field label="Assign person" htmlFor="fulfill-person" required error={personError}>
+            <Select onValueChange={(value) => { setPersonName(value); setPersonError(""); }}>
+              <SelectTrigger id="fulfill-person"><SelectValue placeholder="Select from resource pool…" /></SelectTrigger>
               <SelectContent>
                 {pool.map((r) => (
                   <SelectItem key={r.name} value={r.name}>
@@ -481,7 +482,7 @@ function FulfillDialog({
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </Field>
 
           {/* Utilization preview */}
           {selectedPerson && (
@@ -548,9 +549,10 @@ function DeclineDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [reasonError, setReasonError] = useState("");
 
   function handleDecline() {
-    if (!reason.trim()) { toast.error("Please enter a reason"); return; }
+    if (!reason.trim()) { setReasonError("Reason is required."); return; }
     onDecline(req.id, reason);
     setOpen(false);
     setReason("");
@@ -571,16 +573,15 @@ function DeclineDialog({
           <div className="font-medium text-foreground">{req.role} — {req.project}</div>
           <div className="mt-0.5 text-xs text-muted-foreground">Submitted by {req.submittedBy}</div>
         </div>
-        <div className="space-y-2">
-          <Label>Reason <span className="text-rag-red">*</span></Label>
+        <Field label="Reason" htmlFor="decline-reason" required error={reasonError}>
           <Textarea
+            id="decline-reason"
             placeholder="Why can't this request be fulfilled? PM will be notified."
             value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            className={!reason ? "border-rag-red/30" : ""}
+            onChange={(e) => { setReason(e.target.value); setReasonError(""); }}
             rows={3}
           />
-        </div>
+        </Field>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="destructive" onClick={handleDecline}>
@@ -601,12 +602,16 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
   const [dept, setDept]       = useState("");
   const [capacity, setCapacity] = useState("40");
   const [email, setEmail]     = useState("");
+  const [errors, setErrors] = useState<{ name?: string; role?: string; dept?: string }>({});
 
   function handleSave() {
-    if (!name.trim() || !role.trim() || !dept) {
-      toast.error("Name, role, and department are required");
-      return;
-    }
+    const next = {
+      name: name.trim() ? undefined : "Full name is required.",
+      role: role.trim() ? undefined : "Job title / Role is required.",
+      dept: dept ? undefined : "Department is required.",
+    };
+    setErrors(next);
+    if (Object.values(next).some(Boolean)) return;
     onAdd({
       name:     name.trim(),
       role:     role.trim(),
@@ -636,33 +641,32 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
 
         <div className="grid gap-3">
           <div className="grid grid-cols-2 gap-2">
-            <div className="col-span-2">
-              <Label>Full name <span className="text-rag-red">*</span></Label>
+            <Field className="col-span-2" label="Full name" htmlFor="resource-name" required error={errors.name}>
               <Input
+                id="resource-name"
                 placeholder="e.g. Alex Morgan"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: undefined })); }}
               />
-            </div>
-            <div className="col-span-2">
-              <Label>Job title / Role <span className="text-rag-red">*</span></Label>
+            </Field>
+            <Field className="col-span-2" label="Job title / Role" htmlFor="resource-role" required error={errors.role}>
               <Input
+                id="resource-role"
                 placeholder="e.g. Cloud Architect"
                 value={role}
-                onChange={(e) => setRole(e.target.value)}
+                onChange={(e) => { setRole(e.target.value); setErrors((p) => ({ ...p, role: undefined })); }}
               />
-            </div>
-            <div>
-              <Label>Department <span className="text-rag-red">*</span></Label>
-              <Select onValueChange={setDept}>
-                <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
+            </Field>
+            <Field label="Department" htmlFor="resource-department" required error={errors.dept}>
+              <Select onValueChange={(value) => { setDept(value); setErrors((p) => ({ ...p, dept: undefined })); }}>
+                <SelectTrigger id="resource-department"><SelectValue placeholder="Select…" /></SelectTrigger>
                 <SelectContent>
                   {departments.map((d) => (
                     <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </Field>
             <div>
               <Label>Capacity (hrs / week)</Label>
               <Input
@@ -718,12 +722,13 @@ function AssignDialog({ resource, onAssign }: { resource: PoolResource; onAssign
   const [alloc, setAlloc] = useState(50);
   const [from, setFrom] = useState("");
   const [until, setUntil] = useState("");
+  const [projectError, setProjectError] = useState("");
 
   const projected = Math.min(resource.util + alloc, 200);
   const projColor = projected > 100 ? "text-rag-red" : projected > 80 ? "text-rag-amber" : "text-rag-green";
 
   function handleSave() {
-    if (!projectId) { toast.error("Please select a project"); return; }
+    if (!projectId) { setProjectError("Project is required."); return; }
     const proj = projects.find((p) => p.id === projectId);
     const projectName = proj?.name ?? projectId;
     onAssign?.(projectName, alloc);
@@ -762,10 +767,9 @@ function AssignDialog({ resource, onAssign }: { resource: PoolResource; onAssign
         </div>
 
         <div className="grid gap-3">
-          <div>
-            <Label>Project</Label>
-            <Select onValueChange={setProjectId}>
-              <SelectTrigger><SelectValue placeholder="Select project…" /></SelectTrigger>
+          <Field label="Project" htmlFor="assignment-project" required error={projectError}>
+            <Select onValueChange={(value) => { setProjectId(value); setProjectError(""); }}>
+              <SelectTrigger id="assignment-project"><SelectValue placeholder="Select project…" /></SelectTrigger>
               <SelectContent>
                 {projects.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
@@ -777,7 +781,7 @@ function AssignDialog({ resource, onAssign }: { resource: PoolResource; onAssign
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </Field>
           <div>
             <Label>Role on this project</Label>
             <Input value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. Solution Architect" />

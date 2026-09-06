@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Field } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "@/lib/icons";
 import { toast } from "@/lib/toast";
@@ -327,6 +328,7 @@ function TaskDialog({
   const [duration, setDuration] = useState(2);
   const [assignee, setAssignee] = useState("");
   const [color, setColor] = useState<ColorKey>("blue");
+  const [errors, setErrors] = useState<{ lane?: string; label?: string; startDate?: string }>({});
 
   useEffect(() => {
     if (!open) return;
@@ -345,13 +347,17 @@ function TaskDialog({
       setAssignee(defaultAssignee ?? "");
       setColor("blue");
     }
+    setErrors({});
   }, [open, editing, defaultAssignee, defaultStart]);
 
   const submit = () => {
-    if (!lane.trim() || !label.trim() || !startDate) {
-      toast.error("Lane, label, and start date are required");
-      return;
-    }
+    const next = {
+      lane: lane.trim() ? undefined : "Lane is required.",
+      label: label.trim() ? undefined : "Task is required.",
+      startDate: startDate ? undefined : "Start date is required.",
+    };
+    setErrors(next);
+    if (Object.values(next).some(Boolean)) return;
     onSubmit({
       lane: lane.trim(),
       label: label.trim(),
@@ -369,19 +375,16 @@ function TaskDialog({
           <DialogTitle>{editing ? "Edit task" : "New task"}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-3">
-          <div className="grid gap-1.5">
-            <Label htmlFor="lane">Lane</Label>
-            <Input id="lane" value={lane} onChange={(e) => setLane(e.target.value)} placeholder="e.g. UI design for web" />
-          </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor="label">Task</Label>
-            <Input id="label" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="What needs doing?" />
-          </div>
+          <Field label="Lane" htmlFor="lane" required error={errors.lane}>
+            <Input id="lane" value={lane} onChange={(e) => { setLane(e.target.value); setErrors((p) => ({ ...p, lane: undefined })); }} placeholder="e.g. UI design for web" />
+          </Field>
+          <Field label="Task" htmlFor="label" required error={errors.label}>
+            <Input id="label" value={label} onChange={(e) => { setLabel(e.target.value); setErrors((p) => ({ ...p, label: undefined })); }} placeholder="What needs doing?" />
+          </Field>
           <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-1.5">
-              <Label htmlFor="start">Start date</Label>
-              <Input id="start" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-            </div>
+            <Field label="Start date" htmlFor="start" required error={errors.startDate}>
+              <Input id="start" type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); setErrors((p) => ({ ...p, startDate: undefined })); }} />
+            </Field>
             <div className="grid gap-1.5">
               <Label htmlFor="dur">Duration (days)</Label>
               <Input id="dur" type="number" min={1} value={duration} onChange={(e) => setDuration(Number(e.target.value))} />

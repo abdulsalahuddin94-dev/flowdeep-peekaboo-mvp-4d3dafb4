@@ -1242,13 +1242,23 @@
 }
 /* error */
 [data-ui="control"][aria-invalid="true"],
-[data-ui="control-text"][aria-invalid="true"] {
+[data-ui="control-text"][aria-invalid="true"],
+[data-field-invalid="true"] [data-ui="control"],
+[data-field-invalid="true"] [data-ui="control-text"] {
   border-color: var(--field-border-error);
 }
 [data-ui="control"][aria-invalid="true"]:focus,
 [data-ui="control"][aria-invalid="true"]:focus-visible,
 [data-ui="control-text"][aria-invalid="true"]:focus,
 [data-ui="control-text"][aria-invalid="true"]:focus-visible {
+  border-color: var(--field-border-error);
+  box-shadow: 0 0 0 3px var(--field-ring-error);
+}
+[data-field-invalid="true"] [data-ui="control"]:focus,
+[data-field-invalid="true"] [data-ui="control"]:focus-visible,
+[data-field-invalid="true"] [data-ui="control"][data-state="open"],
+[data-field-invalid="true"] [data-ui="control-text"]:focus,
+[data-field-invalid="true"] [data-ui="control-text"]:focus-visible {
   border-color: var(--field-border-error);
   box-shadow: 0 0 0 3px var(--field-ring-error);
 }

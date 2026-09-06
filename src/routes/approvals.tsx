@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { Field } from "@/components/ui/field";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -48,6 +49,7 @@ function ApprovalsInbox() {
   const [selected, setSelected] = useState<ApprovalRequest | null>(null);
   const [mode, setMode] = useState<"approve" | "reject">("approve");
   const [comment, setComment] = useState("");
+  const [commentError, setCommentError] = useState("");
 
   const rows = useMemo(() => {
     const scoped = projectFilter
@@ -66,13 +68,13 @@ function ApprovalsInbox() {
   );
 
   function openDecision(a: ApprovalRequest, m: "approve" | "reject") {
-    setSelected(a); setMode(m); setComment("");
+    setSelected(a); setMode(m); setComment(""); setCommentError("");
   }
 
   function confirm() {
     if (!selected) return;
     if (mode === "reject" && !comment.trim()) {
-      toast.error("A comment is required when rejecting");
+      setCommentError("A comment is required when rejecting.");
       return;
     }
     decideApproval(selected.id, currentUser.id, mode === "approve" ? "approved" : "rejected", comment.trim() || undefined);
@@ -266,12 +268,15 @@ function ApprovalsInbox() {
             <DialogTitle>{mode === "approve" ? "Approve request" : "Reject request"}</DialogTitle>
           </DialogHeader>
           <p className="text-xs text-muted-foreground">{selected?.title} · {selected?.projectName}</p>
-          <Textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder={mode === "approve" ? "Optional comment…" : "Reason for rejection (required)"}
-            className="min-h-24"
-          />
+          <Field label="Comment" htmlFor="approval-comment" required={mode === "reject"} error={commentError}>
+            <Textarea
+              id="approval-comment"
+              value={comment}
+              onChange={(e) => { setComment(e.target.value); setCommentError(""); }}
+              placeholder={mode === "approve" ? "Optional comment…" : "Reason for rejection"}
+              className="min-h-24"
+            />
+          </Field>
           <DialogFooter>
             <Button variant="outline" onClick={() => setSelected(null)}>Cancel</Button>
             <Button

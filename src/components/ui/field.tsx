@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 interface FieldProps {
   label?: string;
   htmlFor?: string;
+  required?: boolean;
   optional?: boolean;
   info?: string;
   hint?: string;
@@ -18,13 +19,21 @@ interface FieldProps {
   children: React.ReactNode;
 }
 
-export function Field({ label, htmlFor, optional, info, hint, error, className, children }: FieldProps) {
+export function Field({ label, htmlFor, required, optional, info, hint, error, className, children }: FieldProps) {
+  const errorId = htmlFor ? `${htmlFor}-error` : undefined;
+  const control = React.isValidElement<Record<string, unknown>>(children)
+    ? React.cloneElement(children, {
+        ...(error ? { "aria-invalid": true } : {}),
+        ...(errorId && error ? { "aria-describedby": errorId } : {}),
+      })
+    : children;
+
   return (
-    <div className={cn("space-y-1.5", className)}>
+    <div className={cn("space-y-1.5", className)} data-field-invalid={error ? "true" : undefined}>
       {label ? (
         <div className="flex items-center gap-1.5">
           <label htmlFor={htmlFor} className="text-xs font-semibold text-foreground">
-            {label}
+            {label}{required ? <span className="text-destructive" aria-hidden="true"> *</span> : null}
           </label>
           {optional ? <span className="text-[0.65rem] text-muted-foreground">(Optional)</span> : null}
           {info ? (
@@ -39,9 +48,9 @@ export function Field({ label, htmlFor, optional, info, hint, error, className, 
           ) : null}
         </div>
       ) : null}
-      {children}
+      {control}
       {error ? (
-        <p id={htmlFor ? `${htmlFor}-error` : undefined} className="text-[0.7rem]" style={{ color: "var(--field-error-fg)" }}>
+        <p id={errorId} role="alert" className="text-[0.7rem]" style={{ color: "var(--field-error-fg)" }}>
           {error}
         </p>
       ) : hint ? (

@@ -802,7 +802,7 @@ function NewBusinessCaseDialog() {
           <div className="col-span-2"><Label>Tags (optional)</Label><Input placeholder="Strategic, Compliance…" /></div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Save draft</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={() => { toast.success("Business Case submitted for review"); setOpen(false); }}>Submit</Button>
         </DialogFooter>
       </DialogContent>

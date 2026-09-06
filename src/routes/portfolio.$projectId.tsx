@@ -3420,6 +3420,12 @@ function AddMilestoneDialog({
                       ))}
                     </SelectContent>
                   </Select>
+                  {revenueLinkId && (
+                    <div className="mt-2 flex items-center justify-between rounded-md bg-secondary/30 px-2 py-1.5 text-xs">
+                      <span className="text-muted-foreground">Amount (read-only)</span>
+                      <span className="num-mono text-foreground">{findFinancialItem(revenueLinkId)?.amount ?? "—"}</span>
+                    </div>
+                  )}
                   {kind === "Task" && (
                     <p className="mt-1 text-[10px] text-muted-foreground">Revenue is normally mapped to major milestones.</p>
                   )}

@@ -3445,29 +3445,55 @@ function AddMilestoneDialog({
           {kind === "Task" && (
             <>
               <div>
-                <Label>Parent <span className="text-muted-foreground">(milestone or task — leave none for top level)</span></Label>
-                <Select value={parentName} onValueChange={setParentName}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent className="max-h-72">
-                    <SelectItem value="__none__">— None (top level) —</SelectItem>
-                    {parentOptions.filter((p) => p.kind === "Milestone").length > 0 && (
-                      <>
-                        <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">Milestones</div>
-                        {parentOptions.filter((p) => p.kind === "Milestone").map((m) => (
-                          <SelectItem key={`ms-${m.name}`} value={m.name}>◆ {m.name}</SelectItem>
-                        ))}
-                      </>
-                    )}
-                    {parentOptions.filter((p) => p.kind === "Task").length > 0 && (
-                      <>
-                        <div className="px-2 py-1 text-[10px] uppercase tracking-wide text-muted-foreground">Tasks</div>
-                        {parentOptions.filter((p) => p.kind === "Task").map((t) => (
-                          <SelectItem key={`tk-${t.name}`} value={t.name}>{t.name}</SelectItem>
-                        ))}
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
+                <Label>Place under</Label>
+                <div className="mt-1.5 flex flex-wrap gap-2">
+                  {([
+                    { id: "none", label: "None (top level)" },
+                    { id: "milestone", label: "Milestone" },
+                    { id: "task", label: "Task" },
+                  ] as const).map((opt) => {
+                    const active = parentMode === opt.id;
+                    const count = opt.id === "none" ? 1 : parentOptions.filter((p) => (opt.id === "milestone" ? p.kind === "Milestone" : p.kind === "Task")).length;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        disabled={count === 0}
+                        onClick={() => { setParentMode(opt.id); setParentName("__none__"); }}
+                        className={cn(
+                          "inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-sm transition-colors disabled:opacity-40",
+                          active ? "border-primary bg-primary/10 text-foreground" : "border-border text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        <span className={cn("grid h-4 w-4 place-items-center rounded-full border", active ? "border-primary" : "border-border")}>
+                          {active && <span className="h-2 w-2 rounded-full bg-primary" />}
+                        </span>
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {parentMode !== "none" && (
+                  <div className="mt-2">
+                    <Select value={parentName} onValueChange={setParentName}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={parentMode === "milestone" ? "Select a milestone…" : "Select a task…"} />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {parentOptions
+                          .filter((p) => (parentMode === "milestone" ? p.kind === "Milestone" : p.kind === "Task"))
+                          .map((p) => (
+                            <SelectItem key={`${parentMode}-${p.name}`} value={p.name}>
+                              {parentMode === "milestone" ? `◆ ${p.name}` : p.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
 
               <Field label="Start date" htmlFor="task-start-date" required error={errors.startDate}>

@@ -331,24 +331,18 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
         </div>
       )}
 
-      {(() => { const showDraft = !!draft && statusFilter !== "active" && view === "grid" && pagination.page === 1; return (
       <EmptyRegion id="portfolio-projects">
-      {list.length === 0 && !showDraft && (
+      {list.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-16 text-center">
           <Filter className="h-8 w-8 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">
-            {statusFilter === "draft" ? "No draft in progress." : "No projects match the current filters."}
-          </p>
+          <p className="text-sm text-muted-foreground">No projects match the current filters.</p>
           <button className="text-xs text-accent hover:underline" onClick={clearAll}>Clear all filters</button>
         </div>
       )}
 
-      {view === "grid" && (list.length > 0 || showDraft) && (
+      {view === "grid" && list.length > 0 && (
         <ProjectGrid
           items={pagination.pageItems}
-          draft={showDraft ? draft : null}
-          onResumeDraft={() => navigate({ to: "/portfolio/new" })}
-          onDiscardDraft={discardDraft}
           pendingByProject={pendingByProject}
           onEdit={(p) => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: p.id } })}
           onOpen={(p) => navigate({ to: "/portfolio/$projectId", params: { projectId: p.id } })}
@@ -358,7 +352,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
       {view === "gantt" && list.length > 0 && <GanttView items={list} />}
       {view !== "gantt" && list.length > 0 && <TablePagination {...pagination} itemLabel="projects" />}
       </EmptyRegion>
-      ); })()}
+
     </>
 
   );

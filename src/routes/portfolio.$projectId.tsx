@@ -19,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, Plus, AlertTriangle, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check } from "@/lib/icons";
+import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check } from "@/lib/icons";
 import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
@@ -3063,9 +3063,9 @@ function AddMilestoneDialog({
   // Single skill (one task = one assignee)
   const [skillRole, setSkillRole] = useState<RoleReq>({ role: "", skill: "Mid", fte: 1 });
   // Financial linking (items are defined in the Financials tab — here we only link)
-  const [linkType, setLinkType] = useState<"none" | "cost" | "revenue">("none");
-  const [costLinkIds, setCostLinkIds] = useState<string[]>([""]);
-  const [revenueLinkId, setRevenueLinkId] = useState<string>("");
+  // Costs and revenue can be linked together on the same item, several of each.
+  const [costLinkIds, setCostLinkIds] = useState<string[]>([]);
+  const [revenueLinkIds, setRevenueLinkIds] = useState<string[]>([]);
 
 
   // Milestone approval workflow
@@ -3112,7 +3112,7 @@ function AddMilestoneDialog({
     setStartDate(""); setEndMode("duration"); setTaskEndDate("");
     setDurationValue(1); setDurationUnit("days"); setWeightScore(1);
     setSkillRole({ role: "", skill: "Mid", fte: 1 });
-    setLinkType("none"); setCostLinkIds([""]); setRevenueLinkId("");
+    setCostLinkIds([]); setRevenueLinkIds([]);
     setRequiresApproval(false); setSelectedApprovers([]);
   }
 
@@ -3142,18 +3142,9 @@ function AddMilestoneDialog({
       setWeightScore(editingItem.weightScore ?? 1);
       const r = editingItem.roles?.[0];
       setSkillRole(r ? { role: r.role, skill: r.skill, fte: r.fte } : { role: "", skill: "Mid", fte: 1 });
-      const p = editingItem.payment;
-      if (p?.kind === "Client Revenue") {
-        setLinkType("revenue");
-        setRevenueLinkId(p.packageId ?? "");
-        setCostLinkIds([""]);
-      } else if (p?.kind === "Package Cost") {
-        setLinkType("cost");
-        setRevenueLinkId("");
-        setCostLinkIds([p.packageId ?? "", ...(editingItem.extraPayments ?? []).map((x) => x.packageId ?? "")]);
-      } else {
-        setLinkType("none"); setRevenueLinkId(""); setCostLinkIds([""]);
-      }
+      const allLinks = [editingItem.payment, ...(editingItem.extraPayments ?? [])].filter(Boolean) as PaymentLink[];
+      setCostLinkIds(allLinks.filter((l) => l.kind === "Package Cost" && l.packageId).map((l) => l.packageId!));
+      setRevenueLinkIds(allLinks.filter((l) => l.kind === "Client Revenue" && l.packageId).map((l) => l.packageId!));
 
       setRequiresApproval(editingItem.requiresApproval ?? false);
       setSelectedApprovers(editingItem.approvers?.map((a) => a.id) ?? []);
@@ -3189,28 +3180,29 @@ function AddMilestoneDialog({
     FINANCIAL_CATALOG.cost.filter(
       (i) => i.id === currentId || (!linkedElsewhere.has(i.id) && !costLinkIds.includes(i.id)),
     );
-  const availableRevenueItems = FINANCIAL_CATALOG.revenue.filter(
-    (i) => i.id === revenueLinkId || !linkedElsewhere.has(i.id),
-  );
+  const availableRevenueItems = (currentId: string) =>
+    FINANCIAL_CATALOG.revenue.filter(
+      (i) => i.id === currentId || (!linkedElsewhere.has(i.id) && !revenueLinkIds.includes(i.id)),
+    );
 
 
   function buildPayments(): { payment: PaymentLink; extras: PaymentLink[] } {
-    if (linkType === "revenue" && revenueLinkId) {
-      const item = findFinancialItem(revenueLinkId);
-      return { payment: { kind: "Client Revenue", packageId: revenueLinkId, amount: item?.amount ?? "" }, extras: [] };
-    }
-    if (linkType === "cost") {
-      const ids = costLinkIds.filter(Boolean);
-      if (ids.length) {
-        const links = ids.map((id) => ({
-          kind: "Package Cost" as PaymentLinkKind,
-          packageId: id,
-          amount: findFinancialItem(id)?.amount ?? "",
-        }));
-        return { payment: links[0], extras: links.slice(1) };
-      }
-    }
-    return { payment: { kind: "None", amount: "" }, extras: [] };
+    const links: PaymentLink[] = [
+      ...costLinkIds.filter(Boolean).map((id) => ({
+        kind: "Package Cost" as PaymentLinkKind,
+        packageId: id,
+        amount: findFinancialItem(id)?.amount ?? "",
+      })),
+      ...revenueLinkIds.filter(Boolean).map((id) => ({
+        kind: "Client Revenue" as PaymentLinkKind,
+        packageId: id,
+        amount: findFinancialItem(id)?.amount ?? "",
+      })),
+    ];
+    if (!links.length) return { payment: { kind: "None", amount: "" }, extras: [] };
+    // Revenue leads when present so milestone-level revenue recognition keeps working.
+    const revenueFirst = [...links].sort((a, b) => (a.kind === "Client Revenue" ? -1 : 0) - (b.kind === "Client Revenue" ? -1 : 0));
+    return { payment: revenueFirst[0], extras: revenueFirst.slice(1) };
   }
 
 
@@ -3543,7 +3535,7 @@ function AddMilestoneDialog({
           )}
 
           <div className="grid grid-cols-2 gap-2">
-            <div><Label>Owner</Label><Input value={owner} onChange={(e) => setOwner(e.target.value)} /></div>
+
             {isEditing ? (
               <div>
                 <Label>Status</Label>
@@ -3577,98 +3569,94 @@ function AddMilestoneDialog({
 
           {/* Financial links — only when editing details (kept out of quick add) */}
           {isEditing && (
-            <div className="rounded-md border border-border p-3 space-y-2">
-              <Label className="text-sm">Financial Link</Label>
-              <p className="text-xs text-muted-foreground">
-                Link this item to financial items defined in the Financials tab. Amounts and categories are managed there.
-              </p>
+            <div className="rounded-md border border-border p-3 space-y-4">
               <div>
-                <Label className="text-xs text-muted-foreground">Financial type</Label>
-                <Select
-                  value={linkType}
-                  onValueChange={(v) => {
-                    setLinkType(v as typeof linkType);
-                    setCostLinkIds([""]);
-                    setRevenueLinkId("");
-                  }}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="cost">Cost</SelectItem>
-                    <SelectItem value="revenue">Revenue</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm">Financial Link</Label>
+                <p className="text-xs text-muted-foreground">
+                  Link this item to financial items defined in the Financials tab. Costs and revenue can be linked together, and you can add several of each. Amounts and categories are managed there.
+                </p>
               </div>
 
-              {linkType === "revenue" && (
-                <div>
-                  <Label className="text-xs text-muted-foreground">Revenue item (unlinked only)</Label>
-                  <Select value={revenueLinkId} onValueChange={setRevenueLinkId}>
-                    <SelectTrigger><SelectValue placeholder="Select revenue item" /></SelectTrigger>
-                    <SelectContent>
-                      {availableRevenueItems.map((i) => (
-                        <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {revenueLinkId && (
-                    <div className="mt-2 flex items-center justify-between rounded-md bg-secondary/30 px-2 py-1.5 text-xs">
-                      <span className="text-muted-foreground">Amount (read-only)</span>
-                      <span className="num-mono text-foreground">{findFinancialItem(revenueLinkId)?.amount ?? "—"}</span>
+              {/* Costs */}
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Cost items (unlinked only)</Label>
+                {costLinkIds.length === 0 && (
+                  <p className="text-[10px] text-muted-foreground">No cost linked yet.</p>
+                )}
+                {costLinkIds.map((id, idx) => (
+                  <div key={`cost-${idx}`} className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <Select
+                        value={id}
+                        onValueChange={(v) => setCostLinkIds((prev) => prev.map((x, i) => (i === idx ? v : x)))}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select cost item" /></SelectTrigger>
+                        <SelectContent>
+                          {availableCostItems(id).map((i) => (
+                            <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  )}
-                  {kind === "Task" && (
-                    <p className="mt-1 text-[10px] text-muted-foreground">Revenue is normally mapped to major milestones.</p>
-                  )}
-                </div>
-              )}
+                    <span className="num-mono w-24 shrink-0 text-right text-xs text-foreground">
+                      {findFinancialItem(id)?.amount ?? "—"}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remove cost link"
+                      onClick={() => setCostLinkIds((prev) => prev.filter((_, i) => i !== idx))}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => setCostLinkIds((prev) => [...prev, ""])}>
+                  <Plus className="mr-1 h-3.5 w-3.5" />Add Cost
+                </Button>
+              </div>
 
-              {linkType === "cost" && (
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Cost items (unlinked only)</Label>
-                  {costLinkIds.map((id, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <div className="flex-1">
-                        <Select
-                          value={id}
-                          onValueChange={(v) => setCostLinkIds((prev) => prev.map((x, i) => (i === idx ? v : x)))}
-                        >
-                          <SelectTrigger><SelectValue placeholder="Select cost item" /></SelectTrigger>
-                          <SelectContent>
-                            {availableCostItems(id).map((i) => (
-                              <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      {costLinkIds.length > 1 && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setCostLinkIds((prev) => prev.filter((_, i) => i !== idx))}
-                        >
-                          Remove
-                        </Button>
-                      )}
+              {/* Revenue */}
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Revenue items (unlinked only)</Label>
+                {revenueLinkIds.length === 0 && (
+                  <p className="text-[10px] text-muted-foreground">No revenue linked yet.</p>
+                )}
+                {revenueLinkIds.map((id, idx) => (
+                  <div key={`rev-${idx}`} className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <Select
+                        value={id}
+                        onValueChange={(v) => setRevenueLinkIds((prev) => prev.map((x, i) => (i === idx ? v : x)))}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select revenue item" /></SelectTrigger>
+                        <SelectContent>
+                          {availableRevenueItems(id).map((i) => (
+                            <SelectItem key={i.id} value={i.id}>{i.label} · {i.amount}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ))}
-                  <Button variant="outline" size="sm" onClick={() => setCostLinkIds((prev) => [...prev, ""])}>
-                    <Plus className="mr-1 h-3.5 w-3.5" />Add Cost
-                  </Button>
-                  {costLinkIds.filter(Boolean).length > 0 && (
-                    <div className="space-y-1 rounded-md bg-secondary/30 px-2 py-1.5 text-xs">
-                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Amounts (read-only)</div>
-                      {costLinkIds.filter(Boolean).map((id) => (
-                        <div key={id} className="flex items-center justify-between">
-                          <span className="text-muted-foreground">{findFinancialItem(id)?.label ?? id}</span>
-                          <span className="num-mono text-foreground">{findFinancialItem(id)?.amount ?? "—"}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                    <span className="num-mono w-24 shrink-0 text-right text-xs text-foreground">
+                      {findFinancialItem(id)?.amount ?? "—"}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Remove revenue link"
+                      onClick={() => setRevenueLinkIds((prev) => prev.filter((_, i) => i !== idx))}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => setRevenueLinkIds((prev) => [...prev, ""])}>
+                  <Plus className="mr-1 h-3.5 w-3.5" />Add Revenue
+                </Button>
+                {kind === "Task" && (
+                  <p className="text-[10px] text-muted-foreground">Revenue is normally mapped to major milestones.</p>
+                )}
+              </div>
             </div>
           )}
 

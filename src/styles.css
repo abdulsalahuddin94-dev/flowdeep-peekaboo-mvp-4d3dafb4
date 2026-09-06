@@ -1169,8 +1169,12 @@
    Figma: Design System — NERA · Form Elements
    States: default · hover · focused · filled · disabled · error */
 :root {
-  --field-bg:            var(--p-neutral-800);   /* Input fields · Gray 800 */
-  --field-bg-filled:     var(--p-neutral-700);   /* Tags · Gray 700 */
+  /* Field fill = #1D1D1F (Gray 800) for every state.
+     The previous filled state used #282A30 (Gray 700) — the DS02 v2.6 update
+     unifies default + filled backgrounds so an input never changes colour once
+     a value is entered. Chips/tags keep Gray 700 via --field-chip-bg. */
+  --field-bg:            var(--p-neutral-800);   /* #1D1D1F · Input fill (default) */
+  --field-bg-filled:     var(--p-neutral-800);   /* #1D1D1F · Input fill (filled) */
   --field-bg-disabled:   var(--p-neutral-900);
   --field-fg:            var(--p-white);
   --field-placeholder:   var(--p-neutral-500);   /* Placeholder · Gray 500 */
@@ -1182,7 +1186,7 @@
   --field-ring-error:    var(--p-red-a-20);
   --field-error-fg:      var(--p-red-400);
   --field-hint-fg:       var(--p-neutral-400);
-  --field-chip-bg:       var(--p-neutral-700);
+  --field-chip-bg:       var(--p-neutral-700);   /* #282A30 · chips/tags only */
   --field-chip-fg:       var(--p-neutral-100);
 }
 

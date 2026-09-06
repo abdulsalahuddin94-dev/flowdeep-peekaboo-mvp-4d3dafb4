@@ -3129,6 +3129,7 @@ function AddMilestoneDialog({
       setLagDays(editingItem.lagDays ?? 0);
       setEndDate(editingItem.endDate || "");
       setParentName(editingItem.parent ?? "__none__");
+      setParentMode(modeForParent(editingItem.parent));
       setStartDate(editingItem.startDate || "");
       setTaskEndDate(editingItem.endDate || "");
       if (editingItem.durationValue && editingItem.durationUnit) {

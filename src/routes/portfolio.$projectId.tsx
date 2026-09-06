@@ -3518,9 +3518,8 @@ function AddMilestoneDialog({
             </>
           )}
 
-          <div className="grid grid-cols-2 gap-2">
-
-            {isEditing ? (
+          {isEditing && (
+            <div className="grid grid-cols-2 gap-2">
               <div>
                 <Label>Status</Label>
                 <Select
@@ -3542,14 +3541,8 @@ function AddMilestoneDialog({
                   </SelectContent>
                 </Select>
               </div>
-            ) : (
-              <div>
-                <Label>Status</Label>
-                <Input value="Not Started" readOnly disabled />
-                <p className="mt-1 text-[10px] text-muted-foreground">New items always start as Not Started.</p>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Financial links — only when editing details (kept out of quick add) */}
           {isEditing && (

@@ -3142,18 +3142,9 @@ function AddMilestoneDialog({
       setWeightScore(editingItem.weightScore ?? 1);
       const r = editingItem.roles?.[0];
       setSkillRole(r ? { role: r.role, skill: r.skill, fte: r.fte } : { role: "", skill: "Mid", fte: 1 });
-      const p = editingItem.payment;
-      if (p?.kind === "Client Revenue") {
-        setLinkType("revenue");
-        setRevenueLinkId(p.packageId ?? "");
-        setCostLinkIds([""]);
-      } else if (p?.kind === "Package Cost") {
-        setLinkType("cost");
-        setRevenueLinkId("");
-        setCostLinkIds([p.packageId ?? "", ...(editingItem.extraPayments ?? []).map((x) => x.packageId ?? "")]);
-      } else {
-        setLinkType("none"); setRevenueLinkId(""); setCostLinkIds([""]);
-      }
+      const allLinks = [editingItem.payment, ...(editingItem.extraPayments ?? [])].filter(Boolean) as PaymentLink[];
+      setCostLinkIds(allLinks.filter((l) => l.kind === "Package Cost" && l.packageId).map((l) => l.packageId!));
+      setRevenueLinkIds(allLinks.filter((l) => l.kind === "Client Revenue" && l.packageId).map((l) => l.packageId!));
 
       setRequiresApproval(editingItem.requiresApproval ?? false);
       setSelectedApprovers(editingItem.approvers?.map((a) => a.id) ?? []);

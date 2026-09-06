@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,6 +59,16 @@ export type FormState = {
 };
 
 type FormErrors = Partial<Record<"name" | "client", string>>;
+
+const projectRequiredFieldsSchema = z.object({
+  projectType: z.enum(["capital", "commercial"]),
+  name: z.string().trim().min(1, "Project Name is required.").max(120, "Project Name must be 120 characters or less."),
+  client: z.string().trim().max(120, "Client must be 120 characters or less."),
+}).superRefine((value, context) => {
+  if (value.projectType === "commercial" && (!value.client || value.client === "Internal")) {
+    context.addIssue({ code: "custom", path: ["client"], message: "Client is required." });
+  }
+});
 
 function emptyForm(calendarId: string): FormState {
   return {
@@ -192,15 +203,21 @@ export function ProjectFormPage({ project }: { project?: Project }) {
 
   function handleSubmit() {
     if (!form.projectType) return;
-    const nextErrors: FormErrors = {};
-    if (!form.name.trim()) nextErrors.name = "Project Name is required.";
-    if (form.projectType === "commercial" && (!form.client || form.client === "Internal")) {
-      nextErrors.client = "Client is required.";
-    }
-    if (Object.keys(nextErrors).length > 0) {
+    const result = projectRequiredFieldsSchema.safeParse(form);
+    if (!result.success) {
+      const flattened = result.error.flatten().fieldErrors;
+      const nextErrors: FormErrors = {
+        name: flattened.name?.[0],
+        client: flattened.client?.[0],
+      };
       setErrors(nextErrors);
       const firstInvalidId = nextErrors.name ? "project-name" : "project-client";
-      requestAnimationFrame(() => document.getElementById(firstInvalidId)?.focus());
+      requestAnimationFrame(() => {
+        const field = document.getElementById(firstInvalidId);
+        if (field instanceof HTMLElement) {
+          (field.matches("input, button") ? field : field.querySelector<HTMLElement>("input, button"))?.focus();
+        }
+      });
       return;
     }
     const finalClient = form.projectType === "capital" ? "Internal" : form.client || "Internal";

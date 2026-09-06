@@ -2661,6 +2661,9 @@ type Milestone = {
   name: string; kind: ItemKind; startDate: string; endDate: string;
   owner: string; rag: Rag; dep: string; roles: RoleReq[];
   payment?: PaymentLink; progress?: number; parent?: string;
+  /** Additional cost links (a task can carry several cost items). */
+  extraPayments?: PaymentLink[];
+
   assignee?: string;
   lagDays?: number;              // milestone only — buffer added after last child
   milestoneType?: MilestoneType; // milestone only — "start" | "finish" (visual)

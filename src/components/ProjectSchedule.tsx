@@ -1178,12 +1178,20 @@ export function ProjectSchedule({
                               {ragOptions.map((r) => (
                                 <DropdownMenuItem
                                   key={r}
-                                  onClick={() => patch(item.name, { rag: r })}
+                                  onClick={() => {
+                                    // "In Progress" requires a positive progress value.
+                                    if (r === "amber" && (item.progress ?? 0) <= 0) {
+                                      toast.error("Add progress above 0% before setting In Progress");
+                                      return;
+                                    }
+                                    patch(item.name, { rag: r });
+                                  }}
                                   className="gap-2"
                                 >
                                   <RagBadge rag={r} label={statusText[r]} />
                                 </DropdownMenuItem>
                               ))}
+
                             </DropdownMenuContent>
                           </DropdownMenu>
                         ) : (

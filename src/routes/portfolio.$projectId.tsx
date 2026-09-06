@@ -3112,7 +3112,7 @@ function AddMilestoneDialog({
     setStartDate(""); setEndMode("duration"); setTaskEndDate("");
     setDurationValue(1); setDurationUnit("days"); setWeightScore(1);
     setSkillRole({ role: "", skill: "Mid", fte: 1 });
-    setLinkType("none"); setCostLinkIds([""]); setRevenueLinkId("");
+    setCostLinkIds([]); setRevenueLinkIds([]);
     setRequiresApproval(false); setSelectedApprovers([]);
   }
 

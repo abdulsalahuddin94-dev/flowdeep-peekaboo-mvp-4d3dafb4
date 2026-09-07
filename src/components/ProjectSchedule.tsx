@@ -1783,7 +1783,7 @@ export function ProjectSchedule({
               onClick={() => {
                 if (pendingDelete) {
                   onDeleteItem?.(pendingDelete);
-                  toast.success(`Deleted "${pendingDelete}"`);
+                  toast.done("Schedule item", "deleted");
                 }
                 setPendingDelete(null);
               }}

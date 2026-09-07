@@ -195,7 +195,7 @@ function BusinessLinesTab() {
               const name = editing.name.trim();
               if (!name) { toast.error("Name is required"); return; }
               setRows((prev) => prev.map((r, idx) => idx === editing.index ? { ...r, name, description: editing.description.trim() } : r));
-              toast.success("Project Type updated");
+              toast.done("Project Type", "updated");
               setEditing(null);
             }}>Save</Button>
           </DialogFooter>
@@ -208,7 +208,7 @@ function BusinessLinesTab() {
         onConfirm={() => {
           if (!pendingDelete) return;
           setRows((prev) => prev.filter((_, idx) => idx !== pendingDelete.index));
-          toast.success(`Deleted "${pendingDelete.name}"`);
+          toast.done("Project Type", "deleted");
           setPendingDelete(null);
         }}
       />
@@ -220,7 +220,7 @@ function BusinessLinesTab() {
         onConfirm={() => {
           if (!pendingToggle) return;
           setActive(pendingToggle.name, !pendingToggle.active);
-          toast.success(`"${pendingToggle.name}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          toast.done("Project Type", pendingToggle.active ? "deactivated" : "activated");
           setPendingToggle(null);
         }}
       />
@@ -322,7 +322,7 @@ function DepartmentsTab() {
               const name = editing.name.trim();
               if (!name) { toast.error("Name is required"); return; }
               setRows((prev) => prev.map((r, idx) => idx === editing.index ? { name, description: editing.description.trim() } : r));
-              toast.success("Department updated");
+              toast.done("Department", "updated");
               setEditing(null);
             }}>Save</Button>
           </DialogFooter>
@@ -335,7 +335,7 @@ function DepartmentsTab() {
         onConfirm={() => {
           if (!pendingDelete) return;
           setRows((prev) => prev.filter((_, idx) => idx !== pendingDelete.index));
-          toast.success(`Deleted "${pendingDelete.name}"`);
+          toast.done("Department", "deleted");
           setPendingDelete(null);
         }}
       />
@@ -347,7 +347,7 @@ function DepartmentsTab() {
         onConfirm={() => {
           if (!pendingToggle) return;
           setActive(pendingToggle.name, !pendingToggle.active);
-          toast.success(`"${pendingToggle.name}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          toast.done("Department", pendingToggle.active ? "deactivated" : "activated");
           setPendingToggle(null);
         }}
       />
@@ -487,7 +487,7 @@ function TagsTab() {
               const name = editing.name.trim();
               if (!name) { toast.error("Tag name is required"); return; }
               updateTag(editing.original, { name, color: editing.color });
-              toast.success("Tag updated");
+              toast.done("Tag", "updated");
               setEditing(null);
             }}>Save</Button>
           </DialogFooter>
@@ -500,7 +500,7 @@ function TagsTab() {
         onConfirm={() => {
           if (!pendingDelete) return;
           removeTag(pendingDelete);
-          toast.success(`Deleted "${pendingDelete}"`);
+          toast.done("Tag", "deleted");
           setPendingDelete(null);
         }}
       />
@@ -512,7 +512,7 @@ function TagsTab() {
         onConfirm={() => {
           if (!pendingToggle) return;
           setActive(pendingToggle.name, !pendingToggle.active);
-          toast.success(`"${pendingToggle.name}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          toast.done("Tag", pendingToggle.active ? "deactivated" : "activated");
           setPendingToggle(null);
         }}
       />
@@ -583,7 +583,7 @@ function AddBusinessLineDialog({ onAdd }: { onAdd: (name: string, description: s
             const trimmed = name.trim();
             if (!trimmed) { toast.error("Name is required"); return; }
             onAdd(trimmed, description.trim());
-            toast.success("Project Type created");
+            toast.done("Project Type", "created");
             setName(""); setDescription(""); setOpen(false);
           }}>Save</Button>
         </DialogFooter>
@@ -611,7 +611,7 @@ function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, description: str
             const trimmed = name.trim();
             if (!trimmed) { toast.error("Name is required"); return; }
             onAdd(trimmed, description.trim());
-            toast.success("Department created");
+            toast.done("Department", "created");
             setName(""); setDescription(""); setOpen(false);
           }}>Save</Button>
         </DialogFooter>
@@ -757,7 +757,7 @@ function CalendarsTab() {
       return;
     }
     removeCalendar(calendar.id);
-    toast.success(`Calendar "${calendar.name}" deleted`);
+    toast.done("Calendar", "deleted");
   }
 
   return (
@@ -842,7 +842,7 @@ function CalendarsTab() {
         onConfirm={() => {
           if (!pendingToggle) return;
           updateCalendar(pendingToggle.id, { active: !pendingToggle.active });
-          toast.success(`"${pendingToggle.name}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          toast.done("Calendar", pendingToggle.active ? "deactivated" : "activated");
           setPendingToggle(null);
         }}
       />
@@ -908,15 +908,15 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
           { name: name.trim(), workingDays, hoursPerDay, holidays },
           diffs,
         );
-        toast.success("Calendar updated");
+        toast.done("Calendar", "updated");
         onOpenChange(false);
         return;
       }
       updateCalendar(calendar.id, { name: name.trim(), workingDays, hoursPerDay, holidays });
-      toast.success("Calendar updated");
+      toast.done("Calendar", "updated");
     } else {
       addCalendar({ id: `cal-${Date.now()}`, name: name.trim(), workingDays, hoursPerDay, holidays });
-      toast.success(`Calendar "${name.trim()}" created`);
+      toast.done("Calendar", "created");
     }
     onOpenChange(false);
   }
@@ -1129,7 +1129,7 @@ function CostCategoriesTab() {
               const number = editing.number.trim();
               if (!name || !number) { toast.error("Name and ID are required"); return; }
               setCategories((prev) => prev.map((c) => c.id === editing.id ? { ...editing, name, number, description: editing.description.trim() } : c));
-              toast.success("Cost Category updated");
+              toast.done("Cost Category", "updated");
               setEditing(null);
             }}>Save</Button>
           </DialogFooter>
@@ -1142,7 +1142,7 @@ function CostCategoriesTab() {
         onConfirm={() => {
           if (!pendingDelete) return;
           setCategories((prev) => prev.filter((c) => c.id !== pendingDelete.id));
-          toast.success(`Deleted "${pendingDelete.name}"`);
+          toast.done("Cost Category", "deleted");
           setPendingDelete(null);
         }}
       />
@@ -1154,7 +1154,7 @@ function CostCategoriesTab() {
         onConfirm={() => {
           if (!pendingToggle) return;
           setActive(pendingToggle.id, !pendingToggle.active);
-          toast.success(`"${pendingToggle.name}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          toast.done("Cost Category", pendingToggle.active ? "deactivated" : "activated");
           setPendingToggle(null);
         }}
       />
@@ -1176,7 +1176,7 @@ function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }
     const numTrimmed = number.trim();
     if (!trimmed || !numTrimmed) { toast.error("Name and ID are required"); return; }
     onAdd({ id: `cat-${Date.now()}`, name: trimmed, number: numTrimmed, description: description.trim(), type });
-    toast.success(`Cost Category "${trimmed}" created`);
+    toast.done("Cost Category", "created");
     setName("");
     setNumber("");
     setDescription("");
@@ -1294,7 +1294,7 @@ function SkillsTable() {
         cta={<AddSkillDialog onAdd={(s) => {
           if (skillsCatalog.some((x) => x.toLowerCase() === s.toLowerCase())) { toast.error(`"${s}" already exists`); return false; }
           addSkill(s);
-          toast.success(`Skill "${s}" added`);
+          toast.done("Skill", "created");
           return true;
         }} />}
         filterGroups={[usageGroup(usage, setUsage), statusGroup(status, setStatus)]}
@@ -1352,7 +1352,7 @@ function SkillsTable() {
               const v = editing.value.trim();
               if (!v) { toast.error("Skill name is required"); return; }
               updateSkill(editing.original, v);
-              toast.success("Skill updated");
+              toast.done("Skill", "updated");
               setEditing(null);
             }}>Save</Button>
           </DialogFooter>
@@ -1369,7 +1369,7 @@ function SkillsTable() {
         onConfirm={() => {
           if (!pendingDelete) return;
           removeSkill(pendingDelete);
-          toast.success(`Deleted "${pendingDelete}"`);
+          toast.done("Skill", "deleted");
           setPendingDelete(null);
         }}
       />
@@ -1381,7 +1381,7 @@ function SkillsTable() {
         onConfirm={() => {
           if (!pendingToggle) return;
           setActive(pendingToggle.name, !pendingToggle.active);
-          toast.success(`"${pendingToggle.name}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          toast.done("Skill", pendingToggle.active ? "deactivated" : "activated");
           setPendingToggle(null);
         }}
       />
@@ -1552,7 +1552,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
               const t = editing.title.trim();
               if (!t) { toast.error("Role title is required"); return; }
               updateJobRole(editing.id, t, editing.skills);
-              toast.success("Job Role updated");
+              toast.done("Job Role", "updated");
               setEditing(null);
             }}>Save</Button>
           </DialogFooter>
@@ -1570,7 +1570,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
             <Button className="bg-rag-red text-white hover:bg-rag-red/90" onClick={() => {
               if (!pendingDelete) return;
               removeJobRole(pendingDelete.id);
-              toast.success(`Deleted "${pendingDelete.title}"`);
+              toast.done("Job Role", "deleted");
               setPendingDelete(null);
             }}>Delete</Button>
           </DialogFooter>
@@ -1584,7 +1584,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         onConfirm={() => {
           if (!pendingToggle) return;
           setActive(pendingToggle.id, !pendingToggle.active);
-          toast.success(`"${pendingToggle.title}" ${pendingToggle.active ? "deactivated" : "activated"}`);
+          toast.done("Job Role", pendingToggle.active ? "deactivated" : "activated");
           setPendingToggle(null);
         }}
       />

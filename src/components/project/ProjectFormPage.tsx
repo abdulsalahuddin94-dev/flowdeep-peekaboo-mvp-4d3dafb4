@@ -238,7 +238,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
         ...(form.startDate ? { startDate: startDateLabel } : {}),
         ...(form.endDate ? { endDate: endDateLabel } : {}),
       });
-      toast.success(`Project "${form.name.trim()}" updated`);
+      toast.done("Project", "updated");
       finish();
       return;
     }
@@ -265,7 +265,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
       ragNote: "New",
       calendarId: form.calendarId || undefined,
     });
-    toast.success(`Project "${form.name.trim()}" created`);
+    toast.done("Project", "created");
     finish();
   }
 

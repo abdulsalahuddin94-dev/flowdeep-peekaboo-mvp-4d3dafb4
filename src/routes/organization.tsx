@@ -1461,7 +1461,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         resultCount={visible.length}
         totalCount={jobRoles.length}
         onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); setSelectedSkills([]); }}
-        cta={<AddJobRoleDialog hasSkills={skillsCatalog.length > 0} onGoToSkills={onGoToSkills} onAdd={(title, skills) => { addJobRole(title, skills); toast.success(`Job Role "${title}" created`); }} />}
+        cta={<AddJobRoleDialog hasSkills={skillsCatalog.length > 0} onGoToSkills={onGoToSkills} onAdd={(title, skills) => { addJobRole(title, skills); toast.done("Job Role", "created"); }} />}
         filterGroups={[
           relatedProjectsGroup(related, setRelated),
           skillsGroup(selectedSkills, setSelectedSkills, skillsCatalog),

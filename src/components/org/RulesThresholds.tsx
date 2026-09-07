@@ -46,7 +46,7 @@ export function RulesThresholdsTab() {
   function save() {
     saveOrgRules(rules);
     setDirty(false);
-    toast.success("Rules & thresholds saved");
+    toast.done("Rules & thresholds", "saved");
   }
 
   function reset() {

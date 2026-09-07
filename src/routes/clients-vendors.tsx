@@ -195,7 +195,7 @@ function ClientsTab() {
         tone="danger"
         onConfirm={() => {
           setRows((prev) => prev.filter((r) => r.name !== pendingDelete));
-          toast.success(`Deleted "${pendingDelete}"`);
+          toast.done("Client", "deleted");
           setPendingDelete(null);
         }}
       />
@@ -212,7 +212,7 @@ function ClientsTab() {
         onConfirm={() => {
           if (!pendingToggle) return;
           setActive(pendingToggle.name, !pendingToggle.active);
-          toast.success(`${pendingToggle.name} ${pendingToggle.active ? "deactivated" : "reactivated"}`);
+          toast.done("Client", pendingToggle.active ? "deactivated" : "activated");
           setPendingToggle(null);
         }}
       />
@@ -320,7 +320,7 @@ function VendorsTab() {
         tone="danger"
         onConfirm={() => {
           setRows((prev) => prev.filter((r) => r.name !== pendingDelete));
-          toast.success(`Deleted "${pendingDelete}"`);
+          toast.done("Vendor", "deleted");
           setPendingDelete(null);
         }}
       />
@@ -337,7 +337,7 @@ function VendorsTab() {
         onConfirm={() => {
           if (!pendingToggle) return;
           setActive(pendingToggle.name, !pendingToggle.active);
-          toast.success(`${pendingToggle.name} ${pendingToggle.active ? "deactivated" : "reactivated"}`);
+          toast.done("Vendor", pendingToggle.active ? "deactivated" : "activated");
           setPendingToggle(null);
         }}
       />
@@ -587,7 +587,7 @@ function ClientFormDialog({
       revenue: client?.revenue ?? 0,
       status: client?.status ?? "Active",
     });
-    toast.success(`${name.trim()} ${isEdit ? "updated" : "added"}`);
+    toast.done("Client", isEdit ? "updated" : "created");
     setOpen(false);
     if (!isEdit) {
       setName(""); setContact(""); setEmail(""); setPhone("");
@@ -673,7 +673,7 @@ function VendorFormDialog({
       spend: vendor?.spend ?? 0,
       eval: vendor?.eval ?? 0,
     });
-    toast.success(`${name.trim()} ${isEdit ? "updated" : "added to vendor pool"}`);
+    toast.done("Vendor", isEdit ? "updated" : "created");
     setOpen(false);
     if (!isEdit) { setName(""); setType("vendor"); setCategory(""); setNotes(""); }
   }

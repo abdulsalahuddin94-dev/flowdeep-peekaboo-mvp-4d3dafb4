@@ -571,7 +571,7 @@ function ProjectDetail() {
               onConfirm={() => {
                 if (blockReason) { toast.error(blockReason); return; }
                 removeProject(project.id);
-                toast.success("Project deleted");
+                toast.done("Project", "deleted");
                 navigate({ to: "/portfolio" });
               }}
             />
@@ -2642,7 +2642,7 @@ function EditRevenueRowDialog({
           <Button
             variant="ghost"
             className="text-rag-red hover:text-rag-red"
-            onClick={() => { onDelete(); setOpen(false); toast.success("Revenue line removed"); }}
+            onClick={() => { onDelete(); setOpen(false); toast.done("Revenue line", "deleted"); }}
           >
             Delete
           </Button>
@@ -2659,7 +2659,7 @@ function EditRevenueRowDialog({
                   act: a != null && isNaN(a) ? null : a,
                 });
                 setOpen(false);
-                toast.success("Revenue line updated");
+                toast.done("Revenue line", "updated");
               }}
             >
               Save changes
@@ -3295,10 +3295,10 @@ function AddMilestoneDialog({
       const patch = newItems[0];
       // Drop fields that don't apply to the original kind switch (keep computed)
       onUpdateExisting(editingItem.name, patch);
-      toast.success(`${kind} updated`);
+      toast.done(kind, "updated");
     } else {
       onAdd(newItems);
-      toast.success(`${kind} added`);
+      toast.done(kind, "created");
     }
     setOpen(false);
     reset();
@@ -4201,7 +4201,7 @@ function StakeholdersTab() {
   function submit() {
     if (!name.trim()) { toast.error("Name is required"); return; }
     setItems((prev) => [...prev, { name: name.trim(), org: org || "—", influence, interest, strategy: strategy || "—" }]);
-    toast.success("Stakeholder added");
+    toast.done("Stakeholder", "created");
     setOpen(false); setName(""); setOrg(""); setStrategy("");
   }
 
@@ -4410,7 +4410,7 @@ function CostCategoriesList({
                         if (!newName.trim() || isNaN(amt)) { toast.error("Item name and amount are required"); return; }
                         onUpdate(idx, { breakdown: [...bd, { name: newName.trim(), amount: amt }] });
                         setNewName(""); setNewAmount("");
-                        toast.success("Breakdown item added");
+                        toast.done("Breakdown item", "created");
                       }}
                     >
                       <Plus className="mr-1 h-3 w-3" />Add
@@ -4478,7 +4478,7 @@ function AddFinanceLinkDialog({
         ctype, classification: capex,
         linkKind, linkRef, breakdown: [],
       });
-      toast.success("Cost link added");
+      toast.done("Cost link", "created");
     } else {
       onAddRevenue({
         ms: linkKind === "milestone" ? linkMs : (desc.trim() || "Revenue"),
@@ -4488,7 +4488,7 @@ function AddFinanceLinkDialog({
         s: "blue", sl: "Planned", act: null,
         linkKind,
       });
-      toast.success("Revenue link added");
+      toast.done("Revenue link", "created");
     }
     setOpen(false);
     reset();
@@ -4631,7 +4631,7 @@ function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
     const b = parseFloat(budget); const a = parseFloat(actual || "0");
     if (isNaN(b)) { toast.error("Budget must be a number"); return; }
     onAdd({ c: cat.trim(), b, a: isNaN(a) ? 0 : a, color: COST_COLORS[cat] ?? "bg-muted-foreground" });
-    toast.success("Cost entry added");
+    toast.done("Cost entry", "created");
     setOpen(false);
     setCat(""); setBudget(""); setActual(""); setDesc(""); setType("internal"); setCapex("opex"); setLinkType("fixed"); setLinkDate("");
   }
@@ -4726,7 +4726,7 @@ function AddRevenueDialog({ onAdd }: { onAdd: (e: RevEntry) => void }) {
     const p = parseFloat(plan);
     if (isNaN(p)) { toast.error("Planned amount must be a number"); return; }
     onAdd({ ms: ms.trim(), evt: evt || "—", plan: p, date: date || "TBD", s: "blue", sl: "Planned", act: null });
-    toast.success("Revenue event added");
+    toast.done("Revenue event", "created");
     setOpen(false); setMs(""); setEvt(""); setPlan(""); setDate("");
   }
   return (
@@ -4795,7 +4795,7 @@ function StageGatesDialog({
         items: [...s.items, { task: newTask.trim(), role: newRole, done: false }],
       })
     );
-    toast.success("Checklist item added");
+    toast.done("Checklist item", "created");
     setNewTask("");
   }
 
@@ -5533,7 +5533,7 @@ function DependencyDialog({
   function save() {
     if (currentItem) {
       onSetDependencies(currentItem.name, deps.length > 0 ? deps : []);
-      toast.success("Dependencies saved");
+      toast.done("Dependencies", "saved");
       onOpenChange(false);
     }
   }

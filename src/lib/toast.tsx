@@ -59,6 +59,18 @@ function show(kind: Kind, message: ReactNode, opts?: Opts) {
   );
 }
 
+/**
+ * DS02 message pattern for entity outcomes:
+ *   `<Entity> <action> successfully !`
+ * e.g. done("Cost Category", "activated") -> "Cost Category activated successfully !"
+ */
+export type DoneAction =
+  | "created" | "updated" | "deleted" | "activated" | "deactivated"
+  | "added" | "removed" | "saved" | "submitted" | "sent" | "approved" | "rejected" | "cancelled";
+
+export const doneMessage = (entity: string, action: DoneAction | string) =>
+  `${entity} ${action} successfully !`;
+
 export const toast = Object.assign(
   (message: ReactNode, opts?: Opts) => show("info", message, opts),
   {
@@ -67,6 +79,8 @@ export const toast = Object.assign(
     warning: (m: ReactNode, o?: Opts) => show("warning", m, o),
     error: (m: ReactNode, o?: Opts) => show("error", m, o),
     message: (m: ReactNode, o?: Opts) => show("info", m, o),
+    done: (entity: string, action: DoneAction | string, o?: Opts) =>
+      show("success", doneMessage(entity, action), o),
     custom: sonnerToast.custom,
     loading: sonnerToast.loading,
     promise: sonnerToast.promise,

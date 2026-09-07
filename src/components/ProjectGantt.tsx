@@ -136,7 +136,7 @@ export function ProjectGantt({ projectId, defaultAssignee }: { projectId: string
       });
       if (error) throw error;
     },
-    onSuccess: () => { invalidate(); toast.success("Task added"); },
+    onSuccess: () => { invalidate(); toast.done("Task", "created"); },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -154,7 +154,7 @@ export function ProjectGantt({ projectId, defaultAssignee }: { projectId: string
       const { error } = await supabase.from("project_tasks").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => { invalidate(); toast.success("Task deleted"); },
+    onSuccess: () => { invalidate(); toast.done("Task", "deleted"); },
     onError: (e: Error) => toast.error(e.message),
   });
 

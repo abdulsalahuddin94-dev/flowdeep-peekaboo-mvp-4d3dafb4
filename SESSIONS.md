@@ -1,6 +1,7 @@
 ## Session — 2026-09-08
 
 - Corrected weekday/date column alignment in the shared calendar and changed range selection to one continuous highlight with distinct start/end caps.
+- Calendar range band geometry: 36×36 cells, start day rounded LEFT only (8px), end day rounded RIGHT only (8px), middle square, single-day fully rounded. Set via inline `border-radius` on `DayButton` (beats the unlayered DS02 `[data-ui=control]` 8px baseline + button `rounded-md`); opted day button out of the control baseline via `data-ds-size="auto"`. Schedule picker cell override set to `2.25rem` (36px).
 - Redesigned the Project Schedule date editor as a compact two-month range picker with Start Date, Due Date, and Duration controls matching the approved reference.
 
 ## Session — 2026-09-06

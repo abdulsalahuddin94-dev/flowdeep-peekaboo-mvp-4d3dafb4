@@ -2016,6 +2016,15 @@ function DateCell({
     return undefined;
   }, [activeStart, activeEnd]);
 
+  if (!editable) {
+    return (
+      <span className="truncate" title="🔒 Locked — click Change Plan to edit dates">
+        {display || <span className="text-muted-foreground">—</span>}
+      </span>
+    );
+  }
+
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>

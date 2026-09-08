@@ -186,9 +186,12 @@ function CalendarDayButton({
   // driven by --cell-size instead so the picker honours its own cell sizing.
   const fillClass = isRange
     ? cn(
-        "bg-accent text-accent-foreground font-medium",
-        sameDayRange && "font-bold",
-        isMiddle && "hover:bg-accent", // keep middle flush, no tint shift
+        // Start/end caps stay bright (full accent + dark text); the in-between
+        // band uses a subtle translucent tint so the range reads as one soft
+        // strip, not a wall of solid accent like the start/end markers.
+        !isMiddle && "bg-accent text-accent-foreground font-medium",
+        sameDayRange && "bg-accent text-accent-foreground font-bold",
+        isMiddle && "bg-accent/15 text-foreground font-medium hover:bg-accent/25",
       )
     : selectedSingle
       ? "bg-accent text-accent-foreground font-bold"

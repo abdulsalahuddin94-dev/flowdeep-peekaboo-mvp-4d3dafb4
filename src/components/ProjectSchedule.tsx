@@ -2236,7 +2236,7 @@ function RolesCell({
                       const next = [...item.roles, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }];
                       onUpdate(next);
                       if (next.length >= 2) {
-                        toast.info("We recommend a subtask for this role");
+                        toast.info("We recommend a subtask for this new role");
                       }
                       setNewRole("");
                       setNewLevel("Mid");

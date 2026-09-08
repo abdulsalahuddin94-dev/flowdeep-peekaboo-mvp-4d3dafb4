@@ -3052,8 +3052,9 @@ function AddMilestoneDialog({
   const [durationUnit, setDurationUnit] = useState<"hours" | "days">("days");
   const [weightScore, setWeightScore] = useState<number>(1);
 
-  // Single skill (one task = one assignee)
-  const [skillRole, setSkillRole] = useState<RoleReq>({ role: "", skill: "Mid", fte: 1 });
+  // Skill/Role rows — one task can request several roles (a subtask per role is best practice)
+  const emptyRole = (): RoleReq => ({ role: "", skill: "Mid", fte: 1 });
+  const [skillRoles, setSkillRoles] = useState<RoleReq[]>([emptyRole()]);
   // Financial linking (items are defined in the Financials tab — here we only link)
   // Costs and revenue can be linked together on the same item, several of each.
   const [costLinkIds, setCostLinkIds] = useState<string[]>([]);
@@ -3103,7 +3104,7 @@ function AddMilestoneDialog({
     setParentName(initialParent ?? "__none__"); setParentMode(modeForParent(initialParent));
     setStartDate(""); setEndMode("duration"); setTaskEndDate("");
     setDurationValue(1); setDurationUnit("days"); setWeightScore(1);
-    setSkillRole({ role: "", skill: "Mid", fte: 1 });
+    setSkillRoles([emptyRole()]);
     setCostLinkIds([]); setRevenueLinkIds([]);
     setRequiresApproval(false); setSelectedApprovers([]);
   }
@@ -3132,8 +3133,7 @@ function AddMilestoneDialog({
         setEndMode("date");
       }
       setWeightScore(editingItem.weightScore ?? 1);
-      const r = editingItem.roles?.[0];
-      setSkillRole(r ? { role: r.role, skill: r.skill, fte: r.fte } : { role: "", skill: "Mid", fte: 1 });
+      setSkillRoles(editingItem.roles?.length ? editingItem.roles.map((r) => ({ ...r })) : [emptyRole()]);
       const allLinks = [editingItem.payment, ...(editingItem.extraPayments ?? [])].filter(Boolean) as PaymentLink[];
       setCostLinkIds(allLinks.filter((l) => l.kind === "Package Cost" && l.packageId).map((l) => l.packageId!));
       setRevenueLinkIds(allLinks.filter((l) => l.kind === "Client Revenue" && l.packageId).map((l) => l.packageId!));

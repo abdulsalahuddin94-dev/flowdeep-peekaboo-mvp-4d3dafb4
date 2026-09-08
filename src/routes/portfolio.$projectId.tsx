@@ -3221,9 +3221,7 @@ function AddMilestoneDialog({
       newItems.push({
         name: name.trim(), kind: "Milestone",
         startDate: endDate, endDate, owner: owner || defaultOwner, rag, dep,
-        roles: skillRole.role.trim()
-          ? [{ role: skillRole.role.trim(), skill: skillRole.skill, fte: Number(skillRole.fte) || 0 }]
-          : [],
+        roles: skillRoles.filter((r) => r.role.trim()).map((r) => ({ role: r.role.trim(), skill: r.skill, fte: Number(r.fte) || 0 })),
         payment: mainPayment, extraPayments: extraPayments.length ? extraPayments : undefined, progress: 0,
         lagDays: Number(lagDays) || 0,
         milestoneType,
@@ -3254,19 +3252,21 @@ function AddMilestoneDialog({
       if (Object.values(nextErrors).some(Boolean)) { setErrors(nextErrors); return; }
       const parent = parentName === "__none__" ? undefined : parentName;
 
-      // One task = one skill = at most one resource request
+      // Each requested role gets its own resource request.
+      // On edit, skip roles that already existed to avoid duplicate requests.
       const requestIds: string[] = [];
       const fromMonth = startDate.slice(0, 7);
-      const normalizedRole = skillRole.role.trim();
-      const taskRoles: RoleReq[] = normalizedRole
-        ? [{ role: normalizedRole, skill: skillRole.skill, fte: Number(skillRole.fte) || 0 }]
-        : [];
-      if (normalizedRole) {
+      const existingRoles = new Set((editingItem?.roles ?? []).map((r) => `${r.role}|${r.skill}`));
+      const taskRoles: RoleReq[] = skillRoles
+        .filter((r) => r.role.trim())
+        .map((r) => ({ role: r.role.trim(), skill: r.skill, fte: Number(r.fte) || 0 }));
+      for (const r of taskRoles) {
+        if (isEditing && existingRoles.has(`${r.role}|${r.skill}`)) continue;
         const id = addResourceRequest({
           project: projectName,
-          role: normalizedRole,
-          skill: skillRole.skill,
-          fte: Number(skillRole.fte) || 0,
+          role: r.role,
+          skill: r.skill,
+          fte: r.fte,
           from: fromMonth,
           until: fromMonth,
           priority: "Medium",

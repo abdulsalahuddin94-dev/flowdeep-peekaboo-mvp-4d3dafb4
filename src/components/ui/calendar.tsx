@@ -37,8 +37,8 @@ function Calendar({
       }}
       classNames={{
         root: cn("w-fit", defaultClassNames.root),
-        months: cn("relative flex flex-col gap-5 md:flex-row", defaultClassNames.months),
-        month: cn("flex w-full flex-col gap-3", defaultClassNames.month),
+        months: cn("relative flex w-full flex-col gap-5 md:flex-row md:gap-8", defaultClassNames.months),
+        month: cn("flex min-w-0 flex-1 flex-col gap-3", defaultClassNames.month),
         nav: cn(
           "absolute inset-x-0 top-0 flex h-9 w-full items-center justify-between gap-1",
           defaultClassNames.nav,
@@ -73,26 +73,26 @@ function Calendar({
             : "[&>svg]:text-muted-foreground flex h-8 items-center gap-1 rounded-md pl-2 pr-1 text-sm [&>svg]:size-3.5",
           defaultClassNames.caption_label,
         ),
-        table: "w-full border-collapse",
-        weekdays: cn("flex pt-1", defaultClassNames.weekdays),
+        month_grid: cn("w-full table-fixed border-collapse", defaultClassNames.month_grid),
+        weekdays: cn("grid w-full grid-cols-7 pt-1", defaultClassNames.weekdays),
         weekday: cn(
-          "flex-1 select-none text-center text-xs font-medium text-muted-foreground",
+          "flex h-(--cell-size) w-full select-none items-center justify-center text-center text-xs font-medium text-muted-foreground",
           defaultClassNames.weekday,
         ),
-        week: cn("mt-1 flex w-full", defaultClassNames.week),
+        weeks: cn("w-full", defaultClassNames.weeks),
+        week: cn("mt-1 grid w-full grid-cols-7", defaultClassNames.week),
         week_number_header: cn("w-(--cell-size) select-none", defaultClassNames.week_number_header),
         week_number: cn(
           "text-muted-foreground select-none text-[0.8rem]",
           defaultClassNames.week_number,
         ),
         day: cn(
-          "group/day relative h-(--cell-size) w-(--cell-size) select-none p-0 text-center",
-          "[&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
+          "group/day relative h-(--cell-size) w-full select-none p-0 text-center",
           defaultClassNames.day,
         ),
-        range_start: cn("bg-accent/20 rounded-l-md", defaultClassNames.range_start),
-        range_middle: cn("bg-accent/20 rounded-none", defaultClassNames.range_middle),
-        range_end: cn("bg-accent/20 rounded-r-md", defaultClassNames.range_end),
+        range_start: cn("rounded-l-md bg-accent/20", defaultClassNames.range_start),
+        range_middle: cn("rounded-none bg-accent/20", defaultClassNames.range_middle),
+        range_end: cn("rounded-r-md bg-accent/20", defaultClassNames.range_end),
         today: cn(
           "text-accent font-semibold",
           "data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground",
@@ -168,12 +168,12 @@ function CalendarDayButton({
       data-range-middle={modifiers.range_middle}
       className={cn(
         "data-[selected-single=true]:bg-accent data-[selected-single=true]:text-accent-foreground data-[selected-single=true]:font-bold data-[selected-single=true]:rounded-md",
-        "data-[range-start=true]:bg-accent data-[range-start=true]:text-accent-foreground data-[range-start=true]:font-bold data-[range-start=true]:rounded-l-md",
-        "data-[range-end=true]:bg-accent data-[range-end=true]:text-accent-foreground data-[range-end=true]:font-bold data-[range-end=true]:rounded-r-md",
+        "data-[range-start=true]:bg-accent data-[range-start=true]:text-accent-foreground data-[range-start=true]:font-bold data-[range-start=true]:rounded-md",
+        "data-[range-end=true]:bg-accent data-[range-end=true]:text-accent-foreground data-[range-end=true]:font-bold data-[range-end=true]:rounded-md",
         "data-[range-start=true]:data-[range-end=true]:rounded-md",
-        "data-[range-middle=true]:bg-accent/20 data-[range-middle=true]:text-foreground data-[range-middle=true]:font-normal data-[range-middle=true]:rounded-none",
+        "data-[range-middle=true]:bg-transparent data-[range-middle=true]:text-foreground data-[range-middle=true]:font-normal data-[range-middle=true]:rounded-none data-[range-middle=true]:hover:bg-transparent",
         "group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50",
-        "flex size-(--cell-size) min-w-(--cell-size) flex-col gap-1 rounded-md text-sm font-medium leading-none",
+        "flex h-(--cell-size) w-full min-w-0 flex-col gap-1 rounded-md text-sm font-medium leading-none",
         "transition-colors hover:bg-secondary hover:text-foreground",
         "group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px]",
         "[&>span]:text-xs [&>span]:opacity-70",

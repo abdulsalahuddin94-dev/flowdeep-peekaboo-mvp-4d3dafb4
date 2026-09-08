@@ -90,9 +90,12 @@ function Calendar({
           "group/day relative h-(--cell-size) w-full select-none p-0 text-center",
           defaultClassNames.day,
         ),
-        range_start: cn("rounded-l-md bg-accent/20", defaultClassNames.range_start),
-        range_middle: cn("rounded-none bg-accent/20", defaultClassNames.range_middle),
-        range_end: cn("rounded-r-md bg-accent/20", defaultClassNames.range_end),
+        // Range band geometry is handled entirely on the DayButton (the visible
+        // layer that fills the cell). Leave the day <td> free of bg/rounding so
+        // a single-day range (where start===end) doesn't get conflicting classes.
+        range_start: cn(defaultClassNames.range_start),
+        range_middle: cn(defaultClassNames.range_middle),
+        range_end: cn(defaultClassNames.range_end),
         today: cn(
           "text-accent font-semibold",
           "data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground",
@@ -151,36 +154,68 @@ function CalendarDayButton({
     if (modifiers.focused) ref.current?.focus();
   }, [modifiers.focused]);
 
+  // Compute range band geometry from modifiers in JS so a single-day range
+  // (where range_start AND range_end are both true) doesn't get conflicting
+  // Tailwind rounding classes applied via data-attributes.
+  const isStart = !!modifiers.range_start;
+  const isEnd = !!modifiers.range_end;
+  const isMiddle = !!modifiers.range_middle;
+  const isRange = isStart || isEnd || isMiddle;
+  const sameDayRange = isStart && isEnd;
+  const selectedSingle = modifiers.selected && !isRange;
+
+  // Border radius is set via INLINE STYLE (not Tailwind utilities) because the
+  // button's base `rounded-md` and the unlayered DS02 control baseline both
+  // set individual corners and would otherwise bleed into the opposite side,
+  // defeating the asymmetric range band. Inline style beats all stylesheet rules.
+  //   start        → left 8px, right 0     "8px 0px 0px 8px"
+  //   end          → right 8px, left 0     "0px 8px 8px 0px"
+  //   middle       → square                "0px"
+  //   single / same-day → all 8px          "8px"
+  let radiusStyle: React.CSSProperties;
+  if (isRange && !sameDayRange) {
+    if (isStart) radiusStyle = { borderRadius: "8px 0px 0px 8px" };
+    else if (isEnd) radiusStyle = { borderRadius: "0px 8px 8px 0px" };
+    else radiusStyle = { borderRadius: "0px" };
+  } else {
+    radiusStyle = { borderRadius: "8px" };
+  }
+
+  // data-ds-size="auto" opts the day button out of the unlayered DS02 control
+  // baseline ([data-ui="control"]{height:36px;border-radius:8px}); height is
+  // driven by --cell-size instead so the picker honours its own cell sizing.
+  const fillClass = isRange
+    ? cn(
+        "bg-accent text-accent-foreground font-medium",
+        sameDayRange && "font-bold",
+        isMiddle && "hover:bg-accent", // keep middle flush, no tint shift
+      )
+    : selectedSingle
+      ? "bg-accent text-accent-foreground font-bold"
+      : "hover:bg-secondary hover:text-foreground";
+
   return (
     <Button
       ref={ref}
       variant="ghost"
       size="icon"
       data-day={day.date.toLocaleDateString()}
-      data-selected-single={
-        modifiers.selected &&
-        !modifiers.range_start &&
-        !modifiers.range_end &&
-        !modifiers.range_middle
-      }
-      data-range-start={modifiers.range_start}
-      data-range-end={modifiers.range_end}
-      data-range-middle={modifiers.range_middle}
+      data-selected-single={selectedSingle}
+      data-range-start={isStart}
+      data-range-end={isEnd}
+      data-range-middle={isMiddle}
+      data-ds-size="auto"
+      {...props}
+      style={radiusStyle}
       className={cn(
-        "data-[selected-single=true]:bg-accent data-[selected-single=true]:text-accent-foreground data-[selected-single=true]:font-bold data-[selected-single=true]:rounded-md",
-        "data-[range-start=true]:bg-accent data-[range-start=true]:text-accent-foreground data-[range-start=true]:font-bold data-[range-start=true]:rounded-md",
-        "data-[range-end=true]:bg-accent data-[range-end=true]:text-accent-foreground data-[range-end=true]:font-bold data-[range-end=true]:rounded-md",
-        "data-[range-start=true]:data-[range-end=true]:rounded-md",
-        "data-[range-middle=true]:bg-transparent data-[range-middle=true]:text-foreground data-[range-middle=true]:font-normal data-[range-middle=true]:rounded-none data-[range-middle=true]:hover:bg-transparent",
         "group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-ring/50",
-        "flex h-(--cell-size) w-full min-w-0 flex-col gap-1 rounded-md text-sm font-medium leading-none",
-        "transition-colors hover:bg-secondary hover:text-foreground",
+        "flex h-(--cell-size) w-full min-w-0 flex-col gap-1 text-sm font-medium leading-none transition-colors",
         "group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px]",
         "[&>span]:text-xs [&>span]:opacity-70",
         defaultClassNames.day,
+        fillClass,
         className,
       )}
-      {...props}
     />
   );
 }

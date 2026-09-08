@@ -1094,7 +1094,7 @@ export function ProjectSchedule({
                     )}
                     {colVisible("start") && (
                       <div className="flex items-center border-l border-border/60 px-3 num-mono overflow-hidden" style={{ width: widths.start }}>
-                        <DateRangeCell
+                        <DateCell
                           item={item}
                           field="start"
                           editable={editable}
@@ -1104,7 +1104,7 @@ export function ProjectSchedule({
                     )}
                     {colVisible("end") && (
                       <div className="flex items-center border-l border-border/60 px-3 num-mono overflow-hidden" style={{ width: widths.end }}>
-                        <DateRangeCell
+                        <DateCell
                           item={item}
                           field="end"
                           editable={editable}
@@ -2057,16 +2057,9 @@ function DateCell({
         <Calendar
           mode="range"
           numberOfMonths={2}
-          defaultMonth={start ?? new Date()}
-          selected={start && end ? { from: start, to: end } : start ? { from: start, to: start } : undefined}
-          onSelect={(r) => {
-            if (!r) return;
-            const patch: Partial<ScheduleItem> = {};
-            if (r.from) patch.startDate = fmtISO(r.from);
-            if (r.to) patch.endDate = fmtISO(r.to);
-            else if (r.from) patch.endDate = fmtISO(r.from);
-            onCommit(patch);
-          }}
+          defaultMonth={activeStart ?? new Date()}
+          selected={selectedRange}
+          onSelect={handleRangeSelect}
           className={cn("p-0 pointer-events-auto")}
         />
       </PopoverContent>

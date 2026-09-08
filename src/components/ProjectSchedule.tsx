@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { DatePicker } from "@/components/ui/date-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
@@ -1945,42 +1944,6 @@ function DateCell({
     }
     return 1;
   }, [activeStart, activeEnd]);
-
-  const handleStartChange = (val: string) => {
-    setTempStart(val);
-    if (!val) {
-      onCommit({ startDate: "" });
-      return;
-    }
-    const d = parseISO(val);
-    if (d) {
-      const newEnd = addDays(d, currentDuration - 1);
-      const newEndISO = fmtISO(newEnd);
-      setTempEnd(newEndISO);
-      onCommit({ startDate: val, endDate: newEndISO });
-    } else {
-      onCommit({ startDate: val });
-    }
-  };
-
-  const handleEndChange = (val: string) => {
-    setTempEnd(val);
-    if (!val) {
-      onCommit({ endDate: "" });
-      return;
-    }
-    const d = parseISO(val);
-    if (d) {
-      if (activeStart && d < activeStart) {
-        setTempStart(val);
-        onCommit({ startDate: val, endDate: val });
-      } else {
-        onCommit({ startDate: tempStart, endDate: val });
-      }
-    } else {
-      onCommit({ endDate: val });
-    }
-  };
 
   const handleDurationChange = (valStr: string) => {
     const dur = Math.max(1, parseInt(valStr, 10) || 1);

@@ -1,3 +1,7 @@
+## Session — 2026-09-08
+
+- Redesigned the Project Schedule date editor as a compact two-month range picker with Start Date, Due Date, and Duration controls matching the approved reference.
+
 ## Session — 2026-09-06
 
 - Standardized secondary CTAs across the app with a `#1D1D1F` fill and `#767680` border while preserving the primary CTA style.

@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { DatePicker } from "@/components/ui/date-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
@@ -27,7 +26,7 @@ import {
 import {
   ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Trash2, Upload, UserPlus } from "@/lib/icons";
+import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Trash2, Upload, UserPlus, X } from "@/lib/icons";
 import { RagBadge } from "@/components/RagBadge";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -1903,12 +1902,14 @@ function DateCell({
   const display = field === "start" ? item.startDate : item.endDate;
 
   const trigger = (
-    <button
-      className="block w-full cursor-text truncate rounded px-0.5 text-left hover:bg-accent/10"
+    <Button
+      type="button"
+      variant="ghost"
+      className="h-auto w-full justify-start truncate rounded px-0.5 py-0 text-left text-xs font-normal hover:bg-accent/10"
       title="Click to edit dates"
     >
       {display || <span className="text-muted-foreground">—</span>}
-    </button>
+    </Button>
   );
 
 
@@ -1944,42 +1945,6 @@ function DateCell({
     return 1;
   }, [activeStart, activeEnd]);
 
-  const handleStartChange = (val: string) => {
-    setTempStart(val);
-    if (!val) {
-      onCommit({ startDate: "" });
-      return;
-    }
-    const d = parseISO(val);
-    if (d) {
-      const newEnd = addDays(d, currentDuration - 1);
-      const newEndISO = fmtISO(newEnd);
-      setTempEnd(newEndISO);
-      onCommit({ startDate: val, endDate: newEndISO });
-    } else {
-      onCommit({ startDate: val });
-    }
-  };
-
-  const handleEndChange = (val: string) => {
-    setTempEnd(val);
-    if (!val) {
-      onCommit({ endDate: "" });
-      return;
-    }
-    const d = parseISO(val);
-    if (d) {
-      if (activeStart && d < activeStart) {
-        setTempStart(val);
-        onCommit({ startDate: val, endDate: val });
-      } else {
-        onCommit({ startDate: tempStart, endDate: val });
-      }
-    } else {
-      onCommit({ endDate: val });
-    }
-  };
-
   const handleDurationChange = (valStr: string) => {
     const dur = Math.max(1, parseInt(valStr, 10) || 1);
     if (activeStart) {
@@ -2000,11 +1965,23 @@ function DateCell({
     } else if (r.from) {
       const s = fmtISO(r.from);
       setTempStart(s);
-      const e = fmtISO(addDays(r.from, currentDuration - 1));
-      setTempEnd(e);
-      onCommit({ startDate: s, endDate: e });
+      setTempEnd("");
+      onCommit({ startDate: s });
     }
   };
+
+  const clearStart = () => {
+    setTempStart("");
+    onCommit({ startDate: "" });
+  };
+
+  const clearEnd = () => {
+    setTempEnd("");
+    onCommit({ endDate: "" });
+  };
+
+  const formatPickerDate = (date: Date | null) =>
+    date?.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) ?? "Select date";
 
   const selectedRange = useMemo(() => {
     if (activeStart && activeEnd) {
@@ -2028,33 +2005,62 @@ function DateCell({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent className="w-auto p-4 pointer-events-auto shadow-xl border-border bg-popover" align="start">
-        <div className="mb-3 grid grid-cols-3 gap-3">
+      <PopoverContent
+        className="w-[min(760px,calc(100vw-32px))] border-border bg-popover p-5 pointer-events-auto shadow-xl"
+        align="start"
+        collisionPadding={16}
+      >
+        <div className="mb-5 grid grid-cols-[minmax(0,2fr)_minmax(0,2fr)_minmax(96px,1fr)] gap-3">
           <div>
-            <Label className="mb-1 block text-[10px] uppercase tracking-wide text-muted-foreground">Start date</Label>
-            <DatePicker
-              value={tempStart}
-              onChange={handleStartChange}
-              className="h-8 text-xs"
-            />
+            <Label className="mb-2 block text-xs font-semibold uppercase text-muted-foreground">Start date</Label>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full justify-between px-3 font-normal"
+              onClick={() => activeStart && setTempEnd("")}
+            >
+              <span className={cn("truncate", !activeStart && "text-muted-foreground")}>{formatPickerDate(activeStart)}</span>
+              {activeStart && (
+                <span
+                  role="button"
+                  aria-label="Clear start date"
+                  className="-mr-1 rounded p-1 text-muted-foreground hover:text-foreground"
+                  onClick={(event) => { event.stopPropagation(); clearStart(); }}
+                >
+                  <X className="size-4" />
+                </span>
+              )}
+            </Button>
           </div>
           <div>
-            <Label className="mb-1 block text-[10px] uppercase tracking-wide text-muted-foreground">Due date</Label>
-            <DatePicker
-              value={tempEnd}
-              min={tempStart || undefined}
-              onChange={handleEndChange}
-              className="h-8 text-xs"
-            />
+            <Label className="mb-2 block text-xs font-semibold uppercase text-muted-foreground">Due date</Label>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full justify-between px-3 font-normal"
+              onClick={() => activeStart && setTempEnd("")}
+            >
+              <span className={cn("truncate", !activeEnd && "text-muted-foreground")}>{formatPickerDate(activeEnd)}</span>
+              {activeEnd && (
+                <span
+                  role="button"
+                  aria-label="Clear due date"
+                  className="-mr-1 rounded p-1 text-muted-foreground hover:text-foreground"
+                  onClick={(event) => { event.stopPropagation(); clearEnd(); }}
+                >
+                  <X className="size-4" />
+                </span>
+              )}
+            </Button>
           </div>
           <div>
-            <Label className="mb-1 block text-[10px] uppercase tracking-wide text-muted-foreground">Duration</Label>
+            <Label className="mb-2 block text-xs font-semibold uppercase text-muted-foreground">Duration</Label>
             <Input
               type="number"
               min={1}
               value={currentDuration}
               onChange={(e) => handleDurationChange(e.target.value)}
-              className="h-8 text-xs num-mono"
+              className="num-mono"
             />
           </div>
         </div>
@@ -2064,7 +2070,7 @@ function DateCell({
           defaultMonth={activeStart ?? new Date()}
           selected={selectedRange}
           onSelect={handleRangeSelect}
-          className={cn("p-0 pointer-events-auto")}
+          className="w-full p-0 pointer-events-auto [--cell-size:2.75rem]"
         />
       </PopoverContent>
     </Popover>

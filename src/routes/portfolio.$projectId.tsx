@@ -3342,16 +3342,12 @@ function AddMilestoneDialog({
                 </Select>
                 <p className="mt-1 text-[10px] text-muted-foreground">Progress is rolled up automatically from child tasks (weighted by score).</p>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div>
                 <Field label="Date" htmlFor="milestone-date" required error={errors.endDate}>
                   <DatePicker id="milestone-date" value={endDate} onChange={(value) => { setEndDate(value); setErrors((p) => ({ ...p, endDate: undefined })); }} placeholder="Pick milestone date" />
                 </Field>
-                <div>
-                  <Label>Lag (days)</Label>
-                  <Input type="number" min="0" value={lagDays} onChange={(e) => setLagDays(Number(e.target.value))} />
-                  <p className="mt-1 text-[10px] text-muted-foreground">Buffer after the last child ends.</p>
-                </div>
               </div>
+
 
               <div className="rounded-md border border-accent/20 bg-accent-dim/30 p-3 space-y-3">
                 <div className="flex items-center gap-2">

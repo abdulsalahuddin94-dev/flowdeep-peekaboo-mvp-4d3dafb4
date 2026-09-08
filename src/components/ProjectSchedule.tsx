@@ -2233,7 +2233,13 @@ function RolesCell({
                     className="h-7 w-full text-xs"
                     disabled={!newRole.trim()}
                     onClick={() => {
-                      onUpdate([...item.roles, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }]);
+                      const next = [...item.roles, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }];
+                      onUpdate(next);
+                      if (next.length >= 2) {
+                        toast.info("More than one role on this task", {
+                          description: "Best practice: split it into subtasks with one role each — progress, cost and requests stay accurate.",
+                        });
+                      }
                       setNewRole("");
                       setNewLevel("Mid");
                       setNewFte("1");
@@ -2241,6 +2247,7 @@ function RolesCell({
                   >
                     <Plus className="mr-1 h-3 w-3" /> Add role
                   </Button>
+
                 </div>
               </div>
             )}

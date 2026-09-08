@@ -3563,7 +3563,7 @@ function AddMilestoneDialog({
             <div className="rounded-md border border-border p-3">
               <div className="mb-2 flex items-center justify-between">
                 <Label className="text-sm">Skill required</Label>
-                <span className="text-xs text-muted-foreground">One task · one assignee</span>
+                <span className="text-xs text-muted-foreground">One role per subtask works best</span>
               </div>
               <div className="grid grid-cols-[1fr_110px_80px] gap-2 items-end">
                 <div>

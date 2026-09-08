@@ -2236,9 +2236,7 @@ function RolesCell({
                       const next = [...item.roles, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }];
                       onUpdate(next);
                       if (next.length >= 2) {
-                        toast.info("More than one role on this task", {
-                          description: "Best practice: split it into subtasks with one role each — progress, cost and requests stay accurate.",
-                        });
+                        toast.info("We recommend a subtask for this role");
                       }
                       setNewRole("");
                       setNewLevel("Mid");

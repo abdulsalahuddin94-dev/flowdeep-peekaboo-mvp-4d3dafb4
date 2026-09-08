@@ -1094,7 +1094,7 @@ export function ProjectSchedule({
                     )}
                     {colVisible("start") && (
                       <div className="flex items-center border-l border-border/60 px-3 num-mono overflow-hidden" style={{ width: widths.start }}>
-                        <DateRangeCell
+                        <DateCell
                           item={item}
                           field="start"
                           editable={editable}
@@ -1104,7 +1104,7 @@ export function ProjectSchedule({
                     )}
                     {colVisible("end") && (
                       <div className="flex items-center border-l border-border/60 px-3 num-mono overflow-hidden" style={{ width: widths.end }}>
-                        <DateRangeCell
+                        <DateCell
                           item={item}
                           field="end"
                           editable={editable}

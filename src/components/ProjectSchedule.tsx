@@ -2135,7 +2135,7 @@ function RolesCell({
       <div className="truncate text-[11px] text-foreground/80 flex-1" title={label ?? ""}>
         {label || <span className="text-muted-foreground">—</span>}
       </div>
-      <Popover open={editOpen} onOpenChange={setEditOpen}>
+      <Popover open={editOpen} onOpenChange={(o) => { setEditOpen(o); if (!o) { setSelectedRole(null); setNewRole(""); setNewLevel("Mid"); setNewFte("1"); } }}>
         <PopoverTrigger asChild>
           <button className="shrink-0 rounded p-1 hover:bg-secondary text-muted-foreground hover:text-foreground">
             <Pencil className="h-3 w-3" />
@@ -2143,46 +2143,40 @@ function RolesCell({
         </PopoverTrigger>
         <PopoverContent className="w-80 p-3" align="start">
           <div className="space-y-3">
-            <div className="text-xs font-medium">Edit Roles</div>
+            <div className="text-xs font-medium">
+              {selectedRole ? `Edit ${selectedRole.role} Role` : "Edit Roles"}
+            </div>
             {selectedRole && (
               <>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-[10px] text-muted-foreground border-b border-border pb-2">
                   Removing "{selectedRole.role}" and requesting replacement
                 </p>
                 <div className="space-y-2">
-                  <div>
-                    <Label className="text-[10px] uppercase">New Role</Label>
-                    <Select value={newRole} onValueChange={setNewRole}>
-                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a role" /></SelectTrigger>
+                  <Label className="text-[10px] uppercase">New Role</Label>
+                  <Select value={newRole} onValueChange={setNewRole}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a role" /></SelectTrigger>
+                    <SelectContent>
+                      {roleOptions.map((r) => (
+                        <SelectItem key={r} value={r}>{r}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {roleOptions.map((r) => (
-                          <SelectItem key={r} value={r}>{r}</SelectItem>
+                        {(["Junior", "Mid", "Senior", "Lead"] as const).map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Label className="text-[10px] uppercase">Experience Level</Label>
-                      <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
-                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {(["Junior", "Mid", "Senior", "Lead"] as const).map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label className="text-[10px] uppercase">FTE</Label>
-                      <Input type="number" min={0.1} step={0.1} value={newFte} onChange={(e) => setNewFte(e.target.value)} className="h-8 text-xs num-mono" />
-                    </div>
+                    <Input type="number" min={0.1} step={0.1} value={newFte} onChange={(e) => setNewFte(e.target.value)} className="h-8 text-xs num-mono" />
                   </div>
                 </div>
-                <div className="flex gap-2 justify-end">
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditOpen(false); setSelectedRole(null); }}>Cancel</Button>
-                  <Button size="sm" className="h-7 text-xs" disabled={!newRole.trim()} onClick={handleSubmit}>
-                    <CheckCircle2 className="mr-1 h-3 w-3" /> Submit Request
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setSelectedRole(null)}>Cancel</Button>
+                  <Button size="sm" className="h-8 text-xs" disabled={!newRole.trim()} onClick={handleSubmit}>
+                    Edit
                   </Button>
                 </div>
               </>

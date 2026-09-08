@@ -1,5 +1,6 @@
 ## Session — 2026-09-08
 
+- Corrected weekday/date column alignment in the shared calendar and changed range selection to one continuous highlight with distinct start/end caps.
 - Redesigned the Project Schedule date editor as a compact two-month range picker with Start Date, Due Date, and Duration controls matching the approved reference.
 
 ## Session — 2026-09-06

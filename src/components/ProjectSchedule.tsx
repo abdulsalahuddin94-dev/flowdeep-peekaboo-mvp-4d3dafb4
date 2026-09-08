@@ -1888,7 +1888,7 @@ function EditableText({
 }
 
 // ── Date range cell with two-month calendar popover ─────────────────────────
-function DateRangeCell({
+function DateCell({
   item,
   field,
   editable,
@@ -1900,8 +1900,6 @@ function DateRangeCell({
   onCommit: (patch: Partial<ScheduleItem>) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const start = parseISO(item.startDate);
-  const end = parseISO(item.endDate);
   const display = field === "start" ? item.startDate : item.endDate;
 
   const trigger = (
@@ -1927,27 +1925,121 @@ function DateRangeCell({
     const da = String(d.getDate()).padStart(2, "0");
     return `${y}-${m}-${da}`;
   };
-  const duration = start && end ? Math.max(1, diffDays(end, start) + 1) : 1;
+
+  const startObj = parseISO(item.startDate);
+  const endObj = parseISO(item.endDate);
+
+  const [tempStart, setTempStart] = useState<string>(item.startDate || "");
+  const [tempEnd, setTempEnd] = useState<string>(item.endDate || "");
+
+  useEffect(() => {
+    if (open) {
+      setTempStart(item.startDate || "");
+      setTempEnd(item.endDate || "");
+    }
+  }, [open, item.startDate, item.endDate]);
+
+  const activeStart = parseISO(tempStart) ?? startObj;
+  const activeEnd = parseISO(tempEnd) ?? endObj;
+
+  const currentDuration = useMemo(() => {
+    if (activeStart && activeEnd) {
+      return Math.max(1, diffDays(activeEnd, activeStart) + 1);
+    }
+    return 1;
+  }, [activeStart, activeEnd]);
+
+  const handleStartChange = (val: string) => {
+    setTempStart(val);
+    if (!val) {
+      onCommit({ startDate: "" });
+      return;
+    }
+    const d = parseISO(val);
+    if (d) {
+      const newEnd = addDays(d, currentDuration - 1);
+      const newEndISO = fmtISO(newEnd);
+      setTempEnd(newEndISO);
+      onCommit({ startDate: val, endDate: newEndISO });
+    } else {
+      onCommit({ startDate: val });
+    }
+  };
+
+  const handleEndChange = (val: string) => {
+    setTempEnd(val);
+    if (!val) {
+      onCommit({ endDate: "" });
+      return;
+    }
+    const d = parseISO(val);
+    if (d) {
+      if (activeStart && d < activeStart) {
+        setTempStart(val);
+        onCommit({ startDate: val, endDate: val });
+      } else {
+        onCommit({ startDate: tempStart, endDate: val });
+      }
+    } else {
+      onCommit({ endDate: val });
+    }
+  };
+
+  const handleDurationChange = (valStr: string) => {
+    const dur = Math.max(1, parseInt(valStr, 10) || 1);
+    if (activeStart) {
+      const newEndISO = fmtISO(addDays(activeStart, dur - 1));
+      setTempEnd(newEndISO);
+      onCommit({ startDate: tempStart, endDate: newEndISO });
+    }
+  };
+
+  const handleRangeSelect = (r: { from?: Date; to?: Date } | undefined) => {
+    if (!r) return;
+    if (r.from && r.to) {
+      const s = fmtISO(r.from);
+      const e = fmtISO(r.to);
+      setTempStart(s);
+      setTempEnd(e);
+      onCommit({ startDate: s, endDate: e });
+    } else if (r.from) {
+      const s = fmtISO(r.from);
+      setTempStart(s);
+      const e = fmtISO(addDays(r.from, currentDuration - 1));
+      setTempEnd(e);
+      onCommit({ startDate: s, endDate: e });
+    }
+  };
+
+  const selectedRange = useMemo(() => {
+    if (activeStart && activeEnd) {
+      return { from: activeStart, to: activeEnd };
+    }
+    if (activeStart) {
+      return { from: activeStart, to: activeStart };
+    }
+    return undefined;
+  }, [activeStart, activeEnd]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent className="w-auto p-4 pointer-events-auto" align="start">
+      <PopoverContent className="w-auto p-4 pointer-events-auto shadow-xl border-border bg-popover" align="start">
         <div className="mb-3 grid grid-cols-3 gap-3">
           <div>
             <Label className="mb-1 block text-[10px] uppercase tracking-wide text-muted-foreground">Start date</Label>
             <DatePicker
-              value={item.startDate || ""}
-              onChange={(value) => onCommit({ startDate: value })}
+              value={tempStart}
+              onChange={handleStartChange}
               className="h-8 text-xs"
             />
           </div>
           <div>
             <Label className="mb-1 block text-[10px] uppercase tracking-wide text-muted-foreground">Due date</Label>
             <DatePicker
-              value={item.endDate || ""}
-              min={item.startDate || undefined}
-              onChange={(value) => onCommit({ endDate: value })}
+              value={tempEnd}
+              min={tempStart || undefined}
+              onChange={handleEndChange}
               className="h-8 text-xs"
             />
           </div>
@@ -1956,11 +2048,8 @@ function DateRangeCell({
             <Input
               type="number"
               min={1}
-              value={duration}
-              onChange={(e) => {
-                const n = Math.max(1, Number(e.target.value) || 1);
-                if (start) onCommit({ endDate: fmtISO(addDays(start, n - 1)) });
-              }}
+              value={currentDuration}
+              onChange={(e) => handleDurationChange(e.target.value)}
               className="h-8 text-xs num-mono"
             />
           </div>

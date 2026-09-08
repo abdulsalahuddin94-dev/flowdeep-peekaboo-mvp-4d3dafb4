@@ -2070,7 +2070,7 @@ function DateCell({
           defaultMonth={activeStart ?? new Date()}
           selected={selectedRange}
           onSelect={handleRangeSelect}
-          className="w-full p-0 pointer-events-auto [--cell-size:2.75rem]"
+          className="w-full p-0 pointer-events-auto [--cell-size:2.25rem]"
         />
       </PopoverContent>
     </Popover>

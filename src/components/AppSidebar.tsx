@@ -39,14 +39,6 @@ const allItems: NavItem[] = [
   { title: "Dashboard", url: "/", icon: NavDashboard },
   { title: "Portfolio", url: "/portfolio", icon: NavPortfolio },
   {
-    title: "Risk & Issues", url: "/risks", icon: NavRisks, defaultTab: "register",
-    children: [
-      { title: "Risk Register", tab: "register" },
-      { title: "Heat Map", tab: "heatmap" },
-      { title: "Issues Log", tab: "issues" },
-    ],
-  },
-  {
     title: "Resources", url: "/resources", icon: NavResources, defaultTab: "requests",
     children: [
       { title: "Requests", tab: "requests" },
@@ -69,6 +61,14 @@ const allItems: NavItem[] = [
       { title: "Overview (P&L)", tab: "overview" },
       { title: "Cost Recognition", tab: "cost" },
       { title: "Revenue Recognition", tab: "rev" },
+    ],
+  },
+  {
+    title: "Risk & Issues", url: "/risks", icon: NavRisks, defaultTab: "register",
+    children: [
+      { title: "Risk Register", tab: "register" },
+      { title: "Heat Map", tab: "heatmap" },
+      { title: "Issues Log", tab: "issues" },
     ],
   },
   {

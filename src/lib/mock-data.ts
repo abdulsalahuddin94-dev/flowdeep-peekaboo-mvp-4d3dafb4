@@ -233,7 +233,28 @@ export const pipelineItems = [
   { id: "BC-2026-011", title: "Field Engineer App Refresh", stage: "Rejected", score: 31, roi: "$0.4M", submittedBy: "Diego Ortiz", sponsor: "Khalid Al-Farsi", dept: "Engineering", date: "1mo ago", pillar: "Efficiency" },
 ];
 
-export const risks = [
+export type RiskStatus = "Open" | "Mitigating" | "Closed";
+
+export interface RiskItem {
+  id: string;
+  project: string;
+  title: string;
+  category: string;
+  prob: number;
+  impact: number;
+  score: number;
+  status: RiskStatus;
+  owner: string;
+  mitigation: string;
+  raised?: string;
+  review?: string;
+}
+
+export const RISK_CATEGORIES = [
+  "Vendor", "Regulatory", "Compliance", "Resource", "Scope", "Schedule", "Supply", "Technical", "Financial",
+];
+
+export const risks: RiskItem[] = [
   { id: "R-091", project: "ERP System Upgrade", title: "Vendor delivery delay > 4 weeks", category: "Vendor", prob: 4, impact: 5, score: 20, status: "Open", owner: "Sara Al-Rashid", mitigation: "Switch to backup vendor; weekly SLA reviews" },
   { id: "R-088", project: "Coastal Refinery Expansion", title: "Permit approval slip", category: "Regulatory", prob: 3, impact: 5, score: 15, status: "Mitigating", owner: "John Smith", mitigation: "Direct govt liaison engaged" },
   { id: "R-085", project: "Security Hardening 2026", title: "Audit finding remediation overrun", category: "Compliance", prob: 4, impact: 4, score: 16, status: "Open", owner: "Mei Chen", mitigation: "Daily standups, executive escalation" },

@@ -502,6 +502,27 @@ function ProjectDetail() {
 
   const currentStage = PLANNING_STAGES.find((s) => s.state === "active") ?? PLANNING_STAGES[0];
   const planningDone = PLANNING_CHECKLIST.filter((c) => c.done).length;
+  const durationDays = projectDurationDays(project);
+  const scheduleSummary = (() => {
+    const derived = computeDerivedSchedule(milestones, resourceRequests);
+    const leaves = derived.filter((item) => item.kind === "Task" && !derived.some((child) => child.parent === item.name));
+    let totalWeight = 0;
+    let weightedActual = 0;
+    let weightedPlanned = 0;
+    for (const task of leaves) {
+      const weight = Math.max(0, task.weightScore ?? 1);
+      totalWeight += weight;
+      weightedActual += weight * (task.progress ?? 0);
+      weightedPlanned += weight * computePlannedProgress(task.startDate, task.endDate);
+    }
+    return {
+      actual: totalWeight ? Math.round(weightedActual / totalWeight) : project.progress,
+      planned: totalWeight ? Math.round(weightedPlanned / totalWeight) : project.progress,
+    };
+  })();
+  const budgetUsedPct = project.budgetTotal > 0
+    ? Math.min(100, Math.round((project.budgetUsed / project.budgetTotal) * 100))
+    : 0;
   return (
     <div>
       <div className="mb-4">
@@ -581,122 +602,113 @@ function ProjectDetail() {
 
       />
 
-      <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-6">
-        <div className="glass-card p-3">
-          <div className="label-eyebrow">Project Type</div>
-          <div className="mt-1 text-lg font-medium text-foreground">{project.businessLine}</div>
+      <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12">
+        <div className="glass-card relative min-h-40 overflow-hidden p-5 sm:col-span-2 lg:col-span-6">
+          <div className="flex h-full flex-col justify-between">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="label-eyebrow">Progress</div>
+                <div className="mt-2 num-mono text-4xl font-medium text-foreground">{scheduleSummary.actual}%</div>
+              </div>
+              <div className={cn(
+                "rounded-lg px-3 py-1.5 text-xs font-medium",
+                scheduleSummary.actual >= scheduleSummary.planned
+                  ? "bg-rag-green/15 text-rag-green"
+                  : "bg-rag-amber/15 text-rag-amber",
+              )}>
+                {scheduleSummary.actual >= scheduleSummary.planned
+                  ? "On plan"
+                  : `${scheduleSummary.planned - scheduleSummary.actual}% behind`}
+              </div>
+            </div>
+            <div className="mt-7">
+              <Progress value={scheduleSummary.actual} className="h-2" />
+              <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+                <span>Actual completion</span>
+                <span>Plan <span className="num-mono text-foreground">{scheduleSummary.planned}%</span></span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {(() => {
-          const durationDays = projectDurationDays(project);
-          return (
-            <div className="glass-card p-3">
-              <div className="label-eyebrow">Timeline</div>
-              <div className="mt-1 text-lg font-medium num-mono text-foreground">
-                {durationDays != null ? `${durationDays}d` : "—"}
-              </div>
-              <div className="mt-1 text-[10px] text-muted-foreground">
-                {project.startDate} → {project.endDate}
-              </div>
+        <div className="glass-card relative min-h-40 overflow-hidden p-5 lg:col-span-3">
+          <div className="absolute inset-y-0 left-0 w-1 bg-rag-red" />
+          <div className="flex h-full flex-col justify-between pl-1">
+            <div className="label-eyebrow">Open Issues</div>
+            <div>
+              <div className="num-mono text-4xl font-medium text-foreground">{String(project.issues).padStart(2, "0")}</div>
+              <div className="mt-2 text-xs text-muted-foreground">Require immediate action</div>
             </div>
-          );
-        })()}
+          </div>
+        </div>
 
-        {(() => {
-          const start = parseLabelDate(project.startDate);
-          const end = parseLabelDate(project.endDate);
-          let varianceNode: React.ReactNode = null;
-          if (start && end && end.getTime() > start.getTime()) {
-            const elapsed = Math.min(1, Math.max(0, (Date.now() - start.getTime()) / (end.getTime() - start.getTime())));
-            const expected = project.budgetTotal * elapsed;
-            const variancePct = expected > 0 ? Math.round(((project.budgetUsed - expected) / expected) * 100) : 0;
-            varianceNode = (
-              <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
-                <span>Expected <span className="num-mono text-foreground/80">${expected.toFixed(1)}M</span></span>
-                <span className={variancePct <= 0 ? "text-rag-green" : "text-rag-amber"}>
-                  {variancePct === 0 ? "On plan" : variancePct < 0 ? `${Math.abs(variancePct)}% under` : `${variancePct}% over`}
-                </span>
-              </div>
-            );
-          }
-          return (
-            <div className="glass-card p-3">
-              <div className="label-eyebrow">Budget</div>
-              <div className="mt-1 text-lg font-medium num-mono text-foreground">
-                ${project.budgetUsed.toFixed(2)}M / ${project.budgetTotal.toFixed(1)}M
-              </div>
-              {varianceNode}
+        <div className="glass-card relative min-h-40 overflow-hidden p-5 lg:col-span-3">
+          <div className="absolute inset-y-0 left-0 w-1 bg-rag-amber" />
+          <div className="flex h-full flex-col justify-between pl-1">
+            <div className="label-eyebrow">Open Risks</div>
+            <div>
+              <div className="num-mono text-4xl font-medium text-foreground">{String(project.risks).padStart(2, "0")}</div>
+              <div className="mt-2 text-xs text-muted-foreground">Under active monitoring</div>
             </div>
-          );
-        })()}
+          </div>
+        </div>
+
+        <div className="glass-card min-h-36 p-5 sm:col-span-2 lg:col-span-4">
+          <div className="flex h-full flex-col justify-between">
+            <div className="flex items-center justify-between gap-3">
+              <div className="label-eyebrow">Timeline</div>
+              <Clock size={18} className="text-muted-foreground" />
+            </div>
+            <div className="mt-6">
+              <div className="num-mono text-2xl font-medium text-foreground">{durationDays != null ? `${durationDays} days` : "—"}</div>
+              <div className="mt-2 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                <span>{project.startDate}</span>
+                <span aria-hidden="true" className="h-px flex-1 bg-border" />
+                <span>{project.endDate}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-card min-h-36 p-5 lg:col-span-4">
+          <div className="flex h-full flex-col justify-between">
+            <div className="flex items-center justify-between gap-3">
+              <div className="label-eyebrow">Budget</div>
+              <span className="num-mono text-sm font-medium text-foreground">{budgetUsedPct}% used</span>
+            </div>
+            <div className="mt-6">
+              <div className="num-mono text-2xl font-medium text-foreground">${project.budgetUsed.toFixed(1)}M</div>
+              <Progress value={budgetUsedPct} className="mt-3 h-2 [&>div]:bg-rag-green" />
+              <div className="mt-2 text-xs text-muted-foreground">of ${project.budgetTotal.toFixed(1)}M approved</div>
+            </div>
+          </div>
+        </div>
 
         <button
           type="button"
           onClick={() => setStageGateOpen(true)}
-          className="glass-card group relative p-3 text-left transition-colors hover:border-accent/40"
+          className="glass-card group relative min-h-36 p-5 text-left transition-colors hover:border-accent/40 lg:col-span-4"
         >
-          <ArrowUpRight className="pointer-events-none absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground/60 transition-colors group-hover:text-accent" />
-          <div className="label-eyebrow">Stage Gate</div>
-          <div className="mt-1 text-lg font-medium text-foreground">{currentStage.name}</div>
-          <div className="mt-1 flex items-center gap-1">
-            {PLANNING_STAGES.map((s) => (
-              <span
-                key={s.n}
-                className={`h-1.5 flex-1 rounded-full ${
-                  s.state === "done" ? "bg-accent" : s.state === "active" ? "bg-accent/60" : "bg-secondary/60"
-                }`}
-              />
-            ))}
+          <ArrowUpRight className="absolute right-5 top-5 h-4 w-4 text-muted-foreground transition-colors group-hover:text-accent" />
+          <div className="flex h-full flex-col justify-between">
+            <div className="label-eyebrow">Stage Gate</div>
+            <div className="mt-6">
+              <div className="text-2xl font-medium text-foreground">{currentStage.name}</div>
+              <div className="mt-4 flex items-center gap-1.5" aria-label={`Stage ${currentStage.n} of ${PLANNING_STAGES.length}`}>
+                {PLANNING_STAGES.map((stage) => (
+                  <span
+                    key={stage.n}
+                    className={cn(
+                      "h-1.5 flex-1 rounded-full",
+                      stage.state === "done" ? "bg-accent" : stage.state === "active" ? "bg-accent/60" : "bg-secondary",
+                    )}
+                  />
+                ))}
+              </div>
+              <div className="mt-2 text-xs text-muted-foreground">{planningDone} of {PLANNING_CHECKLIST.length} checks complete</div>
+            </div>
           </div>
         </button>
-
-        {(() => {
-          const derived = computeDerivedSchedule(milestones, resourceRequests);
-          const leaves = derived.filter((m) => m.kind === "Task" && !derived.some((c) => c.parent === m.name));
-          let totalW = 0, weightedActual = 0, weightedPlanned = 0;
-          for (const t of leaves) {
-            const w = Math.max(0, t.weightScore ?? 1);
-            totalW += w;
-            weightedActual += w * (t.progress ?? 0);
-            weightedPlanned += w * computePlannedProgress(t.startDate, t.endDate);
-          }
-          const actualPct = totalW ? Math.round(weightedActual / totalW) : 0;
-          const plannedPct = totalW ? Math.round(weightedPlanned / totalW) : 0;
-          return (
-            <div className="glass-card relative p-3 text-left">
-              <ArrowUpRight className="pointer-events-none absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground/60" />
-              <div className="label-eyebrow">Progress</div>
-              <div className="mt-1 text-lg font-medium num-mono text-foreground">{actualPct}%</div>
-              <Progress value={actualPct} className="mt-2 h-1.5" />
-              <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground">
-                <span>Planned <span className="num-mono text-foreground/80">{plannedPct}%</span></span>
-                <span className={actualPct >= plannedPct ? "text-rag-green" : "text-rag-amber"}>
-                  {actualPct >= plannedPct ? "On / ahead" : `${plannedPct - actualPct}% behind`}
-                </span>
-              </div>
-            </div>
-
-          );
-        })()}
-
-        {(() => {
-          const pendingCount = centralApprovals.filter(
-            (a) => a.status === "pending" && (a.projectId === project.id || a.projectName === project.name),
-          ).length;
-          return (
-            <button
-              type="button"
-              onClick={() => navigate({ to: "/approvals", search: { project: project.name } })}
-              className="glass-card group relative p-3 text-left transition-colors hover:border-accent/40"
-            >
-              <ArrowUpRight className="pointer-events-none absolute top-2 right-2 h-3.5 w-3.5 text-muted-foreground/60 transition-colors group-hover:text-accent" />
-              <div className="label-eyebrow">Pending Approvals</div>
-              <div className={`mt-1 text-lg font-medium num-mono ${pendingCount > 0 ? "text-rag-amber" : "text-foreground"}`}>
-                {pendingCount}
-              </div>
-            </button>
-          );
-        })()}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>

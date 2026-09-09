@@ -1,3 +1,8 @@
+## Session — 2026-09-09
+
+- Redesigned the Project Overview summary into six modern cards: Progress, Open Issues, Open Risks, Timeline, Budget, and Stage Gate.
+- Added live weighted progress versus plan, issue/risk counts, timeline duration, budget utilization, and stage checklist completion.
+
 ## Session — 2026-09-08
 
 - Corrected weekday/date column alignment in the shared calendar and changed range selection to one continuous highlight with distinct start/end caps.

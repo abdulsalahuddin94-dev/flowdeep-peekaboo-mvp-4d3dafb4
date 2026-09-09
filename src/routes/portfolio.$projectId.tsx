@@ -717,7 +717,7 @@ function ProjectDetail() {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="overflow-x-auto whitespace-nowrap">
           {TABS.map((t) => (
-            <TabsTrigger key={t} value={t} className="text-xs">{t}</TabsTrigger>
+            <TabsTrigger key={t} value={t}>{t}</TabsTrigger>
           ))}
         </TabsList>
 

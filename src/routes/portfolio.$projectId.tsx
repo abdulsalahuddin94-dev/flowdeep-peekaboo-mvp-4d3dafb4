@@ -5720,7 +5720,6 @@ function TeamAllocationTab({
                 <TabsTrigger
                   key={t.v}
                   value={t.v}
-                  className="text-xs"
                 >
                   {t.l}
                 </TabsTrigger>

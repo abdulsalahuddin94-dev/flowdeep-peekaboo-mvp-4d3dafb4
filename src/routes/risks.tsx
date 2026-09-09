@@ -22,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { AlertTriangle, ShieldAlert } from "@/lib/icons";
 import {
   risks as seedRisks, issues as seedIssues, projects, RISK_CATEGORIES,
   type RiskItem, type RiskStatus, type IssueItem, type IssuePriority, type IssueStatus,
@@ -751,7 +750,3 @@ function IssueFormDialog({
     </FormDialog>
   );
 }
-
-/* Icons imported for the module identity (sidebar + empty-state parity). */
-void AlertTriangle;
-void ShieldAlert;

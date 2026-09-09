@@ -1543,6 +1543,21 @@ function OverviewTab({
 
       <div className="space-y-4">
         <div className="glass-card p-5">
+          <div className="label-eyebrow mb-4">Recent Activity</div>
+          <ul className="space-y-3">
+            {activity.map((a) => (
+              <li key={a.title} className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-foreground">{a.title}</div>
+                  <div className="text-xs text-accent">{a.who}</div>
+                </div>
+                <span className="shrink-0 text-xs text-muted-foreground">{a.when}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="glass-card p-5">
           <div className="label-eyebrow mb-4">Next Milestones</div>
           <ul className="space-y-3">
             {milestones.map((m) => (
@@ -1567,23 +1582,6 @@ function OverviewTab({
             <div className="h-full rounded-full bg-rag-green" style={{ width: `${spentPct}%` }} />
           </div>
           <div className="mt-3 text-xs text-muted-foreground">Remaining: ${remaining}M</div>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Recent Activity</div>
-          <ul className="space-y-3">
-            {activity.map((a) => (
-              <li key={a.title} className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-sm font-medium text-foreground">{a.title}</div>
-                  <div className="text-xs text-accent">{a.who}</div>
-                </div>
-                <span className="shrink-0 text-xs text-muted-foreground">{a.when}</span>
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
     </div>

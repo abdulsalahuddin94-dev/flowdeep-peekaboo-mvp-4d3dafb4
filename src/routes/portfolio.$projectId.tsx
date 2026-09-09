@@ -624,30 +624,47 @@ function ProjectDetail() {
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-lg bg-surface p-4">
-            <div className="text-xs text-muted-foreground">Progress:</div>
+          <div className="rounded-lg bg-[var(--field-bg-filled)] p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-muted-foreground">Progress</div>
+              <span className={cn("rounded-md px-1.5 py-0.5 text-[10px] font-medium", scheduleSummary.actual >= scheduleSummary.planned ? "bg-rag-green/15 text-rag-green" : "bg-rag-amber/15 text-rag-amber")}>
+                {scheduleSummary.actual >= scheduleSummary.planned ? "On plan" : `${scheduleSummary.planned - scheduleSummary.actual}% behind`}
+              </span>
+            </div>
             <div className="mt-3 flex items-center gap-3">
               <Progress value={scheduleSummary.actual} className="h-1.5 flex-1" />
-              <span className="num-mono text-xs font-medium text-foreground">{scheduleSummary.actual}%</span>
-              <span className="text-[10px] text-muted-foreground">(Planned {scheduleSummary.planned}% · <span className={scheduleSummary.actual >= scheduleSummary.planned ? "text-rag-green" : "text-rag-amber"}>{scheduleSummary.actual >= scheduleSummary.planned ? "On plan" : `${scheduleSummary.planned - scheduleSummary.actual}% Behind`}</span>)</span>
+              <span className="num-mono text-sm font-semibold text-foreground">{scheduleSummary.actual}%</span>
+            </div>
+            <div className="mt-1 text-[10px] text-muted-foreground">Planned {scheduleSummary.planned}%</div>
+          </div>
+
+          <div className="rounded-lg bg-[var(--field-bg-filled)] p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-muted-foreground">Open Issues</div>
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-rag-red/15 text-rag-red">
+                <AlertTriangle size={15} />
+              </span>
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="num-mono text-2xl font-semibold text-rag-red">{String(project.issues).padStart(2, "0")}</span>
+              <span className="text-[10px] text-muted-foreground">active · 2 critical</span>
             </div>
           </div>
 
-          <div className="flex min-h-16 items-center justify-center rounded-lg bg-surface p-4">
-            <div className="text-center">
-              <div className="num-mono text-2xl font-semibold text-foreground">{String(project.issues).padStart(2, "0")}</div>
-              <div className="mt-1 text-[10px] text-muted-foreground">Open Issues</div>
+          <div className="rounded-lg bg-[var(--field-bg-filled)] p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-muted-foreground">Open Risks</div>
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-rag-amber/15 text-rag-amber">
+                <ShieldAlert size={15} />
+              </span>
+            </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="num-mono text-2xl font-semibold text-rag-amber">{String(project.risks).padStart(2, "0")}</span>
+              <span className="text-[10px] text-muted-foreground">active · 1 escalated</span>
             </div>
           </div>
 
-          <div className="flex min-h-16 items-center justify-center rounded-lg bg-surface p-4">
-            <div className="text-center">
-              <div className="num-mono text-2xl font-semibold text-foreground">{String(project.risks).padStart(2, "0")}</div>
-              <div className="mt-1 text-[10px] text-muted-foreground">Open Risks</div>
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-surface p-4">
+          <div className="rounded-lg bg-[var(--field-bg-filled)] p-4">
             <div className="text-xs text-muted-foreground">Timeline</div>
             <div className="mt-2 flex flex-wrap items-baseline gap-2">
               <span className="num-mono text-base font-medium text-foreground">{durationDays != null ? `${durationDays}d` : "—"}</span>
@@ -655,7 +672,7 @@ function ProjectDetail() {
             </div>
           </div>
 
-          <div className="rounded-lg bg-surface p-4">
+          <div className="rounded-lg bg-[var(--field-bg-filled)] p-4">
             <div className="text-xs text-muted-foreground">Budget</div>
             <div className="mt-2 flex flex-wrap items-baseline gap-2">
               <span className="num-mono text-base font-medium text-foreground">${project.budgetUsed.toFixed(2)}M / ${project.budgetTotal.toFixed(1)}M</span>
@@ -668,7 +685,7 @@ function ProjectDetail() {
             variant="ghost"
             data-ds-size="auto"
             onClick={() => setStageGateOpen(true)}
-            className="group h-auto min-h-16 justify-start rounded-lg bg-surface p-4 text-left hover:bg-surface/80"
+            className="group h-auto min-h-16 justify-start rounded-lg bg-[var(--field-bg-filled)] p-4 text-left hover:bg-[var(--field-bg-filled)]/80"
           >
             <div className="w-full min-w-0">
               <div className="text-xs font-normal text-muted-foreground">Stage Gate</div>

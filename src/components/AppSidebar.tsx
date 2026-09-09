@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   NavDashboard, NavOrganization, NavClientsVendors, NavPortfolio, NavResources,
-  NavFinancials, NavApprovals, ChevronDown,
+  NavFinancials, NavApprovals, NavRisks, ChevronDown,
 } from "@/lib/icons";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -38,6 +38,14 @@ type NavItem = {
 const allItems: NavItem[] = [
   { title: "Dashboard", url: "/", icon: NavDashboard },
   { title: "Portfolio", url: "/portfolio", icon: NavPortfolio },
+  {
+    title: "Risk & Issues", url: "/risks", icon: NavRisks, defaultTab: "register",
+    children: [
+      { title: "Risk Register", tab: "register" },
+      { title: "Heat Map", tab: "heatmap" },
+      { title: "Issues Log", tab: "issues" },
+    ],
+  },
   {
     title: "Resources", url: "/resources", icon: NavResources, defaultTab: "requests",
     children: [

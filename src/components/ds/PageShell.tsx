@@ -17,6 +17,7 @@ const MODULES: Record<string, { label: string; to: string }> = {
   resources: { label: "Resources", to: "/resources" },
   "clients-vendors": { label: "Clients & Vendors", to: "/clients-vendors" },
   financials: { label: "Financials", to: "/financials" },
+  risks: { label: "Risk & Issues", to: "/risks" },
   organization: { label: "Organization", to: "/organization" },
   approvals: { label: "Approvals", to: "/approvals" },
 };

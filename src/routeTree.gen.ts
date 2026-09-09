@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RisksRouteImport } from './routes/risks'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as OrganizationRouteImport } from './routes/organization'
 import { Route as FinancialsRouteImport } from './routes/financials'
@@ -21,6 +22,11 @@ import { Route as PortfolioNewRouteImport } from './routes/portfolio.new'
 import { Route as PortfolioProjectIdRouteImport } from './routes/portfolio.$projectId'
 import { Route as PortfolioProjectIdEditRouteImport } from './routes/portfolio.$projectId_.edit'
 
+const RisksRoute = RisksRouteImport.update({
+  id: '/risks',
+  path: '/risks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResourcesRoute = ResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/financials': typeof FinancialsRoute
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
+  '/risks': typeof RisksRoute
   '/portfolio/$projectId': typeof PortfolioProjectIdRoute
   '/portfolio/new': typeof PortfolioNewRoute
   '/portfolio/': typeof PortfolioIndexRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/financials': typeof FinancialsRoute
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
+  '/risks': typeof RisksRoute
   '/portfolio/$projectId': typeof PortfolioProjectIdRoute
   '/portfolio/new': typeof PortfolioNewRoute
   '/portfolio': typeof PortfolioIndexRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/financials': typeof FinancialsRoute
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
+  '/risks': typeof RisksRoute
   '/portfolio/$projectId': typeof PortfolioProjectIdRoute
   '/portfolio/new': typeof PortfolioNewRoute
   '/portfolio/': typeof PortfolioIndexRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/financials'
     | '/organization'
     | '/resources'
+    | '/risks'
     | '/portfolio/$projectId'
     | '/portfolio/new'
     | '/portfolio/'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/financials'
     | '/organization'
     | '/resources'
+    | '/risks'
     | '/portfolio/$projectId'
     | '/portfolio/new'
     | '/portfolio'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/financials'
     | '/organization'
     | '/resources'
+    | '/risks'
     | '/portfolio/$projectId'
     | '/portfolio/new'
     | '/portfolio/'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   FinancialsRoute: typeof FinancialsRoute
   OrganizationRoute: typeof OrganizationRoute
   ResourcesRoute: typeof ResourcesRoute
+  RisksRoute: typeof RisksRoute
   PortfolioProjectIdRoute: typeof PortfolioProjectIdRoute
   PortfolioNewRoute: typeof PortfolioNewRoute
   PortfolioIndexRoute: typeof PortfolioIndexRoute
@@ -175,6 +188,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/risks': {
+      id: '/risks'
+      path: '/risks'
+      fullPath: '/risks'
+      preLoaderRoute: typeof RisksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/resources': {
       id: '/resources'
       path: '/resources'
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   FinancialsRoute: FinancialsRoute,
   OrganizationRoute: OrganizationRoute,
   ResourcesRoute: ResourcesRoute,
+  RisksRoute: RisksRoute,
   PortfolioProjectIdRoute: PortfolioProjectIdRoute,
   PortfolioNewRoute: PortfolioNewRoute,
   PortfolioIndexRoute: PortfolioIndexRoute,

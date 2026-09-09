@@ -73,6 +73,7 @@ export const NavClientsVendors = solar("users-group-two-rounded");
 export const NavFinancials = solar("dollar-minimalistic");
 export const NavOrganization = solar("buildings");
 export const NavApprovals = solar("clipboard-check");
+export const NavRisks = solar("shield-warning");
 export const CalendarDays = sax("Calendar");
 export const CalendarIcon = CalendarDays;
 export const Calendar = CalendarDays;

@@ -42,6 +42,10 @@ export const EMPTY_STATES: EmptyStateEntry[] = [
   { id: "financials-overview", module: "Financials", page: "Overview (P&L)", path: "/financials", art: "coins", title: "No Financial data yet", description: "Budgets and revenue appear here once projects are created" },
   { id: "financials-costs", module: "Financials", page: "Costs", path: "/financials", art: "coins", title: "No Cost Items added yet", description: "Start by adding the first cost item", ctaLabel: "Add Cost Item" },
 
+  // Risk & Issues
+  { id: "risks-register", module: "Risk & Issues", page: "Risk Register", path: "/risks", art: "shield", title: "No Risks logged yet", description: "Start by logging the first risk", ctaLabel: "Log Risk" },
+  { id: "risks-issues", module: "Risk & Issues", page: "Issues Log", path: "/risks", art: "note", title: "No Issues logged yet", description: "Start by logging the first issue", ctaLabel: "Log Issue" },
+
   // Organization
   { id: "org-project-types", module: "Organization", page: "Project Types", path: "/organization", art: "briefcase", title: "No Project Types added yet", description: "Start by adding the first Project Type", ctaLabel: "Add Project Type" },
   { id: "org-tags", module: "Organization", page: "Tags & Classifications", path: "/organization", art: "tag", title: "No Tags added yet", description: "Start by adding the first Tag", ctaLabel: "Add Tag" },

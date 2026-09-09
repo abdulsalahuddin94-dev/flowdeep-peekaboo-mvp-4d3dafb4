@@ -1485,7 +1485,7 @@ function OverviewTab({
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid items-start gap-4 md:grid-cols-2">
       <div className="space-y-4">
         <div className="glass-card p-5">
           <div className="label-eyebrow mb-4">Project Health</div>

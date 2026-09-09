@@ -523,6 +523,9 @@ function ProjectDetail() {
   const budgetUsedPct = project.budgetTotal > 0
     ? Math.min(100, Math.round((project.budgetUsed / project.budgetTotal) * 100))
     : 0;
+  const pendingApprovalCount = centralApprovals.filter(
+    (approval) => approval.projectId === project.id && approval.status === "pending",
+  ).length;
   return (
     <div>
       <div className="mb-2">
@@ -614,8 +617,8 @@ function ProjectDetail() {
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {project.tags.slice(0, 1).map((tag) => <Badge key={tag} variant="secondary">{tag}</Badge>)}
-            {centralApprovals.filter((approval) => approval.project === project.name && approval.status === "Pending").length > 0 && (
-              <Badge variant="warning">{centralApprovals.filter((approval) => approval.project === project.name && approval.status === "Pending").length} Pending Approvals</Badge>
+            {pendingApprovalCount > 0 && (
+              <Badge variant="outline" className="border-rag-amber/30 bg-rag-amber/10 text-rag-amber">{pendingApprovalCount} Pending Approvals</Badge>
             )}
           </div>
         </div>

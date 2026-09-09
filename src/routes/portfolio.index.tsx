@@ -159,37 +159,37 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
     <>
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-5">
         {[
-          { l: "Active", v: projectList.length },
-          { l: "On Track", v: projectList.filter((p) => p.rag === "green").length, c: "rag-green" },
-          { l: "Budget Used", v: `$${projectList.reduce((s, p) => s + p.budgetUsed, 0).toFixed(1)}M / $${projectList.reduce((s, p) => s + p.budgetTotal, 0).toFixed(0)}M` },
-          { l: "Off-Track", v: projectList.filter((p) => p.rag === "red").length, c: "rag-red", pulse: true },
+          { l: "Active", v: projectList.length, bar: "bg-border" },
+          { l: "On Track", v: projectList.filter((p) => p.rag === "green").length, bar: "bg-rag-green" },
+          { l: "Off - Track", v: projectList.filter((p) => p.rag === "red").length, bar: "bg-rag-red" },
         ].map((m) => (
-          <div key={m.l} className="glass-card p-4">
-            <div className="label-eyebrow">{m.l}</div>
-            <div className="mt-1 flex items-center gap-2">
-              {m.c && <span className={`h-2 w-2 rounded-full bg-${m.c} ${m.pulse ? "pulse-dot" : ""}`} />}
-              <span className="text-xl font-medium num-mono text-foreground">{m.v}</span>
-            </div>
+          <div key={m.l} className="glass-card relative overflow-hidden p-4 pl-5">
+            <span className={cn("absolute inset-y-0 left-0 w-[3px]", m.bar)} />
+            <div className="text-xs text-muted-foreground">{m.l}</div>
+            <div className="mt-1 text-xl font-medium num-mono text-foreground">{m.v}</div>
           </div>
         ))}
         <button
           onClick={() => setOnlyPending((v) => !v)}
           className={cn(
-            "glass-card p-4 text-left transition hover:ring-2 hover:ring-accent/40",
+            "glass-card relative overflow-hidden p-4 pl-5 text-left transition hover:ring-2 hover:ring-accent/40",
             onlyPending && "ring-2 ring-accent",
           )}
           title="Show only projects with pending approvals"
         >
-          <div className="label-eyebrow flex items-center gap-1"><Clock className="h-3 w-3" /> Pending Approvals</div>
-          <div className="mt-1 flex items-center gap-2">
-            {pendingTotal > 0 && <span className="h-2 w-2 rounded-full bg-rag-amber pulse-dot" />}
-            <span className="text-xl font-medium num-mono text-foreground">{pendingTotal}</span>
-            <span className="text-[11px] text-muted-foreground">
-              {projectsAwaiting.length} project{projectsAwaiting.length === 1 ? "" : "s"}
-            </span>
-          </div>
+          <span className="absolute inset-y-0 left-0 w-[3px] bg-rag-amber" />
+          <div className="text-xs text-muted-foreground">Pending Approvals</div>
+          <div className="mt-1 text-xl font-medium num-mono text-foreground">{pendingTotal}</div>
         </button>
+        <div className="glass-card relative overflow-hidden p-4 pl-5">
+          <span className="absolute inset-y-0 left-0 w-[3px] bg-border" />
+          <div className="text-xs text-muted-foreground">Budget Used</div>
+          <div className="mt-1 text-xl font-medium num-mono text-foreground">
+            {`$${projectList.reduce((s, p) => s + p.budgetUsed, 0).toFixed(1)}M / $${projectList.reduce((s, p) => s + p.budgetTotal, 0).toFixed(0)}M`}
+          </div>
+        </div>
       </div>
+
 
       {pendingTotal > 0 && !onlyPending && (
         <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-rag-amber/30 bg-rag-amber/10 px-3 py-2 text-xs">

@@ -607,7 +607,7 @@ function ProjectDetail() {
       <section className="mb-5 rounded-lg bg-card p-5" aria-label="Project overview information">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <h2 className="truncate text-base font-semibold text-foreground">{project.name}</h2>
+            <h2 className="truncate text-xl font-semibold text-foreground">{project.name}</h2>
             <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
               {project.client && (
                 <span className="inline-flex items-center gap-2">
@@ -623,7 +623,7 @@ function ProjectDetail() {
                   {projectCalendar.name}
                 </span>
               )}
-              <span className="num-mono"># {project.code}</span>
+              <span className="num-mono text-p-neutral-500"># {project.code}</span>
             </div>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
@@ -644,8 +644,8 @@ function ProjectDetail() {
             </div>
             <div className="flex items-center gap-3">
               <Progress value={scheduleSummary.actual} className="h-1.5 flex-1" />
-              <span className="num-mono text-sm font-semibold text-foreground">{scheduleSummary.actual}%</span>
-              <span className="text-[10px] text-muted-foreground">/ {scheduleSummary.planned}%</span>
+              <span className="num-mono text-lg font-semibold text-foreground">{scheduleSummary.actual}%</span>
+              <span className="text-xs text-muted-foreground">/ {scheduleSummary.planned}%</span>
             </div>
           </div>
 
@@ -657,7 +657,7 @@ function ProjectDetail() {
               <div className="text-xs text-muted-foreground">Open Issues</div>
               <div className="flex items-baseline gap-2">
                 <span className="num-mono text-lg font-semibold text-rag-red">{String(project.issues).padStart(2, "0")}</span>
-                <span className="text-[10px] text-muted-foreground">active · 2 critical</span>
+                <span className="text-xs text-muted-foreground">active · 2 critical</span>
               </div>
             </div>
           </div>
@@ -670,7 +670,7 @@ function ProjectDetail() {
               <div className="text-xs text-muted-foreground">Open Risks</div>
               <div className="flex items-baseline gap-2">
                 <span className="num-mono text-lg font-semibold text-rag-amber">{String(project.risks).padStart(2, "0")}</span>
-                <span className="text-[10px] text-muted-foreground">active · 1 escalated</span>
+                <span className="text-xs text-muted-foreground">active · 1 escalated</span>
               </div>
             </div>
           </div>
@@ -678,17 +678,18 @@ function ProjectDetail() {
           <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
             <div className="text-xs text-muted-foreground">Timeline</div>
             <div className="flex flex-wrap items-baseline gap-2">
-              <span className="num-mono text-sm font-medium text-foreground">{durationDays != null ? `${durationDays}d` : "—"}</span>
+              <span className="num-mono text-sm font-medium text-accent">{durationDays != null ? `${durationDays}d` : "—"}</span>
               <span className="num-mono text-[10px] text-muted-foreground">({project.startDate} → {project.endDate})</span>
             </div>
           </div>
 
-          <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
+          <div className="flex h-16 flex-col justify-center gap-1 rounded-lg bg-[var(--field-bg-filled)] px-4">
             <div className="text-xs text-muted-foreground">Budget</div>
             <div className="flex flex-wrap items-baseline gap-2">
-              <span className="num-mono text-sm font-medium text-foreground">${project.budgetUsed.toFixed(2)}M / ${project.budgetTotal.toFixed(1)}M</span>
-              <span className="text-[10px] text-muted-foreground">{budgetUsedPct}% used</span>
+              <span className="num-mono text-sm font-semibold text-foreground">${project.budgetUsed.toFixed(2)}M</span>
+              <span className="num-mono text-sm text-muted-foreground">/ ${project.budgetTotal.toFixed(1)}M</span>
             </div>
+            <div className="text-xs text-muted-foreground">{budgetUsedPct}% used</div>
           </div>
 
           <Button
@@ -701,7 +702,7 @@ function ProjectDetail() {
             <div className="flex w-full min-w-0 flex-col gap-1.5">
               <div className="text-xs font-normal text-muted-foreground">Stage Gate</div>
               <div className="flex items-center gap-3">
-                <span className="shrink-0 text-sm font-normal text-foreground">{currentStage.name}</span>
+                <span className="shrink-0 text-sm font-semibold text-foreground">{currentStage.name}</span>
                 <div className="flex min-w-0 flex-1 items-center gap-1" aria-label={`Stage ${currentStage.n} of ${PLANNING_STAGES.length}`}>
                   {PLANNING_STAGES.map((stage) => (
                     <span key={stage.n} className={cn("h-1 flex-1 rounded-full", stage.state === "done" ? "bg-accent" : stage.state === "active" ? "bg-accent/60" : "bg-secondary")} />

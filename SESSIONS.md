@@ -1,5 +1,7 @@
 ## Session — 2026-09-09
 
+- Rebuilt the Project Details header and compact overview information layout to match the supplied reference, removing the subtitle and oversized summary cards.
+
 - Redesigned the Project Overview summary into six modern cards: Progress, Open Issues, Open Risks, Timeline, Budget, and Stage Gate.
 - Added live weighted progress versus plan, issue/risk counts, timeline duration, budget utilization, and stage checklist completion.
 

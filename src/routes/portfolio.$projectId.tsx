@@ -649,29 +649,29 @@ function ProjectDetail() {
             </div>
           </div>
 
-          <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
-            <div className="flex items-center justify-between">
+          <div className="flex h-16 items-center gap-3 rounded-lg bg-[var(--field-bg-filled)] px-4">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-rag-red/15 text-rag-red">
+              <AlertTriangle size={18} />
+            </span>
+            <div className="min-w-0">
               <div className="text-xs text-muted-foreground">Open Issues</div>
-              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-rag-red/15 text-rag-red">
-                <AlertTriangle size={13} />
-              </span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="num-mono text-lg font-semibold text-rag-red">{String(project.issues).padStart(2, "0")}</span>
-              <span className="text-[10px] text-muted-foreground">active · 2 critical</span>
+              <div className="flex items-baseline gap-2">
+                <span className="num-mono text-lg font-semibold text-rag-red">{String(project.issues).padStart(2, "0")}</span>
+                <span className="text-[10px] text-muted-foreground">active · 2 critical</span>
+              </div>
             </div>
           </div>
 
-          <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
-            <div className="flex items-center justify-between">
+          <div className="flex h-16 items-center gap-3 rounded-lg bg-[var(--field-bg-filled)] px-4">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-rag-amber/15 text-rag-amber">
+              <ShieldAlert size={18} />
+            </span>
+            <div className="min-w-0">
               <div className="text-xs text-muted-foreground">Open Risks</div>
-              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-rag-amber/15 text-rag-amber">
-                <ShieldAlert size={13} />
-              </span>
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="num-mono text-lg font-semibold text-rag-amber">{String(project.risks).padStart(2, "0")}</span>
-              <span className="text-[10px] text-muted-foreground">active · 1 escalated</span>
+              <div className="flex items-baseline gap-2">
+                <span className="num-mono text-lg font-semibold text-rag-amber">{String(project.risks).padStart(2, "0")}</span>
+                <span className="text-[10px] text-muted-foreground">active · 1 escalated</span>
+              </div>
             </div>
           </div>
 

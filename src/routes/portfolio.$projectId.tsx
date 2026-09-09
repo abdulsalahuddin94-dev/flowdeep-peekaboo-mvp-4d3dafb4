@@ -609,10 +609,21 @@ function ProjectDetail() {
           <div className="min-w-0">
             <h2 className="truncate text-base font-semibold text-foreground">{project.name}</h2>
             <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
-              {project.client && <span>{project.client}</span>}
-              <span>{project.department.join(" · ") || project.businessLine}</span>
+              {project.client && (
+                <span className="inline-flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/20 text-[10px] font-semibold text-accent">
+                    {project.client.split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase()}
+                  </span>
+                  {project.client}
+                </span>
+              )}
+              {projectCalendar && (
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar size={13} className="text-muted-foreground" />
+                  {projectCalendar.name}
+                </span>
+              )}
               <span className="num-mono"># {project.code}</span>
-              {projectCalendar && <span>{projectCalendar.name}</span>}
             </div>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">

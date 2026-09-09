@@ -263,6 +263,31 @@ export const risks: RiskItem[] = [
   { id: "R-074", project: "LNG Terminal Refit", title: "Severe weather window miss", category: "Schedule", prob: 3, impact: 4, score: 12, status: "Open", owner: "Liam Walker", mitigation: "Parallel work packages prepared" },
   { id: "R-070", project: "Plant Maintenance Q3", title: "Spare parts long lead-time", category: "Supply", prob: 3, impact: 3, score: 9, status: "Mitigating", owner: "Hana Tanaka", mitigation: "Pre-orders placed; safety stock" },
   { id: "R-066", project: "Regulatory Reporting", title: "SME shortage during peak", category: "Resource", prob: 4, impact: 2, score: 8, status: "Open", owner: "Diego Ortiz", mitigation: "Contractor backfill arranged" },
+  { id: "R-062", project: "Self-Service BI", title: "Data quality gaps in source systems", category: "Technical", prob: 2, impact: 3, score: 6, status: "Mitigating", owner: "Priya Iyer", mitigation: "Profiling scripts + data owner sign-off" },
+  { id: "R-058", project: "Cost Optimization", title: "FX movement on imported equipment", category: "Financial", prob: 2, impact: 2, score: 4, status: "Closed", owner: "Liam Walker", mitigation: "Forward contracts placed" },
+];
+
+export type IssuePriority = "High" | "Medium" | "Low";
+export type IssueStatus = "Open" | "In Progress" | "Resolved";
+
+export interface IssueItem {
+  id: string;
+  project: string;
+  title: string;
+  priority: IssuePriority;
+  owner: string;
+  status: IssueStatus;
+  raised: string;
+  action: string;
+}
+
+export const issues: IssueItem[] = [
+  { id: "I-044", project: "ERP System Upgrade", title: "Test environment outage blocking QA", priority: "High", owner: "Mei Chen", status: "In Progress", raised: "2d ago", action: "Infra team restoring cluster; QA re-plan issued" },
+  { id: "I-042", project: "Coastal Refinery Expansion", title: "Crane availability slip", priority: "Medium", owner: "John Smith", status: "Open", raised: "5d ago", action: "Alternative lifting subcontractor being quoted" },
+  { id: "I-040", project: "Wellhead Automation", title: "Vendor on-site no-show", priority: "High", owner: "Omar Haddad", status: "In Progress", raised: "1d ago", action: "Escalated to vendor account manager" },
+  { id: "I-038", project: "Self-Service BI", title: "Source system schema change", priority: "Low", owner: "Diego Ortiz", status: "Open", raised: "1w ago", action: "Mapping layer rework scheduled next sprint" },
+  { id: "I-035", project: "Warehouse Robotics", title: "Safety sign-off pending for pilot cell", priority: "Medium", owner: "Priya Iyer", status: "Open", raised: "3d ago", action: "HSE walkthrough booked" },
+  { id: "I-031", project: "Security Hardening 2026", title: "Patch window conflict with month-end close", priority: "Medium", owner: "Mei Chen", status: "Resolved", raised: "2w ago", action: "Window moved to first weekend of the month" },
 ];
 
 export const resources = [

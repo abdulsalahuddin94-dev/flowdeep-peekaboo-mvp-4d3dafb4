@@ -525,15 +525,14 @@ function ProjectDetail() {
     : 0;
   return (
     <div>
-      <div className="mb-4">
+      <div className="mb-2">
         <Link to="/portfolio" className="inline-flex items-center text-sm text-breadcrumb-current transition-colors hover:text-breadcrumb-hover">
           <ChevronLeft className="mr-1 h-3 w-3" />Back to Portfolio
         </Link>
       </div>
       <PageHeader
-        title={project.name}
-        current={project.name}
-        subtitle={`${project.businessLine} · ${project.department.join(" · ")} · Client ${project.client}${projectCalendar ? ` · 📅 ${projectCalendar.name}` : ""}`}
+        title="Project Details"
+        current="Project Details"
         actions={(() => {
           /**
            * Deletion rules: only administrative roles may delete, and never once
@@ -602,114 +601,86 @@ function ProjectDetail() {
 
       />
 
-      <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12">
-        <div className="glass-card relative min-h-40 overflow-hidden p-5 sm:col-span-2 lg:col-span-6">
-          <div className="flex h-full flex-col justify-between">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="label-eyebrow">Progress</div>
-                <div className="mt-2 num-mono text-4xl font-medium text-foreground">{scheduleSummary.actual}%</div>
-              </div>
-              <div className={cn(
-                "rounded-lg px-3 py-1.5 text-xs font-medium",
-                scheduleSummary.actual >= scheduleSummary.planned
-                  ? "bg-rag-green/15 text-rag-green"
-                  : "bg-rag-amber/15 text-rag-amber",
-              )}>
-                {scheduleSummary.actual >= scheduleSummary.planned
-                  ? "On plan"
-                  : `${scheduleSummary.planned - scheduleSummary.actual}% behind`}
-              </div>
+      <section className="mb-5 rounded-lg bg-card p-5" aria-label="Project overview information">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="truncate text-base font-semibold text-foreground">{project.name}</h2>
+            <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+              {project.client && <span>{project.client}</span>}
+              <span>{project.department.join(" · ") || project.businessLine}</span>
+              <span className="num-mono"># {project.code}</span>
+              {projectCalendar && <span>{projectCalendar.name}</span>}
             </div>
-            <div className="mt-7">
-              <Progress value={scheduleSummary.actual} className="h-2" />
-              <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-                <span>Actual completion</span>
-                <span>Plan <span className="num-mono text-foreground">{scheduleSummary.planned}%</span></span>
-              </div>
-            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {project.tags.slice(0, 1).map((tag) => <Badge key={tag} variant="secondary">{tag}</Badge>)}
+            {centralApprovals.filter((approval) => approval.project === project.name && approval.status === "Pending").length > 0 && (
+              <Badge variant="warning">{centralApprovals.filter((approval) => approval.project === project.name && approval.status === "Pending").length} Pending Approvals</Badge>
+            )}
           </div>
         </div>
 
-        <div className="glass-card relative min-h-40 overflow-hidden p-5 lg:col-span-3">
-          <div className="absolute inset-y-0 left-0 w-1 bg-rag-red" />
-          <div className="flex h-full flex-col justify-between pl-1">
-            <div className="label-eyebrow">Open Issues</div>
-            <div>
-              <div className="num-mono text-4xl font-medium text-foreground">{String(project.issues).padStart(2, "0")}</div>
-              <div className="mt-2 text-xs text-muted-foreground">Require immediate action</div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded-lg bg-surface p-4">
+            <div className="text-xs text-muted-foreground">Progress:</div>
+            <div className="mt-3 flex items-center gap-3">
+              <Progress value={scheduleSummary.actual} className="h-1.5 flex-1" />
+              <span className="num-mono text-xs font-medium text-foreground">{scheduleSummary.actual}%</span>
+              <span className="text-[10px] text-muted-foreground">(Planned {scheduleSummary.planned}% · <span className={scheduleSummary.actual >= scheduleSummary.planned ? "text-rag-green" : "text-rag-amber"}>{scheduleSummary.actual >= scheduleSummary.planned ? "On plan" : `${scheduleSummary.planned - scheduleSummary.actual}% Behind`}</span>)</span>
             </div>
           </div>
-        </div>
 
-        <div className="glass-card relative min-h-40 overflow-hidden p-5 lg:col-span-3">
-          <div className="absolute inset-y-0 left-0 w-1 bg-rag-amber" />
-          <div className="flex h-full flex-col justify-between pl-1">
-            <div className="label-eyebrow">Open Risks</div>
-            <div>
-              <div className="num-mono text-4xl font-medium text-foreground">{String(project.risks).padStart(2, "0")}</div>
-              <div className="mt-2 text-xs text-muted-foreground">Under active monitoring</div>
+          <div className="flex min-h-16 items-center justify-center rounded-lg bg-surface p-4">
+            <div className="text-center">
+              <div className="num-mono text-2xl font-semibold text-foreground">{String(project.issues).padStart(2, "0")}</div>
+              <div className="mt-1 text-[10px] text-muted-foreground">Open Issues</div>
             </div>
           </div>
-        </div>
 
-        <div className="glass-card min-h-36 p-5 sm:col-span-2 lg:col-span-4">
-          <div className="flex h-full flex-col justify-between">
-            <div className="flex items-center justify-between gap-3">
-              <div className="label-eyebrow">Timeline</div>
-              <Clock size={18} className="text-muted-foreground" />
+          <div className="flex min-h-16 items-center justify-center rounded-lg bg-surface p-4">
+            <div className="text-center">
+              <div className="num-mono text-2xl font-semibold text-foreground">{String(project.risks).padStart(2, "0")}</div>
+              <div className="mt-1 text-[10px] text-muted-foreground">Open Risks</div>
             </div>
-            <div className="mt-6">
-              <div className="num-mono text-2xl font-medium text-foreground">{durationDays != null ? `${durationDays} days` : "—"}</div>
-              <div className="mt-2 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                <span>{project.startDate}</span>
-                <span aria-hidden="true" className="h-px flex-1 bg-border" />
-                <span>{project.endDate}</span>
+          </div>
+
+          <div className="rounded-lg bg-surface p-4">
+            <div className="text-xs text-muted-foreground">Timeline</div>
+            <div className="mt-2 flex flex-wrap items-baseline gap-2">
+              <span className="num-mono text-base font-medium text-foreground">{durationDays != null ? `${durationDays}d` : "—"}</span>
+              <span className="num-mono text-[10px] text-muted-foreground">({project.startDate} → {project.endDate})</span>
+            </div>
+          </div>
+
+          <div className="rounded-lg bg-surface p-4">
+            <div className="text-xs text-muted-foreground">Budget</div>
+            <div className="mt-2 flex flex-wrap items-baseline gap-2">
+              <span className="num-mono text-base font-medium text-foreground">${project.budgetUsed.toFixed(2)}M / ${project.budgetTotal.toFixed(1)}M</span>
+              <span className="text-[10px] text-muted-foreground">{budgetUsedPct}% used</span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="ghost"
+            data-ds-size="auto"
+            onClick={() => setStageGateOpen(true)}
+            className="group h-auto min-h-16 justify-start rounded-lg bg-surface p-4 text-left hover:bg-surface/80"
+          >
+            <div className="w-full min-w-0">
+              <div className="text-xs font-normal text-muted-foreground">Stage Gate</div>
+              <div className="mt-2 flex items-center gap-3">
+                <span className="shrink-0 text-sm font-normal text-foreground">{currentStage.name}</span>
+                <div className="flex min-w-0 flex-1 items-center gap-1" aria-label={`Stage ${currentStage.n} of ${PLANNING_STAGES.length}`}>
+                  {PLANNING_STAGES.map((stage) => (
+                    <span key={stage.n} className={cn("h-1 flex-1 rounded-full", stage.state === "done" ? "bg-accent" : stage.state === "active" ? "bg-accent/60" : "bg-secondary")} />
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </Button>
         </div>
-
-        <div className="glass-card min-h-36 p-5 lg:col-span-4">
-          <div className="flex h-full flex-col justify-between">
-            <div className="flex items-center justify-between gap-3">
-              <div className="label-eyebrow">Budget</div>
-              <span className="num-mono text-sm font-medium text-foreground">{budgetUsedPct}% used</span>
-            </div>
-            <div className="mt-6">
-              <div className="num-mono text-2xl font-medium text-foreground">${project.budgetUsed.toFixed(1)}M</div>
-              <Progress value={budgetUsedPct} className="mt-3 h-2 [&>div]:bg-rag-green" />
-              <div className="mt-2 text-xs text-muted-foreground">of ${project.budgetTotal.toFixed(1)}M approved</div>
-            </div>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setStageGateOpen(true)}
-          className="glass-card group relative min-h-36 p-5 text-left transition-colors hover:border-accent/40 lg:col-span-4"
-        >
-          <ArrowUpRight className="absolute right-5 top-5 h-4 w-4 text-muted-foreground transition-colors group-hover:text-accent" />
-          <div className="flex h-full flex-col justify-between">
-            <div className="label-eyebrow">Stage Gate</div>
-            <div className="mt-6">
-              <div className="text-2xl font-medium text-foreground">{currentStage.name}</div>
-              <div className="mt-4 flex items-center gap-1.5" aria-label={`Stage ${currentStage.n} of ${PLANNING_STAGES.length}`}>
-                {PLANNING_STAGES.map((stage) => (
-                  <span
-                    key={stage.n}
-                    className={cn(
-                      "h-1.5 flex-1 rounded-full",
-                      stage.state === "done" ? "bg-accent" : stage.state === "active" ? "bg-accent/60" : "bg-secondary",
-                    )}
-                  />
-                ))}
-              </div>
-              <div className="mt-2 text-xs text-muted-foreground">{planningDone} of {PLANNING_CHECKLIST.length} checks complete</div>
-            </div>
-          </div>
-        </button>
-      </div>
+      </section>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="overflow-x-auto whitespace-nowrap">

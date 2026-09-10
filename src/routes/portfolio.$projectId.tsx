@@ -2000,7 +2000,7 @@ function ProgressUpdateDialog({
           <section className="min-w-0 space-y-3">
             <div className="grid grid-cols-[minmax(0,1fr)_112px] items-end gap-3">
               <div className="min-w-0 space-y-1.5">
-                <Label className="text-xs">Pick a task to update</Label>
+                <Label className="text-xs">Pick an open task to update</Label>
             <Select value={selected} onValueChange={(v) => {
               setSelected(v);
               const t = leaves.find((x) => x.name === v);
@@ -2008,17 +2008,11 @@ function ProgressUpdateDialog({
             }}>
               <SelectTrigger><SelectValue placeholder="Choose a task…" /></SelectTrigger>
               <SelectContent className="max-h-72">
-                {leaves.filter((t) => current?.parent ? t.parent === current.parent : true).map((t) => (
+                {openLeaves.map((t) => (
                   <SelectItem key={t.name} value={t.name}>
                     {t.name}
                   </SelectItem>
                 ))}
-                {gateTask && (
-                  <SelectItem key={gateTask.name} value={gateTask.name} disabled>
-                    <span className="text-rag-amber">🔒 {gateTask.name}</span>
-                    <span className="ml-1 text-muted-foreground text-[10px]">(approver-only)</span>
-                  </SelectItem>
-                )}
               </SelectContent>
             </Select>
               </div>

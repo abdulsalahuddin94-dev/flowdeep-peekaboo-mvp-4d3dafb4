@@ -2332,258 +2332,149 @@ function FinancialsTab({
     return { planned, actual, util: planned ? Math.round((actual / planned) * 100) : 0 };
   }, [displayRev]);
 
-  /**
-   * Revenue items linked from the schedule. The expected recognition date is the
-   * linked milestone's planned finish date (dynamic), and recognition is locked
-   * behind approval whenever the milestone requires it.
-   */
-  const scheduleRevenue = useMemo(() => {
-    type Row = {
-      itemId: string; label: string; amount: string; value: number;
-      wbsItem: string; date: string; progress: number; statusLabel: string; rag: Rag; demo?: boolean;
-    };
-    const rows: Row[] = [];
-    for (const m of milestones) {
-      const links = [m.payment, ...(m.extraPayments ?? [])].filter(
-        (p): p is NonNullable<typeof p> => !!p && p.kind === "Client Revenue" && !!p.packageId,
-      );
-      for (const link of links) {
-        const item = findFinancialItem(link.packageId);
-        if (!item) continue;
-        const progress = Math.round(m.progress ?? 0);
-        const gated = !!m.requiresApproval;
-        const approved = m.approvalStatus === "approved";
-        const recognised = progress >= 100 && (!gated || approved);
-        const awaiting = progress >= 100 && gated && !approved;
-        rows.push({
-          itemId: link.packageId!,
-          label: item.label,
-          amount: item.amount,
-          value: Number(item.amount.replace(/[^0-9.]/g, "")) || 0,
-          wbsItem: m.name,
-          date: m.endDate,
-          progress,
-          statusLabel: recognised ? "Recognised" : awaiting ? "Awaiting approval" : progress > 0 ? "In progress" : "Planned",
-          rag: recognised ? "green" : awaiting ? "amber" : progress > 0 ? "blue" : "grey",
-        });
-      }
-    }
-    if (rows.length > 0) return rows;
-
-    /**
-     * Nothing linked yet — show a small illustrative sample so the behaviour of
-     * this panel is understandable. As soon as a real link is made in the
-     * schedule, these sample rows disappear and the live ones take over.
-     */
-    const msNames = milestones.filter((m) => m.kind === "Milestone");
-    const demoStatus = (progress: number, gated: boolean, approved: boolean): { statusLabel: string; rag: Rag } => {
-      if (progress >= 100 && (!gated || approved)) return { statusLabel: "Recognised", rag: "green" };
-      if (progress >= 100 && gated && !approved) return { statusLabel: "Awaiting approval", rag: "amber" };
-      if (progress > 0) return { statusLabel: "In progress", rag: "blue" };
-      return { statusLabel: "Planned", rag: "grey" };
-    };
-    const sample: { itemId: string; progress: number; gated: boolean; approved: boolean }[] = [
-      { itemId: "FIN-R-ADV", progress: 100, gated: false, approved: true },
-      { itemId: "FIN-R-P1", progress: 100, gated: true, approved: false },
-      { itemId: "FIN-R-P2", progress: 45, gated: true, approved: false },
-      { itemId: "FIN-R-FIN", progress: 0, gated: true, approved: false },
-    ];
-    return sample.map((s, i) => {
-      const item = findFinancialItem(s.itemId)!;
-      const ms = msNames[i] ?? msNames[msNames.length - 1];
-      const st = demoStatus(s.progress, s.gated, s.approved);
-      return {
-        itemId: s.itemId,
-        label: item.label,
-        amount: item.amount,
-        value: Number(item.amount.replace(/[^0-9.]/g, "")) || 0,
-        wbsItem: ms?.name ?? `Milestone ${i + 1}`,
-        date: ms?.endDate ?? "",
-        progress: s.progress,
-        statusLabel: st.statusLabel,
-        rag: st.rag,
-        demo: true,
-      } satisfies Row;
-    });
-  }, [milestones]);
-  const revenueIsDemo = scheduleRevenue.some((r) => r.demo);
+  const addLinkDialog = (kind: "cost" | "revenue") => (
+    <AddFinanceLinkDialog
+      milestoneNames={milestoneNames}
+      defaultType={kind}
+      onAddCost={(e) => { setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
+      onAddRevenue={(e) => { setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
+    />
+  );
 
   return (
     <div className="space-y-4">
-      <BaselineHeader state={finBaseline} />
-      <TabChangeRequestDialog state={finBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
-      <TabApprovalDialog state={finBaseline} />
       {isNew && (
         <EmptyState
           art="coins"
           title="No budget set up yet"
-          description="Unlock editing to add cost categories and the revenue plan for this project."
-          ctaLabel="Set up budget"
-          onCta={() => finBaseline.setEditMode(true)}
+          description="Add cost items and — for client projects — the revenue plan for this project."
         />
       )}
-      <div className="grid gap-3 md:grid-cols-4">
-        {[
-          { l: "Total Budget", v: `$${project.budgetTotal.toFixed(1)}M` },
-          { l: "Spent", v: `$${project.budgetUsed.toFixed(2)}M` },
-          { l: "Committed", v: "$1.12M", c: "text-rag-amber" },
-          { l: "Forecast EAC", v: `$${(project.budgetTotal * 1.04).toFixed(2)}M`, c: "text-rag-amber" },
-        ].map((k) => (
-          <div key={k.l} className="glass-card p-4">
-            <div className="label-eyebrow">{k.l}</div>
-            <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
-          </div>
-        ))}
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-[1fr_360px]">
-        <div className="glass-card p-5">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="label-eyebrow">Cost categories</div>
-            {canEdit && (
-              <AddFinanceLinkDialog
-                milestoneNames={milestoneNames}
-                defaultType="cost"
-                onAddCost={(e) => { setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
-                onAddRevenue={(e) => { setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
-              />
-            )}
-          </div>
-          <CostCategoriesList
-            entries={displayCost}
-            canEdit={canEdit}
-            onUpdate={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
-          />
-        </div>
-        <div className="glass-card p-5">
-          <div className="label-eyebrow mb-3">Quarterly cash plan</div>
-          <ul className="space-y-3 text-sm">
+      <Tabs value={finTab} onValueChange={(v) => setFinTab(v as "cost" | "revenue")}>
+        <TabsList>
+          <TabsTrigger value="cost">Cost</TabsTrigger>
+          {!isInternal && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
+        </TabsList>
+
+        {/* ── Cost ─────────────────────────────────────────────────────────── */}
+        <TabsContent value="cost" className="mt-4 space-y-4">
+          <div className="grid gap-3 md:grid-cols-4">
             {[
-              { q: "Q1 2026", v: "$0.45M", s: "green", sl: "Released" },
-              { q: "Q2 2026", v: "$1.05M", s: "green", sl: "Released" },
-              { q: "Q3 2026", v: "$1.20M", s: "amber", sl: "Pending" },
-              { q: "Q4 2026", v: "$0.50M", s: "blue", sl: "Planned" },
-            ].map((q) => (
-              <li key={q.q} className="flex items-center justify-between border-b border-border/60 pb-2 last:border-0 last:pb-0">
-                <div>
-                  <div className="text-foreground">{q.q}</div>
-                  <div className="num-mono text-xs text-muted-foreground">{q.v}</div>
-                </div>
-                <RagBadge rag={q.s as any} label={q.sl} />
-              </li>
+              { l: "Total Budget", v: `$${project.budgetTotal.toFixed(1)}M` },
+              { l: "Planned cost", v: `$${costTotals.planned.toFixed(2)}M` },
+              { l: "Actual spent", v: `$${costTotals.actual.toFixed(2)}M` },
+              { l: "Utilization", v: `${costTotals.util}%`, c: costTotals.util > 100 ? "text-rag-red" : costTotals.util > 85 ? "text-rag-amber" : "text-rag-green" },
+            ].map((k) => (
+              <div key={k.l} className="glass-card p-4">
+                <div className="label-eyebrow">{k.l}</div>
+                <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+              </div>
             ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="glass-card p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="label-eyebrow">Revenue plan — linked to milestones</div>
-          <div className="flex items-center gap-3">
-            <span className="num-mono text-xs text-muted-foreground">
-              Total planned: ${displayRev.reduce((s, r) => s + r.plan, 0).toFixed(2)}M
-            </span>
-            {canEdit && (
-              <AddFinanceLinkDialog
-                milestoneNames={milestoneNames}
-                defaultType="revenue"
-                onAddCost={(e) => { setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
-                onAddRevenue={(e) => { setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
-              />
-            )}
           </div>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent bg-transparent border-0">
-              <TableHead>Linked to</TableHead>
-              <TableHead>Revenue event</TableHead>
-              <TableHead className="text-right">Planned ($M)</TableHead>
-              <TableHead>Expected date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actual ($M)</TableHead>
-              {canEdit && <TableHead className="w-10" />}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {displayRev.map((r, idx) => (
-              <TableRow key={r.ms} className="bg-table-row-bg hover:bg-table-row-hover border-0">
-                <TableCell className="font-medium text-foreground">
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${r.linkKind === "fixed" ? "bg-secondary/40 text-muted-foreground" : "bg-accent/15 text-accent"}`}>
-                      {r.linkKind === "fixed" ? "Date" : "MS"}
-                    </span>
-                    <span>{r.ms}</span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-muted-foreground">{r.evt}</TableCell>
-                <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{r.date}</TableCell>
-                <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
-                <TableCell className="num-mono text-right">{r.act != null ? `$${r.act.toFixed(2)}M` : "—"}</TableCell>
-                {canEdit && (
-                  <TableCell className="text-right">
-                    <EditRevenueRowDialog
-                      entry={r}
-                      milestoneNames={milestoneNames}
-                      onSave={(patch) => setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
-                      onDelete={() => setRevEntries((prev) => prev.filter((_, i) => i !== idx))}
-                    />
-                  </TableCell>
+
+          <div className="glass-card p-5">
+            <div className="mb-1 flex items-center justify-between">
+              <div className="label-eyebrow">Cost breakdown</div>
+              {canEdit && addLinkDialog("cost")}
+            </div>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Every item carries a cost category from Organization. Items linked to a milestone inherit that
+              milestone's planned finish date automatically.
+            </p>
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent bg-transparent border-0">
+                  <TableHead>Category</TableHead>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Planned ($M)</TableHead>
+                  <TableHead className="text-right">Actual ($M)</TableHead>
+                  <TableHead className="text-right">Utilization</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {displayCost.map((e) => {
+                  const util = e.b ? Math.round((e.a / e.b) * 100) : 0;
+                  return (
+                    <TableRow key={e.c} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+                      <TableCell className="text-muted-foreground">{e.cat ?? "—"}</TableCell>
+                      <TableCell className="font-medium text-foreground">{e.c}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
+                      <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
+                      <TableCell className="num-mono text-right">${e.a.toFixed(2)}M</TableCell>
+                      <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>{util}%</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        <span className={`mr-1.5 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${e.linkKind === "milestone" ? "bg-accent/15 text-accent" : "bg-secondary/40 text-muted-foreground"}`}>
+                          {e.linkKind === "milestone" ? "MS" : "Date"}
+                        </span>
+                        {costDate(e)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                {displayCost.length > 0 && (
+                  <TableRow className="bg-transparent hover:bg-transparent border-0">
+                    <TableCell colSpan={3} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
+                    <TableCell className="num-mono text-right font-medium">${costTotals.planned.toFixed(2)}M</TableCell>
+                    <TableCell className="num-mono text-right font-medium">${costTotals.actual.toFixed(2)}M</TableCell>
+                    <TableCell className="num-mono text-right font-medium">{costTotals.util}%</TableCell>
+                    <TableCell />
+                  </TableRow>
                 )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Recognition driven by the schedule: dates follow the milestone, status follows approval */}
-      <div className="glass-card p-5">
-        <div className="mb-1 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="label-eyebrow">Revenue recognition — driven by the schedule</div>
-            {revenueIsDemo && (
-              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide bg-secondary/40 text-muted-foreground">
-                Sample
-              </span>
-            )}
+              </TableBody>
+            </Table>
           </div>
-          <span className="num-mono text-xs text-muted-foreground">
-            Linked: ${scheduleRevenue.reduce((s, r) => s + r.value, 0).toFixed(2)}M
-          </span>
-        </div>
-        <p className="mb-3 text-xs text-muted-foreground">
-          Expected dates always inherit the linked milestone's planned finish date, so a schedule delay shifts the
-          forecast automatically. Revenue is only recognised once the milestone reaches 100% and — where approval is
-          required — has been approved.
-          {revenueIsDemo && " Nothing is linked yet, so these rows are a sample — link a revenue item from a milestone's Edit Details panel and the live data replaces them."}
-        </p>
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent bg-transparent border-0">
-              <TableHead>Revenue item</TableHead>
-              <TableHead>Linked milestone</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead>Expected date (inherited)</TableHead>
-              <TableHead>Progress</TableHead>
-              <TableHead>Recognition status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {scheduleRevenue.map((r) => (
-              <TableRow key={r.itemId} className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${r.demo ? "opacity-70" : ""}`}>
-                <TableCell className="font-medium text-foreground">{r.label}</TableCell>
-                <TableCell className="text-muted-foreground">{r.wbsItem}</TableCell>
-                <TableCell className="num-mono text-right">{r.amount}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{r.date || "—"}</TableCell>
-                <TableCell className="num-mono text-xs">{r.progress}%</TableCell>
-                <TableCell><RagBadge rag={r.rag} label={r.statusLabel} /></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
 
-      </div>
+          <div className="glass-card p-5">
+            <div className="label-eyebrow mb-3">Planned vs actual by category</div>
+            <CostCategoriesList
+              entries={displayCost}
+              canEdit={canEdit}
+              onUpdate={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
+            />
+          </div>
+        </TabsContent>
+
+        {/* ── Revenue ──────────────────────────────────────────────────────── */}
+        {!isInternal && (
+          <TabsContent value="revenue" className="mt-4 space-y-4">
+            <div className="grid gap-3 md:grid-cols-3">
+              {[
+                { l: "Planned revenue", v: `$${revTotals.planned.toFixed(2)}M` },
+                { l: "Received", v: `$${revTotals.actual.toFixed(2)}M` },
+                { l: "Collected", v: `${revTotals.util}%`, c: revTotals.util >= 100 ? "text-rag-green" : "text-rag-amber" },
+              ].map((k) => (
+                <div key={k.l} className="glass-card p-4">
+                  <div className="label-eyebrow">{k.l}</div>
+                  <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="glass-card p-5">
+              <div className="mb-1 flex items-center justify-between">
+                <div className="label-eyebrow">Revenue plan</div>
+                {canEdit && addLinkDialog("revenue")}
+              </div>
+              <p className="mb-3 text-xs text-muted-foreground">
+                Expand a row to see the actual payments logged against that planned event. Events linked to a
+                milestone follow the milestone's planned finish date.
+              </p>
+              <RevenuePlanTable
+                entries={displayRev}
+                canEdit={canEdit}
+                milestoneNames={milestoneNames}
+                dateOf={revDate}
+                totals={revTotals}
+                onSave={(idx, patch) => setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
+                onDelete={(idx) => setRevEntries((prev) => prev.filter((_, i) => i !== idx))}
+              />
+            </div>
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }

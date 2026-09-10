@@ -1679,7 +1679,7 @@ export function ProjectSchedule({
               {healthHighlight && (
                 <>
                   <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-amber" /> At risk (≤ 7% behind)</span>
-                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Off track (> 7% behind)</span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Off track (&gt; 7% behind)</span>
                 </>
               )}
             </div>

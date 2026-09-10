@@ -1409,11 +1409,6 @@ export function ProjectSchedule({
                           <Plus className="mr-2 h-3.5 w-3.5" /> Add subtask
                         </ContextMenuItem>
                       )}
-                      {!isGate && !restricted && onEditItem && (
-                        <ContextMenuItem onSelect={() => onEditItem(item.name)}>
-                          <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
-                        </ContextMenuItem>
-                      )}
                       {!isGate && !restricted && onDeleteItem && (
                         <>
                           <ContextMenuSeparator />

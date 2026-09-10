@@ -5577,11 +5577,7 @@ function DependencyDialog({
                 <div key={i} className="flex items-center justify-between rounded border border-border/60 bg-background/60 p-2 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{d.predecessor}</span>
-                    <span className="text-xs text-muted-foreground">
-                      [{d.relation}]
-                      {d.leadTime ? ` LS: ${d.leadTime}d` : ""}
-                      {d.lagTime ? ` LG: ${d.lagTime}d` : ""}
-                    </span>
+                    <span className="text-xs text-muted-foreground">{depLabel(d)}</span>
                   </div>
                   <button onClick={() => removeDependency(i)} className="text-xs text-rag-red hover:underline">
                     Remove

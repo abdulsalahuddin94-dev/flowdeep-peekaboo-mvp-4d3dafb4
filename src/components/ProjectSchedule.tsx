@@ -1665,24 +1665,30 @@ export function ProjectSchedule({
         </div>
       </div>
 
-      {ganttOpen && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-secondary/20 px-3 py-2 text-xs text-muted-foreground">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span className="flex items-center gap-1.5"><Diamond className="h-3.5 w-3.5 text-accent" /> Milestone</span>
-            <span className="flex items-center gap-1.5"><span className="flex h-3 w-5 items-center rounded-sm border border-accent/70 bg-secondary p-0.5"><span className="h-full w-2/3 rounded-[2px] bg-accent" /></span> Actual progress</span>
-            <span className="flex items-center gap-1.5"><span className="flex h-3 w-5 items-center rounded-sm border border-foreground/60 bg-secondary p-0.5"><span className="h-full w-2/3 rounded-[2px] bg-foreground/50" /></span> Planned progress</span>
-            <span className="flex items-center gap-1.5"><span className="relative h-3 w-5 rounded-sm border border-border bg-secondary"><span className="absolute inset-y-[-2px] left-2.5 w-0.5 bg-foreground" /></span> Planned position</span>
-            <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm border border-foreground bg-foreground/80" /> Summary from subtasks</span>
-            {healthHighlight && (
-              <>
-                <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-amber" /> At risk (≤ 7% behind)</span>
-                <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Off track (&gt; 7% behind)</span>
-              </>
-            )}
-          </div>
-          <div>Range: {fmt(minDate)} – {fmt(maxDate)}</div>
-        </div>
-      )}
+      {/* Legend bar stays mounted in both states so opening/closing the Gantt
+          doesn't cause a sudden layout shift; only the legend content is toggled */}
+      <div className="flex min-h-[40px] flex-wrap items-center justify-between gap-3 border-t border-border bg-secondary/20 px-3 py-2 text-xs text-muted-foreground">
+        {ganttOpen ? (
+          <>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <span className="flex items-center gap-1.5"><Diamond className="h-3.5 w-3.5 text-accent" /> Milestone</span>
+              <span className="flex items-center gap-1.5"><span className="flex h-3 w-5 items-center rounded-sm border border-accent/70 bg-secondary p-0.5"><span className="h-full w-2/3 rounded-[2px] bg-accent" /></span> Actual progress</span>
+              <span className="flex items-center gap-1.5"><span className="flex h-3 w-5 items-center rounded-sm border border-foreground/60 bg-secondary p-0.5"><span className="h-full w-2/3 rounded-[2px] bg-foreground/50" /></span> Planned progress</span>
+              <span className="flex items-center gap-1.5"><span className="relative h-3 w-5 rounded-sm border border-border bg-secondary"><span className="absolute inset-y-[-2px] left-2.5 w-0.5 bg-foreground" /></span> Planned position</span>
+              <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm border border-foreground bg-foreground/80" /> Summary from subtasks</span>
+              {healthHighlight && (
+                <>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-amber" /> At risk (≤ 7% behind)</span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Off track (> 7% behind)</span>
+                </>
+              )}
+            </div>
+            <div>Range: {fmt(minDate)} – {fmt(maxDate)}</div>
+          </>
+        ) : (
+          <span className="text-muted-foreground/60">Gantt chart collapsed — open it to view the legend</span>
+        )}
+      </div>
 
       <AlertDialog open={!!pendingImport} onOpenChange={(o) => { if (!o) setPendingImport(null); }}>
         <AlertDialogContent className="max-w-3xl">

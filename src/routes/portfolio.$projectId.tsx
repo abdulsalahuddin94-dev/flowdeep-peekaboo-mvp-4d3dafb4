@@ -536,8 +536,12 @@ function ProjectDetail() {
                 setPlanEditMode("view");
                 setEditBaselineSnapshot(null);
               }}>
-                <SelectTrigger className="h-8 w-64 text-xs">
-                  <SelectValue />
+                <SelectTrigger className="h-9 w-56 text-xs">
+                  <span className="truncate">
+                    {selectedBaselineVersion === "latest"
+                      ? `Current Version (v${projectBaselineVersions.length})`
+                      : selectedBaselineVersion}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="latest">

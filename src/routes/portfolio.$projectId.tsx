@@ -1860,11 +1860,6 @@ function ProgressUpdateDialog({
     return scoped?.requiresApproval ? scoped : null;
   }, [current, items, scopeMilestone]);
 
-  // Synthetic approval gate task belonging to that milestone (shown read-only in the picker).
-  const gateTask = useMemo(
-    () => (approvalMilestone ? items.find((i) => i.isApprovalTask && i.parent === approvalMilestone.name) ?? null : null),
-    [items, approvalMilestone],
-  );
 
   // Every leaf task that rolls up into that milestone.
   const approvalLeaves = useMemo(() => {

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useMemo, useEffect, Fragment } from "react";
+import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge } from "@/components/RagBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -1183,7 +1183,7 @@ function ProjectDetail() {
 
 
         <TabsContent value="Financials" className="mt-5">
-          <FinancialsTab project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} />
+          <FinancialsTab project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} />
         </TabsContent>
 
         <TabsContent value="Risk & Issues" className="mt-5">
@@ -2865,6 +2865,8 @@ type Trip = { id: string; purpose: string; dest: string; dates: string; traveler
 type CostBreakdownItem = { name: string; amount: number; note?: string };
 type CostEntry = {
   c: string; b: number; a: number; color: string;
+  /** Cost category from Organization master data. */
+  cat?: string;
   desc?: string;
   ctype?: "internal" | "third-party";
   classification?: "capex" | "opex";
@@ -2875,6 +2877,8 @@ type CostEntry = {
 type RevEntry = {
   ms: string; evt: string; plan: number; date: string; s: string; sl: string; act: number | null;
   linkKind?: "fixed" | "milestone";
+  /** Individual actual payments logged against this planned event. */
+  actuals?: { amount: number; date: string; note?: string }[];
 };
 type GateItem = { task: string; role: string; done: boolean };
 type GateStage = { name: string; items: GateItem[] };

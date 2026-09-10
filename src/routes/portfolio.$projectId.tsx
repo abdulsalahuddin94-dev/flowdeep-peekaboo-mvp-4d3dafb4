@@ -2273,30 +2273,35 @@ function BusinessTripsTab({ pm }: { pm: string }) {
   );
 }
 
-// ── Financials tab (includes Financial Planning content) ─────────────────────
+// ── Financials tab — Cost / Revenue split ────────────────────────────────────
 function FinancialsTab({
-  project, milestones, isNew, onDataAdded,
-}: { project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void }) {
+  project, milestones, isNew, onDataAdded, canEdit = true,
+}: { project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void; canEdit?: boolean }) {
   const milestoneNames = useMemo(
     () => milestones.filter((m) => m.kind === "Milestone").map((m) => m.name),
     [milestones],
   );
+  /** Internal (capital) projects have no client revenue, so that tab is hidden. */
+  const isInternal = project.client === "Internal";
+  const [finTab, setFinTab] = useState<"cost" | "revenue">("cost");
   const [costEntries, setCostEntries] = useState<CostEntry[]>(isNew ? [] : [
-    { c: "Labour", b: 1.20, a: 0.84, color: "bg-rag-green", desc: "Core delivery team", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Build Complete", breakdown: [
+    { c: "Labour", cat: "Staff", b: 1.20, a: 0.84, color: "bg-rag-green", desc: "Core delivery team", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Build Complete", breakdown: [
       { name: "Backend engineers (3)", amount: 0.55, note: "6-month allocation" },
       { name: "Frontend engineers (2)", amount: 0.35 },
       { name: "QA (2)", amount: 0.30 },
     ] },
-    { c: "Hardware", b: 0.90, a: 0.62, color: "bg-rag-blue", desc: "On-prem servers + peripherals", ctype: "third-party", classification: "capex", linkKind: "fixed", linkRef: "2025-06-15" },
-    { c: "Software licenses", b: 0.40, a: 0.31, color: "bg-accent", desc: "Annual licenses", ctype: "third-party", classification: "opex", linkKind: "fixed", linkRef: "2025-05-01" },
-    { c: "Business trips", b: 0.10, a: 0.07, color: "bg-rag-amber", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Design Approved" },
-    { c: "Contingency", b: 0.60, a: 0.26, color: "bg-muted-foreground", ctype: "internal", classification: "opex", linkKind: "fixed", linkRef: "" },
+    { c: "Hardware", cat: "Contracts", b: 0.90, a: 0.62, color: "bg-rag-blue", desc: "On-prem servers + peripherals", ctype: "third-party", classification: "capex", linkKind: "fixed", linkRef: "2025-06-15" },
+    { c: "Software licenses", cat: "Services", b: 0.40, a: 0.31, color: "bg-accent", desc: "Annual licenses", ctype: "third-party", classification: "opex", linkKind: "fixed", linkRef: "2025-05-01" },
+    { c: "Business trips", cat: "Business Trips", b: 0.10, a: 0.07, color: "bg-rag-amber", desc: "Travel & accommodation", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Design Approved" },
+    { c: "Contingency", cat: "Services", b: 0.60, a: 0.26, color: "bg-muted-foreground", desc: "Reserve", ctype: "internal", classification: "opex", linkKind: "fixed", linkRef: "" },
   ]);
   const [revEntries, setRevEntries] = useState<RevEntry[]>(isNew ? [] : [
-    { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "May 02",        s: "green", sl: "Received", act: 0.96 },
-    { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "Jun 30",        s: "amber", sl: "Pending",  act: null },
-    { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null },
-    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null },
+    { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "May 02",        s: "green", sl: "Received", act: 0.96, linkKind: "milestone",
+      actuals: [{ amount: 0.60, date: "May 02", note: "Invoice INV-0012" }, { amount: 0.36, date: "May 21", note: "Invoice INV-0018" }] },
+    { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "Jun 30",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "milestone",
+      actuals: [{ amount: 0.20, date: "Jul 04", note: "Partial settlement" }] },
+    { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
+    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
   ]);
   const finSnapshot = useMemo(() => ({ costEntries, revEntries }), [costEntries, revEntries]);
   const finBaseline = useTabBaseline({

@@ -26,7 +26,7 @@ import {
 import {
   ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Trash2, Upload, UserPlus, X } from "@/lib/icons";
+import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, GanttChartSquare, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Trash2, Upload, UserPlus, X } from "@/lib/icons";
 import { RagBadge } from "@/components/RagBadge";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -924,16 +924,33 @@ export function ProjectSchedule({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <ToggleGroup
-            type="single"
-            value={scale}
-            onValueChange={(v) => v && setScale(v as Scale)}
-            className="rounded-md border border-border bg-secondary/40 p-0.5"
+          <Button
+            type="button"
+            size="sm"
+            variant={ganttOpen ? "outline" : "primary"}
+            onClick={() => { setGanttOpen((v) => !v); setLeftCollapsed(false); }}
+            aria-expanded={ganttOpen}
+            aria-controls="project-gantt-chart"
+            className="gap-2"
           >
-            <ToggleGroupItem value="day" className="h-7 px-2 text-xs">Days</ToggleGroupItem>
-            <ToggleGroupItem value="week" className="h-7 px-2 text-xs">Weeks</ToggleGroupItem>
-            <ToggleGroupItem value="month" className="h-7 px-2 text-xs">Months</ToggleGroupItem>
-          </ToggleGroup>
+            <GanttChartSquare className="h-4 w-4" />
+            {ganttOpen ? "Hide Gantt" : "Show Gantt"}
+            {ganttOpen ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+          </Button>
+
+          {ganttOpen && (
+            <ToggleGroup
+              type="single"
+              value={scale}
+              onValueChange={(v) => v && setScale(v as Scale)}
+              aria-label="Gantt time scale"
+              className="rounded-md border border-border bg-secondary/40 p-0.5"
+            >
+              <ToggleGroupItem value="day" className="h-7 px-2 text-xs">Days</ToggleGroupItem>
+              <ToggleGroupItem value="week" className="h-7 px-2 text-xs">Weeks</ToggleGroupItem>
+              <ToggleGroupItem value="month" className="h-7 px-2 text-xs">Months</ToggleGroupItem>
+            </ToggleGroup>
+          )}
 
           <div className="flex items-center gap-2">
             <Switch id="health" checked={healthHighlight} onCheckedChange={setHealthHighlight} />
@@ -1416,19 +1433,8 @@ export function ProjectSchedule({
           </div>
         )}
 
-        {/* Slide-out toggle for the Gantt chart, pinned to the right edge */}
-        <button
-          type="button"
-          onClick={() => { setGanttOpen((v) => !v); setLeftCollapsed(false); }}
-          title={ganttOpen ? "Hide Gantt chart" : "Show Gantt chart"}
-          aria-label={ganttOpen ? "Hide Gantt chart" : "Show Gantt chart"}
-          className="absolute right-0 top-1/2 z-40 flex h-9 w-6 -translate-y-1/2 items-center justify-center rounded-l-lg border border-r-0 border-border bg-secondary text-muted-foreground shadow-sm transition-colors hover:border-accent hover:bg-accent hover:text-accent-foreground"
-        >
-          {ganttOpen ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
-        </button>
-
         {/* RIGHT: gantt */}
-        <div className={ganttOpen ? "flex flex-1 flex-col overflow-hidden" : "hidden"}>
+        <div id="project-gantt-chart" className={ganttOpen ? "flex flex-1 flex-col overflow-hidden" : "hidden"}>
 
           <div ref={rightScrollRef} onScroll={onRightScroll} className="flex-1 overflow-auto">
             <div style={{ width: chartWidth, minWidth: "100%" }}>
@@ -1647,22 +1653,23 @@ export function ProjectSchedule({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4 border-t border-border bg-secondary/20 px-3 py-2 text-[10px] text-muted-foreground">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1"><Diamond className="h-3 w-3 text-accent" /> Milestone</span>
-          <span className="flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-accent" /> Actual %</span>
-          <span className="flex items-center gap-1"><span className="inline-block h-2 w-3 rounded-sm" style={{ backgroundImage: "repeating-linear-gradient(45deg, hsl(var(--foreground) / 0.35) 0 3px, transparent 3px 6px)" }} /> Planned %</span>
-          <span className="flex items-center gap-1"><span className="inline-block h-3 w-0.5 bg-foreground/70" /> Planned position</span>
-          <span className="flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-foreground/80" /> Summary (rolled up from subtasks)</span>
-          {healthHighlight && (
-            <>
-              <span className="flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-rag-amber" /> At risk (≤ 7% behind)</span>
-              <span className="flex items-center gap-1"><span className="h-2 w-3 rounded-sm bg-rag-red" /> Off track (&gt; 7% behind)</span>
-            </>
-          )}
+      {ganttOpen && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-secondary/20 px-3 py-2 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span className="flex items-center gap-1.5"><Diamond className="h-3.5 w-3.5 text-accent" /> Milestone</span>
+            <span className="flex items-center gap-1.5"><span className="flex h-3 w-5 items-center rounded-sm border border-accent/70 bg-secondary p-0.5"><span className="h-full w-2/3 rounded-[2px] bg-accent" /></span> Actual progress</span>
+            <span className="flex items-center gap-1.5"><span className="flex h-3 w-5 items-center rounded-sm border border-foreground/60 bg-secondary p-0.5"><span className="h-full w-2/3 rounded-[2px] bg-foreground/50" /></span> Planned progress</span>
+            <span className="flex items-center gap-1.5"><span className="relative h-3 w-5 rounded-sm border border-border bg-secondary"><span className="absolute inset-y-[-2px] left-2.5 w-0.5 bg-foreground" /></span> Planned position</span>
+            <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm border border-foreground bg-foreground/80" /> Summary from subtasks</span>
+            {healthHighlight && (
+              <>
+                <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-amber" /> At risk (≤ 7% behind)</span>
+                <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Off track (&gt; 7% behind)</span>
+              </>
+            )}
+          <div>Range: {fmt(minDate)} – {fmt(maxDate)}</div>
         </div>
-        <div>Range: {fmt(minDate)} – {fmt(maxDate)}</div>
-      </div>
+      )}
 
       <AlertDialog open={!!pendingImport} onOpenChange={(o) => { if (!o) setPendingImport(null); }}>
         <AlertDialogContent className="max-w-3xl">

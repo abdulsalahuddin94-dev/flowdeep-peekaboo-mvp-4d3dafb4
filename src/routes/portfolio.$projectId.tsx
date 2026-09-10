@@ -1292,6 +1292,17 @@ function ProjectDetail() {
           setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, dependencies } : m)))
         }
       />
+      <ScheduleFinancialLinkDialog
+        open={finLinkItem !== undefined}
+        onOpenChange={(v) => setFinLinkItem(v ? finLinkItem : undefined)}
+        item={finLinkItem ? milestones.find((m) => m.name === finLinkItem) : undefined}
+        items={milestones}
+        projectName={project.name}
+        onSave={(name, payment, extras) =>
+          setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, payment, extraPayments: extras } : m)))
+        }
+      />
+
     </div>
   );
 }

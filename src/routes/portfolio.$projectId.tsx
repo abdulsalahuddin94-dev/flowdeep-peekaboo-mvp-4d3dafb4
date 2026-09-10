@@ -2303,35 +2303,34 @@ function FinancialsTab({
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
     { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
   ]);
-  const finSnapshot = useMemo(() => ({ costEntries, revEntries }), [costEntries, revEntries]);
-  const finBaseline = useTabBaseline({
-    scope: "financials",
-    label: "Financials",
-    current: finSnapshot,
-    onCommit: (s) => { setCostEntries(s.costEntries); setRevEntries(s.revEntries); },
-    diff: (a, b) => {
-      const out: TabChange[] = [];
-      const aMap = new Map(a.costEntries.map((e) => [e.c, e]));
-      const bMap = new Map(b.costEntries.map((e) => [e.c, e]));
-      for (const k of new Set([...aMap.keys(), ...bMap.keys()])) {
-        const av = aMap.get(k); const bv = bMap.get(k);
-        if (!av) out.push({ path: `Cost · ${k}`, before: "—", after: `$${bv!.a.toFixed(2)}M / $${bv!.b.toFixed(2)}M` });
-        else if (!bv) out.push({ path: `Cost · ${k}`, before: `$${av.a.toFixed(2)}M / $${av.b.toFixed(2)}M`, after: "—" });
-        else if (av.a !== bv.a || av.b !== bv.b) out.push({ path: `Cost · ${k}`, before: `$${av.a.toFixed(2)}M / $${av.b.toFixed(2)}M`, after: `$${bv.a.toFixed(2)}M / $${bv.b.toFixed(2)}M` });
-      }
-      const aRev = new Map(a.revEntries.map((e) => [e.ms, e]));
-      const bRev = new Map(b.revEntries.map((e) => [e.ms, e]));
-      for (const k of new Set([...aRev.keys(), ...bRev.keys()])) {
-        const av = aRev.get(k); const bv = bRev.get(k);
-        if (!av || !bv) out.push({ path: `Revenue · ${k}`, before: av ? "present" : "—", after: bv ? "present" : "—" });
-        else if (av.plan !== bv.plan || av.act !== bv.act || av.sl !== bv.sl) out.push({ path: `Revenue · ${k}`, before: `plan $${av.plan}M · ${av.sl}`, after: `plan $${bv.plan}M · ${bv.sl}` });
-      }
-      return out;
-    },
-  });
-  const canEdit = finBaseline.canEdit;
-  const displayCost = (finBaseline.viewedSnapshot?.costEntries as CostEntry[] | undefined) ?? costEntries;
-  const displayRev = (finBaseline.viewedSnapshot?.revEntries as RevEntry[] | undefined) ?? revEntries;
+  // Editing is governed by the single project-level baseline (see the project header).
+  const displayCost = costEntries;
+  const displayRev = revEntries;
+
+  /** Cost/revenue dates linked to a milestone always follow the milestone's planned finish. */
+  const milestoneEnd = useCallback(
+    (name?: string) => milestones.find((m) => m.name === name)?.endDate ?? "",
+    [milestones],
+  );
+  const costDate = useCallback(
+    (e: CostEntry) => (e.linkKind === "milestone" ? milestoneEnd(e.linkRef) || e.linkRef || "—" : e.linkRef || "—"),
+    [milestoneEnd],
+  );
+  const revDate = useCallback(
+    (e: RevEntry) => (e.linkKind === "milestone" ? milestoneEnd(e.ms) || e.date || "—" : e.date || "—"),
+    [milestoneEnd],
+  );
+
+  const costTotals = useMemo(() => {
+    const planned = displayCost.reduce((s, e) => s + e.b, 0);
+    const actual = displayCost.reduce((s, e) => s + e.a, 0);
+    return { planned, actual, util: planned ? Math.round((actual / planned) * 100) : 0 };
+  }, [displayCost]);
+  const revTotals = useMemo(() => {
+    const planned = displayRev.reduce((s, e) => s + e.plan, 0);
+    const actual = displayRev.reduce((s, e) => s + (e.act ?? 0), 0);
+    return { planned, actual, util: planned ? Math.round((actual / planned) * 100) : 0 };
+  }, [displayRev]);
 
   /**
    * Revenue items linked from the schedule. The expected recognition date is the

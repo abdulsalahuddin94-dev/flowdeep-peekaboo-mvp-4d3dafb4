@@ -5574,25 +5574,7 @@ function DependencyDialog({
           <DialogTitle>Manage Dependencies — {currentItem?.name}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4">
-          {/* Existing dependencies */}
-          {deps.length > 0 && (
-            <div className="space-y-2 rounded-md border border-border bg-secondary/20 p-3">
-              <div className="text-sm font-medium">Current Dependencies</div>
-              {deps.map((d, i) => (
-                <div key={i} className="flex items-center justify-between rounded border border-border/60 bg-background/60 p-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{d.predecessor}</span>
-                    <span className="text-xs text-muted-foreground">{depLabel(d)}</span>
-                  </div>
-                  <button onClick={() => removeDependency(i)} className="text-xs text-rag-red hover:underline">
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Add new dependency */}
+          {/* Add new dependency — always on top so the dialog never grows */}
           <div className="space-y-3 rounded-md border border-accent/20 bg-accent-dim/20 p-3">
             <div className="text-sm font-medium">Add New Dependency</div>
             <div className="grid gap-3">
@@ -5657,6 +5639,31 @@ function DependencyDialog({
                 <Plus className="mr-1 h-3.5 w-3.5" />
                 Add Dependency
               </Button>
+            </div>
+          </div>
+
+          {/* Current dependencies — fixed height, scrolls internally */}
+          <div className="space-y-2 rounded-md border border-border bg-secondary/20 p-3">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium">Current Dependencies</div>
+              <span className="text-xs text-muted-foreground">{deps.length}</span>
+            </div>
+            <div className="h-[168px] space-y-2 overflow-y-auto pr-1">
+              {deps.length === 0 ? (
+                <p className="py-10 text-center text-xs text-muted-foreground">No dependencies yet.</p>
+              ) : (
+                deps.map((d, i) => (
+                  <div key={i} className="flex items-center justify-between rounded border border-border/60 bg-background/60 p-2 text-sm">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="truncate font-medium">{d.predecessor}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">{depLabel(d)}</span>
+                    </div>
+                    <button onClick={() => removeDependency(i)} className="shrink-0 text-xs text-rag-red hover:underline">
+                      Remove
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

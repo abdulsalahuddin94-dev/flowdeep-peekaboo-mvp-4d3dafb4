@@ -932,6 +932,13 @@ function ProjectDetail() {
               setSelectedItemForDep(name);
               setDependencyOpen(true);
             }}
+            onFinancialLinkClick={(name) => {
+              if (!isEditingAllowed) {
+                toast.error("📖 View Only — Click 'Change Plan' to edit");
+                return;
+              }
+              setFinLinkItem(name);
+            }}
             AddItemSlot={
               <AddMilestoneDialog
                 defaultOwner={project.pm}

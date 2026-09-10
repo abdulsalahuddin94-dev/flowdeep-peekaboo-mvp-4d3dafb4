@@ -5627,28 +5627,21 @@ function DependencyDialog({
                   </p>
                 </div>
                 <div>
-                  <Label className="text-xs">Lead Time (days)</Label>
+                  <Label className="text-xs">Lag / Lead (days)</Label>
                   <Input
                     type="number"
-                    min={0}
-                    value={leadTime}
-                    onChange={(e) => setLeadTime(Number(e.target.value) || 0)}
+                    value={lag}
+                    onChange={(e) => setLag(Number(e.target.value) || 0)}
                     placeholder="0"
                   />
-                  <p className="mt-1 text-[9px] text-muted-foreground">Overlap/advance</p>
+                  <p className="mt-1 text-[9px] text-muted-foreground">
+                    {lag > 0
+                      ? `Lag — starts ${lag}d after the predecessor`
+                      : lag < 0
+                        ? `Lead — overlaps ${Math.abs(lag)}d with the predecessor`
+                        : "Positive = lag (delay) · Negative = lead (overlap)"}
+                  </p>
                 </div>
-              </div>
-
-              <div>
-                <Label className="text-xs">Lag Time (days)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={lagTime}
-                  onChange={(e) => setLagTime(Number(e.target.value) || 0)}
-                  placeholder="0"
-                />
-                <p className="mt-1 text-[9px] text-muted-foreground">Delay between predecessor and this</p>
               </div>
 
               <Button

@@ -1029,6 +1029,17 @@ export function ProjectSchedule({
 
       {/* Split pane */}
       <div ref={splitRef} className="relative flex" style={{ height: 560 }}>
+        {/* Right-edge Gantt toggle — kept as a second access point alongside the
+            top icon button so the chart can be opened/closed from either side */}
+        <button
+          type="button"
+          onClick={() => { setGanttOpen((v) => !v); if (!ganttOpen) setLeftCollapsed(false); }}
+          title={ganttOpen ? "Hide Gantt" : "Show Gantt"}
+          aria-label={ganttOpen ? "Hide Gantt" : "Show Gantt"}
+          className="absolute right-0 top-1/2 z-30 flex h-12 w-5 -translate-y-1/2 items-center justify-center rounded-l-md border border-border border-r-0 bg-muted/80 text-muted-foreground shadow-sm backdrop-blur hover:border-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+        >
+          {ganttOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </button>
         {/* LEFT: table */}
         <div
           className={`flex flex-col overflow-hidden border-r border-border transition-[width] duration-200 ${leftCollapsed && ganttOpen ? "border-r-0" : ""}`}

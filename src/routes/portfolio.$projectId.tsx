@@ -5528,34 +5528,26 @@ function DependencyDialog({
 }) {
   const [selectedPred, setSelectedPred] = useState<string>("");
   const [relation, setRelation] = useState<"FS" | "SF" | "SS" | "FF">("FS");
-  const [leadTime, setLeadTime] = useState(0);
-  const [lagTime, setLagTime] = useState(0);
+  const [lag, setLag] = useState(0);
   const [deps, setDeps] = useState<any[]>([]);
 
   useEffect(() => {
     if (open && currentItem) {
-      setDeps(currentItem.dependencies ?? []);
+      setDeps((currentItem.dependencies ?? []).map((d) => ({ ...d, lag: depLag(d) })));
       setSelectedPred("");
       setRelation("FS");
-      setLeadTime(0);
-      setLagTime(0);
+      setLag(0);
     }
   }, [open, currentItem]);
 
   function addDependency() {
     if (!selectedPred || !currentItem) return;
-    const newDep = {
-      predecessor: selectedPred,
-      relation,
-      leadTime: leadTime || undefined,
-      lagTime: lagTime || undefined,
-    };
+    const newDep = { predecessor: selectedPred, relation, lag: lag || undefined };
     const updated = [...deps, newDep];
     setDeps(updated);
     setSelectedPred("");
     setRelation("FS");
-    setLeadTime(0);
-    setLagTime(0);
+    setLag(0);
   }
 
   function removeDependency(idx: number) {

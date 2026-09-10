@@ -1375,7 +1375,7 @@ export function ProjectSchedule({
                         >
                           {item.dependencies && item.dependencies.length > 0
                             ? item.dependencies.length === 1
-                              ? `${item.dependencies[0].predecessor}`
+                              ? `${item.dependencies[0].predecessor} · ${depLabel(item.dependencies[0])}`
                               : `${item.dependencies.length} Dependencies`
                             : item.dep || "—"}
                         </button>

@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { EmptyState } from "@/components/ds/EmptyState";
 import { ProjectGantt } from "@/components/ProjectGantt";
-import { ProjectSchedule, computePlannedProgress } from "@/components/ProjectSchedule";
+import { ProjectSchedule, computePlannedProgress, depLag, depLabel } from "@/components/ProjectSchedule";
 import {
   useTabBaseline,
   BaselineHeader,
@@ -5528,34 +5528,26 @@ function DependencyDialog({
 }) {
   const [selectedPred, setSelectedPred] = useState<string>("");
   const [relation, setRelation] = useState<"FS" | "SF" | "SS" | "FF">("FS");
-  const [leadTime, setLeadTime] = useState(0);
-  const [lagTime, setLagTime] = useState(0);
+  const [lag, setLag] = useState(0);
   const [deps, setDeps] = useState<any[]>([]);
 
   useEffect(() => {
     if (open && currentItem) {
-      setDeps(currentItem.dependencies ?? []);
+      setDeps((currentItem.dependencies ?? []).map((d) => ({ ...d, lag: depLag(d) })));
       setSelectedPred("");
       setRelation("FS");
-      setLeadTime(0);
-      setLagTime(0);
+      setLag(0);
     }
   }, [open, currentItem]);
 
   function addDependency() {
     if (!selectedPred || !currentItem) return;
-    const newDep = {
-      predecessor: selectedPred,
-      relation,
-      leadTime: leadTime || undefined,
-      lagTime: lagTime || undefined,
-    };
+    const newDep = { predecessor: selectedPred, relation, lag: lag || undefined };
     const updated = [...deps, newDep];
     setDeps(updated);
     setSelectedPred("");
     setRelation("FS");
-    setLeadTime(0);
-    setLagTime(0);
+    setLag(0);
   }
 
   function removeDependency(idx: number) {
@@ -5585,11 +5577,7 @@ function DependencyDialog({
                 <div key={i} className="flex items-center justify-between rounded border border-border/60 bg-background/60 p-2 text-sm">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{d.predecessor}</span>
-                    <span className="text-xs text-muted-foreground">
-                      [{d.relation}]
-                      {d.leadTime ? ` LS: ${d.leadTime}d` : ""}
-                      {d.lagTime ? ` LG: ${d.lagTime}d` : ""}
-                    </span>
+                    <span className="text-xs text-muted-foreground">{depLabel(d)}</span>
                   </div>
                   <button onClick={() => removeDependency(i)} className="text-xs text-rag-red hover:underline">
                     Remove
@@ -5639,28 +5627,21 @@ function DependencyDialog({
                   </p>
                 </div>
                 <div>
-                  <Label className="text-xs">Lead Time (days)</Label>
+                  <Label className="text-xs">Lag / Lead (days)</Label>
                   <Input
                     type="number"
-                    min={0}
-                    value={leadTime}
-                    onChange={(e) => setLeadTime(Number(e.target.value) || 0)}
+                    value={lag}
+                    onChange={(e) => setLag(Number(e.target.value) || 0)}
                     placeholder="0"
                   />
-                  <p className="mt-1 text-[9px] text-muted-foreground">Overlap/advance</p>
+                  <p className="mt-1 text-[9px] text-muted-foreground">
+                    {lag > 0
+                      ? `Lag — starts ${lag}d after the predecessor`
+                      : lag < 0
+                        ? `Lead — overlaps ${Math.abs(lag)}d with the predecessor`
+                        : "Positive = lag (delay) · Negative = lead (overlap)"}
+                  </p>
                 </div>
-              </div>
-
-              <div>
-                <Label className="text-xs">Lag Time (days)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={lagTime}
-                  onChange={(e) => setLagTime(Number(e.target.value) || 0)}
-                  placeholder="0"
-                />
-                <p className="mt-1 text-[9px] text-muted-foreground">Delay between predecessor and this</p>
               </div>
 
               <Button

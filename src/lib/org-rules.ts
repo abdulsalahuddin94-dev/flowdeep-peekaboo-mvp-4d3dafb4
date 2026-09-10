@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 /**
  * Company-level configurable rules (RAG health, schedule, financial).
  * Values differ per organization, so they live in configuration rather than
@@ -33,6 +34,15 @@ export type OrgRules = {
     capexThreshold: number;     // spend above this is treated as CapEx
     approvalThreshold: number;  // cost above this needs approval
   };
+  risk: {
+    /** Probability × Impact score bands. A score at/above the value takes that level. */
+    criticalMin: number;
+    highMin: number;
+    mediumMin: number;
+    /** Labels for the 1–5 probability and impact scales. */
+    probabilityLabels: string[];
+    impactLabels: string[];
+  };
 };
 
 export const DEFAULT_ORG_RULES: OrgRules = {
@@ -51,7 +61,22 @@ export const DEFAULT_ORG_RULES: OrgRules = {
     minMarginPct: 15, contingencyPct: 10,
     capexThreshold: 50000, approvalThreshold: 100000,
   },
+  risk: {
+    criticalMin: 15, highMin: 9, mediumMin: 4,
+    probabilityLabels: ["Rare", "Unlikely", "Possible", "Likely", "Almost certain"],
+    impactLabels: ["Insignificant", "Minor", "Moderate", "Major", "Severe"],
+  },
 };
+
+export type RiskSeverity = "Critical" | "High" | "Medium" | "Low";
+
+/** Severity band for a Probability × Impact score, using the organization rules. */
+export function severityForScore(score: number, rules: OrgRules = DEFAULT_ORG_RULES): RiskSeverity {
+  if (score >= rules.risk.criticalMin) return "Critical";
+  if (score >= rules.risk.highMin) return "High";
+  if (score >= rules.risk.mediumMin) return "Medium";
+  return "Low";
+}
 
 const KEY = "pmo.org-rules.v1";
 
@@ -65,6 +90,7 @@ export function loadOrgRules(): OrgRules {
       rag: { ...DEFAULT_ORG_RULES.rag, ...(parsed.rag ?? {}) },
       schedule: { ...DEFAULT_ORG_RULES.schedule, ...(parsed.schedule ?? {}) },
       financial: { ...DEFAULT_ORG_RULES.financial, ...(parsed.financial ?? {}) },
+      risk: { ...DEFAULT_ORG_RULES.risk, ...(parsed.risk ?? {}) },
     };
   } catch {
     return DEFAULT_ORG_RULES;
@@ -74,4 +100,22 @@ export function loadOrgRules(): OrgRules {
 export function saveOrgRules(rules: OrgRules) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(rules));
+  ruleListeners.forEach((l) => l());
+}
+
+const ruleListeners = new Set<() => void>();
+
+/** Subscribe to rule changes (used by hooks that mirror the rules in state). */
+export function subscribeOrgRules(listener: () => void) {
+  ruleListeners.add(listener);
+  return () => { ruleListeners.delete(listener); };
+}
+/** Live organization rules — defaults during SSR, real values after hydration. */
+export function useOrgRules(): OrgRules {
+  const [rules, setRules] = useState<OrgRules>(DEFAULT_ORG_RULES);
+  useEffect(() => {
+    setRules(loadOrgRules());
+    return subscribeOrgRules(() => setRules(loadOrgRules()));
+  }, []);
+  return rules;
 }

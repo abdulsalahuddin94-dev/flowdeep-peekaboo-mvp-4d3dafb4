@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge } from "@/components/RagBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RiskRegisterTab, RiskHeatmapTab, IssuesLogTab, RiskKpiStrip } from "@/components/risk/RiskIssues";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -73,7 +74,7 @@ export const Route = createFileRoute("/portfolio/$projectId")({
 });
 
 const TABS = [
-  "Overview", "Project Schedule", "Financials", "Status Reports",
+  "Overview", "Project Schedule", "Financials", "Status Reports", "Risk & Issues",
 ];
 
 const PLANNING_STAGES = [
@@ -1175,6 +1176,10 @@ function ProjectDetail() {
 
         <TabsContent value="Financials" className="mt-5">
           <FinancialsTab project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} />
+        </TabsContent>
+
+        <TabsContent value="Risk & Issues" className="mt-5">
+          <ProjectRiskIssuesTab projectName={project.name} />
         </TabsContent>
 
         <TabsContent value="Status Reports" className="mt-5">
@@ -5848,6 +5853,35 @@ function TeamAllocationTab({
               </div>
             </TabsContent>
           </Tabs>
+    </div>
+  );
+}
+
+// ── Risk & Issues tab ─────────────────────────────────────────────────────────
+
+function ProjectRiskIssuesTab({ projectName }: { projectName: string }) {
+  const [view, setView] = useState<"register" | "heatmap" | "issues">("register");
+
+  return (
+    <div className="space-y-4">
+      <RiskKpiStrip project={projectName} />
+
+      <Tabs value={view} onValueChange={(v) => setView(v as typeof view)}>
+        <TabsList>
+          <TabsTrigger value="register">Risk Register</TabsTrigger>
+          <TabsTrigger value="heatmap">Heat Map</TabsTrigger>
+          <TabsTrigger value="issues">Issues Log</TabsTrigger>
+        </TabsList>
+        <TabsContent value="register" className="mt-4">
+          <RiskRegisterTab project={projectName} />
+        </TabsContent>
+        <TabsContent value="heatmap" className="mt-4">
+          <RiskHeatmapTab project={projectName} />
+        </TabsContent>
+        <TabsContent value="issues" className="mt-4">
+          <IssuesLogTab project={projectName} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

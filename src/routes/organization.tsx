@@ -1672,7 +1672,7 @@ function RiskCategoriesTab() {
         return {
           ...c,
           used: used.length,
-          linked: names.map((n) => ({ id: projects.find((p) => p.name === n)?.id ?? n, name: n })),
+          linked: names.map((n) => ({ id: mockProjects.find((p) => p.name === n)?.id ?? n, name: n })),
         };
       })
       .filter((c) => !q || c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q))

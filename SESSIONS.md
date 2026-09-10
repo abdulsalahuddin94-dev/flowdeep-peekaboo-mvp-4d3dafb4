@@ -1,3 +1,11 @@
+## Session — 2026-09-10 (Gantt controls refined)
+
+- Kept the right-edge arrow as a second Gantt access point alongside the top control (double access).
+- Replaced the large Show/Hide Gantt text button with a compact chart icon + chevron that lights (primary) when open and dims (outline) when closed.
+- Made the bottom legend bar persist in both states to avoid layout shift; it shows full legend markers + Range when the Gantt is open, and a "Gantt chart collapsed" hint when closed.
+- Days/Weeks/Months scale remains hidden while the Gantt is closed.
+- Fixed a JSX `>` escape (`>`) in the legend. Typecheck clean; build OK; Playwright verified closed/open states.
+
 ## Session — 2026-09-10
 
 - Replaced the ambiguous edge arrow with a labeled Show/Hide Gantt button and chart icon.

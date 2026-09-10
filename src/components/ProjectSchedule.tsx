@@ -297,6 +297,7 @@ export function ProjectSchedule({
   onDeleteItem,
   onProgressClick,
   onDependencyClick,
+  onFinancialLinkClick,
   resourceList = [],
   headerSlot,
   restricted = false,
@@ -312,6 +313,7 @@ export function ProjectSchedule({
   onDeleteItem?: (name: string) => void;
   onProgressClick?: (name: string, kind: ItemKind) => void;
   onDependencyClick?: (name: string) => void;
+  onFinancialLinkClick?: (name: string) => void;
   resourceList?: Array<{ name: string; role?: string; dept?: string }>;
   headerSlot?: React.ReactNode;
   /**
@@ -1383,17 +1385,27 @@ export function ProjectSchedule({
                     )}
                     {colVisible("payment") && (
                       <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.payment }}>
-                        {!item.payment || item.payment.kind === "None" ? (
-                          <span className="text-muted-foreground">—</span>
-                        ) : item.payment.kind === "Client Revenue" ? (
-                          <Badge variant="outline" className="border-rag-green/40 bg-rag-green/10 text-rag-green text-[10px] truncate">
-                            Revenue · {item.payment.amount || "—"}
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px] truncate">
-                            {item.payment.packageId || "Pkg"} · {item.payment.amount || "—"}
-                          </Badge>
-                        )}
+                        <button
+                          type="button"
+                          disabled={restricted || isGate}
+                          onClick={() => !restricted && !isGate && onFinancialLinkClick?.(item.name)}
+                          className={`flex max-w-full items-center overflow-hidden text-left ${restricted || isGate ? "cursor-default" : "cursor-pointer hover:opacity-80"}`}
+                          title={restricted ? "Locked — use Change Plan to edit financial links" : "Click to link financial items"}
+                        >
+                          {!item.payment || item.payment.kind === "None" ? (
+                            <span className={restricted || isGate ? "text-muted-foreground" : "text-xs text-accent hover:underline"}>
+                              {restricted || isGate ? "—" : "Link items"}
+                            </span>
+                          ) : item.payment.kind === "Client Revenue" ? (
+                            <Badge variant="outline" className="border-rag-green/40 bg-rag-green/10 text-rag-green text-[10px] truncate">
+                              Revenue · {item.payment.amount || "—"}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px] truncate">
+                              {item.payment.packageId || "Pkg"} · {item.payment.amount || "—"}
+                            </Badge>
+                          )}
+                        </button>
                       </div>
                     )}
                   </div>
@@ -1407,11 +1419,6 @@ export function ProjectSchedule({
                       {!isGate && !restricted && onAddSubtask && (
                         <ContextMenuItem onSelect={() => onAddSubtask(item.name)}>
                           <Plus className="mr-2 h-3.5 w-3.5" /> Add subtask
-                        </ContextMenuItem>
-                      )}
-                      {!isGate && !restricted && onEditItem && (
-                        <ContextMenuItem onSelect={() => onEditItem(item.name)}>
-                          <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
                         </ContextMenuItem>
                       )}
                       {!isGate && !restricted && onDeleteItem && (

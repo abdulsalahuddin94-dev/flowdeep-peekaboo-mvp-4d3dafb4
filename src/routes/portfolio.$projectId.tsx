@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useMemo, useEffect, Fragment } from "react";
+import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge } from "@/components/RagBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -238,6 +238,7 @@ function ProjectDetail() {
   const [stageGateOpen, setStageGateOpen] = useState(false);
   const [dependencyOpen, setDependencyOpen] = useState(false);
   const [selectedItemForDep, setSelectedItemForDep] = useState<string | undefined>(undefined);
+  const [finLinkItem, setFinLinkItem] = useState<string | undefined>(undefined);
   const [gateData, setGateData] = useState<GateStage[]>(INITIAL_GATE_DATA);
   const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>([]);
   const [crDialogOpen, setCrDialogOpen] = useState(false);
@@ -527,6 +528,98 @@ function ProjectDetail() {
   const pendingApprovalCount = centralApprovals.filter(
     (approval) => approval.projectId === project.id && approval.status === "pending",
   ).length;
+  /** Project-level plan version + Change Plan controls, shown in the project header. */
+  const planVersionControls = (
+            <div className="flex items-center gap-2">
+              <Select value={selectedBaselineVersion} onValueChange={(v) => {
+                setSelectedBaselineVersion(v);
+                setPlanEditMode("view");
+                setEditBaselineSnapshot(null);
+              }}>
+                <SelectTrigger className="h-9 w-56 text-xs">
+                  <span className="truncate">
+                    {selectedBaselineVersion === "latest"
+                      ? `Current Version (v${projectBaselineVersions.length})`
+                      : selectedBaselineVersion}
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="latest">
+                    <div className="flex flex-col leading-tight">
+                      <span>Current Version (v{projectBaselineVersions.length}) ⭐</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {projectBaselineVersions[projectBaselineVersions.length - 1]?.createdAt}
+                        {" · by "}
+                        {versionAuthors[projectBaselineVersions.length] ?? "—"}
+                      </span>
+                    </div>
+                  </SelectItem>
+                  {projectBaselineVersions.slice(0, -1).map((v) => (
+                    <SelectItem key={v.version} value={`v${v.version}`}>
+                      <div className="flex flex-col leading-tight">
+                        <span>v{v.version}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {v.createdAt} · by {versionAuthors[v.version] ?? "—"}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {isViewingCurrent && planEditMode === "view" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={enterEditMode}
+                  className="h-8 text-xs"
+                >
+                  ✎ Change Plan
+                </Button>
+              )}
+              {isViewingCurrent && planEditMode === "editing" && (
+                <>
+                  {planChangeCount > 0 && (
+                    <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
+                      {planChangeCount} pending
+                    </Badge>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCrDialogOpen(true)}
+                    className="h-8 text-xs"
+                    disabled={planChangeCount === 0}
+                  >
+                    Send Change Request
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={requestExitEditMode}
+                    className="h-8 text-xs text-muted-foreground"
+                  >
+                    Cancel
+                  </Button>
+                </>
+              )}
+              {isViewingCurrent && planEditMode === "pending" && (
+                <Badge className="border-rag-blue/40 bg-rag-blue/10 text-rag-blue text-xs">⏳ Waiting For Approval</Badge>
+              )}
+              {!isViewingCurrent && (
+                <>
+                  <Badge variant="outline" className="text-xs text-muted-foreground">📖 View Only</Badge>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCompareVersionOpen(true)}
+                    className="h-8 text-xs"
+                  >
+                    Compare with Current
+                  </Button>
+                </>
+              )}
+            </div>
+  );
   return (
     <div>
       <div className="mb-2">
@@ -556,6 +649,7 @@ function ProjectDetail() {
               : null;
           return (
           <div className="flex items-center gap-2">
+            {planVersionControls}
             <Button size="sm" variant="primary" onClick={() => setReportOpen(true)}>Submit status</Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -760,93 +854,6 @@ function ProjectDetail() {
             </div>
           )}
           <ProjectSchedule
-            headerSlot={
-              <div className="flex items-center gap-2">
-                <Select value={selectedBaselineVersion} onValueChange={(v) => {
-                  setSelectedBaselineVersion(v);
-                  setPlanEditMode("view");
-                  setEditBaselineSnapshot(null);
-                }}>
-                  <SelectTrigger className="h-8 w-64 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="latest">
-                      <div className="flex flex-col leading-tight">
-                        <span>Current Version (v{projectBaselineVersions.length}) ⭐</span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {projectBaselineVersions[projectBaselineVersions.length - 1]?.createdAt}
-                          {" · by "}
-                          {versionAuthors[projectBaselineVersions.length] ?? "—"}
-                        </span>
-                      </div>
-                    </SelectItem>
-                    {projectBaselineVersions.slice(0, -1).map((v) => (
-                      <SelectItem key={v.version} value={`v${v.version}`}>
-                        <div className="flex flex-col leading-tight">
-                          <span>v{v.version}</span>
-                          <span className="text-[10px] text-muted-foreground">
-                            {v.createdAt} · by {versionAuthors[v.version] ?? "—"}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {isViewingCurrent && planEditMode === "view" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={enterEditMode}
-                    className="h-8 text-xs"
-                  >
-                    ✎ Change Plan
-                  </Button>
-                )}
-                {isViewingCurrent && planEditMode === "editing" && (
-                  <>
-                    {planChangeCount > 0 && (
-                      <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
-                        {planChangeCount} pending
-                      </Badge>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCrDialogOpen(true)}
-                      className="h-8 text-xs"
-                      disabled={planChangeCount === 0}
-                    >
-                      Send Change Request
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={requestExitEditMode}
-                      className="h-8 text-xs text-muted-foreground"
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                )}
-                {isViewingCurrent && planEditMode === "pending" && (
-                  <Badge className="border-rag-blue/40 bg-rag-blue/10 text-rag-blue text-xs">⏳ Waiting For Approval</Badge>
-                )}
-                {!isViewingCurrent && (
-                  <>
-                    <Badge variant="outline" className="text-xs text-muted-foreground">📖 View Only</Badge>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCompareVersionOpen(true)}
-                      className="h-8 text-xs"
-                    >
-                      Compare with Current
-                    </Button>
-                  </>
-                )}
-              </div>
-            }
             items={useMemo(() => {
               if (!isViewingCurrent) {
                 const vNum = parseInt(selectedBaselineVersion.slice(1));
@@ -930,6 +937,13 @@ function ProjectDetail() {
             onDependencyClick={(name) => {
               setSelectedItemForDep(name);
               setDependencyOpen(true);
+            }}
+            onFinancialLinkClick={(name) => {
+              if (!isEditingAllowed) {
+                toast.error("📖 View Only — Click 'Change Plan' to edit");
+                return;
+              }
+              setFinLinkItem(name);
             }}
             AddItemSlot={
               <AddMilestoneDialog
@@ -1175,7 +1189,7 @@ function ProjectDetail() {
 
 
         <TabsContent value="Financials" className="mt-5">
-          <FinancialsTab project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} />
+          <FinancialsTab project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} />
         </TabsContent>
 
         <TabsContent value="Risk & Issues" className="mt-5">
@@ -1291,6 +1305,17 @@ function ProjectDetail() {
           setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, dependencies } : m)))
         }
       />
+      <ScheduleFinancialLinkDialog
+        open={finLinkItem !== undefined}
+        onOpenChange={(v) => setFinLinkItem(v ? finLinkItem : undefined)}
+        item={finLinkItem ? milestones.find((m) => m.name === finLinkItem) : undefined}
+        items={milestones}
+        projectName={project.name}
+        onSave={(name, payment, extras) =>
+          setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, payment, extraPayments: extras } : m)))
+        }
+      />
+
     </div>
   );
 }
@@ -1829,13 +1854,19 @@ function ProgressUpdateDialog({
 
   const [selected, setSelected] = useState<string>("");
   const [draftPct, setDraftPct] = useState<number>(0);
+  // Only tasks that are still open are offered — completed ones are out of the picker
+  // so the list stays short even on projects with thousands of tasks.
+  const openLeaves = useMemo(
+    () => leaves.filter((l) => (l.progress ?? 0) < 100 || l.name === initialTaskName),
+    [leaves, initialTaskName],
+  );
   useEffect(() => {
     if (!open) return;
     const pre = initialTaskName ? leaves.find((l) => l.name === initialTaskName) : undefined;
-    const first = pre ?? leaves[0];
+    const first = pre ?? openLeaves[0];
     setSelected(first?.name ?? "");
     setDraftPct(first?.progress ?? 0);
-  }, [open, leaves, initialTaskName]);
+  }, [open, leaves, openLeaves, initialTaskName]);
 
 
   const current = leaves.find((t) => t.name === selected);
@@ -1860,11 +1891,6 @@ function ProgressUpdateDialog({
     return scoped?.requiresApproval ? scoped : null;
   }, [current, items, scopeMilestone]);
 
-  // Synthetic approval gate task belonging to that milestone (shown read-only in the picker).
-  const gateTask = useMemo(
-    () => (approvalMilestone ? items.find((i) => i.isApprovalTask && i.parent === approvalMilestone.name) ?? null : null),
-    [items, approvalMilestone],
-  );
 
   // Every leaf task that rolls up into that milestone.
   const approvalLeaves = useMemo(() => {
@@ -2000,7 +2026,7 @@ function ProgressUpdateDialog({
           <section className="min-w-0 space-y-3">
             <div className="grid grid-cols-[minmax(0,1fr)_112px] items-end gap-3">
               <div className="min-w-0 space-y-1.5">
-                <Label className="text-xs">Pick a task to update</Label>
+                <Label className="text-xs">Pick an open task to update</Label>
             <Select value={selected} onValueChange={(v) => {
               setSelected(v);
               const t = leaves.find((x) => x.name === v);
@@ -2008,17 +2034,11 @@ function ProgressUpdateDialog({
             }}>
               <SelectTrigger><SelectValue placeholder="Choose a task…" /></SelectTrigger>
               <SelectContent className="max-h-72">
-                {leaves.filter((t) => current?.parent ? t.parent === current.parent : true).map((t) => (
+                {openLeaves.map((t) => (
                   <SelectItem key={t.name} value={t.name}>
                     {t.name}
                   </SelectItem>
                 ))}
-                {gateTask && (
-                  <SelectItem key={gateTask.name} value={gateTask.name} disabled>
-                    <span className="text-rag-amber">🔒 {gateTask.name}</span>
-                    <span className="ml-1 text-muted-foreground text-[10px]">(approver-only)</span>
-                  </SelectItem>
-                )}
               </SelectContent>
             </Select>
               </div>
@@ -2259,237 +2279,268 @@ function BusinessTripsTab({ pm }: { pm: string }) {
   );
 }
 
-// ── Financials tab (includes Financial Planning content) ─────────────────────
+// ── Financials tab — Cost / Revenue split ────────────────────────────────────
 function FinancialsTab({
-  project, milestones, isNew, onDataAdded,
-}: { project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void }) {
+  project, milestones, isNew, onDataAdded, canEdit = true,
+}: { project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void; canEdit?: boolean }) {
   const milestoneNames = useMemo(
     () => milestones.filter((m) => m.kind === "Milestone").map((m) => m.name),
     [milestones],
   );
+  /** Internal (capital) projects have no client revenue, so that tab is hidden. */
+  const isInternal = project.client === "Internal";
+  const [finTab, setFinTab] = useState<"cost" | "revenue">("cost");
   const [costEntries, setCostEntries] = useState<CostEntry[]>(isNew ? [] : [
-    { c: "Labour", b: 1.20, a: 0.84, color: "bg-rag-green", desc: "Core delivery team", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Build Complete", breakdown: [
+    { c: "Labour", cat: "Staff", b: 1.20, a: 0.84, color: "bg-rag-green", desc: "Core delivery team", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Build Complete", breakdown: [
       { name: "Backend engineers (3)", amount: 0.55, note: "6-month allocation" },
       { name: "Frontend engineers (2)", amount: 0.35 },
       { name: "QA (2)", amount: 0.30 },
     ] },
-    { c: "Hardware", b: 0.90, a: 0.62, color: "bg-rag-blue", desc: "On-prem servers + peripherals", ctype: "third-party", classification: "capex", linkKind: "fixed", linkRef: "2025-06-15" },
-    { c: "Software licenses", b: 0.40, a: 0.31, color: "bg-accent", desc: "Annual licenses", ctype: "third-party", classification: "opex", linkKind: "fixed", linkRef: "2025-05-01" },
-    { c: "Business trips", b: 0.10, a: 0.07, color: "bg-rag-amber", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Design Approved" },
-    { c: "Contingency", b: 0.60, a: 0.26, color: "bg-muted-foreground", ctype: "internal", classification: "opex", linkKind: "fixed", linkRef: "" },
+    { c: "Hardware", cat: "Contracts", b: 0.90, a: 0.62, color: "bg-rag-blue", desc: "On-prem servers + peripherals", ctype: "third-party", classification: "capex", linkKind: "fixed", linkRef: "2025-06-15" },
+    { c: "Software licenses", cat: "Services", b: 0.40, a: 0.31, color: "bg-accent", desc: "Annual licenses", ctype: "third-party", classification: "opex", linkKind: "fixed", linkRef: "2025-05-01" },
+    { c: "Business trips", cat: "Business Trips", b: 0.10, a: 0.07, color: "bg-rag-amber", desc: "Travel & accommodation", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Design Approved" },
+    { c: "Contingency", cat: "Services", b: 0.60, a: 0.26, color: "bg-muted-foreground", desc: "Reserve", ctype: "internal", classification: "opex", linkKind: "fixed", linkRef: "" },
   ]);
   const [revEntries, setRevEntries] = useState<RevEntry[]>(isNew ? [] : [
-    { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "May 02",        s: "green", sl: "Received", act: 0.96 },
-    { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "Jun 30",        s: "amber", sl: "Pending",  act: null },
-    { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null },
-    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null },
+    { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "May 02",        s: "green", sl: "Received", act: 0.96, linkKind: "milestone",
+      actuals: [{ amount: 0.60, date: "May 02", note: "Invoice INV-0012" }, { amount: 0.36, date: "May 21", note: "Invoice INV-0018" }] },
+    { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "Jun 30",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "milestone",
+      actuals: [{ amount: 0.20, date: "Jul 04", note: "Partial settlement" }] },
+    { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
+    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
   ]);
-  const finSnapshot = useMemo(() => ({ costEntries, revEntries }), [costEntries, revEntries]);
-  const finBaseline = useTabBaseline({
-    scope: "financials",
-    label: "Financials",
-    current: finSnapshot,
-    onCommit: (s) => { setCostEntries(s.costEntries); setRevEntries(s.revEntries); },
-    diff: (a, b) => {
-      const out: TabChange[] = [];
-      const aMap = new Map(a.costEntries.map((e) => [e.c, e]));
-      const bMap = new Map(b.costEntries.map((e) => [e.c, e]));
-      for (const k of new Set([...aMap.keys(), ...bMap.keys()])) {
-        const av = aMap.get(k); const bv = bMap.get(k);
-        if (!av) out.push({ path: `Cost · ${k}`, before: "—", after: `$${bv!.a.toFixed(2)}M / $${bv!.b.toFixed(2)}M` });
-        else if (!bv) out.push({ path: `Cost · ${k}`, before: `$${av.a.toFixed(2)}M / $${av.b.toFixed(2)}M`, after: "—" });
-        else if (av.a !== bv.a || av.b !== bv.b) out.push({ path: `Cost · ${k}`, before: `$${av.a.toFixed(2)}M / $${av.b.toFixed(2)}M`, after: `$${bv.a.toFixed(2)}M / $${bv.b.toFixed(2)}M` });
-      }
-      const aRev = new Map(a.revEntries.map((e) => [e.ms, e]));
-      const bRev = new Map(b.revEntries.map((e) => [e.ms, e]));
-      for (const k of new Set([...aRev.keys(), ...bRev.keys()])) {
-        const av = aRev.get(k); const bv = bRev.get(k);
-        if (!av || !bv) out.push({ path: `Revenue · ${k}`, before: av ? "present" : "—", after: bv ? "present" : "—" });
-        else if (av.plan !== bv.plan || av.act !== bv.act || av.sl !== bv.sl) out.push({ path: `Revenue · ${k}`, before: `plan $${av.plan}M · ${av.sl}`, after: `plan $${bv.plan}M · ${bv.sl}` });
-      }
-      return out;
-    },
-  });
-  const canEdit = finBaseline.canEdit;
-  const displayCost = (finBaseline.viewedSnapshot?.costEntries as CostEntry[] | undefined) ?? costEntries;
-  const displayRev = (finBaseline.viewedSnapshot?.revEntries as RevEntry[] | undefined) ?? revEntries;
+  // Editing is governed by the single project-level baseline (see the project header).
+  const displayCost = costEntries;
+  const displayRev = revEntries;
 
-  /**
-   * Revenue items linked from the schedule. The expected recognition date is the
-   * linked milestone's planned finish date (dynamic), and recognition is locked
-   * behind approval whenever the milestone requires it.
-   */
-  const scheduleRevenue = useMemo(() => {
-    type Row = {
-      itemId: string; label: string; amount: string; value: number;
-      wbsItem: string; date: string; progress: number; statusLabel: string; rag: Rag; demo?: boolean;
-    };
-    const rows: Row[] = [];
-    for (const m of milestones) {
-      const links = [m.payment, ...(m.extraPayments ?? [])].filter(
-        (p): p is NonNullable<typeof p> => !!p && p.kind === "Client Revenue" && !!p.packageId,
-      );
-      for (const link of links) {
-        const item = findFinancialItem(link.packageId);
-        if (!item) continue;
-        const progress = Math.round(m.progress ?? 0);
-        const gated = !!m.requiresApproval;
-        const approved = m.approvalStatus === "approved";
-        const recognised = progress >= 100 && (!gated || approved);
-        const awaiting = progress >= 100 && gated && !approved;
-        rows.push({
-          itemId: link.packageId!,
-          label: item.label,
-          amount: item.amount,
-          value: Number(item.amount.replace(/[^0-9.]/g, "")) || 0,
-          wbsItem: m.name,
-          date: m.endDate,
-          progress,
-          statusLabel: recognised ? "Recognised" : awaiting ? "Awaiting approval" : progress > 0 ? "In progress" : "Planned",
-          rag: recognised ? "green" : awaiting ? "amber" : progress > 0 ? "blue" : "grey",
-        });
-      }
-    }
-    if (rows.length > 0) return rows;
+  /** Cost/revenue dates linked to a milestone always follow the milestone's planned finish. */
+  const milestoneEnd = useCallback(
+    (name?: string) => milestones.find((m) => m.name === name)?.endDate ?? "",
+    [milestones],
+  );
+  const costDate = useCallback(
+    (e: CostEntry) => (e.linkKind === "milestone" ? milestoneEnd(e.linkRef) || e.linkRef || "—" : e.linkRef || "—"),
+    [milestoneEnd],
+  );
+  const revDate = useCallback(
+    (e: RevEntry) => (e.linkKind === "milestone" ? milestoneEnd(e.ms) || e.date || "—" : e.date || "—"),
+    [milestoneEnd],
+  );
 
-    /**
-     * Nothing linked yet — show a small illustrative sample so the behaviour of
-     * this panel is understandable. As soon as a real link is made in the
-     * schedule, these sample rows disappear and the live ones take over.
-     */
-    const msNames = milestones.filter((m) => m.kind === "Milestone");
-    const demoStatus = (progress: number, gated: boolean, approved: boolean): { statusLabel: string; rag: Rag } => {
-      if (progress >= 100 && (!gated || approved)) return { statusLabel: "Recognised", rag: "green" };
-      if (progress >= 100 && gated && !approved) return { statusLabel: "Awaiting approval", rag: "amber" };
-      if (progress > 0) return { statusLabel: "In progress", rag: "blue" };
-      return { statusLabel: "Planned", rag: "grey" };
-    };
-    const sample: { itemId: string; progress: number; gated: boolean; approved: boolean }[] = [
-      { itemId: "FIN-R-ADV", progress: 100, gated: false, approved: true },
-      { itemId: "FIN-R-P1", progress: 100, gated: true, approved: false },
-      { itemId: "FIN-R-P2", progress: 45, gated: true, approved: false },
-      { itemId: "FIN-R-FIN", progress: 0, gated: true, approved: false },
-    ];
-    return sample.map((s, i) => {
-      const item = findFinancialItem(s.itemId)!;
-      const ms = msNames[i] ?? msNames[msNames.length - 1];
-      const st = demoStatus(s.progress, s.gated, s.approved);
-      return {
-        itemId: s.itemId,
-        label: item.label,
-        amount: item.amount,
-        value: Number(item.amount.replace(/[^0-9.]/g, "")) || 0,
-        wbsItem: ms?.name ?? `Milestone ${i + 1}`,
-        date: ms?.endDate ?? "",
-        progress: s.progress,
-        statusLabel: st.statusLabel,
-        rag: st.rag,
-        demo: true,
-      } satisfies Row;
-    });
-  }, [milestones]);
-  const revenueIsDemo = scheduleRevenue.some((r) => r.demo);
+  const costTotals = useMemo(() => {
+    const planned = displayCost.reduce((s, e) => s + e.b, 0);
+    const actual = displayCost.reduce((s, e) => s + e.a, 0);
+    return { planned, actual, util: planned ? Math.round((actual / planned) * 100) : 0 };
+  }, [displayCost]);
+  const revTotals = useMemo(() => {
+    const planned = displayRev.reduce((s, e) => s + e.plan, 0);
+    const actual = displayRev.reduce((s, e) => s + (e.act ?? 0), 0);
+    return { planned, actual, util: planned ? Math.round((actual / planned) * 100) : 0 };
+  }, [displayRev]);
+
+  const addLinkDialog = (kind: "cost" | "revenue") => (
+    <AddFinanceLinkDialog
+      milestoneNames={milestoneNames}
+      defaultType={kind}
+      onAddCost={(e) => { setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
+      onAddRevenue={(e) => { setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
+    />
+  );
 
   return (
     <div className="space-y-4">
-      <BaselineHeader state={finBaseline} />
-      <TabChangeRequestDialog state={finBaseline} approverPool={DEFAULT_PROJECT_APPROVERS} />
-      <TabApprovalDialog state={finBaseline} />
       {isNew && (
         <EmptyState
           art="coins"
           title="No budget set up yet"
-          description="Unlock editing to add cost categories and the revenue plan for this project."
-          ctaLabel="Set up budget"
-          onCta={() => finBaseline.setEditMode(true)}
+          description="Add cost items and — for client projects — the revenue plan for this project."
         />
       )}
-      <div className="grid gap-3 md:grid-cols-4">
-        {[
-          { l: "Total Budget", v: `$${project.budgetTotal.toFixed(1)}M` },
-          { l: "Spent", v: `$${project.budgetUsed.toFixed(2)}M` },
-          { l: "Committed", v: "$1.12M", c: "text-rag-amber" },
-          { l: "Forecast EAC", v: `$${(project.budgetTotal * 1.04).toFixed(2)}M`, c: "text-rag-amber" },
-        ].map((k) => (
-          <div key={k.l} className="glass-card p-4">
-            <div className="label-eyebrow">{k.l}</div>
-            <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
-          </div>
-        ))}
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-[1fr_360px]">
-        <div className="glass-card p-5">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="label-eyebrow">Cost categories</div>
-            {canEdit && (
-              <AddFinanceLinkDialog
-                milestoneNames={milestoneNames}
-                defaultType="cost"
-                onAddCost={(e) => { setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
-                onAddRevenue={(e) => { setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
-              />
-            )}
-          </div>
-          <CostCategoriesList
-            entries={displayCost}
-            canEdit={canEdit}
-            onUpdate={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
-          />
-        </div>
-        <div className="glass-card p-5">
-          <div className="label-eyebrow mb-3">Quarterly cash plan</div>
-          <ul className="space-y-3 text-sm">
+      <Tabs value={finTab} onValueChange={(v) => setFinTab(v as "cost" | "revenue")}>
+        <TabsList>
+          <TabsTrigger value="cost">Cost</TabsTrigger>
+          {!isInternal && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
+        </TabsList>
+
+        {/* ── Cost ─────────────────────────────────────────────────────────── */}
+        <TabsContent value="cost" className="mt-4 space-y-4">
+          <div className="grid gap-3 md:grid-cols-4">
             {[
-              { q: "Q1 2026", v: "$0.45M", s: "green", sl: "Released" },
-              { q: "Q2 2026", v: "$1.05M", s: "green", sl: "Released" },
-              { q: "Q3 2026", v: "$1.20M", s: "amber", sl: "Pending" },
-              { q: "Q4 2026", v: "$0.50M", s: "blue", sl: "Planned" },
-            ].map((q) => (
-              <li key={q.q} className="flex items-center justify-between border-b border-border/60 pb-2 last:border-0 last:pb-0">
-                <div>
-                  <div className="text-foreground">{q.q}</div>
-                  <div className="num-mono text-xs text-muted-foreground">{q.v}</div>
-                </div>
-                <RagBadge rag={q.s as any} label={q.sl} />
-              </li>
+              { l: "Total Budget", v: `$${project.budgetTotal.toFixed(1)}M` },
+              { l: "Planned cost", v: `$${costTotals.planned.toFixed(2)}M` },
+              { l: "Actual spent", v: `$${costTotals.actual.toFixed(2)}M` },
+              { l: "Utilization", v: `${costTotals.util}%`, c: costTotals.util > 100 ? "text-rag-red" : costTotals.util > 85 ? "text-rag-amber" : "text-rag-green" },
+            ].map((k) => (
+              <div key={k.l} className="glass-card p-4">
+                <div className="label-eyebrow">{k.l}</div>
+                <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+              </div>
             ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="glass-card p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="label-eyebrow">Revenue plan — linked to milestones</div>
-          <div className="flex items-center gap-3">
-            <span className="num-mono text-xs text-muted-foreground">
-              Total planned: ${displayRev.reduce((s, r) => s + r.plan, 0).toFixed(2)}M
-            </span>
-            {canEdit && (
-              <AddFinanceLinkDialog
-                milestoneNames={milestoneNames}
-                defaultType="revenue"
-                onAddCost={(e) => { setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
-                onAddRevenue={(e) => { setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
-              />
-            )}
           </div>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent bg-transparent border-0">
-              <TableHead>Linked to</TableHead>
-              <TableHead>Revenue event</TableHead>
-              <TableHead className="text-right">Planned ($M)</TableHead>
-              <TableHead>Expected date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actual ($M)</TableHead>
-              {canEdit && <TableHead className="w-10" />}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {displayRev.map((r, idx) => (
-              <TableRow key={r.ms} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+
+          <div className="glass-card p-5">
+            <div className="mb-1 flex items-center justify-between">
+              <div className="label-eyebrow">Cost breakdown</div>
+              {canEdit && addLinkDialog("cost")}
+            </div>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Every item carries a cost category from Organization. Items linked to a milestone inherit that
+              milestone's planned finish date automatically.
+            </p>
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent bg-transparent border-0">
+                  <TableHead>Category</TableHead>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Planned ($M)</TableHead>
+                  <TableHead className="text-right">Actual ($M)</TableHead>
+                  <TableHead className="text-right">Utilization</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {displayCost.map((e) => {
+                  const util = e.b ? Math.round((e.a / e.b) * 100) : 0;
+                  return (
+                    <TableRow key={e.c} className="bg-table-row-bg hover:bg-table-row-hover border-0">
+                      <TableCell className="text-muted-foreground">{e.cat ?? "—"}</TableCell>
+                      <TableCell className="font-medium text-foreground">{e.c}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
+                      <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
+                      <TableCell className="num-mono text-right">${e.a.toFixed(2)}M</TableCell>
+                      <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>{util}%</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        <span className={`mr-1.5 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${e.linkKind === "milestone" ? "bg-accent/15 text-accent" : "bg-secondary/40 text-muted-foreground"}`}>
+                          {e.linkKind === "milestone" ? "MS" : "Date"}
+                        </span>
+                        {costDate(e)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                {displayCost.length > 0 && (
+                  <TableRow className="bg-transparent hover:bg-transparent border-0">
+                    <TableCell colSpan={3} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
+                    <TableCell className="num-mono text-right font-medium">${costTotals.planned.toFixed(2)}M</TableCell>
+                    <TableCell className="num-mono text-right font-medium">${costTotals.actual.toFixed(2)}M</TableCell>
+                    <TableCell className="num-mono text-right font-medium">{costTotals.util}%</TableCell>
+                    <TableCell />
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="glass-card p-5">
+            <div className="label-eyebrow mb-3">Planned vs actual by category</div>
+            <CostCategoriesList
+              entries={displayCost}
+              canEdit={canEdit}
+              onUpdate={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
+            />
+          </div>
+        </TabsContent>
+
+        {/* ── Revenue ──────────────────────────────────────────────────────── */}
+        {!isInternal && (
+          <TabsContent value="revenue" className="mt-4 space-y-4">
+            <div className="grid gap-3 md:grid-cols-3">
+              {[
+                { l: "Planned revenue", v: `$${revTotals.planned.toFixed(2)}M` },
+                { l: "Received", v: `$${revTotals.actual.toFixed(2)}M` },
+                { l: "Collected", v: `${revTotals.util}%`, c: revTotals.util >= 100 ? "text-rag-green" : "text-rag-amber" },
+              ].map((k) => (
+                <div key={k.l} className="glass-card p-4">
+                  <div className="label-eyebrow">{k.l}</div>
+                  <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="glass-card p-5">
+              <div className="mb-1 flex items-center justify-between">
+                <div className="label-eyebrow">Revenue plan</div>
+                {canEdit && addLinkDialog("revenue")}
+              </div>
+              <p className="mb-3 text-xs text-muted-foreground">
+                Expand a row to see the actual payments logged against that planned event. Events linked to a
+                milestone follow the milestone's planned finish date.
+              </p>
+              <RevenuePlanTable
+                entries={displayRev}
+                canEdit={canEdit}
+                milestoneNames={milestoneNames}
+                dateOf={revDate}
+                totals={revTotals}
+                onSave={(idx, patch) => setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
+                onDelete={(idx) => setRevEntries((prev) => prev.filter((_, i) => i !== idx))}
+              />
+            </div>
+          </TabsContent>
+        )}
+      </Tabs>
+    </div>
+  );
+}
+
+/** Revenue plan with one row per planned event; expanding a row reveals its logged actuals. */
+function RevenuePlanTable({
+  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete,
+}: {
+  entries: RevEntry[];
+  canEdit: boolean;
+  milestoneNames: string[];
+  dateOf: (e: RevEntry) => string;
+  totals: { planned: number; actual: number; util: number };
+  onSave: (idx: number, patch: Partial<RevEntry>) => void;
+  onDelete: (idx: number) => void;
+}) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggle = (key: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow className="hover:bg-transparent bg-transparent border-0">
+          <TableHead className="w-8" />
+          <TableHead>Linked to</TableHead>
+          <TableHead>Revenue event</TableHead>
+          <TableHead className="text-right">Planned ($M)</TableHead>
+          <TableHead>Expected date</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-right">Actual ($M)</TableHead>
+          <TableHead className="text-right">Collected</TableHead>
+          {canEdit && <TableHead className="w-10" />}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {entries.map((r, idx) => {
+          const actuals = r.actuals ?? (r.act != null ? [{ amount: r.act, date: r.date }] : []);
+          const actual = actuals.reduce((s, a) => s + a.amount, 0);
+          const util = r.plan ? Math.round((actual / r.plan) * 100) : 0;
+          const open = expanded.has(r.ms);
+          return (
+            <Fragment key={r.ms}>
+              <TableRow className="bg-table-row-bg hover:bg-table-row-hover border-0">
+                <TableCell>
+                  {actuals.length > 0 && (
+                    <button
+                      type="button"
+                      aria-label={open ? "Collapse actuals" : "Expand actuals"}
+                      onClick={() => toggle(r.ms)}
+                      className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                    >
+                      <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
+                    </button>
+                  )}
+                </TableCell>
                 <TableCell className="font-medium text-foreground">
                   <div className="flex items-center gap-2">
                     <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${r.linkKind === "fixed" ? "bg-secondary/40 text-muted-foreground" : "bg-accent/15 text-accent"}`}>
@@ -2500,75 +2551,54 @@ function FinancialsTab({
                 </TableCell>
                 <TableCell className="text-muted-foreground">{r.evt}</TableCell>
                 <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{r.date}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{dateOf(r)}</TableCell>
                 <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
-                <TableCell className="num-mono text-right">{r.act != null ? `$${r.act.toFixed(2)}M` : "—"}</TableCell>
+                <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
+                <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
                 {canEdit && (
                   <TableCell className="text-right">
                     <EditRevenueRowDialog
                       entry={r}
                       milestoneNames={milestoneNames}
-                      onSave={(patch) => setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
-                      onDelete={() => setRevEntries((prev) => prev.filter((_, i) => i !== idx))}
+                      onSave={(patch) => onSave(idx, patch)}
+                      onDelete={() => onDelete(idx)}
                     />
                   </TableCell>
                 )}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Recognition driven by the schedule: dates follow the milestone, status follows approval */}
-      <div className="glass-card p-5">
-        <div className="mb-1 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="label-eyebrow">Revenue recognition — driven by the schedule</div>
-            {revenueIsDemo && (
-              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide bg-secondary/40 text-muted-foreground">
-                Sample
-              </span>
-            )}
-          </div>
-          <span className="num-mono text-xs text-muted-foreground">
-            Linked: ${scheduleRevenue.reduce((s, r) => s + r.value, 0).toFixed(2)}M
-          </span>
-        </div>
-        <p className="mb-3 text-xs text-muted-foreground">
-          Expected dates always inherit the linked milestone's planned finish date, so a schedule delay shifts the
-          forecast automatically. Revenue is only recognised once the milestone reaches 100% and — where approval is
-          required — has been approved.
-          {revenueIsDemo && " Nothing is linked yet, so these rows are a sample — link a revenue item from a milestone's Edit Details panel and the live data replaces them."}
-        </p>
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent bg-transparent border-0">
-              <TableHead>Revenue item</TableHead>
-              <TableHead>Linked milestone</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead>Expected date (inherited)</TableHead>
-              <TableHead>Progress</TableHead>
-              <TableHead>Recognition status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {scheduleRevenue.map((r) => (
-              <TableRow key={r.itemId} className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${r.demo ? "opacity-70" : ""}`}>
-                <TableCell className="font-medium text-foreground">{r.label}</TableCell>
-                <TableCell className="text-muted-foreground">{r.wbsItem}</TableCell>
-                <TableCell className="num-mono text-right">{r.amount}</TableCell>
-                <TableCell className="text-xs text-muted-foreground">{r.date || "—"}</TableCell>
-                <TableCell className="num-mono text-xs">{r.progress}%</TableCell>
-                <TableCell><RagBadge rag={r.rag} label={r.statusLabel} /></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-
-      </div>
-    </div>
+              {open && actuals.map((a, i) => (
+                <TableRow key={`${r.ms}-a${i}`} className="bg-secondary/10 hover:bg-secondary/20 border-0">
+                  <TableCell />
+                  <TableCell colSpan={2} className="pl-6 text-xs text-muted-foreground">
+                    Actual payment{a.note ? ` — ${a.note}` : ""}
+                  </TableCell>
+                  <TableCell />
+                  <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
+                  <TableCell />
+                  <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
+                  <TableCell />
+                  {canEdit && <TableCell />}
+                </TableRow>
+              ))}
+            </Fragment>
+          );
+        })}
+        {entries.length > 0 && (
+          <TableRow className="bg-transparent hover:bg-transparent border-0">
+            <TableCell />
+            <TableCell colSpan={2} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
+            <TableCell className="num-mono text-right font-medium">${totals.planned.toFixed(2)}M</TableCell>
+            <TableCell colSpan={2} />
+            <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
+            <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
+            {canEdit && <TableCell />}
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }
+
 
 const REV_STATUSES: { s: string; sl: string }[] = [
   { s: "blue", sl: "Planned" },
@@ -2841,6 +2871,8 @@ type Trip = { id: string; purpose: string; dest: string; dates: string; traveler
 type CostBreakdownItem = { name: string; amount: number; note?: string };
 type CostEntry = {
   c: string; b: number; a: number; color: string;
+  /** Cost category from Organization master data. */
+  cat?: string;
   desc?: string;
   ctype?: "internal" | "third-party";
   classification?: "capex" | "opex";
@@ -2851,6 +2883,8 @@ type CostEntry = {
 type RevEntry = {
   ms: string; evt: string; plan: number; date: string; s: string; sl: string; act: number | null;
   linkKind?: "fixed" | "milestone";
+  /** Individual actual payments logged against this planned event. */
+  actuals?: { amount: number; date: string; note?: string }[];
 };
 type GateItem = { task: string; role: string; done: boolean };
 type GateStage = { name: string; items: GateItem[] };
@@ -5574,25 +5608,7 @@ function DependencyDialog({
           <DialogTitle>Manage Dependencies — {currentItem?.name}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4">
-          {/* Existing dependencies */}
-          {deps.length > 0 && (
-            <div className="space-y-2 rounded-md border border-border bg-secondary/20 p-3">
-              <div className="text-sm font-medium">Current Dependencies</div>
-              {deps.map((d, i) => (
-                <div key={i} className="flex items-center justify-between rounded border border-border/60 bg-background/60 p-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{d.predecessor}</span>
-                    <span className="text-xs text-muted-foreground">{depLabel(d)}</span>
-                  </div>
-                  <button onClick={() => removeDependency(i)} className="text-xs text-rag-red hover:underline">
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Add new dependency */}
+          {/* Add new dependency — always on top so the dialog never grows */}
           <div className="space-y-3 rounded-md border border-accent/20 bg-accent-dim/20 p-3">
             <div className="text-sm font-medium">Add New Dependency</div>
             <div className="grid gap-3">
@@ -5657,6 +5673,31 @@ function DependencyDialog({
                 <Plus className="mr-1 h-3.5 w-3.5" />
                 Add Dependency
               </Button>
+            </div>
+          </div>
+
+          {/* Current dependencies — fixed height, scrolls internally */}
+          <div className="space-y-2 rounded-md border border-border bg-secondary/20 p-3">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium">Current Dependencies</div>
+              <span className="text-xs text-muted-foreground">{deps.length}</span>
+            </div>
+            <div className="h-[168px] space-y-2 overflow-y-auto pr-1">
+              {deps.length === 0 ? (
+                <p className="py-10 text-center text-xs text-muted-foreground">No dependencies yet.</p>
+              ) : (
+                deps.map((d, i) => (
+                  <div key={i} className="flex items-center justify-between rounded border border-border/60 bg-background/60 p-2 text-sm">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="truncate font-medium">{d.predecessor}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">{depLabel(d)}</span>
+                    </div>
+                    <button onClick={() => removeDependency(i)} className="shrink-0 text-xs text-rag-red hover:underline">
+                      Remove
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -5883,5 +5924,76 @@ function ProjectRiskIssuesTab({ projectName }: { projectName: string }) {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+// ── Financial Link dialog (opened from the WBS "Financial Link" cell) ─────────
+function ScheduleFinancialLinkDialog({
+  open, onOpenChange, item, items, projectName, onSave,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  item?: Milestone;
+  items: Milestone[];
+  projectName: string;
+  onSave: (name: string, payment: PaymentLink, extras: PaymentLink[]) => void;
+}) {
+  const { links: globalLinks } = useFinanceLinks();
+  const [costIds, setCostIds] = useState<string[]>([]);
+  const [revenueIds, setRevenueIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!open || !item) return;
+    const all = [item.payment, ...(item.extraPayments ?? [])].filter(Boolean) as PaymentLink[];
+    setCostIds(all.filter((p) => p.kind === "Package Cost" && p.packageId).map((p) => p.packageId!));
+    setRevenueIds(all.filter((p) => p.kind === "Client Revenue" && p.packageId).map((p) => p.packageId!));
+  }, [open, item]);
+
+  const linkedElsewhere = useMemo(() => {
+    const used = new Set<string>();
+    for (const it of items) {
+      if (it.name === item?.name) continue;
+      for (const p of [it.payment, ...(it.extraPayments ?? [])]) if (p?.packageId) used.add(p.packageId);
+    }
+    for (const l of globalLinks) {
+      if (l.project === projectName && item && l.wbsItem === item.name) continue;
+      used.add(l.itemId);
+    }
+    return used;
+  }, [items, item, globalLinks, projectName]);
+
+  function save() {
+    if (!item) return;
+    const links: PaymentLink[] = [
+      ...revenueIds.map((id) => ({ kind: "Client Revenue" as PaymentLinkKind, packageId: id, amount: findFinancialItem(id)?.amount ?? "" })),
+      ...costIds.map((id) => ({ kind: "Package Cost" as PaymentLinkKind, packageId: id, amount: findFinancialItem(id)?.amount ?? "" })),
+    ];
+    if (links.length === 0) onSave(item.name, { kind: "None", amount: "" }, []);
+    else onSave(item.name, links[0], links.slice(1));
+    toast.done("Financial links", "saved");
+    onOpenChange(false);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Financial Link — {item?.name}</DialogTitle>
+          <DialogDescription>
+            Amounts are defined in the Financials tab; here you only attach items to this {item?.kind === "Milestone" ? "milestone" : "task"}.
+          </DialogDescription>
+        </DialogHeader>
+        <FinancialLinkField
+          costIds={costIds}
+          revenueIds={revenueIds}
+          onChange={({ cost, revenue }) => { setCostIds(cost); setRevenueIds(revenue); }}
+          linkedElsewhere={linkedElsewhere}
+        />
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="primary" onClick={save}>Save links</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

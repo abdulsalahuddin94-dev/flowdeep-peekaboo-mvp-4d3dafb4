@@ -5906,3 +5906,74 @@ function ProjectRiskIssuesTab({ projectName }: { projectName: string }) {
     </div>
   );
 }
+
+// ── Financial Link dialog (opened from the WBS "Financial Link" cell) ─────────
+function ScheduleFinancialLinkDialog({
+  open, onOpenChange, item, items, projectName, onSave,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  item?: Milestone;
+  items: Milestone[];
+  projectName: string;
+  onSave: (name: string, payment: PaymentLink, extras: PaymentLink[]) => void;
+}) {
+  const { links: globalLinks } = useFinanceLinks();
+  const [costIds, setCostIds] = useState<string[]>([]);
+  const [revenueIds, setRevenueIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!open || !item) return;
+    const all = [item.payment, ...(item.extraPayments ?? [])].filter(Boolean) as PaymentLink[];
+    setCostIds(all.filter((p) => p.kind === "Package Cost" && p.packageId).map((p) => p.packageId!));
+    setRevenueIds(all.filter((p) => p.kind === "Client Revenue" && p.packageId).map((p) => p.packageId!));
+  }, [open, item]);
+
+  const linkedElsewhere = useMemo(() => {
+    const used = new Set<string>();
+    for (const it of items) {
+      if (it.name === item?.name) continue;
+      for (const p of [it.payment, ...(it.extraPayments ?? [])]) if (p?.packageId) used.add(p.packageId);
+    }
+    for (const l of globalLinks) {
+      if (l.project === projectName && item && l.wbsItem === item.name) continue;
+      used.add(l.itemId);
+    }
+    return used;
+  }, [items, item, globalLinks, projectName]);
+
+  function save() {
+    if (!item) return;
+    const links: PaymentLink[] = [
+      ...revenueIds.map((id) => ({ kind: "Client Revenue" as PaymentLinkKind, packageId: id, amount: findFinancialItem(id)?.amount ?? "" })),
+      ...costIds.map((id) => ({ kind: "Package Cost" as PaymentLinkKind, packageId: id, amount: findFinancialItem(id)?.amount ?? "" })),
+    ];
+    if (links.length === 0) onSave(item.name, { kind: "None", amount: "" }, []);
+    else onSave(item.name, links[0], links.slice(1));
+    toast.done("Financial links", "saved");
+    onOpenChange(false);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Financial Link — {item?.name}</DialogTitle>
+          <DialogDescription>
+            Amounts are defined in the Financials tab; here you only attach items to this {item?.kind === "Milestone" ? "milestone" : "task"}.
+          </DialogDescription>
+        </DialogHeader>
+        <FinancialLinkField
+          costIds={costIds}
+          revenueIds={revenueIds}
+          onChange={({ cost, revenue }) => { setCostIds(cost); setRevenueIds(revenue); }}
+          linkedElsewhere={linkedElsewhere}
+        />
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="primary" onClick={save}>Save links</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

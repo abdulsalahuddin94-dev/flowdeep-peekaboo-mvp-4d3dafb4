@@ -927,14 +927,15 @@ export function ProjectSchedule({
           <Button
             type="button"
             size="sm"
-            variant={ganttOpen ? "outline" : "primary"}
+            variant={ganttOpen ? "primary" : "outline"}
             onClick={() => { setGanttOpen((v) => !v); setLeftCollapsed(false); }}
             aria-expanded={ganttOpen}
             aria-controls="project-gantt-chart"
-            className="gap-2"
+            title={ganttOpen ? "Hide Gantt" : "Show Gantt"}
+            aria-label={ganttOpen ? "Hide Gantt" : "Show Gantt"}
+            className="h-8 gap-1 px-2"
           >
             <GanttChartSquare className="h-4 w-4" />
-            {ganttOpen ? "Hide Gantt" : "Show Gantt"}
             {ganttOpen ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
           </Button>
 

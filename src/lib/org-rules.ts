@@ -89,6 +89,7 @@ export function loadOrgRules(): OrgRules {
       rag: { ...DEFAULT_ORG_RULES.rag, ...(parsed.rag ?? {}) },
       schedule: { ...DEFAULT_ORG_RULES.schedule, ...(parsed.schedule ?? {}) },
       financial: { ...DEFAULT_ORG_RULES.financial, ...(parsed.financial ?? {}) },
+      risk: { ...DEFAULT_ORG_RULES.risk, ...(parsed.risk ?? {}) },
     };
   } catch {
     return DEFAULT_ORG_RULES;
@@ -98,4 +99,13 @@ export function loadOrgRules(): OrgRules {
 export function saveOrgRules(rules: OrgRules) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(KEY, JSON.stringify(rules));
+  ruleListeners.forEach((l) => l());
+}
+
+const ruleListeners = new Set<() => void>();
+
+/** Subscribe to rule changes (used by hooks that mirror the rules in state). */
+export function subscribeOrgRules(listener: () => void) {
+  ruleListeners.add(listener);
+  return () => { ruleListeners.delete(listener); };
 }

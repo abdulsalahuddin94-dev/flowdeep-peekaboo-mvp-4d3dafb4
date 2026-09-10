@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { SkillsSelect } from "@/components/SkillsCatalog";
-import { RelatedProjectsDialog, useRelatedProjectsDialog } from "@/components/ds/RelatedProjectsDialog";
+import { RelatedProjectsDialog, RelatedProjectsCount, useRelatedProjectsDialog } from "@/components/ds/RelatedProjectsDialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";

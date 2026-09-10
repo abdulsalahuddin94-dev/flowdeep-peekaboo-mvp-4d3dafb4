@@ -238,6 +238,7 @@ function ProjectDetail() {
   const [stageGateOpen, setStageGateOpen] = useState(false);
   const [dependencyOpen, setDependencyOpen] = useState(false);
   const [selectedItemForDep, setSelectedItemForDep] = useState<string | undefined>(undefined);
+  const [finLinkItem, setFinLinkItem] = useState<string | undefined>(undefined);
   const [gateData, setGateData] = useState<GateStage[]>(INITIAL_GATE_DATA);
   const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>([]);
   const [crDialogOpen, setCrDialogOpen] = useState(false);

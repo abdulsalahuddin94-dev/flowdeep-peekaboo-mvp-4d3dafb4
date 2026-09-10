@@ -1,3 +1,9 @@
+## Session — 2026-09-10
+
+- Replaced the ambiguous edge arrow with a labeled Show/Hide Gantt button and chart icon.
+- Hid the Days, Weeks, and Months scale selector while the Gantt chart is closed.
+- Made the Gantt legend larger and clearer, and only show it with the open chart.
+
 ## Session — 2026-09-09
 
 - Rebuilt the Project Details header and compact overview information layout to match the supplied reference, removing the subtitle and oversized summary cards.

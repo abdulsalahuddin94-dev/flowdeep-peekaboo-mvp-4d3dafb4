@@ -33,6 +33,15 @@ export type OrgRules = {
     capexThreshold: number;     // spend above this is treated as CapEx
     approvalThreshold: number;  // cost above this needs approval
   };
+  risk: {
+    /** Probability × Impact score bands. A score at/above the value takes that level. */
+    criticalMin: number;
+    highMin: number;
+    mediumMin: number;
+    /** Labels for the 1–5 probability and impact scales. */
+    probabilityLabels: string[];
+    impactLabels: string[];
+  };
 };
 
 export const DEFAULT_ORG_RULES: OrgRules = {

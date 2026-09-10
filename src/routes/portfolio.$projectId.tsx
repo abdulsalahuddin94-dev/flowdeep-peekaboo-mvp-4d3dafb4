@@ -1829,13 +1829,19 @@ function ProgressUpdateDialog({
 
   const [selected, setSelected] = useState<string>("");
   const [draftPct, setDraftPct] = useState<number>(0);
+  // Only tasks that are still open are offered — completed ones are out of the picker
+  // so the list stays short even on projects with thousands of tasks.
+  const openLeaves = useMemo(
+    () => leaves.filter((l) => (l.progress ?? 0) < 100 || l.name === initialTaskName),
+    [leaves, initialTaskName],
+  );
   useEffect(() => {
     if (!open) return;
     const pre = initialTaskName ? leaves.find((l) => l.name === initialTaskName) : undefined;
-    const first = pre ?? leaves[0];
+    const first = pre ?? openLeaves[0];
     setSelected(first?.name ?? "");
     setDraftPct(first?.progress ?? 0);
-  }, [open, leaves, initialTaskName]);
+  }, [open, leaves, openLeaves, initialTaskName]);
 
 
   const current = leaves.find((t) => t.name === selected);

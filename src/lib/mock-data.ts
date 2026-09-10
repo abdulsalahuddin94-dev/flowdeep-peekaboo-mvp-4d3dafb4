@@ -233,7 +233,7 @@ export const pipelineItems = [
   { id: "BC-2026-011", title: "Field Engineer App Refresh", stage: "Rejected", score: 31, roi: "$0.4M", submittedBy: "Diego Ortiz", sponsor: "Khalid Al-Farsi", dept: "Engineering", date: "1mo ago", pillar: "Efficiency" },
 ];
 
-export type RiskStatus = "Open" | "Mitigating" | "Closed";
+export type RiskStatus = "Open" | "In Progress" | "Mitigated";
 
 export interface RiskItem {
   id: string;
@@ -256,19 +256,19 @@ export const RISK_CATEGORIES = [
 
 export const risks: RiskItem[] = [
   { id: "R-091", project: "ERP System Upgrade", title: "Vendor delivery delay > 4 weeks", category: "Vendor", prob: 4, impact: 5, score: 20, status: "Open", owner: "Sara Al-Rashid", mitigation: "Switch to backup vendor; weekly SLA reviews" },
-  { id: "R-088", project: "Coastal Refinery Expansion", title: "Permit approval slip", category: "Regulatory", prob: 3, impact: 5, score: 15, status: "Mitigating", owner: "John Smith", mitigation: "Direct govt liaison engaged" },
+  { id: "R-088", project: "Coastal Refinery Expansion", title: "Permit approval slip", category: "Regulatory", prob: 3, impact: 5, score: 15, status: "In Progress", owner: "John Smith", mitigation: "Direct govt liaison engaged" },
   { id: "R-085", project: "Security Hardening 2026", title: "Audit finding remediation overrun", category: "Compliance", prob: 4, impact: 4, score: 16, status: "Open", owner: "Mei Chen", mitigation: "Daily standups, executive escalation" },
   { id: "R-081", project: "Wellhead Automation", title: "Specialist resource attrition", category: "Resource", prob: 3, impact: 4, score: 12, status: "Open", owner: "Omar Haddad", mitigation: "Retention bonus + knowledge transfer" },
-  { id: "R-077", project: "Warehouse Robotics", title: "Scope creep from operations", category: "Scope", prob: 4, impact: 3, score: 12, status: "Mitigating", owner: "Priya Iyer", mitigation: "CR board weekly; baselined scope locked" },
+  { id: "R-077", project: "Warehouse Robotics", title: "Scope creep from operations", category: "Scope", prob: 4, impact: 3, score: 12, status: "In Progress", owner: "Priya Iyer", mitigation: "CR board weekly; baselined scope locked" },
   { id: "R-074", project: "LNG Terminal Refit", title: "Severe weather window miss", category: "Schedule", prob: 3, impact: 4, score: 12, status: "Open", owner: "Liam Walker", mitigation: "Parallel work packages prepared" },
-  { id: "R-070", project: "Plant Maintenance Q3", title: "Spare parts long lead-time", category: "Supply", prob: 3, impact: 3, score: 9, status: "Mitigating", owner: "Hana Tanaka", mitigation: "Pre-orders placed; safety stock" },
+  { id: "R-070", project: "Plant Maintenance Q3", title: "Spare parts long lead-time", category: "Supply", prob: 3, impact: 3, score: 9, status: "In Progress", owner: "Hana Tanaka", mitigation: "Pre-orders placed; safety stock" },
   { id: "R-066", project: "Regulatory Reporting", title: "SME shortage during peak", category: "Resource", prob: 4, impact: 2, score: 8, status: "Open", owner: "Diego Ortiz", mitigation: "Contractor backfill arranged" },
-  { id: "R-062", project: "Self-Service BI", title: "Data quality gaps in source systems", category: "Technical", prob: 2, impact: 3, score: 6, status: "Mitigating", owner: "Priya Iyer", mitigation: "Profiling scripts + data owner sign-off" },
-  { id: "R-058", project: "Cost Optimization", title: "FX movement on imported equipment", category: "Financial", prob: 2, impact: 2, score: 4, status: "Closed", owner: "Liam Walker", mitigation: "Forward contracts placed" },
+  { id: "R-062", project: "Self-Service BI", title: "Data quality gaps in source systems", category: "Technical", prob: 2, impact: 3, score: 6, status: "In Progress", owner: "Priya Iyer", mitigation: "Profiling scripts + data owner sign-off" },
+  { id: "R-058", project: "Cost Optimization", title: "FX movement on imported equipment", category: "Financial", prob: 2, impact: 2, score: 4, status: "Mitigated", owner: "Liam Walker", mitigation: "Forward contracts placed" },
 ];
 
 export type IssuePriority = "High" | "Medium" | "Low";
-export type IssueStatus = "Open" | "In Progress" | "Resolved";
+export type IssueStatus = "Open" | "Resolved" | "Escalated";
 
 export interface IssueItem {
   id: string;
@@ -279,15 +279,21 @@ export interface IssueItem {
   status: IssueStatus;
   raised: string;
   action: string;
+  /** Originating risk id — optional, issues can be logged with no prior risk. */
+  riskId?: string;
+  /** Resolution description, required to resolve or close the issue. */
+  resolution?: string;
+  /** Optional supporting proof (photo or document file name). */
+  attachment?: string;
 }
 
 export const issues: IssueItem[] = [
-  { id: "I-044", project: "ERP System Upgrade", title: "Test environment outage blocking QA", priority: "High", owner: "Mei Chen", status: "In Progress", raised: "2d ago", action: "Infra team restoring cluster; QA re-plan issued" },
-  { id: "I-042", project: "Coastal Refinery Expansion", title: "Crane availability slip", priority: "Medium", owner: "John Smith", status: "Open", raised: "5d ago", action: "Alternative lifting subcontractor being quoted" },
-  { id: "I-040", project: "Wellhead Automation", title: "Vendor on-site no-show", priority: "High", owner: "Omar Haddad", status: "In Progress", raised: "1d ago", action: "Escalated to vendor account manager" },
+  { id: "I-044", project: "ERP System Upgrade", title: "Test environment outage blocking QA", priority: "High", owner: "Mei Chen", status: "Escalated", raised: "2d ago", riskId: "R-091", action: "Infra team restoring cluster; QA re-plan issued" },
+  { id: "I-042", project: "Coastal Refinery Expansion", title: "Crane availability slip", priority: "Medium", owner: "John Smith", status: "Open", raised: "5d ago", riskId: "R-088", action: "Alternative lifting subcontractor being quoted" },
+  { id: "I-040", project: "Wellhead Automation", title: "Vendor on-site no-show", priority: "High", owner: "Omar Haddad", status: "Escalated", raised: "1d ago", riskId: "R-081", action: "Escalated to vendor account manager" },
   { id: "I-038", project: "Self-Service BI", title: "Source system schema change", priority: "Low", owner: "Diego Ortiz", status: "Open", raised: "1w ago", action: "Mapping layer rework scheduled next sprint" },
   { id: "I-035", project: "Warehouse Robotics", title: "Safety sign-off pending for pilot cell", priority: "Medium", owner: "Priya Iyer", status: "Open", raised: "3d ago", action: "HSE walkthrough booked" },
-  { id: "I-031", project: "Security Hardening 2026", title: "Patch window conflict with month-end close", priority: "Medium", owner: "Mei Chen", status: "Resolved", raised: "2w ago", action: "Window moved to first weekend of the month" },
+  { id: "I-031", project: "Security Hardening 2026", title: "Patch window conflict with month-end close", priority: "Medium", owner: "Mei Chen", status: "Resolved", raised: "2w ago", action: "Window moved to first weekend of the month", resolution: "Patch window rescheduled and validated with Finance; no downtime during close.", attachment: "patch-window-signoff.pdf" },
 ];
 
 export const resources = [

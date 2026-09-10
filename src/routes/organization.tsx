@@ -35,7 +35,8 @@ import { EmptyRegion } from "@/lib/empty-preview";
 
 const ORG_TAB_LABELS: Record<string, string> = {
   "business-lines": "Project Types", tags: "Tags & Classifications",
-  "cost-categories": "Cost Categories", departments: "Departments",
+  "cost-categories": "Cost Categories", "risk-categories": "Risk Categories",
+  departments: "Departments",
   "job-roles": "Roles & Skills", calendars: "Calendars",
   "rules": "Rules & Thresholds",
 };

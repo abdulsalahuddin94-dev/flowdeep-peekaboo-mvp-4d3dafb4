@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { ClipboardCheck, Paperclip } from "@/lib/icons";
 import {
   risks as seedRisks, issues as seedIssues, projects, RISK_CATEGORIES,
   type RiskItem, type RiskStatus, type IssueItem, type IssuePriority, type IssueStatus,
@@ -64,9 +65,12 @@ const SEVERITY_TONE: Record<Severity, string> = {
 
 const RISK_STATUS_TONE: Record<RiskStatus, string> = {
   Open: "border-rag-red/40 bg-rag-red/10 text-rag-red",
-  Mitigating: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
-  Closed: "border-rag-green/40 bg-rag-green/10 text-rag-green",
+  "In Progress": "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
+  Mitigated: "border-rag-green/40 bg-rag-green/10 text-rag-green",
 };
+
+const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated"];
+const ISSUE_STATUSES: IssueStatus[] = ["Open", "Resolved", "Escalated"];
 
 const PRIORITY_TONE: Record<IssuePriority, string> = {
   High: "border-rag-red/40 bg-rag-red/10 text-rag-red",
@@ -76,9 +80,27 @@ const PRIORITY_TONE: Record<IssuePriority, string> = {
 
 const ISSUE_STATUS_TONE: Record<IssueStatus, string> = {
   Open: "border-rag-red/40 bg-rag-red/10 text-rag-red",
-  "In Progress": "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
+  Escalated: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
   Resolved: "border-rag-green/40 bg-rag-green/10 text-rag-green",
 };
+
+/** Small round icon button used for the "Update status" row action. */
+function StatusActionButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <Button
+      type="button"
+      size="icon"
+      variant="secondary"
+      data-ds-size="auto"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 hover:!bg-[var(--btn-secondary-bg-hover)]"
+    >
+      <ClipboardCheck size={16} />
+    </Button>
+  );
+}
 
 function Pill({ label, tone }: { label: string; tone: string }) {
   return <Badge variant="outline" className={cn("rounded-full", tone)}>{label}</Badge>;
@@ -154,6 +176,7 @@ function RegisterTab({ rows, setRows }: { rows: RiskItem[]; setRows: (fn: (prev:
   const [editing, setEditing] = useState<RiskItem | null>(null);
   const [view, setView] = useState<RiskItem | null>(null);
   const [pendingDelete, setPendingDelete] = useState<RiskItem | null>(null);
+  const [statusFor, setStatusFor] = useState<RiskItem | null>(null);
 
   const q = query.trim().toLowerCase();
   const list = rows
@@ -175,8 +198,8 @@ function RegisterTab({ rows, setRows }: { rows: RiskItem[]; setRows: (fn: (prev:
         filterGroups={[
           { key: "project", label: "Projects", mode: "multi", value: projectFilter, onChange: setProjectFilter, options: [{ value: "all", label: "All projects" }, ...projectOptions.map((p) => ({ value: p, label: p }))] },
           { key: "category", label: "Categories", mode: "multi", value: categoryFilter, onChange: setCategoryFilter, options: [{ value: "all", label: "All categories" }, ...RISK_CATEGORIES.map((c) => ({ value: c, label: c }))] },
-          { key: "severity", label: "Severity", value: severity, onChange: setSeverity, options: [{ value: "all", label: "All severities" }, { value: "Critical", label: "Critical" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
-          { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, { value: "Open", label: "Open" }, { value: "Mitigating", label: "Mitigating" }, { value: "Closed", label: "Closed" }] },
+          { key: "severity", label: "Score", value: severity, onChange: setSeverity, options: [{ value: "all", label: "All severities" }, { value: "Critical", label: "Critical" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
+          { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...RISK_STATUSES.map((v) => ({ value: v, label: v }))] },
         ]}
         cta={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Risk</Button>}
       />
@@ -193,13 +216,14 @@ function RegisterTab({ rows, setRows }: { rows: RiskItem[]; setRows: (fn: (prev:
               <StyledTableHead className="text-center">I</StyledTableHead>
               <StyledTableHead className="text-center">Score</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Severity</StyledTableHead>
+              <StyledTableHead>Mitigation plan</StyledTableHead>
               <StyledTableHead>Owner</StyledTableHead>
               <StyledTableHead className="text-center">Status</StyledTableHead>
-              <StyledTableHead className="w-32" />
+              <StyledTableHead className="w-40" />
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {list.length === 0 && <EmptyRow colSpan={11} />}
+            {list.length === 0 && <EmptyRow colSpan={12} />}
             {pagination.pageItems.map((r) => (
               <StyledTableRow key={r.id} onClick={() => setView(r)} className="cursor-pointer">
                 <StyledTableCell className="num-mono text-xs text-muted-foreground">{r.id}</StyledTableCell>
@@ -212,15 +236,21 @@ function RegisterTab({ rows, setRows }: { rows: RiskItem[]; setRows: (fn: (prev:
                 <StyledTableCell className="text-center">
                   <Pill label={severityOf(r.score)} tone={SEVERITY_TONE[severityOf(r.score)]} />
                 </StyledTableCell>
+                <StyledTableCell className="max-w-[220px] truncate text-muted-foreground" title={r.mitigation || undefined}>
+                  {r.mitigation || "—"}
+                </StyledTableCell>
                 <StyledTableCell className="text-muted-foreground">{r.owner}</StyledTableCell>
                 <StyledTableCell className="text-center">
                   <Pill label={r.status} tone={RISK_STATUS_TONE[r.status]} />
                 </StyledTableCell>
                 <StyledTableCell onClick={(e) => e.stopPropagation()}>
-                  <TableRowActions
-                    onEdit={() => { setEditing(r); setFormOpen(true); }}
-                    onDelete={() => setPendingDelete(r)}
-                  />
+                  <div className="flex items-center justify-end gap-1.5">
+                    <StatusActionButton label="Update risk status" onClick={() => setStatusFor(r)} />
+                    <TableRowActions
+                      onEdit={() => { setEditing(r); setFormOpen(true); }}
+                      onDelete={() => setPendingDelete(r)}
+                    />
+                  </div>
                 </StyledTableCell>
               </StyledTableRow>
             ))}
@@ -250,7 +280,18 @@ function RegisterTab({ rows, setRows }: { rows: RiskItem[]; setRows: (fn: (prev:
         onStatus={(r, next) => {
           setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, status: next } : x)));
           setView({ ...r, status: next });
-          toast.done("Risk", next === "Closed" ? "closed" : "updated");
+          toast.done("Risk", next === "Mitigated" ? "mitigated" : "updated");
+        }}
+      />
+
+      <RiskStatusDialog
+        key={`status-${statusFor?.id ?? "none"}`}
+        risk={statusFor}
+        onClose={() => setStatusFor(null)}
+        onSave={(next, mitigation) => {
+          setRows((prev) => prev.map((x) => (x.id === statusFor?.id ? { ...x, status: next, mitigation } : x)));
+          toast.done("Risk status", "updated");
+          setStatusFor(null);
         }}
       />
 
@@ -366,9 +407,7 @@ function RiskFormDialog({
           <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
             <SelectTrigger id="risk-status"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="Open">Open</SelectItem>
-              <SelectItem value="Mitigating">Mitigating</SelectItem>
-              <SelectItem value="Closed">Closed</SelectItem>
+              {RISK_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
@@ -442,11 +481,11 @@ function RiskSheet({
 
         <div className="space-y-2 border-t border-border px-6 py-4">
           <div className="flex gap-2">
-            {risk.status !== "Mitigating" && (
-              <Button variant="primary" className="flex-1" onClick={() => onStatus(risk, "Mitigating")}>Mark as Mitigating</Button>
+            {risk.status !== "In Progress" && (
+              <Button variant="primary" className="flex-1" onClick={() => onStatus(risk, "In Progress")}>Mark as In Progress</Button>
             )}
-            {risk.status !== "Closed" && (
-              <Button variant="outlineSecondary" className="flex-1" onClick={() => onStatus(risk, "Closed")}>Close Risk</Button>
+            {risk.status !== "Mitigated" && (
+              <Button variant="outlineSecondary" className="flex-1" onClick={() => onStatus(risk, "Mitigated")}>Mark as Mitigated</Button>
             )}
           </div>
           <Button variant="outline" className="w-full" onClick={() => onEdit(risk)}>Edit Risk</Button>

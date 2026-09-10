@@ -528,6 +528,94 @@ function ProjectDetail() {
   const pendingApprovalCount = centralApprovals.filter(
     (approval) => approval.projectId === project.id && approval.status === "pending",
   ).length;
+  /** Project-level plan version + Change Plan controls, shown in the project header. */
+  const planVersionControls = (
+            <div className="flex items-center gap-2">
+              <Select value={selectedBaselineVersion} onValueChange={(v) => {
+                setSelectedBaselineVersion(v);
+                setPlanEditMode("view");
+                setEditBaselineSnapshot(null);
+              }}>
+                <SelectTrigger className="h-8 w-64 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="latest">
+                    <div className="flex flex-col leading-tight">
+                      <span>Current Version (v{projectBaselineVersions.length}) ⭐</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {projectBaselineVersions[projectBaselineVersions.length - 1]?.createdAt}
+                        {" · by "}
+                        {versionAuthors[projectBaselineVersions.length] ?? "—"}
+                      </span>
+                    </div>
+                  </SelectItem>
+                  {projectBaselineVersions.slice(0, -1).map((v) => (
+                    <SelectItem key={v.version} value={`v${v.version}`}>
+                      <div className="flex flex-col leading-tight">
+                        <span>v{v.version}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {v.createdAt} · by {versionAuthors[v.version] ?? "—"}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {isViewingCurrent && planEditMode === "view" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={enterEditMode}
+                  className="h-8 text-xs"
+                >
+                  ✎ Change Plan
+                </Button>
+              )}
+              {isViewingCurrent && planEditMode === "editing" && (
+                <>
+                  {planChangeCount > 0 && (
+                    <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
+                      {planChangeCount} pending
+                    </Badge>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCrDialogOpen(true)}
+                    className="h-8 text-xs"
+                    disabled={planChangeCount === 0}
+                  >
+                    Send Change Request
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={requestExitEditMode}
+                    className="h-8 text-xs text-muted-foreground"
+                  >
+                    Cancel
+                  </Button>
+                </>
+              )}
+              {isViewingCurrent && planEditMode === "pending" && (
+                <Badge className="border-rag-blue/40 bg-rag-blue/10 text-rag-blue text-xs">⏳ Waiting For Approval</Badge>
+              )}
+              {!isViewingCurrent && (
+                <>
+                  <Badge variant="outline" className="text-xs text-muted-foreground">📖 View Only</Badge>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCompareVersionOpen(true)}
+                    className="h-8 text-xs"
+                  >
+                    Compare with Current
+                  </Button>
+                </>
+              )}
+            </div>
+  );
   return (
     <div>
       <div className="mb-2">
@@ -557,6 +645,7 @@ function ProjectDetail() {
               : null;
           return (
           <div className="flex items-center gap-2">
+            {planVersionControls}
             <Button size="sm" variant="primary" onClick={() => setReportOpen(true)}>Submit status</Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -761,93 +850,6 @@ function ProjectDetail() {
             </div>
           )}
           <ProjectSchedule
-            headerSlot={
-              <div className="flex items-center gap-2">
-                <Select value={selectedBaselineVersion} onValueChange={(v) => {
-                  setSelectedBaselineVersion(v);
-                  setPlanEditMode("view");
-                  setEditBaselineSnapshot(null);
-                }}>
-                  <SelectTrigger className="h-8 w-64 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="latest">
-                      <div className="flex flex-col leading-tight">
-                        <span>Current Version (v{projectBaselineVersions.length}) ⭐</span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {projectBaselineVersions[projectBaselineVersions.length - 1]?.createdAt}
-                          {" · by "}
-                          {versionAuthors[projectBaselineVersions.length] ?? "—"}
-                        </span>
-                      </div>
-                    </SelectItem>
-                    {projectBaselineVersions.slice(0, -1).map((v) => (
-                      <SelectItem key={v.version} value={`v${v.version}`}>
-                        <div className="flex flex-col leading-tight">
-                          <span>v{v.version}</span>
-                          <span className="text-[10px] text-muted-foreground">
-                            {v.createdAt} · by {versionAuthors[v.version] ?? "—"}
-                          </span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {isViewingCurrent && planEditMode === "view" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={enterEditMode}
-                    className="h-8 text-xs"
-                  >
-                    ✎ Change Plan
-                  </Button>
-                )}
-                {isViewingCurrent && planEditMode === "editing" && (
-                  <>
-                    {planChangeCount > 0 && (
-                      <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
-                        {planChangeCount} pending
-                      </Badge>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCrDialogOpen(true)}
-                      className="h-8 text-xs"
-                      disabled={planChangeCount === 0}
-                    >
-                      Send Change Request
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={requestExitEditMode}
-                      className="h-8 text-xs text-muted-foreground"
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                )}
-                {isViewingCurrent && planEditMode === "pending" && (
-                  <Badge className="border-rag-blue/40 bg-rag-blue/10 text-rag-blue text-xs">⏳ Waiting For Approval</Badge>
-                )}
-                {!isViewingCurrent && (
-                  <>
-                    <Badge variant="outline" className="text-xs text-muted-foreground">📖 View Only</Badge>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCompareVersionOpen(true)}
-                      className="h-8 text-xs"
-                    >
-                      Compare with Current
-                    </Button>
-                  </>
-                )}
-              </div>
-            }
             items={useMemo(() => {
               if (!isViewingCurrent) {
                 const vNum = parseInt(selectedBaselineVersion.slice(1));

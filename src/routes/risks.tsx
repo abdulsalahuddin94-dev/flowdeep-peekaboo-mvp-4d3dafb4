@@ -157,7 +157,7 @@ function RisksPage() {
           <HeatmapTab rows={riskRows} />
         </TabsContent>
         <TabsContent value="issues" className="mt-0">
-          <IssuesTab rows={issueRows} setRows={setIssueRows} />
+          <IssuesTab rows={issueRows} setRows={setIssueRows} risks={riskRows} />
         </TabsContent>
       </Tabs>
     </div>
@@ -600,21 +600,26 @@ function HeatmapTab({ rows }: { rows: RiskItem[] }) {
 
 /* ── Issues tab ───────────────────────────────────────────────────────────── */
 
-function IssuesTab({ rows, setRows }: { rows: IssueItem[]; setRows: (fn: (prev: IssueItem[]) => IssueItem[]) => void }) {
+function IssuesTab({ rows, setRows, risks }: { rows: IssueItem[]; setRows: (fn: (prev: IssueItem[]) => IssueItem[]) => void; risks: RiskItem[] }) {
   const [query, setQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState<string[]>([]);
   const [priority, setPriority] = useState("all");
   const [status, setStatus] = useState("all");
+  const [riskFilter, setRiskFilter] = useState<string[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<IssueItem | null>(null);
   const [pendingDelete, setPendingDelete] = useState<IssueItem | null>(null);
+  const [statusFor, setStatusFor] = useState<IssueItem | null>(null);
+
+  const riskTitle = (id?: string) => (id ? (risks.find((r) => r.id === id)?.title ?? id) : "");
 
   const q = query.trim().toLowerCase();
   const list = rows
     .filter((i) => !q || i.title.toLowerCase().includes(q) || i.id.toLowerCase().includes(q) || i.owner.toLowerCase().includes(q))
     .filter((i) => projectFilter.length === 0 || projectFilter.includes(i.project))
     .filter((i) => priority === "all" || i.priority === priority)
-    .filter((i) => status === "all" || i.status === status);
+    .filter((i) => status === "all" || i.status === status)
+    .filter((i) => riskFilter.length === 0 || riskFilter.includes(i.riskId ?? "none"));
 
   const pagination = usePagination(list, 10);
   const projectOptions = Array.from(new Set([...projects.map((p) => p.name), ...rows.map((r) => r.project)]));
@@ -628,7 +633,8 @@ function IssuesTab({ rows, setRows }: { rows: IssueItem[]; setRows: (fn: (prev: 
         filterGroups={[
           { key: "project", label: "Projects", mode: "multi", value: projectFilter, onChange: setProjectFilter, options: [{ value: "all", label: "All projects" }, ...projectOptions.map((p) => ({ value: p, label: p }))] },
           { key: "priority", label: "Priority", value: priority, onChange: setPriority, options: [{ value: "all", label: "All priorities" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
-          { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, { value: "Open", label: "Open" }, { value: "In Progress", label: "In Progress" }, { value: "Resolved", label: "Resolved" }] },
+          { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...ISSUE_STATUSES.map((v) => ({ value: v, label: v }))] },
+          { key: "risk", label: "Originating Risk", mode: "multi", value: riskFilter, onChange: setRiskFilter, options: [{ value: "all", label: "All risks" }, { value: "none", label: "No originating risk" }, ...risks.map((r) => ({ value: r.id, label: `${r.id} · ${r.title}` }))] },
         ]}
         cta={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Issue</Button>}
       />
@@ -640,6 +646,7 @@ function IssuesTab({ rows, setRows }: { rows: IssueItem[]; setRows: (fn: (prev: 
               <StyledTableHead className="whitespace-nowrap">ID</StyledTableHead>
               <StyledTableHead>Project</StyledTableHead>
               <StyledTableHead>Issue</StyledTableHead>
+              <StyledTableHead className="whitespace-nowrap">Originating Risk</StyledTableHead>
               <StyledTableHead className="text-center">Priority</StyledTableHead>
               <StyledTableHead>Owner</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Raised</StyledTableHead>
@@ -648,21 +655,27 @@ function IssuesTab({ rows, setRows }: { rows: IssueItem[]; setRows: (fn: (prev: 
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {list.length === 0 && <EmptyRow colSpan={8} />}
+            {list.length === 0 && <EmptyRow colSpan={9} />}
             {pagination.pageItems.map((i) => (
               <StyledTableRow key={i.id}>
                 <StyledTableCell className="num-mono text-xs text-muted-foreground">{i.id}</StyledTableCell>
                 <StyledTableCell className="text-muted-foreground">{i.project}</StyledTableCell>
                 <StyledTableCell className="font-medium text-foreground">{i.title}</StyledTableCell>
+                <StyledTableCell className="max-w-[200px] truncate text-muted-foreground" title={riskTitle(i.riskId) || undefined}>
+                  {i.riskId ? `${i.riskId} · ${riskTitle(i.riskId)}` : "—"}
+                </StyledTableCell>
                 <StyledTableCell className="text-center"><Pill label={i.priority} tone={PRIORITY_TONE[i.priority]} /></StyledTableCell>
                 <StyledTableCell className="text-muted-foreground">{i.owner}</StyledTableCell>
                 <StyledTableCell className="text-center text-xs text-muted-foreground">{i.raised}</StyledTableCell>
                 <StyledTableCell className="text-center"><Pill label={i.status} tone={ISSUE_STATUS_TONE[i.status]} /></StyledTableCell>
                 <StyledTableCell>
-                  <TableRowActions
-                    onEdit={() => { setEditing(i); setFormOpen(true); }}
-                    onDelete={() => setPendingDelete(i)}
-                  />
+                  <div className="flex items-center justify-end gap-1.5">
+                    <StatusActionButton label="Update issue status" onClick={() => setStatusFor(i)} />
+                    <TableRowActions
+                      onEdit={() => { setEditing(i); setFormOpen(true); }}
+                      onDelete={() => setPendingDelete(i)}
+                    />
+                  </div>
                 </StyledTableCell>
               </StyledTableRow>
             ))}
@@ -677,11 +690,23 @@ function IssuesTab({ rows, setRows }: { rows: IssueItem[]; setRows: (fn: (prev: 
         onOpenChange={setFormOpen}
         issue={editing}
         projectOptions={projectOptions}
+        risks={risks}
         onSave={(issue) => {
           setRows((prev) => (editing ? prev.map((r) => (r.id === editing.id ? issue : r)) : [issue, ...prev]));
           toast.done("Issue", editing ? "updated" : "logged");
           setFormOpen(false);
           setEditing(null);
+        }}
+      />
+
+      <IssueStatusDialog
+        key={`istatus-${statusFor?.id ?? "none"}`}
+        issue={statusFor}
+        onClose={() => setStatusFor(null)}
+        onSave={(patch) => {
+          setRows((prev) => prev.map((x) => (x.id === statusFor?.id ? { ...x, ...patch } : x)));
+          toast.done("Issue status", "updated");
+          setStatusFor(null);
         }}
       />
 
@@ -703,12 +728,13 @@ function IssuesTab({ rows, setRows }: { rows: IssueItem[]; setRows: (fn: (prev: 
 }
 
 function IssueFormDialog({
-  open, onOpenChange, issue, projectOptions, onSave,
+  open, onOpenChange, issue, projectOptions, risks, onSave,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   issue: IssueItem | null;
   projectOptions: string[];
+  risks: RiskItem[];
   onSave: (issue: IssueItem) => void;
 }) {
   const [title, setTitle] = useState(issue?.title ?? "");
@@ -717,6 +743,7 @@ function IssueFormDialog({
   const [priority, setPriority] = useState<IssuePriority>(issue?.priority ?? "Medium");
   const [status, setStatus] = useState<IssueStatus>(issue?.status ?? "Open");
   const [action, setAction] = useState(issue?.action ?? "");
+  const [riskId, setRiskId] = useState(issue?.riskId ?? "none");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function submit() {
@@ -732,6 +759,9 @@ function IssueFormDialog({
       project, title: title.trim(), owner: owner.trim(), priority, status,
       raised: issue?.raised ?? "Today",
       action: action.trim(),
+      riskId: riskId === "none" ? undefined : riskId,
+      resolution: issue?.resolution,
+      attachment: issue?.attachment,
     });
   }
 
@@ -775,16 +805,139 @@ function IssueFormDialog({
           <Select value={status} onValueChange={(v) => setStatus(v as IssueStatus)}>
             <SelectTrigger id="issue-status"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="Open">Open</SelectItem>
-              <SelectItem value="In Progress">In Progress</SelectItem>
-              <SelectItem value="Resolved">Resolved</SelectItem>
+              {ISSUE_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
       </div>
 
+      <Field label="Originating risk" htmlFor="issue-risk" optional hint="Leave empty when the issue was not foreseen as a risk.">
+        <Select value={riskId} onValueChange={setRiskId}>
+          <SelectTrigger id="issue-risk"><SelectValue placeholder="No originating risk" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">No originating risk</SelectItem>
+            {risks.map((r) => <SelectItem key={r.id} value={r.id}>{r.id} · {r.title}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </Field>
+
       <Field label="Action taken" htmlFor="issue-action" optional>
         <Textarea id="issue-action" value={action} onChange={(e) => setAction(e.target.value)} placeholder="Current corrective action" rows={3} />
+      </Field>
+    </FormDialog>
+  );
+}
+
+/* ── Status update dialogs ────────────────────────────────────────────────── */
+
+function RiskStatusDialog({
+  risk, onClose, onSave,
+}: {
+  risk: RiskItem | null;
+  onClose: () => void;
+  onSave: (status: RiskStatus, mitigation: string) => void;
+}) {
+  const [status, setStatus] = useState<RiskStatus>(risk?.status ?? "Open");
+  const [mitigation, setMitigation] = useState(risk?.mitigation ?? "");
+
+  return (
+    <FormDialog
+      open={!!risk}
+      onOpenChange={(o) => { if (!o) onClose(); }}
+      title="Update risk status"
+      description={risk ? `${risk.id} · ${risk.title}` : undefined}
+      submitLabel="Update Status"
+      onSubmit={() => onSave(status, mitigation.trim())}
+    >
+      <Field label="Status" htmlFor="risk-status-update">
+        <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
+          <SelectTrigger id="risk-status-update"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {RISK_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </Field>
+      <Field label="Mitigation plan" htmlFor="risk-status-mitigation" optional>
+        <Textarea id="risk-status-mitigation" value={mitigation} onChange={(e) => setMitigation(e.target.value)} rows={3} placeholder="Actions that reduce probability or impact" />
+      </Field>
+    </FormDialog>
+  );
+}
+
+function IssueStatusDialog({
+  issue, onClose, onSave,
+}: {
+  issue: IssueItem | null;
+  onClose: () => void;
+  onSave: (patch: Partial<IssueItem>) => void;
+}) {
+  const [status, setStatus] = useState<IssueStatus>(issue?.status ?? "Open");
+  const [resolution, setResolution] = useState(issue?.resolution ?? "");
+  const [attachment, setAttachment] = useState(issue?.attachment ?? "");
+  const [error, setError] = useState("");
+
+  const needsResolution = status === "Resolved";
+
+  function submit() {
+    if (needsResolution && !resolution.trim()) {
+      setError("A resolution description is required to resolve the issue");
+      return;
+    }
+    onSave({ status, resolution: resolution.trim() || undefined, attachment: attachment || undefined });
+  }
+
+  return (
+    <FormDialog
+      open={!!issue}
+      onOpenChange={(o) => { if (!o) onClose(); }}
+      title="Update issue status"
+      description={issue ? `${issue.id} · ${issue.title}` : undefined}
+      submitLabel="Update Status"
+      onSubmit={submit}
+    >
+      <Field label="Status" htmlFor="issue-status-update">
+        <Select value={status} onValueChange={(v) => { setStatus(v as IssueStatus); setError(""); }}>
+          <SelectTrigger id="issue-status-update"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {ISSUE_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </Field>
+
+      <Field
+        label="Resolution description"
+        htmlFor="issue-resolution"
+        optional={!needsResolution}
+        error={error}
+        hint={needsResolution ? "Describe how the issue was resolved before closing it." : undefined}
+      >
+        <Textarea
+          id="issue-resolution"
+          value={resolution}
+          onChange={(e) => { setResolution(e.target.value); setError(""); }}
+          rows={3}
+          placeholder="What was done to resolve the issue?"
+        />
+      </Field>
+
+      <Field label="Supporting proof" htmlFor="issue-attachment" optional hint="Photo or document that evidences the resolution.">
+        <div className="flex items-center gap-3">
+          <label
+            htmlFor="issue-attachment"
+            className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-md border border-[var(--btn-outline-border)] bg-[var(--btn-secondary-bg)] px-4 text-xs font-medium text-[var(--btn-secondary-fg)] hover:bg-[var(--btn-outline-bg-hover)]"
+          >
+            <Paperclip size={14} />
+            Attach file
+          </label>
+          <input
+            id="issue-attachment"
+            type="file"
+            accept="image/*,.pdf,.doc,.docx,.xlsx"
+            className="sr-only"
+            onChange={(e) => setAttachment(e.target.files?.[0]?.name ?? "")}
+          />
+          <span className="truncate text-xs text-muted-foreground">{attachment || "No file attached"}</span>
+        </div>
       </Field>
     </FormDialog>
   );

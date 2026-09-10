@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch, Search, Filter, Check, ChevronRight, ChevronLeft, X, ToggleActive } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { useOrgActive } from "@/lib/org-active";
+import { DEFAULT_COST_CATEGORIES, type CostCategory } from "@/lib/org-cost-categories";
 import { TableRowActions } from "@/components/TableRowActions";
 import { PageToolbar as FilterBar, EmptyRow, type FilterGroup } from "@/components/ds/PageToolbar";
 import { PageActionsSlot } from "@/components/ds/PageActionsSlot";
@@ -1030,13 +1031,7 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
 }
 
 function CostCategoriesTab() {
-  const [categories, setCategories] = useState<CostCategory[]>([
-    { id: "staff", name: "Staff", number: "CC-001", description: "Salaries, benefits and internal staff cost", type: "OpEx" },
-    { id: "services", name: "Services", number: "CC-002", description: "External professional and managed services", type: "OpEx" },
-    { id: "insurance", name: "Insurance", number: "CC-003", description: "Project and asset insurance premiums", type: "OpEx" },
-    { id: "business-trips", name: "Business Trips", number: "CC-004", description: "Travel, accommodation and per-diem", type: "OpEx" },
-    { id: "contracts", name: "Contracts", number: "CC-005", description: "Capitalized contracts and construction works", type: "CapEx" },
-  ]);
+  const [categories, setCategories] = useState<CostCategory[]>(DEFAULT_COST_CATEGORIES);
   const [editing, setEditing] = useState<CostCategory | null>(null);
   const [pendingDelete, setPendingDelete] = useState<CostCategory | null>(null);
   const [pendingToggle, setPendingToggle] = useState<{ id: string; name: string; active: boolean } | null>(null);
@@ -1168,7 +1163,6 @@ function CostCategoriesTab() {
   );
 }
 
-type CostCategory = { id: string; name: string; number: string; description: string; type: "CapEx" | "OpEx" };
 
 function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }) {
   const [open, setOpen] = useState(false);

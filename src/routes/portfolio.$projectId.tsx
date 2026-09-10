@@ -2479,6 +2479,121 @@ function FinancialsTab({
   );
 }
 
+/** Revenue plan with one row per planned event; expanding a row reveals its logged actuals. */
+function RevenuePlanTable({
+  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete,
+}: {
+  entries: RevEntry[];
+  canEdit: boolean;
+  milestoneNames: string[];
+  dateOf: (e: RevEntry) => string;
+  totals: { planned: number; actual: number; util: number };
+  onSave: (idx: number, patch: Partial<RevEntry>) => void;
+  onDelete: (idx: number) => void;
+}) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggle = (key: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow className="hover:bg-transparent bg-transparent border-0">
+          <TableHead className="w-8" />
+          <TableHead>Linked to</TableHead>
+          <TableHead>Revenue event</TableHead>
+          <TableHead className="text-right">Planned ($M)</TableHead>
+          <TableHead>Expected date</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead className="text-right">Actual ($M)</TableHead>
+          <TableHead className="text-right">Collected</TableHead>
+          {canEdit && <TableHead className="w-10" />}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {entries.map((r, idx) => {
+          const actuals = r.actuals ?? (r.act != null ? [{ amount: r.act, date: r.date }] : []);
+          const actual = actuals.reduce((s, a) => s + a.amount, 0);
+          const util = r.plan ? Math.round((actual / r.plan) * 100) : 0;
+          const open = expanded.has(r.ms);
+          return (
+            <Fragment key={r.ms}>
+              <TableRow className="bg-table-row-bg hover:bg-table-row-hover border-0">
+                <TableCell>
+                  {actuals.length > 0 && (
+                    <button
+                      type="button"
+                      aria-label={open ? "Collapse actuals" : "Expand actuals"}
+                      onClick={() => toggle(r.ms)}
+                      className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                    >
+                      <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
+                    </button>
+                  )}
+                </TableCell>
+                <TableCell className="font-medium text-foreground">
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${r.linkKind === "fixed" ? "bg-secondary/40 text-muted-foreground" : "bg-accent/15 text-accent"}`}>
+                      {r.linkKind === "fixed" ? "Date" : "MS"}
+                    </span>
+                    <span>{r.ms}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground">{r.evt}</TableCell>
+                <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{dateOf(r)}</TableCell>
+                <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
+                <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
+                <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
+                {canEdit && (
+                  <TableCell className="text-right">
+                    <EditRevenueRowDialog
+                      entry={r}
+                      milestoneNames={milestoneNames}
+                      onSave={(patch) => onSave(idx, patch)}
+                      onDelete={() => onDelete(idx)}
+                    />
+                  </TableCell>
+                )}
+              </TableRow>
+              {open && actuals.map((a, i) => (
+                <TableRow key={`${r.ms}-a${i}`} className="bg-secondary/10 hover:bg-secondary/20 border-0">
+                  <TableCell />
+                  <TableCell colSpan={2} className="pl-6 text-xs text-muted-foreground">
+                    Actual payment{a.note ? ` — ${a.note}` : ""}
+                  </TableCell>
+                  <TableCell />
+                  <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
+                  <TableCell />
+                  <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
+                  <TableCell />
+                  {canEdit && <TableCell />}
+                </TableRow>
+              ))}
+            </Fragment>
+          );
+        })}
+        {entries.length > 0 && (
+          <TableRow className="bg-transparent hover:bg-transparent border-0">
+            <TableCell />
+            <TableCell colSpan={2} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
+            <TableCell className="num-mono text-right font-medium">${totals.planned.toFixed(2)}M</TableCell>
+            <TableCell colSpan={2} />
+            <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
+            <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
+            {canEdit && <TableCell />}
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+}
+
+
 const REV_STATUSES: { s: string; sl: string }[] = [
   { s: "blue", sl: "Planned" },
   { s: "amber", sl: "Pending" },

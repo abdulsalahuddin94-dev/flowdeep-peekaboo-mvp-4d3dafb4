@@ -23,6 +23,7 @@ import { TablePagination, usePagination } from "@/components/TablePagination";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { businessLines, departments, projects as mockProjects, type WorkCalendar } from "@/lib/mock-data";
 import { RulesThresholdsTab } from "@/components/org/RulesThresholds";
+import { useRiskRegister, type RiskCategory } from "@/lib/risk-store";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests, useSkills } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -79,6 +80,10 @@ function OrganizationPage() {
 
         <TabsContent value="cost-categories">
           <CostCategoriesTab />
+        </TabsContent>
+
+        <TabsContent value="risk-categories">
+          <RiskCategoriesTab />
         </TabsContent>
 
         <TabsContent value="departments">

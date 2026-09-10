@@ -1650,3 +1650,172 @@ function AddJobRoleDialog({ onAdd, hasSkills, onGoToSkills }: { onAdd: (title: s
     </Dialog>
   );
 }
+
+/* ── Risk Categories ─────────────────────────────────────────────────────── */
+
+function RiskCategoriesTab() {
+  const { categories, risks, addCategory, updateCategory, removeCategory } = useRiskRegister();
+  const { isActive, setActive } = useOrgActive("risk-category");
+  const [editing, setEditing] = useState<RiskCategory | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<RiskCategory | null>(null);
+  const [pendingToggle, setPendingToggle] = useState<{ id: string; name: string; active: boolean } | null>(null);
+  const [query, setQuery] = useState("");
+  const [related, setRelated] = useState("all");
+  const [status, setStatus] = useState("all");
+
+  const rows = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return categories
+      .map((c) => {
+        const used = risks.filter((r) => r.category === c.name);
+        const names = Array.from(new Set(used.map((r) => r.project)));
+        return {
+          ...c,
+          used: used.length,
+          linked: names.map((n) => ({ id: projects.find((p) => p.name === n)?.id ?? n, name: n })),
+        };
+      })
+      .filter((c) => !q || c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q))
+      .filter((c) => matchRelated(related, c.linked.length))
+      .filter((c) => matchStatus(status, isActive(c.id)));
+  }, [categories, risks, query, related, status, isActive]);
+
+  const pager = usePagination(rows);
+
+  return (
+    <>
+      <FilterBar
+        title="Risk Categories"
+        desc="Risk classifications available when logging risks on any project."
+        query={query}
+        onQueryChange={setQuery}
+        placeholder="Search category or description…"
+        resultCount={rows.length}
+        totalCount={categories.length}
+        onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
+        cta={<AddRiskCategoryDialog onAdd={(name, description) => addCategory({ name, description })} />}
+        filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
+      />
+      <EmptyRegion id="org-risk-categories">
+        <Table>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
+            <TableHead className="w-56">Category</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead className="w-24 text-center">Risks</TableHead>
+            <TableHead className="w-36 text-center whitespace-nowrap">Related Projects</TableHead>
+            <TableHead className="w-32 text-center">Status</TableHead>
+          </TableRow></TableHeader>
+          <TableBody>
+            {rows.length === 0 && <EmptyRow colSpan={5} />}
+            {pager.pageItems.map((c) => (
+              <TableRow key={c.id} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(c.id) && "opacity-60")}>
+                <TableCell className="whitespace-nowrap font-medium text-foreground">{c.name}</TableCell>
+                <TableCell className="text-muted-foreground">{c.description || "—"}</TableCell>
+                <TableCell className="num-mono text-center">{c.used}</TableCell>
+                <TableCell className="text-center">
+                  <RelatedProjectsCount label={c.name} projects={c.linked} />
+                </TableCell>
+                <TableCell>
+                  <RowActions
+                    onEdit={() => setEditing({ id: c.id, name: c.name, description: c.description })}
+                    isActive={isActive(c.id)}
+                    onToggleActive={() => setPendingToggle({ id: c.id, name: c.name, active: isActive(c.id) })}
+                    onDelete={() => setPendingDelete({ id: c.id, name: c.name, description: c.description })}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <TablePagination {...pager} itemLabel="risk categories" />
+      </EmptyRegion>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Risk Category</DialogTitle>
+            <DialogDescription>Renaming keeps the category on every risk already using it.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div><Label>Category</Label><Input value={editing?.name ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, name: e.target.value } : p)} /></div>
+            <div><Label>Description</Label><Textarea value={editing?.description ?? ""} onChange={(e) => setEditing((p) => p ? { ...p, description: e.target.value } : p)} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button variant="primary" onClick={() => {
+              if (!editing) return;
+              const name = editing.name.trim();
+              if (!name) { toast.error("Category name is required"); return; }
+              updateCategory(editing.id, { name, description: editing.description.trim() });
+              toast.done("Risk Category", "updated");
+              setEditing(null);
+            }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDeleteDialog
+        label={pendingDelete?.name}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          removeCategory(pendingDelete.id);
+          toast.done("Risk Category", "deleted");
+          setPendingDelete(null);
+        }}
+      />
+
+      <ToggleActiveConfirm
+        pending={pendingToggle ? { label: pendingToggle.name, active: pendingToggle.active } : null}
+        entity="Risk Category"
+        onCancel={() => setPendingToggle(null)}
+        onConfirm={() => {
+          if (!pendingToggle) return;
+          setActive(pendingToggle.id, !pendingToggle.active);
+          toast.done("Risk Category", pendingToggle.active ? "deactivated" : "activated");
+          setPendingToggle(null);
+        }}
+      />
+    </>
+  );
+}
+
+function AddRiskCategoryDialog({ onAdd }: { onAdd: (name: string, description: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+
+  function save() {
+    const trimmed = name.trim();
+    if (!trimmed) { toast.error("Category name is required"); return; }
+    onAdd(trimmed, description.trim());
+    toast.done("Risk Category", "created");
+    setName(""); setDescription(""); setOpen(false);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Category</Button></DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New Risk Category</DialogTitle>
+          <DialogDescription>Categories appear in the risk log form for every project.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>Category</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Resources, Scope, Technical" />
+          </div>
+          <div>
+            <Label>Description</Label>
+            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What kind of risks belong to this category?" />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="primary" onClick={save}>Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 /**
  * Company-level configurable rules (RAG health, schedule, financial).
  * Values differ per organization, so they live in configuration rather than
@@ -108,4 +109,13 @@ const ruleListeners = new Set<() => void>();
 export function subscribeOrgRules(listener: () => void) {
   ruleListeners.add(listener);
   return () => { ruleListeners.delete(listener); };
+}
+/** Live organization rules — defaults during SSR, real values after hydration. */
+export function useOrgRules(): OrgRules {
+  const [rules, setRules] = useState<OrgRules>(DEFAULT_ORG_RULES);
+  useEffect(() => {
+    setRules(loadOrgRules());
+    return subscribeOrgRules(() => setRules(loadOrgRules()));
+  }, []);
+  return rules;
 }

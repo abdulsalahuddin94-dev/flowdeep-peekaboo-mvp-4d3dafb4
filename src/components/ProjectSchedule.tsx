@@ -933,10 +933,10 @@ export function ProjectSchedule({
             aria-controls="project-gantt-chart"
             title={ganttOpen ? "Hide Gantt" : "Show Gantt"}
             aria-label={ganttOpen ? "Hide Gantt" : "Show Gantt"}
-            className="h-8 gap-1 px-2"
+            className="h-8 gap-1 px-3 text-xs"
           >
             <GanttChartSquare className="h-4 w-4" />
-            {ganttOpen ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
+            Chart
           </Button>
 
           {ganttOpen && (
@@ -989,7 +989,7 @@ export function ProjectSchedule({
                 className="gap-1 text-xs"
                 onClick={() => importInputRef.current?.click()}
               >
-                <Upload className="h-3.5 w-3.5" /> Import MS Project
+                <Upload className="h-3.5 w-3.5" /> Import
               </Button>
             </>
           )}

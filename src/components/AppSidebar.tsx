@@ -77,6 +77,7 @@ const allItems: NavItem[] = [
       { title: "Project Types", tab: "business-lines" },
       { title: "Tags & Classifications", tab: "tags" },
       { title: "Cost Categories", tab: "cost-categories" },
+      { title: "Risk Categories", tab: "risk-categories" },
       { title: "Departments", tab: "departments" },
       { title: "Roles & Skills", tab: "job-roles" },
       { title: "Calendars", tab: "calendars" },

@@ -49,6 +49,7 @@ export const EMPTY_STATES: EmptyStateEntry[] = [
   // Organization
   { id: "org-project-types", module: "Organization", page: "Project Types", path: "/organization", art: "briefcase", title: "No Project Types added yet", description: "Start by adding the first Project Type", ctaLabel: "Add Project Type" },
   { id: "org-tags", module: "Organization", page: "Tags & Classifications", path: "/organization", art: "tag", title: "No Tags added yet", description: "Start by adding the first Tag", ctaLabel: "Add Tag" },
+  { id: "org-risk-categories", module: "Organization", page: "Risk Categories", path: "/organization", art: "shield", title: "No Risk Categories added yet", description: "Start by adding the first Category", ctaLabel: "Add Category" },
   { id: "org-cost-categories", module: "Organization", page: "Cost Categories", path: "/organization", art: "tag", title: "No Cost Categories added yet", description: "Start by adding the first Category", ctaLabel: "Add Category" },
   { id: "org-departments", module: "Organization", page: "Departments", path: "/organization", art: "building", title: "No Departments added yet", description: "Start by adding the first Department", ctaLabel: "Add Department" },
   { id: "org-roles", module: "Organization", page: "Roles & Skills — Job Roles", path: "/organization", art: "role", title: "No Job Roles added yet", description: "Start by adding the first Job Role", ctaLabel: "Add Job Role" },

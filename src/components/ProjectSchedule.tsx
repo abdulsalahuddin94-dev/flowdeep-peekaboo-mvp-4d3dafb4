@@ -297,6 +297,7 @@ export function ProjectSchedule({
   onDeleteItem,
   onProgressClick,
   onDependencyClick,
+  onFinancialLinkClick,
   resourceList = [],
   headerSlot,
   restricted = false,
@@ -312,6 +313,7 @@ export function ProjectSchedule({
   onDeleteItem?: (name: string) => void;
   onProgressClick?: (name: string, kind: ItemKind) => void;
   onDependencyClick?: (name: string) => void;
+  onFinancialLinkClick?: (name: string) => void;
   resourceList?: Array<{ name: string; role?: string; dept?: string }>;
   headerSlot?: React.ReactNode;
   /**

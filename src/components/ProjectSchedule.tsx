@@ -927,14 +927,15 @@ export function ProjectSchedule({
           <Button
             type="button"
             size="sm"
-            variant={ganttOpen ? "outline" : "primary"}
+            variant={ganttOpen ? "primary" : "outline"}
             onClick={() => { setGanttOpen((v) => !v); setLeftCollapsed(false); }}
             aria-expanded={ganttOpen}
             aria-controls="project-gantt-chart"
-            className="gap-2"
+            title={ganttOpen ? "Hide Gantt" : "Show Gantt"}
+            aria-label={ganttOpen ? "Hide Gantt" : "Show Gantt"}
+            className="h-8 gap-1 px-2"
           >
             <GanttChartSquare className="h-4 w-4" />
-            {ganttOpen ? "Hide Gantt" : "Show Gantt"}
             {ganttOpen ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
           </Button>
 
@@ -1028,6 +1029,17 @@ export function ProjectSchedule({
 
       {/* Split pane */}
       <div ref={splitRef} className="relative flex" style={{ height: 560 }}>
+        {/* Right-edge Gantt toggle — kept as a second access point alongside the
+            top icon button so the chart can be opened/closed from either side */}
+        <button
+          type="button"
+          onClick={() => { setGanttOpen((v) => !v); if (!ganttOpen) setLeftCollapsed(false); }}
+          title={ganttOpen ? "Hide Gantt" : "Show Gantt"}
+          aria-label={ganttOpen ? "Hide Gantt" : "Show Gantt"}
+          className="absolute right-0 top-1/2 z-30 flex h-12 w-5 -translate-y-1/2 items-center justify-center rounded-l-md border border-border border-r-0 bg-muted/80 text-muted-foreground shadow-sm backdrop-blur hover:border-accent hover:bg-accent hover:text-accent-foreground transition-colors"
+        >
+          {ganttOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </button>
         {/* LEFT: table */}
         <div
           className={`flex flex-col overflow-hidden border-r border-border transition-[width] duration-200 ${leftCollapsed && ganttOpen ? "border-r-0" : ""}`}
@@ -1653,24 +1665,30 @@ export function ProjectSchedule({
         </div>
       </div>
 
-      {ganttOpen && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-secondary/20 px-3 py-2 text-xs text-muted-foreground">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span className="flex items-center gap-1.5"><Diamond className="h-3.5 w-3.5 text-accent" /> Milestone</span>
-            <span className="flex items-center gap-1.5"><span className="flex h-3 w-5 items-center rounded-sm border border-accent/70 bg-secondary p-0.5"><span className="h-full w-2/3 rounded-[2px] bg-accent" /></span> Actual progress</span>
-            <span className="flex items-center gap-1.5"><span className="flex h-3 w-5 items-center rounded-sm border border-foreground/60 bg-secondary p-0.5"><span className="h-full w-2/3 rounded-[2px] bg-foreground/50" /></span> Planned progress</span>
-            <span className="flex items-center gap-1.5"><span className="relative h-3 w-5 rounded-sm border border-border bg-secondary"><span className="absolute inset-y-[-2px] left-2.5 w-0.5 bg-foreground" /></span> Planned position</span>
-            <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm border border-foreground bg-foreground/80" /> Summary from subtasks</span>
-            {healthHighlight && (
-              <>
-                <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-amber" /> At risk (≤ 7% behind)</span>
-                <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Off track (&gt; 7% behind)</span>
-              </>
-            )}
-          </div>
-          <div>Range: {fmt(minDate)} – {fmt(maxDate)}</div>
-        </div>
-      )}
+      {/* Legend bar stays mounted in both states so opening/closing the Gantt
+          doesn't cause a sudden layout shift; only the legend content is toggled */}
+      <div className="flex min-h-[40px] flex-wrap items-center justify-between gap-3 border-t border-border bg-secondary/20 px-3 py-2 text-xs text-muted-foreground">
+        {ganttOpen ? (
+          <>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <span className="flex items-center gap-1.5"><Diamond className="h-3.5 w-3.5 text-accent" /> Milestone</span>
+              <span className="flex items-center gap-1.5"><span className="flex h-3 w-5 items-center rounded-sm border border-accent/70 bg-secondary p-0.5"><span className="h-full w-2/3 rounded-[2px] bg-accent" /></span> Actual progress</span>
+              <span className="flex items-center gap-1.5"><span className="flex h-3 w-5 items-center rounded-sm border border-foreground/60 bg-secondary p-0.5"><span className="h-full w-2/3 rounded-[2px] bg-foreground/50" /></span> Planned progress</span>
+              <span className="flex items-center gap-1.5"><span className="relative h-3 w-5 rounded-sm border border-border bg-secondary"><span className="absolute inset-y-[-2px] left-2.5 w-0.5 bg-foreground" /></span> Planned position</span>
+              <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm border border-foreground bg-foreground/80" /> Summary from subtasks</span>
+              {healthHighlight && (
+                <>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-amber" /> At risk (≤ 7% behind)</span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Off track (&gt; 7% behind)</span>
+                </>
+              )}
+            </div>
+            <div>Range: {fmt(minDate)} – {fmt(maxDate)}</div>
+          </>
+        ) : (
+          <span className="text-muted-foreground/60">Gantt chart collapsed — open it to view the legend</span>
+        )}
+      </div>
 
       <AlertDialog open={!!pendingImport} onOpenChange={(o) => { if (!o) setPendingImport(null); }}>
         <AlertDialogContent className="max-w-3xl">

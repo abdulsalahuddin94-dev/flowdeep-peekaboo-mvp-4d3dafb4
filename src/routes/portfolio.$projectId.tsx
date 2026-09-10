@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge } from "@/components/RagBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RiskRegisterTab, RiskHeatmapTab, IssuesLogTab, RiskKpiStrip } from "@/components/risk/RiskIssues";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

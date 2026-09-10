@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { EmptyState } from "@/components/ds/EmptyState";
 import { ProjectGantt } from "@/components/ProjectGantt";
-import { ProjectSchedule, computePlannedProgress } from "@/components/ProjectSchedule";
+import { ProjectSchedule, computePlannedProgress, depLag, depLabel } from "@/components/ProjectSchedule";
 import {
   useTabBaseline,
   BaselineHeader,

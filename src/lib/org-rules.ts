@@ -60,7 +60,22 @@ export const DEFAULT_ORG_RULES: OrgRules = {
     minMarginPct: 15, contingencyPct: 10,
     capexThreshold: 50000, approvalThreshold: 100000,
   },
+  risk: {
+    criticalMin: 15, highMin: 9, mediumMin: 4,
+    probabilityLabels: ["Rare", "Unlikely", "Possible", "Likely", "Almost certain"],
+    impactLabels: ["Insignificant", "Minor", "Moderate", "Major", "Severe"],
+  },
 };
+
+export type RiskSeverity = "Critical" | "High" | "Medium" | "Low";
+
+/** Severity band for a Probability × Impact score, using the organization rules. */
+export function severityForScore(score: number, rules: OrgRules = DEFAULT_ORG_RULES): RiskSeverity {
+  if (score >= rules.risk.criticalMin) return "Critical";
+  if (score >= rules.risk.highMin) return "High";
+  if (score >= rules.risk.mediumMin) return "Medium";
+  return "Low";
+}
 
 const KEY = "pmo.org-rules.v1";
 

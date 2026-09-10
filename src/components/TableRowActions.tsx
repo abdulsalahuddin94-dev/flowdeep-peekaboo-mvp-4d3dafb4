@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { EditAction, DeleteAction, ToggleActive } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 /** Active / Inactive status pill (DS02): outlined green when active, amber when not. */
 export function StatusPill({ isActive, label, className }: { isActive: boolean; label?: string; className?: string }) {
@@ -26,6 +27,9 @@ export function StatusPill({ isActive, label, className }: { isActive: boolean; 
  * Place inside a `<TableCell>` of a row rendered by `TableRow` (which sets `group`).
  */
 export function TableRowActions({
+  onStatus,
+  statusIcon,
+  statusLabel = "Update status",
   onEdit,
   onDelete,
   onToggleActive,
@@ -37,6 +41,9 @@ export function TableRowActions({
   showStatus,
   className,
 }: {
+  onStatus?: () => void;
+  statusIcon?: ReactNode;
+  statusLabel?: string;
   onEdit?: () => void;
   onDelete?: () => void;
   onToggleActive?: () => void;
@@ -65,6 +72,20 @@ export function TableRowActions({
         </div>
       )}
       <div className={cn("flex h-9 items-center gap-1.5", align, visibility, className)}>
+        {onStatus && (
+          <Button
+            type="button"
+            aria-label={statusLabel}
+            title={statusLabel}
+            size="icon"
+            variant="secondary"
+            data-ds-size="auto"
+            onClick={onStatus}
+            className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
+          >
+            {statusIcon}
+          </Button>
+        )}
         {onEdit && (
           <Button
             type="button"
@@ -89,7 +110,7 @@ export function TableRowActions({
             onClick={onToggleActive}
             className={cn(
               "h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] hover:!bg-[var(--btn-secondary-bg-hover)]",
-              isActive ? "text-rag-green" : "text-[#D4D4D4]",
+              isActive ? "text-rag-green" : "text-muted-foreground",
             )}
           >
             <ToggleActive className={cn("h-5 w-5", !isActive && "-scale-x-100")} />

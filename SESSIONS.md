@@ -1,3 +1,8 @@
+## Session — 2026-09-10 (Risk & Issues row actions)
+
+- Grouped status, edit, and delete into the shared DS02 table-row action component with consistent 36px circular controls and spacing.
+- Removed the oversized gap between Risk & Issues row actions and replaced the remaining hardcoded inactive icon color with a semantic token.
+
 ## Session — 2026-09-10 (Gantt controls refined)
 
 - Kept the right-edge arrow as a second Gantt access point alongside the top control (double access).

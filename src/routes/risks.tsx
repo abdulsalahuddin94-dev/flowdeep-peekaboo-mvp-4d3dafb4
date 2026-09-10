@@ -84,24 +84,6 @@ const ISSUE_STATUS_TONE: Record<IssueStatus, string> = {
   Resolved: "border-rag-green/40 bg-rag-green/10 text-rag-green",
 };
 
-/** Small round icon button used for the "Update status" row action. */
-function StatusActionButton({ onClick, label }: { onClick: () => void; label: string }) {
-  return (
-    <Button
-      type="button"
-      size="icon"
-      variant="secondary"
-      data-ds-size="auto"
-      aria-label={label}
-      title={label}
-      onClick={onClick}
-      className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 hover:!bg-[var(--btn-secondary-bg-hover)]"
-    >
-      <ClipboardCheck size={16} />
-    </Button>
-  );
-}
-
 function Pill({ label, tone }: { label: string; tone: string }) {
   return <Badge variant="outline" className={cn("rounded-full", tone)}>{label}</Badge>;
 }
@@ -244,13 +226,13 @@ function RegisterTab({ rows, setRows }: { rows: RiskItem[]; setRows: (fn: (prev:
                   <Pill label={r.status} tone={RISK_STATUS_TONE[r.status]} />
                 </StyledTableCell>
                 <StyledTableCell onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center justify-end gap-1.5">
-                    <StatusActionButton label="Update risk status" onClick={() => setStatusFor(r)} />
-                    <TableRowActions
-                      onEdit={() => { setEditing(r); setFormOpen(true); }}
-                      onDelete={() => setPendingDelete(r)}
-                    />
-                  </div>
+                  <TableRowActions
+                    onStatus={() => setStatusFor(r)}
+                    statusLabel="Update risk status"
+                    statusIcon={<ClipboardCheck size={16} />}
+                    onEdit={() => { setEditing(r); setFormOpen(true); }}
+                    onDelete={() => setPendingDelete(r)}
+                  />
                 </StyledTableCell>
               </StyledTableRow>
             ))}
@@ -669,13 +651,13 @@ function IssuesTab({ rows, setRows, risks }: { rows: IssueItem[]; setRows: (fn: 
                 <StyledTableCell className="text-center text-xs text-muted-foreground">{i.raised}</StyledTableCell>
                 <StyledTableCell className="text-center"><Pill label={i.status} tone={ISSUE_STATUS_TONE[i.status]} /></StyledTableCell>
                 <StyledTableCell>
-                  <div className="flex items-center justify-end gap-1.5">
-                    <StatusActionButton label="Update issue status" onClick={() => setStatusFor(i)} />
-                    <TableRowActions
-                      onEdit={() => { setEditing(i); setFormOpen(true); }}
-                      onDelete={() => setPendingDelete(i)}
-                    />
-                  </div>
+                  <TableRowActions
+                    onStatus={() => setStatusFor(i)}
+                    statusLabel="Update issue status"
+                    statusIcon={<ClipboardCheck size={16} />}
+                    onEdit={() => { setEditing(i); setFormOpen(true); }}
+                    onDelete={() => setPendingDelete(i)}
+                  />
                 </StyledTableCell>
               </StyledTableRow>
             ))}

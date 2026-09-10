@@ -1667,6 +1667,7 @@ export function ProjectSchedule({
                 <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Off track (&gt; 7% behind)</span>
               </>
             )}
+          </div>
           <div>Range: {fmt(minDate)} – {fmt(maxDate)}</div>
         </div>
       )}

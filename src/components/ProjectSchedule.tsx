@@ -160,7 +160,22 @@ export type PaymentLink = { kind: "None" | "Client Revenue" | "Package Cost"; am
 export type ApprovalStatus = "approved" | "pending" | "rejected";
 export type Approver = { id: string; name: string; role: string; department: string; status?: "approved" | "pending" | "rejected" };
 export type RelationType = "FS" | "SF" | "SS" | "FF";
-export type Dependency = { predecessor: string; relation: RelationType; leadTime?: number; lagTime?: number };
+/**
+ * `lag` is a single signed offset in days, MS Project style:
+ * positive = lag (delay), negative = lead (overlap). 0/undefined = no offset.
+ * `leadTime`/`lagTime` are legacy fields kept only for reading older records.
+ */
+export type Dependency = { predecessor: string; relation: RelationType; lag?: number; leadTime?: number; lagTime?: number };
+/** Normalise legacy lead/lag pairs into the single signed `lag` value. */
+export function depLag(d: Dependency): number {
+  if (typeof d.lag === "number") return d.lag;
+  return (d.lagTime ?? 0) - (d.leadTime ?? 0);
+}
+/** Human label for a dependency offset, e.g. "FS +3d" / "FS -2d". */
+export function depLabel(d: Dependency): string {
+  const lag = depLag(d);
+  return lag === 0 ? d.relation : `${d.relation} ${lag > 0 ? "+" : "−"}${Math.abs(lag)}d`;
+}
 export type ScheduleItem = {
   name: string;
   kind: ItemKind;

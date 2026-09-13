@@ -5,4 +5,4 @@
 - [x] Clarify the Project Schedule Gantt controls and legend
 - [x] Extract Cost and Revenue into project-level tabs
 - [x] Refine the in-project Risk & Issues navigation and contextual actions
-- [x] Make the Risk Heat Map more compact
+- [x] Fit the Risk Heat Map content vertically while preserving its full-width frame

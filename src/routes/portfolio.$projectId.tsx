@@ -28,6 +28,7 @@ import { projects, vendors as vendorList, resources as resourcePool, parseLabelD
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
 import { FINANCIAL_CATALOG, findFinancialItem, useFinanceLinks } from "@/lib/finance-links";
 import { FinancialLinkField } from "@/components/schedule/FinancialLinkField";
+import { DEFAULT_COST_CATEGORIES } from "@/lib/org-cost-categories";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";

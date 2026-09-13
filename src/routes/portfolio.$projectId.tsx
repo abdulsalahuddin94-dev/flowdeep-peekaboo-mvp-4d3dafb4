@@ -3174,6 +3174,8 @@ type Milestone = {
   /** Gate unlocked — every sibling leaf task reached 100%. */
   approvalReady?: boolean;
   dependencies?: any[];
+  /** Dates were moved by a dependency change and not yet submitted for approval. */
+  depDateShift?: boolean;
   /** Baseline snapshot — locked version after approval. Milestone only. */
   baseline?: { version: number; createdAt: string; baselineStart: string; baselineEnd: string; baselineProgress: number; isLocked: boolean };
   /** Version history for change requests. */

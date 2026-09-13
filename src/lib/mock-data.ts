@@ -23,6 +23,8 @@ export interface Project {
   client?: string;
   ragNote?: string;
   calendarId?: string;
+  /** The first approved project-wide schedule and financial plan has been saved. */
+  baselineLocked?: boolean;
 }
 
 /** Parses the "MMM DD, YYYY" display format used for project dates. Returns null for "—" or unparsable input. */
@@ -49,7 +51,9 @@ export function projectDurationDays(p: Pick<Project, "startDate" | "endDate">): 
   const start = parseLabelDate(p.startDate);
   const end = parseLabelDate(p.endDate);
   if (!start || !end) return null;
-  return Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1;
+  const startUtc = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+  const endUtc = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
+  return Math.round((endUtc - startUtc) / 86_400_000) + 1;
 }
 
 // Working calendar: which weekdays count as work days (0=Sun..6=Sat),
@@ -133,6 +137,7 @@ export const projects: Project[] = seed.map((row, i) => {
     // Every project is bound to a working calendar so calendar edits always
     // have a visible downstream impact.
     calendarId: ["cal-eg", "cal-sa", "cal-intl"][i % 3],
+    baselineLocked: true,
   };
 });
 

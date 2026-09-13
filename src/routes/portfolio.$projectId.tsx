@@ -4530,13 +4530,18 @@ function CostCategoriesList({
 
 // ── Unified Add Finance Link dialog (Cost OR Revenue) ─────────────────────────
 function AddFinanceLinkDialog({
-  milestoneNames, defaultType, onAddCost, onAddRevenue,
+  milestoneNames, defaultType, onAddCost, onAddRevenue, label, lockKind,
 }: {
   milestoneNames: string[];
   defaultType: "cost" | "revenue";
   onAddCost: (e: CostEntry) => void;
   onAddRevenue: (e: RevEntry) => void;
+  /** Button/dialog wording — the Cost and Revenue tabs each name their own action. */
+  label?: string;
+  /** When true the cost/revenue switch is hidden: the tab already decided. */
+  lockKind?: boolean;
 }) {
+  const actionLabel = label ?? "Add Finance Link";
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<"cost" | "revenue">(defaultType);
 

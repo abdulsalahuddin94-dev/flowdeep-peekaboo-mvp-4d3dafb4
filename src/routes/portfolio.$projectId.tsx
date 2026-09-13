@@ -3230,6 +3230,71 @@ function minISO(arr: (string | undefined)[]): string | undefined {
 }
 export const APPROVAL_TASK_PREFIX = "Approval — ";
 
+/** One item whose planned dates move because of a dependency change. */
+export type DepImpact = { name: string; oldStart: string; oldEnd: string; start: string; end: string };
+
+const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
+function daysBetweenISO(a: string, b: string) {
+  const [ay, am, ad] = a.split("-").map(Number);
+  const [by, bm, bd] = b.split("-").map(Number);
+  return Math.round((Date.UTC(ay, am - 1, ad) - Date.UTC(by, bm - 1, bd)) / 86400000);
+}
+
+/**
+ * Which planned dates move when the dependencies of one item change.
+ * The item is pulled to the latest start its predecessors allow (relation + signed
+ * lag), and every downstream successor shifts by the same number of days so the
+ * user can see the knock-on effect before saving.
+ */
+export function computeDependencyImpact(
+  items: { name: string; startDate: string; endDate: string; dependencies?: any[] }[],
+  targetName: string,
+  deps: any[],
+): DepImpact[] {
+  const byName = new Map(items.map((i) => [i.name, i]));
+  const target = byName.get(targetName);
+  if (!target || !ISO_RE.test(target.startDate) || !ISO_RE.test(target.endDate)) return [];
+  const targetDur = daysBetweenISO(target.endDate, target.startDate);
+
+  let requiredStart: string | undefined;
+  for (const d of deps) {
+    const p = byName.get(d.predecessor);
+    if (!p || !ISO_RE.test(p.startDate) || !ISO_RE.test(p.endDate)) continue;
+    const lag = depLag(d);
+    let start: string | undefined;
+    if (d.relation === "FS") start = addDaysISO(p.endDate, 1 + lag);
+    else if (d.relation === "SS") start = addDaysISO(p.startDate, lag);
+    else if (d.relation === "FF") start = addDaysISO(p.endDate, lag - targetDur);
+    else if (d.relation === "SF") start = addDaysISO(p.startDate, lag - targetDur);
+    if (start && (!requiredStart || start > requiredStart)) requiredStart = start;
+  }
+  if (!requiredStart) return [];
+  const delta = daysBetweenISO(requiredStart, target.startDate);
+  if (delta === 0) return [];
+
+  // Everything that depends (directly or transitively) on the target moves with it.
+  const moving = new Set<string>([targetName]);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const it of items) {
+      if (moving.has(it.name)) continue;
+      const follows = (it.dependencies ?? []).some((d: any) => moving.has(d.predecessor)) || (it.name !== targetName && moving.has(it.name));
+      if (follows) { moving.add(it.name); grew = true; }
+    }
+  }
+
+  return items
+    .filter((i) => moving.has(i.name) && ISO_RE.test(i.startDate) && ISO_RE.test(i.endDate))
+    .map((i) => ({
+      name: i.name,
+      oldStart: i.startDate,
+      oldEnd: i.endDate,
+      start: addDaysISO(i.startDate, delta),
+      end: addDaysISO(i.endDate, delta),
+    }));
+}
+
 // When a milestone gate is approved, every task underneath it is considered delivered.
 function completeMilestoneSubtree(items: Milestone[], milestoneName: string): Milestone[] {
   const names = new Set<string>([milestoneName]);

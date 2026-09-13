@@ -618,7 +618,7 @@ export function IssuesLogTab({ project }: { project?: string }) {
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {list.length === 0 && <EmptyRow colSpan={project ? 8 : 9} />}
+            {list.length === 0 && <EmptyRow colSpan={project ? 9 : 10} />}
             {pagination.pageItems.map((i) => (
               <StyledTableRow key={i.id}>
                 <StyledTableCell className="num-mono text-xs text-muted-foreground">{i.id}</StyledTableCell>
@@ -626,6 +626,9 @@ export function IssuesLogTab({ project }: { project?: string }) {
                 <StyledTableCell className="font-medium text-foreground">{i.title}</StyledTableCell>
                 <StyledTableCell className="max-w-[200px] truncate text-muted-foreground" title={riskTitle(i.riskId) || undefined}>
                   {i.riskId ? `${i.riskId} · ${riskTitle(i.riskId)}` : "—"}
+                </StyledTableCell>
+                <StyledTableCell className="max-w-[220px] truncate text-muted-foreground" title={i.action || undefined}>
+                  {i.action || "—"}
                 </StyledTableCell>
                 <StyledTableCell className="text-center"><Pill label={i.priority} tone={PRIORITY_TONE[i.priority]} /></StyledTableCell>
                 <StyledTableCell className="text-muted-foreground">{i.owner}</StyledTableCell>

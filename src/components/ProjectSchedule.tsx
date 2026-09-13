@@ -1421,6 +1421,16 @@ export function ProjectSchedule({
                           <Plus className="mr-2 h-3.5 w-3.5" /> Add subtask
                         </ContextMenuItem>
                       )}
+                      {!isGate && !restricted && onItemPatch && (
+                        <ContextMenuItem
+                          onSelect={() => {
+                            setChangeParentFor(item.name);
+                            setNextParent(item.parent && nameSet.has(item.parent) ? item.parent : "__root__");
+                          }}
+                        >
+                          <PanelLeftOpen className="mr-2 h-3.5 w-3.5" /> Change parent
+                        </ContextMenuItem>
+                      )}
                       {!isGate && !restricted && onDeleteItem && (
                         <>
                           <ContextMenuSeparator />

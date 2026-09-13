@@ -485,18 +485,18 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
           </div>
         </div>
 
-        <div className="mx-auto w-full max-w-[640px]">
-          <div className="flex gap-2">
+        <div className="mx-auto w-full max-w-[960px]">
+          <div className="flex gap-3">
             <div className="flex items-center">
               <span className="-rotate-90 whitespace-nowrap text-xs text-muted-foreground">Probability →</span>
             </div>
-            <div className="flex flex-col justify-between py-0.5 text-right">
+            <div className="flex flex-col justify-between py-1 text-right">
               {[5, 4, 3, 2, 1].map((p) => (
-                <div key={p} className="flex flex-1 items-center justify-end pr-1 text-xs text-muted-foreground">{p}</div>
+                <div key={p} className="flex flex-1 items-center justify-end pr-1.5 text-sm text-muted-foreground">{p}</div>
               ))}
             </div>
             <div className="flex-1">
-              <div className="grid grid-cols-5 gap-1.5">
+              <div className="grid grid-cols-5 gap-2.5">
                 {[5, 4, 3, 2, 1].map((p) =>
                   [1, 2, 3, 4, 5].map((i) => {
                     const items = at(p, i);
@@ -506,24 +506,24 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
                         type="button"
                         onClick={() => items.length > 0 && setCell({ p, i })}
                         className={cn(
-                          "flex h-12 flex-col items-center justify-center rounded-md border transition",
+                          "flex aspect-[2/1] flex-col items-center justify-center rounded-lg border transition",
                           toneFor(p * i),
                           items.length > 0 ? "hover:brightness-125" : "opacity-50",
                         )}
                       >
-                        <span className="num-mono text-base font-medium leading-none">{items.length}</span>
-                        <span className="mt-1 text-[10px] leading-none opacity-80">{p * i}</span>
+                        <span className="num-mono text-2xl font-medium leading-none">{items.length}</span>
+                        <span className="mt-1 text-xs leading-none opacity-80">{p * i}</span>
                       </button>
                     );
                   }),
                 )}
               </div>
-              <div className="mt-1.5 grid grid-cols-5 gap-1.5">
+              <div className="mt-2 grid grid-cols-5 gap-2.5">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="text-center text-xs text-muted-foreground">{i}</div>
+                  <div key={i} className="text-center text-sm text-muted-foreground">{i}</div>
                 ))}
               </div>
-              <div className="mt-1 text-center text-xs text-muted-foreground">Impact →</div>
+              <div className="mt-1.5 text-center text-xs text-muted-foreground">Impact →</div>
             </div>
           </div>
         </div>

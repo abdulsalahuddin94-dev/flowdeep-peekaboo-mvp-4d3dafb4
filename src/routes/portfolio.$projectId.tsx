@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge } from "@/components/RagBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RiskRegisterTab, RiskHeatmapTab, IssuesLogTab, RiskKpiStrip } from "@/components/risk/RiskIssues";
+import { RiskRegisterTab, RiskHeatmapTab, IssuesLogTab } from "@/components/risk/RiskIssues";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,7 +74,7 @@ export const Route = createFileRoute("/portfolio/$projectId")({
 });
 
 const TABS = [
-  "Overview", "Project Schedule", "Cost", "Revenue", "Status Reports", "Risk & Issues",
+  "Overview", "Project Schedule", "Cost", "Revenue", "Risk & Issues", "Status Reports",
 ];
 
 const PLANNING_STAGES = [
@@ -5901,8 +5901,6 @@ function ProjectRiskIssuesTab({ projectName }: { projectName: string }) {
 
   return (
     <div className="space-y-4">
-      <RiskKpiStrip project={projectName} />
-
       <Tabs value={view} onValueChange={(v) => setView(v as typeof view)}>
         <TabsList className="h-auto w-full gap-2 border-0 bg-transparent p-0">
           <TabsTrigger value="register" className="h-9 flex-1 gap-2 rounded-md border border-border bg-card px-4 text-xs data-[state=active]:border-accent data-[state=active]:bg-accent/10 data-[state=active]:text-accent">

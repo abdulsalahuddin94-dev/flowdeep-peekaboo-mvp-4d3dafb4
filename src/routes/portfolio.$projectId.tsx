@@ -2688,7 +2688,7 @@ function RevenuePlanTable({
           <TableHead>Status</TableHead>
           <TableHead className="text-right">Actual ($M)</TableHead>
           <TableHead className="text-right">Collected</TableHead>
-          {canEdit && <TableHead className="w-10" />}
+          <TableHead className="w-20" />
         </TableRow>
       </TableHeader>
       <TableBody>

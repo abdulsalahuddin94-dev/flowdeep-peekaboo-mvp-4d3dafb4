@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge } from "@/components/RagBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -149,6 +149,7 @@ function ProjectDetail() {
     if (project.ragNote === "New") updateProject(project.id, { ragNote: undefined });
   }
   const [activeTab, setActiveTab] = useState<string>(TABS[0]);
+  const tabsBarRef = useRef<HTMLDivElement>(null);
   const [addFirstMilestoneOpen, setAddFirstMilestoneOpen] = useState(false);
   const [teamMembers, setTeamMembers] = useState([
     { n: project.pm, r: "PM", a: 80, p: "Apr–Sep", s: "green" as Rag },

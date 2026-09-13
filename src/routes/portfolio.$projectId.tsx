@@ -28,6 +28,7 @@ import { projects, vendors as vendorList, resources as resourcePool, parseLabelD
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
 import { FINANCIAL_CATALOG, findFinancialItem, useFinanceLinks } from "@/lib/finance-links";
 import { FinancialLinkField } from "@/components/schedule/FinancialLinkField";
+import { DEFAULT_COST_CATEGORIES } from "@/lib/org-cost-categories";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
@@ -1132,6 +1133,8 @@ function ProjectDetail() {
               setCrDialogOpen(false);
               setPlanEditMode("pending");
               setEditBaselineSnapshot(null);
+              // The dependency-shift markers have served their purpose once submitted.
+              setMilestones((prev) => prev.map((m) => (m.depDateShift ? { ...m, depDateShift: undefined } : m)));
               const approvalId = addProjectApproval({
                 type: "change-request",
                 projectId: project.id,
@@ -1343,8 +1346,15 @@ function ProjectDetail() {
         onOpenChange={setDependencyOpen}
         currentItem={selectedItemForDep ? milestones.find((m) => m.name === selectedItemForDep) : undefined}
         allItems={milestones}
-        onSetDependencies={(name, dependencies) =>
-          setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, dependencies } : m)))
+        onSetDependencies={(name, dependencies, impacts) =>
+          setMilestones((prev) =>
+            prev.map((m) => {
+              const moved = impacts.find((i) => i.name === m.name);
+              let next = m.name === name ? { ...m, dependencies } : m;
+              if (moved) next = { ...next, startDate: moved.start, endDate: moved.end, depDateShift: true };
+              return next;
+            }),
+          )
         }
       />
       <ScheduleFinancialLinkDialog
@@ -2321,6 +2331,165 @@ function BusinessTripsTab({ pm }: { pm: string }) {
   );
 }
 
+/**
+ * Logging an actual is bookkeeping, not re-planning: it stays available after the
+ * baseline is locked so no Change Plan is needed to record a payment or expense.
+ */
+function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEntry) => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [date, setDate] = useState("");
+  const [amount, setAmount] = useState("");
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setName(""); setDate(""); setAmount(""); } }}>
+      <DialogTrigger asChild>
+        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-accent" title={title}>
+          <Plus className="h-3.5 w-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>Recorded against the planned line — no change request required.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3">
+          <div className="grid gap-1.5">
+            <Label>Name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Invoice INV-0021" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label>Date</Label>
+              <Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="e.g. Jun 30" />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Amount ($M)</Label>
+              <Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              const amt = parseFloat(amount);
+              if (!name.trim() || !date.trim() || isNaN(amt)) { toast.error("Name, date and amount are required"); return; }
+              onAdd({ name: name.trim(), date: date.trim(), amount: amt, note: name.trim() });
+              setOpen(false);
+              toast.done("Actual", "added");
+            }}
+          >
+            Add actual
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Edit dialog for a planned cost line (mirrors the revenue line editor). */
+function EditCostRowDialog({
+  entry, categories, milestoneNames, onSave, onDelete,
+}: {
+  entry: CostEntry;
+  categories: string[];
+  milestoneNames: string[];
+  onSave: (patch: Partial<CostEntry>) => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [cat, setCat] = useState(entry.cat ?? "");
+  const [item, setItem] = useState(entry.c);
+  const [desc, setDesc] = useState(entry.desc ?? "");
+  const [plan, setPlan] = useState(String(entry.b));
+  const [linkRef, setLinkRef] = useState(entry.linkRef ?? "");
+
+  function reset() {
+    setCat(entry.cat ?? ""); setItem(entry.c); setDesc(entry.desc ?? "");
+    setPlan(String(entry.b)); setLinkRef(entry.linkRef ?? "");
+  }
+  const catOptions = Array.from(new Set([...categories, entry.cat ?? ""].filter(Boolean)));
+  const msOptions = Array.from(new Set([...milestoneNames, entry.linkRef ?? ""].filter(Boolean)));
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) reset(); }}>
+      <DialogTrigger asChild>
+        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-accent" title="Edit cost line">
+          <Pencil className="h-3.5 w-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit cost line</DialogTitle>
+          <DialogDescription>Update the category, item, planned amount or the date it is tied to.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3">
+          <div className="grid gap-1.5">
+            <Label>Category</Label>
+            <Select value={cat} onValueChange={setCat}>
+              <SelectTrigger><SelectValue placeholder="Select category…" /></SelectTrigger>
+              <SelectContent>
+                {catOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Item</Label>
+            <Input value={item} onChange={(e) => setItem(e.target.value)} />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Description</Label>
+            <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label>Planned ($M)</Label>
+              <Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>{entry.linkKind === "milestone" ? "Linked milestone" : "Date"}</Label>
+              {entry.linkKind === "milestone" ? (
+                <Select value={linkRef} onValueChange={setLinkRef}>
+                  <SelectTrigger><SelectValue placeholder="Select milestone…" /></SelectTrigger>
+                  <SelectContent>
+                    {msOptions.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input value={linkRef} onChange={(e) => setLinkRef(e.target.value)} placeholder="e.g. 2025-06-15" />
+              )}
+            </div>
+          </div>
+        </div>
+        <DialogFooter className="justify-between sm:justify-between">
+          <Button
+            variant="ghost"
+            className="text-rag-red hover:text-rag-red"
+            onClick={() => { onDelete(); setOpen(false); toast.done("Cost line", "deleted"); }}
+          >
+            Delete
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                const p = parseFloat(plan);
+                if (!item.trim() || isNaN(p)) { toast.error("Item and planned amount are required"); return; }
+                onSave({ c: item.trim(), cat: cat || undefined, desc: desc.trim() || undefined, b: p, linkRef });
+                setOpen(false);
+                toast.done("Cost line", "updated");
+              }}
+            >
+              Save changes
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Financials tab — Cost / Revenue split ────────────────────────────────────
 function FinancialsTab({
   mode, project, milestones, isNew, onDataAdded, canEdit = true,
@@ -2377,10 +2546,14 @@ function FinancialsTab({
     return { planned, actual, util: planned ? Math.round((actual / planned) * 100) : 0 };
   }, [displayRev]);
 
+  const costCategoryNames = useMemo(() => DEFAULT_COST_CATEGORIES.map((c) => c.name), []);
+
   const addLinkDialog = (kind: "cost" | "revenue") => (
     <AddFinanceLinkDialog
       milestoneNames={milestoneNames}
       defaultType={kind}
+      lockKind
+      label={kind === "cost" ? "Add Cost" : "Add Revenue Event"}
       onAddCost={(e) => { setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
       onAddRevenue={(e) => { setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
     />
@@ -2418,53 +2591,30 @@ function FinancialsTab({
               {canEdit && addLinkDialog("cost")}
             </div>
             <p className="mb-3 text-xs text-muted-foreground">
-              Every item carries a cost category from Organization. Items linked to a milestone inherit that
-              milestone's planned finish date automatically.
+              Every item carries a cost category from Organization. Expand a row to see the actual expenses logged
+              against that planned item. Items linked to a milestone inherit that milestone's planned finish date.
             </p>
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent bg-transparent border-0">
-                  <TableHead>Category</TableHead>
-                  <TableHead>Item</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Planned ($M)</TableHead>
-                  <TableHead className="text-right">Actual ($M)</TableHead>
-                  <TableHead className="text-right">Utilization</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {displayCost.map((e) => {
-                  const util = e.b ? Math.round((e.a / e.b) * 100) : 0;
-                  return (
-                    <TableRow key={e.c} className="bg-table-row-bg hover:bg-table-row-hover border-0">
-                      <TableCell className="text-muted-foreground">{e.cat ?? "—"}</TableCell>
-                      <TableCell className="font-medium text-foreground">{e.c}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
-                      <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
-                      <TableCell className="num-mono text-right">${e.a.toFixed(2)}M</TableCell>
-                      <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>{util}%</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        <span className={`mr-1.5 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${e.linkKind === "milestone" ? "bg-accent/15 text-accent" : "bg-secondary/40 text-muted-foreground"}`}>
-                          {e.linkKind === "milestone" ? "MS" : "Date"}
-                        </span>
-                        {costDate(e)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {displayCost.length > 0 && (
-                  <TableRow className="bg-transparent hover:bg-transparent border-0">
-                    <TableCell colSpan={3} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
-                    <TableCell className="num-mono text-right font-medium">${costTotals.planned.toFixed(2)}M</TableCell>
-                    <TableCell className="num-mono text-right font-medium">${costTotals.actual.toFixed(2)}M</TableCell>
-                    <TableCell className="num-mono text-right font-medium">{costTotals.util}%</TableCell>
-                    <TableCell />
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <CostBreakdownTable
+              entries={displayCost}
+              canEdit={canEdit}
+              categories={costCategoryNames}
+              milestoneNames={milestoneNames}
+              dateOf={costDate}
+              totals={costTotals}
+              onSave={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e)))}
+              onDelete={(idx) => setCostEntries((prev) => prev.filter((_, i) => i !== idx))}
+              onAddActual={(idx, actual) =>
+                setCostEntries((prev) =>
+                  prev.map((e, i) => {
+                    if (i !== idx) return e;
+                    const actuals = [...(e.actuals ?? (e.a > 0 ? [{ amount: e.a, date: "—", note: "Opening actual" }] : [])), actual];
+                    return { ...e, actuals, a: actuals.reduce((s, x) => s + x.amount, 0) };
+                  }),
+                )
+              }
+            />
           </div>
+
 
           <div className="glass-card p-5">
             <div className="label-eyebrow mb-3">Planned vs actual by category</div>
@@ -2508,6 +2658,18 @@ function FinancialsTab({
                 totals={revTotals}
                 onSave={(idx, patch) => setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
                 onDelete={(idx) => setRevEntries((prev) => prev.filter((_, i) => i !== idx))}
+                onAddActual={(idx, actual) =>
+                  setRevEntries((prev) =>
+                    prev.map((e, i) => {
+                      if (i !== idx) return e;
+                      const actuals = [...(e.actuals ?? (e.act != null ? [{ amount: e.act, date: e.date }] : [])), actual];
+                      const total = actuals.reduce((s, x) => s + x.amount, 0);
+                      const collected = e.plan ? total / e.plan : 0;
+                      const status = collected >= 1 ? REV_STATUSES[2] : REV_STATUSES[1];
+                      return { ...e, actuals, act: total, s: status.s, sl: status.sl };
+                    }),
+                  )
+                }
               />
             </div>
           </div>
@@ -2518,7 +2680,7 @@ function FinancialsTab({
 
 /** Revenue plan with one row per planned event; expanding a row reveals its logged actuals. */
 function RevenuePlanTable({
-  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete,
+  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual,
 }: {
   entries: RevEntry[];
   canEdit: boolean;
@@ -2527,6 +2689,7 @@ function RevenuePlanTable({
   totals: { planned: number; actual: number; util: number };
   onSave: (idx: number, patch: Partial<RevEntry>) => void;
   onDelete: (idx: number) => void;
+  onAddActual: (idx: number, actual: ActualEntry) => void;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const toggle = (key: string) =>
@@ -2548,7 +2711,7 @@ function RevenuePlanTable({
           <TableHead>Status</TableHead>
           <TableHead className="text-right">Actual ($M)</TableHead>
           <TableHead className="text-right">Collected</TableHead>
-          {canEdit && <TableHead className="w-10" />}
+          <TableHead className="w-20" />
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -2586,29 +2749,36 @@ function RevenuePlanTable({
                 <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
                 <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
-                {canEdit && (
-                  <TableCell className="text-right">
-                    <EditRevenueRowDialog
-                      entry={r}
-                      milestoneNames={milestoneNames}
-                      onSave={(patch) => onSave(idx, patch)}
-                      onDelete={() => onDelete(idx)}
+                <TableCell className="text-right">
+                  {/* Logging an actual stays available after baseline lock; re-planning does not. */}
+                  <div className="flex items-center justify-end gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                    {canEdit && (
+                      <EditRevenueRowDialog
+                        entry={r}
+                        milestoneNames={milestoneNames}
+                        onSave={(patch) => onSave(idx, patch)}
+                        onDelete={() => onDelete(idx)}
+                      />
+                    )}
+                    <AddActualDialog
+                      title="Add revenue recognition"
+                      onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(r.ms)); }}
                     />
-                  </TableCell>
-                )}
+                  </div>
+                </TableCell>
               </TableRow>
               {open && actuals.map((a, i) => (
                 <TableRow key={`${r.ms}-a${i}`} className="bg-secondary/10 hover:bg-secondary/20 border-0">
                   <TableCell />
                   <TableCell colSpan={2} className="pl-6 text-xs text-muted-foreground">
-                    Actual payment{a.note ? ` — ${a.note}` : ""}
+                    {a.name ?? "Actual payment"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
                   </TableCell>
                   <TableCell />
                   <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
                   <TableCell />
                   <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
                   <TableCell />
-                  {canEdit && <TableCell />}
+                  <TableCell />
                 </TableRow>
               ))}
             </Fragment>
@@ -2622,13 +2792,134 @@ function RevenuePlanTable({
             <TableCell colSpan={2} />
             <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
             <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
-            {canEdit && <TableCell />}
+            <TableCell />
           </TableRow>
         )}
       </TableBody>
     </Table>
   );
 }
+
+/** Cost breakdown with one row per planned item; expanding a row reveals its logged actual expenses. */
+function CostBreakdownTable({
+  entries, canEdit, categories, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual,
+}: {
+  entries: CostEntry[];
+  canEdit: boolean;
+  categories: string[];
+  milestoneNames: string[];
+  dateOf: (e: CostEntry) => string;
+  totals: { planned: number; actual: number; util: number };
+  onSave: (idx: number, patch: Partial<CostEntry>) => void;
+  onDelete: (idx: number) => void;
+  onAddActual: (idx: number, actual: ActualEntry) => void;
+}) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggle = (key: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow className="hover:bg-transparent bg-transparent border-0">
+          <TableHead className="w-8" />
+          <TableHead>Category</TableHead>
+          <TableHead>Item</TableHead>
+          <TableHead>Description</TableHead>
+          <TableHead className="text-right">Planned ($M)</TableHead>
+          <TableHead className="text-right">Actual ($M)</TableHead>
+          <TableHead className="text-right">Utilization</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead className="w-20" />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {entries.map((e, idx) => {
+          const actuals = e.actuals ?? (e.a > 0 ? [{ amount: e.a, date: dateOf(e), note: "Opening actual" }] : []);
+          const actual = actuals.reduce((s, a) => s + a.amount, 0);
+          const util = e.b ? Math.round((actual / e.b) * 100) : 0;
+          const open = expanded.has(e.c);
+          return (
+            <Fragment key={e.c}>
+              <TableRow className="bg-table-row-bg hover:bg-table-row-hover border-0">
+                <TableCell>
+                  {actuals.length > 0 && (
+                    <button
+                      type="button"
+                      aria-label={open ? "Collapse actuals" : "Expand actuals"}
+                      onClick={() => toggle(e.c)}
+                      className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                    >
+                      <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
+                    </button>
+                  )}
+                </TableCell>
+                <TableCell className="text-muted-foreground">{e.cat ?? "—"}</TableCell>
+                <TableCell className="font-medium text-foreground">{e.c}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
+                <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
+                <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
+                <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>{util}%</TableCell>
+                <TableCell className="text-xs text-muted-foreground">
+                  <span className={`mr-1.5 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${e.linkKind === "milestone" ? "bg-accent/15 text-accent" : "bg-secondary/40 text-muted-foreground"}`}>
+                    {e.linkKind === "milestone" ? "MS" : "Date"}
+                  </span>
+                  {dateOf(e)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {/* Logging an actual expense stays available after baseline lock; re-planning does not. */}
+                  <div className="flex items-center justify-end gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                    {canEdit && (
+                      <EditCostRowDialog
+                        entry={e}
+                        categories={categories}
+                        milestoneNames={milestoneNames}
+                        onSave={(patch) => onSave(idx, patch)}
+                        onDelete={() => onDelete(idx)}
+                      />
+                    )}
+                    <AddActualDialog
+                      title="Add actual spend"
+                      onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(e.c)); }}
+                    />
+                  </div>
+                </TableCell>
+              </TableRow>
+              {open && actuals.map((a, i) => (
+                <TableRow key={`${e.c}-a${i}`} className="bg-secondary/10 hover:bg-secondary/20 border-0">
+                  <TableCell />
+                  <TableCell colSpan={3} className="pl-6 text-xs text-muted-foreground">
+                    {a.name ?? "Actual spend"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
+                  </TableCell>
+                  <TableCell />
+                  <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
+                  <TableCell />
+                  <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
+                  <TableCell />
+                </TableRow>
+              ))}
+            </Fragment>
+          );
+        })}
+        {entries.length > 0 && (
+          <TableRow className="bg-transparent hover:bg-transparent border-0">
+            <TableCell />
+            <TableCell colSpan={3} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
+            <TableCell className="num-mono text-right font-medium">${totals.planned.toFixed(2)}M</TableCell>
+            <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
+            <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
+            <TableCell colSpan={2} />
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+}
+
 
 
 const REV_STATUSES: { s: string; sl: string }[] = [
@@ -2892,6 +3183,8 @@ type Milestone = {
   /** Gate unlocked — every sibling leaf task reached 100%. */
   approvalReady?: boolean;
   dependencies?: any[];
+  /** Dates were moved by a dependency change and not yet submitted for approval. */
+  depDateShift?: boolean;
   /** Baseline snapshot — locked version after approval. Milestone only. */
   baseline?: { version: number; createdAt: string; baselineStart: string; baselineEnd: string; baselineProgress: number; isLocked: boolean };
   /** Version history for change requests. */
@@ -2900,6 +3193,8 @@ type Milestone = {
 
 type Trip = { id: string; purpose: string; dest: string; dates: string; travelers: string; cost: string; rag: Rag; status: string };
 type CostBreakdownItem = { name: string; amount: number; note?: string };
+/** One logged actual (payment received, or expense incurred) under a planned item. */
+type ActualEntry = { name?: string; amount: number; date: string; note?: string };
 type CostEntry = {
   c: string; b: number; a: number; color: string;
   /** Cost category from Organization master data. */
@@ -2910,12 +3205,14 @@ type CostEntry = {
   linkKind?: "fixed" | "milestone";
   linkRef?: string; // ISO date OR milestone name
   breakdown?: CostBreakdownItem[];
+  /** Individual actual expenses logged against this planned cost item. */
+  actuals?: ActualEntry[];
 };
 type RevEntry = {
   ms: string; evt: string; plan: number; date: string; s: string; sl: string; act: number | null;
   linkKind?: "fixed" | "milestone";
   /** Individual actual payments logged against this planned event. */
-  actuals?: { amount: number; date: string; note?: string }[];
+  actuals?: ActualEntry[];
 };
 type GateItem = { task: string; role: string; done: boolean };
 type GateStage = { name: string; items: GateItem[] };
@@ -2943,6 +3240,71 @@ function minISO(arr: (string | undefined)[]): string | undefined {
   return v.slice().sort()[0];
 }
 export const APPROVAL_TASK_PREFIX = "Approval — ";
+
+/** One item whose planned dates move because of a dependency change. */
+export type DepImpact = { name: string; oldStart: string; oldEnd: string; start: string; end: string };
+
+const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
+function daysBetweenISO(a: string, b: string) {
+  const [ay, am, ad] = a.split("-").map(Number);
+  const [by, bm, bd] = b.split("-").map(Number);
+  return Math.round((Date.UTC(ay, am - 1, ad) - Date.UTC(by, bm - 1, bd)) / 86400000);
+}
+
+/**
+ * Which planned dates move when the dependencies of one item change.
+ * The item is pulled to the latest start its predecessors allow (relation + signed
+ * lag), and every downstream successor shifts by the same number of days so the
+ * user can see the knock-on effect before saving.
+ */
+export function computeDependencyImpact(
+  items: { name: string; startDate: string; endDate: string; dependencies?: any[] }[],
+  targetName: string,
+  deps: any[],
+): DepImpact[] {
+  const byName = new Map(items.map((i) => [i.name, i]));
+  const target = byName.get(targetName);
+  if (!target || !ISO_RE.test(target.startDate) || !ISO_RE.test(target.endDate)) return [];
+  const targetDur = daysBetweenISO(target.endDate, target.startDate);
+
+  let requiredStart: string | undefined;
+  for (const d of deps) {
+    const p = byName.get(d.predecessor);
+    if (!p || !ISO_RE.test(p.startDate) || !ISO_RE.test(p.endDate)) continue;
+    const lag = depLag(d);
+    let start: string | undefined;
+    if (d.relation === "FS") start = addDaysISO(p.endDate, 1 + lag);
+    else if (d.relation === "SS") start = addDaysISO(p.startDate, lag);
+    else if (d.relation === "FF") start = addDaysISO(p.endDate, lag - targetDur);
+    else if (d.relation === "SF") start = addDaysISO(p.startDate, lag - targetDur);
+    if (start && (!requiredStart || start > requiredStart)) requiredStart = start;
+  }
+  if (!requiredStart) return [];
+  const delta = daysBetweenISO(requiredStart, target.startDate);
+  if (delta === 0) return [];
+
+  // Everything that depends (directly or transitively) on the target moves with it.
+  const moving = new Set<string>([targetName]);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const it of items) {
+      if (moving.has(it.name)) continue;
+      const follows = (it.dependencies ?? []).some((d: any) => moving.has(d.predecessor)) || (it.name !== targetName && moving.has(it.name));
+      if (follows) { moving.add(it.name); grew = true; }
+    }
+  }
+
+  return items
+    .filter((i) => moving.has(i.name) && ISO_RE.test(i.startDate) && ISO_RE.test(i.endDate))
+    .map((i) => ({
+      name: i.name,
+      oldStart: i.startDate,
+      oldEnd: i.endDate,
+      start: addDaysISO(i.startDate, delta),
+      end: addDaysISO(i.endDate, delta),
+    }));
+}
 
 // When a milestone gate is approved, every task underneath it is considered delivered.
 function completeMilestoneSubtree(items: Milestone[], milestoneName: string): Milestone[] {
@@ -4530,13 +4892,18 @@ function CostCategoriesList({
 
 // ── Unified Add Finance Link dialog (Cost OR Revenue) ─────────────────────────
 function AddFinanceLinkDialog({
-  milestoneNames, defaultType, onAddCost, onAddRevenue,
+  milestoneNames, defaultType, onAddCost, onAddRevenue, label, lockKind,
 }: {
   milestoneNames: string[];
   defaultType: "cost" | "revenue";
   onAddCost: (e: CostEntry) => void;
   onAddRevenue: (e: RevEntry) => void;
+  /** Button/dialog wording — the Cost and Revenue tabs each name their own action. */
+  label?: string;
+  /** When true the cost/revenue switch is hidden: the tab already decided. */
+  lockKind?: boolean;
 }) {
+  const actionLabel = label ?? "Add Finance Link";
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<"cost" | "revenue">(defaultType);
 
@@ -4600,27 +4967,33 @@ function AddFinanceLinkDialog({
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); else setKind(defaultType); }}>
       <DialogTrigger asChild>
         <Button size="sm" variant="outline" className="h-7 border-accent/40 text-accent hover:bg-accent-dim text-xs">
-          <Plus className="mr-1 h-3.5 w-3.5" />Add Finance Link
+          <Plus className="mr-1 h-3.5 w-3.5" />{actionLabel}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Finance Link</DialogTitle>
-          <DialogDescription>Link either a cost or a revenue event to a milestone or a fixed date.</DialogDescription>
+          <DialogTitle>{actionLabel}</DialogTitle>
+          <DialogDescription>
+            {lockKind
+              ? `Link this ${defaultType === "cost" ? "cost item" : "revenue event"} to a milestone or a fixed date.`
+              : "Link either a cost or a revenue event to a milestone or a fixed date."}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="mb-1 grid grid-cols-2 gap-1 rounded-md bg-secondary/30 p-1">
-          {(["cost", "revenue"] as const).map((k) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setKind(k)}
-              className={`rounded px-2 py-1.5 text-xs font-medium transition ${kind === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              {k === "cost" ? "Outgoing (Cost)" : "Incoming (Revenue)"}
-            </button>
-          ))}
-        </div>
+        {!lockKind && (
+          <div className="mb-1 grid grid-cols-2 gap-1 rounded-md bg-secondary/30 p-1">
+            {(["cost", "revenue"] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setKind(k)}
+                className={`rounded px-2 py-1.5 text-xs font-medium transition ${kind === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {k === "cost" ? "Outgoing (Cost)" : "Incoming (Revenue)"}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="grid gap-3">
           {kind === "cost" ? (
@@ -5594,12 +5967,13 @@ function DependencyDialog({
   onOpenChange: (v: boolean) => void;
   currentItem?: DepItem;
   allItems: DepItem[];
-  onSetDependencies: (name: string, dependencies: any[]) => void;
+  onSetDependencies: (name: string, dependencies: any[], impacts: DepImpact[]) => void;
 }) {
   const [selectedPred, setSelectedPred] = useState<string>("");
   const [relation, setRelation] = useState<"FS" | "SF" | "SS" | "FF">("FS");
   const [lag, setLag] = useState(0);
   const [deps, setDeps] = useState<any[]>([]);
+  const [acceptShift, setAcceptShift] = useState(false);
 
   useEffect(() => {
     if (open && currentItem) {
@@ -5607,8 +5981,16 @@ function DependencyDialog({
       setSelectedPred("");
       setRelation("FS");
       setLag(0);
+      setAcceptShift(false);
     }
   }, [open, currentItem]);
+
+  /** Dates that will move once these dependencies are saved. */
+  const impacts = useMemo(
+    () => (currentItem ? computeDependencyImpact(allItems as any, currentItem.name, deps) : []),
+    [allItems, currentItem, deps],
+  );
+  useEffect(() => { setAcceptShift(false); }, [impacts.length]);
 
   function addDependency() {
     if (!selectedPred || !currentItem) return;
@@ -5625,12 +6007,16 @@ function DependencyDialog({
   }
 
   function save() {
-    if (currentItem) {
-      onSetDependencies(currentItem.name, deps.length > 0 ? deps : []);
-      toast.done("Dependencies", "saved");
-      onOpenChange(false);
+    if (!currentItem) return;
+    if (impacts.length > 0 && !acceptShift) {
+      toast.error("Please confirm you accept the date changes before saving");
+      return;
     }
+    onSetDependencies(currentItem.name, deps.length > 0 ? deps : [], impacts);
+    toast.done("Dependencies", "saved");
+    onOpenChange(false);
   }
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -5731,10 +6117,34 @@ function DependencyDialog({
               )}
             </div>
           </div>
+
+          {/* Knock-on date changes must be acknowledged before saving. */}
+          {impacts.length > 0 && (
+            <div className="space-y-2 rounded-md border border-rag-amber/50 bg-rag-amber/10 p-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-rag-amber">
+                <AlertTriangle className="h-4 w-4" />
+                {impacts.length} planned date{impacts.length === 1 ? "" : "s"} will move
+              </div>
+              <div className="max-h-24 space-y-1 overflow-y-auto pr-1 text-xs text-muted-foreground">
+                {impacts.map((i) => (
+                  <div key={i.name} className="flex items-center justify-between gap-2">
+                    <span className="truncate">{i.name}</span>
+                    <span className="num-mono shrink-0">
+                      {i.oldStart} → <span className="text-foreground">{i.start}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <label className="flex cursor-pointer items-start gap-2 text-xs">
+                <Checkbox checked={acceptShift} onCheckedChange={(v) => setAcceptShift(!!v)} className="mt-0.5" />
+                <span>I understand these tasks will be rescheduled and want to continue.</span>
+              </label>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button variant="primary" onClick={save}>Save Dependencies</Button>
+          <Button variant="primary" onClick={save} disabled={impacts.length > 0 && !acceptShift}>Save Dependencies</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

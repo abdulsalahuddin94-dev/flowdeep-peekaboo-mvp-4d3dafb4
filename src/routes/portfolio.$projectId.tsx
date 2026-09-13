@@ -2424,6 +2424,68 @@ function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEnt
   );
 }
 
+/**
+ * Edit an already-logged actual (payment/expense) — bookkeeping, not re-planning,
+ * so this stays available regardless of baseline lock, same as AddActualDialog.
+ */
+function EditActualDialog({
+  entry, onOpenChange, onSave,
+}: {
+  entry: ActualEntry | null;
+  onOpenChange: (open: boolean) => void;
+  onSave: (patch: ActualEntry) => void;
+}) {
+  const [name, setName] = useState(entry?.name ?? "");
+  const [date, setDate] = useState(entry?.date ?? "");
+  const [amount, setAmount] = useState(entry ? String(entry.amount) : "");
+
+  useEffect(() => {
+    if (!entry) return;
+    setName(entry.name ?? ""); setDate(entry.date ?? ""); setAmount(String(entry.amount));
+  }, [entry]);
+
+  return (
+    <Dialog open={!!entry} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Edit actual</DialogTitle>
+          <DialogDescription>Recorded against the planned line — no change request required.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3">
+          <div className="grid gap-1.5">
+            <Label>Name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Invoice INV-0021" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label>Date</Label>
+              <Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="e.g. Jun 30" />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Amount ($M)</Label>
+              <Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              const amt = parseFloat(amount);
+              if (!name.trim() || !date.trim() || isNaN(amt)) { toast.error("Name, date and amount are required"); return; }
+              onSave({ name: name.trim(), date: date.trim(), amount: amt, note: name.trim() });
+              onOpenChange(false);
+              toast.done("Actual", "updated");
+            }}
+          >
+            Save changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /** Edit dialog for a planned cost line (mirrors the revenue line editor). */
 function EditCostRowDialog({
   entry, categories, milestoneNames, onOpenChange, onSave,
@@ -2631,6 +2693,26 @@ function FinancialsTab({
                   }),
                 )
               }
+              onEditActual={(idx, actualIdx, patch) =>
+                setCostEntries((prev) =>
+                  prev.map((e, i) => {
+                    if (i !== idx) return e;
+                    const actuals = e.actuals ?? (e.a > 0 ? [{ amount: e.a, date: "—", note: "Opening actual" }] : []);
+                    const updated = actuals.map((a, ai) => (ai === actualIdx ? { ...a, ...patch } : a));
+                    return { ...e, actuals: updated, a: updated.reduce((s, x) => s + x.amount, 0) };
+                  }),
+                )
+              }
+              onDeleteActual={(idx, actualIdx) =>
+                setCostEntries((prev) =>
+                  prev.map((e, i) => {
+                    if (i !== idx) return e;
+                    const actuals = e.actuals ?? (e.a > 0 ? [{ amount: e.a, date: "—", note: "Opening actual" }] : []);
+                    const updated = actuals.filter((_, ai) => ai !== actualIdx);
+                    return { ...e, actuals: updated, a: updated.reduce((s, x) => s + x.amount, 0) };
+                  }),
+                )
+              }
             />
           </div>
 
@@ -2685,6 +2767,32 @@ function FinancialsTab({
                     }),
                   )
                 }
+                onEditActual={(idx, actualIdx, patch) =>
+                  setRevEntries((prev) =>
+                    prev.map((e, i) => {
+                      if (i !== idx) return e;
+                      const actuals = e.actuals ?? (e.act != null ? [{ amount: e.act, date: e.date }] : []);
+                      const updated = actuals.map((a, ai) => (ai === actualIdx ? { ...a, ...patch } : a));
+                      const total = updated.reduce((s, x) => s + x.amount, 0);
+                      const collected = e.plan ? total / e.plan : 0;
+                      const status = collected >= 1 ? REV_STATUSES[2] : REV_STATUSES[1];
+                      return { ...e, actuals: updated, act: total, s: status.s, sl: status.sl };
+                    }),
+                  )
+                }
+                onDeleteActual={(idx, actualIdx) =>
+                  setRevEntries((prev) =>
+                    prev.map((e, i) => {
+                      if (i !== idx) return e;
+                      const actuals = e.actuals ?? (e.act != null ? [{ amount: e.act, date: e.date }] : []);
+                      const updated = actuals.filter((_, ai) => ai !== actualIdx);
+                      const total = updated.reduce((s, x) => s + x.amount, 0);
+                      const collected = e.plan ? total / e.plan : 0;
+                      const status = total === 0 ? REV_STATUSES[0] : collected >= 1 ? REV_STATUSES[2] : REV_STATUSES[1];
+                      return { ...e, actuals: updated, act: updated.length > 0 ? total : null, s: status.s, sl: status.sl };
+                    }),
+                  )
+                }
               />
             </div>
           </div>
@@ -2695,7 +2803,7 @@ function FinancialsTab({
 
 /** Revenue plan with one row per planned event; expanding a row reveals its logged actuals. */
 function RevenuePlanTable({
-  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual,
+  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual,
 }: {
   entries: RevEntry[];
   canEdit: boolean;
@@ -2705,6 +2813,8 @@ function RevenuePlanTable({
   onSave: (idx: number, patch: Partial<RevEntry>) => void;
   onDelete: (idx: number) => void;
   onAddActual: (idx: number, actual: ActualEntry) => void;
+  onEditActual: (idx: number, actualIdx: number, patch: ActualEntry) => void;
+  onDeleteActual: (idx: number, actualIdx: number) => void;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const toggle = (key: string) =>
@@ -2715,6 +2825,8 @@ function RevenuePlanTable({
     });
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [pendingDeleteIdx, setPendingDeleteIdx] = useState<number | null>(null);
+  const [editingActual, setEditingActual] = useState<{ rowIdx: number; actualIdx: number } | null>(null);
+  const [pendingDeleteActual, setPendingDeleteActual] = useState<{ rowIdx: number; actualIdx: number } | null>(null);
 
   return (
     <>
@@ -2792,7 +2904,13 @@ function RevenuePlanTable({
                   <TableCell />
                   <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
                   <TableCell />
-                  <TableCell />
+                  <TableCell className="text-right">
+                    {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
+                    <TableRowActions
+                      onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
+                      onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
             </Fragment>
@@ -2825,13 +2943,29 @@ function RevenuePlanTable({
         setPendingDeleteIdx(null);
       }}
     />
+    <EditActualDialog
+      entry={editingActual ? entries[editingActual.rowIdx]?.actuals?.[editingActual.actualIdx] ?? null : null}
+      onOpenChange={(o) => !o && setEditingActual(null)}
+      onSave={(patch) => {
+        if (editingActual) onEditActual(editingActual.rowIdx, editingActual.actualIdx, patch);
+        setEditingActual(null);
+      }}
+    />
+    <ConfirmDeleteDialog
+      label={pendingDeleteActual ? (entries[pendingDeleteActual.rowIdx]?.actuals?.[pendingDeleteActual.actualIdx]?.name ?? "this actual") : undefined}
+      onCancel={() => setPendingDeleteActual(null)}
+      onConfirm={() => {
+        if (pendingDeleteActual) { onDeleteActual(pendingDeleteActual.rowIdx, pendingDeleteActual.actualIdx); toast.done("Actual", "deleted"); }
+        setPendingDeleteActual(null);
+      }}
+    />
     </>
   );
 }
 
 /** Cost breakdown with one row per planned item; expanding a row reveals its logged actual expenses. */
 function CostBreakdownTable({
-  entries, canEdit, categories, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual,
+  entries, canEdit, categories, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual,
 }: {
   entries: CostEntry[];
   canEdit: boolean;
@@ -2842,6 +2976,8 @@ function CostBreakdownTable({
   onSave: (idx: number, patch: Partial<CostEntry>) => void;
   onDelete: (idx: number) => void;
   onAddActual: (idx: number, actual: ActualEntry) => void;
+  onEditActual: (idx: number, actualIdx: number, patch: ActualEntry) => void;
+  onDeleteActual: (idx: number, actualIdx: number) => void;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const toggle = (key: string) =>
@@ -2852,6 +2988,8 @@ function CostBreakdownTable({
     });
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
   const [pendingDeleteIdx, setPendingDeleteIdx] = useState<number | null>(null);
+  const [editingActual, setEditingActual] = useState<{ rowIdx: number; actualIdx: number } | null>(null);
+  const [pendingDeleteActual, setPendingDeleteActual] = useState<{ rowIdx: number; actualIdx: number } | null>(null);
 
   return (
     <>
@@ -2926,7 +3064,13 @@ function CostBreakdownTable({
                   <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
                   <TableCell />
                   <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
-                  <TableCell />
+                  <TableCell className="text-right">
+                    {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
+                    <TableRowActions
+                      onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
+                      onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
             </Fragment>
@@ -2957,6 +3101,22 @@ function CostBreakdownTable({
       onConfirm={() => {
         if (pendingDeleteIdx !== null) { onDelete(pendingDeleteIdx); toast.done("Cost line", "deleted"); }
         setPendingDeleteIdx(null);
+      }}
+    />
+    <EditActualDialog
+      entry={editingActual ? entries[editingActual.rowIdx]?.actuals?.[editingActual.actualIdx] ?? null : null}
+      onOpenChange={(o) => !o && setEditingActual(null)}
+      onSave={(patch) => {
+        if (editingActual) onEditActual(editingActual.rowIdx, editingActual.actualIdx, patch);
+        setEditingActual(null);
+      }}
+    />
+    <ConfirmDeleteDialog
+      label={pendingDeleteActual ? (entries[pendingDeleteActual.rowIdx]?.actuals?.[pendingDeleteActual.actualIdx]?.name ?? "this actual") : undefined}
+      onCancel={() => setPendingDeleteActual(null)}
+      onConfirm={() => {
+        if (pendingDeleteActual) { onDeleteActual(pendingDeleteActual.rowIdx, pendingDeleteActual.actualIdx); toast.done("Actual", "deleted"); }
+        setPendingDeleteActual(null);
       }}
     />
     </>

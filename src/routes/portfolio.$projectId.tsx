@@ -1133,6 +1133,8 @@ function ProjectDetail() {
               setCrDialogOpen(false);
               setPlanEditMode("pending");
               setEditBaselineSnapshot(null);
+              // The dependency-shift markers have served their purpose once submitted.
+              setMilestones((prev) => prev.map((m) => (m.depDateShift ? { ...m, depDateShift: undefined } : m)));
               const approvalId = addProjectApproval({
                 type: "change-request",
                 projectId: project.id,

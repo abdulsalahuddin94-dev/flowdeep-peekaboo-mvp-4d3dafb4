@@ -6108,10 +6108,34 @@ function DependencyDialog({
               )}
             </div>
           </div>
+
+          {/* Knock-on date changes must be acknowledged before saving. */}
+          {impacts.length > 0 && (
+            <div className="space-y-2 rounded-md border border-rag-amber/50 bg-rag-amber/10 p-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-rag-amber">
+                <AlertTriangle className="h-4 w-4" />
+                {impacts.length} planned date{impacts.length === 1 ? "" : "s"} will move
+              </div>
+              <div className="max-h-24 space-y-1 overflow-y-auto pr-1 text-xs text-muted-foreground">
+                {impacts.map((i) => (
+                  <div key={i.name} className="flex items-center justify-between gap-2">
+                    <span className="truncate">{i.name}</span>
+                    <span className="num-mono shrink-0">
+                      {i.oldStart} → <span className="text-foreground">{i.start}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <label className="flex cursor-pointer items-start gap-2 text-xs">
+                <Checkbox checked={acceptShift} onCheckedChange={(v) => setAcceptShift(!!v)} className="mt-0.5" />
+                <span>I understand these tasks will be rescheduled and want to continue.</span>
+              </label>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button variant="primary" onClick={save}>Save Dependencies</Button>
+          <Button variant="primary" onClick={save} disabled={impacts.length > 0 && !acceptShift}>Save Dependencies</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

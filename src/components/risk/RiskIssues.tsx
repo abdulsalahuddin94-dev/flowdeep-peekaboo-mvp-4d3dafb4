@@ -609,6 +609,7 @@ export function IssuesLogTab({ project }: { project?: string }) {
               {!project && <StyledTableHead>Project</StyledTableHead>}
               <StyledTableHead>Issue</StyledTableHead>
               <StyledTableHead className="whitespace-nowrap">Originating Risk</StyledTableHead>
+              <StyledTableHead className="whitespace-nowrap">Action taken</StyledTableHead>
               <StyledTableHead className="text-center">Priority</StyledTableHead>
               <StyledTableHead>Owner</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Raised</StyledTableHead>

@@ -2536,10 +2536,14 @@ function FinancialsTab({
     return { planned, actual, util: planned ? Math.round((actual / planned) * 100) : 0 };
   }, [displayRev]);
 
+  const costCategoryNames = useMemo(() => DEFAULT_COST_CATEGORIES.map((c) => c.name), []);
+
   const addLinkDialog = (kind: "cost" | "revenue") => (
     <AddFinanceLinkDialog
       milestoneNames={milestoneNames}
       defaultType={kind}
+      lockKind
+      label={kind === "cost" ? "Add Cost" : "Add Revenue Event"}
       onAddCost={(e) => { setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
       onAddRevenue={(e) => { setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
     />

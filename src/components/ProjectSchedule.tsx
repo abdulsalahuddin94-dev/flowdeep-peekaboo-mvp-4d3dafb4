@@ -1823,6 +1823,59 @@ export function ProjectSchedule({
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Change parent */}
+      <AlertDialog open={!!changeParentFor} onOpenChange={(o) => { if (!o) setChangeParentFor(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change parent of "{changeParentFor}"</AlertDialogTitle>
+            <AlertDialogDescription>
+              Move this item under a different parent, or make it a top-level item.
+              Its own nested items move with it.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="grid gap-1.5">
+            <Label>Parent</Label>
+            <Select value={nextParent} onValueChange={setNextParent}>
+              <SelectTrigger><SelectValue placeholder="Select parent" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__root__">None (Top level)</SelectItem>
+                {(() => {
+                  if (!changeParentFor) return null;
+                  // Exclude self and its descendants to keep the tree acyclic.
+                  const blocked = new Set<string>([changeParentFor]);
+                  const stack = [changeParentFor];
+                  while (stack.length) {
+                    const cur = stack.pop()!;
+                    for (const kid of childrenOf.get(cur) ?? []) {
+                      if (!blocked.has(kid.name)) { blocked.add(kid.name); stack.push(kid.name); }
+                    }
+                  }
+                  return items
+                    .filter((it) => !blocked.has(it.name) && !it.isApprovalTask)
+                    .map((it) => (
+                      <SelectItem key={it.name} value={it.name}>{it.kind} · {it.name}</SelectItem>
+                    ));
+                })()}
+              </SelectContent>
+            </Select>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (changeParentFor) {
+                  onItemPatch?.(changeParentFor, { parent: nextParent === "__root__" ? undefined : nextParent });
+                  toast.done("Parent", "updated");
+                }
+                setChangeParentFor(null);
+              }}
+            >
+              Save
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Delete confirmation */}
       <AlertDialog open={!!pendingDelete} onOpenChange={(o) => { if (!o) setPendingDelete(null); }}>
         <AlertDialogContent>

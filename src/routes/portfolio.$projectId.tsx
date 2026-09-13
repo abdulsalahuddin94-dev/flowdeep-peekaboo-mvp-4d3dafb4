@@ -2658,7 +2658,7 @@ function FinancialsTab({
 
 /** Revenue plan with one row per planned event; expanding a row reveals its logged actuals. */
 function RevenuePlanTable({
-  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete,
+  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual,
 }: {
   entries: RevEntry[];
   canEdit: boolean;
@@ -2667,6 +2667,7 @@ function RevenuePlanTable({
   totals: { planned: number; actual: number; util: number };
   onSave: (idx: number, patch: Partial<RevEntry>) => void;
   onDelete: (idx: number) => void;
+  onAddActual: (idx: number, actual: ActualEntry) => void;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const toggle = (key: string) =>

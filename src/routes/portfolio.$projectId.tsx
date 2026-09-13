@@ -823,6 +823,7 @@ function ProjectDetail() {
             <TabsTrigger key={t} value={t}>{t}</TabsTrigger>
           ))}
         </TabsList>
+        </div>
 
         <TabsContent value="Overview" className="mt-5">
           <OverviewTab project={project} isNew={isNewProject} gateData={gateData} />

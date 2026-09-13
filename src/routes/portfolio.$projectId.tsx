@@ -2577,53 +2577,30 @@ function FinancialsTab({
               {canEdit && addLinkDialog("cost")}
             </div>
             <p className="mb-3 text-xs text-muted-foreground">
-              Every item carries a cost category from Organization. Items linked to a milestone inherit that
-              milestone's planned finish date automatically.
+              Every item carries a cost category from Organization. Expand a row to see the actual expenses logged
+              against that planned item. Items linked to a milestone inherit that milestone's planned finish date.
             </p>
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent bg-transparent border-0">
-                  <TableHead>Category</TableHead>
-                  <TableHead>Item</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Planned ($M)</TableHead>
-                  <TableHead className="text-right">Actual ($M)</TableHead>
-                  <TableHead className="text-right">Utilization</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {displayCost.map((e) => {
-                  const util = e.b ? Math.round((e.a / e.b) * 100) : 0;
-                  return (
-                    <TableRow key={e.c} className="bg-table-row-bg hover:bg-table-row-hover border-0">
-                      <TableCell className="text-muted-foreground">{e.cat ?? "—"}</TableCell>
-                      <TableCell className="font-medium text-foreground">{e.c}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
-                      <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
-                      <TableCell className="num-mono text-right">${e.a.toFixed(2)}M</TableCell>
-                      <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>{util}%</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        <span className={`mr-1.5 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${e.linkKind === "milestone" ? "bg-accent/15 text-accent" : "bg-secondary/40 text-muted-foreground"}`}>
-                          {e.linkKind === "milestone" ? "MS" : "Date"}
-                        </span>
-                        {costDate(e)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-                {displayCost.length > 0 && (
-                  <TableRow className="bg-transparent hover:bg-transparent border-0">
-                    <TableCell colSpan={3} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
-                    <TableCell className="num-mono text-right font-medium">${costTotals.planned.toFixed(2)}M</TableCell>
-                    <TableCell className="num-mono text-right font-medium">${costTotals.actual.toFixed(2)}M</TableCell>
-                    <TableCell className="num-mono text-right font-medium">{costTotals.util}%</TableCell>
-                    <TableCell />
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <CostBreakdownTable
+              entries={displayCost}
+              canEdit={canEdit}
+              categories={costCategoryNames}
+              milestoneNames={milestoneNames}
+              dateOf={costDate}
+              totals={costTotals}
+              onSave={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e)))}
+              onDelete={(idx) => setCostEntries((prev) => prev.filter((_, i) => i !== idx))}
+              onAddActual={(idx, actual) =>
+                setCostEntries((prev) =>
+                  prev.map((e, i) => {
+                    if (i !== idx) return e;
+                    const actuals = [...(e.actuals ?? (e.a > 0 ? [{ amount: e.a, date: "—", note: "Opening actual" }] : [])), actual];
+                    return { ...e, actuals, a: actuals.reduce((s, x) => s + x.amount, 0) };
+                  }),
+                )
+              }
+            />
           </div>
+
 
           <div className="glass-card p-5">
             <div className="label-eyebrow mb-3">Planned vs actual by category</div>

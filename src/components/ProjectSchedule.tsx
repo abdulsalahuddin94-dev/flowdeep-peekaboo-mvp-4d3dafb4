@@ -1144,6 +1144,13 @@ export function ProjectSchedule({
                     )}
                     {colVisible("start") && (
                       <div className="flex items-center border-l border-border/60 px-3 num-mono overflow-hidden" style={{ width: widths.start }}>
+                        {/* Amber dot = this date moved because a dependency changed. */}
+                        {item.depDateShift && (
+                          <span
+                            className="mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rag-amber"
+                            title="Rescheduled by a dependency change"
+                          />
+                        )}
                         <DateCell
                           item={item}
                           field="start"
@@ -1154,6 +1161,12 @@ export function ProjectSchedule({
                     )}
                     {colVisible("end") && (
                       <div className="flex items-center border-l border-border/60 px-3 num-mono overflow-hidden" style={{ width: widths.end }}>
+                        {item.depDateShift && (
+                          <span
+                            className="mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rag-amber"
+                            title="Rescheduled by a dependency change"
+                          />
+                        )}
                         <DateCell
                           item={item}
                           field="end"

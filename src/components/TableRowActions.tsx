@@ -39,6 +39,7 @@ export function TableRowActions({
   deleteDisabled,
   alwaysVisible,
   showStatus,
+  extraActions,
   className,
 }: {
   onStatus?: () => void;
@@ -53,6 +54,8 @@ export function TableRowActions({
   deleteDisabled?: boolean;
   alwaysVisible?: boolean;
   showStatus?: boolean;
+  /** Extra row-specific buttons (e.g. "Add actual") rendered between Edit and Delete. */
+  extraActions?: ReactNode;
   className?: string;
 }) {
   const withStatus = (showStatus ?? !!onToggleActive) && !alwaysVisible;
@@ -99,6 +102,7 @@ export function TableRowActions({
             <EditAction size={16} />
           </Button>
         )}
+        {extraActions}
         {onToggleActive && (
           <Button
             type="button"

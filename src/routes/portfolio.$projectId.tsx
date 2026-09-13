@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableRowActions } from "@/components/TableRowActions";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -2344,6 +2345,22 @@ function BusinessTripsTab({ pm }: { pm: string }) {
   );
 }
 
+/** DS02 delete confirmation, matching the one used for Organization master data. */
+function ConfirmDeleteDialog({ label, onCancel, onConfirm }: { label?: string; onCancel: () => void; onConfirm: () => void }) {
+  return (
+    <ConfirmDialog
+      open={!!label}
+      onOpenChange={(o) => !o && onCancel()}
+      tone="danger"
+      title={`Delete "${label}"?`}
+      description="This entry will be removed from the plan."
+      cancelLabel="Cancel"
+      confirmLabel="Delete"
+      onConfirm={onConfirm}
+    />
+  );
+}
+
 /**
  * Logging an actual is bookkeeping, not re-planning: it stays available after the
  * baseline is locked so no Change Plan is needed to record a payment or expense.
@@ -2409,41 +2426,31 @@ function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEnt
 
 /** Edit dialog for a planned cost line (mirrors the revenue line editor). */
 function EditCostRowDialog({
-  entry, categories, milestoneNames, onSave, onDelete,
+  entry, categories, milestoneNames, onOpenChange, onSave,
 }: {
-  entry: CostEntry;
+  entry: CostEntry | null;
   categories: string[];
   milestoneNames: string[];
+  onOpenChange: (open: boolean) => void;
   onSave: (patch: Partial<CostEntry>) => void;
-  onDelete: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [cat, setCat] = useState(entry.cat ?? "");
-  const [item, setItem] = useState(entry.c);
-  const [desc, setDesc] = useState(entry.desc ?? "");
-  const [plan, setPlan] = useState(String(entry.b));
-  const [linkRef, setLinkRef] = useState(entry.linkRef ?? "");
+  const [cat, setCat] = useState(entry?.cat ?? "");
+  const [item, setItem] = useState(entry?.c ?? "");
+  const [desc, setDesc] = useState(entry?.desc ?? "");
+  const [plan, setPlan] = useState(entry ? String(entry.b) : "");
+  const [linkRef, setLinkRef] = useState(entry?.linkRef ?? "");
 
-  function reset() {
+  useEffect(() => {
+    if (!entry) return;
     setCat(entry.cat ?? ""); setItem(entry.c); setDesc(entry.desc ?? "");
     setPlan(String(entry.b)); setLinkRef(entry.linkRef ?? "");
-  }
-  const catOptions = Array.from(new Set([...categories, entry.cat ?? ""].filter(Boolean)));
-  const msOptions = Array.from(new Set([...milestoneNames, entry.linkRef ?? ""].filter(Boolean)));
+  }, [entry]);
+
+  const catOptions = Array.from(new Set([...categories, entry?.cat ?? ""].filter(Boolean)));
+  const msOptions = Array.from(new Set([...milestoneNames, entry?.linkRef ?? ""].filter(Boolean)));
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) reset(); }}>
-      <DialogTrigger asChild>
-        <Button
-          size="icon"
-          variant="secondary"
-          data-ds-size="auto"
-          className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
-          title="Edit cost line"
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={!!entry} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit cost line</DialogTitle>
@@ -2473,8 +2480,8 @@ function EditCostRowDialog({
               <Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} />
             </div>
             <div className="grid gap-1.5">
-              <Label>{entry.linkKind === "milestone" ? "Linked milestone" : "Date"}</Label>
-              {entry.linkKind === "milestone" ? (
+              <Label>{entry?.linkKind === "milestone" ? "Linked milestone" : "Date"}</Label>
+              {entry?.linkKind === "milestone" ? (
                 <Select value={linkRef} onValueChange={setLinkRef}>
                   <SelectTrigger><SelectValue placeholder="Select milestone…" /></SelectTrigger>
                   <SelectContent>
@@ -2487,28 +2494,19 @@ function EditCostRowDialog({
             </div>
           </div>
         </div>
-        <DialogFooter className="justify-between sm:justify-between">
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
-            variant="ghost"
-            className="text-rag-red hover:text-rag-red"
-            onClick={() => { onDelete(); setOpen(false); toast.done("Cost line", "deleted"); }}
+            onClick={() => {
+              const p = parseFloat(plan);
+              if (!item.trim() || isNaN(p)) { toast.error("Item and planned amount are required"); return; }
+              onSave({ c: item.trim(), cat: cat || undefined, desc: desc.trim() || undefined, b: p, linkRef });
+              onOpenChange(false);
+              toast.done("Cost line", "updated");
+            }}
           >
-            Delete
+            Save changes
           </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button
-              onClick={() => {
-                const p = parseFloat(plan);
-                if (!item.trim() || isNaN(p)) { toast.error("Item and planned amount are required"); return; }
-                onSave({ c: item.trim(), cat: cat || undefined, desc: desc.trim() || undefined, b: p, linkRef });
-                setOpen(false);
-                toast.done("Cost line", "updated");
-              }}
-            >
-              Save changes
-            </Button>
-          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -2715,8 +2713,11 @@ function RevenuePlanTable({
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [pendingDeleteIdx, setPendingDeleteIdx] = useState<number | null>(null);
 
   return (
+    <>
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -2728,7 +2729,7 @@ function RevenuePlanTable({
           <TableHead>Status</TableHead>
           <TableHead className="text-right">Actual ($M)</TableHead>
           <TableHead className="text-right">Collected</TableHead>
-          <TableHead className="w-20" />
+          <TableHead className="w-32" />
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -2768,20 +2769,16 @@ function RevenuePlanTable({
                 <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
                 <TableCell className="text-right">
                   {/* Logging an actual stays available after baseline lock; re-planning does not. */}
-                  <div className="flex h-9 items-center justify-end gap-1.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-                    {canEdit && (
-                      <EditRevenueRowDialog
-                        entry={r}
-                        milestoneNames={milestoneNames}
-                        onSave={(patch) => onSave(idx, patch)}
-                        onDelete={() => onDelete(idx)}
+                  <TableRowActions
+                    onEdit={canEdit ? () => setEditingIdx(idx) : undefined}
+                    onDelete={canEdit ? () => setPendingDeleteIdx(idx) : undefined}
+                    extraActions={
+                      <AddActualDialog
+                        title="Add revenue recognition"
+                        onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(r.ms)); }}
                       />
-                    )}
-                    <AddActualDialog
-                      title="Add revenue recognition"
-                      onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(r.ms)); }}
-                    />
-                  </div>
+                    }
+                  />
                 </TableCell>
               </TableRow>
               {open && actuals.map((a, i) => (
@@ -2814,6 +2811,21 @@ function RevenuePlanTable({
         )}
       </TableBody>
     </Table>
+    <EditRevenueRowDialog
+      entry={editingIdx !== null ? entries[editingIdx] : null}
+      milestoneNames={milestoneNames}
+      onOpenChange={(o) => !o && setEditingIdx(null)}
+      onSave={(patch) => { if (editingIdx !== null) onSave(editingIdx, patch); setEditingIdx(null); }}
+    />
+    <ConfirmDeleteDialog
+      label={pendingDeleteIdx !== null ? entries[pendingDeleteIdx]?.ms : undefined}
+      onCancel={() => setPendingDeleteIdx(null)}
+      onConfirm={() => {
+        if (pendingDeleteIdx !== null) { onDelete(pendingDeleteIdx); toast.done("Revenue line", "deleted"); }
+        setPendingDeleteIdx(null);
+      }}
+    />
+    </>
   );
 }
 
@@ -2838,8 +2850,11 @@ function CostBreakdownTable({
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [pendingDeleteIdx, setPendingDeleteIdx] = useState<number | null>(null);
 
   return (
+    <>
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -2851,7 +2866,7 @@ function CostBreakdownTable({
           <TableHead className="text-right">Actual ($M)</TableHead>
           <TableHead className="text-right">Utilization</TableHead>
           <TableHead>Date</TableHead>
-          <TableHead className="w-20" />
+          <TableHead className="w-32" />
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -2889,21 +2904,16 @@ function CostBreakdownTable({
                 </TableCell>
                 <TableCell className="text-right">
                   {/* Logging an actual expense stays available after baseline lock; re-planning does not. */}
-                  <div className="flex h-9 items-center justify-end gap-1.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
-                    {canEdit && (
-                      <EditCostRowDialog
-                        entry={e}
-                        categories={categories}
-                        milestoneNames={milestoneNames}
-                        onSave={(patch) => onSave(idx, patch)}
-                        onDelete={() => onDelete(idx)}
+                  <TableRowActions
+                    onEdit={canEdit ? () => setEditingIdx(idx) : undefined}
+                    onDelete={canEdit ? () => setPendingDeleteIdx(idx) : undefined}
+                    extraActions={
+                      <AddActualDialog
+                        title="Add actual spend"
+                        onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(e.c)); }}
                       />
-                    )}
-                    <AddActualDialog
-                      title="Add actual spend"
-                      onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(e.c)); }}
-                    />
-                  </div>
+                    }
+                  />
                 </TableCell>
               </TableRow>
               {open && actuals.map((a, i) => (
@@ -2934,6 +2944,22 @@ function CostBreakdownTable({
         )}
       </TableBody>
     </Table>
+    <EditCostRowDialog
+      entry={editingIdx !== null ? entries[editingIdx] : null}
+      categories={categories}
+      milestoneNames={milestoneNames}
+      onOpenChange={(o) => !o && setEditingIdx(null)}
+      onSave={(patch) => { if (editingIdx !== null) onSave(editingIdx, patch); setEditingIdx(null); }}
+    />
+    <ConfirmDeleteDialog
+      label={pendingDeleteIdx !== null ? entries[pendingDeleteIdx]?.c : undefined}
+      onCancel={() => setPendingDeleteIdx(null)}
+      onConfirm={() => {
+        if (pendingDeleteIdx !== null) { onDelete(pendingDeleteIdx); toast.done("Cost line", "deleted"); }
+        setPendingDeleteIdx(null);
+      }}
+    />
+    </>
   );
 }
 
@@ -2947,41 +2973,30 @@ const REV_STATUSES: { s: string; sl: string }[] = [
 ];
 
 function EditRevenueRowDialog({
-  entry, milestoneNames, onSave, onDelete,
+  entry, milestoneNames, onOpenChange, onSave,
 }: {
-  entry: RevEntry;
+  entry: RevEntry | null;
   milestoneNames: string[];
+  onOpenChange: (open: boolean) => void;
   onSave: (patch: Partial<RevEntry>) => void;
-  onDelete: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [ms, setMs] = useState(entry.ms);
-  const [evt, setEvt] = useState(entry.evt);
-  const [plan, setPlan] = useState(String(entry.plan));
-  const [date, setDate] = useState(entry.date);
-  const [sl, setSl] = useState(entry.sl);
-  const [act, setAct] = useState(entry.act != null ? String(entry.act) : "");
+  const [ms, setMs] = useState(entry?.ms ?? "");
+  const [evt, setEvt] = useState(entry?.evt ?? "");
+  const [plan, setPlan] = useState(entry ? String(entry.plan) : "");
+  const [date, setDate] = useState(entry?.date ?? "");
+  const [sl, setSl] = useState(entry?.sl ?? "");
+  const [act, setAct] = useState(entry?.act != null ? String(entry.act) : "");
 
-  function reset() {
+  useEffect(() => {
+    if (!entry) return;
     setMs(entry.ms); setEvt(entry.evt); setPlan(String(entry.plan));
     setDate(entry.date); setSl(entry.sl); setAct(entry.act != null ? String(entry.act) : "");
-  }
+  }, [entry]);
 
-  const linkOptions = Array.from(new Set([...milestoneNames, entry.ms]));
+  const linkOptions = Array.from(new Set([...milestoneNames, entry?.ms ?? ""].filter(Boolean)));
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) reset(); }}>
-      <DialogTrigger asChild>
-        <Button
-          size="icon"
-          variant="secondary"
-          data-ds-size="auto"
-          className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
-          title="Edit revenue line"
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={!!entry} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit revenue line</DialogTitle>
@@ -2990,7 +3005,7 @@ function EditRevenueRowDialog({
         <div className="grid gap-3">
           <div className="grid gap-1.5">
             <Label>Linked to</Label>
-            {entry.linkKind === "fixed" ? (
+            {entry?.linkKind === "fixed" ? (
               <Input value={ms} onChange={(e) => setMs(e.target.value)} />
             ) : (
               <Select value={ms} onValueChange={setMs}>
@@ -3031,33 +3046,24 @@ function EditRevenueRowDialog({
             </div>
           </div>
         </div>
-        <DialogFooter className="justify-between sm:justify-between">
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
-            variant="ghost"
-            className="text-rag-red hover:text-rag-red"
-            onClick={() => { onDelete(); setOpen(false); toast.done("Revenue line", "deleted"); }}
+            onClick={() => {
+              const p = parseFloat(plan);
+              if (!ms.trim() || !evt.trim() || isNaN(p)) { toast.error("Linked to, event and planned amount are required"); return; }
+              const a = act.trim() === "" ? null : parseFloat(act);
+              onSave({
+                ms: ms.trim(), evt: evt.trim(), plan: p, date,
+                sl, s: REV_STATUSES.find((o) => o.sl === sl)?.s ?? "blue",
+                act: a != null && isNaN(a) ? null : a,
+              });
+              onOpenChange(false);
+              toast.done("Revenue line", "updated");
+            }}
           >
-            Delete
+            Save changes
           </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button
-              onClick={() => {
-                const p = parseFloat(plan);
-                if (!ms.trim() || !evt.trim() || isNaN(p)) { toast.error("Linked to, event and planned amount are required"); return; }
-                const a = act.trim() === "" ? null : parseFloat(act);
-                onSave({
-                  ms: ms.trim(), evt: evt.trim(), plan: p, date,
-                  sl, s: REV_STATUSES.find((o) => o.sl === sl)?.s ?? "blue",
-                  act: a != null && isNaN(a) ? null : a,
-                });
-                setOpen(false);
-                toast.done("Revenue line", "updated");
-              }}
-            >
-              Save changes
-            </Button>
-          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -6006,7 +6012,11 @@ function DependencyDialog({
       setLag(0);
       setAcceptShift(false);
     }
-  }, [open, currentItem]);
+    // Keyed on the item's name, not the object reference: `currentItem` is recomputed via
+    // `milestones.find(...)` on every render of the parent, so a reference-identity check
+    // here would reset (and silently discard) in-progress edits on any unrelated re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, currentItem?.name]);
 
   /** Dates that will move once these dependencies are saved. */
   const impacts = useMemo(

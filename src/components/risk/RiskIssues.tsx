@@ -485,7 +485,7 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
           </div>
         </div>
 
-        <div className="mx-auto w-full max-w-[960px]">
+        <div className="mx-auto w-full max-w-[1120px]">
           <div className="flex gap-3">
             <div className="flex items-center">
               <span className="-rotate-90 whitespace-nowrap text-xs text-muted-foreground">Probability →</span>

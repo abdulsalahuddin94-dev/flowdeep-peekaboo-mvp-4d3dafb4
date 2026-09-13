@@ -2790,6 +2790,127 @@ function RevenuePlanTable({
   );
 }
 
+/** Cost breakdown with one row per planned item; expanding a row reveals its logged actual expenses. */
+function CostBreakdownTable({
+  entries, canEdit, categories, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual,
+}: {
+  entries: CostEntry[];
+  canEdit: boolean;
+  categories: string[];
+  milestoneNames: string[];
+  dateOf: (e: CostEntry) => string;
+  totals: { planned: number; actual: number; util: number };
+  onSave: (idx: number, patch: Partial<CostEntry>) => void;
+  onDelete: (idx: number) => void;
+  onAddActual: (idx: number, actual: ActualEntry) => void;
+}) {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggle = (key: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow className="hover:bg-transparent bg-transparent border-0">
+          <TableHead className="w-8" />
+          <TableHead>Category</TableHead>
+          <TableHead>Item</TableHead>
+          <TableHead>Description</TableHead>
+          <TableHead className="text-right">Planned ($M)</TableHead>
+          <TableHead className="text-right">Actual ($M)</TableHead>
+          <TableHead className="text-right">Utilization</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead className="w-20" />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {entries.map((e, idx) => {
+          const actuals = e.actuals ?? (e.a > 0 ? [{ amount: e.a, date: dateOf(e), note: "Opening actual" }] : []);
+          const actual = actuals.reduce((s, a) => s + a.amount, 0);
+          const util = e.b ? Math.round((actual / e.b) * 100) : 0;
+          const open = expanded.has(e.c);
+          return (
+            <Fragment key={e.c}>
+              <TableRow className="bg-table-row-bg hover:bg-table-row-hover border-0">
+                <TableCell>
+                  {actuals.length > 0 && (
+                    <button
+                      type="button"
+                      aria-label={open ? "Collapse actuals" : "Expand actuals"}
+                      onClick={() => toggle(e.c)}
+                      className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                    >
+                      <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
+                    </button>
+                  )}
+                </TableCell>
+                <TableCell className="text-muted-foreground">{e.cat ?? "—"}</TableCell>
+                <TableCell className="font-medium text-foreground">{e.c}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
+                <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
+                <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
+                <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>{util}%</TableCell>
+                <TableCell className="text-xs text-muted-foreground">
+                  <span className={`mr-1.5 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${e.linkKind === "milestone" ? "bg-accent/15 text-accent" : "bg-secondary/40 text-muted-foreground"}`}>
+                    {e.linkKind === "milestone" ? "MS" : "Date"}
+                  </span>
+                  {dateOf(e)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {/* Logging an actual expense stays available after baseline lock; re-planning does not. */}
+                  <div className="flex items-center justify-end gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                    {canEdit && (
+                      <EditCostRowDialog
+                        entry={e}
+                        categories={categories}
+                        milestoneNames={milestoneNames}
+                        onSave={(patch) => onSave(idx, patch)}
+                        onDelete={() => onDelete(idx)}
+                      />
+                    )}
+                    <AddActualDialog
+                      title="Add actual spend"
+                      onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(e.c)); }}
+                    />
+                  </div>
+                </TableCell>
+              </TableRow>
+              {open && actuals.map((a, i) => (
+                <TableRow key={`${e.c}-a${i}`} className="bg-secondary/10 hover:bg-secondary/20 border-0">
+                  <TableCell />
+                  <TableCell colSpan={3} className="pl-6 text-xs text-muted-foreground">
+                    {a.name ?? "Actual spend"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
+                  </TableCell>
+                  <TableCell />
+                  <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
+                  <TableCell />
+                  <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
+                  <TableCell />
+                </TableRow>
+              ))}
+            </Fragment>
+          );
+        })}
+        {entries.length > 0 && (
+          <TableRow className="bg-transparent hover:bg-transparent border-0">
+            <TableCell />
+            <TableCell colSpan={3} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
+            <TableCell className="num-mono text-right font-medium">${totals.planned.toFixed(2)}M</TableCell>
+            <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
+            <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
+            <TableCell colSpan={2} />
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+}
+
+
 
 const REV_STATUSES: { s: string; sl: string }[] = [
   { s: "blue", sl: "Planned" },

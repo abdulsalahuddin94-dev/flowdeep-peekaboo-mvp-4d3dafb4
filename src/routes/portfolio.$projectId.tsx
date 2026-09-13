@@ -5958,12 +5958,13 @@ function DependencyDialog({
   onOpenChange: (v: boolean) => void;
   currentItem?: DepItem;
   allItems: DepItem[];
-  onSetDependencies: (name: string, dependencies: any[]) => void;
+  onSetDependencies: (name: string, dependencies: any[], impacts: DepImpact[]) => void;
 }) {
   const [selectedPred, setSelectedPred] = useState<string>("");
   const [relation, setRelation] = useState<"FS" | "SF" | "SS" | "FF">("FS");
   const [lag, setLag] = useState(0);
   const [deps, setDeps] = useState<any[]>([]);
+  const [acceptShift, setAcceptShift] = useState(false);
 
   useEffect(() => {
     if (open && currentItem) {
@@ -5971,8 +5972,16 @@ function DependencyDialog({
       setSelectedPred("");
       setRelation("FS");
       setLag(0);
+      setAcceptShift(false);
     }
   }, [open, currentItem]);
+
+  /** Dates that will move once these dependencies are saved. */
+  const impacts = useMemo(
+    () => (currentItem ? computeDependencyImpact(allItems as any, currentItem.name, deps) : []),
+    [allItems, currentItem, deps],
+  );
+  useEffect(() => { setAcceptShift(false); }, [impacts.length]);
 
   function addDependency() {
     if (!selectedPred || !currentItem) return;
@@ -5989,12 +5998,16 @@ function DependencyDialog({
   }
 
   function save() {
-    if (currentItem) {
-      onSetDependencies(currentItem.name, deps.length > 0 ? deps : []);
-      toast.done("Dependencies", "saved");
-      onOpenChange(false);
+    if (!currentItem) return;
+    if (impacts.length > 0 && !acceptShift) {
+      toast.error("Please confirm you accept the date changes before saving");
+      return;
     }
+    onSetDependencies(currentItem.name, deps.length > 0 ? deps : [], impacts);
+    toast.done("Dependencies", "saved");
+    onOpenChange(false);
   }
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

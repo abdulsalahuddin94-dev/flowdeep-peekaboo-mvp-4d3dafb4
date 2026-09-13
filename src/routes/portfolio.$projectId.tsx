@@ -671,6 +671,26 @@ function ProjectDetail() {
                 <DropdownMenuItem onClick={() => setReportOpen(true)}>
                   <Pencil size={14} className="mr-2" />Update Status
                 </DropdownMenuItem>
+                {isViewingCurrent && planEditMode === "view" && (
+                  <DropdownMenuItem onClick={enterEditMode}>
+                    <Pencil size={14} className="mr-2" />Change Plan
+                  </DropdownMenuItem>
+                )}
+                {isViewingCurrent && planEditMode === "editing" && (
+                  <>
+                    <DropdownMenuItem disabled={planChangeCount === 0} onClick={() => setCrDialogOpen(true)}>
+                      <Pencil size={14} className="mr-2" />Send Change Request{planChangeCount > 0 ? ` (${planChangeCount})` : ""}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={requestExitEditMode}>
+                      <Pencil size={14} className="mr-2" />Exit Change Plan
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {isViewingCurrent && planEditMode === "pending" && (
+                  <DropdownMenuItem disabled>
+                    <Pencil size={14} className="mr-2" />Change Plan — Waiting For Approval
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   className={blockReason ? "text-muted-foreground" : "text-rag-red focus:text-rag-red"}
                   title={blockReason ?? undefined}

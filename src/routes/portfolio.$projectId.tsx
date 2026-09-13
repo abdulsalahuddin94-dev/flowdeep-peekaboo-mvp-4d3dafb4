@@ -1344,8 +1344,15 @@ function ProjectDetail() {
         onOpenChange={setDependencyOpen}
         currentItem={selectedItemForDep ? milestones.find((m) => m.name === selectedItemForDep) : undefined}
         allItems={milestones}
-        onSetDependencies={(name, dependencies) =>
-          setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, dependencies } : m)))
+        onSetDependencies={(name, dependencies, impacts) =>
+          setMilestones((prev) =>
+            prev.map((m) => {
+              const moved = impacts.find((i) => i.name === m.name);
+              let next = m.name === name ? { ...m, dependencies } : m;
+              if (moved) next = { ...next, startDate: moved.start, endDate: moved.end, depDateShift: true };
+              return next;
+            }),
+          )
         }
       />
       <ScheduleFinancialLinkDialog

@@ -2762,7 +2762,7 @@ function RevenuePlanTable({
             <TableCell colSpan={2} />
             <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
             <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
-            {canEdit && <TableCell />}
+            <TableCell />
           </TableRow>
         )}
       </TableBody>

@@ -149,7 +149,7 @@ function ProjectDetail() {
     if (project.ragNote === "New") updateProject(project.id, { ragNote: undefined });
   }
   const [activeTab, setActiveTab] = useState<string>(TABS[0]);
-  const tabsBarRef = useRef<HTMLDivElement>(null);
+  
   const [addFirstMilestoneOpen, setAddFirstMilestoneOpen] = useState(false);
   const [teamMembers, setTeamMembers] = useState([
     { n: project.pm, r: "PM", a: 80, p: "Apr–Sep", s: "green" as Rag },

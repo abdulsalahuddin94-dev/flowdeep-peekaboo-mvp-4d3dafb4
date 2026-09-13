@@ -568,16 +568,6 @@ function ProjectDetail() {
                   ))}
                 </SelectContent>
               </Select>
-              {isViewingCurrent && planEditMode === "view" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={enterEditMode}
-                  className="h-8 text-xs"
-                >
-                  ✎ Change Plan
-                </Button>
-              )}
               {isViewingCurrent && planEditMode === "editing" && (
                 <>
                   {planChangeCount > 0 && (
@@ -831,14 +821,8 @@ function ProjectDetail() {
         </div>
       </section>
 
-      <Tabs value={activeTab} onValueChange={(t) => {
-        setActiveTab(t);
-        // Focus non-Overview tabs: scroll so the tab bar sits at the top.
-        // scrollIntoView naturally stops at the content limit, so short
-        // pages only scroll as far as their content allows.
-        if (t !== "Overview") tabsBarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }}>
-        <div ref={tabsBarRef} className="scroll-mt-3">
+      <Tabs value={activeTab} onValueChange={(t) => setActiveTab(t)}>
+        <div>
         <TabsList className="overflow-x-auto whitespace-nowrap">
           {TABS.filter((t) => t !== "Revenue" || !isInternalProject).map((t) => (
             <TabsTrigger key={t} value={t}>{t}</TabsTrigger>

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge } from "@/components/RagBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -149,6 +149,7 @@ function ProjectDetail() {
     if (project.ragNote === "New") updateProject(project.id, { ragNote: undefined });
   }
   const [activeTab, setActiveTab] = useState<string>(TABS[0]);
+  const tabsBarRef = useRef<HTMLDivElement>(null);
   const [addFirstMilestoneOpen, setAddFirstMilestoneOpen] = useState(false);
   const [teamMembers, setTeamMembers] = useState([
     { n: project.pm, r: "PM", a: 80, p: "Apr–Sep", s: "green" as Rag },
@@ -670,6 +671,26 @@ function ProjectDetail() {
                 <DropdownMenuItem onClick={() => setReportOpen(true)}>
                   <Pencil size={14} className="mr-2" />Update Status
                 </DropdownMenuItem>
+                {isViewingCurrent && planEditMode === "view" && (
+                  <DropdownMenuItem onClick={enterEditMode}>
+                    <Pencil size={14} className="mr-2" />Change Plan
+                  </DropdownMenuItem>
+                )}
+                {isViewingCurrent && planEditMode === "editing" && (
+                  <>
+                    <DropdownMenuItem disabled={planChangeCount === 0} onClick={() => setCrDialogOpen(true)}>
+                      <Pencil size={14} className="mr-2" />Send Change Request{planChangeCount > 0 ? ` (${planChangeCount})` : ""}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={requestExitEditMode}>
+                      <Pencil size={14} className="mr-2" />Exit Change Plan
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {isViewingCurrent && planEditMode === "pending" && (
+                  <DropdownMenuItem disabled>
+                    <Pencil size={14} className="mr-2" />Change Plan — Waiting For Approval
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   className={blockReason ? "text-muted-foreground" : "text-rag-red focus:text-rag-red"}
                   title={blockReason ?? undefined}
@@ -810,12 +831,20 @@ function ProjectDetail() {
         </div>
       </section>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={(t) => {
+        setActiveTab(t);
+        // Focus non-Overview tabs: scroll so the tab bar sits at the top.
+        // scrollIntoView naturally stops at the content limit, so short
+        // pages only scroll as far as their content allows.
+        if (t !== "Overview") tabsBarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }}>
+        <div ref={tabsBarRef} className="scroll-mt-3">
         <TabsList className="overflow-x-auto whitespace-nowrap">
           {TABS.filter((t) => t !== "Revenue" || !isInternalProject).map((t) => (
             <TabsTrigger key={t} value={t}>{t}</TabsTrigger>
           ))}
         </TabsList>
+        </div>
 
         <TabsContent value="Overview" className="mt-5">
           <OverviewTab project={project} isNew={isNewProject} gateData={gateData} />

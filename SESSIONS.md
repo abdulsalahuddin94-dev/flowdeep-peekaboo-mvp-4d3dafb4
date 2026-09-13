@@ -1,3 +1,9 @@
+## Session — 2026-09-13 (Project grid and baseline lifecycle)
+
+- Made Portfolio cards render three columns by default, four above 1690px, and five from 2030px.
+- Added explicit pre-baseline and locked project stages: new projects remain editable until Save Baseline, while locked projects use Change Plan.
+- Simplified the project actions menu and moved compact Pending/Waiting indicators to the left of the Latest version selector.
+
 ## Session — 2026-09-10 (Risk & Issues row actions)
 
 - Grouped status, edit, and delete into the shared DS02 table-row action component with consistent 36px circular controls and spacing.

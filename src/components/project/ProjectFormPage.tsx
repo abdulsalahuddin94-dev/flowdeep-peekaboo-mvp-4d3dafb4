@@ -264,6 +264,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
       tags: form.tags,
       ragNote: "New",
       calendarId: form.calendarId || undefined,
+      baselineLocked: false,
     });
     toast.done("Project", "created");
     finish();

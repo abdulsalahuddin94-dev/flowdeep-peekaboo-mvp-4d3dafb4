@@ -17,6 +17,16 @@
 
 @custom-variant dark (&:not([data-theme="light"] *));
 
+/* Portfolio density follows the available desktop viewport while preserving
+   the standard three-card composition at ordinary workspace widths. */
+@media (min-width: 1691px) {
+  .project-card-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (min-width: 2030px) {
+  .project-card-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
 /* ───────────────────────────────────────────────────────────────────────────
    LEVEL 1 — PRIMITIVES
    Every color scale exposes 50 → 950 shades. Alpha tokens are named by

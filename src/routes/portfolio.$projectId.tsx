@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar, ClipboardCheck, LayoutGrid } from "@/lib/icons";
+import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar, ClipboardCheck, LayoutGrid, Lock } from "@/lib/icons";
 import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
@@ -249,7 +249,8 @@ function ProjectDetail() {
   const [selectedBaselineVersion, setSelectedBaselineVersion] = useState<string>("latest");
   const [planEditMode, setPlanEditMode] = useState<"view" | "editing" | "pending">("view");
   const isViewingCurrent = selectedBaselineVersion === "latest";
-  const isEditingAllowed = isViewingCurrent && planEditMode === "editing";
+  const isBaselineLocked = project.baselineLocked === true;
+  const isEditingAllowed = isViewingCurrent && (!isBaselineLocked || planEditMode === "editing");
   const [cancelEditDialogOpen, setCancelEditDialogOpen] = useState(false);
   const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(null);
   const [compareVersionOpen, setCompareVersionOpen] = useState(false);
@@ -338,7 +339,7 @@ function ProjectDetail() {
       const target = e.target as HTMLElement | null;
       const tag = target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
-      if (!isViewingCurrent) return;
+      if (!isViewingCurrent || !isBaselineLocked) return;
       // Cmd/Ctrl + S — submit change request
       if ((e.metaKey || e.ctrlKey) && (e.key === "s" || e.key === "S")) {
         if (planEditMode === "editing" && hasPlanChanges) {
@@ -362,7 +363,7 @@ function ProjectDetail() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [planEditMode, isViewingCurrent, hasPlanChanges]);
+  }, [planEditMode, isViewingCurrent, isBaselineLocked, hasPlanChanges]);
 
   // ── Reflect central Approvals Inbox decisions back onto this project ────────
 
@@ -435,7 +436,7 @@ function ProjectDetail() {
 
   // Initialize sample baseline versions on component mount
   useEffect(() => {
-    if (projectBaselineVersions.length === 0 && milestones.length > 0) {
+    if (isBaselineLocked && projectBaselineVersions.length === 0 && milestones.length > 0) {
       const versions = [
         {
           version: 1,
@@ -490,7 +491,19 @@ function ProjectDetail() {
         snapshot: versions[3].snapshot,
       });
     }
-  }, [milestones]);
+  }, [isBaselineLocked, milestones, projectBaselineVersions.length]);
+
+  function saveProjectBaseline() {
+    const snapshot = computeDerivedSchedule(milestones, resourceRequests).map((item) => ({ ...item }));
+    const createdAt = new Date().toISOString().split("T")[0];
+    const firstVersion = { version: 1, createdAt, snapshot };
+    setProjectBaseline({ ...firstVersion, isLocked: true });
+    setProjectBaselineVersions([firstVersion]);
+    setSelectedBaselineVersion("latest");
+    setPlanEditMode("view");
+    updateProject(project.id, { baselineLocked: true, ragNote: undefined });
+    toast.success("Project baseline saved — Schedule and Financials are now locked");
+  }
 
   // Publish this project's financial links so a linked item is excluded from
   // every other dropdown in the system (one item = one WBS element).
@@ -531,8 +544,20 @@ function ProjectDetail() {
     (approval) => approval.projectId === project.id && approval.status === "pending",
   ).length;
   /** Project-level plan version + Change Plan controls, shown in the project header. */
-  const planVersionControls = (
-            <div className="flex items-center gap-2">
+  const planVersionControls = isBaselineLocked ? (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              {isViewingCurrent && planEditMode === "editing" && planChangeCount > 0 && (
+                <Badge variant="outline" className="h-7 gap-1.5 border-rag-amber/40 bg-rag-amber/10 px-2.5 text-[11px] font-medium text-rag-amber">
+                  <Clock className="h-3.5 w-3.5" />
+                  {planChangeCount} pending
+                </Badge>
+              )}
+              {isViewingCurrent && planEditMode === "pending" && (
+                <Badge variant="outline" className="h-7 gap-1.5 border-rag-blue/40 bg-rag-blue/10 px-2.5 text-[11px] font-medium text-rag-blue">
+                  <Clock className="h-3.5 w-3.5" />
+                  Waiting for Approval
+                </Badge>
+              )}
               <Select value={selectedBaselineVersion} onValueChange={(v) => {
                 setSelectedBaselineVersion(v);
                 setPlanEditMode("view");
@@ -541,14 +566,14 @@ function ProjectDetail() {
                 <SelectTrigger className="h-9 w-56 text-xs">
                   <span className="truncate">
                     {selectedBaselineVersion === "latest"
-                      ? `Current Version (v${projectBaselineVersions.length})`
+                      ? `Latest (v${projectBaselineVersions.length})`
                       : selectedBaselineVersion}
                   </span>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="latest">
                     <div className="flex flex-col leading-tight">
-                      <span>Current Version (v{projectBaselineVersions.length}) ⭐</span>
+                      <span>Latest (v{projectBaselineVersions.length})</span>
                       <span className="text-[10px] text-muted-foreground">
                         {projectBaselineVersions[projectBaselineVersions.length - 1]?.createdAt}
                         {" · by "}
@@ -570,11 +595,6 @@ function ProjectDetail() {
               </Select>
               {isViewingCurrent && planEditMode === "editing" && (
                 <>
-                  {planChangeCount > 0 && (
-                    <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
-                      {planChangeCount} pending
-                    </Badge>
-                  )}
                   <Button
                     variant="outline"
                     size="sm"
@@ -594,9 +614,6 @@ function ProjectDetail() {
                   </Button>
                 </>
               )}
-              {isViewingCurrent && planEditMode === "pending" && (
-                <Badge className="border-rag-blue/40 bg-rag-blue/10 text-rag-blue text-xs">⏳ Waiting For Approval</Badge>
-              )}
               {!isViewingCurrent && (
                 <>
                   <Badge variant="outline" className="text-xs text-muted-foreground">📖 View Only</Badge>
@@ -611,7 +628,7 @@ function ProjectDetail() {
                 </>
               )}
             </div>
-  );
+  ) : null;
   return (
     <div>
       <div className="mb-2">
@@ -655,18 +672,22 @@ function ProjectDetail() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } })}>
-                  <Pencil size={14} className="mr-2" />Edit Basic Info
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setReportOpen(true)}>
-                  <Pencil size={14} className="mr-2" />Update Status
-                </DropdownMenuItem>
-                {isViewingCurrent && planEditMode === "view" && (
+                {!isBaselineLocked && (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } })}>
+                      <Pencil size={14} className="mr-2" />Edit Basic Info
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={saveProjectBaseline}>
+                      <Lock size={14} className="mr-2" />Save Baseline
+                    </DropdownMenuItem>
+                  </>
+                )}
+                {isBaselineLocked && isViewingCurrent && planEditMode === "view" && (
                   <DropdownMenuItem onClick={enterEditMode}>
                     <Pencil size={14} className="mr-2" />Change Plan
                   </DropdownMenuItem>
                 )}
-                {isViewingCurrent && planEditMode === "editing" && (
+                {isBaselineLocked && isViewingCurrent && planEditMode === "editing" && (
                   <>
                     <DropdownMenuItem disabled={planChangeCount === 0} onClick={() => setCrDialogOpen(true)}>
                       <Pencil size={14} className="mr-2" />Send Change Request{planChangeCount > 0 ? ` (${planChangeCount})` : ""}
@@ -676,15 +697,16 @@ function ProjectDetail() {
                     </DropdownMenuItem>
                   </>
                 )}
-                {isViewingCurrent && planEditMode === "pending" && (
+                {isBaselineLocked && isViewingCurrent && planEditMode === "pending" && (
                   <DropdownMenuItem disabled>
                     <Pencil size={14} className="mr-2" />Change Plan — Waiting For Approval
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
-                  className={blockReason ? "text-muted-foreground" : "text-rag-red focus:text-rag-red"}
-                  title={blockReason ?? undefined}
-                  onClick={() => { if (blockReason) { toast.error(blockReason); return; } setDeleteOpen(true); }}
+                  disabled={isBaselineLocked}
+                  className={isBaselineLocked || blockReason ? "text-muted-foreground" : "text-rag-red focus:text-rag-red"}
+                  title={isBaselineLocked ? "A baselined project cannot be deleted." : blockReason ?? undefined}
+                  onClick={() => { if (isBaselineLocked) return; if (blockReason) { toast.error(blockReason); return; } setDeleteOpen(true); }}
                 >
                   <DeleteAction size={14} className="mr-2" />Delete Project
                 </DropdownMenuItem>
@@ -845,7 +867,7 @@ function ProjectDetail() {
               className="mb-5"
             />
           )}
-          {planEditMode === "editing" && isViewingCurrent && (
+          {isBaselineLocked && planEditMode === "editing" && isViewingCurrent && (
             <div className="mb-3 flex items-start gap-3 rounded-lg border border-rag-amber/40 bg-rag-amber/10 px-4 py-3">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rag-amber" />
               <div className="flex-1 text-xs">
@@ -862,7 +884,7 @@ function ProjectDetail() {
               )}
             </div>
           )}
-          {planEditMode === "view" && isViewingCurrent && (
+          {isBaselineLocked && planEditMode === "view" && isViewingCurrent && (
             <div className="mb-2 text-[11px] text-muted-foreground/70">
               📖 Baseline locked — press <kbd className="rounded border border-border bg-secondary/40 px-1">E</kbd> or click Change Plan to edit
             </div>

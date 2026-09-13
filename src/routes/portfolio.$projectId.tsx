@@ -2648,6 +2648,18 @@ function FinancialsTab({
                 totals={revTotals}
                 onSave={(idx, patch) => setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
                 onDelete={(idx) => setRevEntries((prev) => prev.filter((_, i) => i !== idx))}
+                onAddActual={(idx, actual) =>
+                  setRevEntries((prev) =>
+                    prev.map((e, i) => {
+                      if (i !== idx) return e;
+                      const actuals = [...(e.actuals ?? (e.act != null ? [{ amount: e.act, date: e.date }] : [])), actual];
+                      const total = actuals.reduce((s, x) => s + x.amount, 0);
+                      const collected = e.plan ? total / e.plan : 0;
+                      const status = collected >= 1 ? REV_STATUSES[2] : REV_STATUSES[1];
+                      return { ...e, actuals, act: total, s: status.s, sl: status.sl };
+                    }),
+                  )
+                }
               />
             </div>
           </div>

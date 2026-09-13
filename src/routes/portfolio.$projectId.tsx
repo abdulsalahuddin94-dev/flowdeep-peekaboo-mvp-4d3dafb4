@@ -2900,6 +2900,8 @@ type Milestone = {
 
 type Trip = { id: string; purpose: string; dest: string; dates: string; travelers: string; cost: string; rag: Rag; status: string };
 type CostBreakdownItem = { name: string; amount: number; note?: string };
+/** One logged actual (payment received, or expense incurred) under a planned item. */
+type ActualEntry = { name?: string; amount: number; date: string; note?: string };
 type CostEntry = {
   c: string; b: number; a: number; color: string;
   /** Cost category from Organization master data. */
@@ -2910,12 +2912,14 @@ type CostEntry = {
   linkKind?: "fixed" | "milestone";
   linkRef?: string; // ISO date OR milestone name
   breakdown?: CostBreakdownItem[];
+  /** Individual actual expenses logged against this planned cost item. */
+  actuals?: ActualEntry[];
 };
 type RevEntry = {
   ms: string; evt: string; plan: number; date: string; s: string; sl: string; act: number | null;
   linkKind?: "fixed" | "milestone";
   /** Individual actual payments logged against this planned event. */
-  actuals?: { amount: number; date: string; note?: string }[];
+  actuals?: ActualEntry[];
 };
 type GateItem = { task: string; role: string; done: boolean };
 type GateStage = { name: string; items: GateItem[] };

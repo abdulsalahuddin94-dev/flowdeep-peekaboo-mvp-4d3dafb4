@@ -2321,6 +2321,165 @@ function BusinessTripsTab({ pm }: { pm: string }) {
   );
 }
 
+/**
+ * Logging an actual is bookkeeping, not re-planning: it stays available after the
+ * baseline is locked so no Change Plan is needed to record a payment or expense.
+ */
+function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEntry) => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [date, setDate] = useState("");
+  const [amount, setAmount] = useState("");
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setName(""); setDate(""); setAmount(""); } }}>
+      <DialogTrigger asChild>
+        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-accent" title={title}>
+          <Plus className="h-3.5 w-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>Recorded against the planned line — no change request required.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3">
+          <div className="grid gap-1.5">
+            <Label>Name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Invoice INV-0021" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label>Date</Label>
+              <Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="e.g. Jun 30" />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Amount ($M)</Label>
+              <Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              const amt = parseFloat(amount);
+              if (!name.trim() || !date.trim() || isNaN(amt)) { toast.error("Name, date and amount are required"); return; }
+              onAdd({ name: name.trim(), date: date.trim(), amount: amt, note: name.trim() });
+              setOpen(false);
+              toast.done("Actual", "added");
+            }}
+          >
+            Add actual
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Edit dialog for a planned cost line (mirrors the revenue line editor). */
+function EditCostRowDialog({
+  entry, categories, milestoneNames, onSave, onDelete,
+}: {
+  entry: CostEntry;
+  categories: string[];
+  milestoneNames: string[];
+  onSave: (patch: Partial<CostEntry>) => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [cat, setCat] = useState(entry.cat ?? "");
+  const [item, setItem] = useState(entry.c);
+  const [desc, setDesc] = useState(entry.desc ?? "");
+  const [plan, setPlan] = useState(String(entry.b));
+  const [linkRef, setLinkRef] = useState(entry.linkRef ?? "");
+
+  function reset() {
+    setCat(entry.cat ?? ""); setItem(entry.c); setDesc(entry.desc ?? "");
+    setPlan(String(entry.b)); setLinkRef(entry.linkRef ?? "");
+  }
+  const catOptions = Array.from(new Set([...categories, entry.cat ?? ""].filter(Boolean)));
+  const msOptions = Array.from(new Set([...milestoneNames, entry.linkRef ?? ""].filter(Boolean)));
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) reset(); }}>
+      <DialogTrigger asChild>
+        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-accent" title="Edit cost line">
+          <Pencil className="h-3.5 w-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit cost line</DialogTitle>
+          <DialogDescription>Update the category, item, planned amount or the date it is tied to.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3">
+          <div className="grid gap-1.5">
+            <Label>Category</Label>
+            <Select value={cat} onValueChange={setCat}>
+              <SelectTrigger><SelectValue placeholder="Select category…" /></SelectTrigger>
+              <SelectContent>
+                {catOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Item</Label>
+            <Input value={item} onChange={(e) => setItem(e.target.value)} />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Description</Label>
+            <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label>Planned ($M)</Label>
+              <Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>{entry.linkKind === "milestone" ? "Linked milestone" : "Date"}</Label>
+              {entry.linkKind === "milestone" ? (
+                <Select value={linkRef} onValueChange={setLinkRef}>
+                  <SelectTrigger><SelectValue placeholder="Select milestone…" /></SelectTrigger>
+                  <SelectContent>
+                    {msOptions.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input value={linkRef} onChange={(e) => setLinkRef(e.target.value)} placeholder="e.g. 2025-06-15" />
+              )}
+            </div>
+          </div>
+        </div>
+        <DialogFooter className="justify-between sm:justify-between">
+          <Button
+            variant="ghost"
+            className="text-rag-red hover:text-rag-red"
+            onClick={() => { onDelete(); setOpen(false); toast.done("Cost line", "deleted"); }}
+          >
+            Delete
+          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button
+              onClick={() => {
+                const p = parseFloat(plan);
+                if (!item.trim() || isNaN(p)) { toast.error("Item and planned amount are required"); return; }
+                onSave({ c: item.trim(), cat: cat || undefined, desc: desc.trim() || undefined, b: p, linkRef });
+                setOpen(false);
+                toast.done("Cost line", "updated");
+              }}
+            >
+              Save changes
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Financials tab — Cost / Revenue split ────────────────────────────────────
 function FinancialsTab({
   mode, project, milestones, isNew, onDataAdded, canEdit = true,

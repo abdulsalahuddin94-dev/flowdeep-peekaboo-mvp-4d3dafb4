@@ -545,7 +545,7 @@ function ProjectDetail() {
   ).length;
   /** Project-level plan version + Change Plan controls, shown in the project header. */
   const planVersionControls = isBaselineLocked ? (
-            <div className="grid grid-cols-[auto_minmax(0,14rem)] items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               {isViewingCurrent && planEditMode === "editing" && planChangeCount > 0 && (
                 <Badge variant="outline" className="h-7 gap-1.5 border-rag-amber/40 bg-rag-amber/10 px-2.5 text-[11px] font-medium text-rag-amber">
                   <Clock className="h-3.5 w-3.5" />

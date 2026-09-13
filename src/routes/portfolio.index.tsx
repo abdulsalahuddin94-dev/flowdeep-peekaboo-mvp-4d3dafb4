@@ -364,7 +364,7 @@ function ProjectGrid({
   const { tags: orgTags } = useTags();
   const colorOf = (name: string) => orgTags.find((t) => t.name === name)?.color;
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 [min-width:1691px]:grid-cols-4 [min-width:2030px]:grid-cols-5">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 min-[1691px]:grid-cols-4 min-[2030px]:grid-cols-5">
 
       {items.map((p) => {
         const pending = pendingByProject.get(p.name) ?? 0;

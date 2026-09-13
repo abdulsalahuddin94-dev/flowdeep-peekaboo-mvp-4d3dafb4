@@ -2078,21 +2078,34 @@ function ProgressUpdateDialog({
           <section className="min-w-0 space-y-3">
             <div className="grid grid-cols-[minmax(0,1fr)_112px] items-end gap-3">
               <div className="min-w-0 space-y-1.5">
-                <Label className="text-xs">Pick an open task to update</Label>
-            <Select value={selected} onValueChange={(v) => {
-              setSelected(v);
-              const t = leaves.find((x) => x.name === v);
-              setDraftPct(t?.progress ?? 0);
-            }}>
-              <SelectTrigger><SelectValue placeholder="Choose a task…" /></SelectTrigger>
-              <SelectContent className="max-h-72">
-                {openLeaves.map((t) => (
-                  <SelectItem key={t.name} value={t.name}>
-                    {t.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                {initialTaskName ? (
+                  // Opened from a single task's row — updating that one task, so there's
+                  // no reason to surface every open task in the project (could be 1000+).
+                  <>
+                    <Label className="text-xs">Task</Label>
+                    <div className="flex h-10 items-center truncate rounded-md border border-border bg-secondary/20 px-3 text-sm text-foreground">
+                      {current?.name ?? initialTaskName}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Label className="text-xs">Pick an open task to update</Label>
+                    <Select value={selected} onValueChange={(v) => {
+                      setSelected(v);
+                      const t = leaves.find((x) => x.name === v);
+                      setDraftPct(t?.progress ?? 0);
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="Choose a task…" /></SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {openLeaves.map((t) => (
+                          <SelectItem key={t.name} value={t.name}>
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs">New progress</Label>
@@ -2344,8 +2357,14 @@ function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEnt
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) { setName(""); setDate(""); setAmount(""); } }}>
       <DialogTrigger asChild>
-        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-accent" title={title}>
-          <Plus className="h-3.5 w-3.5" />
+        <Button
+          size="icon"
+          variant="secondary"
+          data-ds-size="auto"
+          className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
+          title={title}
+        >
+          <Plus className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
@@ -2415,8 +2434,14 @@ function EditCostRowDialog({
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) reset(); }}>
       <DialogTrigger asChild>
-        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-accent" title="Edit cost line">
-          <Pencil className="h-3.5 w-3.5" />
+        <Button
+          size="icon"
+          variant="secondary"
+          data-ds-size="auto"
+          className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
+          title="Edit cost line"
+        >
+          <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -2585,15 +2610,11 @@ function FinancialsTab({
             ))}
           </div>
 
-          <div className="glass-card p-5">
-            <div className="mb-1 flex items-center justify-between">
+          <div>
+            <div className="mb-2 flex items-center justify-between">
               <div className="label-eyebrow">Cost breakdown</div>
               {canEdit && addLinkDialog("cost")}
             </div>
-            <p className="mb-3 text-xs text-muted-foreground">
-              Every item carries a cost category from Organization. Expand a row to see the actual expenses logged
-              against that planned item. Items linked to a milestone inherit that milestone's planned finish date.
-            </p>
             <CostBreakdownTable
               entries={displayCost}
               canEdit={canEdit}
@@ -2641,15 +2662,11 @@ function FinancialsTab({
               ))}
             </div>
 
-            <div className="glass-card p-5">
-              <div className="mb-1 flex items-center justify-between">
+            <div>
+              <div className="mb-2 flex items-center justify-between">
                 <div className="label-eyebrow">Revenue plan</div>
                 {canEdit && addLinkDialog("revenue")}
               </div>
-              <p className="mb-3 text-xs text-muted-foreground">
-                Expand a row to see the actual payments logged against that planned event. Events linked to a
-                milestone follow the milestone's planned finish date.
-              </p>
               <RevenuePlanTable
                 entries={displayRev}
                 canEdit={canEdit}
@@ -2751,7 +2768,7 @@ function RevenuePlanTable({
                 <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
                 <TableCell className="text-right">
                   {/* Logging an actual stays available after baseline lock; re-planning does not. */}
-                  <div className="flex items-center justify-end gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                  <div className="flex h-9 items-center justify-end gap-1.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                     {canEdit && (
                       <EditRevenueRowDialog
                         entry={r}
@@ -2872,7 +2889,7 @@ function CostBreakdownTable({
                 </TableCell>
                 <TableCell className="text-right">
                   {/* Logging an actual expense stays available after baseline lock; re-planning does not. */}
-                  <div className="flex items-center justify-end gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                  <div className="flex h-9 items-center justify-end gap-1.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                     {canEdit && (
                       <EditCostRowDialog
                         entry={e}
@@ -2955,8 +2972,14 @@ function EditRevenueRowDialog({
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o) reset(); }}>
       <DialogTrigger asChild>
-        <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-accent" title="Edit revenue line">
-          <Pencil className="h-3.5 w-3.5" />
+        <Button
+          size="icon"
+          variant="secondary"
+          data-ds-size="auto"
+          className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
+          title="Edit revenue line"
+        >
+          <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent>
@@ -6118,26 +6141,18 @@ function DependencyDialog({
             </div>
           </div>
 
-          {/* Knock-on date changes must be acknowledged before saving. */}
+          {/* Knock-on date changes must be acknowledged before saving. Deliberately just a
+              disclaimer — no computed count or date list, so this stays simple regardless
+              of how many downstream tasks would shift. */}
           {impacts.length > 0 && (
             <div className="space-y-2 rounded-md border border-rag-amber/50 bg-rag-amber/10 p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-rag-amber">
                 <AlertTriangle className="h-4 w-4" />
-                {impacts.length} planned date{impacts.length === 1 ? "" : "s"} will move
-              </div>
-              <div className="max-h-24 space-y-1 overflow-y-auto pr-1 text-xs text-muted-foreground">
-                {impacts.map((i) => (
-                  <div key={i.name} className="flex items-center justify-between gap-2">
-                    <span className="truncate">{i.name}</span>
-                    <span className="num-mono shrink-0">
-                      {i.oldStart} → <span className="text-foreground">{i.start}</span>
-                    </span>
-                  </div>
-                ))}
+                Some task dates will change
               </div>
               <label className="flex cursor-pointer items-start gap-2 text-xs">
                 <Checkbox checked={acceptShift} onCheckedChange={(v) => setAcceptShift(!!v)} className="mt-0.5" />
-                <span>I understand these tasks will be rescheduled and want to continue.</span>
+                <span>I understand some planned dates will move because of this change and want to continue.</span>
               </label>
             </div>
           )}

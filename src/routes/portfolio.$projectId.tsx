@@ -4605,27 +4605,33 @@ function AddFinanceLinkDialog({
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); else setKind(defaultType); }}>
       <DialogTrigger asChild>
         <Button size="sm" variant="outline" className="h-7 border-accent/40 text-accent hover:bg-accent-dim text-xs">
-          <Plus className="mr-1 h-3.5 w-3.5" />Add Finance Link
+          <Plus className="mr-1 h-3.5 w-3.5" />{actionLabel}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Finance Link</DialogTitle>
-          <DialogDescription>Link either a cost or a revenue event to a milestone or a fixed date.</DialogDescription>
+          <DialogTitle>{actionLabel}</DialogTitle>
+          <DialogDescription>
+            {lockKind
+              ? `Link this ${defaultType === "cost" ? "cost item" : "revenue event"} to a milestone or a fixed date.`
+              : "Link either a cost or a revenue event to a milestone or a fixed date."}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="mb-1 grid grid-cols-2 gap-1 rounded-md bg-secondary/30 p-1">
-          {(["cost", "revenue"] as const).map((k) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setKind(k)}
-              className={`rounded px-2 py-1.5 text-xs font-medium transition ${kind === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              {k === "cost" ? "Outgoing (Cost)" : "Incoming (Revenue)"}
-            </button>
-          ))}
-        </div>
+        {!lockKind && (
+          <div className="mb-1 grid grid-cols-2 gap-1 rounded-md bg-secondary/30 p-1">
+            {(["cost", "revenue"] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setKind(k)}
+                className={`rounded px-2 py-1.5 text-xs font-medium transition ${kind === k ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                {k === "cost" ? "Outgoing (Cost)" : "Incoming (Revenue)"}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="grid gap-3">
           {kind === "cost" ? (

@@ -2726,29 +2726,36 @@ function RevenuePlanTable({
                 <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
                 <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
-                {canEdit && (
-                  <TableCell className="text-right">
-                    <EditRevenueRowDialog
-                      entry={r}
-                      milestoneNames={milestoneNames}
-                      onSave={(patch) => onSave(idx, patch)}
-                      onDelete={() => onDelete(idx)}
+                <TableCell className="text-right">
+                  {/* Logging an actual stays available after baseline lock; re-planning does not. */}
+                  <div className="flex items-center justify-end gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                    {canEdit && (
+                      <EditRevenueRowDialog
+                        entry={r}
+                        milestoneNames={milestoneNames}
+                        onSave={(patch) => onSave(idx, patch)}
+                        onDelete={() => onDelete(idx)}
+                      />
+                    )}
+                    <AddActualDialog
+                      title="Add revenue recognition"
+                      onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(r.ms)); }}
                     />
-                  </TableCell>
-                )}
+                  </div>
+                </TableCell>
               </TableRow>
               {open && actuals.map((a, i) => (
                 <TableRow key={`${r.ms}-a${i}`} className="bg-secondary/10 hover:bg-secondary/20 border-0">
                   <TableCell />
                   <TableCell colSpan={2} className="pl-6 text-xs text-muted-foreground">
-                    Actual payment{a.note ? ` — ${a.note}` : ""}
+                    {a.name ?? "Actual payment"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
                   </TableCell>
                   <TableCell />
                   <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
                   <TableCell />
                   <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
                   <TableCell />
-                  {canEdit && <TableCell />}
+                  <TableCell />
                 </TableRow>
               ))}
             </Fragment>

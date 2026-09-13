@@ -199,6 +199,8 @@ export type ScheduleItem = {
   approvers?: Approver[];
   /** Current state of the approval workflow. Undefined = not requested. */
   approvalStatus?: ApprovalStatus;
+  /** Dates were moved by a dependency change and not yet submitted for approval. */
+  depDateShift?: boolean;
   /** Dependencies: list of predecessors with relation types and time buffers */
   dependencies?: Dependency[];
   /** Synthetic gate task auto-created for milestones that require approval. */

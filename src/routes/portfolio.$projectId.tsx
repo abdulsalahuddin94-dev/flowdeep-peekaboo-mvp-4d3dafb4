@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar } from "@/lib/icons";
+import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar, ClipboardCheck, LayoutGrid } from "@/lib/icons";
 import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
@@ -74,7 +74,7 @@ export const Route = createFileRoute("/portfolio/$projectId")({
 });
 
 const TABS = [
-  "Overview", "Project Schedule", "Financials", "Status Reports", "Risk & Issues",
+  "Overview", "Project Schedule", "Cost", "Revenue", "Status Reports", "Risk & Issues",
 ];
 
 const PLANNING_STAGES = [
@@ -140,6 +140,7 @@ function ProjectDetail() {
   const { jobRoles } = useJobRoles();
   const navigate = useNavigate();
   const project = liveProjects.find((p) => p.id === loaderProject.id) ?? loaderProject;
+  const isInternalProject = project.client === "Internal";
   const [reportOpen, setReportOpen] = useState(false);
 
   /** A project fresh out of the creation form — its tabs show guided empty states instead of demo content. */
@@ -811,7 +812,7 @@ function ProjectDetail() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="overflow-x-auto whitespace-nowrap">
-          {TABS.map((t) => (
+          {TABS.filter((t) => t !== "Revenue" || !isInternalProject).map((t) => (
             <TabsTrigger key={t} value={t}>{t}</TabsTrigger>
           ))}
         </TabsList>
@@ -1188,9 +1189,15 @@ function ProjectDetail() {
         </TabsContent>
 
 
-        <TabsContent value="Financials" className="mt-5">
-          <FinancialsTab project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} />
+        <TabsContent value="Cost" className="mt-5">
+          <FinancialsTab mode="cost" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} />
         </TabsContent>
+
+        {!isInternalProject && (
+          <TabsContent value="Revenue" className="mt-5">
+            <FinancialsTab mode="revenue" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} />
+          </TabsContent>
+        )}
 
         <TabsContent value="Risk & Issues" className="mt-5">
           <ProjectRiskIssuesTab projectName={project.name} />
@@ -2281,15 +2288,12 @@ function BusinessTripsTab({ pm }: { pm: string }) {
 
 // ── Financials tab — Cost / Revenue split ────────────────────────────────────
 function FinancialsTab({
-  project, milestones, isNew, onDataAdded, canEdit = true,
-}: { project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void; canEdit?: boolean }) {
+  mode, project, milestones, isNew, onDataAdded, canEdit = true,
+}: { mode: "cost" | "revenue"; project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void; canEdit?: boolean }) {
   const milestoneNames = useMemo(
     () => milestones.filter((m) => m.kind === "Milestone").map((m) => m.name),
     [milestones],
   );
-  /** Internal (capital) projects have no client revenue, so that tab is hidden. */
-  const isInternal = project.client === "Internal";
-  const [finTab, setFinTab] = useState<"cost" | "revenue">("cost");
   const [costEntries, setCostEntries] = useState<CostEntry[]>(isNew ? [] : [
     { c: "Labour", cat: "Staff", b: 1.20, a: 0.84, color: "bg-rag-green", desc: "Core delivery team", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Build Complete", breakdown: [
       { name: "Backend engineers (3)", amount: 0.55, note: "6-month allocation" },
@@ -2357,14 +2361,8 @@ function FinancialsTab({
         />
       )}
 
-      <Tabs value={finTab} onValueChange={(v) => setFinTab(v as "cost" | "revenue")}>
-        <TabsList>
-          <TabsTrigger value="cost">Cost</TabsTrigger>
-          {!isInternal && <TabsTrigger value="revenue">Revenue</TabsTrigger>}
-        </TabsList>
-
-        {/* ── Cost ─────────────────────────────────────────────────────────── */}
-        <TabsContent value="cost" className="mt-4 space-y-4">
+      {mode === "cost" ? (
+        <div className="space-y-4">
           <div className="grid gap-3 md:grid-cols-4">
             {[
               { l: "Total Budget", v: `$${project.budgetTotal.toFixed(1)}M` },
@@ -2441,11 +2439,10 @@ function FinancialsTab({
               onUpdate={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
             />
           </div>
-        </TabsContent>
+        </div>
 
-        {/* ── Revenue ──────────────────────────────────────────────────────── */}
-        {!isInternal && (
-          <TabsContent value="revenue" className="mt-4 space-y-4">
+      ) : (
+          <div className="space-y-4">
             <div className="grid gap-3 md:grid-cols-3">
               {[
                 { l: "Planned revenue", v: `$${revTotals.planned.toFixed(2)}M` },
@@ -2478,9 +2475,8 @@ function FinancialsTab({
                 onDelete={(idx) => setRevEntries((prev) => prev.filter((_, i) => i !== idx))}
               />
             </div>
-          </TabsContent>
-        )}
-      </Tabs>
+          </div>
+      )}
     </div>
   );
 }
@@ -5908,18 +5904,24 @@ function ProjectRiskIssuesTab({ projectName }: { projectName: string }) {
       <RiskKpiStrip project={projectName} />
 
       <Tabs value={view} onValueChange={(v) => setView(v as typeof view)}>
-        <TabsList>
-          <TabsTrigger value="register">Risk Register</TabsTrigger>
-          <TabsTrigger value="heatmap">Heat Map</TabsTrigger>
-          <TabsTrigger value="issues">Issues Log</TabsTrigger>
+        <TabsList className="h-auto w-full gap-2 border-0 bg-transparent p-0">
+          <TabsTrigger value="register" className="h-9 flex-1 gap-2 rounded-md border border-border bg-card px-4 text-xs data-[state=active]:border-accent data-[state=active]:bg-accent/10 data-[state=active]:text-accent">
+            <ClipboardCheck size={15} />Risk Register
+          </TabsTrigger>
+          <TabsTrigger value="heatmap" className="h-9 flex-1 gap-2 rounded-md border border-border bg-card px-4 text-xs data-[state=active]:border-accent data-[state=active]:bg-accent/10 data-[state=active]:text-accent">
+            <LayoutGrid size={15} />Heat Map
+          </TabsTrigger>
+          <TabsTrigger value="issues" className="h-9 flex-1 gap-2 rounded-md border border-border bg-card px-4 text-xs data-[state=active]:border-accent data-[state=active]:bg-accent/10 data-[state=active]:text-accent">
+            <AlertTriangle size={15} />Issues Log
+          </TabsTrigger>
         </TabsList>
-        <TabsContent value="register" className="mt-4">
+        <TabsContent value="register" className="mt-5">
           <RiskRegisterTab project={projectName} />
         </TabsContent>
-        <TabsContent value="heatmap" className="mt-4">
+        <TabsContent value="heatmap" className="mt-5">
           <RiskHeatmapTab project={projectName} />
         </TabsContent>
-        <TabsContent value="issues" className="mt-4">
+        <TabsContent value="issues" className="mt-5">
           <IssuesLogTab project={projectName} />
         </TabsContent>
       </Tabs>

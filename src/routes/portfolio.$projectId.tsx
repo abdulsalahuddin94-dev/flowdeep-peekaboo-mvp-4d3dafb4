@@ -20,10 +20,11 @@ import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar, ClipboardCheck, LayoutGrid, Lock } from "@/lib/icons";
+import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar, ClipboardCheck, LayoutGrid, Lock, Link2 } from "@/lib/icons";
 import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
@@ -3446,6 +3447,14 @@ function daysBetweenISO(a: string, b: string) {
  * lag), and every downstream successor shifts by the same number of days so the
  * user can see the knock-on effect before saving.
  */
+/** Every task that names `targetName` as one of its own predecessors. */
+export function getSuccessors<T extends { name: string; dependencies?: { predecessor: string }[] }>(
+  items: T[],
+  targetName: string,
+): T[] {
+  return items.filter((it) => (it.dependencies ?? []).some((d) => d.predecessor === targetName));
+}
+
 export function computeDependencyImpact(
   items: { name: string; startDate: string; endDate: string; dependencies?: any[] }[],
   targetName: string,
@@ -6185,6 +6194,12 @@ function DependencyDialog({
   );
   useEffect(() => { setAcceptShift(false); }, [impacts.length]);
 
+  /** Tasks that already name this one as a predecessor — context for the decision, not something being edited here. */
+  const successors = useMemo(
+    () => (currentItem ? getSuccessors(allItems, currentItem.name) : []),
+    [allItems, currentItem],
+  );
+
   function addDependency() {
     if (!selectedPred || !currentItem) return;
     const newDep = { predecessor: selectedPred, relation, lag: lag || undefined };
@@ -6216,6 +6231,32 @@ function DependencyDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Manage Dependencies — {currentItem?.name}</DialogTitle>
+          {successors.length > 0 && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="flex w-fit items-center gap-1.5 rounded px-1 py-0.5 text-xs text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
+                >
+                  <Link2 className="h-3.5 w-3.5" />
+                  {successors.length} task{successors.length === 1 ? "" : "s"} depend{successors.length === 1 ? "s" : ""} on this
+                  <ChevronDown className="h-3 w-3 opacity-70" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2" align="start">
+                <div className="mb-1.5 px-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Depends on this task
+                </div>
+                <div className="max-h-48 space-y-0.5 overflow-y-auto">
+                  {successors.map((s) => (
+                    <div key={s.name} className="truncate rounded px-2 py-1 text-sm text-foreground hover:bg-secondary/40">
+                      {s.name}
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </DialogHeader>
         <div className="grid gap-4">
           {/* Add new dependency — always on top so the dialog never grows */}

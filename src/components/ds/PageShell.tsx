@@ -92,7 +92,7 @@ export function PageShell({
         {(title || actions) && (
           <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
             <div>
-              {title && <h1 className="text-2xl font-medium text-foreground">{title}</h1>}
+              {title && <h1 className="text-xl font-medium text-foreground">{title}</h1>}
               {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
             </div>
             {actions && <div className="flex items-center gap-2">{actions}</div>}

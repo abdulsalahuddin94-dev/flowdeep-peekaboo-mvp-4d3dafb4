@@ -16,7 +16,7 @@ export function PageHeader({
       {crumbed && <Breadcrumbs current={current} />}
       <div className={crumbed ? "mt-2 flex flex-wrap items-end justify-between gap-3" : "flex flex-wrap items-end justify-between gap-3"}>
         <div>
-          <h1 className="text-2xl font-medium text-foreground">{heading}</h1>
+          <h1 className="text-xl font-medium text-foreground">{heading}</h1>
           {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-2">

@@ -191,7 +191,7 @@ export function FilterDrawer({ groups }: { groups: DrawerFilterGroup[] }) {
             </>
           )}
           <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-4">
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
             <Button variant="primary" onClick={apply}>Apply</Button>
           </div>
         </SheetContent>

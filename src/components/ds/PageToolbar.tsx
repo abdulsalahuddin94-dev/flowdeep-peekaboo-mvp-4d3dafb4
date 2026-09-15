@@ -335,7 +335,7 @@ export function PageToolbar({
             </>
           )}
           <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-4">
-            {activePanel && <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>}
+            {activePanel && <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>}
             <Button variant="primary" onClick={apply}>Apply</Button>
           </div>
         </SheetContent>

@@ -7,6 +7,7 @@ import { EmptyRegion } from "@/lib/empty-preview";
 import { useRelatedProjectsDialog } from "@/components/ds/RelatedProjectsDialog";
 import { relatedProjectsGroup, statusGroup, matchRelated, matchStatus } from "@/components/ds/filters";
 import { TableRowActions } from "@/components/TableRowActions";
+import { Pill } from "@/components/Pill";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useOrgActive } from "@/lib/org-active";
 import { cn } from "@/lib/utils";
@@ -271,9 +272,10 @@ function VendorsTab() {
               >
                 <TableCell className="font-medium text-foreground">{v.name}</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={`rounded-full ${v.type === "Vendor" ? "border-rag-blue/40 bg-rag-blue/10 text-rag-blue" : "border-role-exec/40 bg-role-exec/10 text-role-exec"}`}>
-                    {v.type}
-                  </Badge>
+                  <Pill
+                    label={v.type}
+                    tone={v.type === "Vendor" ? "border-rag-blue/40 bg-rag-blue/10 text-rag-blue" : "border-role-exec/40 bg-role-exec/10 text-role-exec"}
+                  />
                 </TableCell>
                 <TableCell className="text-muted-foreground">{v.category}</TableCell>
                 <TableCell className="text-center num-mono">{v.contracts}</TableCell>

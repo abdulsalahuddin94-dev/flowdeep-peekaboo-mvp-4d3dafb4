@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { EmptyRegion } from "@/lib/empty-preview";
 import { TableRowActions } from "@/components/TableRowActions";
+import { Pill } from "@/components/Pill";
 import { usePagination, TablePagination } from "@/components/TablePagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FormDialog } from "@/components/ui/form-dialog";
@@ -55,10 +56,6 @@ const ISSUE_STATUS_TONE: Record<IssueStatus, string> = {
   Escalated: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
   Resolved: "border-rag-green/40 bg-rag-green/10 text-rag-green",
 };
-
-function Pill({ label, tone }: { label: string; tone: string }) {
-  return <Badge variant="outline" className={cn("rounded-full", tone)}>{label}</Badge>;
-}
 
 /** Severity bands come from Organization → Rules & Thresholds. */
 export function useSeverity() {

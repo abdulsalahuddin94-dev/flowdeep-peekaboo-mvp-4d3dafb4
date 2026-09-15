@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useOrgActive } from "@/lib/org-active";
 import { DEFAULT_COST_CATEGORIES, type CostCategory } from "@/lib/org-cost-categories";
 import { TableRowActions } from "@/components/TableRowActions";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { PageToolbar as FilterBar, EmptyRow, type FilterGroup } from "@/components/ds/PageToolbar";
 import { PageActionsSlot } from "@/components/ds/PageActionsSlot";
 import { relatedProjectsGroup, usageGroup, capexOpexGroup, statusGroup, skillsGroup, matchRelated, matchUsage, matchStatus } from "@/components/ds/filters";
@@ -210,6 +211,7 @@ function BusinessLinesTab() {
       </Dialog>
 
       <ConfirmDeleteDialog
+        description="This entry will be removed from the organization master data."
         label={pendingDelete?.name}
         onCancel={() => setPendingDelete(null)}
         onConfirm={() => {
@@ -337,6 +339,7 @@ function DepartmentsTab() {
       </Dialog>
 
       <ConfirmDeleteDialog
+        description="This entry will be removed from the organization master data."
         label={pendingDelete?.name}
         onCancel={() => setPendingDelete(null)}
         onConfirm={() => {
@@ -359,21 +362,6 @@ function DepartmentsTab() {
         }}
       />
     </>
-  );
-}
-
-function ConfirmDeleteDialog({ label, onCancel, onConfirm }: { label?: string; onCancel: () => void; onConfirm: () => void }) {
-  return (
-    <ConfirmDialog
-      open={!!label}
-      onOpenChange={(o) => !o && onCancel()}
-      tone="danger"
-      title={`Delete "${label}"?`}
-      description="This entry will be removed from the organization master data."
-      cancelLabel="Cancel"
-      confirmLabel="Delete"
-      onConfirm={onConfirm}
-    />
   );
 }
 
@@ -502,6 +490,7 @@ function TagsTab() {
       </Dialog>
 
       <ConfirmDeleteDialog
+        description="This entry will be removed from the organization master data."
         label={pendingDelete ?? undefined}
         onCancel={() => setPendingDelete(null)}
         onConfirm={() => {
@@ -1138,6 +1127,7 @@ function CostCategoriesTab() {
       </Dialog>
 
       <ConfirmDeleteDialog
+        description="This entry will be removed from the organization master data."
         label={pendingDelete?.name}
         onCancel={() => setPendingDelete(null)}
         onConfirm={() => {
@@ -1749,6 +1739,7 @@ function RiskCategoriesTab() {
       </Dialog>
 
       <ConfirmDeleteDialog
+        description="This entry will be removed from the organization master data."
         label={pendingDelete?.name}
         onCancel={() => setPendingDelete(null)}
         onConfirm={() => {

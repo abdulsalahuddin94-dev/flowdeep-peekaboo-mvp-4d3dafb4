@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableRowActions } from "@/components/TableRowActions";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -2346,22 +2347,6 @@ function BusinessTripsTab({ pm }: { pm: string }) {
   );
 }
 
-/** DS02 delete confirmation, matching the one used for Organization master data. */
-function ConfirmDeleteDialog({ label, onCancel, onConfirm }: { label?: string; onCancel: () => void; onConfirm: () => void }) {
-  return (
-    <ConfirmDialog
-      open={!!label}
-      onOpenChange={(o) => !o && onCancel()}
-      tone="danger"
-      title={`Delete "${label}"?`}
-      description="This entry will be removed from the plan."
-      cancelLabel="Cancel"
-      confirmLabel="Delete"
-      onConfirm={onConfirm}
-    />
-  );
-}
-
 /**
  * Logging an actual is bookkeeping, not re-planning: it stays available after the
  * baseline is locked so no Change Plan is needed to record a payment or expense.
@@ -2937,6 +2922,7 @@ function RevenuePlanTable({
       onSave={(patch) => { if (editingIdx !== null) onSave(editingIdx, patch); setEditingIdx(null); }}
     />
     <ConfirmDeleteDialog
+        description="This entry will be removed from the plan."
       label={pendingDeleteIdx !== null ? entries[pendingDeleteIdx]?.ms : undefined}
       onCancel={() => setPendingDeleteIdx(null)}
       onConfirm={() => {
@@ -2953,6 +2939,7 @@ function RevenuePlanTable({
       }}
     />
     <ConfirmDeleteDialog
+        description="This entry will be removed from the plan."
       label={pendingDeleteActual ? (entries[pendingDeleteActual.rowIdx]?.actuals?.[pendingDeleteActual.actualIdx]?.name ?? "this actual") : undefined}
       onCancel={() => setPendingDeleteActual(null)}
       onConfirm={() => {
@@ -3097,6 +3084,7 @@ function CostBreakdownTable({
       onSave={(patch) => { if (editingIdx !== null) onSave(editingIdx, patch); setEditingIdx(null); }}
     />
     <ConfirmDeleteDialog
+        description="This entry will be removed from the plan."
       label={pendingDeleteIdx !== null ? entries[pendingDeleteIdx]?.c : undefined}
       onCancel={() => setPendingDeleteIdx(null)}
       onConfirm={() => {
@@ -3113,6 +3101,7 @@ function CostBreakdownTable({
       }}
     />
     <ConfirmDeleteDialog
+        description="This entry will be removed from the plan."
       label={pendingDeleteActual ? (entries[pendingDeleteActual.rowIdx]?.actuals?.[pendingDeleteActual.actualIdx]?.name ?? "this actual") : undefined}
       onCancel={() => setPendingDeleteActual(null)}
       onConfirm={() => {

@@ -3,6 +3,7 @@
 - Standardized Risk & Issues forms, status updates, heat-map details, and attachment controls against the shared DS02 popup system used by Organization.
 - Reflowed dense risk scoring fields into compact responsive layouts and added accessible popup and side-panel descriptions.
 - Corrected the shared form-popup Cancel action to use the system's dark outlined secondary treatment instead of the white variant.
+- Recorded the dark outlined Cancel treatment as a permanent DS02 rule for every popup and aligned confirmation popups with it.
 
 ## Session — 2026-09-13 (Project grid and baseline lifecycle)
 

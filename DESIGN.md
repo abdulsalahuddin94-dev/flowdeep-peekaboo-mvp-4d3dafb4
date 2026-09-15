@@ -486,7 +486,8 @@ Map to RAG: green=approved/active, amber=pending/risk, red=rejected/critical, bl
 
 ### Dialogs
 - `max-w-md` confirmations · `max-w-lg` forms · `max-w-4xl` multi-step
-- Footer: Cancel (outline, left) · Primary action (right)
+- Footer: Cancel (dark `outline`, left) · Primary action (right)
+- **Popup Cancel rule:** Cancel must always use the dark outlined treatment (`variant="outline"`) in every popup. Never use the white `outlineSecondary` treatment for Cancel.
 
 ## Spacing
 `gap-3` tight grids · `gap-4` standard grids · `p-4` compact cards · `p-5` standard cards · `mt-5` tab content
@@ -532,6 +533,7 @@ Anatomy (fixed): close ✕ top-right → 44px tinted icon circle with matching
 1px ring → bold title → muted description → footer with secondary "Cancel"
 plus the tone's action button, both centered. Optional `children` renders an
 inner body (e.g. a searchable checkbox list) left-aligned above the footer.
+The Cancel action always uses the dark outlined treatment and must never have a white fill.
 
 Tokens live in `src/styles.css` as `--confirm-{tone}-{icon|surface|ring}`.
 
@@ -555,9 +557,8 @@ Anatomy (fixed):
 - Container: `bg-card`, 1px `--border`, radius 16px (`rounded-2xl`), padding 28px, max-height 90vh scrollable
 - Header: **bold left-aligned title** (20px, 600) + optional muted description; large 24px ✕ top-right
 - Body: left-aligned stack, `gap-5`. Each field uses `Field` + `Input`/`Textarea`/`Select` (36px, radius 8px)
-- Footer: **two equal-width buttons side by side** (`grid grid-cols-2 gap-4`) —
-  secondary `outlineSecondary` (Cancel) on the left, `primary` lavender (Save/Add) on the right.
-  Never right-align or stack them.
+- Footer: Cancel uses the dark `outline` treatment; Save/Add uses `primary` lavender.
+  Cancel must never use `outlineSecondary` or any white-filled treatment in a popup.
 - Toggles (e.g. "Enable …") sit as a full-width row: label left, `Switch` right.
 
 Sizes: `sm` (max-w-sm) · `md` (max-w-lg, default) · `lg` (max-w-2xl) · `xl` (max-w-4xl).

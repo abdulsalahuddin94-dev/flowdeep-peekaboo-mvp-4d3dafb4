@@ -3982,13 +3982,20 @@ function AddMilestoneDialog({
         <div className="grid gap-3">
           <div>
             <Label>Type</Label>
-            <Select value={kind} onValueChange={(v) => setKind(v as ItemKind)} disabled={lockKindToTask}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {!lockKindToTask && <SelectItem value="Milestone">Milestone</SelectItem>}
-                <SelectItem value="Task">Task</SelectItem>
-              </SelectContent>
-            </Select>
+            <RadioGroup
+              value={kind}
+              onValueChange={(v) => setKind(v as ItemKind)}
+              className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem id="type-milestone" value="Milestone" disabled={lockKindToTask} />
+                <Label htmlFor="type-milestone" className={cn("cursor-pointer text-sm", lockKindToTask && "opacity-40")}>Milestone</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem id="type-task" value="Task" />
+                <Label htmlFor="type-task" className="cursor-pointer text-sm">Task</Label>
+              </div>
+            </RadioGroup>
             {lockKindToTask && (
               <p className="mt-1 text-[10px] text-muted-foreground">
                 Subtasks are always tasks — a milestone is a single checkpoint date, not a child of another item.

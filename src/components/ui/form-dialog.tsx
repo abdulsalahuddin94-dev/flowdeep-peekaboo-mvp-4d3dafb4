@@ -70,7 +70,7 @@ export function FormDialog({
         <div className="mt-7 flex items-center justify-end gap-3">
           <Button
             type="button"
-            variant="outlineSecondary"
+            variant="outline"
             onClick={() => onOpenChange(false)}
           >
             {cancelLabel}

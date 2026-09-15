@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Search, Filter, ChevronRight, ChevronLeft, X } from "@/lib/icons";
 import { PageActions } from "@/components/ds/PageActionsSlot";
+import { StatusPill } from "@/components/TableRowActions";
 
 /*
  * DS02 page toolbar — search (left) + filter drawer + main CTA (right).
@@ -74,6 +75,12 @@ export function PageToolbar({
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Record<string, string | string[]>>({});
   const [panel, setPanel] = useState<string | null>(null);
+  const [panelQuery, setPanelQuery] = useState("");
+
+  function openPanel(key: string) {
+    setPanelQuery("");
+    setPanel(key);
+  }
 
   const activeCount = filterGroups.reduce((acc, g) => acc + (isMultiGroup(g) ? g.value.length : isGroupActive(g) ? 1 : 0), 0);
 
@@ -123,12 +130,18 @@ export function PageToolbar({
 
   const activePanel = filterGroups.find((g) => g.key === panel);
   /** Drop the leading "All …" row when there are only two real choices. */
-  const panelOptions = (() => {
+  const panelOptionsAll = (() => {
     if (!activePanel) return [];
     const opts = activePanel.options;
     const firstIsAll = /^all\b/i.test(opts[0]?.label ?? "");
     return firstIsAll && opts.length <= 3 ? opts.slice(1) : opts;
   })();
+  /** Long lists (e.g. Skills) get a search box to narrow them down. */
+  const showPanelSearch = panelOptionsAll.length > 6;
+  const panelOptions = showPanelSearch && panelQuery.trim()
+    ? panelOptionsAll.filter((o) => o.label.toLowerCase().includes(panelQuery.trim().toLowerCase()))
+    : panelOptionsAll;
+  const isStatusPanel = activePanel?.key === "status";
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -165,7 +178,7 @@ export function PageToolbar({
       {trailing && <div className="ml-auto flex items-center gap-2">{trailing}</div>}
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="flex w-[380px] flex-col gap-0 border-l border-border bg-surface p-0 sm:max-w-[380px]">
+        <SheetContent hideClose={!!activePanel} side="right" className="flex w-[380px] flex-col gap-0 border-l border-border bg-surface p-0 sm:max-w-[380px]">
           {activePanel ? (
             <>
               <div className="flex items-center gap-2 px-5 py-4">
@@ -174,6 +187,18 @@ export function PageToolbar({
                 </button>
                 <SheetTitle className="text-sm font-medium text-foreground">{activePanel.label}</SheetTitle>
               </div>
+              {showPanelSearch && (
+                <div className="relative px-5 pb-3">
+                  <Search className="pointer-events-none absolute left-8 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={panelQuery}
+                    onChange={(e) => setPanelQuery(e.target.value)}
+                    placeholder="Search by …"
+                    className="rounded-md pl-9"
+                    aria-label={`Search ${activePanel.label}`}
+                  />
+                </div>
+              )}
               <ScrollArea className="flex-1 px-5">
                 <div className="space-y-1 pb-4">
                   {isMultiGroup(activePanel) ? (
@@ -224,7 +249,11 @@ export function PageToolbar({
                           className="flex w-full items-center gap-3 rounded-md px-1 py-2 text-left text-sm text-foreground hover:bg-secondary/40"
                         >
                           <Checkbox checked={selected} className="pointer-events-none" />
-                          <span className="truncate">{o.label}</span>
+                          {isStatusPanel && (o.value === "active" || o.value === "inactive") ? (
+                            <StatusPill isActive={o.value === "active"} label={o.label} />
+                          ) : (
+                            <span className="truncate">{o.label}</span>
+                          )}
                         </button>
                       );
                     })
@@ -246,7 +275,7 @@ export function PageToolbar({
                     <button
                       key={g.key}
                       type="button"
-                      onClick={() => setPanel(g.key)}
+                      onClick={() => openPanel(g.key)}
                       className="flex w-full items-center justify-between rounded-md py-3 text-left text-sm text-foreground hover:bg-secondary/30"
                     >
                       <span>{g.label}</span>
@@ -294,7 +323,7 @@ export function PageToolbar({
             </>
           )}
           <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-4">
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            {activePanel && <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>}
             <Button variant="primary" onClick={apply}>Apply</Button>
           </div>
         </SheetContent>

@@ -1,3 +1,8 @@
+## Session — 2026-09-15 (Dependency predecessor filtering)
+
+- Added Task and Milestone radio choices to Manage Dependencies, defaulting to Task.
+- Filtered the predecessor dropdown by the selected type and clear stale selections when switching.
+
 ## Session — 2026-09-15 (Popup close icon distinction)
 
 - Standardized every centered popup to use a large bare X close control with no circular fill or border.

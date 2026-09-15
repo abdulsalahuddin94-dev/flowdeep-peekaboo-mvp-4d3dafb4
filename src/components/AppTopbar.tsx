@@ -169,7 +169,7 @@ export function AppTopbar() {
               )}
             </Button>
           </SheetTrigger>
-          <SheetContent className="w-[420px] bg-surface border-l border-border">
+          <SheetContent className="w-[420px] rounded-l-lg border-l border-border bg-drawer">
             <SheetHeader>
               <SheetTitle className="text-foreground">Notifications</SheetTitle>
             </SheetHeader>

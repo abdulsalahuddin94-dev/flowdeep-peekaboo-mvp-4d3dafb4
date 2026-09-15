@@ -531,7 +531,7 @@ function GanttView({ items }: { items: Project[] }) {
 function ProjectSlideOver({ project, onClose }: { project: Project | null; onClose: () => void }) {
   return (
     <Sheet open={!!project} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-[480px] overflow-y-auto bg-surface text-foreground sm:max-w-[480px]">
+      <SheetContent className="w-[480px] overflow-y-auto rounded-l-lg border-l border-border bg-drawer text-foreground sm:max-w-[480px]">
         {project && (
           <div className="space-y-5">
             <div>

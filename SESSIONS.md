@@ -1,3 +1,8 @@
+## Session — 2026-09-15 (Outline and Secondary CTA tokens)
+
+- Corrected DS02 Outline to use `#DEC9FF` text/stroke on `#1D1D1F`, and Secondary to use `#E0E0E0` text with `#A0A0A0` stroke on `#1D1D1F`.
+- Applied Outline to Convert to Issue and Secondary to Edit, attachments, and popup Cancel actions.
+
 ## Session — 2026-09-15 (Universal side-drawer and CTA alignment)
 
 - Applied the DS02 `#121319` drawer surface, left border, and left radius to Risk details and every other desktop side drawer.

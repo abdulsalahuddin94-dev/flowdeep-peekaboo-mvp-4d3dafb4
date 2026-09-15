@@ -1115,8 +1115,8 @@
 
 /* ── DS02 button tokens (semantic, per-state) — mapped to the reference palette
    Primary  default Purple 100 → hover Purple 400
-   Secondary default Gray 800 with Gray 500 border → hover Gray 700
-   Outline  shares the secondary CTA surface and border
+   Secondary default Gray 800 with Gray 400 border/text → hover Gray 700
+   Outline  Gray 800 with Purple 100 border/text → hover Purple 400
    Danger   Red 700 → hover Red BG (Red 900)
    Warning  Yellow 300 → hover Yellow 700                                    */
 :root {
@@ -1126,16 +1126,16 @@
   --btn-primary-fg-hover:      var(--p-white);
 
   --btn-secondary-bg:          var(--p-neutral-800);
-  --btn-secondary-fg:          var(--p-white);
+  --btn-secondary-fg:          var(--p-neutral-200);
   --btn-secondary-bg-hover:    var(--p-neutral-700);
-  --btn-secondary-border:      var(--p-neutral-500);
+  --btn-secondary-border:      var(--p-neutral-400);
 
-  --btn-outline-bg:            var(--btn-secondary-bg);
-  --btn-outline-border:        var(--btn-secondary-border);
-  --btn-outline-fg:            var(--btn-secondary-fg);
-  --btn-outline-border-hover:  var(--btn-secondary-border);
-  --btn-outline-fg-hover:      var(--btn-secondary-fg);
-  --btn-outline-bg-hover:      var(--btn-secondary-bg-hover);
+  --btn-outline-bg:            var(--p-neutral-800);
+  --btn-outline-border:        var(--p-lavender-200);
+  --btn-outline-fg:            var(--p-lavender-200);
+  --btn-outline-border-hover:  var(--p-lavender-500);
+  --btn-outline-fg-hover:      var(--p-lavender-500);
+  --btn-outline-bg-hover:      var(--p-neutral-800);
 
   --btn-outline-2-bg:          var(--p-white);
   --btn-outline-2-fg:          var(--p-neutral-900);
@@ -1155,9 +1155,9 @@
 /* Secondary CTAs stay dark in both themes for a consistent action hierarchy. */
 [data-theme="light"] {
   --btn-secondary-bg:       var(--p-neutral-800);
-  --btn-secondary-fg:       var(--p-white);
+  --btn-secondary-fg:       var(--p-neutral-200);
   --btn-secondary-bg-hover: var(--p-neutral-700);
-  --btn-secondary-border:   var(--p-neutral-500);
+  --btn-secondary-border:   var(--p-neutral-400);
 
   --btn-outline-2-bg:       var(--p-neutral-900);
   --btn-outline-2-fg:       var(--p-white);

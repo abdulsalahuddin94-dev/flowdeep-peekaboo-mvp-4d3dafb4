@@ -531,31 +531,30 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
         </div>
       </div>
 
-      <FormDialog
-        open={!!cell}
-        onOpenChange={(o) => !o && setCell(null)}
-        title={cell ? `Probability ${cell.p} × Impact ${cell.i}` : ""}
-        description="Risks currently positioned in the selected probability and impact cell."
-        size="lg"
-        hideFooter
-      >
-        <div className="space-y-2">
-          {cellItems.map((r) => (
-            <div key={r.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
-              <div className="flex items-center gap-2">
-                <span className="num-mono text-xs text-muted-foreground">{r.id}</span>
-                <Pill label={severityOf(r.score)} tone={SEVERITY_TONE[severityOf(r.score)]} />
-                <Pill label={r.status} tone={RISK_STATUS_TONE[r.status]} />
+      <Sheet open={!!cell} onOpenChange={(o) => !o && setCell(null)}>
+        <SheetContent side="right" className="flex w-[480px] max-w-full flex-col rounded-l-lg border-l border-border bg-drawer p-0 sm:max-w-[480px]">
+          <SheetHeader className="border-b border-border px-6 py-4 text-left">
+            <SheetTitle>{cell ? `Probability ${cell.p} × Impact ${cell.i}` : ""}</SheetTitle>
+            <SheetDescription>Risks currently positioned in the selected probability and impact cell.</SheetDescription>
+          </SheetHeader>
+          <div className="flex-1 space-y-2 overflow-y-auto px-6 py-4">
+            {cellItems.map((r) => (
+              <div key={r.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
+                <div className="flex items-center gap-2">
+                  <span className="num-mono text-xs text-muted-foreground">{r.id}</span>
+                  <Pill label={severityOf(r.score)} tone={SEVERITY_TONE[severityOf(r.score)]} />
+                  <Pill label={r.status} tone={RISK_STATUS_TONE[r.status]} />
+                </div>
+                <div className="mt-1 text-sm font-medium text-foreground">{r.title}</div>
+                <div className="mt-0.5 text-xs text-muted-foreground">{r.project} · {r.owner}</div>
               </div>
-              <div className="mt-1 text-sm font-medium text-foreground">{r.title}</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">{r.project} · {r.owner}</div>
-            </div>
-          ))}
-          {cellItems.length === 0 && (
-            <p className="py-6 text-center text-sm text-muted-foreground">No risks in this cell.</p>
-          )}
-        </div>
-      </FormDialog>
+            ))}
+            {cellItems.length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">No risks in this cell.</p>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

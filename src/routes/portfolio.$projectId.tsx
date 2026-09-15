@@ -3741,6 +3741,18 @@ function AddMilestoneDialog({
     return items.find((i) => i.name === n)?.kind === "Milestone" ? "milestone" : "task";
   };
 
+  // A subtask is always a Task — a milestone is a zero-duration point in the plan,
+  // so it can never sit *inside* another item as a child deliverable.
+  const lockKindToTask = !isEditing && !!initialParent;
+
+  // A child can only live inside its parent's date window (MS Project behaviour).
+  const parentItem = parentName === "__none__" ? undefined : items.find((i) => i.name === parentName);
+  const parentWindow = parentItem
+    ? parentItem.kind === "Milestone"
+      ? { min: undefined as string | undefined, max: parentItem.endDate || undefined }
+      : { min: parentItem.startDate || undefined, max: parentItem.endDate || undefined }
+    : { min: undefined as string | undefined, max: undefined as string | undefined };
+
   function reset() {
     setKind(initialKind ?? "Task"); setName(""); setOwner(defaultOwner); setStatus("Not Started"); setDep(""); setErrors({});
     setEndDate(""); setLagDays(0); setMilestoneType("finish");

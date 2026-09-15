@@ -11,3 +11,4 @@
 - [x] Make the Portfolio card grid use 3/4/5 columns at the requested desktop widths
 - [x] Implement unlocked pre-baseline and locked post-baseline project stages
 - [x] Move and restyle plan approval indicators beside the version dropdown
+- [x] Align all Risk & Issues popups with the Organization design system

@@ -105,11 +105,9 @@ export function FormDialog({
                 {title}
               </DialogPrimitive.Title>
               {/* DS02: popup subtitles are not displayed — kept for a11y only. */}
-              {description ? (
-                <DialogPrimitive.Description className="sr-only">
-                  {description}
-                </DialogPrimitive.Description>
-              ) : null}
+              <DialogPrimitive.Description className="sr-only">
+                {description ?? `${title} dialog`}
+              </DialogPrimitive.Description>
             </div>
             <DialogPrimitive.Close
               aria-label="Close"

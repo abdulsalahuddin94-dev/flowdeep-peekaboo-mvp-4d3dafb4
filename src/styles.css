@@ -616,6 +616,8 @@
   --color-background:         var(--background);
   --color-foreground:         var(--foreground);
   --color-surface:            var(--surface);
+  --color-drawer:             var(--drawer-surface);
+
   --color-card:               var(--card);
   --color-card-foreground:    var(--card-foreground);
   --color-popover:            var(--popover);

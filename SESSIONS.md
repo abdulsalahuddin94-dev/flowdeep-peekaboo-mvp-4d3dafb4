@@ -1,3 +1,8 @@
+## Session — 2026-09-15 (Popup close icon distinction)
+
+- Standardized every centered popup to use a large bare X close control with no circular fill or border.
+- Kept the compact circular X exclusively for filters and side drawers, and documented the distinction in DS02.
+
 ## Session — 2026-09-15 (Project Schedule popup alignment)
 
 - Replaced the legacy Change Parent alert with the shared DS02 form popup and the schedule Delete alert with the shared danger confirmation popup.

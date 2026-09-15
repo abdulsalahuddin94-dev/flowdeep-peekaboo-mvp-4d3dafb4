@@ -67,7 +67,7 @@ function OrganizationPage() {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-medium text-foreground">{label}</h1>
+        <h1 className="text-xl font-medium text-foreground">{label}</h1>
         <PageActionsSlot />
       </div>
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>

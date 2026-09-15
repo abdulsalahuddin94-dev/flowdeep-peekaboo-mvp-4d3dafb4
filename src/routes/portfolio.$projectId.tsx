@@ -6197,6 +6197,7 @@ function DependencyDialog({
   onSetDependencies: (name: string, dependencies: any[], impacts: DepImpact[]) => void;
 }) {
   const [selectedPred, setSelectedPred] = useState<string>("");
+  const [predecessorKind, setPredecessorKind] = useState<"Task" | "Milestone">("Task");
   const [relation, setRelation] = useState<"FS" | "SF" | "SS" | "FF">("FS");
   const [lag, setLag] = useState(0);
   const [deps, setDeps] = useState<any[]>([]);
@@ -6206,6 +6207,7 @@ function DependencyDialog({
     if (open && currentItem) {
       setDeps((currentItem.dependencies ?? []).map((d) => ({ ...d, lag: depLag(d) })));
       setSelectedPred("");
+      setPredecessorKind("Task");
       setRelation("FS");
       setLag(0);
       setAcceptShift(false);
@@ -6293,15 +6295,39 @@ function DependencyDialog({
             <div className="text-sm font-medium">Add New Dependency</div>
             <div className="grid gap-3">
               <div>
-                <Label className="text-xs">Predecessor Task/Milestone</Label>
+                <Label className="text-xs">Predecessor Type</Label>
+                <RadioGroup
+                  value={predecessorKind}
+                  onValueChange={(value) => {
+                    setPredecessorKind(value as "Task" | "Milestone");
+                    setSelectedPred("");
+                  }}
+                  className="mt-2 flex flex-wrap items-center gap-5"
+                >
+                  <label htmlFor="predecessor-task" className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                    <RadioGroupItem id="predecessor-task" value="Task" />
+                    Predecessor Task
+                  </label>
+                  <label htmlFor="predecessor-milestone" className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                    <RadioGroupItem id="predecessor-milestone" value="Milestone" />
+                    Predecessor Milestone
+                  </label>
+                </RadioGroup>
+              </div>
+              <div>
+                <Label className="text-xs">
+                  {predecessorKind === "Task" ? "Predecessor Task" : "Predecessor Milestone"}
+                </Label>
                 <Select value={selectedPred} onValueChange={setSelectedPred}>
-                  <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder={`Select a ${predecessorKind.toLowerCase()}...`} />
+                  </SelectTrigger>
                   <SelectContent className="max-h-48">
                     {allItems
-                      .filter((m) => m.name !== currentItem?.name)
+                      .filter((m) => m.name !== currentItem?.name && m.kind === predecessorKind)
                       .map((m) => (
                         <SelectItem key={m.name} value={m.name}>
-                          {m.kind === "Milestone" ? "◆" : "▢"} {m.name}
+                          {m.name}
                         </SelectItem>
                       ))}
                   </SelectContent>

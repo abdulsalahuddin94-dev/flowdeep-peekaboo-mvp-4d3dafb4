@@ -12,3 +12,4 @@
 - [x] Implement unlocked pre-baseline and locked post-baseline project stages
 - [x] Move and restyle plan approval indicators beside the version dropdown
 - [x] Align all Risk & Issues popups with the Organization design system
+- [x] Split the dependency predecessor picker into task and milestone choices

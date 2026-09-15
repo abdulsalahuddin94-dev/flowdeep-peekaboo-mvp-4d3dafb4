@@ -4122,8 +4122,13 @@ function AddMilestoneDialog({
               </div>
 
               <Field label="Start date" htmlFor="task-start-date" required error={errors.startDate}>
-                <DatePicker id="task-start-date" value={startDate} onChange={(value) => { setStartDate(value); setErrors((p) => ({ ...p, startDate: undefined })); }} placeholder="Pick start date" />
+                <DatePicker id="task-start-date" value={startDate} min={parentWindow.min} max={parentWindow.max} onChange={(value) => { setStartDate(value); setErrors((p) => ({ ...p, startDate: undefined })); }} placeholder="Pick start date" />
               </Field>
+              {parentItem && (parentWindow.min || parentWindow.max) && (
+                <p className="-mt-2 text-[10px] text-muted-foreground">
+                  Must stay inside “{parentItem.name}”: {parentWindow.min ? `${parentWindow.min} → ` : "on or before "}{parentWindow.max ?? "—"}
+                </p>
+              )}
 
               <div>
                 <Label>End Date Or Duration</Label>

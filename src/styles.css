@@ -386,6 +386,9 @@
   --background:          var(--p-white);
   --foreground:          var(--p-neutral-900);
   --surface:             var(--p-neutral-50);
+  /* DS02 side drawer (filters) fill */
+  --drawer-surface:      var(--p-white);
+
   --card:                var(--p-neutral-50);
   --card-foreground:     var(--p-neutral-900);
   --popover:             var(--p-white);

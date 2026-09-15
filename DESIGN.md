@@ -393,7 +393,27 @@ in one right-aligned toolbar row — never split across the page.
 - All three controls share the global control metrics: **height 36px, radius 8px**.
 - Buttons are not form fields: `Button` sets `data-ds-field="off"` so the control baseline does not override button background colours.
 
+
+## Filter Side Drawer (DS02)
+
+**Rule:** Every list screen filters through the same right side drawer (`PageToolbar` / `FilterDrawer`).
+
+- Panel: `Sheet side="right"`, width **380px**, `rounded-l-lg`, `border-l border-border`,
+  fill **`bg-drawer`** = `--drawer-surface` (**#121319** in dark, white in light). Never `bg-surface`.
+- Header row: `px-5 py-4`, 14px medium title; root level has a round close button,
+  drill-down level has a `ChevronLeft` Back button before the title.
+- Groups list: full-width rows, `py-3`, label left + `ChevronRight` right, hover `bg-secondary/30`.
+- Option rows: `Checkbox` + label, `gap-3 py-2`, hover `bg-secondary/40`. Checkbox state always
+  reads from the **draft** state, never the applied value, so selection reacts immediately;
+  changes commit only on **Apply**.
+- Long option lists (> 6) get a search field: `Input` with leading `Search` icon inside a
+  `relative` wrapper (`absolute left-3 top-1/2 -translate-y-1/2`, `pl-9`) — the padding wrapper
+  is outside the `relative` box so the icon never drifts from the field.
+- Applied filters: chips section above the footer with `Clear Filters`.
+- Footer: `border-t`, right-aligned **Cancel** (dark outlined) + **Apply** (primary).
+
 ## Typography
+
 
 **Font family:** `Outfit` (Google Fonts). Fallback: `ui-sans-serif, system-ui, sans-serif`.  
 **Monospace:** `Courier New`, `ui-monospace` — use `.num-mono` class for all numbers, IDs, currencies.

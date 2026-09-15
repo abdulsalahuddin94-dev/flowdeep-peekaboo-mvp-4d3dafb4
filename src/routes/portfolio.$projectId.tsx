@@ -3971,13 +3971,18 @@ function AddMilestoneDialog({
         <div className="grid gap-3">
           <div>
             <Label>Type</Label>
-            <Select value={kind} onValueChange={(v) => setKind(v as ItemKind)}>
+            <Select value={kind} onValueChange={(v) => setKind(v as ItemKind)} disabled={lockKindToTask}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Milestone">Milestone</SelectItem>
+                {!lockKindToTask && <SelectItem value="Milestone">Milestone</SelectItem>}
                 <SelectItem value="Task">Task</SelectItem>
               </SelectContent>
             </Select>
+            {lockKindToTask && (
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                Subtasks are always tasks — a milestone is a single checkpoint date, not a child of another item.
+              </p>
+            )}
           </div>
           <Field label="Name" htmlFor="schedule-item-name" required error={errors.name}>
             <Input id="schedule-item-name" value={name} onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: undefined })); }} placeholder="e.g. UAT Sign-off" />

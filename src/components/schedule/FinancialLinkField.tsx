@@ -175,7 +175,7 @@ export function FinancialLinkField({ costIds, revenueIds, onChange, linkedElsewh
           <DialogFooter className="items-center sm:justify-between">
             <span className="text-xs text-muted-foreground">{draftCount} item(s) selected</span>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
               <Button
                 onClick={() => {
                   onChange({ cost: draftCost, revenue: draftRevenue });

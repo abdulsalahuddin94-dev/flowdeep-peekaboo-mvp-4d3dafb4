@@ -3969,6 +3969,7 @@ function AddMilestoneDialog({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{isEditing ? `Edit ${kind}` : `Add ${kind}`}</DialogTitle></DialogHeader>
         <div className="grid gap-3">
+          {!isEditing && (
           <div>
             <Label>Type</Label>
             <RadioGroup
@@ -3991,6 +3992,8 @@ function AddMilestoneDialog({
               </p>
             )}
           </div>
+          )}
+
           <Field label="Name" htmlFor="schedule-item-name" required error={errors.name}>
             <Input id="schedule-item-name" value={name} onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: undefined })); }} placeholder="e.g. UAT Sign-off" />
           </Field>
@@ -4016,7 +4019,9 @@ function AddMilestoneDialog({
               </div>
 
 
+              {!isEditing && (
               <div className="rounded-md border border-accent/20 bg-accent-dim/30 p-3 space-y-3">
+
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="requires-approval"
@@ -4080,12 +4085,15 @@ function AddMilestoneDialog({
                   </div>
                 )}
               </div>
+              )}
+
             </>
           )}
 
           {/* TASK: parent (any milestone or task) + start + (end date | duration) + weight */}
           {kind === "Task" && (
             <>
+              {!isEditing && (
               <div>
                 <Label>Parent</Label>
                 <RadioGroup
@@ -4127,6 +4135,8 @@ function AddMilestoneDialog({
                   </div>
                 )}
               </div>
+              )}
+
 
               <Field label="Start date" htmlFor="task-start-date" required error={errors.startDate}>
                 <DatePicker id="task-start-date" value={startDate} min={parentWindow.min} max={parentWindow.max} onChange={(value) => { setStartDate(value); setErrors((p) => ({ ...p, startDate: undefined })); }} placeholder="Pick start date" />
@@ -4186,102 +4196,8 @@ function AddMilestoneDialog({
             </>
           )}
 
-          {isEditing && (
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label>Status</Label>
-                <Select
-                  value={status}
-                  onValueChange={(v) => {
-                    if (v === "In Progress" && (editingItem?.progress ?? 0) <= 0) {
-                      toast.error("Add progress above 0% first — status follows progress");
-                      return;
-                    }
-                    setStatus(v);
-                  }}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Not Started">Not Started</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                    <SelectItem value="Overdue">Overdue</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
 
-          {/* Financial links — only when editing details (kept out of quick add) */}
-          {isEditing && (
-            <FinancialLinkField
-              costIds={costLinkIds.filter(Boolean)}
-              revenueIds={revenueLinkIds.filter(Boolean)}
-              linkedElsewhere={linkedElsewhere}
-              onChange={({ cost, revenue }) => {
-                setCostLinkIds(cost);
-                setRevenueLinkIds(revenue);
-              }}
-              hint={kind === "Task" ? "Revenue is normally mapped to major milestones." : undefined}
-            />
-          )}
 
-          {isEditing && (
-
-            <div className="rounded-md border border-border p-3">
-              <div className="mb-2 flex items-center justify-between">
-                <Label className="text-sm">Skill required</Label>
-                <span className="text-xs text-muted-foreground">One role per subtask works best</span>
-              </div>
-              <div className="grid grid-cols-[1fr_110px_80px_28px] gap-2">
-                <Label className="text-xs text-muted-foreground">Skill / Role</Label>
-                <Label className="text-xs text-muted-foreground">Level</Label>
-                <Label className="text-xs text-muted-foreground">FTE</Label>
-                <span />
-                {skillRoles.map((row, idx) => (
-                  <div key={idx} className="contents">
-                    <Input list="role-suggestions" value={row.role} onChange={(e) => setSkillRoles((rows) => rows.map((r, i) => i === idx ? { ...r, role: e.target.value } : r))} placeholder="e.g. QA Engineer" />
-                    <Select value={row.skill} onValueChange={(v) => setSkillRoles((rows) => rows.map((r, i) => i === idx ? { ...r, skill: v as RoleReq["skill"] } : r))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Junior">Junior</SelectItem>
-                        <SelectItem value="Mid">Mid</SelectItem>
-                        <SelectItem value="Senior">Senior</SelectItem>
-                        <SelectItem value="Lead">Lead</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input type="number" min="0" step="0.5" value={row.fte} onChange={(e) => setSkillRoles((rows) => rows.map((r, i) => i === idx ? { ...r, fte: Number(e.target.value) } : r))} />
-                    <button
-                      type="button"
-                      aria-label="Remove role"
-                      disabled={skillRoles.length <= 1}
-                      onClick={() => setSkillRoles((rows) => rows.filter((_, i) => i !== idx))}
-                      className="flex h-9 w-7 items-center justify-center text-muted-foreground transition-colors hover:text-destructive disabled:opacity-30"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <datalist id="role-suggestions">{roleSuggestions.map((r) => <option key={r} value={r} />)}</datalist>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="mt-2 h-7 text-xs"
-                onClick={() => {
-                  setSkillRoles((rows) => {
-                    const next = [...rows, emptyRole()];
-                    if (next.length >= 2) toast.info("We recommend a subtask for this role");
-                    return next;
-                  });
-                }}
-              >
-                <Plus className="mr-1 h-3 w-3" /> Add role
-              </Button>
-              <p className="mt-2 text-[10px] text-muted-foreground">Leave the role blank to skip the resource request. Assignee fills automatically once the request is fulfilled in Resources.</p>
-            </div>
-          )}
         </div>
         <DialogFooter>
           <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>

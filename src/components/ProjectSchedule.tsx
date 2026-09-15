@@ -1494,6 +1494,12 @@ export function ProjectSchedule({
                           <PanelLeftOpen className="mr-2 h-3.5 w-3.5" /> Change parent
                         </ContextMenuItem>
                       )}
+                      {!isGate && !restricted && onEditItem && (
+                        <ContextMenuItem onSelect={() => onEditItem(item.name)}>
+                          <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+                        </ContextMenuItem>
+                      )}
+
                       {!isGate && !restricted && onDeleteItem && (
                         <>
                           <ContextMenuSeparator />

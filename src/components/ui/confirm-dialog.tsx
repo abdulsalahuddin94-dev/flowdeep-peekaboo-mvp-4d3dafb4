@@ -136,7 +136,7 @@ export function ConfirmDialog({
 
           <div className="mt-6 flex items-center justify-center gap-3">
             {!hideCancel && (
-              <Button variant="secondary" onClick={() => onOpenChange(false)}>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
                 {cancelLabel}
               </Button>
             )}

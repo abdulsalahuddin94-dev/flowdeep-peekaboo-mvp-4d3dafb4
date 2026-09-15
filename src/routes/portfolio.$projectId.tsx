@@ -3904,6 +3904,17 @@ function AddMilestoneDialog({
         durVal = Number(durationValue);
         durUnit = durationUnit;
       }
+      // A child must stay inside its parent's window.
+      if (parentItem) {
+        if (parentWindow.min && startDate && startDate < parentWindow.min) {
+          nextErrors.startDate = `Cannot start before “${parentItem.name}” (${parentWindow.min}).`;
+        }
+        if (parentWindow.max && computedEnd && computedEnd > parentWindow.max) {
+          const msg = `Cannot finish after “${parentItem.name}” (${parentWindow.max}).`;
+          if (endMode === "date") nextErrors.taskEndDate = msg;
+          else nextErrors.duration = msg;
+        }
+      }
       if (Object.values(nextErrors).some(Boolean)) { setErrors(nextErrors); return; }
       const parent = parentName === "__none__" ? undefined : parentName;
 

@@ -561,7 +561,7 @@ destructive or acknowledgement prompt. Never hand-roll a confirm modal.
 | `warning` | danger-triangle | warning (gold) |
 | `danger` | trash-bin | danger (red) |
 
-Anatomy (fixed): close ✕ top-right → 44px tinted icon circle with matching
+Anatomy (fixed): bare 28px close ✕ top-right → 44px tinted icon circle with matching
 1px ring → bold title → muted description → footer with secondary "Cancel"
 plus the tone's action button, both centered. Optional `children` renders an
 inner body (e.g. a searchable checkbox list) left-aligned above the footer.
@@ -587,7 +587,7 @@ This is the single shape/style for add / edit / form / content dialogs.
 
 Anatomy (fixed):
 - Container: `bg-card`, 1px `--border`, radius 16px (`rounded-2xl`), padding 28px, max-height 90vh scrollable
-- Header: **bold left-aligned title** (20px, 600) + optional muted description; large 24px ✕ top-right
+- Header: **bold left-aligned title** (20px, 600) + optional muted description; bare 28px ✕ top-right with no circular fill or border
 - Body: left-aligned stack, `gap-5`. Each field uses `Field` + `Input`/`Textarea`/`Select` (36px, radius 8px)
 - Footer: Cancel uses the dark `secondary` treatment; Save/Add uses `primary` lavender.
   Cancel must never use `outline`, `outlineSecondary`, or any white-filled treatment in a popup.
@@ -595,6 +595,7 @@ Anatomy (fixed):
   use `primary`; emphasized outlined actions such as **Convert to Issue** use `outline`; cancel, edit,
   attach, and standard secondary actions use `secondary`.
 - Toggles (e.g. "Enable …") sit as a full-width row: label left, `Switch` right.
+- Close-control distinction: centered popups use the bare 28px ✕. Filters and side drawers keep the compact 24px circular close chip.
 
 Sizes: `sm` (max-w-sm) · `md` (max-w-lg, default) · `lg` (max-w-2xl) · `xl` (max-w-4xl).
 

@@ -4148,7 +4148,7 @@ function AddMilestoneDialog({
                 </RadioGroup>
                 {endMode === "date" ? (
                   <Field htmlFor="task-end-date" required error={errors.taskEndDate}>
-                    <DatePicker id="task-end-date" className="mt-2" value={taskEndDate} min={startDate || undefined} onChange={(value) => { setTaskEndDate(value); setErrors((p) => ({ ...p, taskEndDate: undefined })); }} placeholder="Pick end date" />
+                    <DatePicker id="task-end-date" className="mt-2" value={taskEndDate} min={startDate || parentWindow.min} max={parentWindow.max} onChange={(value) => { setTaskEndDate(value); setErrors((p) => ({ ...p, taskEndDate: undefined })); }} placeholder="Pick end date" />
                   </Field>
                 ) : (
                   <Field className="mt-2" htmlFor="task-duration" required error={errors.duration}>

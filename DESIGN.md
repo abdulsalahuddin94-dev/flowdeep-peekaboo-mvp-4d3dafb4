@@ -401,6 +401,12 @@ in one right-aligned toolbar row — never split across the page.
 - Panel: every right-side `SheetContent`, including filter and record-detail drawers, uses
   `rounded-l-lg border-l border-border bg-drawer`. Filter drawers are **380px**; detail drawers may
   use **480px**. `--drawer-surface` is **#121319** in dark mode. Never use `bg-surface` for a drawer.
+- **Close (✕) button:** the close affordance is identical across every drawer and popup
+  (`SheetContent` default close, `FormDialog` close, and the filter drawer header). It is a
+  **24px round chip** (`h-6 w-6 rounded-full`) with a subtle filled background
+  `bg-[var(--btn-secondary-bg-hover)]` (`--p-neutral-700` dark), foreground at 90% opacity, and a
+  **12px** `X` icon (`h-3 w-3`). No bare/large X, no white background, no border. Hover raises the
+  icon to full foreground. Do not reintroduce a plain `X size={20/22}` close anywhere.
 - Header row: `px-5 py-4`, 14px medium title; root level has a round close button,
   drill-down level has a `ChevronLeft` Back button before the title.
 - Groups list: full-width rows, `py-3`, label left + `ChevronRight` right, hover `bg-secondary/30`.

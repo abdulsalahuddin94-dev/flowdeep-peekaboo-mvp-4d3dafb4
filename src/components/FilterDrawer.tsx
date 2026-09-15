@@ -86,7 +86,7 @@ export function FilterDrawer({ groups }: { groups: DrawerFilterGroup[] }) {
       </Button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="flex w-[380px] flex-col gap-0 border-l border-border bg-surface p-0 sm:max-w-[380px]">
+        <SheetContent side="right" className="flex w-[380px] flex-col gap-0 border-l border-border bg-drawer p-0 sm:max-w-[380px]">
           {activePanel ? (
             <>
               <div className="flex items-center gap-2 px-5 py-4">

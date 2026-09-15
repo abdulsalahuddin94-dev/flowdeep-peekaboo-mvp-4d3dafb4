@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/lib/toast";
@@ -275,6 +275,7 @@ function RiskFormDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={risk ? "Edit risk" : "Log a new risk"}
+      description={risk ? "Update this risk's classification, scoring and mitigation plan." : "Record a potential event, assess its likelihood and impact, and define an optional mitigation plan."}
       size="lg"
       submitLabel={risk ? "Save Changes" : "Log Risk"}
       onSubmit={submit}
@@ -283,7 +284,7 @@ function RiskFormDialog({
         <Input id="risk-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="Describe the risk in one line" />
       </Field>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Project" htmlFor="risk-project" error={errors.project}>
           <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }} disabled={!!lockedProject}>
             <SelectTrigger id="risk-project"><SelectValue placeholder="Select project" /></SelectTrigger>
@@ -302,7 +303,7 @@ function RiskFormDialog({
         </Field>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Probability" htmlFor="risk-prob" hint="1 – 5">
           <Select value={prob} onValueChange={setProb}>
             <SelectTrigger id="risk-prob"><SelectValue /></SelectTrigger>
@@ -329,7 +330,7 @@ function RiskFormDialog({
             <Pill label={severityOf(score)} tone={SEVERITY_TONE[severityOf(score)]} />
           </div>
         </Field>
-        <Field label="Status" htmlFor="risk-status">
+        <Field label="Status" htmlFor="risk-status" className="lg:col-span-3">
           <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
             <SelectTrigger id="risk-status"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -371,6 +372,7 @@ function RiskSheet({
             <Pill label={risk.status} tone={RISK_STATUS_TONE[risk.status]} />
           </div>
           <SheetTitle className="mt-2 text-lg">{risk.title}</SheetTitle>
+          <SheetDescription className="sr-only">Risk details, mitigation plan, and update history.</SheetDescription>
           <p className="mt-1 text-xs text-muted-foreground">{risk.project}</p>
         </SheetHeader>
 
@@ -533,6 +535,7 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
         open={!!cell}
         onOpenChange={(o) => !o && setCell(null)}
         title={cell ? `Probability ${cell.p} × Impact ${cell.i}` : ""}
+        description="Risks currently positioned in the selected probability and impact cell."
         size="lg"
         hideFooter
       >
@@ -740,6 +743,7 @@ function IssueFormDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={issue ? "Edit issue" : "Log a new issue"}
+      description={issue ? "Update this issue's details, ownership and corrective action." : "Record a realized event that requires immediate corrective action."}
       size="lg"
       submitLabel={issue ? "Save Changes" : "Log Issue"}
       onSubmit={submit}
@@ -748,7 +752,7 @@ function IssueFormDialog({
         <Input id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="What is blocking or going wrong?" />
       </Field>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Project" htmlFor="issue-project" error={errors.project}>
           <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }} disabled={!!lockedProject}>
             <SelectTrigger id="issue-project"><SelectValue placeholder="Select project" /></SelectTrigger>
@@ -760,7 +764,7 @@ function IssueFormDialog({
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Priority" htmlFor="issue-priority">
           <Select value={priority} onValueChange={(v) => setPriority(v as IssuePriority)}>
             <SelectTrigger id="issue-priority"><SelectValue /></SelectTrigger>
@@ -833,7 +837,7 @@ function RiskStatusDialog({
       submitLabel="Record Update"
       onSubmit={submit}
     >
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Status" htmlFor="risk-status-update">
           <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
             <SelectTrigger id="risk-status-update"><SelectValue /></SelectTrigger>
@@ -854,7 +858,7 @@ function RiskStatusDialog({
             <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
           </Select>
         </Field>
-        <Field label="Score" hint="Probability × Impact">
+        <Field label="Score" hint="Probability × Impact" className="sm:col-span-2 lg:col-span-1">
           <div className="flex h-9 items-center gap-2 rounded-md border border-border bg-[var(--field-bg-filled)] px-3">
             <span className="num-mono text-sm text-foreground">{score}</span>
             <Pill label={severityOf(score)} tone={SEVERITY_TONE[severityOf(score)]} />
@@ -938,13 +942,12 @@ function IssueStatusDialog({
 
       <Field label="Supporting proof" htmlFor="issue-attachment" optional hint="Photo or document that evidences the resolution.">
         <div className="flex items-center gap-3">
-          <label
-            htmlFor="issue-attachment"
-            className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-md border border-[var(--btn-outline-border)] bg-[var(--btn-secondary-bg)] px-4 text-xs font-medium text-[var(--btn-secondary-fg)] hover:bg-[var(--btn-outline-bg-hover)]"
-          >
-            <Paperclip size={14} />
-            Attach file
-          </label>
+          <Button asChild type="button" variant="outlineSecondary" size="sm">
+            <label htmlFor="issue-attachment" className="cursor-pointer">
+              <Paperclip size={14} />
+              Attach file
+            </label>
+          </Button>
           <input
             id="issue-attachment"
             type="file"

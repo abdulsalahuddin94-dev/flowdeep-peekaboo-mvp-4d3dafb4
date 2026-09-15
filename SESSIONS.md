@@ -1,3 +1,8 @@
+## Session — 2026-09-15 (Risk & Issues popup alignment)
+
+- Standardized Risk & Issues forms, status updates, heat-map details, and attachment controls against the shared DS02 popup system used by Organization.
+- Reflowed dense risk scoring fields into compact responsive layouts and added accessible popup and side-panel descriptions.
+
 ## Session — 2026-09-13 (Project grid and baseline lifecycle)
 
 - Made Portfolio cards render three columns by default, four above 1690px, and five from 2030px.

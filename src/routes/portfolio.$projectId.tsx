@@ -3741,6 +3741,18 @@ function AddMilestoneDialog({
     return items.find((i) => i.name === n)?.kind === "Milestone" ? "milestone" : "task";
   };
 
+  // A subtask is always a Task — a milestone is a zero-duration point in the plan,
+  // so it can never sit *inside* another item as a child deliverable.
+  const lockKindToTask = !isEditing && !!initialParent;
+
+  // A child can only live inside its parent's date window (MS Project behaviour).
+  const parentItem = parentName === "__none__" ? undefined : items.find((i) => i.name === parentName);
+  const parentWindow = parentItem
+    ? parentItem.kind === "Milestone"
+      ? { min: undefined as string | undefined, max: parentItem.endDate || undefined }
+      : { min: parentItem.startDate || undefined, max: parentItem.endDate || undefined }
+    : { min: undefined as string | undefined, max: undefined as string | undefined };
+
   function reset() {
     setKind(initialKind ?? "Task"); setName(""); setOwner(defaultOwner); setStatus("Not Started"); setDep(""); setErrors({});
     setEndDate(""); setLagDays(0); setMilestoneType("finish");
@@ -3892,6 +3904,17 @@ function AddMilestoneDialog({
         durVal = Number(durationValue);
         durUnit = durationUnit;
       }
+      // A child must stay inside its parent's window.
+      if (parentItem) {
+        if (parentWindow.min && startDate && startDate < parentWindow.min) {
+          nextErrors.startDate = `Cannot start before “${parentItem.name}” (${parentWindow.min}).`;
+        }
+        if (parentWindow.max && computedEnd && computedEnd > parentWindow.max) {
+          const msg = `Cannot finish after “${parentItem.name}” (${parentWindow.max}).`;
+          if (endMode === "date") nextErrors.taskEndDate = msg;
+          else nextErrors.duration = msg;
+        }
+      }
       if (Object.values(nextErrors).some(Boolean)) { setErrors(nextErrors); return; }
       const parent = parentName === "__none__" ? undefined : parentName;
 
@@ -3959,13 +3982,18 @@ function AddMilestoneDialog({
         <div className="grid gap-3">
           <div>
             <Label>Type</Label>
-            <Select value={kind} onValueChange={(v) => setKind(v as ItemKind)}>
+            <Select value={kind} onValueChange={(v) => setKind(v as ItemKind)} disabled={lockKindToTask}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="Milestone">Milestone</SelectItem>
+                {!lockKindToTask && <SelectItem value="Milestone">Milestone</SelectItem>}
                 <SelectItem value="Task">Task</SelectItem>
               </SelectContent>
             </Select>
+            {lockKindToTask && (
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                Subtasks are always tasks — a milestone is a single checkpoint date, not a child of another item.
+              </p>
+            )}
           </div>
           <Field label="Name" htmlFor="schedule-item-name" required error={errors.name}>
             <Input id="schedule-item-name" value={name} onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: undefined })); }} placeholder="e.g. UAT Sign-off" />
@@ -4105,8 +4133,13 @@ function AddMilestoneDialog({
               </div>
 
               <Field label="Start date" htmlFor="task-start-date" required error={errors.startDate}>
-                <DatePicker id="task-start-date" value={startDate} onChange={(value) => { setStartDate(value); setErrors((p) => ({ ...p, startDate: undefined })); }} placeholder="Pick start date" />
+                <DatePicker id="task-start-date" value={startDate} min={parentWindow.min} max={parentWindow.max} onChange={(value) => { setStartDate(value); setErrors((p) => ({ ...p, startDate: undefined })); }} placeholder="Pick start date" />
               </Field>
+              {parentItem && (parentWindow.min || parentWindow.max) && (
+                <p className="-mt-2 text-[10px] text-muted-foreground">
+                  Must stay inside “{parentItem.name}”: {parentWindow.min ? `${parentWindow.min} → ` : "on or before "}{parentWindow.max ?? "—"}
+                </p>
+              )}
 
               <div>
                 <Label>End Date Or Duration</Label>
@@ -4126,7 +4159,7 @@ function AddMilestoneDialog({
                 </RadioGroup>
                 {endMode === "date" ? (
                   <Field htmlFor="task-end-date" required error={errors.taskEndDate}>
-                    <DatePicker id="task-end-date" className="mt-2" value={taskEndDate} min={startDate || undefined} onChange={(value) => { setTaskEndDate(value); setErrors((p) => ({ ...p, taskEndDate: undefined })); }} placeholder="Pick end date" />
+                    <DatePicker id="task-end-date" className="mt-2" value={taskEndDate} min={startDate || parentWindow.min} max={parentWindow.max} onChange={(value) => { setTaskEndDate(value); setErrors((p) => ({ ...p, taskEndDate: undefined })); }} placeholder="Pick end date" />
                   </Field>
                 ) : (
                   <Field className="mt-2" htmlFor="task-duration" required error={errors.duration}>

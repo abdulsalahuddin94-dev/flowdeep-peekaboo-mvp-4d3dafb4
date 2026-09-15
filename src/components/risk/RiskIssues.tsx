@@ -444,7 +444,7 @@ function RiskSheet({
             <Button variant="primary" className="flex-1" onClick={() => { onClose(); onUpdate(risk); }}>Update risk status</Button>
             <Button variant="outline" className="flex-1" onClick={() => { onClose(); onConvert(risk); }}>Convert to Issue</Button>
           </div>
-          <Button variant="outline" className="w-full" onClick={() => onEdit(risk)}>Edit Risk</Button>
+          <Button variant="secondary" className="w-full" onClick={() => onEdit(risk)}>Edit Risk</Button>
         </div>
       </SheetContent>
     </Sheet>
@@ -942,7 +942,7 @@ function IssueStatusDialog({
 
       <Field label="Supporting proof" htmlFor="issue-attachment" optional hint="Photo or document that evidences the resolution.">
         <div className="flex items-center gap-3">
-          <Button asChild type="button" variant="outline" size="sm">
+          <Button asChild type="button" variant="secondary" size="sm">
             <label htmlFor="issue-attachment" className="cursor-pointer">
               <Paperclip size={14} />
               Attach file

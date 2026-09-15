@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
  *   bold left-aligned title  ·  large ✕ top-right
  *   body (form fields, lists, content) — left aligned, gap-5
  *   footer: primary and secondary actions aligned to the bottom-right,
- *           dark outline (cancel) then primary (submit). Buttons do not fill width.
+ *           dark secondary (cancel) then primary (submit). Buttons do not fill width.
  *           Popup Cancel actions are never white.
  */
 export type FormDialogSize = "sm" | "md" | "lg" | "xl";
@@ -71,7 +71,7 @@ export function FormDialog({
         <div className="mt-7 flex items-center justify-end gap-3">
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             onClick={() => onOpenChange(false)}
           >
             {cancelLabel}

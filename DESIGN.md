@@ -486,7 +486,8 @@ Sidebar (240px, collapsible to 44px) + Topbar (48px) + main (px-10 py-8)
 | Variant | Usage |
 |---|---|
 | `bg-accent text-accent-foreground hover:bg-accent/90` | Primary CTA — one per section |
-| `variant="outline"` | Secondary actions — `#1D1D1F` fill, `#767680` border |
+| `variant="outline"` | Emphasized outline actions — `#1D1D1F` fill, `#DEC9FF` text and border |
+| `variant="secondary"` | Secondary actions — `#1D1D1F` fill, `#E0E0E0` text, `#A0A0A0` border |
 | `variant="ghost"` | Tertiary / icon-only |
 | `variant="destructive"` | Delete, reject, remove |
 
@@ -507,8 +508,8 @@ Map to RAG: green=approved/active, amber=pending/risk, red=rejected/critical, bl
 
 ### Dialogs
 - `max-w-md` confirmations · `max-w-lg` forms · `max-w-4xl` multi-step
-- Footer: Cancel (dark `outline`, left) · Primary action (right)
-- **Popup Cancel rule:** Cancel must always use the dark outlined treatment (`variant="outline"`) in every popup. Never use the white `outlineSecondary` treatment for Cancel.
+- Footer: Cancel (dark `secondary`, left) · Primary action (right)
+- **Popup Cancel rule:** Cancel must always use the dark secondary treatment (`variant="secondary"`) in every popup. Never use a white-filled treatment for Cancel.
 
 ## Spacing
 `gap-3` tight grids · `gap-4` standard grids · `p-4` compact cards · `p-5` standard cards · `mt-5` tab content
@@ -527,8 +528,8 @@ Values come from the `--btn-*` tokens in `src/styles.css` — never hardcode hex
 | Variant | Default | Hover |
 |---|---|---|
 | `primary` (`default`) | lavender fill, dark text | vivid purple fill, white text |
-| `secondary` | dark fill + hairline border | lighter dark fill |
-| `outline` | transparent + lavender border | purple border, purple text, tinted fill |
+| `secondary` | `#1D1D1F` fill, `#E0E0E0` text, `#A0A0A0` border | lighter dark fill |
+| `outline` | `#1D1D1F` fill, `#DEC9FF` text and border | vivid purple text and border |
 | `outlineSecondary` | **Retired — do not use** | **Retired — do not use** |
 | `danger` (`destructive`) | red fill | deep maroon fill |
 | `warning` | golden fill, dark text | dark gold fill |
@@ -554,7 +555,7 @@ Anatomy (fixed): close ✕ top-right → 44px tinted icon circle with matching
 1px ring → bold title → muted description → footer with secondary "Cancel"
 plus the tone's action button, both centered. Optional `children` renders an
 inner body (e.g. a searchable checkbox list) left-aligned above the footer.
-The Cancel action always uses the dark outlined treatment and must never have a white fill.
+The Cancel action always uses the dark `secondary` treatment and must never have a white fill.
 
 Tokens live in `src/styles.css` as `--confirm-{tone}-{icon|surface|ring}`.
 
@@ -578,10 +579,11 @@ Anatomy (fixed):
 - Container: `bg-card`, 1px `--border`, radius 16px (`rounded-2xl`), padding 28px, max-height 90vh scrollable
 - Header: **bold left-aligned title** (20px, 600) + optional muted description; large 24px ✕ top-right
 - Body: left-aligned stack, `gap-5`. Each field uses `Field` + `Input`/`Textarea`/`Select` (36px, radius 8px)
-- Footer: Cancel uses the dark `outline` treatment; Save/Add uses `primary` lavender.
-  Cancel must never use `outlineSecondary` or any white-filled treatment in a popup.
+- Footer: Cancel uses the dark `secondary` treatment; Save/Add uses `primary` lavender.
+  Cancel must never use `outline`, `outlineSecondary`, or any white-filled treatment in a popup.
 - **No-white CTA rule:** no popup or side drawer action may use a white-filled button. Primary actions
-  use `primary`; secondary, cancel, edit, convert, attach, and tertiary actions use dark `outline`.
+  use `primary`; emphasized outlined actions such as **Convert to Issue** use `outline`; cancel, edit,
+  attach, and standard secondary actions use `secondary`.
 - Toggles (e.g. "Enable …") sit as a full-width row: label left, `Switch` right.
 
 Sizes: `sm` (max-w-sm) · `md` (max-w-lg, default) · `lg` (max-w-2xl) · `xl` (max-w-4xl).

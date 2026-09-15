@@ -489,6 +489,18 @@ Sidebar (240px, collapsible to 44px) + Topbar (48px) + main (px-10 py-8)
 ## Components
 
 ### Buttons
+
+**Metrics:** height fixed at **36px** and radius **8px** via the global control
+baseline (`[data-ui="control"]` in `src/styles.css`). Horizontal padding per size
+variant (`src/components/ui/button.tsx`):
+
+| Size | Padding | Notes |
+|---|---|---|
+| `default` | `px-6` (**24px**) | Standard text buttons — minimum for text CTAs |
+| `sm` | `px-3` (12px) | Compact actions only |
+| `lg` | `px-8` (32px) | Emphasised CTAs |
+| `icon` | none (square `36×36`) | Icon-only |
+
 | Variant | Usage |
 |---|---|
 | `bg-accent text-accent-foreground hover:bg-accent/90` | Primary CTA — one per section |

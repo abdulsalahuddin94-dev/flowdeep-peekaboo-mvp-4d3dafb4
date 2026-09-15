@@ -178,7 +178,7 @@ export function PageToolbar({
       {trailing && <div className="ml-auto flex items-center gap-2">{trailing}</div>}
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent hideClose side="right" className="flex w-[380px] flex-col gap-0 rounded-l-lg border-l border-border bg-surface p-0 sm:max-w-[380px]">
+        <SheetContent hideClose side="right" className="flex w-[380px] flex-col gap-0 rounded-l-lg border-l border-border bg-drawer p-0 sm:max-w-[380px]">
           {activePanel ? (
             <>
               <div className="flex items-center gap-2 px-5 py-4">
@@ -188,26 +188,30 @@ export function PageToolbar({
                 <SheetTitle className="text-sm font-medium text-foreground">{activePanel.label}</SheetTitle>
               </div>
               {showPanelSearch && (
-                <div className="relative px-5 pb-3">
-                  <Search className="pointer-events-none absolute left-8 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={panelQuery}
-                    onChange={(e) => setPanelQuery(e.target.value)}
-                    placeholder="Search by …"
-                    className="rounded-md pl-9"
-                    aria-label={`Search ${activePanel.label}`}
-                  />
+                <div className="px-5 pb-3">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      value={panelQuery}
+                      onChange={(e) => setPanelQuery(e.target.value)}
+                      placeholder="Search by …"
+                      className="w-full rounded-md pl-9"
+                      aria-label={`Search ${activePanel.label}`}
+                    />
+                  </div>
                 </div>
               )}
+
               <ScrollArea className="flex-1 px-5">
                 <div className="space-y-1 pb-4">
                   {isMultiGroup(activePanel) ? (
                     panelOptions.map((o) => {
                       const allValue = groupFirstValue(activePanel);
                       const isAll = o.value === allValue;
-                      const selected = isAll
-                        ? activePanel.value.length === 0
-                        : activePanel.value.includes(o.value);
+                      const currentDraft = Array.isArray(draft[activePanel.key])
+                        ? (draft[activePanel.key] as string[])
+                        : activePanel.value;
+                      const selected = isAll ? currentDraft.length === 0 : currentDraft.includes(o.value);
                       return (
                         <button
                           key={o.value}

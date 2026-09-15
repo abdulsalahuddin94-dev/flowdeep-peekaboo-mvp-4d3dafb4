@@ -503,6 +503,9 @@
   --background:          var(--p-charcoal-850);
   --foreground:          var(--p-white);
   --surface:             var(--p-charcoal-900);
+  /* DS02 side drawer (filters) fill — Figma #121319 */
+  --drawer-surface:      #121319;
+
   --card:                var(--p-charcoal-900);
   --card-foreground:     var(--p-white);
   --popover:             var(--p-charcoal-900);

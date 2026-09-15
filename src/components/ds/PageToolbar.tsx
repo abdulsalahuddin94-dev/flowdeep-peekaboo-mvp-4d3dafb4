@@ -178,7 +178,7 @@ export function PageToolbar({
       {trailing && <div className="ml-auto flex items-center gap-2">{trailing}</div>}
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent hideClose={!!activePanel} side="right" className="flex w-[380px] flex-col gap-0 border-l border-border bg-surface p-0 sm:max-w-[380px]">
+        <SheetContent hideClose side="right" className="flex w-[380px] flex-col gap-0 rounded-l-lg border-l border-border bg-surface p-0 sm:max-w-[380px]">
           {activePanel ? (
             <>
               <div className="flex items-center gap-2 px-5 py-4">
@@ -268,6 +268,14 @@ export function PageToolbar({
             <>
               <div className="flex items-center justify-between px-5 py-4">
                 <SheetTitle className="text-sm font-medium text-foreground">Filters</SheetTitle>
+                <button
+                  type="button"
+                  aria-label="Close"
+                  onClick={() => setOpen(false)}
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--btn-secondary-bg-hover)] text-foreground/90 hover:text-foreground"
+                >
+                  <X className="h-3 w-3" />
+                </button>
               </div>
               <ScrollArea className="flex-1 px-5">
                 <div className="pb-4">

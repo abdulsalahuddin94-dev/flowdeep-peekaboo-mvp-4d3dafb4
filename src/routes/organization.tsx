@@ -17,6 +17,7 @@ import { useOrgActive } from "@/lib/org-active";
 import { DEFAULT_COST_CATEGORIES, type CostCategory } from "@/lib/org-cost-categories";
 import { TableRowActions } from "@/components/TableRowActions";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { QuickAddDialog } from "@/components/QuickAddDialog";
 import { PageToolbar as FilterBar, EmptyRow, type FilterGroup } from "@/components/ds/PageToolbar";
 import { PageActionsSlot } from "@/components/ds/PageActionsSlot";
 import { relatedProjectsGroup, usageGroup, capexOpexGroup, statusGroup, skillsGroup, matchRelated, matchUsage, matchStatus } from "@/components/ds/filters";
@@ -561,58 +562,41 @@ function FilterSelect({ value, onChange, options, width = "w-40" }: { value: str
 }
 
 function AddBusinessLineDialog({ onAdd }: { onAdd: (name: string, description: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Project Type</Button></DialogTrigger>
-      <DialogContent>
-        <DialogHeader><DialogTitle>New Project Type</DialogTitle><DialogDescription>High-level category used as filter chips in Portfolio.</DialogDescription></DialogHeader>
-        <div className="space-y-3">
-          <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Renewables" /></div>
-          <div><Label>Description</Label><Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description" /></div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="primary" onClick={() => {
-            const trimmed = name.trim();
-            if (!trimmed) { toast.error("Name is required"); return; }
-            onAdd(trimmed, description.trim());
-            toast.done("Project Type", "created");
-            setName(""); setDescription(""); setOpen(false);
-          }}>Save</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <QuickAddDialog
+      triggerLabel="Add Project Type"
+      title="New Project Type"
+      description="High-level category used as filter chips in Portfolio."
+      fields={[
+        { key: "name", label: "Name", placeholder: "e.g. Renewables" },
+        { key: "description", label: "Description", type: "textarea", placeholder: "Brief description" },
+      ]}
+      onSave={(v) => {
+        const trimmed = v.name.trim();
+        if (!trimmed) { toast.error("Name is required"); return false; }
+        onAdd(trimmed, v.description.trim());
+        toast.done("Project Type", "created");
+      }}
+    />
   );
 }
 
 function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, description: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Department</Button></DialogTrigger>
-      <DialogContent>
-        <DialogHeader><DialogTitle>New Department</DialogTitle></DialogHeader>
-        <div className="space-y-3">
-          <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Quality Assurance" /></div>
-          <div><Label>Description</Label><Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Brief description" /></div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="primary" onClick={() => {
-            const trimmed = name.trim();
-            if (!trimmed) { toast.error("Name is required"); return; }
-            onAdd(trimmed, description.trim());
-            toast.done("Department", "created");
-            setName(""); setDescription(""); setOpen(false);
-          }}>Save</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <QuickAddDialog
+      triggerLabel="Add Department"
+      title="New Department"
+      fields={[
+        { key: "name", label: "Name", placeholder: "e.g. Quality Assurance" },
+        { key: "description", label: "Description", type: "textarea", placeholder: "Brief description" },
+      ]}
+      onSave={(v) => {
+        const trimmed = v.name.trim();
+        if (!trimmed) { toast.error("Name is required"); return false; }
+        onAdd(trimmed, v.description.trim());
+        toast.done("Department", "created");
+      }}
+    />
   );
 }
 
@@ -1155,63 +1139,31 @@ function CostCategoriesTab() {
 
 
 function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }) {
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [number, setNumber] = useState("");
-  const [description, setDescription] = useState("");
-  const [type, setType] = useState<"CapEx" | "OpEx">("OpEx");
-
-  function save() {
-    const trimmed = name.trim();
-    const numTrimmed = number.trim();
-    if (!trimmed || !numTrimmed) { toast.error("Name and ID are required"); return; }
-    onAdd({ id: `cat-${Date.now()}`, name: trimmed, number: numTrimmed, description: description.trim(), type });
-    toast.done("Cost Category", "created");
-    setName("");
-    setNumber("");
-    setDescription("");
-    setType("OpEx");
-    setOpen(false);
-  }
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Category</Button></DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>New Cost Category</DialogTitle>
-          <DialogDescription>Define a cost classification and its cost center identifier for tracking expenses.</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div>
-            <Label>Category Name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Staff, Services, Insurance" />
-          </div>
-          <div>
-            <Label>Account Num.</Label>
-            <Input value={number} onChange={(e) => setNumber(e.target.value)} placeholder="e.g. CC-001" />
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What kind of costs belong to this category?" />
-          </div>
-          <div>
-            <Label>Type</Label>
-            <Select value={type} onValueChange={(v) => setType(v as "CapEx" | "OpEx")}>
-              <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="CapEx">CapEx — Capital expenditure</SelectItem>
-                <SelectItem value="OpEx">OpEx — Operating expenditure</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="primary" onClick={save}>Save</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <QuickAddDialog
+      triggerLabel="Add Category"
+      title="New Cost Category"
+      description="Define a cost classification and its cost center identifier for tracking expenses."
+      fields={[
+        { key: "name", label: "Category Name", placeholder: "e.g. Staff, Services, Insurance" },
+        { key: "number", label: "Account Num.", placeholder: "e.g. CC-001" },
+        { key: "description", label: "Description", type: "textarea", placeholder: "What kind of costs belong to this category?" },
+        {
+          key: "type", label: "Type", type: "select", placeholder: "Select type", defaultValue: "OpEx",
+          options: [
+            { value: "CapEx", label: "CapEx — Capital expenditure" },
+            { value: "OpEx", label: "OpEx — Operating expenditure" },
+          ],
+        },
+      ]}
+      onSave={(v) => {
+        const trimmed = v.name.trim();
+        const numTrimmed = v.number.trim();
+        if (!trimmed || !numTrimmed) { toast.error("Name and ID are required"); return false; }
+        onAdd({ id: `cat-${Date.now()}`, name: trimmed, number: numTrimmed, description: v.description.trim(), type: v.type as "CapEx" | "OpEx" });
+        toast.done("Cost Category", "created");
+      }}
+    />
   );
 }
 
@@ -1380,28 +1332,19 @@ function SkillsTable() {
 }
 
 function AddSkillDialog({ onAdd }: { onAdd: (skill: string) => boolean }) {
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
-  function save() {
-    const v = value.trim();
-    if (!v) { toast.error("Skill name is required"); return; }
-    if (onAdd(v)) { setValue(""); setOpen(false); }
-  }
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Skill</Button></DialogTrigger>
-      <DialogContent>
-        <DialogHeader><DialogTitle>New Skill</DialogTitle><DialogDescription>Add a skill to the organization lookup.</DialogDescription></DialogHeader>
-        <div>
-          <Label>Skill</Label>
-          <Input value={value} onChange={(e) => setValue(e.target.value)} placeholder="e.g. Kubernetes" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); save(); } }} />
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="primary" onClick={save}>Add</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <QuickAddDialog
+      triggerLabel="Add Skill"
+      title="New Skill"
+      description="Add a skill to the organization lookup."
+      submitLabel="Add"
+      fields={[{ key: "value", label: "Skill", placeholder: "e.g. Kubernetes" }]}
+      onSave={(v) => {
+        const trimmed = v.value.trim();
+        if (!trimmed) { toast.error("Skill name is required"); return false; }
+        return onAdd(trimmed);
+      }}
+    />
   );
 }
 
@@ -1766,41 +1709,21 @@ function RiskCategoriesTab() {
 }
 
 function AddRiskCategoryDialog({ onAdd }: { onAdd: (name: string, description: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-
-  function save() {
-    const trimmed = name.trim();
-    if (!trimmed) { toast.error("Category name is required"); return; }
-    onAdd(trimmed, description.trim());
-    toast.done("Risk Category", "created");
-    setName(""); setDescription(""); setOpen(false);
-  }
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button size="sm" variant="primary"><Plus className="mr-1 h-4 w-4" />Add Category</Button></DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>New Risk Category</DialogTitle>
-          <DialogDescription>Categories appear in the risk log form for every project.</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-3">
-          <div>
-            <Label>Category</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Resources, Scope, Technical" />
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What kind of risks belong to this category?" />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="primary" onClick={save}>Save</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <QuickAddDialog
+      triggerLabel="Add Category"
+      title="New Risk Category"
+      description="Categories appear in the risk log form for every project."
+      fields={[
+        { key: "name", label: "Category", placeholder: "e.g. Resources, Scope, Technical" },
+        { key: "description", label: "Description", type: "textarea", placeholder: "What kind of risks belong to this category?" },
+      ]}
+      onSave={(v) => {
+        const trimmed = v.name.trim();
+        if (!trimmed) { toast.error("Category name is required"); return false; }
+        onAdd(trimmed, v.description.trim());
+        toast.done("Risk Category", "created");
+      }}
+    />
   );
 }

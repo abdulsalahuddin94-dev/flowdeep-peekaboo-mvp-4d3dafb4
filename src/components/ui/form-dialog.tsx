@@ -112,9 +112,9 @@ export function FormDialog({
             </div>
             <DialogPrimitive.Close
               aria-label="Close"
-              className="-mr-1 -mt-1 cursor-pointer text-foreground/80 transition-colors hover:text-foreground"
+              className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[var(--btn-secondary-bg-hover)] text-foreground/90 transition-colors hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <X size={22} />
+              <X className="h-3 w-3" />
             </DialogPrimitive.Close>
           </div>
 

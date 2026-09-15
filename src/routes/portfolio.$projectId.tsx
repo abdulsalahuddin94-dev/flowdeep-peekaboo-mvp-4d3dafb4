@@ -4082,6 +4082,8 @@ function AddMilestoneDialog({
                   </div>
                 )}
               </div>
+              )}
+
             </>
           )}
 

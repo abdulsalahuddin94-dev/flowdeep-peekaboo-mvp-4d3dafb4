@@ -4016,7 +4016,9 @@ function AddMilestoneDialog({
               </div>
 
 
+              {!isEditing && (
               <div className="rounded-md border border-accent/20 bg-accent-dim/30 p-3 space-y-3">
+
                 <div className="flex items-center gap-2">
                   <Checkbox
                     id="requires-approval"

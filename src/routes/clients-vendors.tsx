@@ -381,7 +381,7 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
 
   return (
     <Sheet open={!!vendor} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" className="w-[480px] max-w-full p-0 flex flex-col">
+      <SheetContent side="right" className="flex w-[480px] max-w-full flex-col rounded-l-lg border-l border-border bg-drawer p-0 sm:max-w-[480px]">
         {/* Header */}
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border">
           <div className="flex items-start justify-between gap-3">

@@ -398,8 +398,9 @@ in one right-aligned toolbar row — never split across the page.
 
 **Rule:** Every list screen filters through the same right side drawer (`PageToolbar` / `FilterDrawer`).
 
-- Panel: `Sheet side="right"`, width **380px**, `rounded-l-lg`, `border-l border-border`,
-  fill **`bg-drawer`** = `--drawer-surface` (**#121319** in dark, white in light). Never `bg-surface`.
+- Panel: every right-side `SheetContent`, including filter and record-detail drawers, uses
+  `rounded-l-lg border-l border-border bg-drawer`. Filter drawers are **380px**; detail drawers may
+  use **480px**. `--drawer-surface` is **#121319** in dark mode. Never use `bg-surface` for a drawer.
 - Header row: `px-5 py-4`, 14px medium title; root level has a round close button,
   drill-down level has a `ChevronLeft` Back button before the title.
 - Groups list: full-width rows, `py-3`, label left + `ChevronRight` right, hover `bg-secondary/30`.
@@ -528,7 +529,7 @@ Values come from the `--btn-*` tokens in `src/styles.css` — never hardcode hex
 | `primary` (`default`) | lavender fill, dark text | vivid purple fill, white text |
 | `secondary` | dark fill + hairline border | lighter dark fill |
 | `outline` | transparent + lavender border | purple border, purple text, tinted fill |
-| `outlineSecondary` | white fill, navy text | off-white fill |
+| `outlineSecondary` | **Retired — do not use** | **Retired — do not use** |
 | `danger` (`destructive`) | red fill | deep maroon fill |
 | `warning` | golden fill, dark text | dark gold fill |
 
@@ -579,6 +580,8 @@ Anatomy (fixed):
 - Body: left-aligned stack, `gap-5`. Each field uses `Field` + `Input`/`Textarea`/`Select` (36px, radius 8px)
 - Footer: Cancel uses the dark `outline` treatment; Save/Add uses `primary` lavender.
   Cancel must never use `outlineSecondary` or any white-filled treatment in a popup.
+- **No-white CTA rule:** no popup or side drawer action may use a white-filled button. Primary actions
+  use `primary`; secondary, cancel, edit, convert, attach, and tertiary actions use dark `outline`.
 - Toggles (e.g. "Enable …") sit as a full-width row: label left, `Switch` right.
 
 Sizes: `sm` (max-w-sm) · `md` (max-w-lg, default) · `lg` (max-w-2xl) · `xl` (max-w-4xl).

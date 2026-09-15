@@ -1,3 +1,9 @@
+## Session — 2026-09-15 (Universal side-drawer and CTA alignment)
+
+- Applied the DS02 `#121319` drawer surface, left border, and left radius to Risk details and every other desktop side drawer.
+- Replaced the remaining white-filled Risk drawer and attachment actions with the dark outlined treatment.
+- Retired white-filled CTAs from the design system; all secondary popup and drawer actions now use the dark outline style.
+
 ## Session — 2026-09-15 (Risk & Issues popup alignment)
 
 - Standardized Risk & Issues forms, status updates, heat-map details, and attachment controls against the shared DS02 popup system used by Organization.

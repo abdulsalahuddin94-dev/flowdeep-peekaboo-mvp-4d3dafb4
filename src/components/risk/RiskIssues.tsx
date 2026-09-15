@@ -364,7 +364,7 @@ function RiskSheet({
 
   return (
     <Sheet open={!!risk} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" className="flex w-[480px] max-w-full flex-col p-0">
+      <SheetContent side="right" className="flex w-[480px] max-w-full flex-col rounded-l-lg border-l border-border bg-drawer p-0 sm:max-w-[480px]">
         <SheetHeader className="border-b border-border px-6 pb-4 pt-6">
           <div className="flex items-center gap-2">
             <span className="num-mono text-xs text-muted-foreground">{risk.id}</span>
@@ -442,7 +442,7 @@ function RiskSheet({
         <div className="space-y-2 border-t border-border px-6 py-4">
           <div className="flex gap-2">
             <Button variant="primary" className="flex-1" onClick={() => { onClose(); onUpdate(risk); }}>Update risk status</Button>
-            <Button variant="outlineSecondary" className="flex-1" onClick={() => { onClose(); onConvert(risk); }}>Convert to Issue</Button>
+            <Button variant="outline" className="flex-1" onClick={() => { onClose(); onConvert(risk); }}>Convert to Issue</Button>
           </div>
           <Button variant="outline" className="w-full" onClick={() => onEdit(risk)}>Edit Risk</Button>
         </div>
@@ -942,7 +942,7 @@ function IssueStatusDialog({
 
       <Field label="Supporting proof" htmlFor="issue-attachment" optional hint="Photo or document that evidences the resolution.">
         <div className="flex items-center gap-3">
-          <Button asChild type="button" variant="outlineSecondary" size="sm">
+          <Button asChild type="button" variant="outline" size="sm">
             <label htmlFor="issue-attachment" className="cursor-pointer">
               <Paperclip size={14} />
               Attach file

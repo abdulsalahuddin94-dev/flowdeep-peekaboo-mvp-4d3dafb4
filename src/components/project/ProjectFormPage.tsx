@@ -301,7 +301,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
 
       <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="truncate text-2xl font-medium text-foreground">
+          <h1 className="truncate text-xl font-medium text-foreground">
             {isEdit ? "Edit Project" : "New Project"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">

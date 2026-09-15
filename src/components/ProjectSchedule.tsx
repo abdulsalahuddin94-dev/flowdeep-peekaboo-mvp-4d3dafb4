@@ -2328,7 +2328,7 @@ function RolesCell({
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setSelectedRole(null)}>Cancel</Button>
+                  <Button size="sm" variant="secondary" className="h-8 text-xs" onClick={() => setSelectedRole(null)}>Cancel</Button>
                   <Button size="sm" className="h-8 text-xs" disabled={!newRole.trim()} onClick={handleSubmit}>
                     Edit
                   </Button>
@@ -2517,7 +2517,7 @@ function AssigneeCell({
           </div>
         </div>
         <div className="mt-3 flex justify-end gap-2">
-          <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={() => setOpen(false)}>Cancel</Button>
           <Button
             size="sm"
             className="h-7 text-xs"

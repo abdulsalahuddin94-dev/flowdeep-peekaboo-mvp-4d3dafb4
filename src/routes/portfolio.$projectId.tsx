@@ -1726,7 +1726,7 @@ function AddTeamMemberDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button variant="primary" onClick={submit}>Add Member</Button>
         </DialogFooter>
       </DialogContent>
@@ -1806,7 +1806,7 @@ function RequestResourceDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button variant="primary" onClick={submit}>Submit Request</Button>
         </DialogFooter>
       </DialogContent>
@@ -2266,7 +2266,7 @@ function ProgressUpdateDialog({
         </div>
 
         <DialogFooter className="m-0 border-t border-border px-6 py-3">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -3197,7 +3197,7 @@ function EditRevenueRowDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
             onClick={() => {
               const p = parseFloat(plan);
@@ -4284,7 +4284,7 @@ function AddMilestoneDialog({
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={submit}>{isEditing ? `Save ${kind}` : `Add ${kind}`}</Button>
         </DialogFooter>
       </DialogContent>
@@ -4348,7 +4348,7 @@ function LogTripDialog({ onAdd, teamMembers }: { onAdd: (t: Omit<Trip, "id">) =>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={submit}>Log Trip</Button>
         </DialogFooter>
       </DialogContent>
@@ -4474,7 +4474,7 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
               <div><Label>Owner</Label><Input value={owner} onChange={(e) => setOwner(e.target.value)} /></div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
               <Button variant="primary" onClick={submit}>Log {kind}</Button>
             </DialogFooter>
           </DialogContent>
@@ -4576,7 +4576,7 @@ function StatusReportsTab({
             <div><Label>Status narrative</Label><Textarea rows={4} value={text} onChange={(e) => setText(e.target.value)} placeholder="What happened this week, blockers, next steps…" /></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => onExternalOpenChange(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => onExternalOpenChange(false)}>Cancel</Button>
             <Button variant="primary" onClick={submit}>Submit Report</Button>
           </DialogFooter>
         </DialogContent>
@@ -4727,7 +4727,7 @@ function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; a
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setNewPkgOpen(false)}>Cancel</Button>
+                  <Button variant="secondary" onClick={() => setNewPkgOpen(false)}>Cancel</Button>
                   <Button variant="primary" onClick={handleNewPackage}>Create Request</Button>
                 </DialogFooter>
               </DialogContent>
@@ -4949,7 +4949,7 @@ function StakeholdersTab() {
               <div><Label>Engagement strategy</Label><Input value={strategy} onChange={(e) => setStrategy(e.target.value)} placeholder="e.g. Weekly 1:1" /></div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
               <Button variant="primary" onClick={submit}>Add Stakeholder</Button>
             </DialogFooter>
           </DialogContent>
@@ -5308,7 +5308,7 @@ function AddFinanceLinkDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={submit}>Add link</Button>
         </DialogFooter>
       </DialogContent>
@@ -5410,7 +5410,7 @@ function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={submit}>Add Entry</Button>
         </DialogFooter>
       </DialogContent>
@@ -5449,7 +5449,7 @@ function AddRevenueDialog({ onAdd }: { onAdd: (e: RevEntry) => void }) {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={submit}>Add Event</Button>
         </DialogFooter>
       </DialogContent>
@@ -5592,7 +5592,7 @@ function StageGatesDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -5679,7 +5679,7 @@ function LessonsTab({ project }: { project: typeof projects[number] }) {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
               <Button variant="primary" onClick={submit}>Add Lesson</Button>
             </DialogFooter>
           </DialogContent>
@@ -5833,7 +5833,7 @@ function VersionCompareDialog({
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -6173,7 +6173,7 @@ function ChangeRequestApprovalDialog({
 
         {mode === "review" && (
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+            <Button variant="secondary" onClick={() => onOpenChange(false)}>Close</Button>
           </DialogFooter>
         )}
       </DialogContent>

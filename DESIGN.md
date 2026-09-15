@@ -518,6 +518,8 @@ Map to RAG: green=approved/active, amber=pending/risk, red=rejected/critical, bl
 - `max-w-md` confirmations · `max-w-lg` forms · `max-w-4xl` multi-step
 - Footer: Cancel (dark `secondary`, left) · Primary action (right)
 - **Popup Cancel rule:** Cancel must always use the dark secondary treatment (`variant="secondary"`) in every popup. Never use a white-filled treatment for Cancel.
+- **Project Schedule rule:** schedule forms use `FormDialog`; destructive confirmations use `ConfirmDialog`. Do not use a generic alert popup for editable forms or deletes.
+- All popup shells share the semantic modal surface/border, 20px title, 28px padding, 24px close chip, and right-aligned 12px action gap.
 
 ## Spacing
 `gap-3` tight grids · `gap-4` standard grids · `p-4` compact cards · `p-5` standard cards · `mt-5` tab content

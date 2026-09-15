@@ -414,7 +414,7 @@ function TaskDialog({
             </Button>
           ) : <span />}
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button onClick={submit} variant="primary">
               {editing ? "Save" : "Create"}
             </Button>

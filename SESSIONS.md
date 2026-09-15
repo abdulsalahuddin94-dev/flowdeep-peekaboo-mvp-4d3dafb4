@@ -1,3 +1,9 @@
+## Session — 2026-09-15 (Project Schedule popup alignment)
+
+- Replaced the legacy Change Parent alert with the shared DS02 form popup and the schedule Delete alert with the shared danger confirmation popup.
+- Standardized shared dialog close controls, footer alignment, and dark secondary Cancel actions across Project Schedule popups.
+- Documented the required popup primitives for future Project Schedule work.
+
 ## Session — 2026-09-15 (Outline and Secondary CTA tokens)
 
 - Corrected DS02 Outline to use `#DEC9FF` text/stroke on `#1D1D1F`, and Secondary to use `#E0E0E0` text with `#A0A0A0` stroke on `#1D1D1F`.

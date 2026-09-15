@@ -2392,7 +2392,7 @@ function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEnt
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
           <Button
             onClick={() => {
               const amt = parseFloat(amount);
@@ -2454,7 +2454,7 @@ function EditActualDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
             onClick={() => {
               const amt = parseFloat(amount);
@@ -2543,7 +2543,7 @@ function EditCostRowDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
             onClick={() => {
               const p = parseFloat(plan);
@@ -3319,7 +3319,7 @@ function RequestResourcesDialog({ projectName }: { projectName: string }) {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={handleSubmit}>
             Submit request
           </Button>
@@ -5993,7 +5993,7 @@ function ChangeRequestDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button variant="primary"
             onClick={handleSubmit}
             disabled={changes.length === 0}
@@ -6398,7 +6398,7 @@ function DependencyDialog({
           )}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button variant="primary" onClick={save} disabled={impacts.length > 0 && !acceptShift}>Save Dependencies</Button>
         </DialogFooter>
       </DialogContent>
@@ -6690,7 +6690,7 @@ function ScheduleFinancialLinkDialog({
           linkedElsewhere={linkedElsewhere}
         />
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button variant="primary" onClick={save}>Save links</Button>
         </DialogFooter>
       </DialogContent>

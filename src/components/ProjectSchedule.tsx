@@ -23,6 +23,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { FormDialog } from "@/components/ui/form-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger,
 } from "@/components/ui/context-menu";
@@ -1882,88 +1884,68 @@ export function ProjectSchedule({
       </AlertDialog>
 
       {/* Change parent */}
-      <AlertDialog open={!!changeParentFor} onOpenChange={(o) => { if (!o) setChangeParentFor(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Change parent of "{changeParentFor}"</AlertDialogTitle>
-            <AlertDialogDescription>
-              Move this item under a different parent, or make it a top-level item.
-              Its own nested items move with it.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="grid gap-1.5">
-            <Label>Parent</Label>
-            <Select value={nextParent} onValueChange={setNextParent}>
-              <SelectTrigger><SelectValue placeholder="Select parent" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__root__">None (Top level)</SelectItem>
-                {(() => {
-                  if (!changeParentFor) return null;
-                  // Exclude self and its descendants to keep the tree acyclic.
-                  const blocked = new Set<string>([changeParentFor]);
-                  const stack = [changeParentFor];
-                  while (stack.length) {
-                    const cur = stack.pop()!;
-                    for (const kid of childrenOf.get(cur) ?? []) {
-                      if (!blocked.has(kid.name)) { blocked.add(kid.name); stack.push(kid.name); }
-                    }
+      <FormDialog
+        open={!!changeParentFor}
+        onOpenChange={(o) => { if (!o) setChangeParentFor(null); }}
+        title={`Change parent of “${changeParentFor ?? ""}”`}
+        description="Move this item under a different parent, or make it a top-level item."
+        size="md"
+        submitLabel="Save"
+        onSubmit={() => {
+          if (changeParentFor) {
+            onItemPatch?.(changeParentFor, { parent: nextParent === "__root__" ? undefined : nextParent });
+            toast.done("Parent", "updated");
+          }
+          setChangeParentFor(null);
+        }}
+      >
+        <div className="grid gap-1.5">
+          <Label>Parent</Label>
+          <Select value={nextParent} onValueChange={setNextParent}>
+            <SelectTrigger><SelectValue placeholder="Select parent" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__root__">None (Top level)</SelectItem>
+              {(() => {
+                if (!changeParentFor) return null;
+                // Exclude self and its descendants to keep the tree acyclic.
+                const blocked = new Set<string>([changeParentFor]);
+                const stack = [changeParentFor];
+                while (stack.length) {
+                  const cur = stack.pop();
+                  if (!cur) break;
+                  for (const kid of childrenOf.get(cur) ?? []) {
+                    if (!blocked.has(kid.name)) { blocked.add(kid.name); stack.push(kid.name); }
                   }
-                  return items
-                    .filter((it) => !blocked.has(it.name) && !it.isApprovalTask)
-                    .map((it) => (
-                      <SelectItem key={it.name} value={it.name}>{it.kind} · {it.name}</SelectItem>
-                    ));
-                })()}
-              </SelectContent>
-            </Select>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (changeParentFor) {
-                  onItemPatch?.(changeParentFor, { parent: nextParent === "__root__" ? undefined : nextParent });
-                  toast.done("Parent", "updated");
                 }
-                setChangeParentFor(null);
-              }}
-            >
-              Save
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+                return items
+                  .filter((it) => !blocked.has(it.name) && !it.isApprovalTask)
+                  .map((it) => (
+                    <SelectItem key={it.name} value={it.name}>{it.kind} · {it.name}</SelectItem>
+                  ));
+              })()}
+            </SelectContent>
+          </Select>
+        </div>
+      </FormDialog>
 
       {/* Delete confirmation */}
-      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => { if (!o) setPendingDelete(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete "{pendingDelete}"?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently remove this item{(() => {
-                if (!pendingDelete) return "";
-                const kids = (childrenOf.get(pendingDelete)?.length ?? 0);
-                return kids > 0 ? ` and its ${kids} nested item${kids === 1 ? "" : "s"}` : "";
-              })()}. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-rag-red text-white hover:bg-rag-red/90"
-              onClick={() => {
-                if (pendingDelete) {
-                  onDeleteItem?.(pendingDelete);
-                  toast.done("Schedule item", "deleted");
-                }
-                setPendingDelete(null);
-              }}
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={!!pendingDelete}
+        onOpenChange={(o) => { if (!o) setPendingDelete(null); }}
+        tone="danger"
+        title={`Delete “${pendingDelete ?? ""}”?`}
+        description={`This will permanently remove this item${pendingDelete && (childrenOf.get(pendingDelete)?.length ?? 0) > 0
+          ? ` and its ${childrenOf.get(pendingDelete)?.length ?? 0} nested item${(childrenOf.get(pendingDelete)?.length ?? 0) === 1 ? "" : "s"}`
+          : ""}. This action cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={() => {
+          if (pendingDelete) {
+            onDeleteItem?.(pendingDelete);
+            toast.done("Schedule item", "deleted");
+          }
+          setPendingDelete(null);
+        }}
+      />
     </div>
   );
 }

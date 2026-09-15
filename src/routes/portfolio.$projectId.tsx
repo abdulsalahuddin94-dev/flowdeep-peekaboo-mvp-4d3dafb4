@@ -4086,6 +4086,7 @@ function AddMilestoneDialog({
           {/* TASK: parent (any milestone or task) + start + (end date | duration) + weight */}
           {kind === "Task" && (
             <>
+              {!isEditing && (
               <div>
                 <Label>Parent</Label>
                 <RadioGroup
@@ -4127,6 +4128,8 @@ function AddMilestoneDialog({
                   </div>
                 )}
               </div>
+              )}
+
 
               <Field label="Start date" htmlFor="task-start-date" required error={errors.startDate}>
                 <DatePicker id="task-start-date" value={startDate} min={parentWindow.min} max={parentWindow.max} onChange={(value) => { setStartDate(value); setErrors((p) => ({ ...p, startDate: undefined })); }} placeholder="Pick start date" />

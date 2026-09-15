@@ -3969,6 +3969,7 @@ function AddMilestoneDialog({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{isEditing ? `Edit ${kind}` : `Add ${kind}`}</DialogTitle></DialogHeader>
         <div className="grid gap-3">
+          {!isEditing && (
           <div>
             <Label>Type</Label>
             <RadioGroup
@@ -3991,6 +3992,8 @@ function AddMilestoneDialog({
               </p>
             )}
           </div>
+          )}
+
           <Field label="Name" htmlFor="schedule-item-name" required error={errors.name}>
             <Input id="schedule-item-name" value={name} onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: undefined })); }} placeholder="e.g. UAT Sign-off" />
           </Field>

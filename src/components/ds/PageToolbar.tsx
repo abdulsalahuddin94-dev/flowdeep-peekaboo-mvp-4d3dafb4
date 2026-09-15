@@ -208,9 +208,10 @@ export function PageToolbar({
                     panelOptions.map((o) => {
                       const allValue = groupFirstValue(activePanel);
                       const isAll = o.value === allValue;
-                      const selected = isAll
-                        ? activePanel.value.length === 0
-                        : activePanel.value.includes(o.value);
+                      const currentDraft = Array.isArray(draft[activePanel.key])
+                        ? (draft[activePanel.key] as string[])
+                        : activePanel.value;
+                      const selected = isAll ? currentDraft.length === 0 : currentDraft.includes(o.value);
                       return (
                         <button
                           key={o.value}

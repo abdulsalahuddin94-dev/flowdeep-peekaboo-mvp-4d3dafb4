@@ -497,6 +497,8 @@ Sidebar (240px, collapsible to 44px) + Topbar (48px) + main (px-10 py-8)
 | `variant="ghost"` | Tertiary / icon-only |
 | `variant="destructive"` | Delete, reject, remove |
 
+**Control metrics & font:** every `Button` is height **36px**, radius **8px**. All button labels — including the Main CTA (`size="sm"` primary in the toolbar) — render at **`text-sm` = 14px**. The `sm` size only narrows horizontal padding (`px-3`); it never reduces the label to `text-xs`. Buttons that genuinely need a smaller label override explicitly with `text-xs`/`text-[11px]`.
+
 ### Status Pills
 Map to RAG: green=approved/active, amber=pending/risk, red=rejected/critical, blue=new/draft, grey=archived/hold.
 

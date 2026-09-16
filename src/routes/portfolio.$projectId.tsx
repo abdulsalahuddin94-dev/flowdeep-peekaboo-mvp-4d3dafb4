@@ -930,6 +930,8 @@ function ProjectDetail() {
               }
               setPlanningProgressOpen(true);
             }}
+            highlightItem={scheduleHighlight}
+            onHighlightDone={() => setScheduleHighlight(null)}
             onItemPatch={(name, patch) => {
               // Only Progress Update and Assignee changes/swaps are allowed
               // without opening the Change Plan flow. Everything else needs approval.

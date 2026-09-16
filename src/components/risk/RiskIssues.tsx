@@ -57,7 +57,13 @@ const ISSUE_STATUS_TONE: Record<IssueStatus, string> = {
   Resolved: "border-rag-green/40 bg-rag-green/10 text-rag-green",
 };
 
+/** Schedule milestones available for linking; falls back to demo milestones. */
+export function milestonesForProject(project?: string) {
+  return seedMilestones.filter((m) => !project || m.project === project).map((m) => m.name);
+}
+
 /** Severity bands come from Organization → Rules & Thresholds. */
+
 export function useSeverity() {
   const rules = useOrgRules();
   return {

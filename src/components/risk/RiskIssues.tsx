@@ -524,6 +524,7 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
                 ))}
               </div>
               <div className="mt-1.5 text-center text-xs text-muted-foreground">Impact →</div>
+            </div>
           </div>
         </div>
         </EmptyRegion>

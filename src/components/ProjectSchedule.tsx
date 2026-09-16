@@ -373,6 +373,36 @@ export function ProjectSchedule({
   const splitRef = useRef<HTMLDivElement | null>(null);
   const leftScrollRef = useRef<HTMLDivElement | null>(null);
   const rightScrollRef = useRef<HTMLDivElement | null>(null);
+  // Cross-module navigation: a row named via highlightItem is expanded into view,
+  // scrolled to center, and flashed briefly (e.g. clicking a milestone-linked cost row).
+  const [flashRow, setFlashRow] = useState<string | null>(null);
+  useEffect(() => {
+    if (!highlightItem) return;
+    setExpanded((prev) => {
+      const n = new Set(prev);
+      const byName = new Map(items.map((i) => [i.name, i]));
+      let cur = byName.get(highlightItem)?.parent;
+      while (cur) {
+        n.add(cur);
+        cur = byName.get(cur)?.parent;
+      }
+      return n;
+    });
+    setFlashRow(highlightItem);
+    const scrollTimer = setTimeout(() => {
+      const el = leftScrollRef.current?.querySelector(`[data-row-name="${CSS.escape(highlightItem)}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+    const clearTimer = setTimeout(() => {
+      setFlashRow(null);
+      onHighlightDone?.();
+    }, 2600);
+    return () => {
+      clearTimeout(scrollTimer);
+      clearTimeout(clearTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightItem]);
   // Width of the scroll viewport, so the table can stretch to fill it (no right gap)
   const [viewportW, setViewportW] = useState(0);
   useEffect(() => {

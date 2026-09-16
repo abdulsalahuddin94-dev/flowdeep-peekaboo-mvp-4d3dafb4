@@ -2547,16 +2547,20 @@ function EditCostRowDialog({
             </div>
             <div className="grid gap-1.5">
               <Label>Linked to</Label>
-              <Select
+              <RadioGroup
                 value={linkKind}
                 onValueChange={(v) => { setLinkKind(v as "fixed" | "milestone"); setLinkRef(""); }}
+                className="flex items-center gap-5"
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fixed">Fixed date</SelectItem>
-                  <SelectItem value="milestone">Milestone</SelectItem>
-                </SelectContent>
-              </Select>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="fixed" id="edit-cost-link-fixed" />
+                  <Label htmlFor="edit-cost-link-fixed" className="cursor-pointer text-sm font-normal text-muted-foreground">Fixed date</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="milestone" id="edit-cost-link-milestone" />
+                  <Label htmlFor="edit-cost-link-milestone" className="cursor-pointer text-sm font-normal text-muted-foreground">Milestone</Label>
+                </div>
+              </RadioGroup>
             </div>
           </div>
           <div className="grid gap-1.5">

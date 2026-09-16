@@ -98,6 +98,8 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
   const projectOptions = Array.from(new Set([...projects.map((p) => p.name), ...risks.map((r) => r.project)]));
   const activeCategories = categories.filter((c) => isActive(c.id)).map((c) => c.name);
   const view = risks.find((r) => r.id === viewId) ?? null;
+  const milestoneList = milestoneOptions ?? milestonesForProject(project);
+
 
   return (
     <>

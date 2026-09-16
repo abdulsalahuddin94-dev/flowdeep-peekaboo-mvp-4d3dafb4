@@ -3009,7 +3009,9 @@ function CostBreakdownTable({
           <TableHead className="text-right">Planned ($M)</TableHead>
           <TableHead className="text-right">Actual ($M)</TableHead>
           <TableHead className="text-right">Utilization</TableHead>
+          <TableHead>Linked to</TableHead>
           <TableHead>Date</TableHead>
+
           <TableHead className="w-32" />
         </TableRow>
       </TableHeader>

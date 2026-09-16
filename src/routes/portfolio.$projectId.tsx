@@ -5066,7 +5066,6 @@ function AddFinanceLinkDialog({
 
   // Cost-only
   const [cat, setCat] = useState("");
-  const [actual, setActual] = useState("");
   const [ctype, setCtype] = useState<"internal" | "third-party">("internal");
   const [capex, setCapex] = useState<"capex" | "opex">("opex");
 
@@ -5089,9 +5088,8 @@ function AddFinanceLinkDialog({
 
     if (kind === "cost") {
       if (!cat.trim()) { toast.error("Category is required"); return; }
-      const a = parseFloat(actual || "0");
       onAddCost({
-        c: cat.trim(), b: amt, a: isNaN(a) ? 0 : a,
+        c: cat.trim(), b: amt, a: 0,
         color: COST_COLORS[cat] ?? "bg-muted-foreground",
         desc: desc.trim() || undefined,
         ctype, classification: capex,

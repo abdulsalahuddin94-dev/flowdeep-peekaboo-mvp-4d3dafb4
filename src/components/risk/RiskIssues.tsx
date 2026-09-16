@@ -484,6 +484,7 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
           </div>
         </div>
 
+        <EmptyRegion id="risks-heatmap">
         <div className="mx-auto w-full max-w-[1120px]">
           <div className="flex gap-3">
             <div className="flex items-center">
@@ -526,7 +527,9 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
             </div>
           </div>
         </div>
+        </EmptyRegion>
       </div>
+
 
       <Sheet open={!!cell} onOpenChange={(o) => !o && setCell(null)}>
         <SheetContent side="right" className="flex w-[480px] max-w-full flex-col rounded-l-lg border-l border-border bg-drawer p-0 sm:max-w-[480px]">

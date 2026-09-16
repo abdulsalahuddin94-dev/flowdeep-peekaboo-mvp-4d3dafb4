@@ -3058,7 +3058,16 @@ function CostBreakdownTable({
                     </button>
                   )}
                 </TableCell>
-                <TableCell className="font-medium text-foreground">{e.cat ?? e.c}</TableCell>
+                <TableCell className="font-medium text-foreground">
+                  <span className="inline-flex items-center gap-1.5">
+                    {e.cat ?? e.c}
+                    {e.classification && (
+                      <span className={`rounded px-1.5 py-0.5 text-[10px] uppercase leading-none ${e.classification === "capex" ? "bg-accent/15 text-accent" : "bg-secondary/40 text-muted-foreground"}`}>
+                        {e.classification === "capex" ? "Capex" : "Opex"}
+                      </span>
+                    )}
+                  </span>
+                </TableCell>
                 <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
                 <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>

@@ -618,6 +618,8 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
 
   const pagination = usePagination(list, 10);
   const projectOptions = Array.from(new Set([...projects.map((p) => p.name), ...issues.map((r) => r.project)]));
+  const milestoneList = milestoneOptions ?? milestonesForProject(project);
+
 
   return (
     <>

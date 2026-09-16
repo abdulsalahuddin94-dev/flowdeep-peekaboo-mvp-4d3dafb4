@@ -2722,16 +2722,6 @@ function FinancialsTab({
               }
             />
           </div>
-
-
-          <div className="glass-card p-5">
-            <div className="label-eyebrow mb-3">Planned vs actual by category</div>
-            <CostCategoriesList
-              entries={displayCost}
-              canEdit={canEdit}
-              onUpdate={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
-            />
-          </div>
         </div>
 
       ) : (

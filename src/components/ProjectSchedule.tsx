@@ -1152,10 +1152,11 @@ export function ProjectSchedule({
                     : item.approvalReady
                       ? "Ready — send approval request"
                       : "Locked until all tasks reach 100%";
+                const isFlashing = flashRow === item.name;
                 return (
                   <ContextMenu key={item.name}>
                     <ContextMenuTrigger asChild>
-                  <div className={`flex border-b border-border/60 text-xs ${rowTint}`} style={{ height: ROW_H }}>
+                  <div data-row-name={item.name} className={`flex border-b border-border/60 text-xs transition-colors duration-500 ${isFlashing ? "bg-accent/20" : rowTint}`} style={{ height: ROW_H }}>
                     <div className="flex items-center gap-1 px-2 overflow-hidden" style={{ width: nameW, paddingLeft: 8 + depth * 14 }}>
                       {hasChildren ? (
                         <button

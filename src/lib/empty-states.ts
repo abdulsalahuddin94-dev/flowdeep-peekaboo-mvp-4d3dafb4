@@ -48,6 +48,7 @@ export const EMPTY_STATES: EmptyStateEntry[] = [
 
   // Risk & Issues
   { id: "risks-register", module: "Risk & Issues", page: "Risk Register", path: "/risks", art: "shield", title: "No Risks logged yet", description: "Start by logging the first risk", ctaLabel: "Log Risk" },
+  { id: "risks-heatmap", module: "Risk & Issues", page: "Heat Map", path: "/risks", art: "shield", title: "No Risks to plot yet", description: "The probability × impact map fills in once risks are logged", ctaLabel: "Log Risk" },
   { id: "risks-issues", module: "Risk & Issues", page: "Issues Log", path: "/risks", art: "note", title: "No Issues logged yet", description: "Start by logging the first issue", ctaLabel: "Log Issue" },
 
   // Organization

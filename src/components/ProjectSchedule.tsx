@@ -1,4 +1,6 @@
 import { useMemo, useRef, useState, useEffect } from "react";
+import { EmptyRegion, useEmptyPreview } from "@/lib/empty-preview";
+
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

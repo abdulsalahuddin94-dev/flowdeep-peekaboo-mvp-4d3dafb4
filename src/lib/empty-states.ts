@@ -28,7 +28,9 @@ export const EMPTY_STATES: EmptyStateEntry[] = [
   { id: "portfolio-projects", module: "Portfolio", page: "All Projects", path: "/portfolio", exact: true, art: "briefcase", title: "No Projects added yet", description: "Start by adding the first project", ctaLabel: "Add Project" },
   { id: "portfolio-search", module: "Portfolio", page: "Search results", path: "/portfolio", exact: true, art: "search", title: "No matching projects", description: "Try a different search term or clear your filters." },
   { id: "portfolio-schedule", module: "Portfolio", page: "Project Schedule", path: "/portfolio/", art: "clock", title: "No Milestones added yet", description: "Start by adding the first milestone", ctaLabel: "Add Milestone" },
-  { id: "portfolio-documents", module: "Portfolio", page: "Documents", path: "/portfolio/", art: "note", title: "No Documents uploaded yet", description: "Upload the project charter, contracts or reports", ctaLabel: "Upload Document" },
+  { id: "project-cost", module: "Portfolio", page: "Project Cost", path: "/portfolio/", art: "coins", title: "No Cost Items added yet", description: "Start by adding the first cost item", ctaLabel: "Add Cost" },
+  { id: "project-revenue", module: "Portfolio", page: "Project Revenue", path: "/portfolio/", art: "coins", title: "No Revenue Events added yet", description: "Start by adding the first revenue event", ctaLabel: "Add Revenue Event" },
+
 
   // Resources
   { id: "resources-capacity", module: "Resources", page: "Capacity", path: "/resources", art: "people", title: "No Resources added yet", description: "Start by adding the first resource", ctaLabel: "Add Resource" },

@@ -346,6 +346,8 @@ export function ProjectSchedule({
   // Gantt is collapsed by default: the WBS table uses the full width until the
   // user slides the chart out from the right edge.
   const [ganttOpen, setGanttOpen] = useState(false);
+  const { enabled: emptyPreview } = useEmptyPreview();
+
 
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingImport, setPendingImport] = useState<ScheduleItem[] | null>(null);

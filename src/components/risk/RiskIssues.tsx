@@ -239,13 +239,14 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
 /* ── Risk form ────────────────────────────────────────────────────────────── */
 
 function RiskFormDialog({
-  open, onOpenChange, risk, projectOptions, categoryOptions, lockedProject, onSave,
+  open, onOpenChange, risk, projectOptions, categoryOptions, milestoneOptions, lockedProject, onSave,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   risk: RiskRecord | null;
   projectOptions: string[];
   categoryOptions: string[];
+  milestoneOptions: string[];
   lockedProject?: string;
   onSave: (risk: Omit<RiskRecord, "id" | "updates">) => void;
 }) {
@@ -253,6 +254,7 @@ function RiskFormDialog({
   const [title, setTitle] = useState(risk?.title ?? "");
   const [project, setProject] = useState(risk?.project ?? lockedProject ?? "");
   const [category, setCategory] = useState(risk?.category ?? "");
+  const [milestone, setMilestone] = useState(risk?.milestone ?? "none");
   const [prob, setProb] = useState(String(risk?.prob ?? 3));
   const [impact, setImpact] = useState(String(risk?.impact ?? 3));
   const [status, setStatus] = useState<RiskStatus>(risk?.status ?? "Open");
@@ -274,8 +276,10 @@ function RiskFormDialog({
       owner: risk?.owner ?? "",
       prob: Number(prob), impact: Number(impact), score, status,
       mitigation: mitigation.trim(),
+      milestone: milestone === "none" ? undefined : milestone,
     });
   }
+
 
   return (
     <FormDialog

@@ -184,7 +184,9 @@ function FinancialsPage() {
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
 
         <TabsContent value="overview" className="mt-5">
+          <EmptyRegion id="financials-overview">
           {/* KPI row */}
+
           <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-5">
             {kpis.map((k) => {
               const Icon = k.icon;

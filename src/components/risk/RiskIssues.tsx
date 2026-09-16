@@ -68,7 +68,7 @@ export function useSeverity() {
 
 /* ── Risk register ────────────────────────────────────────────────────────── */
 
-export function RiskRegisterTab({ project }: { project?: string }) {
+export function RiskRegisterTab({ project, milestoneOptions }: { project?: string; milestoneOptions?: string[] }) {
   const { risks, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, convertRiskToIssue } = useRiskRegister();
   const { severityOf } = useSeverity();
   const { isActive } = useOrgActive("risk-category");

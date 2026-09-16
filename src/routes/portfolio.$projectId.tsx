@@ -257,6 +257,17 @@ function ProjectDetail() {
   const isViewingCurrent = selectedBaselineVersion === "latest";
   const isBaselineLocked = project.baselineLocked === true;
   const isEditingAllowed = isViewingCurrent && (!isBaselineLocked || planEditMode === "editing");
+  // Cross-tab navigation: clicking a milestone-linked cost/revenue row jumps to
+  // the Project Schedule tab and flashes that milestone row in the WBS.
+  const [scheduleHighlight, setScheduleHighlight] = useState<string | null>(null);
+  const goToMilestone = useCallback(
+    (name: string) => {
+      if (!milestones.some((m) => m.kind === "Milestone" && m.name === name)) return;
+      setActiveTab("Project Schedule");
+      setScheduleHighlight(name);
+    },
+    [milestones],
+  );
   const [cancelEditDialogOpen, setCancelEditDialogOpen] = useState(false);
   const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(null);
   const [compareVersionOpen, setCompareVersionOpen] = useState(false);

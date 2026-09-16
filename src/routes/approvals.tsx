@@ -135,6 +135,7 @@ function ApprovalsInbox() {
         </div>
       )}
 
+      <EmptyRegion id="approvals-inbox">
       {rows.length === 0 ? (
         <div className="glass-card flex flex-col items-center gap-2 p-12 text-center">
           <Inbox className="h-7 w-7 text-muted-foreground" />
@@ -144,6 +145,7 @@ function ApprovalsInbox() {
           </p>
         </div>
       ) : (
+
         <div className="space-y-3">
           {rows.map((a) => {
             const me = a.approvers.find((ap) => ap.id === currentUser.id);

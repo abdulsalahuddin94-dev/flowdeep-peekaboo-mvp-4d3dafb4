@@ -592,7 +592,7 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
 
 /* ── Issues log ───────────────────────────────────────────────────────────── */
 
-export function IssuesLogTab({ project }: { project?: string }) {
+export function IssuesLogTab({ project, milestoneOptions }: { project?: string; milestoneOptions?: string[] }) {
   const { risks, issues, addIssue, updateIssue, removeIssue } = useRiskRegister();
   const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");

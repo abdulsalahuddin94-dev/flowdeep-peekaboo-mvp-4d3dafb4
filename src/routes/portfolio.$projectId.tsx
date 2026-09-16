@@ -2503,26 +2503,28 @@ function EditCostRowDialog({
   onSave: (patch: Partial<CostEntry>) => void;
 }) {
   const [cat, setCat] = useState(entry?.cat ?? "");
-  const [item, setItem] = useState(entry?.c ?? "");
   const [desc, setDesc] = useState(entry?.desc ?? "");
   const [plan, setPlan] = useState(entry ? String(entry.b) : "");
+  const [linkKind, setLinkKind] = useState<"fixed" | "milestone">(entry?.linkKind === "milestone" ? "milestone" : "fixed");
   const [linkRef, setLinkRef] = useState(entry?.linkRef ?? "");
 
   useEffect(() => {
     if (!entry) return;
-    setCat(entry.cat ?? ""); setItem(entry.c); setDesc(entry.desc ?? "");
-    setPlan(String(entry.b)); setLinkRef(entry.linkRef ?? "");
+    setCat(entry.cat ?? ""); setDesc(entry.desc ?? "");
+    setPlan(String(entry.b));
+    setLinkKind(entry.linkKind === "milestone" ? "milestone" : "fixed");
+    setLinkRef(entry.linkRef ?? "");
   }, [entry]);
 
   const catOptions = Array.from(new Set([...categories, entry?.cat ?? ""].filter(Boolean)));
-  const msOptions = Array.from(new Set([...milestoneNames, entry?.linkRef ?? ""].filter(Boolean)));
+  const msOptions = Array.from(new Set([...milestoneNames, entry?.linkKind === "milestone" ? (entry?.linkRef ?? "") : ""].filter(Boolean)));
 
   return (
     <Dialog open={!!entry} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit cost line</DialogTitle>
-          <DialogDescription>Update the category, item, planned amount or the date it is tied to.</DialogDescription>
+          <DialogDescription>Update the category, planned amount, and whether the line is tied to a milestone or a fixed date.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
           <div className="grid gap-1.5">
@@ -2535,10 +2537,6 @@ function EditCostRowDialog({
             </Select>
           </div>
           <div className="grid gap-1.5">
-            <Label>Item</Label>
-            <Input value={item} onChange={(e) => setItem(e.target.value)} />
-          </div>
-          <div className="grid gap-1.5">
             <Label>Description</Label>
             <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
           </div>
@@ -2548,18 +2546,31 @@ function EditCostRowDialog({
               <Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} />
             </div>
             <div className="grid gap-1.5">
-              <Label>{entry?.linkKind === "milestone" ? "Linked milestone" : "Date"}</Label>
-              {entry?.linkKind === "milestone" ? (
-                <Select value={linkRef} onValueChange={setLinkRef}>
-                  <SelectTrigger><SelectValue placeholder="Select milestone…" /></SelectTrigger>
-                  <SelectContent>
-                    {msOptions.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input value={linkRef} onChange={(e) => setLinkRef(e.target.value)} placeholder="e.g. 2025-06-15" />
-              )}
+              <Label>Linked to</Label>
+              <Select
+                value={linkKind}
+                onValueChange={(v) => { setLinkKind(v as "fixed" | "milestone"); setLinkRef(""); }}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fixed">Fixed date</SelectItem>
+                  <SelectItem value="milestone">Milestone</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>{linkKind === "milestone" ? "Milestone" : "Date"}</Label>
+            {linkKind === "milestone" ? (
+              <Select value={linkRef} onValueChange={setLinkRef}>
+                <SelectTrigger><SelectValue placeholder="Select milestone…" /></SelectTrigger>
+                <SelectContent>
+                  {msOptions.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input type="date" value={linkRef} onChange={(e) => setLinkRef(e.target.value)} placeholder="e.g. 2025-06-15" />
+            )}
           </div>
         </div>
         <DialogFooter>
@@ -2567,8 +2578,9 @@ function EditCostRowDialog({
           <Button
             onClick={() => {
               const p = parseFloat(plan);
-              if (!item.trim() || isNaN(p)) { toast.error("Item and planned amount are required"); return; }
-              onSave({ c: item.trim(), cat: cat || undefined, desc: desc.trim() || undefined, b: p, linkRef });
+              if (isNaN(p)) { toast.error("Planned amount is required"); return; }
+              if (linkKind === "milestone" && !linkRef) { toast.error("Please pick a milestone"); return; }
+              onSave({ cat: cat || undefined, desc: desc.trim() || undefined, b: p, linkKind, linkRef });
               onOpenChange(false);
               toast.done("Cost line", "updated");
             }}
@@ -2576,6 +2588,7 @@ function EditCostRowDialog({
             Save changes
           </Button>
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );

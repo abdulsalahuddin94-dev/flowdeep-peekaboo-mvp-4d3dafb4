@@ -3078,7 +3078,9 @@ function CostBreakdownTable({
                   <TableCell />
                   <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
                   <TableCell />
+                  <TableCell />
                   <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
+
                   <TableCell className="text-right">
                     {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
                     <TableRowActions

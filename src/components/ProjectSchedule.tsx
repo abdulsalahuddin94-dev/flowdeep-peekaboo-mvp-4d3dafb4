@@ -1064,8 +1064,12 @@ export function ProjectSchedule({
         </div>
       </div>
 
+      {/* Empty-state preview swaps just the schedule data region */}
+      {emptyPreview && <EmptyRegion id="portfolio-schedule"><span /></EmptyRegion>}
+
       {/* Split pane */}
-      <div ref={splitRef} className="relative flex" style={{ height: 560 }}>
+      <div ref={splitRef} className={`relative flex ${emptyPreview ? "hidden" : ""}`} style={{ height: 560 }}>
+
         {/* Right-edge Gantt toggle — kept as a second access point alongside the
             top icon button so the chart can be opened/closed from either side */}
         <button

@@ -693,6 +693,8 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
         lockedProject={project}
         projectOptions={projectOptions}
         risks={risks}
+        milestoneOptions={milestoneList}
+
         defaultOwner={currentUser.name}
         onSave={(issue) => {
           if (editing) updateIssue(editing.id, issue);

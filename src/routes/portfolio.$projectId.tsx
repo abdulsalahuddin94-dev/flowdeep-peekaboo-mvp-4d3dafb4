@@ -3100,7 +3100,8 @@ function CostBreakdownTable({
             <TableCell className="num-mono text-right font-medium">${totals.planned.toFixed(2)}M</TableCell>
             <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
             <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
-            <TableCell colSpan={2} />
+            <TableCell colSpan={3} />
+
           </TableRow>
         )}
       </TableBody>

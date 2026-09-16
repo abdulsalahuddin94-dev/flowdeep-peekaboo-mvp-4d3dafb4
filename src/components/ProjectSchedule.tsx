@@ -335,6 +335,9 @@ export function ProjectSchedule({
    * Gantt drag, right-click add/edit/delete) are hidden or read-only.
    */
   restricted?: boolean;
+  /** Cross-module navigation: flash this WBS row and scroll it into view (e.g. from the Cost tab). */
+  highlightItem?: string | null;
+  onHighlightDone?: () => void;
 }) {
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);

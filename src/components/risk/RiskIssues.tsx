@@ -21,7 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ClipboardCheck, Paperclip } from "@/lib/icons";
-import { projects, type RiskStatus, type IssueItem, type IssuePriority, type IssueStatus } from "@/lib/mock-data";
+import { projects, milestones as seedMilestones, type RiskStatus, type IssueItem, type IssuePriority, type IssueStatus } from "@/lib/mock-data";
 import { useRiskRegister, type RiskRecord } from "@/lib/risk-store";
 import { useOrgRules, severityForScore, type RiskSeverity } from "@/lib/org-rules";
 import { useOrgActive } from "@/lib/org-active";
@@ -57,7 +57,13 @@ const ISSUE_STATUS_TONE: Record<IssueStatus, string> = {
   Resolved: "border-rag-green/40 bg-rag-green/10 text-rag-green",
 };
 
+/** Schedule milestones available for linking; falls back to demo milestones. */
+export function milestonesForProject(project?: string) {
+  return seedMilestones.filter((m) => !project || m.project === project).map((m) => m.name);
+}
+
 /** Severity bands come from Organization → Rules & Thresholds. */
+
 export function useSeverity() {
   const rules = useOrgRules();
   return {
@@ -68,7 +74,7 @@ export function useSeverity() {
 
 /* ── Risk register ────────────────────────────────────────────────────────── */
 
-export function RiskRegisterTab({ project }: { project?: string }) {
+export function RiskRegisterTab({ project, milestoneOptions }: { project?: string; milestoneOptions?: string[] }) {
   const { risks, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, convertRiskToIssue } = useRiskRegister();
   const { severityOf } = useSeverity();
   const { isActive } = useOrgActive("risk-category");
@@ -98,6 +104,8 @@ export function RiskRegisterTab({ project }: { project?: string }) {
   const projectOptions = Array.from(new Set([...projects.map((p) => p.name), ...risks.map((r) => r.project)]));
   const activeCategories = categories.filter((c) => isActive(c.id)).map((c) => c.name);
   const view = risks.find((r) => r.id === viewId) ?? null;
+  const milestoneList = milestoneOptions ?? milestonesForProject(project);
+
 
   return (
     <>
@@ -177,6 +185,8 @@ export function RiskRegisterTab({ project }: { project?: string }) {
         lockedProject={project}
         projectOptions={projectOptions}
         categoryOptions={activeCategories.length > 0 ? activeCategories : categories.map((c) => c.name)}
+        milestoneOptions={milestoneList}
+
         onSave={(risk) => {
           if (editing) updateRisk(editing.id, risk);
           else addRisk({ ...risk, owner: risk.owner || currentUser.name });
@@ -229,13 +239,14 @@ export function RiskRegisterTab({ project }: { project?: string }) {
 /* ── Risk form ────────────────────────────────────────────────────────────── */
 
 function RiskFormDialog({
-  open, onOpenChange, risk, projectOptions, categoryOptions, lockedProject, onSave,
+  open, onOpenChange, risk, projectOptions, categoryOptions, milestoneOptions, lockedProject, onSave,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   risk: RiskRecord | null;
   projectOptions: string[];
   categoryOptions: string[];
+  milestoneOptions: string[];
   lockedProject?: string;
   onSave: (risk: Omit<RiskRecord, "id" | "updates">) => void;
 }) {
@@ -243,6 +254,7 @@ function RiskFormDialog({
   const [title, setTitle] = useState(risk?.title ?? "");
   const [project, setProject] = useState(risk?.project ?? lockedProject ?? "");
   const [category, setCategory] = useState(risk?.category ?? "");
+  const [milestone, setMilestone] = useState(risk?.milestone ?? "none");
   const [prob, setProb] = useState(String(risk?.prob ?? 3));
   const [impact, setImpact] = useState(String(risk?.impact ?? 3));
   const [status, setStatus] = useState<RiskStatus>(risk?.status ?? "Open");
@@ -264,8 +276,10 @@ function RiskFormDialog({
       owner: risk?.owner ?? "",
       prob: Number(prob), impact: Number(impact), score, status,
       mitigation: mitigation.trim(),
+      milestone: milestone === "none" ? undefined : milestone,
     });
   }
+
 
   return (
     <FormDialog
@@ -299,6 +313,18 @@ function RiskFormDialog({
           </Select>
         </Field>
       </div>
+
+      <Field label="Linked milestone" htmlFor="risk-milestone" optional hint="Link the risk to the schedule milestone it threatens.">
+        <Select value={milestone} onValueChange={setMilestone}>
+          <SelectTrigger id="risk-milestone"><SelectValue placeholder="No linked milestone" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">No linked milestone</SelectItem>
+            {milestoneOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </Field>
+
+
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Probability" htmlFor="risk-prob" hint="1 – 5">
@@ -392,9 +418,14 @@ function RiskSheet({
             <p className="text-sm text-foreground">{risk.category}</p>
           </div>
           <div>
+            <div className="label-eyebrow mb-1">Linked milestone</div>
+            <p className="text-sm text-foreground">{risk.milestone || "—"}</p>
+          </div>
+          <div>
             <div className="label-eyebrow mb-1">Risk owner</div>
             <p className="text-sm text-foreground">{risk.owner || "—"}</p>
           </div>
+
           <Separator />
           <div>
             <div className="label-eyebrow mb-1">Mitigation plan</div>
@@ -561,7 +592,7 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
 
 /* ── Issues log ───────────────────────────────────────────────────────────── */
 
-export function IssuesLogTab({ project }: { project?: string }) {
+export function IssuesLogTab({ project, milestoneOptions }: { project?: string; milestoneOptions?: string[] }) {
   const { risks, issues, addIssue, updateIssue, removeIssue } = useRiskRegister();
   const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");
@@ -587,6 +618,8 @@ export function IssuesLogTab({ project }: { project?: string }) {
 
   const pagination = usePagination(list, 10);
   const projectOptions = Array.from(new Set([...projects.map((p) => p.name), ...issues.map((r) => r.project)]));
+  const milestoneList = milestoneOptions ?? milestonesForProject(project);
+
 
   return (
     <>
@@ -660,6 +693,8 @@ export function IssuesLogTab({ project }: { project?: string }) {
         lockedProject={project}
         projectOptions={projectOptions}
         risks={risks}
+        milestoneOptions={milestoneList}
+
         defaultOwner={currentUser.name}
         onSave={(issue) => {
           if (editing) updateIssue(editing.id, issue);
@@ -699,13 +734,14 @@ export function IssuesLogTab({ project }: { project?: string }) {
 }
 
 function IssueFormDialog({
-  open, onOpenChange, issue, projectOptions, risks, lockedProject, defaultOwner, onSave,
+  open, onOpenChange, issue, projectOptions, risks, milestoneOptions, lockedProject, defaultOwner, onSave,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   issue: IssueItem | null;
   projectOptions: string[];
   risks: RiskRecord[];
+  milestoneOptions: string[];
   lockedProject?: string;
   defaultOwner: string;
   onSave: (issue: Omit<IssueItem, "id">) => void;
@@ -717,6 +753,7 @@ function IssueFormDialog({
   const [status, setStatus] = useState<IssueStatus>(issue?.status ?? "Open");
   const [action, setAction] = useState(issue?.action ?? "");
   const [riskId, setRiskId] = useState(issue?.riskId ?? "none");
+  const [milestone, setMilestone] = useState(issue?.milestone ?? "none");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function submit() {
@@ -732,10 +769,12 @@ function IssueFormDialog({
       raised: issue?.raised ?? "Today",
       action: action.trim(),
       riskId: riskId === "none" ? undefined : riskId,
+      milestone: milestone === "none" ? undefined : milestone,
       resolution: issue?.resolution,
       attachment: issue?.attachment,
     });
   }
+
 
   return (
     <FormDialog
@@ -793,6 +832,18 @@ function IssueFormDialog({
           </SelectContent>
         </Select>
       </Field>
+
+      <Field label="Linked milestone" htmlFor="issue-milestone" optional hint="Link the issue to the schedule milestone it affects.">
+        <Select value={milestone} onValueChange={setMilestone}>
+          <SelectTrigger id="issue-milestone"><SelectValue placeholder="No linked milestone" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">No linked milestone</SelectItem>
+            {milestoneOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </Field>
+
+
 
       <Field label="Action taken" htmlFor="issue-action" optional>
         <Textarea id="issue-action" value={action} onChange={(e) => setAction(e.target.value)} placeholder="Current corrective action" rows={3} />

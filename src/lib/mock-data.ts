@@ -253,6 +253,9 @@ export interface RiskItem {
   mitigation: string;
   raised?: string;
   review?: string;
+  /** Optional link to a schedule milestone in the same project. */
+  milestone?: string;
+
 }
 
 export const RISK_CATEGORIES = [

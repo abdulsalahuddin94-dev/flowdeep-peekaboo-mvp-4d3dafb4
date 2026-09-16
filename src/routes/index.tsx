@@ -15,6 +15,8 @@ import { milestones, resources, type Rag } from "@/lib/mock-data";
 import { useProjects, useNotifications, useResourceRequests, useApprovals } from "@/lib/projects-store";
 import { ViewAsSelect } from "@/components/ViewAsSelect";
 import { toast } from "@/lib/toast";
+import { EmptyRegion } from "@/lib/empty-preview";
+
 
 export const Route = createFileRoute("/")({
   component: Dashboard,

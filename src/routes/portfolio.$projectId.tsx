@@ -3046,12 +3046,15 @@ function CostBreakdownTable({
                 <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
                 <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>{util}%</TableCell>
-                <TableCell className="text-xs text-muted-foreground">
-                  <span className={`mr-1.5 inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${e.linkKind === "milestone" ? "bg-accent/15 text-accent" : "bg-secondary/40 text-muted-foreground"}`}>
-                    {e.linkKind === "milestone" ? "MS" : "Date"}
-                  </span>
-                  {dateOf(e)}
+                <TableCell className="text-xs">
+                  {e.linkKind === "milestone" && e.linkRef ? (
+                    <span className="inline-flex items-center rounded bg-accent/15 px-1.5 py-0.5 text-[11px] text-accent">{e.linkRef}</span>
+                  ) : (
+                    <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
+                  )}
                 </TableCell>
+                <TableCell className="text-xs text-muted-foreground">{dateOf(e)}</TableCell>
+
                 <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                   {/* Logging an actual expense stays available after baseline lock; re-planning does not. */}
                   <TableRowActions

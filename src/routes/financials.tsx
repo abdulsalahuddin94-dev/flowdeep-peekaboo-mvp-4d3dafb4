@@ -379,7 +379,6 @@ function FinancialsPage() {
           </div>
 
           <div className="label-eyebrow mb-3">Cost items — recognition schedule</div>
-          <EmptyRegion id="financials-costs">
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Cost Item</TableHead><TableHead>Category</TableHead>

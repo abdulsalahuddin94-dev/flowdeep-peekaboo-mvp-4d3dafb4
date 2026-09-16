@@ -263,6 +263,8 @@ function ApprovalsInbox() {
           })}
         </div>
       )}
+      </EmptyRegion>
+
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-w-md">

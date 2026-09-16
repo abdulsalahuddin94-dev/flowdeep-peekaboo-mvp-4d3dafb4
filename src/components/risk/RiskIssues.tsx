@@ -734,13 +734,14 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
 }
 
 function IssueFormDialog({
-  open, onOpenChange, issue, projectOptions, risks, lockedProject, defaultOwner, onSave,
+  open, onOpenChange, issue, projectOptions, risks, milestoneOptions, lockedProject, defaultOwner, onSave,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   issue: IssueItem | null;
   projectOptions: string[];
   risks: RiskRecord[];
+  milestoneOptions: string[];
   lockedProject?: string;
   defaultOwner: string;
   onSave: (issue: Omit<IssueItem, "id">) => void;
@@ -752,6 +753,7 @@ function IssueFormDialog({
   const [status, setStatus] = useState<IssueStatus>(issue?.status ?? "Open");
   const [action, setAction] = useState(issue?.action ?? "");
   const [riskId, setRiskId] = useState(issue?.riskId ?? "none");
+  const [milestone, setMilestone] = useState(issue?.milestone ?? "none");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function submit() {
@@ -767,10 +769,12 @@ function IssueFormDialog({
       raised: issue?.raised ?? "Today",
       action: action.trim(),
       riskId: riskId === "none" ? undefined : riskId,
+      milestone: milestone === "none" ? undefined : milestone,
       resolution: issue?.resolution,
       attachment: issue?.attachment,
     });
   }
+
 
   return (
     <FormDialog

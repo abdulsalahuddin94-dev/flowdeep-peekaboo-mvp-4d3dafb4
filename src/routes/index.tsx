@@ -295,6 +295,15 @@ function DirectorViewInner() {
         </ul>
       </Tile>
 
+      {/* Planned vs actual by category — portfolio roll-up */}
+      <Tile className="col-span-12" eyebrow="Planned vs Actual by Category" right={
+        <Link to="/financials" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
+          Open financials <ArrowUpRight className="h-3 w-3" />
+        </Link>
+      }>
+        <CategorySpendList />
+      </Tile>
+
       {/* Notifications */}
       <div className="col-span-12">
       <EmptyRegion id="dashboard-notifications">

@@ -295,6 +295,15 @@ function DirectorViewInner() {
         </ul>
       </Tile>
 
+      {/* Planned vs actual by category — portfolio roll-up */}
+      <Tile className="col-span-12" eyebrow="Planned vs Actual by Category" right={
+        <Link to="/financials" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
+          Open financials <ArrowUpRight className="h-3 w-3" />
+        </Link>
+      }>
+        <CategorySpendList />
+      </Tile>
+
       {/* Notifications */}
       <div className="col-span-12">
       <EmptyRegion id="dashboard-notifications">
@@ -677,6 +686,41 @@ function Heatmap() {
           <div className="flex flex-1 gap-1">{cells(i)}</div>
         </div>
       ))}
+    </div>
+  );
+}
+
+// Portfolio-level roll-up mirroring the project Cost tab's "Planned vs actual by category".
+// Demo data: aggregated across active projects.
+const CATEGORY_SPEND = [
+  { c: "Labour", classification: "OPEX", party: "Internal", actual: 4.84, planned: 6.2, color: "bg-rag-green" },
+  { c: "Hardware", classification: "CAPEX", party: "3rd party", actual: 2.62, planned: 3.4, color: "bg-rag-blue" },
+  { c: "Software licenses", classification: "OPEX", party: "3rd party", actual: 1.31, planned: 1.6, color: "bg-accent" },
+  { c: "Business trips", classification: "OPEX", party: "Internal", actual: 0.27, planned: 0.4, color: "bg-rag-amber" },
+  { c: "Contingency", classification: "OPEX", party: "Internal", actual: 0.86, planned: 2.0, color: "bg-muted-foreground/60" },
+];
+
+function CategorySpendList() {
+  return (
+    <div className="space-y-3">
+      {CATEGORY_SPEND.map((r) => {
+        const pct = r.planned > 0 ? Math.round((r.actual / r.planned) * 100) : 0;
+        return (
+          <div key={r.c} className="rounded-md border border-border/50 bg-background/30 p-2.5">
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-sm">
+              <span className="flex flex-wrap items-center gap-2 text-foreground">
+                {r.c}
+                <span className="rounded bg-secondary/40 px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground">{r.classification}</span>
+                <span className="rounded bg-secondary/40 px-1.5 py-0.5 text-[10px] text-muted-foreground">{r.party}</span>
+              </span>
+              <span className="num-mono text-xs text-muted-foreground">${r.actual.toFixed(2)}M / ${r.planned.toFixed(2)}M</span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/50">
+              <div className={`h-full ${r.color}`} style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

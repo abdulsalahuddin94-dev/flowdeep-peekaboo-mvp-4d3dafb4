@@ -2583,8 +2583,8 @@ function EditCostRowDialog({
 
 // ── Financials tab — Cost / Revenue split ────────────────────────────────────
 function FinancialsTab({
-  mode, project, milestones, isNew, onDataAdded, canEdit = true,
-}: { mode: "cost" | "revenue"; project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void; canEdit?: boolean }) {
+  mode, project, milestones, isNew, onDataAdded, canEdit = true, onMilestoneClick,
+}: { mode: "cost" | "revenue"; project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void; canEdit?: boolean; onMilestoneClick?: (name: string) => void }) {
   const milestoneNames = useMemo(
     () => milestones.filter((m) => m.kind === "Milestone").map((m) => m.name),
     [milestones],
@@ -2688,6 +2688,7 @@ function FinancialsTab({
               milestoneNames={milestoneNames}
               dateOf={costDate}
               totals={costTotals}
+              onMilestoneClick={onMilestoneClick}
               onSave={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e)))}
               onDelete={(idx) => setCostEntries((prev) => prev.filter((_, i) => i !== idx))}
               onAddActual={(idx, actual) =>
@@ -2759,6 +2760,7 @@ function FinancialsTab({
                 milestoneNames={milestoneNames}
                 dateOf={revDate}
                 totals={revTotals}
+                onMilestoneClick={onMilestoneClick}
                 onSave={(idx, patch) => setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
                 onDelete={(idx) => setRevEntries((prev) => prev.filter((_, i) => i !== idx))}
                 onAddActual={(idx, actual) =>

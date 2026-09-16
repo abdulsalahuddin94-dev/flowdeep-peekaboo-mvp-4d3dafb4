@@ -294,7 +294,9 @@ function DirectorViewInner() {
       </Tile>
 
       {/* Notifications */}
-      <Tile className="col-span-12" eyebrow="Recent Activity" right={
+      <div className="col-span-12">
+      <EmptyRegion id="dashboard-notifications">
+      <Tile eyebrow="Recent Activity" right={
         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
           <Bell className="h-3.5 w-3.5" /> {unreadCount} unread
         </span>
@@ -315,6 +317,9 @@ function DirectorViewInner() {
           ))}
         </ul>
       </Tile>
+      </EmptyRegion>
+      </div>
+
 
       {/* Capacity */}
       <Tile className="col-span-12 lg:col-span-8" eyebrow="Team Utilization · next 6 weeks" right={

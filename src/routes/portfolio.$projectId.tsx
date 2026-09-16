@@ -3124,17 +3124,6 @@ function CostBreakdownTable({
             </Fragment>
           );
         })}
-        {entries.length > 0 && (
-          <TableRow className="bg-transparent hover:bg-transparent border-0">
-            <TableCell />
-            <TableCell colSpan={2} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
-            <TableCell className="num-mono text-right font-medium">${totals.planned.toFixed(2)}M</TableCell>
-            <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
-            <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
-            <TableCell colSpan={3} />
-
-          </TableRow>
-        )}
       </TableBody>
     </Table>
     <EditCostRowDialog

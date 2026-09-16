@@ -314,6 +314,18 @@ function RiskFormDialog({
         </Field>
       </div>
 
+      <Field label="Linked milestone" htmlFor="risk-milestone" optional hint="Link the risk to the schedule milestone it threatens.">
+        <Select value={milestone} onValueChange={setMilestone}>
+          <SelectTrigger id="risk-milestone"><SelectValue placeholder="No linked milestone" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">No linked milestone</SelectItem>
+            {milestoneOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </Field>
+
+
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Probability" htmlFor="risk-prob" hint="1 – 5">
           <Select value={prob} onValueChange={setProb}>

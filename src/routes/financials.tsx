@@ -411,7 +411,9 @@ function FinancialsPage() {
         </TabsContent>
 
         <TabsContent value="rev" className="mt-5">
+          <EmptyRegion id="financials-revenue">
           <div className="label-eyebrow mb-4">Milestone-linked revenue آ· FY2026</div>
+
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Project</TableHead><TableHead>Milestone</TableHead><TableHead>Due</TableHead><TableHead>Total Contract</TableHead><TableHead>Recognised</TableHead><TableHead>Pending</TableHead><TableHead>% Realized</TableHead><TableHead>Payment</TableHead><TableHead>Days</TableHead></TableRow></TableHeader>
             <TableBody>{([

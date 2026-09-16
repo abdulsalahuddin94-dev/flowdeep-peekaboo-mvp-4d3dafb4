@@ -257,6 +257,17 @@ function ProjectDetail() {
   const isViewingCurrent = selectedBaselineVersion === "latest";
   const isBaselineLocked = project.baselineLocked === true;
   const isEditingAllowed = isViewingCurrent && (!isBaselineLocked || planEditMode === "editing");
+  // Cross-tab navigation: clicking a milestone-linked cost/revenue row jumps to
+  // the Project Schedule tab and flashes that milestone row in the WBS.
+  const [scheduleHighlight, setScheduleHighlight] = useState<string | null>(null);
+  const goToMilestone = useCallback(
+    (name: string) => {
+      if (!milestones.some((m) => m.kind === "Milestone" && m.name === name)) return;
+      setActiveTab("Project Schedule");
+      setScheduleHighlight(name);
+    },
+    [milestones],
+  );
   const [cancelEditDialogOpen, setCancelEditDialogOpen] = useState(false);
   const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(null);
   const [compareVersionOpen, setCompareVersionOpen] = useState(false);
@@ -919,6 +930,8 @@ function ProjectDetail() {
               }
               setPlanningProgressOpen(true);
             }}
+            highlightItem={scheduleHighlight}
+            onHighlightDone={() => setScheduleHighlight(null)}
             onItemPatch={(name, patch) => {
               // Only Progress Update and Assignee changes/swaps are allowed
               // without opening the Change Plan flow. Everything else needs approval.
@@ -1234,14 +1247,14 @@ function ProjectDetail() {
 
         <TabsContent value="Cost" className="mt-5">
           <EmptyRegion id="project-cost">
-            <FinancialsTab mode="cost" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} />
+            <FinancialsTab mode="cost" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} onMilestoneClick={goToMilestone} />
           </EmptyRegion>
         </TabsContent>
 
         {!isInternalProject && (
           <TabsContent value="Revenue" className="mt-5">
             <EmptyRegion id="project-revenue">
-              <FinancialsTab mode="revenue" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} />
+              <FinancialsTab mode="revenue" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} onMilestoneClick={goToMilestone} />
             </EmptyRegion>
           </TabsContent>
         )}
@@ -2570,8 +2583,8 @@ function EditCostRowDialog({
 
 // ── Financials tab — Cost / Revenue split ────────────────────────────────────
 function FinancialsTab({
-  mode, project, milestones, isNew, onDataAdded, canEdit = true,
-}: { mode: "cost" | "revenue"; project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void; canEdit?: boolean }) {
+  mode, project, milestones, isNew, onDataAdded, canEdit = true, onMilestoneClick,
+}: { mode: "cost" | "revenue"; project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void; canEdit?: boolean; onMilestoneClick?: (name: string) => void }) {
   const milestoneNames = useMemo(
     () => milestones.filter((m) => m.kind === "Milestone").map((m) => m.name),
     [milestones],
@@ -2675,6 +2688,7 @@ function FinancialsTab({
               milestoneNames={milestoneNames}
               dateOf={costDate}
               totals={costTotals}
+              onMilestoneClick={onMilestoneClick}
               onSave={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e)))}
               onDelete={(idx) => setCostEntries((prev) => prev.filter((_, i) => i !== idx))}
               onAddActual={(idx, actual) =>
@@ -2746,6 +2760,7 @@ function FinancialsTab({
                 milestoneNames={milestoneNames}
                 dateOf={revDate}
                 totals={revTotals}
+                onMilestoneClick={onMilestoneClick}
                 onSave={(idx, patch) => setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
                 onDelete={(idx) => setRevEntries((prev) => prev.filter((_, i) => i !== idx))}
                 onAddActual={(idx, actual) =>
@@ -2796,7 +2811,7 @@ function FinancialsTab({
 
 /** Revenue plan with one row per planned event; expanding a row reveals its logged actuals. */
 function RevenuePlanTable({
-  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual,
+  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual, onMilestoneClick,
 }: {
   entries: RevEntry[];
   canEdit: boolean;
@@ -2808,6 +2823,7 @@ function RevenuePlanTable({
   onAddActual: (idx: number, actual: ActualEntry) => void;
   onEditActual: (idx: number, actualIdx: number, patch: ActualEntry) => void;
   onDeleteActual: (idx: number, actualIdx: number) => void;
+  onMilestoneClick?: (name: string) => void;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const toggle = (key: string) =>
@@ -2843,10 +2859,15 @@ function RevenuePlanTable({
           const actual = actuals.reduce((s, a) => s + a.amount, 0);
           const util = r.plan ? Math.round((actual / r.plan) * 100) : 0;
           const open = expanded.has(r.ms);
+          const linkedMs = r.linkKind === "milestone" && milestoneNames.includes(r.ms) ? r.ms : undefined;
           return (
             <Fragment key={r.ms}>
-              <TableRow className="bg-table-row-bg hover:bg-table-row-hover border-0">
-                <TableCell>
+              <TableRow
+                className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${linkedMs ? "cursor-pointer" : ""}`}
+                onClick={linkedMs ? () => onMilestoneClick?.(linkedMs) : undefined}
+                title={linkedMs ? `View “${linkedMs}” in Project Schedule` : undefined}
+              >
+                <TableCell onClick={(ev) => ev.stopPropagation()}>
                   {actuals.length > 0 && (
                     <button
                       type="button"
@@ -2872,7 +2893,7 @@ function RevenuePlanTable({
                 <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
                 <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                   {/* Logging an actual stays available after baseline lock; re-planning does not. */}
                   <TableRowActions
                     onEdit={canEdit ? () => setEditingIdx(idx) : undefined}
@@ -2960,7 +2981,7 @@ function RevenuePlanTable({
 
 /** Cost breakdown with one row per planned item; expanding a row reveals its logged actual expenses. */
 function CostBreakdownTable({
-  entries, canEdit, categories, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual,
+  entries, canEdit, categories, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual, onMilestoneClick,
 }: {
   entries: CostEntry[];
   canEdit: boolean;
@@ -2973,6 +2994,7 @@ function CostBreakdownTable({
   onAddActual: (idx: number, actual: ActualEntry) => void;
   onEditActual: (idx: number, actualIdx: number, patch: ActualEntry) => void;
   onDeleteActual: (idx: number, actualIdx: number) => void;
+  onMilestoneClick?: (name: string) => void;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const toggle = (key: string) =>
@@ -3007,10 +3029,15 @@ function CostBreakdownTable({
           const actual = actuals.reduce((s, a) => s + a.amount, 0);
           const util = e.b ? Math.round((actual / e.b) * 100) : 0;
           const open = expanded.has(e.c);
+          const linkedMs = e.linkKind === "milestone" && e.linkRef && milestoneNames.includes(e.linkRef) ? e.linkRef : undefined;
           return (
             <Fragment key={e.c}>
-              <TableRow className="bg-table-row-bg hover:bg-table-row-hover border-0">
-                <TableCell>
+              <TableRow
+                className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${linkedMs ? "cursor-pointer" : ""}`}
+                onClick={linkedMs ? () => onMilestoneClick?.(linkedMs) : undefined}
+                title={linkedMs ? `View “${linkedMs}” in Project Schedule` : undefined}
+              >
+                <TableCell onClick={(ev) => ev.stopPropagation()}>
                   {actuals.length > 0 && (
                     <button
                       type="button"
@@ -3033,7 +3060,7 @@ function CostBreakdownTable({
                   </span>
                   {dateOf(e)}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                   {/* Logging an actual expense stays available after baseline lock; re-planning does not. */}
                   <TableRowActions
                     onEdit={canEdit ? () => setEditingIdx(idx) : undefined}

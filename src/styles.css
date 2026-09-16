@@ -36,6 +36,7 @@
 :root {
   /* Color · Neutral / Greyscale — DS reference ramp (Gray 0 … Gray 950).
      Semantic naming below keeps the 50→950 API: 50 = lightest, 950 = black. */
+  --p-neutral-25:   #f8f8fa;                 /* Gray 25   · Table row (light) */
   --p-neutral-50:   #f6f6f6;                 /* Gray 50   · Neutral 800 */
   --p-neutral-100:  #e5e7eb;                 /* Gray 100  · Neutral 700 */
   --p-neutral-200:  #e0e0e0;                 /* Gray 200  · Neutral 600 */
@@ -388,13 +389,13 @@
    ─────────────────────────────────────────────────────────────────────────── */
 :root,
 [data-theme="light"] {
-  --background:          var(--p-white);
+  --background:          var(--p-neutral-50);
   --foreground:          var(--p-neutral-900);
-  --surface:             var(--p-neutral-50);
+  --surface:             var(--p-white);
   /* DS02 side drawer (filters) fill */
   --drawer-surface:      var(--p-white);
 
-  --card:                var(--p-neutral-50);
+  --card:                var(--p-white);
   --card-foreground:     var(--p-neutral-900);
   --popover:             var(--p-white);
   --popover-foreground:  var(--p-neutral-900);
@@ -463,7 +464,7 @@
   /* Table */
   --table-header-bg: var(--p-neutral-100);
   --table-header-fg: var(--p-neutral-900);
-  --table-row-bg:    var(--p-white);
+  --table-row-bg:    var(--p-neutral-25);
   --table-row-hover: var(--p-neutral-50);
 
   /* Header */
@@ -1234,6 +1235,11 @@
   --field-hint-fg:       var(--p-neutral-500);
   --field-chip-bg:       var(--p-neutral-100);
   --field-chip-fg:       var(--p-neutral-800);
+
+  /* Search inputs didn't have a light counterpart - fell back to the dark :root value. */
+  --search-field-bg:          var(--p-neutral-50);
+  --search-field-border:      var(--p-neutral-300);
+  --search-field-placeholder: var(--p-neutral-400);
 }
 
 /* Unlayered so field states beat Tailwind utilities from earlier code. */

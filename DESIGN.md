@@ -385,6 +385,8 @@ in one right-aligned toolbar row — never split across the page.
 - Order is fixed: **Search → Filter → Primary CTA** (right-aligned, `gap-3`).
 - Result count (`text-xs text-muted-foreground`) sits far-left via `mr-auto`.
 - Search: `Input` with leading `Search` icon (`pl-9`), width `w-72` (full width on mobile).
+  Every search input across pages, drawers, and popups uses fill `#292931`, stroke `#46464F`,
+  and placeholder text `#767680` through the shared search-field tokens.
 - Filter: `variant="outline"` with accent-lavender border + icon, numeric badge for active filters,
   opens a **right side drawer** (`Sheet`, 380px) with drill-down groups, applied-filter chips,
   and Clear / Cancel / Apply.

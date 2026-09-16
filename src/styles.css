@@ -1207,6 +1207,11 @@
   --field-hint-fg:       var(--p-neutral-400);
   --field-chip-bg:       var(--p-neutral-700);   /* #282A30 · chips/tags only */
   --field-chip-fg:       var(--p-neutral-100);
+
+  /* Search inputs use a dedicated DS02 treatment across pages, drawers, and popups. */
+  --search-field-bg:          #292931;
+  --search-field-border:      #46464f;
+  --search-field-placeholder: #767680;
 }
 
 /* Light theme field counterparts */
@@ -1237,6 +1242,17 @@
 [data-ui="control"]:not([data-ds-field="off"])::placeholder,
 [data-ui="control-text"]:not([data-ds-field="off"])::placeholder {
   color: var(--field-placeholder);
+}
+/* Search fields are visually distinct from standard form inputs. */
+[data-ui="control"][data-search-input="true"],
+[data-search-shell="true"] {
+  background-color: var(--search-field-bg);
+  border-color: var(--search-field-border);
+}
+[data-ui="control"][data-search-input="true"]::placeholder,
+[data-search-input="true"]::placeholder {
+  color: var(--search-field-placeholder);
+  opacity: 1;
 }
 /* filled */
 [data-ui="control"]:not([data-ds-field="off"]):not(:placeholder-shown),

@@ -418,9 +418,14 @@ function RiskSheet({
             <p className="text-sm text-foreground">{risk.category}</p>
           </div>
           <div>
+            <div className="label-eyebrow mb-1">Linked milestone</div>
+            <p className="text-sm text-foreground">{risk.milestone || "—"}</p>
+          </div>
+          <div>
             <div className="label-eyebrow mb-1">Risk owner</div>
             <p className="text-sm text-foreground">{risk.owner || "—"}</p>
           </div>
+
           <Separator />
           <div>
             <div className="label-eyebrow mb-1">Mitigation plan</div>

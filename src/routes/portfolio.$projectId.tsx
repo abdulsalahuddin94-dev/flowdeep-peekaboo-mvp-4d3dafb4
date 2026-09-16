@@ -3042,7 +3042,7 @@ function CostBreakdownTable({
           // A planned cost line that already has logged (paid) actuals cannot be deleted — only its plan changed.
           const hasPaidActuals = actuals.length > 0 && actuals.some((a) => a.amount > 0);
           const requestDelete = hasPaidActuals
-            ? () => toast.error("Cannot delete cost line", "This line already has paid actuals. Remove the actuals first before deleting the plan.")
+            ? () => toast.error("This line already has paid actuals. Remove the actuals before deleting the plan.", { title: "Cannot delete cost line" })
             : canEdit ? () => setPendingDeleteIdx(idx) : undefined;
           return (
             <Fragment key={e.c}>

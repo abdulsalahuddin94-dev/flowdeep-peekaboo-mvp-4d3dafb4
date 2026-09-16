@@ -1261,7 +1261,10 @@ function ProjectDetail() {
 
 
         <TabsContent value="Risk & Issues" className="mt-5">
-          <ProjectRiskIssuesTab projectName={project.name} />
+          <ProjectRiskIssuesTab
+            projectName={project.name}
+            milestoneOptions={milestones.filter((m) => m.kind === "Milestone").map((m) => m.name)}
+          />
         </TabsContent>
 
         <TabsContent value="Status Reports" className="mt-5">
@@ -6568,7 +6571,7 @@ function TeamAllocationTab({
 
 // ── Risk & Issues tab ─────────────────────────────────────────────────────────
 
-function ProjectRiskIssuesTab({ projectName }: { projectName: string }) {
+function ProjectRiskIssuesTab({ projectName, milestoneOptions }: { projectName: string; milestoneOptions: string[] }) {
   const [view, setView] = useState<"register" | "heatmap" | "issues">("register");
 
   return (
@@ -6586,13 +6589,13 @@ function ProjectRiskIssuesTab({ projectName }: { projectName: string }) {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="register" className="mt-5">
-          <RiskRegisterTab project={projectName} />
+          <RiskRegisterTab project={projectName} milestoneOptions={milestoneOptions} />
         </TabsContent>
         <TabsContent value="heatmap" className="mt-5">
           <RiskHeatmapTab project={projectName} />
         </TabsContent>
         <TabsContent value="issues" className="mt-5">
-          <IssuesLogTab project={projectName} />
+          <IssuesLogTab project={projectName} milestoneOptions={milestoneOptions} />
         </TabsContent>
       </Tabs>
     </div>

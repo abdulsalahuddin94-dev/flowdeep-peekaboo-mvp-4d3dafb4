@@ -328,7 +328,6 @@ function FinancialsPage() {
           </div>
 
           <div className="label-eyebrow mb-3">P&L — by project</div>
-          <EmptyRegion id="financials-overview">
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Project Type</TableHead><TableHead>Expected Revenue</TableHead><TableHead>Total Budget</TableHead>

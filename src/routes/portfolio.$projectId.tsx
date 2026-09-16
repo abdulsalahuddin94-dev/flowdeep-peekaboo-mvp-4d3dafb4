@@ -3090,7 +3090,7 @@ function CostBreakdownTable({
                   {/* Logging an actual expense stays available after baseline lock; re-planning does not. */}
                   <TableRowActions
                     onEdit={canEdit ? () => setEditingIdx(idx) : undefined}
-                    onDelete={canEdit ? () => setPendingDeleteIdx(idx) : undefined}
+                    onDelete={requestDelete}
                     extraActions={
                       <AddActualDialog
                         title="Add actual spend"

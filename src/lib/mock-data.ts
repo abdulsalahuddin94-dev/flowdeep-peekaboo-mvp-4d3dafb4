@@ -293,7 +293,10 @@ export interface IssueItem {
   resolution?: string;
   /** Optional supporting proof (photo or document file name). */
   attachment?: string;
+  /** Optional link to a schedule milestone in the same project. */
+  milestone?: string;
 }
+
 
 export const issues: IssueItem[] = [
   { id: "I-044", project: "ERP System Upgrade", title: "Test environment outage blocking QA", priority: "High", owner: "Mei Chen", status: "Escalated", raised: "2d ago", riskId: "R-091", action: "Infra team restoring cluster; QA re-plan issued" },

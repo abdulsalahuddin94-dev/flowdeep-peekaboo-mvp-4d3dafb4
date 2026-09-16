@@ -308,6 +308,8 @@ export function ProjectSchedule({
   headerSlot,
   restricted = false,
   jobRoles,
+  highlightItem,
+  onHighlightDone,
 }: {
   items: ScheduleItem[];
   AddItemSlot?: React.ReactNode;

@@ -2893,7 +2893,7 @@ function RevenuePlanTable({
                 <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
                 <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                   {/* Logging an actual stays available after baseline lock; re-planning does not. */}
                   <TableRowActions
                     onEdit={canEdit ? () => setEditingIdx(idx) : undefined}
@@ -3060,7 +3060,7 @@ function CostBreakdownTable({
                   </span>
                   {dateOf(e)}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                   {/* Logging an actual expense stays available after baseline lock; re-planning does not. */}
                   <TableRowActions
                     onEdit={canEdit ? () => setEditingIdx(idx) : undefined}

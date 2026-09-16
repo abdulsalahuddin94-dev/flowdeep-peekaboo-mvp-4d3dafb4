@@ -492,7 +492,7 @@
   --sidebar-scrollbar-thumb:        var(--p-white-a-18);
   --sidebar-scrollbar-thumb-hover:  var(--p-white-a-32);
 
-  --modal-bg:           #121319;
+  --modal-bg:           var(--p-white);
   --modal-border:       #767680;
   --modal-radius:       12px;
 
@@ -1158,12 +1158,26 @@
   --btn-warning-fg-hover:      var(--p-amber-50);
 }
 
-/* Secondary CTAs stay dark in both themes for a consistent action hierarchy. */
+/* Verified against the PPMS staging reference (light mode): Secondary/Outline
+   buttons flip to a light surface with accent-colored text, matching --accent
+   below (indigo-500) rather than staying dark. */
 [data-theme="light"] {
-  --btn-secondary-bg:       var(--p-neutral-800);
-  --btn-secondary-fg:       var(--p-neutral-200);
-  --btn-secondary-bg-hover: var(--p-neutral-700);
+  --btn-primary-bg:            var(--accent);
+  --btn-primary-fg:            var(--accent-foreground);
+  --btn-primary-bg-hover:      var(--p-indigo-700);
+  --btn-primary-fg-hover:      var(--p-white);
+
+  --btn-secondary-bg:       var(--p-neutral-50);
+  --btn-secondary-fg:       var(--accent);
+  --btn-secondary-bg-hover: var(--p-neutral-100);
   --btn-secondary-border:   var(--p-neutral-400);
+
+  --btn-outline-bg:            var(--p-neutral-50);
+  --btn-outline-border:        var(--accent);
+  --btn-outline-fg:            var(--accent);
+  --btn-outline-border-hover:  var(--p-indigo-700);
+  --btn-outline-fg-hover:      var(--p-indigo-700);
+  --btn-outline-bg-hover:      var(--p-neutral-100);
 
   --btn-outline-2-bg:       var(--p-neutral-900);
   --btn-outline-2-fg:       var(--p-white);

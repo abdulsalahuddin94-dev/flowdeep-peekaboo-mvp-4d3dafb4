@@ -2993,7 +2993,6 @@ function CostBreakdownTable({
         <TableRow className="hover:bg-transparent bg-transparent border-0">
           <TableHead className="w-8" />
           <TableHead>Category</TableHead>
-          <TableHead>Item</TableHead>
           <TableHead>Description</TableHead>
           <TableHead className="text-right">Planned ($M)</TableHead>
           <TableHead className="text-right">Actual ($M)</TableHead>
@@ -3023,8 +3022,7 @@ function CostBreakdownTable({
                     </button>
                   )}
                 </TableCell>
-                <TableCell className="text-muted-foreground">{e.cat ?? "—"}</TableCell>
-                <TableCell className="font-medium text-foreground">{e.c}</TableCell>
+                <TableCell className="font-medium text-foreground">{e.cat ?? e.c}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
                 <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
@@ -3052,7 +3050,7 @@ function CostBreakdownTable({
               {open && actuals.map((a, i) => (
                 <TableRow key={`${e.c}-a${i}`} className="bg-secondary/10 hover:bg-secondary/20 border-0">
                   <TableCell />
-                  <TableCell colSpan={3} className="pl-6 text-xs text-muted-foreground">
+                  <TableCell colSpan={2} className="pl-6 text-xs text-muted-foreground">
                     {a.name ?? "Actual spend"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
                   </TableCell>
                   <TableCell />
@@ -3074,7 +3072,7 @@ function CostBreakdownTable({
         {entries.length > 0 && (
           <TableRow className="bg-transparent hover:bg-transparent border-0">
             <TableCell />
-            <TableCell colSpan={3} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
+            <TableCell colSpan={2} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
             <TableCell className="num-mono text-right font-medium">${totals.planned.toFixed(2)}M</TableCell>
             <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
             <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>

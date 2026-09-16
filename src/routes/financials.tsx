@@ -455,7 +455,9 @@ function FinancialsPage() {
               );
             })}</TableBody>
           </Table>
+          </EmptyRegion>
         </TabsContent>
+
       </Tabs>
     </div>
   );

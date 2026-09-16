@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import { EmptyRegion } from "@/lib/empty-preview";
+
 import { RagBadge } from "@/components/RagBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RiskRegisterTab, RiskHeatmapTab, IssuesLogTab } from "@/components/risk/RiskIssues";
@@ -1231,14 +1233,19 @@ function ProjectDetail() {
 
 
         <TabsContent value="Cost" className="mt-5">
-          <FinancialsTab mode="cost" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} />
+          <EmptyRegion id="project-cost">
+            <FinancialsTab mode="cost" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} />
+          </EmptyRegion>
         </TabsContent>
 
         {!isInternalProject && (
           <TabsContent value="Revenue" className="mt-5">
-            <FinancialsTab mode="revenue" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} />
+            <EmptyRegion id="project-revenue">
+              <FinancialsTab mode="revenue" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} />
+            </EmptyRegion>
           </TabsContent>
         )}
+
 
         <TabsContent value="Risk & Issues" className="mt-5">
           <ProjectRiskIssuesTab projectName={project.name} />

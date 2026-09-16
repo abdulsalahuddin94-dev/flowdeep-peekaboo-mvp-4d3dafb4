@@ -1,4 +1,6 @@
 import { useMemo, useRef, useState, useEffect } from "react";
+import { EmptyRegion, useEmptyPreview } from "@/lib/empty-preview";
+
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -344,6 +346,8 @@ export function ProjectSchedule({
   // Gantt is collapsed by default: the WBS table uses the full width until the
   // user slides the chart out from the right edge.
   const [ganttOpen, setGanttOpen] = useState(false);
+  const { enabled: emptyPreview } = useEmptyPreview();
+
 
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingImport, setPendingImport] = useState<ScheduleItem[] | null>(null);
@@ -1064,8 +1068,12 @@ export function ProjectSchedule({
         </div>
       </div>
 
+      {/* Empty-state preview swaps just the schedule data region */}
+      {emptyPreview && <EmptyRegion id="portfolio-schedule"><span /></EmptyRegion>}
+
       {/* Split pane */}
-      <div ref={splitRef} className="relative flex" style={{ height: 560 }}>
+      <div ref={splitRef} className={`relative flex ${emptyPreview ? "hidden" : ""}`} style={{ height: 560 }}>
+
         {/* Right-edge Gantt toggle — kept as a second access point alongside the
             top icon button so the chart can be opened/closed from either side */}
         <button

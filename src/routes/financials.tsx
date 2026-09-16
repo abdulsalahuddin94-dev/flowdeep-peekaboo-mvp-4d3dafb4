@@ -356,7 +356,9 @@ function FinancialsPage() {
         </TabsContent>
 
         <TabsContent value="cost" className="mt-5">
+          <EmptyRegion id="financials-costs">
           <div className="mb-5 grid gap-4 md:grid-cols-4">
+
             <div className="glass-card p-5">
               <div className="label-eyebrow">CapEx / OpEx split</div>
               <div className="mt-3 flex items-center justify-center">

@@ -5075,7 +5075,7 @@ function AddFinanceLinkDialog({
   function reset() {
     setKind(defaultType);
     setAmount(""); setDesc(""); setLinkKind("milestone"); setLinkDate(""); setLinkMs("");
-    setCat(""); setActual(""); setCtype("internal"); setCapex("opex");
+    setCat(""); setCtype("internal"); setCapex("opex");
     setEvt("");
   }
 

@@ -21,7 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ClipboardCheck, Paperclip } from "@/lib/icons";
-import { projects, type RiskStatus, type IssueItem, type IssuePriority, type IssueStatus } from "@/lib/mock-data";
+import { projects, milestones as seedMilestones, type RiskStatus, type IssueItem, type IssuePriority, type IssueStatus } from "@/lib/mock-data";
 import { useRiskRegister, type RiskRecord } from "@/lib/risk-store";
 import { useOrgRules, severityForScore, type RiskSeverity } from "@/lib/org-rules";
 import { useOrgActive } from "@/lib/org-active";

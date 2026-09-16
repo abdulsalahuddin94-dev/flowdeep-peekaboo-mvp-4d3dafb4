@@ -2823,6 +2823,7 @@ function RevenuePlanTable({
   onAddActual: (idx: number, actual: ActualEntry) => void;
   onEditActual: (idx: number, actualIdx: number, patch: ActualEntry) => void;
   onDeleteActual: (idx: number, actualIdx: number) => void;
+  onMilestoneClick?: (name: string) => void;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const toggle = (key: string) =>
@@ -2975,7 +2976,7 @@ function RevenuePlanTable({
 
 /** Cost breakdown with one row per planned item; expanding a row reveals its logged actual expenses. */
 function CostBreakdownTable({
-  entries, canEdit, categories, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual,
+  entries, canEdit, categories, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual, onMilestoneClick,
 }: {
   entries: CostEntry[];
   canEdit: boolean;
@@ -2988,6 +2989,7 @@ function CostBreakdownTable({
   onAddActual: (idx: number, actual: ActualEntry) => void;
   onEditActual: (idx: number, actualIdx: number, patch: ActualEntry) => void;
   onDeleteActual: (idx: number, actualIdx: number) => void;
+  onMilestoneClick?: (name: string) => void;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const toggle = (key: string) =>

@@ -221,7 +221,9 @@ function DirectorViewInner() {
     <div className="grid grid-cols-12 gap-4">
       <ApprovalsWidget />
       {/* Hero KPI band */}
-      <Tile className="col-span-12 lg:col-span-8" eyebrow="Portfolio Health" right={
+      <div className="col-span-12 lg:col-span-8">
+      <EmptyRegion id="dashboard-kpis">
+      <Tile eyebrow="Portfolio Health" right={
         <Link to="/portfolio" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
           Open portfolio <ArrowUpRight className="h-3 w-3" />
         </Link>
@@ -240,6 +242,9 @@ function DirectorViewInner() {
           <MiniStat icon={<TrendingUp className="h-3.5 w-3.5" />} label="On-track trend" value="▼ 6% · 8w" tone="amber" />
         </div>
       </Tile>
+      </EmptyRegion>
+      </div>
+
 
       <Tile className="col-span-12 lg:col-span-4" eyebrow="Budget Burn" right={<DollarSign className="h-4 w-4 text-muted-foreground" />}>
         <div className="text-3xl font-medium num-mono text-foreground">

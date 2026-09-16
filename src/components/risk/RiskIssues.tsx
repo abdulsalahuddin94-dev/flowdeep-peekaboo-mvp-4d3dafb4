@@ -185,6 +185,8 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
         lockedProject={project}
         projectOptions={projectOptions}
         categoryOptions={activeCategories.length > 0 ? activeCategories : categories.map((c) => c.name)}
+        milestoneOptions={milestoneList}
+
         onSave={(risk) => {
           if (editing) updateRisk(editing.id, risk);
           else addRisk({ ...risk, owner: risk.owner || currentUser.name });

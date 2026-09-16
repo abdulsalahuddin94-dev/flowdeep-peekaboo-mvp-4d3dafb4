@@ -484,6 +484,7 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
           </div>
         </div>
 
+        <EmptyRegion id="risks-heatmap">
         <div className="mx-auto w-full max-w-[1120px]">
           <div className="flex gap-3">
             <div className="flex items-center">

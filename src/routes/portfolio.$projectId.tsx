@@ -824,7 +824,7 @@ function ProjectDetail() {
               <span className="num-mono text-sm font-semibold text-foreground">${project.budgetUsed.toFixed(2)}M</span>
               <span className="num-mono text-sm text-muted-foreground">/ ${project.budgetTotal.toFixed(1)}M</span>
             </div>
-            <div className="text-xs text-muted-foreground">{budgetUsedPct}% used</div>
+            <div className="text-xs text-muted-foreground">{budgetUsedPct}% Utilization</div>
           </div>
 
           <Button

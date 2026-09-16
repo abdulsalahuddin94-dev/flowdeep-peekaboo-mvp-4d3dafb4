@@ -5066,7 +5066,6 @@ function AddFinanceLinkDialog({
 
   // Cost-only
   const [cat, setCat] = useState("");
-  const [actual, setActual] = useState("");
   const [ctype, setCtype] = useState<"internal" | "third-party">("internal");
   const [capex, setCapex] = useState<"capex" | "opex">("opex");
 
@@ -5076,7 +5075,7 @@ function AddFinanceLinkDialog({
   function reset() {
     setKind(defaultType);
     setAmount(""); setDesc(""); setLinkKind("milestone"); setLinkDate(""); setLinkMs("");
-    setCat(""); setActual(""); setCtype("internal"); setCapex("opex");
+    setCat(""); setCtype("internal"); setCapex("opex");
     setEvt("");
   }
 
@@ -5089,9 +5088,8 @@ function AddFinanceLinkDialog({
 
     if (kind === "cost") {
       if (!cat.trim()) { toast.error("Category is required"); return; }
-      const a = parseFloat(actual || "0");
       onAddCost({
-        c: cat.trim(), b: amt, a: isNaN(a) ? 0 : a,
+        c: cat.trim(), b: amt, a: 0,
         color: COST_COLORS[cat] ?? "bg-muted-foreground",
         desc: desc.trim() || undefined,
         ctype, classification: capex,
@@ -5163,32 +5161,7 @@ function AddFinanceLinkDialog({
                 <Label>Description</Label>
                 <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Senior developer contract" />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div><Label>Budget ($M)</Label><Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.50" /></div>
-                <div><Label>Actual ($M)</Label><Input type="number" min={0} step={0.01} value={actual} onChange={(e) => setActual(e.target.value)} placeholder="0.00" /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label>Type</Label>
-                  <Select value={ctype} onValueChange={(v) => setCtype(v as typeof ctype)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="internal">Internal</SelectItem>
-                      <SelectItem value="third-party">Third-party</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Classification</Label>
-                  <Select value={capex} onValueChange={(v) => setCapex(v as typeof capex)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="capex">CapEx</SelectItem>
-                      <SelectItem value="opex">OpEx</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <div><Label>Budget ($M)</Label><Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.50" /></div>
             </>
           ) : (
             <>
@@ -5202,13 +5175,20 @@ function AddFinanceLinkDialog({
 
           <div>
             <Label>Link to</Label>
-            <Select value={linkKind} onValueChange={(v) => setLinkKind(v as typeof linkKind)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="milestone">Milestone (Dynamic)</SelectItem>
-                <SelectItem value="fixed">Fixed Date</SelectItem>
-              </SelectContent>
-            </Select>
+            <RadioGroup
+              value={linkKind}
+              onValueChange={(v) => setLinkKind(v as typeof linkKind)}
+              className="flex gap-4 pt-1"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="milestone" id="link-ms" />
+                <Label htmlFor="link-ms" className="cursor-pointer font-normal">Milestone (Dynamic)</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="fixed" id="link-fixed" />
+                <Label htmlFor="link-fixed" className="cursor-pointer font-normal">Fixed Date</Label>
+              </div>
+            </RadioGroup>
           </div>
           {linkKind === "fixed" && (
             <div><Label>Due Date</Label><DatePicker value={linkDate} onChange={setLinkDate} placeholder="Pick due date" /></div>

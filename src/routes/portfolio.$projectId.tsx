@@ -80,7 +80,7 @@ export const Route = createFileRoute("/portfolio/$projectId")({
 });
 
 const TABS = [
-  "Overview", "Project Schedule", "Cost", "Revenue", "Risk & Issues", "Status Reports",
+  "Overview", "Project Schedule", "Cost Breakdown", "Revenue Breakdown", "Risk & Issues", "Status Reports",
 ];
 
 const PLANNING_STAGES = [
@@ -863,7 +863,7 @@ function ProjectDetail() {
       <Tabs value={activeTab} onValueChange={(t) => setActiveTab(t)}>
         <div>
         <TabsList className="overflow-x-auto whitespace-nowrap">
-          {TABS.filter((t) => t !== "Revenue" || !isInternalProject).map((t) => (
+          {TABS.filter((t) => t !== "Revenue Breakdown" || !isInternalProject).map((t) => (
             <TabsTrigger key={t} value={t}>{t}</TabsTrigger>
           ))}
         </TabsList>
@@ -1245,14 +1245,14 @@ function ProjectDetail() {
         </TabsContent>
 
 
-        <TabsContent value="Cost" className="mt-5">
+        <TabsContent value="Cost Breakdown" className="mt-5">
           <EmptyRegion id="project-cost">
             <FinancialsTab mode="cost" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} onMilestoneClick={goToMilestone} />
           </EmptyRegion>
         </TabsContent>
 
         {!isInternalProject && (
-          <TabsContent value="Revenue" className="mt-5">
+          <TabsContent value="Revenue Breakdown" className="mt-5">
             <EmptyRegion id="project-revenue">
               <FinancialsTab mode="revenue" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} onMilestoneClick={goToMilestone} />
             </EmptyRegion>
@@ -2425,7 +2425,7 @@ function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEnt
               toast.done("Actual", "added");
             }}
           >
-            Add actual
+            Add actual spend
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -2664,7 +2664,7 @@ function FinancialsTab({
       milestoneNames={milestoneNames}
       defaultType={kind}
       lockKind
-      label={kind === "cost" ? "Add Cost" : "Add Revenue Event"}
+      label={kind === "cost" ? "Add cost line" : "Add revenue line"}
       onAddCost={(e) => { setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
       onAddRevenue={(e) => { setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
     />

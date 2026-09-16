@@ -2811,7 +2811,7 @@ function FinancialsTab({
 
 /** Revenue plan with one row per planned event; expanding a row reveals its logged actuals. */
 function RevenuePlanTable({
-  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual,
+  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual, onMilestoneClick,
 }: {
   entries: RevEntry[];
   canEdit: boolean;

@@ -2859,10 +2859,15 @@ function RevenuePlanTable({
           const actual = actuals.reduce((s, a) => s + a.amount, 0);
           const util = r.plan ? Math.round((actual / r.plan) * 100) : 0;
           const open = expanded.has(r.ms);
+          const linkedMs = r.linkKind === "milestone" && milestoneNames.includes(r.ms) ? r.ms : undefined;
           return (
             <Fragment key={r.ms}>
-              <TableRow className="bg-table-row-bg hover:bg-table-row-hover border-0">
-                <TableCell>
+              <TableRow
+                className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${linkedMs ? "cursor-pointer" : ""}`}
+                onClick={linkedMs ? () => onMilestoneClick?.(linkedMs) : undefined}
+                title={linkedMs ? `View “${linkedMs}” in Project Schedule` : undefined}
+              >
+                <TableCell onClick={(ev) => ev.stopPropagation()}>
                   {actuals.length > 0 && (
                     <button
                       type="button"
@@ -3024,10 +3029,15 @@ function CostBreakdownTable({
           const actual = actuals.reduce((s, a) => s + a.amount, 0);
           const util = e.b ? Math.round((actual / e.b) * 100) : 0;
           const open = expanded.has(e.c);
+          const linkedMs = e.linkKind === "milestone" && e.linkRef && milestoneNames.includes(e.linkRef) ? e.linkRef : undefined;
           return (
             <Fragment key={e.c}>
-              <TableRow className="bg-table-row-bg hover:bg-table-row-hover border-0">
-                <TableCell>
+              <TableRow
+                className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${linkedMs ? "cursor-pointer" : ""}`}
+                onClick={linkedMs ? () => onMilestoneClick?.(linkedMs) : undefined}
+                title={linkedMs ? `View “${linkedMs}” in Project Schedule` : undefined}
+              >
+                <TableCell onClick={(ev) => ev.stopPropagation()}>
                   {actuals.length > 0 && (
                     <button
                       type="button"

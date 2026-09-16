@@ -184,7 +184,9 @@ function FinancialsPage() {
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
 
         <TabsContent value="overview" className="mt-5">
+          <EmptyRegion id="financials-overview">
           {/* KPI row */}
+
           <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-5">
             {kpis.map((k) => {
               const Icon = k.icon;
@@ -326,7 +328,6 @@ function FinancialsPage() {
           </div>
 
           <div className="label-eyebrow mb-3">P&L — by project</div>
-          <EmptyRegion id="financials-overview">
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Project Type</TableHead><TableHead>Expected Revenue</TableHead><TableHead>Total Budget</TableHead>
@@ -355,7 +356,9 @@ function FinancialsPage() {
         </TabsContent>
 
         <TabsContent value="cost" className="mt-5">
+          <EmptyRegion id="financials-costs">
           <div className="mb-5 grid gap-4 md:grid-cols-4">
+
             <div className="glass-card p-5">
               <div className="label-eyebrow">CapEx / OpEx split</div>
               <div className="mt-3 flex items-center justify-center">
@@ -376,7 +379,6 @@ function FinancialsPage() {
           </div>
 
           <div className="label-eyebrow mb-3">Cost items — recognition schedule</div>
-          <EmptyRegion id="financials-costs">
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Cost Item</TableHead><TableHead>Category</TableHead>
@@ -409,7 +411,9 @@ function FinancialsPage() {
         </TabsContent>
 
         <TabsContent value="rev" className="mt-5">
+          <EmptyRegion id="financials-revenue">
           <div className="label-eyebrow mb-4">Milestone-linked revenue آ· FY2026</div>
+
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Project</TableHead><TableHead>Milestone</TableHead><TableHead>Due</TableHead><TableHead>Total Contract</TableHead><TableHead>Recognised</TableHead><TableHead>Pending</TableHead><TableHead>% Realized</TableHead><TableHead>Payment</TableHead><TableHead>Days</TableHead></TableRow></TableHeader>
             <TableBody>{([
@@ -451,7 +455,9 @@ function FinancialsPage() {
               );
             })}</TableBody>
           </Table>
+          </EmptyRegion>
         </TabsContent>
+
       </Tabs>
     </div>
   );

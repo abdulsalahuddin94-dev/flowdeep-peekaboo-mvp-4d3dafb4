@@ -1,3 +1,8 @@
+## Session — 2026-09-16 (Universal search input style)
+
+- Standardized search fields across pages, filter drawers, popups, and global search to use `#292931` fill, `#46464F` stroke, and `#767680` placeholder text.
+- Added dedicated shared search-field tokens so new search inputs inherit the same DS02 treatment automatically.
+
 ## Session — 2026-09-15 (Dependency predecessor filtering)
 
 - Added Task and Milestone radio choices to Manage Dependencies, defaulting to Task.

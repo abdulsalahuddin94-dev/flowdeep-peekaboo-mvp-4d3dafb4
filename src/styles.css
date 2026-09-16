@@ -50,6 +50,11 @@
   --p-white:        #ffffff;                 /* absolute white */
   --p-black:        #000000;                 /* absolute black */
 
+  /* Search field anchors */
+  --p-search-fill:        #292931;
+  --p-search-stroke:      #46464f;
+  --p-search-placeholder: #767680;
+
   /* Color · Charcoal (dark UI surfaces) — aliases onto the reference greyscale */
   --p-charcoal-50:  var(--p-neutral-100);
   --p-charcoal-100: var(--p-neutral-300);
@@ -1209,9 +1214,9 @@
   --field-chip-fg:       var(--p-neutral-100);
 
   /* Search inputs use a dedicated DS02 treatment across pages, drawers, and popups. */
-  --search-field-bg:          #292931;
-  --search-field-border:      #46464f;
-  --search-field-placeholder: #767680;
+  --search-field-bg:          var(--p-search-fill);
+  --search-field-border:      var(--p-search-stroke);
+  --search-field-placeholder: var(--p-search-placeholder);
 }
 
 /* Light theme field counterparts */
@@ -1255,7 +1260,7 @@
   opacity: 1;
 }
 /* filled */
-[data-ui="control"]:not([data-ds-field="off"]):not(:placeholder-shown),
+[data-ui="control"]:not([data-ds-field="off"]):not([data-search-input="true"]):not(:placeholder-shown),
 [data-ui="control-text"]:not([data-ds-field="off"]):not(:placeholder-shown),
 [data-ui="control"][data-filled="true"] {
   background-color: var(--field-bg-filled);

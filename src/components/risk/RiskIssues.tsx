@@ -833,6 +833,18 @@ function IssueFormDialog({
         </Select>
       </Field>
 
+      <Field label="Linked milestone" htmlFor="issue-milestone" optional hint="Link the issue to the schedule milestone it affects.">
+        <Select value={milestone} onValueChange={setMilestone}>
+          <SelectTrigger id="issue-milestone"><SelectValue placeholder="No linked milestone" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">No linked milestone</SelectItem>
+            {milestoneOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </Field>
+
+
+
       <Field label="Action taken" htmlFor="issue-action" optional>
         <Textarea id="issue-action" value={action} onChange={(e) => setAction(e.target.value)} placeholder="Current corrective action" rows={3} />
       </Field>

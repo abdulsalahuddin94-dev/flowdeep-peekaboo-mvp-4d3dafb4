@@ -2844,8 +2844,8 @@ function RevenuePlanTable({
   onDeleteActual: (idx: number, actualIdx: number) => void;
   onMilestoneClick?: (name: string) => void;
 }) {
-  const [expanded, setExpanded] = useState<Set<number>>(new Set());
-  const toggle = (key: number) =>
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggle = (key: string) =>
     setExpanded((prev) => {
       const next = new Set(prev);
       next.has(key) ? next.delete(key) : next.add(key);
@@ -3019,8 +3019,8 @@ function CostBreakdownTable({
   onDeleteActual: (idx: number, actualIdx: number) => void;
   onMilestoneClick?: (name: string) => void;
 }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const toggle = (key: string) =>
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const toggle = (key: number) =>
     setExpanded((prev) => {
       const next = new Set(prev);
       next.has(key) ? next.delete(key) : next.add(key);

@@ -344,6 +344,7 @@ function DepartmentsTab() {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Name is required"); return; }
+              if (isDuplicateName(rows.map((r) => r.name), name, rows[editing.index]?.name)) { duplicateToast("Department", name); return; }
               setRows((prev) => prev.map((r, idx) => idx === editing.index ? { name, description: editing.description.trim() } : r));
               toast.done("Department", "updated");
               setEditing(null);

@@ -159,7 +159,7 @@ function BusinessLinesTab() {
         resultCount={visible.length}
         totalCount={rows.length}
         onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
-        cta={<AddBusinessLineDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />}
+        cta={<AddBusinessLineDialog existing={rows.map((r) => r.name)} onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />}
         filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
       <EmptyRegion id="org-project-types">

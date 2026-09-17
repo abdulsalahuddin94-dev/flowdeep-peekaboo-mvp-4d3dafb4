@@ -2904,9 +2904,9 @@ function RevenuePlanTable({
                       type="button"
                       aria-label={open ? "Collapse actuals" : "Expand actuals"}
                       onClick={() => toggle(r.ms)}
-                      className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                      className="rounded p-0.5 text-muted-foreground"
                     >
-                      <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
+                      {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </button>
                   )}
                 </TableCell>

@@ -2952,7 +2952,7 @@ function RevenuePlanTable({
                       {/* Expanded nested actual-spend table uses Gray 600 (#45464F) fill. */}
                       <div className="overflow-hidden rounded-lg bg-p-neutral-600">
                         <div className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center border-b border-black/20 px-5 py-3 text-xs font-medium text-foreground">
-                          <span>Actual spend</span>
+                          <span>Actual payment</span>
                           <span>Date</span>
                           <span className="text-right">Amount ($M)</span>
                           <span className="sr-only">Actions</span>

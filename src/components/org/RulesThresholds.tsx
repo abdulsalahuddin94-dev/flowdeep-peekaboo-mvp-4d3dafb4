@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RagBadge } from "@/components/RagBadge";
 import { DEFAULT_ORG_RULES, loadOrgRules, saveOrgRules, type OrgRules } from "@/lib/org-rules";
 import { toast } from "@/lib/toast";
+import { PageActions } from "@/components/ds/PageActionsSlot";
 
 function NumField({
   label, hint, value, onChange, suffix,
@@ -64,10 +65,10 @@ export function RulesThresholdsTab() {
   }
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+      <PageActions>
         <Button variant="outline" onClick={reset}>Restore defaults</Button>
         <Button variant="primary" onClick={save} disabled={!dirty}>Save changes</Button>
-      </div>
+      </PageActions>
 
       <div className="grid gap-4 xl:grid-cols-2">
         {/* 1 — RAG / Health */}

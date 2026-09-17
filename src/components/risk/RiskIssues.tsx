@@ -289,21 +289,21 @@ function RiskFormDialog({
       submitLabel={risk ? "Save Changes" : "Log Risk"}
       onSubmit={submit}
     >
-      <Field label="Risk title" htmlFor="risk-title" error={errors.title}>
-        <Input id="risk-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="Describe the risk in one line" />
-      </Field>
+      {!lockedProject && (
+        <Field label="Project" htmlFor="risk-project" error={errors.project}>
+          <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }}>
+            <SelectTrigger id="risk-project"><SelectValue placeholder="Select project" /></SelectTrigger>
+            <SelectContent>
+              {projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+      )}
 
-      <div className={lockedProject ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"}>
-        {!lockedProject && (
-          <Field label="Project" htmlFor="risk-project" error={errors.project}>
-            <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }}>
-              <SelectTrigger id="risk-project"><SelectValue placeholder="Select project" /></SelectTrigger>
-              <SelectContent>
-                {projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </Field>
-        )}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Risk title" htmlFor="risk-title" error={errors.title}>
+          <Input id="risk-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="Describe the risk in one line" />
+        </Field>
         <Field label="Category" htmlFor="risk-category" error={errors.category} hint="Maintained in Organization → Risk Categories">
           <Select value={category} onValueChange={(v) => { setCategory(v); setErrors((x) => ({ ...x, category: "" })); }}>
             <SelectTrigger id="risk-category"><SelectValue placeholder="Select category" /></SelectTrigger>

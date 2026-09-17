@@ -11,11 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch, Search, Filter, Check, ChevronRight, ChevronLeft, X, ToggleActive } from "@/lib/icons";
+import { Plus, Pencil, Trash2, CalendarDays, CalendarIcon, PartyPopper, Link2, Lock, Clock, GitBranch, Search, Filter, Check, ChevronRight, ChevronLeft, X, ToggleActive, MoreHorizontal } from "@/lib/icons";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useOrgActive } from "@/lib/org-active";
 import { DEFAULT_COST_CATEGORIES, type CostCategory } from "@/lib/org-cost-categories";
-import { TableRowActions } from "@/components/TableRowActions";
+import { TableRowActions, StatusPill } from "@/components/TableRowActions";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { QuickAddDialog } from "@/components/QuickAddDialog";
 import { PageToolbar as FilterBar, EmptyRow, type FilterGroup } from "@/components/ds/PageToolbar";
@@ -448,16 +449,19 @@ function TagsTab() {
                 <div className="text-xs text-muted-foreground">{t.usage} active projects</div>
               </div>
             </button>
-            <RowActions
+            <div className="flex items-center gap-2">
+              <StatusPill isActive={isActive(t.name)} />
+              <RowActionsMenu
               onEdit={() => setEditing({ name: t.name, color: t.color, original: t.name })}
               isActive={isActive(t.name)}
               onToggleActive={() => setPendingToggle({ name: t.name, active: isActive(t.name) })}
-              onDelete={() => setPendingDelete(t.name)}
-            />
-          </div>
-        ))}
-      </div>
-      </EmptyRegion>
+               onDelete={() => setPendingDelete(t.name)}
+              />
+            </div>
+           </div>
+         ))}
+       </div>
+       </EmptyRegion>
 
       <RelatedProjectsDialog
         open={!!viewing}
@@ -548,6 +552,62 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (color: str
 
 function RowActions(props: React.ComponentProps<typeof TableRowActions>) {
   return <TableRowActions {...props} />;
+}
+
+/**
+ * DS02 card actions menu: a circular three-dot trigger opening a small menu with
+ * Edit / Delete / Activate-Deactivate (matches the Calendars & Tags cards).
+ */
+function RowActionsMenu({
+  onEdit,
+  onDelete,
+  onToggleActive,
+  isActive = true,
+  deleteDisabled,
+  editLabel = "Edit",
+  deleteLabel = "Delete",
+}: {
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onToggleActive?: () => void;
+  isActive?: boolean;
+  deleteDisabled?: boolean;
+  editLabel?: string;
+  deleteLabel?: string;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          size="icon"
+          variant="secondary"
+          data-ds-size="auto"
+          aria-label="Row actions"
+          className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-muted-foreground hover:!bg-[var(--btn-secondary-bg-hover)]"
+        >
+          <MoreHorizontal size={16} className="rotate-90" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-[10rem] rounded-xl border-border/60 p-2 shadow-lg">
+        {onEdit && (
+          <DropdownMenuItem onClick={onEdit} aria-label={editLabel} className="cursor-pointer gap-2.5 rounded-lg px-3 py-2 text-sm text-accent-secondary focus:text-accent-secondary">
+            <Pencil size={15} /> Edit
+          </DropdownMenuItem>
+        )}
+        {onDelete && (
+          <DropdownMenuItem disabled={deleteDisabled} onClick={onDelete} aria-label={deleteLabel} className="cursor-pointer gap-2.5 rounded-lg px-3 py-2 text-sm text-rag-red focus:text-rag-red">
+            <Trash2 size={15} /> Delete
+          </DropdownMenuItem>
+        )}
+        {onToggleActive && (
+          <DropdownMenuItem onClick={onToggleActive} className="cursor-pointer gap-2.5 rounded-lg px-3 py-2 text-sm">
+            <ToggleActive className={cn("h-4 w-4", !isActive && "-scale-x-100")} /> {isActive ? "Deactivate" : "Activate"}
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
 
 function FilterSelect({ value, onChange, options, width = "w-40" }: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; width?: string }) {
@@ -772,7 +832,9 @@ function CalendarsTab() {
                 <CalendarDays className="h-4 w-4 text-accent" />
                 <div className="font-medium text-foreground">{c.name}</div>
               </div>
-              <RowActions
+              <div className="flex items-center gap-2">
+                <StatusPill isActive={isActive} />
+                <RowActionsMenu
                 editLabel={`Edit ${c.name}`}
                 deleteLabel={`Delete ${c.name}`}
                 deleteDisabled={linked.length > 0}
@@ -787,6 +849,7 @@ function CalendarsTab() {
                 }}
                 onDelete={() => deleteCalendar(c)}
               />
+              </div>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <LinkedProjectsChip label={c.name} projects={linked.map((p) => ({ id: p.id, name: p.name }))} />

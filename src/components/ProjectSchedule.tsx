@@ -272,8 +272,8 @@ const COLUMNS = [
 type ColKey = typeof COLUMNS[number]["key"];
 type WidthKey = ColKey | "name";
 
-const ROW_H = 56;
-const HEADER_H = 32;
+const ROW_H = 66;
+const HEADER_H = 44;
 const DEFAULT_NAME_W = 280;
 const MIN_COL_W = 56;
 const MAX_COL_W = 800;
@@ -281,7 +281,7 @@ const COL_PAD = 28; // px of horizontal padding for autofit (px-3 on both sides 
 
 // Shared canvas for text measurement (Excel-like auto-fit)
 let _measureCtx: CanvasRenderingContext2D | null = null;
-function measureText(text: string, font = "12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto") {
+function measureText(text: string, font = "14px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto") {
   if (typeof document === "undefined") return text.length * 7;
   if (!_measureCtx) {
     const c = document.createElement("canvas");
@@ -953,9 +953,9 @@ export function ProjectSchedule({
 
 
   return (
-    <div className="glass-card overflow-hidden">
+    <div>
       {/* Top action bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--p-neutral-800)] p-3">
         <div className="flex items-center gap-3">
           {headerSlot ?? (
             <>
@@ -1087,7 +1087,7 @@ export function ProjectSchedule({
         </button>
         {/* LEFT: table */}
         <div
-          className={`flex flex-col overflow-hidden border-r border-border transition-[width] duration-200 ${leftCollapsed && ganttOpen ? "border-r-0" : ""}`}
+          className={`flex flex-col overflow-hidden rounded-l-[20px] border-r border-border transition-[width] duration-200 ${!ganttOpen ? "rounded-r-[20px]" : ""} ${leftCollapsed && ganttOpen ? "border-r-0" : ""}`}
           style={{ width: !ganttOpen ? "100%" : leftCollapsed ? 0 : `${leftPct}%` }}
 
         >
@@ -1095,17 +1095,21 @@ export function ProjectSchedule({
           <div ref={leftScrollRef} onScroll={onLeftScroll} className="flex-1 overflow-auto">
             <div style={{ width: tableW }}>
               {/* Header */}
-              <div className="sticky top-0 z-20 flex border-b border-border bg-secondary/60 backdrop-blur text-xs font-medium text-muted-foreground" style={{ height: HEADER_H }}>
+              <div className="sticky top-0 z-20 flex rounded-t-[20px] bg-[var(--table-header-bg)] text-sm font-medium text-[var(--table-header-fg)]" style={{ height: HEADER_H }}>
                 <ColHeader label="Task Name" width={nameW} onResize={(e) => startColResize("name", e)} onAutoFit={() => autoFitCol("name")} first />
                 {COLUMNS.filter(c => colVisible(c.key)).map(c => (
                   <ColHeader key={c.key} label={c.label} width={widths[c.key]} onResize={(e) => startColResize(c.key, e)} onAutoFit={() => autoFitCol(c.key)} />
                 ))}
               </div>
-              {visibleRows.map(({ item, depth, hasChildren }) => {
+              {visibleRows.map(({ item, depth, hasChildren }, rowIdx) => {
                 const isOpen = expanded.has(item.name);
                 const isOff = offTrackSet.has(item.name);
                 const isRisk = atRiskSet.has(item.name) && !isOff;
-                const rowTint = isOff ? "bg-rag-red/5" : isRisk ? "bg-rag-amber/5" : "";
+                const rowSurface = isOff
+                  ? "bg-rag-red/5"
+                  : isRisk
+                    ? "bg-rag-amber/5"
+                    : "bg-[var(--table-row-bg)]";
                 const isMs = item.kind === "Milestone";
                 const isGate = !!item.isApprovalTask;
                 const gateApproved = item.approvalStatus === "approved";
@@ -1120,8 +1124,8 @@ export function ProjectSchedule({
                 return (
                   <ContextMenu key={item.name}>
                     <ContextMenuTrigger asChild>
-                  <div className={`flex border-b border-border/60 text-xs ${rowTint}`} style={{ height: ROW_H }}>
-                    <div className="flex items-center gap-1 px-2 overflow-hidden" style={{ width: nameW, paddingLeft: 8 + depth * 14 }}>
+                  <div className={`flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors ${rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
+                    <div className="flex items-center gap-1 overflow-hidden px-3" style={{ width: nameW, paddingLeft: 12 + depth * 14 }}>
                       {hasChildren ? (
                         <button
                           onClick={() => setExpanded(prev => {
@@ -1161,12 +1165,12 @@ export function ProjectSchedule({
                       />
                     </div>
                     {colVisible("type") && (
-                      <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.type }}>
+                      <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.type }}>
                         <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground truncate">{item.kind}</span>
                       </div>
                     )}
                     {colVisible("start") && (
-                      <div className="flex items-center border-l border-border/60 px-3 num-mono overflow-hidden" style={{ width: widths.start }}>
+                      <div className="flex items-center px-3 num-mono overflow-hidden" style={{ width: widths.start }}>
                         {/* Amber dot = this date moved because a dependency changed. */}
                         {item.depDateShift && (
                           <span
@@ -1183,7 +1187,7 @@ export function ProjectSchedule({
                       </div>
                     )}
                     {colVisible("end") && (
-                      <div className="flex items-center border-l border-border/60 px-3 num-mono overflow-hidden" style={{ width: widths.end }}>
+                      <div className="flex items-center px-3 num-mono overflow-hidden" style={{ width: widths.end }}>
                         {item.depDateShift && (
                           <span
                             className="mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rag-amber"
@@ -1199,7 +1203,7 @@ export function ProjectSchedule({
                       </div>
                     )}
                     {colVisible("duration") && (
-                      <div className="flex items-center border-l border-border/60 px-3 num-mono overflow-hidden text-muted-foreground" style={{ width: widths.duration }}>
+                      <div className="flex items-center px-3 num-mono overflow-hidden text-muted-foreground" style={{ width: widths.duration }}>
                         {(() => {
                           const s = parseISO(item.startDate);
                           const e = parseISO(item.endDate);
@@ -1210,7 +1214,7 @@ export function ProjectSchedule({
                       </div>
                     )}
                     {colVisible("owner") && (
-                      <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.owner }}>
+                      <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.owner }}>
                         {editable ? (
                           <Select value={item.owner} onValueChange={(v) => patch(item.name, { owner: v })}>
                             <SelectTrigger className="h-8 border-0 bg-transparent w-full">
@@ -1235,7 +1239,7 @@ export function ProjectSchedule({
                       </div>
                     )}
                     {colVisible("assignee") && (
-                      <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.assignee }}>
+                      <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.assignee }}>
                         <AssigneeCell
                           item={item}
                           editable={assigneeEditable}
@@ -1256,7 +1260,7 @@ export function ProjectSchedule({
                       </div>
                     )}
                     {colVisible("roles") && (
-                      <div className="flex items-center gap-1 overflow-hidden border-l border-border/60 px-3" style={{ width: widths.roles }}>
+                      <div className="flex items-center gap-1 overflow-hidden px-3" style={{ width: widths.roles }}>
                         {(() => {
                           const a = item.assignee?.trim();
                           const isWaiting = a?.toLowerCase() === "waiting";
@@ -1286,7 +1290,7 @@ export function ProjectSchedule({
                       </div>
                     )}
                     {colVisible("weight") && (
-                      <div className="flex items-center border-l border-border/60 px-3 overflow-hidden num-mono" style={{ width: widths.weight }}>
+                      <div className="flex items-center px-3 overflow-hidden num-mono" style={{ width: widths.weight }}>
                         {item.kind === "Task" ? (
                           editable ? (
                             <Input
@@ -1310,7 +1314,7 @@ export function ProjectSchedule({
                       </div>
                     )}
                     {colVisible("status") && (
-                      <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.status }}>
+                      <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.status }}>
                         {editable ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -1365,7 +1369,7 @@ export function ProjectSchedule({
                                   onProgressClick?.(item.name, item.kind);
                                 }
                               }}
-                              className={`flex items-center gap-2 border-l border-border/60 px-3 overflow-hidden ${canClick ? "cursor-pointer hover:bg-secondary/30" : ""}`}
+                              className={`flex items-center gap-2 px-3 overflow-hidden ${canClick ? "cursor-pointer" : ""}`}
                               style={{ width: widths.actual }}
                             >
                               {isGate ? (
@@ -1389,7 +1393,7 @@ export function ProjectSchedule({
                           )}
                           {colVisible("planned") && (
                             <div
-                              className="flex items-center gap-2 border-l border-border/60 px-3 overflow-hidden"
+                              className="flex items-center gap-2 px-3 overflow-hidden"
                               style={{ width: widths.planned }}
                               title={isGate ? "—" : `Planned ${planned}% · ${delta === 0 ? "on plan" : delta > 0 ? `${delta}% ahead` : `${Math.abs(delta)}% behind`}`}
                             >
@@ -1411,7 +1415,7 @@ export function ProjectSchedule({
                     {colVisible("dep") && (() => {
                       const successors = successorsMap.get(item.name) ?? [];
                       return (
-                        <div className="flex items-center gap-1 border-l border-border/60 px-3 text-muted-foreground overflow-hidden" style={{ width: widths.dep }}>
+                        <div className="flex items-center gap-1 px-3 text-muted-foreground overflow-hidden" style={{ width: widths.dep }}>
                           <button
                             onClick={() => !restricted && onDependencyClick?.(item.name)}
                             disabled={restricted}
@@ -1455,12 +1459,12 @@ export function ProjectSchedule({
                       );
                     })()}
                     {colVisible("payment") && (
-                      <div className="flex items-center border-l border-border/60 px-3 overflow-hidden" style={{ width: widths.payment }}>
+                      <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.payment }}>
                         <button
                           type="button"
                           disabled={restricted || isGate}
                           onClick={() => !restricted && !isGate && onFinancialLinkClick?.(item.name)}
-                          className={`flex max-w-full items-center overflow-hidden text-left ${restricted || isGate ? "cursor-default" : "cursor-pointer hover:opacity-80"}`}
+                          className={`flex max-w-full items-center overflow-hidden text-left ${restricted || isGate ? "cursor-default" : "cursor-pointer"}`}
                           title={restricted ? "Locked — use Change Plan to edit financial links" : "Click to link financial items"}
                         >
                           {!item.payment || item.payment.kind === "None" ? (
@@ -1555,17 +1559,17 @@ export function ProjectSchedule({
         )}
 
         {/* RIGHT: gantt */}
-        <div id="project-gantt-chart" className={ganttOpen ? "flex flex-1 flex-col overflow-hidden" : "hidden"}>
+        <div id="project-gantt-chart" className={ganttOpen ? "flex flex-1 flex-col overflow-hidden bg-[var(--p-neutral-900)]" : "hidden"}>
 
           <div ref={rightScrollRef} onScroll={onRightScroll} className="flex-1 overflow-auto">
             <div style={{ width: chartWidth, minWidth: "100%" }}>
               {/* Header */}
-              <div className="sticky top-0 z-20 bg-secondary/30 border-b border-border" style={{ height: HEADER_H }}>
+              <div className="sticky top-0 z-20 border-b border-border bg-[var(--table-header-bg)] text-[var(--table-header-fg)]" style={{ height: HEADER_H }}>
                 <div className="flex h-full">
                   {headerCells.map((c, i) => (
                     <div
                       key={i}
-                      className="flex flex-col items-center justify-center border-l border-border/60 text-[10px] text-muted-foreground"
+                      className="flex flex-col items-center justify-center border-l border-border/60 text-[10px] text-[var(--table-header-fg)]"
                       style={{ width: c.widthDays * dayWidth }}
                     >
                       <span className="font-medium">{c.label}</span>
@@ -1577,7 +1581,7 @@ export function ProjectSchedule({
 
               {/* Body with grid + bars + arrows */}
               <div
-                className="relative cursor-grab"
+                className="relative cursor-grab bg-[var(--p-neutral-900)]"
                 style={{ height: visibleRows.length * ROW_H }}
                 onPointerDown={beginPan}
               >
@@ -1776,7 +1780,7 @@ export function ProjectSchedule({
 
       {/* Legend bar stays mounted in both states so opening/closing the Gantt
           doesn't cause a sudden layout shift; only the legend content is toggled */}
-      <div className="flex min-h-[40px] flex-wrap items-center justify-between gap-3 border-t border-border bg-secondary/20 px-3 py-2 text-xs text-muted-foreground">
+      <div className="flex min-h-[40px] flex-wrap items-center justify-between gap-3 bg-secondary/20 px-3 py-2 text-xs text-muted-foreground">
         {ganttOpen ? (
           <>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -1980,7 +1984,7 @@ function ColHeader({
 }) {
   return (
     <div
-      className={`relative flex items-center px-3 ${first ? "" : "border-l border-border"}`}
+      className="relative flex items-center px-3"
       style={{ width }}
     >
       <span className="truncate">{label}</span>

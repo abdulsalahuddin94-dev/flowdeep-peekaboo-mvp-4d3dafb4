@@ -832,7 +832,9 @@ function CalendarsTab() {
                 <CalendarDays className="h-4 w-4 text-accent" />
                 <div className="font-medium text-foreground">{c.name}</div>
               </div>
-              <RowActionsMenu
+              <div className="flex items-center gap-2">
+                <StatusPill isActive={isActive} />
+                <RowActionsMenu
                 editLabel={`Edit ${c.name}`}
                 deleteLabel={`Delete ${c.name}`}
                 deleteDisabled={linked.length > 0}

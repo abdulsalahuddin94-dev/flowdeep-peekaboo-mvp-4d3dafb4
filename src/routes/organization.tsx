@@ -1180,6 +1180,9 @@ function CostCategoriesTab() {
               const name = editing.name.trim();
               const number = editing.number.trim();
               if (!name || !number) { toast.error("Name and ID are required"); return; }
+              const others = categories.filter((c) => c.id !== editing.id);
+              if (isDuplicateName(others.map((c) => c.name), name)) { duplicateToast("Cost Category", name); return; }
+              if (isDuplicateName(others.map((c) => c.number), number)) { toast.error(`Account number "${number}" is already used by another category.`); return; }
               setCategories((prev) => prev.map((c) => c.id === editing.id ? { ...editing, name, number, description: editing.description.trim() } : c));
               toast.done("Cost Category", "updated");
               setEditing(null);

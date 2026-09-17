@@ -16,7 +16,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from "@/lib/utils";
 import { useOrgActive } from "@/lib/org-active";
 import { DEFAULT_COST_CATEGORIES, type CostCategory } from "@/lib/org-cost-categories";
-import { TableRowActions } from "@/components/TableRowActions";
+import { TableRowActions, StatusPill } from "@/components/TableRowActions";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { QuickAddDialog } from "@/components/QuickAddDialog";
 import { PageToolbar as FilterBar, EmptyRow, type FilterGroup } from "@/components/ds/PageToolbar";
@@ -449,7 +449,9 @@ function TagsTab() {
                 <div className="text-xs text-muted-foreground">{t.usage} active projects</div>
               </div>
             </button>
-            <RowActionsMenu
+            <div className="flex items-center gap-2">
+              <StatusPill isActive={isActive(t.name)} />
+              <RowActionsMenu
               onEdit={() => setEditing({ name: t.name, color: t.color, original: t.name })}
               isActive={isActive(t.name)}
               onToggleActive={() => setPendingToggle({ name: t.name, active: isActive(t.name) })}

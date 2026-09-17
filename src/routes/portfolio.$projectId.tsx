@@ -3086,9 +3086,9 @@ function CostBreakdownTable({
                       aria-label={open ? "Collapse actuals" : "Expand actuals"}
                       aria-expanded={open}
                       onClick={() => toggle(idx)}
-                      className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground"
+                      className="h-7 w-7 rounded-md text-muted-foreground hover:bg-transparent hover:text-muted-foreground"
                     >
-                      <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
+                      {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </Button>
                   )}
                 </TableCell>

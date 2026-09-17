@@ -551,6 +551,62 @@ function RowActions(props: React.ComponentProps<typeof TableRowActions>) {
   return <TableRowActions {...props} />;
 }
 
+/**
+ * DS02 card actions menu: a circular three-dot trigger opening a small menu with
+ * Edit / Delete / Activate-Deactivate (matches the Calendars & Tags cards).
+ */
+function RowActionsMenu({
+  onEdit,
+  onDelete,
+  onToggleActive,
+  isActive = true,
+  deleteDisabled,
+  editLabel = "Edit",
+  deleteLabel = "Delete",
+}: {
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onToggleActive?: () => void;
+  isActive?: boolean;
+  deleteDisabled?: boolean;
+  editLabel?: string;
+  deleteLabel?: string;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          size="icon"
+          variant="secondary"
+          data-ds-size="auto"
+          aria-label="Row actions"
+          className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-muted-foreground hover:!bg-[var(--btn-secondary-bg-hover)]"
+        >
+          <MoreHorizontal size={16} className="rotate-90" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-[10rem] rounded-xl border-border/60 p-2 shadow-lg">
+        {onEdit && (
+          <DropdownMenuItem onClick={onEdit} aria-label={editLabel} className="cursor-pointer gap-2.5 rounded-lg px-3 py-2 text-sm text-accent-secondary focus:text-accent-secondary">
+            <Pencil size={15} /> Edit
+          </DropdownMenuItem>
+        )}
+        {onDelete && (
+          <DropdownMenuItem disabled={deleteDisabled} onClick={onDelete} aria-label={deleteLabel} className="cursor-pointer gap-2.5 rounded-lg px-3 py-2 text-sm text-rag-red focus:text-rag-red">
+            <Trash2 size={15} /> Delete
+          </DropdownMenuItem>
+        )}
+        {onToggleActive && (
+          <DropdownMenuItem onClick={onToggleActive} className="cursor-pointer gap-2.5 rounded-lg px-3 py-2 text-sm">
+            <ToggleActive className={cn("h-4 w-4", !isActive && "-scale-x-100")} /> {isActive ? "Deactivate" : "Activate"}
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function FilterSelect({ value, onChange, options, width = "w-40" }: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; width?: string }) {
   return (
     <Select value={value} onValueChange={onChange}>

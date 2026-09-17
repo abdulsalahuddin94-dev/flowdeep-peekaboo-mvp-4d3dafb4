@@ -3269,7 +3269,7 @@ function EditRevenueRowDialog({
 }) {
   const [evt, setEvt] = useState(entry?.evt ?? "");
   const [plan, setPlan] = useState(entry ? String(entry.plan) : "");
-  const [linkKind, setLinkKind] = useState<"milestone" | "fixed">(entry?.linkKind ?? "milestone");
+  const [linkKind, setLinkKind] = useState<"milestone" | "fixed">(entry?.linkKind === "milestone" ? "milestone" : "fixed");
   const [linkMs, setLinkMs] = useState(entry?.linkKind === "milestone" ? entry.ms : "");
   const [linkDate, setLinkDate] = useState(entry?.linkKind === "fixed" ? entry.date : "");
   const [label, setLabel] = useState(entry?.linkKind === "fixed" ? entry.ms : "");
@@ -3278,7 +3278,7 @@ function EditRevenueRowDialog({
     if (!entry) return;
     setEvt(entry.evt);
     setPlan(String(entry.plan));
-    setLinkKind(entry.linkKind ?? "milestone");
+    setLinkKind(entry.linkKind === "milestone" ? "milestone" : "fixed");
     setLinkMs(entry.linkKind === "milestone" ? entry.ms : "");
     setLinkDate(entry.linkKind === "fixed" ? entry.date : "");
     setLabel(entry.linkKind === "fixed" ? entry.ms : "");

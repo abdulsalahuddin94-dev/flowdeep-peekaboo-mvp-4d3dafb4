@@ -2894,29 +2894,36 @@ function RevenuePlanTable({
           return (
             <Fragment key={r.ms}>
               <TableRow
-                className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${linkedMs ? "cursor-pointer" : ""}`}
-                onClick={linkedMs ? () => onMilestoneClick?.(linkedMs) : undefined}
-                title={linkedMs ? `View “${linkedMs}” in Project Schedule` : undefined}
+                className={`bg-table-row-bg border-0 ${actuals.length > 0 ? "cursor-pointer" : ""}`}
+                data-state={open ? "selected" : undefined}
+                onClick={actuals.length > 0 ? () => toggle(r.ms) : undefined}
               >
                 <TableCell onClick={(ev) => ev.stopPropagation()}>
                   {actuals.length > 0 && (
-                    <button
-                      type="button"
+                    <Button
+                      type="button" variant="ghost" size="icon"
                       aria-label={open ? "Collapse actuals" : "Expand actuals"}
+                      aria-expanded={open}
                       onClick={() => toggle(r.ms)}
-                      className="rounded p-0.5 text-muted-foreground"
+                      className="h-7 w-7 rounded-md text-muted-foreground hover:bg-transparent hover:text-muted-foreground"
                     >
                       {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </button>
+                    </Button>
                   )}
                 </TableCell>
-                <TableCell className="font-medium text-foreground">
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${r.linkKind === "fixed" ? "bg-secondary/40 text-muted-foreground" : "bg-accent/15 text-accent"}`}>
-                      {r.linkKind === "fixed" ? "Date" : "MS"}
-                    </span>
-                    <span>{r.ms}</span>
-                  </div>
+                <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
+                  {linkedMs ? (
+                    <button
+                      type="button"
+                      onClick={() => onMilestoneClick?.(linkedMs)}
+                      title={`View “${linkedMs}” in Project Schedule`}
+                      className="inline-flex items-center gap-1.5 rounded bg-accent/15 px-1.5 py-0.5 text-[11px] text-accent hover:bg-accent/25"
+                    >
+                      {r.ms}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-muted-foreground">{r.evt}</TableCell>
                 <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>

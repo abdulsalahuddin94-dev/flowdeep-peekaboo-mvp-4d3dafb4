@@ -1382,6 +1382,9 @@
   border-radius: var(--select-menu-radius);
   box-shadow: var(--select-menu-shadow);
   padding: var(--select-menu-pad);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 [data-ui="select-menu"] [data-select-item] {
   color: var(--select-menu-fg);

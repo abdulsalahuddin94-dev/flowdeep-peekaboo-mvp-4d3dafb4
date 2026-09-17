@@ -1,3 +1,8 @@
+## Session — 2026-09-17 (Rules & Thresholds simplification)
+
+- Simplified Project Health rules to only At Risk and Off-Track fields.
+- Removed the Schedule Rules card, kept only Reporting currency under Financial Rules, and removed the Probability scale editor from Risk & Issues.
+
 ## Session — 2026-09-16 (Universal search input style)
 
 - Standardized search fields across pages, filter drawers, popups, and global search to use `#292931` fill, `#46464F` stroke, and `#767680` placeholder text.

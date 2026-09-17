@@ -3105,7 +3105,16 @@ function CostBreakdownTable({
                 </TableCell>
                 <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
-                <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>{util}%</TableCell>
+                <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-default">{util}%</span>
+                    </TooltipTrigger>
+                    {util > 100 && (
+                      <TooltipContent>Actual is more than the planned</TooltipContent>
+                    )}
+                  </Tooltip>
+                </TableCell>
                 <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
                   {e.linkKind === "milestone" && e.linkRef ? (
                     <button

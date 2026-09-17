@@ -285,7 +285,7 @@ function RiskFormDialog({
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={risk ? "Edit risk" : "Log a new risk"}
+      title={risk ? (lockedProject ? `Edit risk for ${lockedProject}` : "Edit risk") : (lockedProject ? `Log a new risk for ${lockedProject}` : "Log a new risk")}
       description={risk ? "Update this risk's classification, scoring and mitigation plan." : "Record a potential event, assess its likelihood and impact, and define an optional mitigation plan."}
       size="lg"
       submitLabel={risk ? "Save Changes" : "Log Risk"}
@@ -295,15 +295,17 @@ function RiskFormDialog({
         <Input id="risk-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="Describe the risk in one line" />
       </Field>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Project" htmlFor="risk-project" error={errors.project}>
-          <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }} disabled={!!lockedProject}>
-            <SelectTrigger id="risk-project"><SelectValue placeholder="Select project" /></SelectTrigger>
-            <SelectContent>
-              {projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
+      <div className={lockedProject ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"}>
+        {!lockedProject && (
+          <Field label="Project" htmlFor="risk-project" error={errors.project}>
+            <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }}>
+              <SelectTrigger id="risk-project"><SelectValue placeholder="Select project" /></SelectTrigger>
+              <SelectContent>
+                {projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </Field>
+        )}
         <Field label="Category" htmlFor="risk-category" error={errors.category} hint="Maintained in Organization → Risk Categories">
           <Select value={category} onValueChange={(v) => { setCategory(v); setErrors((x) => ({ ...x, category: "" })); }}>
             <SelectTrigger id="risk-category"><SelectValue placeholder="Select category" /></SelectTrigger>
@@ -780,7 +782,7 @@ function IssueFormDialog({
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={issue ? "Edit issue" : "Log a new issue"}
+      title={issue ? (lockedProject ? `Edit issue for ${lockedProject}` : "Edit issue") : (lockedProject ? `Log a new issue for ${lockedProject}` : "Log a new issue")}
       description={issue ? "Update this issue's details, ownership and corrective action." : "Record a realized event that requires immediate corrective action."}
       size="lg"
       submitLabel={issue ? "Save Changes" : "Log Issue"}
@@ -790,13 +792,15 @@ function IssueFormDialog({
         <Input id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="What is blocking or going wrong?" />
       </Field>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Project" htmlFor="issue-project" error={errors.project}>
-          <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }} disabled={!!lockedProject}>
-            <SelectTrigger id="issue-project"><SelectValue placeholder="Select project" /></SelectTrigger>
-            <SelectContent>{projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-          </Select>
-        </Field>
+      <div className={lockedProject ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"}>
+        {!lockedProject && (
+          <Field label="Project" htmlFor="issue-project" error={errors.project}>
+            <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }}>
+              <SelectTrigger id="issue-project"><SelectValue placeholder="Select project" /></SelectTrigger>
+              <SelectContent>{projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+            </Select>
+          </Field>
+        )}
         <Field label="Issue owner" htmlFor="issue-owner" error={errors.owner}>
           <Input id="issue-owner" value={owner} onChange={(e) => { setOwner(e.target.value); setErrors((x) => ({ ...x, owner: "" })); }} placeholder="Who resolves it?" />
         </Field>

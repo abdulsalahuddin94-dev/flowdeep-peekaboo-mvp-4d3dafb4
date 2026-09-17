@@ -30,7 +30,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, GanttChartSquare, Link2, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Trash2, Upload, UserPlus, X } from "@/lib/icons";
+import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, GanttChartSquare, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Trash2, Upload, UserPlus, X } from "@/lib/icons";
 import { RagBadge } from "@/components/RagBadge";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -303,6 +303,7 @@ export function ProjectSchedule({
   onDeleteItem,
   onProgressClick,
   onDependencyClick,
+  onAddDependencyClick,
   onFinancialLinkClick,
   resourceList = [],
   headerSlot,
@@ -321,6 +322,7 @@ export function ProjectSchedule({
   onDeleteItem?: (name: string) => void;
   onProgressClick?: (name: string, kind: ItemKind) => void;
   onDependencyClick?: (name: string) => void;
+  onAddDependencyClick?: (name: string) => void;
   onFinancialLinkClick?: (name: string) => void;
   resourceList?: Array<{ name: string; role?: string; dept?: string }>;
   headerSlot?: React.ReactNode;
@@ -673,19 +675,6 @@ export function ProjectSchedule({
     visibleRows.forEach((r, i) => m.set(r.item.name, i));
     return m;
   }, [visibleRows]);
-
-  // Reverse lookup: for a given task, which other tasks name it as a predecessor.
-  // Lets a row show "N tasks depend on this" without the user having to check every other row.
-  const successorsMap = useMemo(() => {
-    const m = new Map<string, ScheduleItem[]>();
-    for (const it of items) {
-      for (const d of it.dependencies ?? []) {
-        if (!m.has(d.predecessor)) m.set(d.predecessor, []);
-        m.get(d.predecessor)!.push(it);
-      }
-    }
-    return m;
-  }, [items]);
 
   // ── Undo (Ctrl+Z) ──────────────────────────────────────────────────────────
   function pushUndo(entry: Array<{ name: string; before: Partial<ScheduleItem> }>) {
@@ -1448,52 +1437,32 @@ export function ProjectSchedule({
                         </>
                       );
                     })()}
-                    {colVisible("dep") && (() => {
-                      const successors = successorsMap.get(item.name) ?? [];
-                      return (
-                        <div className="flex items-center gap-1 px-3 text-muted-foreground overflow-hidden" style={{ width: widths.dep }}>
+                    {colVisible("dep") && (
+                      <div className="flex items-center gap-1 px-3 text-muted-foreground overflow-hidden" style={{ width: widths.dep }}>
+                        <button
+                          onClick={() => !restricted && onDependencyClick?.(item.name)}
+                          disabled={restricted}
+                          className={`text-xs truncate min-w-0 ${restricted ? "text-muted-foreground cursor-default" : "text-accent hover:underline cursor-pointer"}`}
+                          title={restricted ? "Locked — use Change Plan to edit dependencies" : "Click to view dependencies"}
+                        >
+                          {item.dependencies && item.dependencies.length > 0
+                            ? item.dependencies.length === 1
+                              ? `${item.dependencies[0].predecessor} · ${depLabel(item.dependencies[0])}`
+                              : `${item.dependencies.length} Dependencies`
+                            : item.dep || "—"}
+                        </button>
+                        {!restricted && (
                           <button
-                            onClick={() => !restricted && onDependencyClick?.(item.name)}
-                            disabled={restricted}
-                            className={`text-xs truncate min-w-0 ${restricted ? "text-muted-foreground cursor-default" : "text-accent hover:underline cursor-pointer"}`}
-                            title={restricted ? "Locked — use Change Plan to edit dependencies" : "Click to manage dependencies"}
+                            type="button"
+                            onClick={() => onAddDependencyClick?.(item.name)}
+                            title="Add a dependency"
+                            className="flex shrink-0 items-center justify-center rounded p-0.5 text-accent hover:bg-accent/15"
                           >
-                            {item.dependencies && item.dependencies.length > 0
-                              ? item.dependencies.length === 1
-                                ? `${item.dependencies[0].predecessor} · ${depLabel(item.dependencies[0])}`
-                                : `${item.dependencies.length} Dependencies`
-                              : item.dep || "—"}
+                            <Plus className="h-3 w-3" />
                           </button>
-                          {successors.length > 0 && (
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <button
-                                  type="button"
-                                  onClick={(e) => e.stopPropagation()}
-                                  title={`${successors.length} task${successors.length === 1 ? "" : "s"} depend${successors.length === 1 ? "s" : ""} on this`}
-                                  className="flex shrink-0 items-center gap-0.5 rounded px-1 py-0.5 text-[10px] text-accent hover:bg-accent/15"
-                                >
-                                  <Link2 className="h-3 w-3" />
-                                  {successors.length}
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-64 p-2" align="start" onClick={(e) => e.stopPropagation()}>
-                                <div className="mb-1.5 px-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                                  Depends on this task
-                                </div>
-                                <div className="max-h-48 space-y-0.5 overflow-y-auto">
-                                  {successors.map((s) => (
-                                    <div key={s.name} className="truncate rounded px-2 py-1 text-sm text-foreground hover:bg-secondary/40">
-                                      {s.name}
-                                    </div>
-                                  ))}
-                                </div>
-                              </PopoverContent>
-                            </Popover>
-                          )}
-                        </div>
-                      );
-                    })()}
+                        )}
+                      </div>
+                    )}
                     {colVisible("payment") && (
                       <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.payment }}>
                         <button

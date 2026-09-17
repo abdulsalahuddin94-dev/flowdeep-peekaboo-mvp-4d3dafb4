@@ -246,6 +246,7 @@ function ProjectDetail() {
   const [progressScope, setProgressScope] = useState<string | undefined>(undefined);
   const [stageGateOpen, setStageGateOpen] = useState(false);
   const [dependencyOpen, setDependencyOpen] = useState(false);
+  const [createDependencyOpen, setCreateDependencyOpen] = useState(false);
   const [selectedItemForDep, setSelectedItemForDep] = useState<string | undefined>(undefined);
   const [finLinkItem, setFinLinkItem] = useState<string | undefined>(undefined);
   const [gateData, setGateData] = useState<GateStage[]>(INITIAL_GATE_DATA);
@@ -994,6 +995,10 @@ function ProjectDetail() {
               setSelectedItemForDep(name);
               setDependencyOpen(true);
             }}
+            onAddDependencyClick={(name) => {
+              setSelectedItemForDep(name);
+              setCreateDependencyOpen(true);
+            }}
             onFinancialLinkClick={(name) => {
               if (!isEditingAllowed) {
                 toast.error("📖 View Only — Click 'Change Plan' to edit");
@@ -1368,9 +1373,25 @@ function ProjectDetail() {
         }
       />
       <StageGatesDialog open={stageGateOpen} onOpenChange={setStageGateOpen} gateData={gateData} setGateData={setGateData} />
-      <DependencyDialog
+      <ViewDependenciesDialog
         open={dependencyOpen}
         onOpenChange={setDependencyOpen}
+        currentItem={selectedItemForDep ? milestones.find((m) => m.name === selectedItemForDep) : undefined}
+        allItems={milestones}
+        onSetDependencies={(name, dependencies, impacts) =>
+          setMilestones((prev) =>
+            prev.map((m) => {
+              const moved = impacts.find((i) => i.name === m.name);
+              let next = m.name === name ? { ...m, dependencies } : m;
+              if (moved) next = { ...next, startDate: moved.start, endDate: moved.end, depDateShift: true };
+              return next;
+            }),
+          )
+        }
+      />
+      <CreateDependencyDialog
+        open={createDependencyOpen}
+        onOpenChange={setCreateDependencyOpen}
         currentItem={selectedItemForDep ? milestones.find((m) => m.name === selectedItemForDep) : undefined}
         allItems={milestones}
         onSetDependencies={(name, dependencies, impacts) =>
@@ -6216,7 +6237,8 @@ function ChangeRequestApprovalDialog({
 
 // ── Dependency Management Dialog ────────────────────────────────────────────────
 type DepItem = Parameters<typeof ProjectSchedule>[0]["items"][number];
-function DependencyDialog({
+/** View-only: lists a task's current dependencies, with immediate per-row removal. */
+function ViewDependenciesDialog({
   open,
   onOpenChange,
   currentItem,
@@ -6229,34 +6251,7 @@ function DependencyDialog({
   allItems: DepItem[];
   onSetDependencies: (name: string, dependencies: any[], impacts: DepImpact[]) => void;
 }) {
-  const [selectedPred, setSelectedPred] = useState<string>("");
-  const [predecessorKind, setPredecessorKind] = useState<"Task" | "Milestone">("Task");
-  const [relation, setRelation] = useState<"FS" | "SF" | "SS" | "FF">("FS");
-  const [lag, setLag] = useState(0);
-  const [deps, setDeps] = useState<any[]>([]);
-  const [acceptShift, setAcceptShift] = useState(false);
-
-  useEffect(() => {
-    if (open && currentItem) {
-      setDeps((currentItem.dependencies ?? []).map((d) => ({ ...d, lag: depLag(d) })));
-      setSelectedPred("");
-      setPredecessorKind("Task");
-      setRelation("FS");
-      setLag(0);
-      setAcceptShift(false);
-    }
-    // Keyed on the item's name, not the object reference: `currentItem` is recomputed via
-    // `milestones.find(...)` on every render of the parent, so a reference-identity check
-    // here would reset (and silently discard) in-progress edits on any unrelated re-render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, currentItem?.name]);
-
-  /** Dates that will move once these dependencies are saved. */
-  const impacts = useMemo(
-    () => (currentItem ? computeDependencyImpact(allItems as any, currentItem.name, deps) : []),
-    [allItems, currentItem, deps],
-  );
-  useEffect(() => { setAcceptShift(false); }, [impacts.length]);
+  const deps = (currentItem?.dependencies ?? []).map((d) => ({ ...d, lag: depLag(d) }));
 
   /** Tasks that already name this one as a predecessor — context for the decision, not something being edited here. */
   const successors = useMemo(
@@ -6264,37 +6259,19 @@ function DependencyDialog({
     [allItems, currentItem],
   );
 
-  function addDependency() {
-    if (!selectedPred || !currentItem) return;
-    const newDep = { predecessor: selectedPred, relation, lag: lag || undefined };
-    const updated = [...deps, newDep];
-    setDeps(updated);
-    setSelectedPred("");
-    setRelation("FS");
-    setLag(0);
-  }
-
   function removeDependency(idx: number) {
-    setDeps((prev) => prev.filter((_, i) => i !== idx));
-  }
-
-  function save() {
     if (!currentItem) return;
-    if (impacts.length > 0 && !acceptShift) {
-      toast.error("Please confirm you accept the date changes before saving");
-      return;
-    }
-    onSetDependencies(currentItem.name, deps.length > 0 ? deps : [], impacts);
-    toast.done("Dependencies", "saved");
-    onOpenChange(false);
+    const updated = deps.filter((_, i) => i !== idx);
+    const impacts = computeDependencyImpact(allItems as any, currentItem.name, updated);
+    onSetDependencies(currentItem.name, updated, impacts);
+    toast.done("Dependency", "removed");
   }
-
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Manage Dependencies — {currentItem?.name}</DialogTitle>
+          <DialogTitle>View Dependencies — {currentItem?.name}</DialogTitle>
           {successors.length > 0 && (
             <Popover>
               <PopoverTrigger asChild>
@@ -6322,121 +6299,172 @@ function DependencyDialog({
             </Popover>
           )}
         </DialogHeader>
-        <div className="grid gap-4">
-          {/* Add new dependency — always on top so the dialog never grows */}
-          <div className="space-y-3 rounded-md border border-accent/20 bg-accent-dim/20 p-3">
-            <div className="text-sm font-medium">Add New Dependency</div>
-            <div className="grid gap-3">
-              <div>
-                <Label className="text-xs">Predecessor Type</Label>
-                <RadioGroup
-                  value={predecessorKind}
-                  onValueChange={(value) => {
-                    setPredecessorKind(value as "Task" | "Milestone");
-                    setSelectedPred("");
-                  }}
-                  className="mt-2 flex flex-wrap items-center gap-5"
-                >
-                  <label htmlFor="predecessor-task" className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
-                    <RadioGroupItem id="predecessor-task" value="Task" />
-                    Predecessor Task
-                  </label>
-                  <label htmlFor="predecessor-milestone" className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
-                    <RadioGroupItem id="predecessor-milestone" value="Milestone" />
-                    Predecessor Milestone
-                  </label>
-                </RadioGroup>
-              </div>
-              <div>
-                <Label className="text-xs">
-                  {predecessorKind === "Task" ? "Predecessor Task" : "Predecessor Milestone"}
-                </Label>
-                <Select value={selectedPred} onValueChange={setSelectedPred}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={`Select a ${predecessorKind.toLowerCase()}...`} />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-48">
-                    {allItems
-                      .filter((m) => m.name !== currentItem?.name && m.kind === predecessorKind)
-                      .map((m) => (
-                        <SelectItem key={m.name} value={m.name}>
-                          {m.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label className="text-xs">Relation Type</Label>
-                  <Select value={relation} onValueChange={(v) => setRelation(v as any)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="FS">Finish to Start (FS)</SelectItem>
-                      <SelectItem value="SF">Start to Finish (SF)</SelectItem>
-                      <SelectItem value="SS">Start to Start (SS)</SelectItem>
-                      <SelectItem value="FF">Finish to Finish (FF)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="mt-1 text-[9px] text-muted-foreground">
-                    {relation === "FS" && "Predecessor must finish before this starts"}
-                    {relation === "SF" && "This must finish before predecessor starts"}
-                    {relation === "SS" && "Start together"}
-                    {relation === "FF" && "Finish together"}
-                  </p>
+        <div className="space-y-2 rounded-md border border-border bg-secondary/20 p-3">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium">Current Dependencies</div>
+            <span className="text-xs text-muted-foreground">{deps.length}</span>
+          </div>
+          <div className="h-[220px] space-y-2 overflow-y-auto pr-1">
+            {deps.length === 0 ? (
+              <p className="py-16 text-center text-xs text-muted-foreground">No dependencies yet.</p>
+            ) : (
+              deps.map((d, i) => (
+                <div key={i} className="flex items-center justify-between rounded border border-border/60 bg-background/60 p-2 text-sm">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="truncate font-medium">{d.predecessor}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">{depLabel(d)}</span>
+                  </div>
+                  <button onClick={() => removeDependency(i)} className="shrink-0 text-xs text-rag-red hover:underline">
+                    Remove
+                  </button>
                 </div>
-                <div>
-                  <Label className="text-xs">Lag / Lead (days)</Label>
-                  <Input
-                    type="number"
-                    value={lag}
-                    onChange={(e) => setLag(Number(e.target.value) || 0)}
-                    placeholder="0"
-                  />
-                  <p className="mt-1 text-[9px] text-muted-foreground">
-                    {lag > 0
-                      ? `Lag — starts ${lag}d after the predecessor`
-                      : lag < 0
-                        ? `Lead — overlaps ${Math.abs(lag)}d with the predecessor`
-                        : "Positive = lag (delay) · Negative = lead (overlap)"}
-                  </p>
-                </div>
-              </div>
+              ))
+            )}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
-              <Button
-                size="sm" variant="primary"
-                onClick={addDependency}
-                disabled={!selectedPred}
-              >
-                <Plus className="mr-1 h-3.5 w-3.5" />
-                Add Dependency
-              </Button>
-            </div>
+/** Create-only: adds exactly one new dependency and saves immediately — no batching. */
+function CreateDependencyDialog({
+  open,
+  onOpenChange,
+  currentItem,
+  allItems,
+  onSetDependencies,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  currentItem?: DepItem;
+  allItems: DepItem[];
+  onSetDependencies: (name: string, dependencies: any[], impacts: DepImpact[]) => void;
+}) {
+  const [selectedPred, setSelectedPred] = useState<string>("");
+  const [predecessorKind, setPredecessorKind] = useState<"Task" | "Milestone">("Task");
+  const [relation, setRelation] = useState<"FS" | "SF" | "SS" | "FF">("FS");
+  const [lag, setLag] = useState(0);
+  const [acceptShift, setAcceptShift] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setSelectedPred("");
+      setPredecessorKind("Task");
+      setRelation("FS");
+      setLag(0);
+      setAcceptShift(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, currentItem?.name]);
+
+  const existingDeps = (currentItem?.dependencies ?? []).map((d) => ({ ...d, lag: depLag(d) }));
+  /** Dates that will move once this new dependency is saved. */
+  const draftDeps = useMemo(
+    () => (selectedPred ? [...existingDeps, { predecessor: selectedPred, relation, lag: lag || undefined }] : existingDeps),
+    [existingDeps, selectedPred, relation, lag],
+  );
+  const impacts = useMemo(
+    () => (currentItem && selectedPred ? computeDependencyImpact(allItems as any, currentItem.name, draftDeps) : []),
+    [allItems, currentItem, draftDeps, selectedPred],
+  );
+  useEffect(() => { setAcceptShift(false); }, [impacts.length]);
+
+  function save() {
+    if (!currentItem || !selectedPred) return;
+    if (impacts.length > 0 && !acceptShift) {
+      toast.error("Please confirm you accept the date changes before saving");
+      return;
+    }
+    onSetDependencies(currentItem.name, draftDeps, impacts);
+    toast.done("Dependency", "added");
+    onOpenChange(false);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Add Dependency — {currentItem?.name}</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-3">
+          <div>
+            <Label className="text-xs">Predecessor Type</Label>
+            <RadioGroup
+              value={predecessorKind}
+              onValueChange={(value) => {
+                setPredecessorKind(value as "Task" | "Milestone");
+                setSelectedPred("");
+              }}
+              className="mt-2 flex flex-wrap items-center gap-5"
+            >
+              <label htmlFor="create-dep-task" className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                <RadioGroupItem id="create-dep-task" value="Task" />
+                Predecessor Task
+              </label>
+              <label htmlFor="create-dep-milestone" className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+                <RadioGroupItem id="create-dep-milestone" value="Milestone" />
+                Predecessor Milestone
+              </label>
+            </RadioGroup>
+          </div>
+          <div>
+            <Label className="text-xs">
+              {predecessorKind === "Task" ? "Predecessor Task" : "Predecessor Milestone"}
+            </Label>
+            <Select value={selectedPred} onValueChange={setSelectedPred}>
+              <SelectTrigger>
+                <SelectValue placeholder={`Select a ${predecessorKind.toLowerCase()}...`} />
+              </SelectTrigger>
+              <SelectContent className="max-h-48">
+                {allItems
+                  .filter((m) => m.name !== currentItem?.name && m.kind === predecessorKind)
+                  .map((m) => (
+                    <SelectItem key={m.name} value={m.name}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Current dependencies — fixed height, scrolls internally */}
-          <div className="space-y-2 rounded-md border border-border bg-secondary/20 p-3">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-medium">Current Dependencies</div>
-              <span className="text-xs text-muted-foreground">{deps.length}</span>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">Relation Type</Label>
+              <Select value={relation} onValueChange={(v) => setRelation(v as any)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FS">Finish to Start (FS)</SelectItem>
+                  <SelectItem value="SF">Start to Finish (SF)</SelectItem>
+                  <SelectItem value="SS">Start to Start (SS)</SelectItem>
+                  <SelectItem value="FF">Finish to Finish (FF)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-[9px] text-muted-foreground">
+                {relation === "FS" && "Predecessor must finish before this starts"}
+                {relation === "SF" && "This must finish before predecessor starts"}
+                {relation === "SS" && "Start together"}
+                {relation === "FF" && "Finish together"}
+              </p>
             </div>
-            <div className="h-[168px] space-y-2 overflow-y-auto pr-1">
-              {deps.length === 0 ? (
-                <p className="py-10 text-center text-xs text-muted-foreground">No dependencies yet.</p>
-              ) : (
-                deps.map((d, i) => (
-                  <div key={i} className="flex items-center justify-between rounded border border-border/60 bg-background/60 p-2 text-sm">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span className="truncate font-medium">{d.predecessor}</span>
-                      <span className="shrink-0 text-xs text-muted-foreground">{depLabel(d)}</span>
-                    </div>
-                    <button onClick={() => removeDependency(i)} className="shrink-0 text-xs text-rag-red hover:underline">
-                      Remove
-                    </button>
-                  </div>
-                ))
-              )}
+            <div>
+              <Label className="text-xs">Lag / Lead (days)</Label>
+              <Input
+                type="number"
+                value={lag}
+                onChange={(e) => setLag(Number(e.target.value) || 0)}
+                placeholder="0"
+              />
+              <p className="mt-1 text-[9px] text-muted-foreground">
+                {lag > 0
+                  ? `Lag — starts ${lag}d after the predecessor`
+                  : lag < 0
+                    ? `Lead — overlaps ${Math.abs(lag)}d with the predecessor`
+                    : "Positive = lag (delay) · Negative = lead (overlap)"}
+              </p>
             </div>
           </div>
 
@@ -6458,7 +6486,7 @@ function DependencyDialog({
         </div>
         <DialogFooter>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button variant="primary" onClick={save} disabled={impacts.length > 0 && !acceptShift}>Save Dependencies</Button>
+          <Button variant="primary" onClick={save} disabled={!selectedPred || (impacts.length > 0 && !acceptShift)}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

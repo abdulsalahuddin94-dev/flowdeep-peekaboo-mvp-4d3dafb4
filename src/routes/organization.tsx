@@ -1709,7 +1709,7 @@ function RiskCategoriesTab() {
         resultCount={rows.length}
         totalCount={categories.length}
         onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
-        cta={<AddRiskCategoryDialog onAdd={(name, description) => addCategory({ name, description })} />}
+        cta={<AddRiskCategoryDialog existing={categories.map((c) => c.name)} onAdd={(name, description) => addCategory({ name, description })} />}
         filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
       <EmptyRegion id="org-risk-categories">

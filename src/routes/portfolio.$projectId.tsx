@@ -3267,83 +3267,98 @@ function EditRevenueRowDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (patch: Partial<RevEntry>) => void;
 }) {
-  const [ms, setMs] = useState(entry?.ms ?? "");
   const [evt, setEvt] = useState(entry?.evt ?? "");
   const [plan, setPlan] = useState(entry ? String(entry.plan) : "");
-  const [date, setDate] = useState(entry?.date ?? "");
-  const [sl, setSl] = useState(entry?.sl ?? "");
-  const [act, setAct] = useState(entry?.act != null ? String(entry.act) : "");
+  const [linkKind, setLinkKind] = useState<"milestone" | "fixed">(entry?.linkKind ?? "milestone");
+  const [linkMs, setLinkMs] = useState(entry?.linkKind === "milestone" ? entry.ms : "");
+  const [linkDate, setLinkDate] = useState(entry?.linkKind === "fixed" ? entry.date : "");
+  const [label, setLabel] = useState(entry?.linkKind === "fixed" ? entry.ms : "");
 
   useEffect(() => {
     if (!entry) return;
-    setMs(entry.ms); setEvt(entry.evt); setPlan(String(entry.plan));
-    setDate(entry.date); setSl(entry.sl); setAct(entry.act != null ? String(entry.act) : "");
+    setEvt(entry.evt);
+    setPlan(String(entry.plan));
+    setLinkKind(entry.linkKind ?? "milestone");
+    setLinkMs(entry.linkKind === "milestone" ? entry.ms : "");
+    setLinkDate(entry.linkKind === "fixed" ? entry.date : "");
+    setLabel(entry.linkKind === "fixed" ? entry.ms : "");
   }, [entry]);
-
-  const linkOptions = Array.from(new Set([...milestoneNames, entry?.ms ?? ""].filter(Boolean)));
 
   return (
     <Dialog open={!!entry} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Edit revenue line</DialogTitle>
-          <DialogDescription>Update the linked milestone, amount, expected date or status.</DialogDescription>
+          <DialogDescription>Link this revenue event to a milestone or a fixed date.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
-          <div className="grid gap-1.5">
-            <Label>Linked to</Label>
-            {entry?.linkKind === "fixed" ? (
-              <Input value={ms} onChange={(e) => setMs(e.target.value)} />
-            ) : (
-              <Select value={ms} onValueChange={setMs}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {linkOptions.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-          <div className="grid gap-1.5">
+          <div>
             <Label>Revenue event</Label>
-            <Input value={evt} onChange={(e) => setEvt(e.target.value)} />
+            <Input value={evt} onChange={(e) => setEvt(e.target.value)} placeholder="e.g. Progress invoice (15%)" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-1.5">
-              <Label>Planned ($M)</Label>
-              <Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} />
-            </div>
-            <div className="grid gap-1.5">
-              <Label>Actual ($M)</Label>
-              <Input type="number" min={0} step={0.01} value={act} onChange={(e) => setAct(e.target.value)} placeholder="—" />
-            </div>
+          <div>
+            <Label>Planned amount ($M)</Label>
+            <Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} placeholder="0.50" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-1.5">
-              <Label>Expected date</Label>
-              <Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="e.g. Jun 30" />
-            </div>
-            <div className="grid gap-1.5">
-              <Label>Status</Label>
-              <Select value={sl} onValueChange={setSl}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+          <div>
+            <Label>Link to</Label>
+            <RadioGroup
+              value={linkKind}
+              onValueChange={(v) => {
+                setLinkKind(v as typeof linkKind);
+                // Switching modes clears the previous link target, like the create form.
+                if (v === "milestone") { setLinkDate(""); setLabel(""); } else { setLinkMs(""); }
+              }}
+              className="flex gap-4 pt-1"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="milestone" id="edit-link-ms" />
+                <Label htmlFor="edit-link-ms" className="cursor-pointer font-normal">Milestone (Dynamic)</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="fixed" id="edit-link-fixed" />
+                <Label htmlFor="edit-link-fixed" className="cursor-pointer font-normal">Fixed Date</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          {linkKind === "fixed" && (
+            <div><Label>Due Date</Label><DatePicker value={linkDate} onChange={setLinkDate} placeholder="Pick due date" /></div>
+          )}
+          {linkKind === "fixed" && (
+            <div><Label>Label (optional)</Label><Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Advance payment" /></div>
+          )}
+          {linkKind === "milestone" && (
+            <div>
+              <Label>Milestone</Label>
+              <Select value={linkMs} onValueChange={setLinkMs}>
+                <SelectTrigger><SelectValue placeholder="Select milestone…" /></SelectTrigger>
                 <SelectContent>
-                  {REV_STATUSES.map((o) => <SelectItem key={o.sl} value={o.sl}>{o.sl}</SelectItem>)}
+                  {milestoneNames.length === 0 ? (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">No milestones yet</div>
+                  ) : milestoneNames.map((n) => (
+                    <SelectItem key={n} value={n}>{n}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
+            variant="primary"
             onClick={() => {
               const p = parseFloat(plan);
-              if (!ms.trim() || !evt.trim() || isNaN(p)) { toast.error("Linked to, event and planned amount are required"); return; }
-              const a = act.trim() === "" ? null : parseFloat(act);
+              if (!evt.trim()) { toast.error("Revenue event is required"); return; }
+              if (isNaN(p)) { toast.error("Planned amount is required"); return; }
+              if (linkKind === "fixed" && !linkDate) { toast.error("Please pick a date"); return; }
+              if (linkKind === "milestone" && !linkMs) { toast.error("Please pick a milestone"); return; }
               onSave({
-                ms: ms.trim(), evt: evt.trim(), plan: p, date,
-                sl, s: REV_STATUSES.find((o) => o.sl === sl)?.s ?? "blue",
-                act: a != null && isNaN(a) ? null : a,
+                ms: linkKind === "milestone" ? linkMs : (label.trim() || "Revenue"),
+                evt: evt.trim(),
+                plan: p,
+                date: linkKind === "fixed" ? linkDate : "Linked",
+                linkKind,
               });
               onOpenChange(false);
               toast.done("Revenue line", "updated");

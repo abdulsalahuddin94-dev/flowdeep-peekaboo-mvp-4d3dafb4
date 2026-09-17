@@ -763,7 +763,7 @@ function IssueFormDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={issue ? (lockedProject ? `Edit issue for ${lockedProject}` : "Edit issue") : (lockedProject ? `Log a new issue for ${lockedProject}` : "Log a new issue")}
-      description={issue ? "Update this issue's details, ownership and corrective action." : "Record a realized event that requires immediate corrective action."}
+      description={issue ? "Update this issue's details and corrective action." : "Record a realized event that requires immediate corrective action."}
       size="lg"
       submitLabel={issue ? "Save Changes" : "Log Issue"}
       onSubmit={submit}
@@ -772,16 +772,14 @@ function IssueFormDialog({
         <Input id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="What is blocking or going wrong?" />
       </Field>
 
-      <div className={lockedProject ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"}>
-        {!lockedProject && (
-          <Field label="Project" htmlFor="issue-project" error={errors.project}>
-            <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }}>
-              <SelectTrigger id="issue-project"><SelectValue placeholder="Select project" /></SelectTrigger>
-              <SelectContent>{projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-            </Select>
-          </Field>
-        )}
-      </div>
+      {!lockedProject && (
+        <Field label="Project" htmlFor="issue-project" error={errors.project}>
+          <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }}>
+            <SelectTrigger id="issue-project"><SelectValue placeholder="Select project" /></SelectTrigger>
+            <SelectContent>{projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+          </Select>
+        </Field>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Priority" htmlFor="issue-priority">

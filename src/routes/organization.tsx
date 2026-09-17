@@ -449,7 +449,7 @@ function TagsTab() {
                 <div className="text-xs text-muted-foreground">{t.usage} active projects</div>
               </div>
             </button>
-            <RowActions
+            <RowActionsMenu
               onEdit={() => setEditing({ name: t.name, color: t.color, original: t.name })}
               isActive={isActive(t.name)}
               onToggleActive={() => setPendingToggle({ name: t.name, active: isActive(t.name) })}
@@ -829,7 +829,7 @@ function CalendarsTab() {
                 <CalendarDays className="h-4 w-4 text-accent" />
                 <div className="font-medium text-foreground">{c.name}</div>
               </div>
-              <RowActions
+              <RowActionsMenu
                 editLabel={`Edit ${c.name}`}
                 deleteLabel={`Delete ${c.name}`}
                 deleteDisabled={linked.length > 0}

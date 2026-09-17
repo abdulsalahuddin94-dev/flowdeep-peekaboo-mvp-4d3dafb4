@@ -1219,7 +1219,7 @@ function CostCategoriesTab() {
 }
 
 
-function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }) {
+function AddCostCategoryDialog({ onAdd, existing = [], existingNumbers = [] }: { onAdd: (cat: CostCategory) => void; existing?: string[]; existingNumbers?: string[] }) {
   return (
     <QuickAddDialog
       triggerLabel="Add Category"

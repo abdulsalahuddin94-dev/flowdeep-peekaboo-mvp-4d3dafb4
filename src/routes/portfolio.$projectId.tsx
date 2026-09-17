@@ -27,7 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar, ClipboardCheck, LayoutGrid, Lock, Link2 } from "@/lib/icons";
+import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, ChevronUp, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar, ClipboardCheck, LayoutGrid, Lock, Link2 } from "@/lib/icons";
 import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";

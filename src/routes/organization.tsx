@@ -1610,7 +1610,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
   );
 }
 
-function AddJobRoleDialog({ onAdd, hasSkills, onGoToSkills }: { onAdd: (title: string, skills: string[]) => void; hasSkills: boolean; onGoToSkills: () => void }) {
+function AddJobRoleDialog({ onAdd, hasSkills, onGoToSkills, existing = [] }: { onAdd: (title: string, skills: string[]) => void; hasSkills: boolean; onGoToSkills: () => void; existing?: string[] }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
@@ -1618,6 +1618,7 @@ function AddJobRoleDialog({ onAdd, hasSkills, onGoToSkills }: { onAdd: (title: s
   function save() {
     const trimmed = title.trim();
     if (!trimmed) { toast.error("Role title is required"); return; }
+    if (isDuplicateName(existing, trimmed)) { duplicateToast("Job Role", trimmed); return; }
     onAdd(trimmed, skills);
     setTitle("");
     setSkills([]);

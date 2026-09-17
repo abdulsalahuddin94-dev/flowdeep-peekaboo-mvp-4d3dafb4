@@ -719,7 +719,7 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
 }
 
 function IssueFormDialog({
-  open, onOpenChange, issue, projectOptions, risks, milestoneOptions, lockedProject, defaultOwner, onSave,
+  open, onOpenChange, issue, projectOptions, risks, milestoneOptions, lockedProject, onSave,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -728,12 +728,10 @@ function IssueFormDialog({
   risks: RiskRecord[];
   milestoneOptions: string[];
   lockedProject?: string;
-  defaultOwner: string;
   onSave: (issue: Omit<IssueItem, "id">) => void;
 }) {
   const [title, setTitle] = useState(issue?.title ?? "");
   const [project, setProject] = useState(issue?.project ?? lockedProject ?? "");
-  const [owner, setOwner] = useState(issue?.owner ?? defaultOwner);
   const [priority, setPriority] = useState<IssuePriority>(issue?.priority ?? "Medium");
   const [status, setStatus] = useState<IssueStatus>(issue?.status ?? "Open");
   const [action, setAction] = useState(issue?.action ?? "");

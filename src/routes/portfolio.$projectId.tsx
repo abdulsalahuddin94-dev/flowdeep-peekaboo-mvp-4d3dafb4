@@ -40,6 +40,7 @@ import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { EmptyState } from "@/components/ds/EmptyState";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress, depLag, depLabel } from "@/components/ProjectSchedule";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   useTabBaseline,
   BaselineHeader,
@@ -2697,12 +2698,23 @@ function FinancialsTab({
               { l: "Planned cost", v: `$${costTotals.planned.toFixed(2)}M` },
               { l: "Actual spent", v: `$${costTotals.actual.toFixed(2)}M` },
               { l: "Utilization", v: `${costTotals.util}%`, c: costTotals.util > 100 ? "text-rag-red" : costTotals.util > 85 ? "text-rag-amber" : "text-rag-green" },
-            ].map((k) => (
+            ].map((k) => {
+              // Utilization turns red when actual spend has exceeded the planned budget.
+              const isUtilRed = k.l === "Utilization" && costTotals.util > 100;
+              return (
               <div key={k.l} className="glass-card p-4">
                 <div className="label-eyebrow">{k.l}</div>
-                <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+                  </TooltipTrigger>
+                  {isUtilRed && (
+                    <TooltipContent>Actual is more than the planned</TooltipContent>
+                  )}
+                </Tooltip>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           <div>
@@ -3093,7 +3105,16 @@ function CostBreakdownTable({
                 </TableCell>
                 <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
-                <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>{util}%</TableCell>
+                <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-default">{util}%</span>
+                    </TooltipTrigger>
+                    {util > 100 && (
+                      <TooltipContent>Actual is more than the planned</TooltipContent>
+                    )}
+                  </Tooltip>
+                </TableCell>
                 <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
                   {e.linkKind === "milestone" && e.linkRef ? (
                     <button

@@ -1358,4 +1358,48 @@
   --toast-fg:              var(--p-white);
 }
 
+/* ── DS02 Select (combobox) dropdown menu ───────────────────────────────────
+   Open panel surface + option states, matching the DS02 reference dropdown. */
+:root {
+  --select-menu-bg:           #292931;   /* open panel fill           */
+  --select-menu-border:       #46464F;   /* panel border              */
+  --select-menu-fg:           #848485;   /* default option text       */
+  --select-menu-fg-active:    #FFFFFF;   /* hover / selected text     */
+  --select-menu-item-bg:      #46464F;   /* hover / selected fill     */
+  --select-menu-radius:       8px;       /* panel corner radius        */
+  --select-menu-item-radius:  6px;       /* option row radius          */
+  --select-menu-pad:          4px;       /* inner padding (gap)        */
+  --select-menu-item-px:      16px;      /* option horizontal padding  */
+  --select-menu-item-py:      8px;       /* option vertical padding    */
+  --select-menu-shadow:        0 8px 24px rgba(0, 0, 0, 0.5);
+}
+/* The open dropdown keeps the DS02 dark surface in light mode. */
+
+[data-ui="select-menu"] {
+  background-color: var(--select-menu-bg);
+  border-color: var(--select-menu-border);
+  color: var(--select-menu-fg);
+  border-radius: var(--select-menu-radius);
+  box-shadow: var(--select-menu-shadow);
+  padding: var(--select-menu-pad);
+}
+[data-ui="select-menu"] [data-select-item] {
+  color: var(--select-menu-fg);
+  border-radius: var(--select-menu-item-radius);
+  padding-inline: var(--select-menu-item-px);
+  padding-block: var(--select-menu-item-py);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+[data-ui="select-menu"] [data-select-item]:hover,
+[data-ui="select-menu"] [data-select-item][data-active="true"],
+[data-ui="select-menu"] [data-select-item][data-selected="true"] {
+  background-color: var(--select-menu-item-bg);
+  color: var(--select-menu-fg-active);
+}
+[data-ui="select-menu"] [data-select-item][data-disabled] {
+  color: var(--field-placeholder);
+  opacity: 0.5;
+}
+
+
 

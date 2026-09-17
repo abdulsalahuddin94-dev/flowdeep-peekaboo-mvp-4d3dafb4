@@ -849,6 +849,7 @@ function CalendarsTab() {
                 }}
                 onDelete={() => deleteCalendar(c)}
               />
+              </div>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <LinkedProjectsChip label={c.name} projects={linked.map((p) => ({ id: p.id, name: p.name }))} />

@@ -125,14 +125,17 @@ export function RulesThresholdsTab() {
               Set the severity bands for your organization.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5 p-5 pt-0">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <NumField label="Score → Critical (at or above)" value={rules.risk.criticalMin} onChange={(v) => setRisk({ criticalMin: v })} />
-              <NumField label="Score → High (at or above)" value={rules.risk.highMin} onChange={(v) => setRisk({ highMin: v })} />
-              <NumField label="Score → Medium (at or above)" value={rules.risk.mediumMin} onChange={(v) => setRisk({ mediumMin: v })}
-                hint="Anything below this is Low." />
+          <CardContent className="space-y-3 p-5 pt-0">
+            <div className="grid items-start gap-4 sm:grid-cols-3">
+              <NumField label="Critical" value={rules.risk.criticalMin} onChange={(v) => setRisk({ criticalMin: v })}
+                hint="Score at or above" />
+              <NumField label="High" value={rules.risk.highMin} onChange={(v) => setRisk({ highMin: v })}
+                hint="Score at or above" />
+              <NumField label="Medium" value={rules.risk.mediumMin} onChange={(v) => setRisk({ mediumMin: v })}
+                hint="Score at or above — below this is Low" />
             </div>
           </CardContent>
+
         </Card>
       </div>
     </div>

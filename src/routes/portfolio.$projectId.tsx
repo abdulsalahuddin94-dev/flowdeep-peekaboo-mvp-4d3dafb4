@@ -6660,14 +6660,14 @@ function ProjectRiskIssuesTab({ projectName, milestoneOptions }: { projectName: 
   return (
     <div className="space-y-4">
       <Tabs value={view} onValueChange={(v) => setView(v as typeof view)}>
-        <TabsList className="h-auto w-full gap-2 border-0 bg-transparent p-0">
-          <TabsTrigger value="register" className="h-9 flex-1 gap-2 rounded-md border border-border bg-card px-4 text-xs data-[state=active]:border-accent data-[state=active]:bg-accent/10 data-[state=active]:text-accent">
+        <TabsList className="grid h-11 w-full grid-cols-3 gap-0 rounded-lg border border-border bg-[var(--field-bg-filled)] p-1">
+          <TabsTrigger value="register" className="h-9 gap-2 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent">
             <ClipboardCheck size={15} />Risk Register
           </TabsTrigger>
-          <TabsTrigger value="heatmap" className="h-9 flex-1 gap-2 rounded-md border border-border bg-card px-4 text-xs data-[state=active]:border-accent data-[state=active]:bg-accent/10 data-[state=active]:text-accent">
+          <TabsTrigger value="heatmap" className="h-9 gap-2 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent">
             <LayoutGrid size={15} />Heat Map
           </TabsTrigger>
-          <TabsTrigger value="issues" className="h-9 flex-1 gap-2 rounded-md border border-border bg-card px-4 text-xs data-[state=active]:border-accent data-[state=active]:bg-accent/10 data-[state=active]:text-accent">
+          <TabsTrigger value="issues" className="h-9 gap-2 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent">
             <AlertTriangle size={15} />Issues Log
           </TabsTrigger>
         </TabsList>

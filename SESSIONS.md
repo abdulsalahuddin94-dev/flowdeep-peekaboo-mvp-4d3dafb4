@@ -1,3 +1,7 @@
+## Session — 2026-09-17 (Project Risk segmented control)
+
+- Changed the project Risk & Issues sub-tabs into a single segmented control with one shared container and active segment styling.
+
 ## Session — 2026-09-17 (Risk & Issues ID cleanup)
 
 - Removed visible Risk/Issue ID columns and ID-prefixed labels from the Risk & Issues module and the project Risk & Issues tab.

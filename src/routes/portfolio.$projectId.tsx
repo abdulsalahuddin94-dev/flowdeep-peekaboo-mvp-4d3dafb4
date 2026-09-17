@@ -3125,11 +3125,12 @@ function CostBreakdownTable({
                 </TableCell>
               </TableRow>
               {open && (
-                <TableRow className="bg-background hover:bg-background border-0 [&>td]:!bg-background hover:[&>td]:!bg-background">
+                <TableRow className="bg-transparent hover:bg-transparent border-0 [&>td]:!bg-transparent hover:[&>td]:!bg-transparent">
                   <TableCell colSpan={9} className="px-4 pb-3 pt-1">
                     <div className="ml-4 border-l border-border pl-3">
-                      <div className="overflow-hidden rounded-lg bg-search-fill">
-                        <div className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center border-b border-border px-5 py-3 text-xs font-medium text-foreground">
+                      {/* Expanded nested actual-spend table uses Gray 600 (#45464F) fill. */}
+                      <div className="overflow-hidden rounded-lg bg-p-neutral-600">
+                        <div className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center border-b border-black/20 px-5 py-3 text-xs font-medium text-foreground">
                           <span>Actual spend</span>
                           <span>Date</span>
                           <span className="text-right">Amount ($M)</span>
@@ -3138,7 +3139,7 @@ function CostBreakdownTable({
                         {actuals.map((a, i) => (
                           <div
                             key={`${e.c}-a${i}`}
-                            className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center px-5 py-3 text-xs text-muted-foreground transition-colors hover:bg-table-row-hover"
+                            className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center px-5 py-3 text-xs text-muted-foreground transition-colors hover:bg-p-charcoal-400"
                           >
                             <span className="text-foreground">
                               {a.name ?? "Actual spend"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}

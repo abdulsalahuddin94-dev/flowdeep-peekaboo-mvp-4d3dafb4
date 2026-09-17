@@ -499,6 +499,7 @@ function TagsTab() {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Tag name is required"); return; }
+              if (isDuplicateName(tags.map((t) => t.name), name, editing.original)) { duplicateToast("Tag", name); return; }
               updateTag(editing.original, { name, color: editing.color });
               toast.done("Tag", "updated");
               setEditing(null);

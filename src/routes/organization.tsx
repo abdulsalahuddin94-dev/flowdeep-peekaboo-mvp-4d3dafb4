@@ -1798,7 +1798,7 @@ function RiskCategoriesTab() {
   );
 }
 
-function AddRiskCategoryDialog({ onAdd }: { onAdd: (name: string, description: string) => void }) {
+function AddRiskCategoryDialog({ onAdd, existing = [] }: { onAdd: (name: string, description: string) => void; existing?: string[] }) {
   return (
     <QuickAddDialog
       triggerLabel="Add Category"
@@ -1811,6 +1811,7 @@ function AddRiskCategoryDialog({ onAdd }: { onAdd: (name: string, description: s
       onSave={(v) => {
         const trimmed = v.name.trim();
         if (!trimmed) { toast.error("Category name is required"); return false; }
+        if (isDuplicateName(existing, trimmed)) { duplicateToast("Risk Category", trimmed); return false; }
         onAdd(trimmed, v.description.trim());
         toast.done("Risk Category", "created");
       }}

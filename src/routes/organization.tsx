@@ -959,6 +959,7 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
   }
   function save() {
     if (!name.trim()) { toast.error("Calendar name is required"); return; }
+    if (isDuplicateName(calendars.filter((c) => c.id !== calendar?.id).map((c) => c.name), name)) { duplicateToast("Calendar", name); return; }
     if (workingDays.length === 0) { toast.error("Select at least one working day"); return; }
     if (isEdit && calendar) {
       if (hasLinked) {

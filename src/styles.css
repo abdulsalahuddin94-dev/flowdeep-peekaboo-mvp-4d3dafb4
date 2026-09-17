@@ -1368,7 +1368,7 @@
   --select-menu-item-bg:      #46464F;   /* hover / selected fill     */
   --select-menu-radius:       8px;       /* panel corner radius        */
   --select-menu-item-radius:  6px;       /* option row radius          */
-  --select-menu-pad:          4px;       /* inner padding (gap)        */
+  --select-menu-pad:          16px;      /* inner padding (gap)        */
   --select-menu-item-px:      16px;      /* option horizontal padding  */
   --select-menu-item-py:      8px;       /* option vertical padding    */
   --select-menu-shadow:        0 8px 24px rgba(0, 0, 0, 0.5);

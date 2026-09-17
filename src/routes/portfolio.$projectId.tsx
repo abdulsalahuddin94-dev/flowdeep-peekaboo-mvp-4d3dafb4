@@ -2938,26 +2938,42 @@ function RevenuePlanTable({
                   />
                 </TableCell>
               </TableRow>
-              {open && actuals.map((a, i) => (
-                <TableRow key={`${r.ms}-a${i}`} className="bg-secondary/10 hover:bg-secondary/20 border-0">
-                  <TableCell />
-                  <TableCell colSpan={2} className="pl-6 text-xs text-muted-foreground">
-                    {a.name ?? "Actual payment"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
-                  </TableCell>
-                  <TableCell />
-                  <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
-                  <TableCell />
-                  <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
-                  <TableCell />
-                  <TableCell className="text-right">
-                    {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
-                    <TableRowActions
-                      onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
-                      onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
-                    />
+              {open && (
+                <TableRow className="bg-transparent hover:bg-transparent border-0 [&>td]:!bg-transparent hover:[&>td]:!bg-transparent">
+                  <TableCell colSpan={9} className="px-4 pb-3 pt-1">
+                    <div className="ml-4 border-l border-border pl-3">
+                      {/* Expanded nested actual-spend table uses Gray 600 (#45464F) fill. */}
+                      <div className="overflow-hidden rounded-lg bg-p-neutral-600">
+                        <div className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center border-b border-black/20 px-5 py-3 text-xs font-medium text-foreground">
+                          <span>Actual spend</span>
+                          <span>Date</span>
+                          <span className="text-right">Amount ($M)</span>
+                          <span className="sr-only">Actions</span>
+                        </div>
+                        {actuals.map((a, i) => (
+                          <div
+                            key={`${r.ms}-a${i}`}
+                            className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center px-5 py-3 text-xs text-muted-foreground transition-colors hover:bg-p-charcoal-400"
+                          >
+                            <span className="text-foreground">
+                              {a.name ?? "Actual payment"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
+                            </span>
+                            <span>{a.date || "—"}</span>
+                            <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
+                            <span className="flex justify-end">
+                              {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
+                              <TableRowActions
+                                onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
+                                onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
+                              />
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </Fragment>
           );
         })}

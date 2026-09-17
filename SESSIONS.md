@@ -1,3 +1,12 @@
+## Session — 2026-09-17 (Project Risk segmented control)
+
+- Changed the project Risk & Issues sub-tabs into a single segmented control with one shared container and active segment styling.
+
+## Session — 2026-09-17 (Risk & Issues ID cleanup)
+
+- Removed visible Risk/Issue ID columns and ID-prefixed labels from the Risk & Issues module and the project Risk & Issues tab.
+- Updated search placeholders, originating-risk labels, status dialogs, heat-map details, and conversion messages so users see names instead of record IDs.
+
 ## Session — 2026-09-17 (Expandable cost actuals)
 
 - Restyled Cost Breakdown expansion to open from the full cost row and reveal actual spend in a compact nested table matching the supplied reference.

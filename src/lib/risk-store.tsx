@@ -160,7 +160,7 @@ export function useRiskRegister() {
       id: `u-${Date.now()}`,
       at: today(),
       by,
-      comment: `Risk materialised — converted to issue ${id}.`,
+      comment: "Risk materialised — converted to an issue.",
       change: { status: [risk.status, "In Progress"] },
     };
     set({

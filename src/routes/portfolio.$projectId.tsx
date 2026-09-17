@@ -2636,7 +2636,7 @@ function FinancialsTab({
     { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "Jun 30",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "fixed",
       actuals: [{ amount: 0.20, date: "Jul 04", note: "Partial settlement" }] },
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
-    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
+    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null, linkKind: "fixed" },
   ]);
   // Editing is governed by the single project-level baseline (see the project header).
   const displayCost = costEntries;

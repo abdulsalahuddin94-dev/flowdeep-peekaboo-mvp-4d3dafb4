@@ -1376,6 +1376,7 @@ function SkillsTable() {
               if (!editing) return;
               const v = editing.value.trim();
               if (!v) { toast.error("Skill name is required"); return; }
+              if (isDuplicateName(skillsCatalog, v, editing.original)) { duplicateToast("Skill", v); return; }
               updateSkill(editing.original, v);
               toast.done("Skill", "updated");
               setEditing(null);

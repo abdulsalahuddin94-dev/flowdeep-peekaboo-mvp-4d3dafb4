@@ -1,3 +1,7 @@
+## Session — 2026-09-17 (Actual spend date picker)
+
+- Replaced the free-text Date field in Add actual spend and Edit actual with the shared interactive calendar picker.
+
 ## Session — 2026-09-17 (Cost line naming and order)
 
 - Renamed the Cost Breakdown Description field to Name and moved it before Category in the table, add flow, and edit flow.

@@ -2894,29 +2894,36 @@ function RevenuePlanTable({
           return (
             <Fragment key={r.ms}>
               <TableRow
-                className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${linkedMs ? "cursor-pointer" : ""}`}
-                onClick={linkedMs ? () => onMilestoneClick?.(linkedMs) : undefined}
-                title={linkedMs ? `View “${linkedMs}” in Project Schedule` : undefined}
+                className={`bg-table-row-bg border-0 ${actuals.length > 0 ? "cursor-pointer" : ""}`}
+                data-state={open ? "selected" : undefined}
+                onClick={actuals.length > 0 ? () => toggle(r.ms) : undefined}
               >
                 <TableCell onClick={(ev) => ev.stopPropagation()}>
                   {actuals.length > 0 && (
-                    <button
-                      type="button"
+                    <Button
+                      type="button" variant="ghost" size="icon"
                       aria-label={open ? "Collapse actuals" : "Expand actuals"}
+                      aria-expanded={open}
                       onClick={() => toggle(r.ms)}
-                      className="rounded p-0.5 text-muted-foreground"
+                      className="h-7 w-7 rounded-md text-muted-foreground hover:bg-transparent hover:text-muted-foreground"
                     >
                       {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </button>
+                    </Button>
                   )}
                 </TableCell>
-                <TableCell className="font-medium text-foreground">
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${r.linkKind === "fixed" ? "bg-secondary/40 text-muted-foreground" : "bg-accent/15 text-accent"}`}>
-                      {r.linkKind === "fixed" ? "Date" : "MS"}
-                    </span>
-                    <span>{r.ms}</span>
-                  </div>
+                <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
+                  {linkedMs ? (
+                    <button
+                      type="button"
+                      onClick={() => onMilestoneClick?.(linkedMs)}
+                      title={`View “${linkedMs}” in Project Schedule`}
+                      className="inline-flex items-center gap-1.5 rounded bg-accent/15 px-1.5 py-0.5 text-[11px] text-accent hover:bg-accent/25"
+                    >
+                      {r.ms}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-muted-foreground">{r.evt}</TableCell>
                 <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
@@ -2938,26 +2945,42 @@ function RevenuePlanTable({
                   />
                 </TableCell>
               </TableRow>
-              {open && actuals.map((a, i) => (
-                <TableRow key={`${r.ms}-a${i}`} className="bg-secondary/10 hover:bg-secondary/20 border-0">
-                  <TableCell />
-                  <TableCell colSpan={2} className="pl-6 text-xs text-muted-foreground">
-                    {a.name ?? "Actual payment"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
-                  </TableCell>
-                  <TableCell />
-                  <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
-                  <TableCell />
-                  <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
-                  <TableCell />
-                  <TableCell className="text-right">
-                    {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
-                    <TableRowActions
-                      onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
-                      onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
-                    />
+              {open && (
+                <TableRow className="bg-transparent hover:bg-transparent border-0 [&>td]:!bg-transparent hover:[&>td]:!bg-transparent">
+                  <TableCell colSpan={9} className="px-4 pb-3 pt-1">
+                    <div className="ml-4 border-l border-border pl-3">
+                      {/* Expanded nested actual-spend table uses Gray 600 (#45464F) fill. */}
+                      <div className="overflow-hidden rounded-lg bg-p-neutral-600">
+                        <div className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center border-b border-black/20 px-5 py-3 text-xs font-medium text-foreground">
+                          <span>Actual spend</span>
+                          <span>Date</span>
+                          <span className="text-right">Amount ($M)</span>
+                          <span className="sr-only">Actions</span>
+                        </div>
+                        {actuals.map((a, i) => (
+                          <div
+                            key={`${r.ms}-a${i}`}
+                            className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center px-5 py-3 text-xs text-muted-foreground transition-colors hover:bg-p-charcoal-400"
+                          >
+                            <span className="text-foreground">
+                              {a.name ?? "Actual payment"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
+                            </span>
+                            <span>{a.date || "—"}</span>
+                            <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
+                            <span className="flex justify-end">
+                              {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
+                              <TableRowActions
+                                onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
+                                onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
+                              />
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </Fragment>
           );
         })}

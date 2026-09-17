@@ -1,3 +1,7 @@
+## Session — 2026-09-17 (Edit actual spend fix)
+
+- Fixed Edit actual spend for legacy records by normalizing display dates for the calendar picker, restoring names from existing notes, and preventing invalid dates from crashing the dialog.
+
 ## Session — 2026-09-17 (Actual spend date picker)
 
 - Replaced the free-text Date field in Add actual spend and Edit actual with the shared interactive calendar picker.

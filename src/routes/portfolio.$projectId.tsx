@@ -4440,7 +4440,7 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
     const id = `${prefix}-${String(100 + num).padStart(3, "0")}`;
     const rag: Rag = score >= 16 ? "red" : score >= 9 ? "amber" : "green";
     setItems((prev) => [...prev, { id, title: title.trim(), kind, score, owner, status, rag: statusRag[status] ?? rag }]);
-    toast.success(`${kind} ${id} logged`);
+    toast.success(`${kind} logged`);
     setOpen(false); setTitle(""); setProb(3); setImpact(3); setStatus("Open");
   }
 
@@ -4535,10 +4535,9 @@ function RisksTab({ project }: { project: typeof projects[number] }) {
       </div>
       <div className="">
         <Table>
-          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>ID</TableHead><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Score</TableHead><TableHead>Owner</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Title</TableHead><TableHead>Type</TableHead><TableHead>Score</TableHead><TableHead>Owner</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
           <TableBody>{displayItems.map((r) => (
             <TableRow key={r.id} className="bg-table-row-bg hover:bg-table-row-hover border-0">
-              <TableCell className="num-mono text-xs">{r.id}</TableCell>
               <TableCell className="font-medium">{r.title}</TableCell>
               <TableCell>{r.kind}</TableCell>
               <TableCell><Badge variant="outline" className="border-border bg-secondary/40 num-mono">{r.score}</Badge></TableCell>

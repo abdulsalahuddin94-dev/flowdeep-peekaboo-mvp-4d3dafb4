@@ -555,8 +555,8 @@ function RowActions(props: React.ComponentProps<typeof TableRowActions>) {
 }
 
 /**
- * DS02 card actions menu: a circular three-dot trigger opening a small menu with
- * Edit / Delete / Activate-Deactivate (matches the Calendars & Tags cards).
+ * DS02 card actions menu: a rounded-rectangle three-dot trigger opening a small
+ * menu with Edit / Delete / Activate-Deactivate (matches the Calendars & Tags cards).
  */
 function RowActionsMenu({
   onEdit,

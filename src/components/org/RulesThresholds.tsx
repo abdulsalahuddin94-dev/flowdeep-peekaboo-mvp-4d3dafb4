@@ -121,7 +121,7 @@ export function RulesThresholdsTab() {
             <CardTitle className="text-base font-medium">Risk & Issues Rules</CardTitle>
             <CardDescription>
               Probability and Impact are scored 1–5 and the risk score is Probability × Impact.
-              The scale is a standard, but the severity bands differ per organization — set yours here.
+              Set the severity bands for your organization.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5 p-5 pt-0">
@@ -130,23 +130,6 @@ export function RulesThresholdsTab() {
               <NumField label="Score → High (at or above)" value={rules.risk.highMin} onChange={(v) => setRisk({ highMin: v })} />
               <NumField label="Score → Medium (at or above)" value={rules.risk.mediumMin} onChange={(v) => setRisk({ mediumMin: v })}
                 hint="Anything below this is Low." />
-            </div>
-
-            <div className="border-t border-border pt-5">
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-foreground">Impact scale (1 → 5)</Label>
-                {rules.risk.impactLabels.map((l, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="num-mono w-5 text-xs text-muted-foreground">{i + 1}</span>
-                    <Input
-                      value={l}
-                      onChange={(e) => setRisk({
-                        impactLabels: rules.risk.impactLabels.map((x, ix) => (ix === i ? e.target.value : x)),
-                      })}
-                    />
-                  </div>
-                ))}
-              </div>
             </div>
           </CardContent>
         </Card>

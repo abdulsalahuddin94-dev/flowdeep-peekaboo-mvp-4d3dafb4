@@ -1,3 +1,25 @@
+## Session — 2026-09-17 (Expandable cost actuals)
+
+- Restyled Cost Breakdown expansion to open from the full cost row and reveal actual spend in a compact nested table matching the supplied reference.
+- Kept milestone navigation on the linked-milestone badge and retained actual-spend edit and delete actions inside the expanded table.
+
+## Session — 2026-09-17 (Edit actual spend fix)
+
+- Fixed Edit actual spend for legacy records by normalizing display dates for the calendar picker, restoring names from existing notes, and preventing invalid dates from crashing the dialog.
+
+## Session — 2026-09-17 (Actual spend date picker)
+
+- Replaced the free-text Date field in Add actual spend and Edit actual with the shared interactive calendar picker.
+
+## Session — 2026-09-17 (Cost line naming and order)
+
+- Renamed the Cost Breakdown Description field to Name and moved it before Category in the table, add flow, and edit flow.
+
+## Session — 2026-09-17 (Rules & Thresholds simplification)
+
+- Simplified Project Health rules to only At Risk and Off-Track fields.
+- Removed the Schedule Rules card, kept only Reporting currency under Financial Rules, and removed the Probability scale editor from Risk & Issues.
+
 ## Session — 2026-09-16 (Universal search input style)
 
 - Standardized search fields across pages, filter drawers, popups, and global search to use `#292931` fill, `#46464F` stroke, and `#767680` placeholder text.

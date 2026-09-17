@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { format, parseISO } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { CalendarIcon, X } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,8 @@ export function DatePicker({
   const [open, setOpen] = React.useState(false);
   const [internalValue, setInternalValue] = React.useState("");
   const resolvedValue = value ?? internalValue;
-  const date = resolvedValue ? parseISO(resolvedValue) : undefined;
+  const parsedDate = resolvedValue ? parseISO(resolvedValue) : undefined;
+  const date = parsedDate && isValid(parsedDate) ? parsedDate : undefined;
 
   const handleSelect = (d: Date | undefined) => {
     const nextValue = d ? format(d, "yyyy-MM-dd") : "";

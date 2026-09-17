@@ -27,7 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar, ClipboardCheck, LayoutGrid, Lock, Link2 } from "@/lib/icons";
+import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, ChevronUp, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar, ClipboardCheck, LayoutGrid, Lock, Link2 } from "@/lib/icons";
 import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
@@ -40,6 +40,7 @@ import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { EmptyState } from "@/components/ds/EmptyState";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress, depLag, depLabel } from "@/components/ProjectSchedule";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   useTabBaseline,
   BaselineHeader,
@@ -2406,7 +2407,7 @@ function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEnt
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Date</Label>
-              <Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="e.g. Jun 30" />
+              <DatePicker value={date} onChange={setDate} placeholder="Pick a date" />
             </div>
             <div className="grid gap-1.5">
               <Label>Amount ($M)</Label>
@@ -2433,6 +2434,13 @@ function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEnt
   );
 }
 
+function actualDatePickerValue(value?: string) {
+  if (!value || value === "—") return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const parsed = new Date(`${value}, 2026`);
+  return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
+}
+
 /**
  * Edit an already-logged actual (payment/expense) — bookkeeping, not re-planning,
  * so this stays available regardless of baseline lock, same as AddActualDialog.
@@ -2444,20 +2452,22 @@ function EditActualDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (patch: ActualEntry) => void;
 }) {
-  const [name, setName] = useState(entry?.name ?? "");
-  const [date, setDate] = useState(entry?.date ?? "");
+  const [name, setName] = useState(entry?.name ?? entry?.note ?? "");
+  const [date, setDate] = useState(actualDatePickerValue(entry?.date));
   const [amount, setAmount] = useState(entry ? String(entry.amount) : "");
 
   useEffect(() => {
     if (!entry) return;
-    setName(entry.name ?? ""); setDate(entry.date ?? ""); setAmount(String(entry.amount));
+    setName(entry.name ?? entry.note ?? "");
+    setDate(actualDatePickerValue(entry.date));
+    setAmount(String(entry.amount));
   }, [entry]);
 
   return (
     <Dialog open={!!entry} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Edit actual</DialogTitle>
+          <DialogTitle>Edit actual spend</DialogTitle>
           <DialogDescription>Recorded against the planned line — no change request required.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
@@ -2468,7 +2478,7 @@ function EditActualDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Date</Label>
-              <Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="e.g. Jun 30" />
+              <DatePicker value={date} onChange={setDate} placeholder="Pick a date" />
             </div>
             <div className="grid gap-1.5">
               <Label>Amount ($M)</Label>
@@ -2531,6 +2541,10 @@ function EditCostRowDialog({
         </DialogHeader>
         <div className="grid gap-3">
           <div className="grid gap-1.5">
+            <Label>Name</Label>
+            <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
+          </div>
+          <div className="grid gap-1.5">
             <Label>Category</Label>
             <Select value={cat} onValueChange={setCat}>
               <SelectTrigger><SelectValue placeholder="Select category…" /></SelectTrigger>
@@ -2538,10 +2552,6 @@ function EditCostRowDialog({
                 {catOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Description</Label>
-            <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
@@ -2688,12 +2698,23 @@ function FinancialsTab({
               { l: "Planned cost", v: `$${costTotals.planned.toFixed(2)}M` },
               { l: "Actual spent", v: `$${costTotals.actual.toFixed(2)}M` },
               { l: "Utilization", v: `${costTotals.util}%`, c: costTotals.util > 100 ? "text-rag-red" : costTotals.util > 85 ? "text-rag-amber" : "text-rag-green" },
-            ].map((k) => (
+            ].map((k) => {
+              // Utilization turns red when actual spend has exceeded the planned budget.
+              const isUtilRed = k.l === "Utilization" && costTotals.util > 100;
+              return (
               <div key={k.l} className="glass-card p-4">
                 <div className="label-eyebrow">{k.l}</div>
-                <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+                  </TooltipTrigger>
+                  {isUtilRed && (
+                    <TooltipContent>Actual is more than the planned</TooltipContent>
+                  )}
+                </Tooltip>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           <div>
@@ -2873,29 +2894,36 @@ function RevenuePlanTable({
           return (
             <Fragment key={r.ms}>
               <TableRow
-                className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${linkedMs ? "cursor-pointer" : ""}`}
-                onClick={linkedMs ? () => onMilestoneClick?.(linkedMs) : undefined}
-                title={linkedMs ? `View “${linkedMs}” in Project Schedule` : undefined}
+                className={`bg-table-row-bg border-0 ${actuals.length > 0 ? "cursor-pointer" : ""}`}
+                data-state={open ? "selected" : undefined}
+                onClick={actuals.length > 0 ? () => toggle(r.ms) : undefined}
               >
                 <TableCell onClick={(ev) => ev.stopPropagation()}>
                   {actuals.length > 0 && (
-                    <button
-                      type="button"
+                    <Button
+                      type="button" variant="ghost" size="icon"
                       aria-label={open ? "Collapse actuals" : "Expand actuals"}
+                      aria-expanded={open}
                       onClick={() => toggle(r.ms)}
-                      className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                      className="h-7 w-7 rounded-md text-muted-foreground hover:bg-transparent hover:text-muted-foreground"
                     >
-                      <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
-                    </button>
+                      {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </Button>
                   )}
                 </TableCell>
-                <TableCell className="font-medium text-foreground">
-                  <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${r.linkKind === "fixed" ? "bg-secondary/40 text-muted-foreground" : "bg-accent/15 text-accent"}`}>
-                      {r.linkKind === "fixed" ? "Date" : "MS"}
-                    </span>
-                    <span>{r.ms}</span>
-                  </div>
+                <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
+                  {linkedMs ? (
+                    <button
+                      type="button"
+                      onClick={() => onMilestoneClick?.(linkedMs)}
+                      title={`View “${linkedMs}” in Project Schedule`}
+                      className="inline-flex items-center gap-1.5 rounded bg-accent/15 px-1.5 py-0.5 text-[11px] text-accent hover:bg-accent/25"
+                    >
+                      {r.ms}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-muted-foreground">{r.evt}</TableCell>
                 <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
@@ -2917,26 +2945,42 @@ function RevenuePlanTable({
                   />
                 </TableCell>
               </TableRow>
-              {open && actuals.map((a, i) => (
-                <TableRow key={`${r.ms}-a${i}`} className="bg-secondary/10 hover:bg-secondary/20 border-0">
-                  <TableCell />
-                  <TableCell colSpan={2} className="pl-6 text-xs text-muted-foreground">
-                    {a.name ?? "Actual payment"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
-                  </TableCell>
-                  <TableCell />
-                  <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
-                  <TableCell />
-                  <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
-                  <TableCell />
-                  <TableCell className="text-right">
-                    {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
-                    <TableRowActions
-                      onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
-                      onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
-                    />
+              {open && (
+                <TableRow className="bg-transparent hover:bg-transparent border-0 [&>td]:!bg-transparent hover:[&>td]:!bg-transparent">
+                  <TableCell colSpan={9} className="px-4 pb-3 pt-1">
+                    <div className="ml-4 border-l border-border pl-3">
+                      {/* Expanded nested actual-spend table uses Gray 600 (#45464F) fill. */}
+                      <div className="overflow-hidden rounded-lg bg-p-neutral-600">
+                        <div className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center border-b border-black/20 px-5 py-3 text-xs font-medium text-foreground">
+                          <span>Actual payment</span>
+                          <span>Date</span>
+                          <span className="text-right">Amount ($M)</span>
+                          <span className="sr-only">Actions</span>
+                        </div>
+                        {actuals.map((a, i) => (
+                          <div
+                            key={`${r.ms}-a${i}`}
+                            className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center px-5 py-3 text-xs text-muted-foreground transition-colors hover:bg-p-charcoal-400"
+                          >
+                            <span className="text-foreground">
+                              {a.name ?? "Actual payment"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
+                            </span>
+                            <span>{a.date || "—"}</span>
+                            <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
+                            <span className="flex justify-end">
+                              {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
+                              <TableRowActions
+                                onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
+                                onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
+                              />
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </Fragment>
           );
         })}
@@ -2969,7 +3013,11 @@ function RevenuePlanTable({
       }}
     />
     <EditActualDialog
-      entry={editingActual ? entries[editingActual.rowIdx]?.actuals?.[editingActual.actualIdx] ?? null : null}
+      entry={editingActual
+        ? (entries[editingActual.rowIdx]?.actuals ?? (entries[editingActual.rowIdx]?.act != null
+            ? [{ amount: entries[editingActual.rowIdx].act ?? 0, date: entries[editingActual.rowIdx].date }]
+            : []))[editingActual.actualIdx] ?? null
+        : null}
       onOpenChange={(o) => !o && setEditingActual(null)}
       onSave={(patch) => {
         if (editingActual) onEditActual(editingActual.rowIdx, editingActual.actualIdx, patch);
@@ -3006,8 +3054,8 @@ function CostBreakdownTable({
   onDeleteActual: (idx: number, actualIdx: number) => void;
   onMilestoneClick?: (name: string) => void;
 }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const toggle = (key: string) =>
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const toggle = (key: number) =>
     setExpanded((prev) => {
       const next = new Set(prev);
       next.has(key) ? next.delete(key) : next.add(key);
@@ -3024,8 +3072,8 @@ function CostBreakdownTable({
       <TableHeader>
         <TableRow className="hover:bg-transparent bg-transparent border-0">
           <TableHead className="w-8" />
+          <TableHead>Name</TableHead>
           <TableHead>Category</TableHead>
-          <TableHead>Description</TableHead>
           <TableHead className="text-right">Planned ($M)</TableHead>
           <TableHead className="text-right">Actual ($M)</TableHead>
           <TableHead className="text-right">Utilization</TableHead>
@@ -3040,7 +3088,7 @@ function CostBreakdownTable({
           const actuals = e.actuals ?? (e.a > 0 ? [{ amount: e.a, date: dateOf(e), note: "Opening actual" }] : []);
           const actual = actuals.reduce((s, a) => s + a.amount, 0);
           const util = e.b ? Math.round((actual / e.b) * 100) : 0;
-          const open = expanded.has(e.c);
+           const open = expanded.has(idx);
           const linkedMs = e.linkKind === "milestone" && e.linkRef && milestoneNames.includes(e.linkRef) ? e.linkRef : undefined;
           // A planned cost line that already has logged (paid) actuals cannot be deleted — only its plan changed.
           const hasPaidActuals = actuals.length > 0 && actuals.some((a) => a.amount > 0);
@@ -3048,24 +3096,26 @@ function CostBreakdownTable({
             ? () => toast.error("This line already has paid actuals. Remove the actuals before deleting the plan.", { title: "Cannot delete cost line" })
             : canEdit ? () => setPendingDeleteIdx(idx) : undefined;
           return (
-            <Fragment key={e.c}>
+            <Fragment key={`${e.c}-${idx}`}>
               <TableRow
-                className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${linkedMs ? "cursor-pointer" : ""}`}
-                onClick={linkedMs ? () => onMilestoneClick?.(linkedMs) : undefined}
-                title={linkedMs ? `View “${linkedMs}” in Project Schedule` : undefined}
+                className={`bg-table-row-bg border-0 ${actuals.length > 0 ? "cursor-pointer" : ""}`}
+                data-state={open ? "selected" : undefined}
+                onClick={actuals.length > 0 ? () => toggle(idx) : undefined}
               >
                 <TableCell onClick={(ev) => ev.stopPropagation()}>
                   {actuals.length > 0 && (
-                    <button
-                      type="button"
+                    <Button
+                      type="button" variant="ghost" size="icon"
                       aria-label={open ? "Collapse actuals" : "Expand actuals"}
-                      onClick={() => toggle(e.c)}
-                      className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                      aria-expanded={open}
+                      onClick={() => toggle(idx)}
+                      className="h-7 w-7 rounded-md text-muted-foreground hover:bg-transparent hover:text-muted-foreground"
                     >
-                      <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
-                    </button>
+                      {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </Button>
                   )}
                 </TableCell>
+                <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
                 <TableCell className="font-medium text-foreground">
                   <span className="inline-flex items-center gap-1.5">
                     {e.cat ?? e.c}
@@ -3076,13 +3126,28 @@ function CostBreakdownTable({
                     )}
                   </span>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
                 <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
-                <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>{util}%</TableCell>
-                <TableCell className="text-xs">
+                <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-default">{util}%</span>
+                    </TooltipTrigger>
+                    {util > 100 && (
+                      <TooltipContent>Actual is more than the planned</TooltipContent>
+                    )}
+                  </Tooltip>
+                </TableCell>
+                <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
                   {e.linkKind === "milestone" && e.linkRef ? (
-                    <span className="inline-flex items-center rounded bg-accent/15 px-1.5 py-0.5 text-[11px] text-accent">{e.linkRef}</span>
+                    <button
+                      type="button"
+                      onClick={() => onMilestoneClick?.(e.linkRef ?? "")}
+                      title={`View “${e.linkRef}” in Project Schedule`}
+                      className="inline-flex items-center rounded bg-accent/15 px-1.5 py-0.5 text-[11px] text-accent hover:bg-accent/25"
+                    >
+                      {e.linkRef}
+                    </button>
                   ) : (
                     <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
                   )}
@@ -3097,33 +3162,48 @@ function CostBreakdownTable({
                     extraActions={
                       <AddActualDialog
                         title="Add actual spend"
-                        onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(e.c)); }}
+                         onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(idx)); }}
                       />
                     }
                   />
                 </TableCell>
               </TableRow>
-              {open && actuals.map((a, i) => (
-                <TableRow key={`${e.c}-a${i}`} className="bg-secondary/10 hover:bg-secondary/20 border-0">
-                  <TableCell />
-                  <TableCell colSpan={2} className="pl-6 text-xs text-muted-foreground">
-                    {a.name ?? "Actual spend"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
-                  </TableCell>
-                  <TableCell />
-                  <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
-                  <TableCell />
-                  <TableCell />
-                  <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
-
-                  <TableCell className="text-right">
-                    {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
-                    <TableRowActions
-                      onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
-                      onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
-                    />
+              {open && (
+                <TableRow className="bg-transparent hover:bg-transparent border-0 [&>td]:!bg-transparent hover:[&>td]:!bg-transparent">
+                  <TableCell colSpan={9} className="px-4 pb-3 pt-1">
+                    <div className="ml-4 border-l border-border pl-3">
+                      {/* Expanded nested actual-spend table uses Gray 600 (#45464F) fill. */}
+                      <div className="overflow-hidden rounded-lg bg-p-neutral-600">
+                        <div className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center border-b border-black/20 px-5 py-3 text-xs font-medium text-foreground">
+                          <span>Actual spend</span>
+                          <span>Date</span>
+                          <span className="text-right">Amount ($M)</span>
+                          <span className="sr-only">Actions</span>
+                        </div>
+                        {actuals.map((a, i) => (
+                          <div
+                            key={`${e.c}-a${i}`}
+                            className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center px-5 py-3 text-xs text-muted-foreground transition-colors hover:bg-p-charcoal-400"
+                          >
+                            <span className="text-foreground">
+                              {a.name ?? "Actual spend"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
+                            </span>
+                            <span>{a.date || "—"}</span>
+                            <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
+                            <span className="flex justify-end">
+                              {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
+                              <TableRowActions
+                                onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
+                                onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
+                              />
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </Fragment>
           );
         })}
@@ -3146,7 +3226,11 @@ function CostBreakdownTable({
       }}
     />
     <EditActualDialog
-      entry={editingActual ? entries[editingActual.rowIdx]?.actuals?.[editingActual.actualIdx] ?? null : null}
+      entry={editingActual
+        ? (entries[editingActual.rowIdx]?.actuals ?? (entries[editingActual.rowIdx]?.a > 0
+            ? [{ amount: entries[editingActual.rowIdx].a, date: "—", note: "Opening actual" }]
+            : []))[editingActual.actualIdx] ?? null
+        : null}
       onOpenChange={(o) => !o && setEditingActual(null)}
       onSave={(patch) => {
         if (editingActual) onEditActual(editingActual.rowIdx, editingActual.actualIdx, patch);
@@ -5193,6 +5277,10 @@ function AddFinanceLinkDialog({
           {kind === "cost" ? (
             <>
               <div>
+                <Label>Name</Label>
+                <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Senior developer contract" />
+              </div>
+              <div>
                 <Label>Category</Label>
                 <Select value={cat} onValueChange={setCat}>
                   <SelectTrigger><SelectValue placeholder="Select category…" /></SelectTrigger>
@@ -5202,10 +5290,6 @@ function AddFinanceLinkDialog({
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label>Description</Label>
-                <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Senior developer contract" />
               </div>
               <div><Label>Budget ($M)</Label><Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.50" /></div>
             </>
@@ -5301,6 +5385,10 @@ function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
         </DialogHeader>
         <div className="grid gap-3">
           <div>
+            <Label>Name</Label>
+            <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Senior developer contract" />
+          </div>
+          <div>
             <Label>Category</Label>
             <Select value={cat} onValueChange={setCat}>
               <SelectTrigger><SelectValue placeholder="Select category…" /></SelectTrigger>
@@ -5310,10 +5398,6 @@ function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Senior developer contract" />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div><Label>Budget ($M)</Label><Input type="number" min={0} step={0.01} value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="0.50" /></div>

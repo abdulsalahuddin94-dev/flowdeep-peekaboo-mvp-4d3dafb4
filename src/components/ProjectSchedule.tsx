@@ -599,7 +599,7 @@ export function ProjectSchedule({
   function computeFitWidth(key: WidthKey): number {
     const MONO_FONT = "12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
     const headerLabel =
-      key === "name" ? "Task Name" : (COLUMNS.find(c => c.key === key)?.label ?? "");
+      key === "name" ? "Item Name" : (COLUMNS.find(c => c.key === key)?.label ?? "");
     let max = measureText(headerLabel, "600 12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto");
     for (const { item, depth, hasChildren } of visibleRows) {
       let txt = "";
@@ -854,7 +854,7 @@ export function ProjectSchedule({
 
   function colVisible(k: ColKey) { return visibleCols.has(k); }
 
-  // Stretch the Task Name column so the table always fills the viewport width
+  // Stretch the Item Name column so the table always fills the viewport width
   const colsW = COLUMNS.filter(c => colVisible(c.key)).reduce((s, c) => s + widths[c.key], 0);
   const nameW = Math.max(widths.name, viewportW ? viewportW - colsW : widths.name);
   const tableW = nameW + colsW;
@@ -1131,7 +1131,7 @@ export function ProjectSchedule({
             <div style={{ width: tableW }}>
               {/* Header */}
               <div className="sticky top-0 z-20 flex rounded-t-[20px] bg-[var(--table-header-bg)] text-sm font-medium text-[var(--table-header-fg)]" style={{ height: HEADER_H }}>
-                <ColHeader label="Task Name" width={nameW} onResize={(e) => startColResize("name", e)} onAutoFit={() => autoFitCol("name")} first />
+                <ColHeader label="Item Name" width={nameW} onResize={(e) => startColResize("name", e)} onAutoFit={() => autoFitCol("name")} first />
                 {COLUMNS.filter(c => colVisible(c.key)).map(c => (
                   <ColHeader key={c.key} label={c.label} width={widths[c.key]} onResize={(e) => startColResize(c.key, e)} onAutoFit={() => autoFitCol(c.key)} />
                 ))}

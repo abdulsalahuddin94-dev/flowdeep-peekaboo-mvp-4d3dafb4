@@ -2406,7 +2406,7 @@ function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEnt
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Date</Label>
-              <Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="e.g. Jun 30" />
+              <DatePicker value={date} onChange={setDate} placeholder="Pick a date" />
             </div>
             <div className="grid gap-1.5">
               <Label>Amount ($M)</Label>
@@ -2468,7 +2468,7 @@ function EditActualDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>Date</Label>
-              <Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="e.g. Jun 30" />
+              <DatePicker value={date} onChange={setDate} placeholder="Pick a date" />
             </div>
             <div className="grid gap-1.5">
               <Label>Amount ($M)</Label>

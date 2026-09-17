@@ -287,7 +287,7 @@ function DepartmentsTab() {
         resultCount={visible.length}
         totalCount={rows.length}
         onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
-        cta={<AddDepartmentDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description }])} />}
+        cta={<AddDepartmentDialog existing={rows.map((r) => r.name)} onAdd={(name, description) => setRows((prev) => [...prev, { name, description }])} />}
         filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
       <EmptyRegion id="org-departments">

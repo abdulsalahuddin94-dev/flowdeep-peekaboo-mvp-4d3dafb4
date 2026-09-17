@@ -2631,12 +2631,12 @@ function FinancialsTab({
     { c: "Contingency", cat: "Services", b: 0.60, a: 0.26, color: "bg-muted-foreground", desc: "Reserve", ctype: "internal", classification: "opex", linkKind: "fixed", linkRef: "" },
   ]);
   const [revEntries, setRevEntries] = useState<RevEntry[]>(isNew ? [] : [
-    { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "May 02",        s: "green", sl: "Received", act: 0.96, linkKind: "milestone",
+    { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "May 02",        s: "green", sl: "Received", act: 0.96, linkKind: "fixed",
       actuals: [{ amount: 0.60, date: "May 02", note: "Invoice INV-0012" }, { amount: 0.36, date: "May 21", note: "Invoice INV-0018" }] },
-    { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "Jun 30",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "milestone",
+    { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "Jun 30",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "fixed",
       actuals: [{ amount: 0.20, date: "Jul 04", note: "Partial settlement" }] },
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
-    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
+    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null, linkKind: "fixed" },
   ]);
   // Editing is governed by the single project-level baseline (see the project header).
   const displayCost = costEntries;
@@ -2874,13 +2874,13 @@ function RevenuePlanTable({
       <TableHeader>
         <TableRow className="hover:bg-transparent bg-transparent border-0">
           <TableHead className="w-8" />
-          <TableHead>Linked to</TableHead>
           <TableHead>Revenue event</TableHead>
           <TableHead className="text-right">Planned ($M)</TableHead>
-          <TableHead>Expected date</TableHead>
-          <TableHead>Status</TableHead>
           <TableHead className="text-right">Actual ($M)</TableHead>
+          <TableHead>Status</TableHead>
           <TableHead className="text-right">Collected</TableHead>
+          <TableHead>Linked to</TableHead>
+          <TableHead>Expected date</TableHead>
           <TableHead className="w-32" />
         </TableRow>
       </TableHeader>
@@ -2911,6 +2911,11 @@ function RevenuePlanTable({
                     </Button>
                   )}
                 </TableCell>
+                <TableCell className="text-muted-foreground">{r.evt}</TableCell>
+                <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
+                <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
+                <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
+                <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
                 <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
                   {linkedMs ? (
                     <button
@@ -2925,12 +2930,7 @@ function RevenuePlanTable({
                     <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
                   )}
                 </TableCell>
-                <TableCell className="text-muted-foreground">{r.evt}</TableCell>
-                <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{dateOf(r)}</TableCell>
-                <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
-                <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
-                <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
                 <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                   {/* Logging an actual stays available after baseline lock; re-planning does not. */}
                   <TableRowActions
@@ -2987,12 +2987,12 @@ function RevenuePlanTable({
         {entries.length > 0 && (
           <TableRow className="bg-transparent hover:bg-transparent border-0">
             <TableCell />
-            <TableCell colSpan={2} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
+            <TableCell className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
             <TableCell className="num-mono text-right font-medium">${totals.planned.toFixed(2)}M</TableCell>
-            <TableCell colSpan={2} />
             <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
-            <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
             <TableCell />
+            <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
+            <TableCell colSpan={3} />
           </TableRow>
         )}
       </TableBody>
@@ -3267,83 +3267,98 @@ function EditRevenueRowDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (patch: Partial<RevEntry>) => void;
 }) {
-  const [ms, setMs] = useState(entry?.ms ?? "");
   const [evt, setEvt] = useState(entry?.evt ?? "");
   const [plan, setPlan] = useState(entry ? String(entry.plan) : "");
-  const [date, setDate] = useState(entry?.date ?? "");
-  const [sl, setSl] = useState(entry?.sl ?? "");
-  const [act, setAct] = useState(entry?.act != null ? String(entry.act) : "");
+  const [linkKind, setLinkKind] = useState<"milestone" | "fixed">(entry?.linkKind === "milestone" ? "milestone" : "fixed");
+  const [linkMs, setLinkMs] = useState(entry?.linkKind === "milestone" ? entry.ms : "");
+  const [linkDate, setLinkDate] = useState(entry?.linkKind === "fixed" ? entry.date : "");
+  const [label, setLabel] = useState(entry?.linkKind === "fixed" ? entry.ms : "");
 
   useEffect(() => {
     if (!entry) return;
-    setMs(entry.ms); setEvt(entry.evt); setPlan(String(entry.plan));
-    setDate(entry.date); setSl(entry.sl); setAct(entry.act != null ? String(entry.act) : "");
+    setEvt(entry.evt);
+    setPlan(String(entry.plan));
+    setLinkKind(entry.linkKind === "milestone" ? "milestone" : "fixed");
+    setLinkMs(entry.linkKind === "milestone" ? entry.ms : "");
+    setLinkDate(entry.linkKind === "fixed" ? entry.date : "");
+    setLabel(entry.linkKind === "fixed" ? entry.ms : "");
   }, [entry]);
-
-  const linkOptions = Array.from(new Set([...milestoneNames, entry?.ms ?? ""].filter(Boolean)));
 
   return (
     <Dialog open={!!entry} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Edit revenue line</DialogTitle>
-          <DialogDescription>Update the linked milestone, amount, expected date or status.</DialogDescription>
+          <DialogDescription>Link this revenue event to a milestone or a fixed date.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
-          <div className="grid gap-1.5">
-            <Label>Linked to</Label>
-            {entry?.linkKind === "fixed" ? (
-              <Input value={ms} onChange={(e) => setMs(e.target.value)} />
-            ) : (
-              <Select value={ms} onValueChange={setMs}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {linkOptions.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-          <div className="grid gap-1.5">
+          <div>
             <Label>Revenue event</Label>
-            <Input value={evt} onChange={(e) => setEvt(e.target.value)} />
+            <Input value={evt} onChange={(e) => setEvt(e.target.value)} placeholder="e.g. Progress invoice (15%)" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-1.5">
-              <Label>Planned ($M)</Label>
-              <Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} />
-            </div>
-            <div className="grid gap-1.5">
-              <Label>Actual ($M)</Label>
-              <Input type="number" min={0} step={0.01} value={act} onChange={(e) => setAct(e.target.value)} placeholder="—" />
-            </div>
+          <div>
+            <Label>Planned amount ($M)</Label>
+            <Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} placeholder="0.50" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-1.5">
-              <Label>Expected date</Label>
-              <Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="e.g. Jun 30" />
-            </div>
-            <div className="grid gap-1.5">
-              <Label>Status</Label>
-              <Select value={sl} onValueChange={setSl}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+          <div>
+            <Label>Link to</Label>
+            <RadioGroup
+              value={linkKind}
+              onValueChange={(v) => {
+                setLinkKind(v as typeof linkKind);
+                // Switching modes clears the previous link target, like the create form.
+                if (v === "milestone") { setLinkDate(""); setLabel(""); } else { setLinkMs(""); }
+              }}
+              className="flex gap-4 pt-1"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="milestone" id="edit-link-ms" />
+                <Label htmlFor="edit-link-ms" className="cursor-pointer font-normal">Milestone (Dynamic)</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="fixed" id="edit-link-fixed" />
+                <Label htmlFor="edit-link-fixed" className="cursor-pointer font-normal">Fixed Date</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          {linkKind === "fixed" && (
+            <div><Label>Due Date</Label><DatePicker value={linkDate} onChange={setLinkDate} placeholder="Pick due date" /></div>
+          )}
+          {linkKind === "fixed" && (
+            <div><Label>Label (optional)</Label><Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Advance payment" /></div>
+          )}
+          {linkKind === "milestone" && (
+            <div>
+              <Label>Milestone</Label>
+              <Select value={linkMs} onValueChange={setLinkMs}>
+                <SelectTrigger><SelectValue placeholder="Select milestone…" /></SelectTrigger>
                 <SelectContent>
-                  {REV_STATUSES.map((o) => <SelectItem key={o.sl} value={o.sl}>{o.sl}</SelectItem>)}
+                  {milestoneNames.length === 0 ? (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">No milestones yet</div>
+                  ) : milestoneNames.map((n) => (
+                    <SelectItem key={n} value={n}>{n}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
+            variant="primary"
             onClick={() => {
               const p = parseFloat(plan);
-              if (!ms.trim() || !evt.trim() || isNaN(p)) { toast.error("Linked to, event and planned amount are required"); return; }
-              const a = act.trim() === "" ? null : parseFloat(act);
+              if (!evt.trim()) { toast.error("Revenue event is required"); return; }
+              if (isNaN(p)) { toast.error("Planned amount is required"); return; }
+              if (linkKind === "fixed" && !linkDate) { toast.error("Please pick a date"); return; }
+              if (linkKind === "milestone" && !linkMs) { toast.error("Please pick a milestone"); return; }
               onSave({
-                ms: ms.trim(), evt: evt.trim(), plan: p, date,
-                sl, s: REV_STATUSES.find((o) => o.sl === sl)?.s ?? "blue",
-                act: a != null && isNaN(a) ? null : a,
+                ms: linkKind === "milestone" ? linkMs : (label.trim() || "Revenue"),
+                evt: evt.trim(),
+                plan: p,
+                date: linkKind === "fixed" ? linkDate : "Linked",
+                linkKind,
               });
               onOpenChange(false);
               toast.done("Revenue line", "updated");

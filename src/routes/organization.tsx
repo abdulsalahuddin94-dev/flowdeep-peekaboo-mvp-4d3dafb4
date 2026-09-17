@@ -700,6 +700,7 @@ function AddTagDialog() {
   function save() {
     const trimmed = name.trim();
     if (!trimmed) { toast.error("Tag name is required"); return; }
+    if (isDuplicateName(tags.map((t) => t.name), trimmed)) { duplicateToast("Tag", trimmed); return; }
     addTag({ name: trimmed, color }, selected);
     toast.success(
       selected.length

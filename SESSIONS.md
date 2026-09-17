@@ -1,3 +1,8 @@
+## Session — 2026-09-17 (Expandable cost actuals)
+
+- Restyled Cost Breakdown expansion to open from the full cost row and reveal actual spend in a compact nested table matching the supplied reference.
+- Kept milestone navigation on the linked-milestone badge and retained actual-spend edit and delete actions inside the expanded table.
+
 ## Session — 2026-09-17 (Edit actual spend fix)
 
 - Fixed Edit actual spend for legacy records by normalizing display dates for the calendar picker, restoring names from existing notes, and preventing invalid dates from crashing the dialog.

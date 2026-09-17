@@ -1718,7 +1718,7 @@ function RiskCategoriesTab() {
             <TableHead className="w-56">Category</TableHead>
             <TableHead>Description</TableHead>
             <TableHead className="w-24 text-center">Risks</TableHead>
-            <TableHead className="w-36 text-center whitespace-nowrap">Related Projects</TableHead>
+            <TableHead className="w-36 text-center whitespace-nowrap">Active Projects</TableHead>
             <TableHead className="w-32 text-center">Status</TableHead>
           </TableRow></TableHeader>
           <TableBody>

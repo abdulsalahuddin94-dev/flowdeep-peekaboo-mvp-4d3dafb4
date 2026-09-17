@@ -743,12 +743,11 @@ function IssueFormDialog({
     const next: Record<string, string> = {};
     if (!title.trim()) next.title = "Issue title is required";
     if (!project) next.project = "Select the project this issue belongs to";
-    if (!owner.trim()) next.owner = "Issue owner is required";
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
     onSave({
-      project, title: title.trim(), owner: owner.trim(), priority, status,
+      project, title: title.trim(), owner: issue?.owner ?? "", priority, status,
       raised: issue?.raised ?? "Today",
       action: action.trim(),
       riskId: riskId === "none" ? undefined : riskId,
@@ -782,9 +781,6 @@ function IssueFormDialog({
             </Select>
           </Field>
         )}
-        <Field label="Issue owner" htmlFor="issue-owner" error={errors.owner}>
-          <Input id="issue-owner" value={owner} onChange={(e) => { setOwner(e.target.value); setErrors((x) => ({ ...x, owner: "" })); }} placeholder="Who resolves it?" />
-        </Field>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

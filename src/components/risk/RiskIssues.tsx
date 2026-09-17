@@ -94,7 +94,7 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
   const scoped = project ? risks.filter((r) => r.project === project) : risks;
   const q = query.trim().toLowerCase();
   const list = scoped
-    .filter((r) => !q || r.title.toLowerCase().includes(q) || r.id.toLowerCase().includes(q) || r.owner.toLowerCase().includes(q))
+    .filter((r) => !q || r.title.toLowerCase().includes(q) || r.owner.toLowerCase().includes(q))
     .filter((r) => projectFilter.length === 0 || projectFilter.includes(r.project))
     .filter((r) => categoryFilter.length === 0 || categoryFilter.includes(r.category))
     .filter((r) => severity === "all" || severityOf(r.score) === severity)
@@ -112,7 +112,7 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
       <PageToolbar
         query={query}
         onQueryChange={setQuery}
-        placeholder="Search risk, ID or owner…"
+        placeholder="Search risk or owner…"
         filterGroups={[
           ...(project ? [] : [{ key: "project", label: "Projects", mode: "multi" as const, value: projectFilter, onChange: setProjectFilter, options: [{ value: "all", label: "All projects" }, ...projectOptions.map((p) => ({ value: p, label: p }))] }]),
           { key: "category", label: "Categories", mode: "multi", value: categoryFilter, onChange: setCategoryFilter, options: [{ value: "all", label: "All categories" }, ...categories.map((c) => ({ value: c.name, label: c.name }))] },
@@ -126,7 +126,6 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
         <StyledTable>
           <StyledTableHeader>
             <StyledTableHeaderRow>
-              <StyledTableHead className="whitespace-nowrap">ID</StyledTableHead>
               {!project && <StyledTableHead>Project</StyledTableHead>}
               <StyledTableHead>Risk</StyledTableHead>
               <StyledTableHead>Category</StyledTableHead>
@@ -141,10 +140,9 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {list.length === 0 && <EmptyRow colSpan={project ? 11 : 12} />}
+            {list.length === 0 && <EmptyRow colSpan={project ? 10 : 11} />}
             {pagination.pageItems.map((r) => (
               <StyledTableRow key={r.id} onClick={() => setViewId(r.id)} className="cursor-pointer">
-                <StyledTableCell className="num-mono text-xs text-muted-foreground">{r.id}</StyledTableCell>
                 {!project && <StyledTableCell className="text-muted-foreground">{r.project}</StyledTableCell>}
                 <StyledTableCell className="font-medium text-foreground">{r.title}</StyledTableCell>
                 <StyledTableCell className="text-muted-foreground">{r.category}</StyledTableCell>
@@ -203,7 +201,7 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
         onUpdate={(r) => setStatusFor(r)}
         onConvert={(r) => {
           const id = convertRiskToIssue(r.id, currentUser.name);
-          if (id) toast.success(`Issue ${id} created from ${r.id}`);
+          if (id) toast.success("Issue created from risk");
         }}
       />
 
@@ -392,7 +390,6 @@ function RiskSheet({
       <SheetContent side="right" className="flex w-[480px] max-w-full flex-col rounded-l-lg border-l border-border bg-drawer p-0 sm:max-w-[480px]">
         <SheetHeader className="border-b border-border px-6 pb-4 pt-6">
           <div className="flex items-center gap-2">
-            <span className="num-mono text-xs text-muted-foreground">{risk.id}</span>
             <Pill label={severity} tone={SEVERITY_TONE[severity]} />
             <Pill label={risk.status} tone={RISK_STATUS_TONE[risk.status]} />
           </div>
@@ -574,7 +571,6 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
             {cellItems.map((r) => (
               <div key={r.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
                 <div className="flex items-center gap-2">
-                  <span className="num-mono text-xs text-muted-foreground">{r.id}</span>
                   <Pill label={severityOf(r.score)} tone={SEVERITY_TONE[severityOf(r.score)]} />
                   <Pill label={r.status} tone={RISK_STATUS_TONE[r.status]} />
                 </div>
@@ -612,7 +608,7 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
   const scoped = project ? issues.filter((i) => i.project === project) : issues;
   const q = query.trim().toLowerCase();
   const list = scoped
-    .filter((i) => !q || i.title.toLowerCase().includes(q) || i.id.toLowerCase().includes(q) || i.owner.toLowerCase().includes(q))
+    .filter((i) => !q || i.title.toLowerCase().includes(q) || i.owner.toLowerCase().includes(q))
     .filter((i) => projectFilter.length === 0 || projectFilter.includes(i.project))
     .filter((i) => priority === "all" || i.priority === priority)
     .filter((i) => status === "all" || i.status === status)
@@ -628,12 +624,12 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
       <PageToolbar
         query={query}
         onQueryChange={setQuery}
-        placeholder="Search issue, ID or owner…"
+        placeholder="Search issue or owner…"
         filterGroups={[
           ...(project ? [] : [{ key: "project", label: "Projects", mode: "multi" as const, value: projectFilter, onChange: setProjectFilter, options: [{ value: "all", label: "All projects" }, ...projectOptions.map((p) => ({ value: p, label: p }))] }]),
           { key: "priority", label: "Priority", value: priority, onChange: setPriority, options: [{ value: "all", label: "All priorities" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...ISSUE_STATUSES.map((v) => ({ value: v, label: v }))] },
-          { key: "risk", label: "Originating Risk", mode: "multi", value: riskFilter, onChange: setRiskFilter, options: [{ value: "all", label: "All risks" }, { value: "none", label: "No originating risk" }, ...risks.map((r) => ({ value: r.id, label: `${r.id} · ${r.title}` }))] },
+          { key: "risk", label: "Originating Risk", mode: "multi", value: riskFilter, onChange: setRiskFilter, options: [{ value: "all", label: "All risks" }, { value: "none", label: "No originating risk" }, ...risks.map((r) => ({ value: r.id, label: r.title }))] },
         ]}
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Issue</Button>}
       />
@@ -642,7 +638,6 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
         <StyledTable>
           <StyledTableHeader>
             <StyledTableHeaderRow>
-              <StyledTableHead className="whitespace-nowrap">ID</StyledTableHead>
               {!project && <StyledTableHead>Project</StyledTableHead>}
               <StyledTableHead>Issue</StyledTableHead>
               <StyledTableHead className="whitespace-nowrap">Originating Risk</StyledTableHead>
@@ -655,14 +650,13 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {list.length === 0 && <EmptyRow colSpan={project ? 9 : 10} />}
+            {list.length === 0 && <EmptyRow colSpan={project ? 8 : 9} />}
             {pagination.pageItems.map((i) => (
               <StyledTableRow key={i.id}>
-                <StyledTableCell className="num-mono text-xs text-muted-foreground">{i.id}</StyledTableCell>
                 {!project && <StyledTableCell className="text-muted-foreground">{i.project}</StyledTableCell>}
                 <StyledTableCell className="font-medium text-foreground">{i.title}</StyledTableCell>
                 <StyledTableCell className="max-w-[200px] truncate text-muted-foreground" title={riskTitle(i.riskId) || undefined}>
-                  {i.riskId ? `${i.riskId} · ${riskTitle(i.riskId)}` : "—"}
+                  {i.riskId ? riskTitle(i.riskId) : "—"}
                 </StyledTableCell>
                 <StyledTableCell className="max-w-[220px] truncate text-muted-foreground" title={i.action || undefined}>
                   {i.action || "—"}
@@ -832,7 +826,7 @@ function IssueFormDialog({
           <SelectTrigger id="issue-risk"><SelectValue placeholder="No originating risk" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="none">No originating risk</SelectItem>
-            {risks.map((r) => <SelectItem key={r.id} value={r.id}>{r.id} · {r.title}</SelectItem>)}
+            {risks.map((r) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
           </SelectContent>
         </Select>
       </Field>
@@ -887,7 +881,7 @@ function RiskStatusDialog({
       open={!!risk}
       onOpenChange={(o) => { if (!o) onClose(); }}
       title="Update risk status"
-      description={risk ? `${risk.id} · ${risk.title}` : undefined}
+      description={risk ? risk.title : undefined}
       submitLabel="Record Update"
       onSubmit={submit}
     >
@@ -965,7 +959,7 @@ function IssueStatusDialog({
       open={!!issue}
       onOpenChange={(o) => { if (!o) onClose(); }}
       title="Update issue status"
-      description={issue ? `${issue.id} · ${issue.title}` : undefined}
+      description={issue ? issue.title : undefined}
       submitLabel="Update Status"
       onSubmit={submit}
     >

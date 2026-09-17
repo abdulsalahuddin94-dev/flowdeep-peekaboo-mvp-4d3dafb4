@@ -555,8 +555,8 @@ function RowActions(props: React.ComponentProps<typeof TableRowActions>) {
 }
 
 /**
- * DS02 card actions menu: a circular three-dot trigger opening a small menu with
- * Edit / Delete / Activate-Deactivate (matches the Calendars & Tags cards).
+ * DS02 card actions menu: a rounded-rectangle three-dot trigger opening a small
+ * menu with Edit / Delete / Activate-Deactivate (matches the Calendars & Tags cards).
  */
 function RowActionsMenu({
   onEdit,
@@ -584,7 +584,7 @@ function RowActionsMenu({
           variant="secondary"
           data-ds-size="auto"
           aria-label="Row actions"
-          className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-muted-foreground hover:!bg-[var(--btn-secondary-bg-hover)]"
+          className="h-9 w-9 shrink-0 rounded-lg border border-border/60 !bg-[var(--btn-secondary-bg)] text-muted-foreground hover:!bg-[var(--btn-secondary-bg-hover)]"
         >
           <MoreHorizontal size={16} className="rotate-90" />
         </Button>

@@ -84,7 +84,7 @@ export function TableRowActions({
             variant="secondary"
             data-ds-size="auto"
             onClick={onStatus}
-            className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
+            className="h-9 w-9 shrink-0 rounded-lg border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
           >
             {statusIcon}
           </Button>
@@ -97,7 +97,7 @@ export function TableRowActions({
             variant="secondary"
             data-ds-size="auto"
             onClick={onEdit}
-            className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
+            className="h-9 w-9 shrink-0 rounded-lg border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
           >
             <EditAction size={16} />
           </Button>
@@ -113,7 +113,7 @@ export function TableRowActions({
             data-ds-size="auto"
             onClick={onToggleActive}
             className={cn(
-              "h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] hover:!bg-[var(--btn-secondary-bg-hover)]",
+              "h-9 w-9 shrink-0 rounded-lg border border-border/60 !bg-[var(--btn-secondary-bg)] hover:!bg-[var(--btn-secondary-bg-hover)]",
               isActive ? "text-rag-green" : "text-muted-foreground",
             )}
           >
@@ -129,7 +129,7 @@ export function TableRowActions({
             data-ds-size="auto"
             disabled={deleteDisabled}
             onClick={onDelete}
-            className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-rag-red hover:!bg-[var(--btn-secondary-bg-hover)]"
+            className="h-9 w-9 shrink-0 rounded-lg border border-border/60 !bg-[var(--btn-secondary-bg)] text-rag-red hover:!bg-[var(--btn-secondary-bg-hover)]"
           >
             <DeleteAction size={16} />
           </Button>

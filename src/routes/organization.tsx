@@ -911,7 +911,7 @@ function CalendarsTab() {
 }
 
 function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpenChange: (v: boolean) => void; calendar?: WorkCalendar }) {
-  const { addCalendar, updateCalendar, updateCalendarWithAdoption } = useCalendars();
+  const { calendars, addCalendar, updateCalendar, updateCalendarWithAdoption } = useCalendars();
   const { projects } = useProjects();
   const isEdit = !!calendar;
   const linked = calendar ? projects.filter((p) => p.calendarId === calendar.id) : [];

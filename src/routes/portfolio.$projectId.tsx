@@ -2387,7 +2387,7 @@ function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEnt
           size="icon"
           variant="secondary"
           data-ds-size="auto"
-          className="h-9 w-9 shrink-0 rounded-lg border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
+          className="h-9 w-9 shrink-0 rounded-full border border-border/60 !bg-[var(--btn-secondary-bg)] text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"
           title={title}
         >
           <Plus className="h-4 w-4" />

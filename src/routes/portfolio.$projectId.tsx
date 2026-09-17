@@ -2978,7 +2978,11 @@ function RevenuePlanTable({
       }}
     />
     <EditActualDialog
-      entry={editingActual ? entries[editingActual.rowIdx]?.actuals?.[editingActual.actualIdx] ?? null : null}
+      entry={editingActual
+        ? (entries[editingActual.rowIdx]?.actuals ?? (entries[editingActual.rowIdx]?.act != null
+            ? [{ amount: entries[editingActual.rowIdx].act ?? 0, date: entries[editingActual.rowIdx].date }]
+            : []))[editingActual.actualIdx] ?? null
+        : null}
       onOpenChange={(o) => !o && setEditingActual(null)}
       onSave={(patch) => {
         if (editingActual) onEditActual(editingActual.rowIdx, editingActual.actualIdx, patch);
@@ -3155,7 +3159,11 @@ function CostBreakdownTable({
       }}
     />
     <EditActualDialog
-      entry={editingActual ? entries[editingActual.rowIdx]?.actuals?.[editingActual.actualIdx] ?? null : null}
+      entry={editingActual
+        ? (entries[editingActual.rowIdx]?.actuals ?? (entries[editingActual.rowIdx]?.a > 0
+            ? [{ amount: entries[editingActual.rowIdx].a, date: "—", note: "Opening actual" }]
+            : []))[editingActual.actualIdx] ?? null
+        : null}
       onOpenChange={(o) => !o && setEditingActual(null)}
       onSave={(patch) => {
         if (editingActual) onEditActual(editingActual.rowIdx, editingActual.actualIdx, patch);

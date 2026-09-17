@@ -38,6 +38,17 @@ import { format, parseISO } from "date-fns";
 import { toast } from "@/lib/toast";
 import { EmptyRegion } from "@/lib/empty-preview";
 
+/** Master-data names are unique per list — compared ignoring case and extra spaces. */
+const normName = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+function isDuplicateName(existing: string[], name: string, current?: string) {
+  const n = normName(name);
+  if (current !== undefined && normName(current) === n) return false;
+  return existing.some((e) => normName(e) === n);
+}
+function duplicateToast(entity: string, name: string) {
+  toast.error(`${entity} "${name.trim()}" already exists. Use a different name.`);
+}
+
 const ORG_TAB_LABELS: Record<string, string> = {
   "business-lines": "Project Types", tags: "Tags & Classifications",
   "cost-categories": "Cost Categories", "risk-categories": "Risk Categories",

@@ -1,3 +1,7 @@
+## Session — 2026-09-17 (Cost line naming and order)
+
+- Renamed the Cost Breakdown Description field to Name and moved it before Category in the table, add flow, and edit flow.
+
 ## Session — 2026-09-17 (Rules & Thresholds simplification)
 
 - Simplified Project Health rules to only At Risk and Off-Track fields.

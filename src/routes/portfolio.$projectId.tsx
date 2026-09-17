@@ -2531,6 +2531,10 @@ function EditCostRowDialog({
         </DialogHeader>
         <div className="grid gap-3">
           <div className="grid gap-1.5">
+            <Label>Name</Label>
+            <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
+          </div>
+          <div className="grid gap-1.5">
             <Label>Category</Label>
             <Select value={cat} onValueChange={setCat}>
               <SelectTrigger><SelectValue placeholder="Select category…" /></SelectTrigger>
@@ -2538,10 +2542,6 @@ function EditCostRowDialog({
                 {catOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Description</Label>
-            <Input value={desc} onChange={(e) => setDesc(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
@@ -3024,8 +3024,8 @@ function CostBreakdownTable({
       <TableHeader>
         <TableRow className="hover:bg-transparent bg-transparent border-0">
           <TableHead className="w-8" />
+          <TableHead>Name</TableHead>
           <TableHead>Category</TableHead>
-          <TableHead>Description</TableHead>
           <TableHead className="text-right">Planned ($M)</TableHead>
           <TableHead className="text-right">Actual ($M)</TableHead>
           <TableHead className="text-right">Utilization</TableHead>
@@ -3066,6 +3066,7 @@ function CostBreakdownTable({
                     </button>
                   )}
                 </TableCell>
+                <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
                 <TableCell className="font-medium text-foreground">
                   <span className="inline-flex items-center gap-1.5">
                     {e.cat ?? e.c}
@@ -3076,7 +3077,6 @@ function CostBreakdownTable({
                     )}
                   </span>
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
                 <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
                 <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>{util}%</TableCell>
@@ -5193,6 +5193,10 @@ function AddFinanceLinkDialog({
           {kind === "cost" ? (
             <>
               <div>
+                <Label>Name</Label>
+                <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Senior developer contract" />
+              </div>
+              <div>
                 <Label>Category</Label>
                 <Select value={cat} onValueChange={setCat}>
                   <SelectTrigger><SelectValue placeholder="Select category…" /></SelectTrigger>
@@ -5202,10 +5206,6 @@ function AddFinanceLinkDialog({
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label>Description</Label>
-                <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Senior developer contract" />
               </div>
               <div><Label>Budget ($M)</Label><Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.50" /></div>
             </>
@@ -5301,6 +5301,10 @@ function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
         </DialogHeader>
         <div className="grid gap-3">
           <div>
+            <Label>Name</Label>
+            <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Senior developer contract" />
+          </div>
+          <div>
             <Label>Category</Label>
             <Select value={cat} onValueChange={setCat}>
               <SelectTrigger><SelectValue placeholder="Select category…" /></SelectTrigger>
@@ -5310,10 +5314,6 @@ function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Senior developer contract" />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div><Label>Budget ($M)</Label><Input type="number" min={0} step={0.01} value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="0.50" /></div>

@@ -1568,6 +1568,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
               if (!editing) return;
               const t = editing.title.trim();
               if (!t) { toast.error("Role title is required"); return; }
+              if (isDuplicateName(jobRoles.filter((r) => r.id !== editing.id).map((r) => r.title), t)) { duplicateToast("Job Role", t); return; }
               updateJobRole(editing.id, t, editing.skills);
               toast.done("Job Role", "updated");
               setEditing(null);

@@ -308,6 +308,8 @@ export function ProjectSchedule({
   headerSlot,
   restricted = false,
   jobRoles,
+  highlightItem,
+  onHighlightDone,
 }: {
   items: ScheduleItem[];
   AddItemSlot?: React.ReactNode;
@@ -333,6 +335,9 @@ export function ProjectSchedule({
    * Gantt drag, right-click add/edit/delete) are hidden or read-only.
    */
   restricted?: boolean;
+  /** Cross-module navigation: flash this WBS row and scroll it into view (e.g. from the Cost tab). */
+  highlightItem?: string | null;
+  onHighlightDone?: () => void;
 }) {
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);
@@ -368,6 +373,36 @@ export function ProjectSchedule({
   const splitRef = useRef<HTMLDivElement | null>(null);
   const leftScrollRef = useRef<HTMLDivElement | null>(null);
   const rightScrollRef = useRef<HTMLDivElement | null>(null);
+  // Cross-module navigation: a row named via highlightItem is expanded into view,
+  // scrolled to center, and flashed briefly (e.g. clicking a milestone-linked cost row).
+  const [flashRow, setFlashRow] = useState<string | null>(null);
+  useEffect(() => {
+    if (!highlightItem) return;
+    setExpanded((prev) => {
+      const n = new Set(prev);
+      const byName = new Map(items.map((i) => [i.name, i]));
+      let cur = byName.get(highlightItem)?.parent;
+      while (cur) {
+        n.add(cur);
+        cur = byName.get(cur)?.parent;
+      }
+      return n;
+    });
+    setFlashRow(highlightItem);
+    const scrollTimer = setTimeout(() => {
+      const el = leftScrollRef.current?.querySelector(`[data-row-name="${CSS.escape(highlightItem)}"]`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+    const clearTimer = setTimeout(() => {
+      setFlashRow(null);
+      onHighlightDone?.();
+    }, 2600);
+    return () => {
+      clearTimeout(scrollTimer);
+      clearTimeout(clearTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightItem]);
   // Width of the scroll viewport, so the table can stretch to fill it (no right gap)
   const [viewportW, setViewportW] = useState(0);
   useEffect(() => {
@@ -1121,10 +1156,11 @@ export function ProjectSchedule({
                     : item.approvalReady
                       ? "Ready — send approval request"
                       : "Locked until all tasks reach 100%";
+                const isFlashing = flashRow === item.name;
                 return (
                   <ContextMenu key={item.name}>
                     <ContextMenuTrigger asChild>
-                  <div className={`flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors ${rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
+                  <div data-row-name={item.name} className={`flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
                     <div className="flex items-center gap-1 overflow-hidden px-3" style={{ width: nameW, paddingLeft: 12 + depth * 14 }}>
                       {hasChildren ? (
                         <button

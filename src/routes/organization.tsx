@@ -1241,6 +1241,8 @@ function AddCostCategoryDialog({ onAdd, existing = [], existingNumbers = [] }: {
         const trimmed = v.name.trim();
         const numTrimmed = v.number.trim();
         if (!trimmed || !numTrimmed) { toast.error("Name and ID are required"); return false; }
+        if (isDuplicateName(existing, trimmed)) { duplicateToast("Cost Category", trimmed); return false; }
+        if (isDuplicateName(existingNumbers, numTrimmed)) { toast.error(`Account number "${numTrimmed}" is already used by another category.`); return false; }
         onAdd({ id: `cat-${Date.now()}`, name: trimmed, number: numTrimmed, description: v.description.trim(), type: v.type as "CapEx" | "OpEx" });
         toast.done("Cost Category", "created");
       }}

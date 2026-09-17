@@ -682,7 +682,7 @@ function AddTagDialog() {
   const [color, setColor] = useState("#51CAAD");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
-  const { addTag } = useTags();
+  const { tags, addTag } = useTags();
   const { projects } = useProjects();
 
   const filtered = projects.filter((p) =>

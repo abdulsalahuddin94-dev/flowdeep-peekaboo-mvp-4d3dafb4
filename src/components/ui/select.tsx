@@ -298,6 +298,7 @@ const SelectContent = React.forwardRef<
         else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
       }}
       role="listbox"
+      data-ui="select-menu"
       style={{
         position: "fixed",
         top: flipUp ? undefined : rect.top + 4,
@@ -306,7 +307,7 @@ const SelectContent = React.forwardRef<
         width: rect.width,
       }}
       className={cn(
-        "pointer-events-auto z-[1000] max-h-72 min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md animate-in fade-in-0",
+        "pointer-events-auto z-[1000] max-h-72 min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-lg border p-1 shadow-md animate-in fade-in-0",
         className,
       )}
       {...props}
@@ -353,22 +354,19 @@ const SelectItem = React.forwardRef<
       ref={ref}
       role="option"
       aria-selected={selected}
+      data-select-item=""
+      data-active={active ? "true" : undefined}
+      data-selected={selected ? "true" : undefined}
       data-disabled={disabled ? "" : undefined}
       onClick={() => !disabled && ctx.select(value, label || value)}
       onMouseEnter={() => !disabled && ctx.setActiveValue(value)}
       className={cn(
-        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none",
-        active && "bg-accent text-accent-foreground",
+        "relative flex w-full cursor-pointer select-none items-center py-2 text-sm outline-none",
         disabled && "pointer-events-none opacity-50",
         className,
       )}
       {...props}
     >
-      {selected && (
-        <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
-          <Check className="h-4 w-4" />
-        </span>
-      )}
       {children}
     </div>
   );

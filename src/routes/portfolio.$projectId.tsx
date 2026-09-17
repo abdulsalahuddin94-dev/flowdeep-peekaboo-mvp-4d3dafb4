@@ -2874,13 +2874,13 @@ function RevenuePlanTable({
       <TableHeader>
         <TableRow className="hover:bg-transparent bg-transparent border-0">
           <TableHead className="w-8" />
-          <TableHead>Linked to</TableHead>
           <TableHead>Revenue event</TableHead>
           <TableHead className="text-right">Planned ($M)</TableHead>
-          <TableHead>Expected date</TableHead>
-          <TableHead>Status</TableHead>
           <TableHead className="text-right">Actual ($M)</TableHead>
+          <TableHead>Status</TableHead>
           <TableHead className="text-right">Collected</TableHead>
+          <TableHead>Linked to</TableHead>
+          <TableHead>Expected date</TableHead>
           <TableHead className="w-32" />
         </TableRow>
       </TableHeader>
@@ -2911,6 +2911,11 @@ function RevenuePlanTable({
                     </Button>
                   )}
                 </TableCell>
+                <TableCell className="text-muted-foreground">{r.evt}</TableCell>
+                <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
+                <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
+                <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
+                <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
                 <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
                   {linkedMs ? (
                     <button
@@ -2925,12 +2930,7 @@ function RevenuePlanTable({
                     <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
                   )}
                 </TableCell>
-                <TableCell className="text-muted-foreground">{r.evt}</TableCell>
-                <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{dateOf(r)}</TableCell>
-                <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
-                <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
-                <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
                 <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                   {/* Logging an actual stays available after baseline lock; re-planning does not. */}
                   <TableRowActions
@@ -2987,12 +2987,12 @@ function RevenuePlanTable({
         {entries.length > 0 && (
           <TableRow className="bg-transparent hover:bg-transparent border-0">
             <TableCell />
-            <TableCell colSpan={2} className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
+            <TableCell className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
             <TableCell className="num-mono text-right font-medium">${totals.planned.toFixed(2)}M</TableCell>
-            <TableCell colSpan={2} />
             <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
-            <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
             <TableCell />
+            <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
+            <TableCell colSpan={3} />
           </TableRow>
         )}
       </TableBody>

@@ -1762,6 +1762,7 @@ function RiskCategoriesTab() {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Category name is required"); return; }
+              if (isDuplicateName(categories.filter((c) => c.id !== editing.id).map((c) => c.name), name)) { duplicateToast("Risk Category", name); return; }
               updateCategory(editing.id, { name, description: editing.description.trim() });
               toast.done("Risk Category", "updated");
               setEditing(null);

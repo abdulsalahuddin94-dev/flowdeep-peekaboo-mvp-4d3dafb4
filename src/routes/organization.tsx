@@ -455,12 +455,13 @@ function TagsTab() {
               onEdit={() => setEditing({ name: t.name, color: t.color, original: t.name })}
               isActive={isActive(t.name)}
               onToggleActive={() => setPendingToggle({ name: t.name, active: isActive(t.name) })}
-              onDelete={() => setPendingDelete(t.name)}
-            />
-          </div>
-        ))}
-      </div>
-      </EmptyRegion>
+               onDelete={() => setPendingDelete(t.name)}
+              />
+            </div>
+           </div>
+         ))}
+       </div>
+       </EmptyRegion>
 
       <RelatedProjectsDialog
         open={!!viewing}

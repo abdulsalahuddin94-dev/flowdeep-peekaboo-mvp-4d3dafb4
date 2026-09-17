@@ -9,7 +9,7 @@
 
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronDown, ChevronUp } from "@/lib/icons";
+import { ChevronDown, ChevronUp } from "@/lib/icons";
 
 import { cn } from "@/lib/utils";
 

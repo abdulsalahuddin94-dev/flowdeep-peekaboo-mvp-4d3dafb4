@@ -2844,8 +2844,8 @@ function RevenuePlanTable({
   onDeleteActual: (idx: number, actualIdx: number) => void;
   onMilestoneClick?: (name: string) => void;
 }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const toggle = (key: string) =>
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const toggle = (key: number) =>
     setExpanded((prev) => {
       const next = new Set(prev);
       next.has(key) ? next.delete(key) : next.add(key);
@@ -3053,7 +3053,7 @@ function CostBreakdownTable({
           const actuals = e.actuals ?? (e.a > 0 ? [{ amount: e.a, date: dateOf(e), note: "Opening actual" }] : []);
           const actual = actuals.reduce((s, a) => s + a.amount, 0);
           const util = e.b ? Math.round((actual / e.b) * 100) : 0;
-          const open = expanded.has(e.c);
+           const open = expanded.has(idx);
           const linkedMs = e.linkKind === "milestone" && e.linkRef && milestoneNames.includes(e.linkRef) ? e.linkRef : undefined;
           // A planned cost line that already has logged (paid) actuals cannot be deleted — only its plan changed.
           const hasPaidActuals = actuals.length > 0 && actuals.some((a) => a.amount > 0);
@@ -3061,22 +3061,23 @@ function CostBreakdownTable({
             ? () => toast.error("This line already has paid actuals. Remove the actuals before deleting the plan.", { title: "Cannot delete cost line" })
             : canEdit ? () => setPendingDeleteIdx(idx) : undefined;
           return (
-            <Fragment key={e.c}>
+            <Fragment key={`${e.c}-${idx}`}>
               <TableRow
-                className={`bg-table-row-bg hover:bg-table-row-hover border-0 ${linkedMs ? "cursor-pointer" : ""}`}
-                onClick={linkedMs ? () => onMilestoneClick?.(linkedMs) : undefined}
-                title={linkedMs ? `View “${linkedMs}” in Project Schedule` : undefined}
+                className={`bg-table-row-bg border-0 ${actuals.length > 0 ? "cursor-pointer" : ""}`}
+                data-state={open ? "selected" : undefined}
+                onClick={actuals.length > 0 ? () => toggle(idx) : undefined}
               >
                 <TableCell onClick={(ev) => ev.stopPropagation()}>
                   {actuals.length > 0 && (
-                    <button
-                      type="button"
+                    <Button
+                      type="button" variant="ghost" size="icon"
                       aria-label={open ? "Collapse actuals" : "Expand actuals"}
-                      onClick={() => toggle(e.c)}
-                      className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+                      aria-expanded={open}
+                      onClick={() => toggle(idx)}
+                      className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground"
                     >
                       <ChevronRight className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} />
-                    </button>
+                    </Button>
                   )}
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">{e.desc ?? "—"}</TableCell>
@@ -3093,9 +3094,16 @@ function CostBreakdownTable({
                 <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
                 <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>{util}%</TableCell>
-                <TableCell className="text-xs">
+                <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
                   {e.linkKind === "milestone" && e.linkRef ? (
-                    <span className="inline-flex items-center rounded bg-accent/15 px-1.5 py-0.5 text-[11px] text-accent">{e.linkRef}</span>
+                    <button
+                      type="button"
+                      onClick={() => onMilestoneClick?.(e.linkRef ?? "")}
+                      title={`View “${e.linkRef}” in Project Schedule`}
+                      className="inline-flex items-center rounded bg-accent/15 px-1.5 py-0.5 text-[11px] text-accent hover:bg-accent/25"
+                    >
+                      {e.linkRef}
+                    </button>
                   ) : (
                     <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
                   )}
@@ -3110,33 +3118,47 @@ function CostBreakdownTable({
                     extraActions={
                       <AddActualDialog
                         title="Add actual spend"
-                        onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(e.c)); }}
+                         onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(idx)); }}
                       />
                     }
                   />
                 </TableCell>
               </TableRow>
-              {open && actuals.map((a, i) => (
-                <TableRow key={`${e.c}-a${i}`} className="bg-secondary/10 hover:bg-secondary/20 border-0">
-                  <TableCell />
-                  <TableCell colSpan={2} className="pl-6 text-xs text-muted-foreground">
-                    {a.name ?? "Actual spend"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
-                  </TableCell>
-                  <TableCell />
-                  <TableCell className="num-mono text-right text-xs">${a.amount.toFixed(2)}M</TableCell>
-                  <TableCell />
-                  <TableCell />
-                  <TableCell className="text-xs text-muted-foreground">{a.date || "—"}</TableCell>
-
-                  <TableCell className="text-right">
-                    {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
-                    <TableRowActions
-                      onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
-                      onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
-                    />
+              {open && (
+                <TableRow className="bg-background hover:bg-background border-0 [&>td]:!bg-background hover:[&>td]:!bg-background">
+                  <TableCell colSpan={9} className="px-4 pb-3 pt-1">
+                    <div className="ml-4 border-l border-border pl-3">
+                      <div className="overflow-hidden rounded-lg bg-search-fill">
+                        <div className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center border-b border-border px-5 py-3 text-xs font-medium text-foreground">
+                          <span>Actual spend</span>
+                          <span>Date</span>
+                          <span className="text-right">Amount ($M)</span>
+                          <span className="sr-only">Actions</span>
+                        </div>
+                        {actuals.map((a, i) => (
+                          <div
+                            key={`${e.c}-a${i}`}
+                            className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center px-5 py-3 text-xs text-muted-foreground transition-colors hover:bg-table-row-hover"
+                          >
+                            <span className="text-foreground">
+                              {a.name ?? "Actual spend"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
+                            </span>
+                            <span>{a.date || "—"}</span>
+                            <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
+                            <span className="flex justify-end">
+                              {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
+                              <TableRowActions
+                                onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
+                                onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
+                              />
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </Fragment>
           );
         })}

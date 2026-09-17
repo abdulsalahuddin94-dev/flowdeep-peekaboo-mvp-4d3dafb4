@@ -38,6 +38,17 @@ import { format, parseISO } from "date-fns";
 import { toast } from "@/lib/toast";
 import { EmptyRegion } from "@/lib/empty-preview";
 
+/** Master-data names are unique per list — compared ignoring case and extra spaces. */
+const normName = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+function isDuplicateName(existing: string[], name: string, current?: string) {
+  const n = normName(name);
+  if (current !== undefined && normName(current) === n) return false;
+  return existing.some((e) => normName(e) === n);
+}
+function duplicateToast(entity: string, name: string) {
+  toast.error(`${entity} "${name.trim()}" already exists. Use a different name.`);
+}
+
 const ORG_TAB_LABELS: Record<string, string> = {
   "business-lines": "Project Types", tags: "Tags & Classifications",
   "cost-categories": "Cost Categories", "risk-categories": "Risk Categories",
@@ -148,7 +159,7 @@ function BusinessLinesTab() {
         resultCount={visible.length}
         totalCount={rows.length}
         onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
-        cta={<AddBusinessLineDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />}
+        cta={<AddBusinessLineDialog existing={rows.map((r) => r.name)} onAdd={(name, description) => setRows((prev) => [...prev, { name, description, projects: 0 }])} />}
         filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
       <EmptyRegion id="org-project-types">
@@ -204,6 +215,7 @@ function BusinessLinesTab() {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Name is required"); return; }
+              if (isDuplicateName(rows.map((r) => r.name), name, rows[editing.index]?.name)) { duplicateToast("Project Type", name); return; }
               setRows((prev) => prev.map((r, idx) => idx === editing.index ? { ...r, name, description: editing.description.trim() } : r));
               toast.done("Project Type", "updated");
               setEditing(null);
@@ -276,7 +288,7 @@ function DepartmentsTab() {
         resultCount={visible.length}
         totalCount={rows.length}
         onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
-        cta={<AddDepartmentDialog onAdd={(name, description) => setRows((prev) => [...prev, { name, description }])} />}
+        cta={<AddDepartmentDialog existing={rows.map((r) => r.name)} onAdd={(name, description) => setRows((prev) => [...prev, { name, description }])} />}
         filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
       <EmptyRegion id="org-departments">
@@ -332,6 +344,7 @@ function DepartmentsTab() {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Name is required"); return; }
+              if (isDuplicateName(rows.map((r) => r.name), name, rows[editing.index]?.name)) { duplicateToast("Department", name); return; }
               setRows((prev) => prev.map((r, idx) => idx === editing.index ? { name, description: editing.description.trim() } : r));
               toast.done("Department", "updated");
               setEditing(null);
@@ -486,6 +499,7 @@ function TagsTab() {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Tag name is required"); return; }
+              if (isDuplicateName(tags.map((t) => t.name), name, editing.original)) { duplicateToast("Tag", name); return; }
               updateTag(editing.original, { name, color: editing.color });
               toast.done("Tag", "updated");
               setEditing(null);
@@ -621,7 +635,7 @@ function FilterSelect({ value, onChange, options, width = "w-40" }: { value: str
   );
 }
 
-function AddBusinessLineDialog({ onAdd }: { onAdd: (name: string, description: string) => void }) {
+function AddBusinessLineDialog({ onAdd, existing = [] }: { onAdd: (name: string, description: string) => void; existing?: string[] }) {
   return (
     <QuickAddDialog
       triggerLabel="Add Project Type"
@@ -634,6 +648,7 @@ function AddBusinessLineDialog({ onAdd }: { onAdd: (name: string, description: s
       onSave={(v) => {
         const trimmed = v.name.trim();
         if (!trimmed) { toast.error("Name is required"); return false; }
+        if (isDuplicateName(existing, trimmed)) { duplicateToast("Project Type", trimmed); return false; }
         onAdd(trimmed, v.description.trim());
         toast.done("Project Type", "created");
       }}
@@ -641,7 +656,7 @@ function AddBusinessLineDialog({ onAdd }: { onAdd: (name: string, description: s
   );
 }
 
-function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, description: string) => void }) {
+function AddDepartmentDialog({ onAdd, existing = [] }: { onAdd: (name: string, description: string) => void; existing?: string[] }) {
   return (
     <QuickAddDialog
       triggerLabel="Add Department"
@@ -653,6 +668,7 @@ function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, description: str
       onSave={(v) => {
         const trimmed = v.name.trim();
         if (!trimmed) { toast.error("Name is required"); return false; }
+        if (isDuplicateName(existing, trimmed)) { duplicateToast("Department", trimmed); return false; }
         onAdd(trimmed, v.description.trim());
         toast.done("Department", "created");
       }}
@@ -666,7 +682,7 @@ function AddTagDialog() {
   const [color, setColor] = useState("#51CAAD");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
-  const { addTag } = useTags();
+  const { tags, addTag } = useTags();
   const { projects } = useProjects();
 
   const filtered = projects.filter((p) =>
@@ -684,6 +700,7 @@ function AddTagDialog() {
   function save() {
     const trimmed = name.trim();
     if (!trimmed) { toast.error("Tag name is required"); return; }
+    if (isDuplicateName(tags.map((t) => t.name), trimmed)) { duplicateToast("Tag", trimmed); return; }
     addTag({ name: trimmed, color }, selected);
     toast.success(
       selected.length
@@ -894,7 +911,7 @@ function CalendarsTab() {
 }
 
 function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpenChange: (v: boolean) => void; calendar?: WorkCalendar }) {
-  const { addCalendar, updateCalendar, updateCalendarWithAdoption } = useCalendars();
+  const { calendars, addCalendar, updateCalendar, updateCalendarWithAdoption } = useCalendars();
   const { projects } = useProjects();
   const isEdit = !!calendar;
   const linked = calendar ? projects.filter((p) => p.calendarId === calendar.id) : [];
@@ -942,6 +959,7 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
   }
   function save() {
     if (!name.trim()) { toast.error("Calendar name is required"); return; }
+    if (isDuplicateName(calendars.filter((c) => c.id !== calendar?.id).map((c) => c.name), name)) { duplicateToast("Calendar", name); return; }
     if (workingDays.length === 0) { toast.error("Select at least one working day"); return; }
     if (isEdit && calendar) {
       if (hasLinked) {
@@ -1099,7 +1117,7 @@ function CostCategoriesTab() {
         resultCount={visible.length}
         totalCount={categories.length}
         onReset={() => { setQuery(""); setType("all"); setRelated("all"); setStatus("all"); }}
-        cta={<AddCostCategoryDialog onAdd={(cat) => setCategories([...categories, cat])} />}
+        cta={<AddCostCategoryDialog existing={categories.map((c) => c.name)} existingNumbers={categories.map((c) => c.number)} onAdd={(cat) => setCategories([...categories, cat])} />}
         filterGroups={[relatedProjectsGroup(related, setRelated), capexOpexGroup(type, setType), statusGroup(status, setStatus)]}
       />
       <EmptyRegion id="org-cost-categories">
@@ -1165,6 +1183,9 @@ function CostCategoriesTab() {
               const name = editing.name.trim();
               const number = editing.number.trim();
               if (!name || !number) { toast.error("Name and ID are required"); return; }
+              const others = categories.filter((c) => c.id !== editing.id);
+              if (isDuplicateName(others.map((c) => c.name), name)) { duplicateToast("Cost Category", name); return; }
+              if (isDuplicateName(others.map((c) => c.number), number)) { toast.error(`Account number "${number}" is already used by another category.`); return; }
               setCategories((prev) => prev.map((c) => c.id === editing.id ? { ...editing, name, number, description: editing.description.trim() } : c));
               toast.done("Cost Category", "updated");
               setEditing(null);
@@ -1201,7 +1222,7 @@ function CostCategoriesTab() {
 }
 
 
-function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }) {
+function AddCostCategoryDialog({ onAdd, existing = [], existingNumbers = [] }: { onAdd: (cat: CostCategory) => void; existing?: string[]; existingNumbers?: string[] }) {
   return (
     <QuickAddDialog
       triggerLabel="Add Category"
@@ -1223,6 +1244,8 @@ function AddCostCategoryDialog({ onAdd }: { onAdd: (cat: CostCategory) => void }
         const trimmed = v.name.trim();
         const numTrimmed = v.number.trim();
         if (!trimmed || !numTrimmed) { toast.error("Name and ID are required"); return false; }
+        if (isDuplicateName(existing, trimmed)) { duplicateToast("Cost Category", trimmed); return false; }
+        if (isDuplicateName(existingNumbers, numTrimmed)) { toast.error(`Account number "${numTrimmed}" is already used by another category.`); return false; }
         onAdd({ id: `cat-${Date.now()}`, name: trimmed, number: numTrimmed, description: v.description.trim(), type: v.type as "CapEx" | "OpEx" });
         toast.done("Cost Category", "created");
       }}
@@ -1356,6 +1379,7 @@ function SkillsTable() {
               if (!editing) return;
               const v = editing.value.trim();
               if (!v) { toast.error("Skill name is required"); return; }
+              if (isDuplicateName(skillsCatalog, v, editing.original)) { duplicateToast("Skill", v); return; }
               updateSkill(editing.original, v);
               toast.done("Skill", "updated");
               setEditing(null);
@@ -1457,7 +1481,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
         resultCount={visible.length}
         totalCount={jobRoles.length}
         onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); setSelectedSkills([]); }}
-        cta={<AddJobRoleDialog hasSkills={skillsCatalog.length > 0} onGoToSkills={onGoToSkills} onAdd={(title, skills) => { addJobRole(title, skills); toast.done("Job Role", "created"); }} />}
+        cta={<AddJobRoleDialog hasSkills={skillsCatalog.length > 0} onGoToSkills={onGoToSkills} existing={jobRoles.map((r) => r.title)} onAdd={(title, skills) => { addJobRole(title, skills); toast.done("Job Role", "created"); }} />}
         filterGroups={[
           relatedProjectsGroup(related, setRelated),
           skillsGroup(selectedSkills, setSelectedSkills, skillsCatalog),
@@ -1547,6 +1571,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
               if (!editing) return;
               const t = editing.title.trim();
               if (!t) { toast.error("Role title is required"); return; }
+              if (isDuplicateName(jobRoles.filter((r) => r.id !== editing.id).map((r) => r.title), t)) { duplicateToast("Job Role", t); return; }
               updateJobRole(editing.id, t, editing.skills);
               toast.done("Job Role", "updated");
               setEditing(null);
@@ -1588,7 +1613,7 @@ function RolesTable({ onGoToSkills }: { onGoToSkills: () => void }) {
   );
 }
 
-function AddJobRoleDialog({ onAdd, hasSkills, onGoToSkills }: { onAdd: (title: string, skills: string[]) => void; hasSkills: boolean; onGoToSkills: () => void }) {
+function AddJobRoleDialog({ onAdd, hasSkills, onGoToSkills, existing = [] }: { onAdd: (title: string, skills: string[]) => void; hasSkills: boolean; onGoToSkills: () => void; existing?: string[] }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
@@ -1596,6 +1621,7 @@ function AddJobRoleDialog({ onAdd, hasSkills, onGoToSkills }: { onAdd: (title: s
   function save() {
     const trimmed = title.trim();
     if (!trimmed) { toast.error("Role title is required"); return; }
+    if (isDuplicateName(existing, trimmed)) { duplicateToast("Job Role", trimmed); return; }
     onAdd(trimmed, skills);
     setTitle("");
     setSkills([]);
@@ -1683,7 +1709,7 @@ function RiskCategoriesTab() {
         resultCount={rows.length}
         totalCount={categories.length}
         onReset={() => { setQuery(""); setRelated("all"); setStatus("all"); }}
-        cta={<AddRiskCategoryDialog onAdd={(name, description) => addCategory({ name, description })} />}
+        cta={<AddRiskCategoryDialog existing={categories.map((c) => c.name)} onAdd={(name, description) => addCategory({ name, description })} />}
         filterGroups={[relatedProjectsGroup(related, setRelated), statusGroup(status, setStatus)]}
       />
       <EmptyRegion id="org-risk-categories">
@@ -1736,6 +1762,7 @@ function RiskCategoriesTab() {
               if (!editing) return;
               const name = editing.name.trim();
               if (!name) { toast.error("Category name is required"); return; }
+              if (isDuplicateName(categories.filter((c) => c.id !== editing.id).map((c) => c.name), name)) { duplicateToast("Risk Category", name); return; }
               updateCategory(editing.id, { name, description: editing.description.trim() });
               toast.done("Risk Category", "updated");
               setEditing(null);
@@ -1771,7 +1798,7 @@ function RiskCategoriesTab() {
   );
 }
 
-function AddRiskCategoryDialog({ onAdd }: { onAdd: (name: string, description: string) => void }) {
+function AddRiskCategoryDialog({ onAdd, existing = [] }: { onAdd: (name: string, description: string) => void; existing?: string[] }) {
   return (
     <QuickAddDialog
       triggerLabel="Add Category"
@@ -1784,6 +1811,7 @@ function AddRiskCategoryDialog({ onAdd }: { onAdd: (name: string, description: s
       onSave={(v) => {
         const trimmed = v.name.trim();
         if (!trimmed) { toast.error("Category name is required"); return false; }
+        if (isDuplicateName(existing, trimmed)) { duplicateToast("Risk Category", trimmed); return false; }
         onAdd(trimmed, v.description.trim());
         toast.done("Risk Category", "created");
       }}

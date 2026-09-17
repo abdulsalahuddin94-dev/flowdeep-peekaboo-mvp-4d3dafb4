@@ -632,7 +632,7 @@ function FilterSelect({ value, onChange, options, width = "w-40" }: { value: str
   );
 }
 
-function AddBusinessLineDialog({ onAdd }: { onAdd: (name: string, description: string) => void }) {
+function AddBusinessLineDialog({ onAdd, existing = [] }: { onAdd: (name: string, description: string) => void; existing?: string[] }) {
   return (
     <QuickAddDialog
       triggerLabel="Add Project Type"
@@ -645,6 +645,7 @@ function AddBusinessLineDialog({ onAdd }: { onAdd: (name: string, description: s
       onSave={(v) => {
         const trimmed = v.name.trim();
         if (!trimmed) { toast.error("Name is required"); return false; }
+        if (isDuplicateName(existing, trimmed)) { duplicateToast("Project Type", trimmed); return false; }
         onAdd(trimmed, v.description.trim());
         toast.done("Project Type", "created");
       }}
@@ -652,7 +653,7 @@ function AddBusinessLineDialog({ onAdd }: { onAdd: (name: string, description: s
   );
 }
 
-function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, description: string) => void }) {
+function AddDepartmentDialog({ onAdd, existing = [] }: { onAdd: (name: string, description: string) => void; existing?: string[] }) {
   return (
     <QuickAddDialog
       triggerLabel="Add Department"
@@ -664,6 +665,7 @@ function AddDepartmentDialog({ onAdd }: { onAdd: (name: string, description: str
       onSave={(v) => {
         const trimmed = v.name.trim();
         if (!trimmed) { toast.error("Name is required"); return false; }
+        if (isDuplicateName(existing, trimmed)) { duplicateToast("Department", trimmed); return false; }
         onAdd(trimmed, v.description.trim());
         toast.done("Department", "created");
       }}

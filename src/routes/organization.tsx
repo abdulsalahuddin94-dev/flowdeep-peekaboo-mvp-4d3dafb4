@@ -1114,7 +1114,7 @@ function CostCategoriesTab() {
         resultCount={visible.length}
         totalCount={categories.length}
         onReset={() => { setQuery(""); setType("all"); setRelated("all"); setStatus("all"); }}
-        cta={<AddCostCategoryDialog onAdd={(cat) => setCategories([...categories, cat])} />}
+        cta={<AddCostCategoryDialog existing={categories.map((c) => c.name)} existingNumbers={categories.map((c) => c.number)} onAdd={(cat) => setCategories([...categories, cat])} />}
         filterGroups={[relatedProjectsGroup(related, setRelated), capexOpexGroup(type, setType), statusGroup(status, setStatus)]}
       />
       <EmptyRegion id="org-cost-categories">

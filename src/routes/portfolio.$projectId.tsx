@@ -2433,6 +2433,13 @@ function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEnt
   );
 }
 
+function actualDatePickerValue(value?: string) {
+  if (!value || value === "—") return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const parsed = new Date(`${value}, 2026`);
+  return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
+}
+
 /**
  * Edit an already-logged actual (payment/expense) — bookkeeping, not re-planning,
  * so this stays available regardless of baseline lock, same as AddActualDialog.
@@ -2444,20 +2451,22 @@ function EditActualDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (patch: ActualEntry) => void;
 }) {
-  const [name, setName] = useState(entry?.name ?? "");
-  const [date, setDate] = useState(entry?.date ?? "");
+  const [name, setName] = useState(entry?.name ?? entry?.note ?? "");
+  const [date, setDate] = useState(actualDatePickerValue(entry?.date));
   const [amount, setAmount] = useState(entry ? String(entry.amount) : "");
 
   useEffect(() => {
     if (!entry) return;
-    setName(entry.name ?? ""); setDate(entry.date ?? ""); setAmount(String(entry.amount));
+    setName(entry.name ?? entry.note ?? "");
+    setDate(actualDatePickerValue(entry.date));
+    setAmount(String(entry.amount));
   }, [entry]);
 
   return (
     <Dialog open={!!entry} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Edit actual</DialogTitle>
+          <DialogTitle>Edit actual spend</DialogTitle>
           <DialogDescription>Recorded against the planned line — no change request required.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
@@ -2969,7 +2978,11 @@ function RevenuePlanTable({
       }}
     />
     <EditActualDialog
-      entry={editingActual ? entries[editingActual.rowIdx]?.actuals?.[editingActual.actualIdx] ?? null : null}
+      entry={editingActual
+        ? (entries[editingActual.rowIdx]?.actuals ?? (entries[editingActual.rowIdx]?.act != null
+            ? [{ amount: entries[editingActual.rowIdx].act ?? 0, date: entries[editingActual.rowIdx].date }]
+            : []))[editingActual.actualIdx] ?? null
+        : null}
       onOpenChange={(o) => !o && setEditingActual(null)}
       onSave={(patch) => {
         if (editingActual) onEditActual(editingActual.rowIdx, editingActual.actualIdx, patch);
@@ -3146,7 +3159,11 @@ function CostBreakdownTable({
       }}
     />
     <EditActualDialog
-      entry={editingActual ? entries[editingActual.rowIdx]?.actuals?.[editingActual.actualIdx] ?? null : null}
+      entry={editingActual
+        ? (entries[editingActual.rowIdx]?.actuals ?? (entries[editingActual.rowIdx]?.a > 0
+            ? [{ amount: entries[editingActual.rowIdx].a, date: "—", note: "Opening actual" }]
+            : []))[editingActual.actualIdx] ?? null
+        : null}
       onOpenChange={(o) => !o && setEditingActual(null)}
       onSave={(patch) => {
         if (editingActual) onEditActual(editingActual.rowIdx, editingActual.actualIdx, patch);

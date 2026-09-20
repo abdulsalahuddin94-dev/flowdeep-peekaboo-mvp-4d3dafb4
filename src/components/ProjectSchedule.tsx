@@ -1439,26 +1439,40 @@ export function ProjectSchedule({
                     })()}
                     {colVisible("dep") && (
                       <div className="flex items-center gap-1 px-3 text-muted-foreground overflow-hidden" style={{ width: widths.dep }}>
-                        <button
-                          onClick={() => !restricted && onDependencyClick?.(item.name)}
-                          disabled={restricted}
-                          className={`text-xs truncate min-w-0 ${restricted ? "text-muted-foreground cursor-default" : "text-accent hover:underline cursor-pointer"}`}
-                          title={restricted ? "Locked — use Change Plan to edit dependencies" : "Click to view dependencies"}
-                        >
-                          {item.dependencies && item.dependencies.length > 0
-                            ? item.dependencies.length === 1
-                              ? `${item.dependencies[0].predecessor} · ${depLabel(item.dependencies[0])}`
-                              : `${item.dependencies.length} Dependencies`
-                            : item.dep || "—"}
-                        </button>
-                        {!restricted && (
+                        {item.dependencies && item.dependencies.length > 0 ? (
+                          <>
+                            <button
+                              onClick={() => !restricted && onDependencyClick?.(item.name)}
+                              disabled={restricted}
+                              className={`text-xs truncate min-w-0 ${restricted ? "text-muted-foreground cursor-default" : "text-accent hover:underline cursor-pointer"}`}
+                              title={restricted ? "Locked — use Change Plan to edit dependencies" : "Click to view dependencies"}
+                            >
+                              {item.dependencies.length === 1
+                                ? `${item.dependencies[0].predecessor} · ${depLabel(item.dependencies[0])}`
+                                : `${item.dependencies.length} Dependencies`}
+                            </button>
+                            {!restricted && (
+                              <button
+                                type="button"
+                                onClick={() => onAddDependencyClick?.(item.name)}
+                                title="Add a dependency"
+                                className="flex shrink-0 items-center justify-center rounded p-0.5 text-accent hover:bg-accent/15"
+                              >
+                                <Plus className="h-3 w-3" />
+                              </button>
+                            )}
+                          </>
+                        ) : restricted ? (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        ) : (
                           <button
                             type="button"
                             onClick={() => onAddDependencyClick?.(item.name)}
                             title="Add a dependency"
-                            className="flex shrink-0 items-center justify-center rounded p-0.5 text-accent hover:bg-accent/15"
+                            className="flex shrink-0 items-center gap-1 rounded text-xs text-accent hover:bg-accent/15 hover:underline"
                           >
-                            <Plus className="h-3 w-3" />
+                            <Plus className="h-3.5 w-3.5" />
+                            <span>Add Dependency</span>
                           </button>
                         )}
                       </div>

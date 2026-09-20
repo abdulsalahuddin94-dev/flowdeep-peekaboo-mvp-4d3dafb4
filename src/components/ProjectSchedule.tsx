@@ -1456,7 +1456,7 @@ export function ProjectSchedule({
                                 type="button"
                                 onClick={() => onAddDependencyClick?.(item.name)}
                                 title="Add a dependency"
-                                className="flex shrink-0 items-center justify-center rounded p-0.5 text-accent hover:bg-accent/15"
+                                className="flex shrink-0 items-center justify-center rounded-md border border-accent/40 bg-accent/15 px-1.5 py-0.5 text-accent hover:bg-accent/25 hover:border-accent/60"
                               >
                                 <Plus className="h-3 w-3" />
                               </button>
@@ -1469,7 +1469,7 @@ export function ProjectSchedule({
                             type="button"
                             onClick={() => onAddDependencyClick?.(item.name)}
                             title="Add a dependency"
-                            className="flex shrink-0 items-center gap-1 rounded text-xs text-accent hover:bg-accent/15 hover:underline"
+                            className="inline-flex shrink-0 items-center gap-1 rounded-md border border-accent/40 bg-accent/15 px-2 py-1 text-xs font-medium text-accent hover:bg-accent/25 hover:border-accent/60"
                           >
                             <Plus className="h-3.5 w-3.5" />
                             <span>Add Dependency</span>

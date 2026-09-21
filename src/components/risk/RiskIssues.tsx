@@ -633,7 +633,7 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
         placeholder="Search issue…"
         filterGroups={[
           ...(project ? [] : [{ key: "project", label: "Projects", mode: "multi" as const, value: projectFilter, onChange: setProjectFilter, options: [{ value: "all", label: "All projects" }, ...projectOptions.map((p) => ({ value: p, label: p }))] }]),
-          { key: "priority", label: "Criticality", value: priority, onChange: setPriority, options: [{ value: "all", label: "All criticalities" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
+          { key: "priority", label: "Severity", value: priority, onChange: setPriority, options: [{ value: "all", label: "All severities" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...ISSUE_STATUSES.map((v) => ({ value: v, label: v }))] },
           { key: "risk", label: "Originating Risk", mode: "multi", value: riskFilter, onChange: setRiskFilter, options: [{ value: "all", label: "All risks" }, { value: "none", label: "No originating risk" }, ...risks.map((r) => ({ value: r.id, label: r.title }))] },
         ]}
@@ -647,7 +647,7 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
               {!project && <StyledTableHead>Project</StyledTableHead>}
               <StyledTableHead>Issue</StyledTableHead>
               <StyledTableHead className="whitespace-nowrap">Risk</StyledTableHead>
-              <StyledTableHead className="text-center">Criticality</StyledTableHead>
+              <StyledTableHead className="text-center">Severity</StyledTableHead>
               <StyledTableHead className="text-center">Impact</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Open date</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Target date</StyledTableHead>
@@ -905,11 +905,18 @@ function IssueFormDialog({
         </Field>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Issue title" htmlFor="issue-title" error={errors.title}>
-          <Input id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="What is blocking or going wrong?" />
+      <Field label="Issue title" htmlFor="issue-title" error={errors.title}>
+        <Input id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="What is blocking or going wrong?" />
+      </Field>
+
+      <div className="grid items-start gap-4 sm:grid-cols-2">
+        <Field label="Impact" htmlFor="issue-impact" hint="1 (lowest) – 5 (highest)" className="min-w-0">
+          <Select value={impact} onValueChange={setImpact}>
+            <SelectTrigger id="issue-impact"><SelectValue /></SelectTrigger>
+            <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
+          </Select>
         </Field>
-        <Field label="Criticality" htmlFor="issue-priority">
+        <Field label="Severity" htmlFor="issue-priority" className="min-w-0">
           <Select value={priority} onValueChange={(v) => setPriority(v as IssuePriority)}>
             <SelectTrigger id="issue-priority"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -921,13 +928,7 @@ function IssueFormDialog({
         </Field>
       </div>
 
-      <div className="grid items-start gap-4 sm:grid-cols-3">
-        <Field label="Impact" htmlFor="issue-impact" hint="1 (lowest) – 5 (highest)" className="min-w-0">
-          <Select value={impact} onValueChange={setImpact}>
-            <SelectTrigger id="issue-impact"><SelectValue /></SelectTrigger>
-            <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
-          </Select>
-        </Field>
+      <div className="grid items-start gap-4 sm:grid-cols-2">
         <Field label="Open date" htmlFor="issue-open-date" error={errors.openDate} className="min-w-0">
           <DatePicker id="issue-open-date" value={openDate} onChange={(v) => { setOpenDate(v); setErrors((x) => ({ ...x, openDate: "" })); }} placeholder="Pick a date" />
         </Field>

@@ -1,3 +1,8 @@
+## Session — 2026-09-21 (Issue severity terminology and form layout)
+
+- Renamed Issue Criticality to Severity across the filter, table, and log/edit popup.
+- Matched the Issue popup reference layout: full-width Issue title, paired Impact and Severity, paired Open date and Target closure date, then full-width originating risk, milestone, and action plan fields.
+
 ## Session — 2026-09-21 (Hide Heat Map from project Risk & Issues)
 
 - Removed the "Heat Map" sub-tab from the project detail Risk & Issues tab; the project tab now shows only Risk Register and Issues Log (2-column segmented control).

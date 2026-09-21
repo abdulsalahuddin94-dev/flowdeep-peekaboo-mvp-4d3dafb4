@@ -1,3 +1,10 @@
+## Session — 2026-09-21 (Schedule row actions hover overlay)
+
+- Project Schedule: removed the dedicated always-visible actions column; the burger (⋮) row menu now overlays the Financial Link (last) column on row hover/focus, matching the Organization/Risk/Issues table behavior.
+- Payment cell made `relative`; financial-link badge fades out (group-hover opacity 0) and the burger menu fades in (opacity 1) on hover. Restricted/gate rows keep the menu.
+- Removed `ACTIONS_W` constant and header spacer cell; `tableW` no longer adds the actions width.
+- Verified via Playwright on /portfolio/p-001 → Project Schedule → Change Plan (`e`): overlay opacity 0 at rest → 1 on hover; build OK.
+
 ## Session — 2026-09-21 (Risk table scale labels)
 
 - Renamed the abbreviated Risk Register headers “P” and “I” to “Probability” and “Impact” in both the project view and standalone Risk & Issues module.

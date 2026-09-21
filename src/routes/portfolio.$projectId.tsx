@@ -2743,13 +2743,15 @@ function FinancialsTab({
         if (revStatusFilter !== "all" && e.sl !== revStatusFilter) return false;
         if (rangeActive) {
           const parseActualDate = (raw: string): Date | null => {
-            const iso = new Date(raw);
-            if (!Number.isNaN(iso.getTime())) return iso;
-            /* Legacy display strings like "May 02" carry no year — assume the current one. */
+            /* Legacy display strings like "May 02" carry no year — assume the current one.
+             * Checked first: new Date("May 02") parses as year 2001 in some engines. */
             const m = /^([A-Za-z]{3,})\s+(\d{1,2})$/.exec(raw.trim());
-            if (!m) return null;
-            const d = new Date(`${m[1]} ${m[2]}, ${new Date().getFullYear()}`);
-            return Number.isNaN(d.getTime()) ? null : d;
+            if (m) {
+              const d = new Date(`${m[1]} ${m[2]}, ${new Date().getFullYear()}`);
+              return Number.isNaN(d.getTime()) ? null : d;
+            }
+            const iso = new Date(raw);
+            return Number.isNaN(iso.getTime()) ? null : iso;
           };
           const actualDates = (e.actuals ?? (e.act != null ? [{ amount: e.act, date: e.date }] : []))
             .map((a) => parseActualDate(a.date))

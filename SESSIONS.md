@@ -1,3 +1,10 @@
+## Risk statuses: Realized + Closed
+
+- `RiskStatus` gains **Realized** and **Closed** (src/lib/mock-data.ts).
+- Convert to Issue now sets the risk to **Realized** (was "In Progress") and records it in the update history (src/lib/risk-store.tsx).
+- Manual status dropdowns offer Open / In Progress / Mitigated / Closed; Realized is automatic only (kept visible if already set).
+- Status filter covers all five statuses; risk drawer shows the **Linked issue** with its status, and Convert to Issue is disabled once converted.
+
 ## Session — 2026-09-21 (Issue logging status field)
 
 - Added Status back to the Log/Edit Issue popup, matching the Risk logging flow; new issues default to Open and resolved issues stamp a closure date automatically.

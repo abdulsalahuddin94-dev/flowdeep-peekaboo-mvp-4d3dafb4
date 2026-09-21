@@ -325,7 +325,7 @@ export function PageToolbar({
                       );
                     })
                   )}
-                  {panelOptions.length === 0 && (
+                  {!activePanelIsDateRange && panelOptions.length === 0 && (
                     <p className="py-6 text-center text-xs text-muted-foreground">No options</p>
                   )}
                 </div>

@@ -860,6 +860,7 @@ function IssueFormDialog({
   const [title, setTitle] = useState(issue?.title ?? "");
   const [project, setProject] = useState(issue?.project ?? lockedProject ?? "");
   const [priority, setPriority] = useState<IssuePriority>(issue?.priority ?? "Medium");
+  const [status, setStatus] = useState<IssueStatus>(issue?.status ?? "Open");
   const [impact, setImpact] = useState(String(issue?.impact ?? 3));
   const [openDate, setOpenDate] = useState(issue?.openDate ?? todayISO());
   const [targetDate, setTargetDate] = useState(issue?.targetDate ?? "");
@@ -880,11 +881,11 @@ function IssueFormDialog({
     onSave({
       project, title: title.trim(), owner: issue?.owner ?? "", priority,
       impact: Number(impact),
-      status: issue?.status ?? "Open",
+      status,
       raised: issue?.raised ?? "Today",
       openDate,
       targetDate: targetDate || undefined,
-      closureDate: issue?.closureDate,
+      closureDate: status === "Resolved" ? (issue?.closureDate ?? todayISO()) : undefined,
       action: action.trim(),
       riskId: riskId === "none" ? undefined : riskId,
       milestone: milestone === "none" ? undefined : milestone,
@@ -934,6 +935,15 @@ function IssueFormDialog({
           </Select>
         </Field>
       </div>
+
+      <Field label="Status" htmlFor="issue-status">
+        <Select value={status} onValueChange={(v) => setStatus(v as IssueStatus)}>
+          <SelectTrigger id="issue-status"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {ISSUE_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </Field>
 
       <div className="grid items-start gap-4 sm:grid-cols-2">
         <Field label="Open date" htmlFor="issue-open-date" error={errors.openDate} className="min-w-0">

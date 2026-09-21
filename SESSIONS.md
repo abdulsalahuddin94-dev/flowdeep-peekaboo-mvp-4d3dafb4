@@ -1,3 +1,7 @@
+## Session — 2026-09-21 (Risk & Issues demo examples)
+
+- Added richer ERP System Upgrade demo data: multiple risk statuses (Open, In Progress, Mitigated, Realized, Closed), milestone-linked risks, linked issues, independent issues, resolved issue examples, and seeded comment/status history for the Risk & Issues drawers.
+
 ## Risk statuses: Realized + Closed
 
 - `RiskStatus` gains **Realized** and **Closed** (src/lib/mock-data.ts).

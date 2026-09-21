@@ -2801,18 +2801,20 @@ function FinancialsTab({
               dateOf={costDate}
               totals={costTotals}
               onMilestoneClick={onMilestoneClick}
-              onSave={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e)))}
-              onDelete={(idx) => setCostEntries((prev) => prev.filter((_, i) => i !== idx))}
-              onAddActual={(idx, actual) =>
+              onSave={(rowIdx, patch) => { const idx = costIdxMap[rowIdx]; setCostEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e))); }}
+              onDelete={(rowIdx) => { const idx = costIdxMap[rowIdx]; setCostEntries((prev) => prev.filter((_, i) => i !== idx)); }}
+              onAddActual={(rowIdx, actual) => {
+                const idx = costIdxMap[rowIdx];
                 setCostEntries((prev) =>
                   prev.map((e, i) => {
                     if (i !== idx) return e;
                     const actuals = [...(e.actuals ?? (e.a > 0 ? [{ amount: e.a, date: "—", note: "Opening actual" }] : [])), actual];
                     return { ...e, actuals, a: actuals.reduce((s, x) => s + x.amount, 0) };
                   }),
-                )
-              }
-              onEditActual={(idx, actualIdx, patch) =>
+                );
+              }}
+              onEditActual={(rowIdx, actualIdx, patch) => {
+                const idx = costIdxMap[rowIdx];
                 setCostEntries((prev) =>
                   prev.map((e, i) => {
                     if (i !== idx) return e;
@@ -2820,9 +2822,10 @@ function FinancialsTab({
                     const updated = actuals.map((a, ai) => (ai === actualIdx ? { ...a, ...patch } : a));
                     return { ...e, actuals: updated, a: updated.reduce((s, x) => s + x.amount, 0) };
                   }),
-                )
-              }
-              onDeleteActual={(idx, actualIdx) =>
+                );
+              }}
+              onDeleteActual={(rowIdx, actualIdx) => {
+                const idx = costIdxMap[rowIdx];
                 setCostEntries((prev) =>
                   prev.map((e, i) => {
                     if (i !== idx) return e;
@@ -2830,8 +2833,8 @@ function FinancialsTab({
                     const updated = actuals.filter((_, ai) => ai !== actualIdx);
                     return { ...e, actuals: updated, a: updated.reduce((s, x) => s + x.amount, 0) };
                   }),
-                )
-              }
+                );
+              }}
             />
           </div>
         </div>

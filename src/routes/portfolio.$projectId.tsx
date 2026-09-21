@@ -2696,6 +2696,37 @@ function FinancialsTab({
 
   const costCategoryNames = useMemo(() => DEFAULT_COST_CATEGORIES.map((c) => c.name), []);
 
+  /* Cost breakdown search (by cost line name) + filters (category, CapEx/OpEx). */
+  const [costQuery, setCostQuery] = useState("");
+  const [costCatFilter, setCostCatFilter] = useState<string[]>([]);
+  const [costTypeFilter, setCostTypeFilter] = useState("all");
+
+  const costCatOptions = useMemo(() => {
+    const present = displayCost.map((e) => e.cat ?? e.c).filter(Boolean) as string[];
+    return Array.from(new Set([...costCategoryNames, ...present]));
+  }, [costCategoryNames, displayCost]);
+
+  /** Keep the original index so row actions still patch the right entry while filtered. */
+  const filteredCost = useMemo(() => {
+    const q = costQuery.trim().toLowerCase();
+    return displayCost
+      .map((e, i) => ({ e, i }))
+      .filter(({ e }) => {
+        const name = (e.desc ?? e.c ?? "").toLowerCase();
+        if (q && !name.includes(q)) return false;
+        const cat = e.cat ?? e.c ?? "";
+        if (costCatFilter.length > 0 && !costCatFilter.includes(cat)) return false;
+        if (costTypeFilter !== "all") {
+          const type = e.classification === "capex" ? "CapEx" : "OpEx";
+          if (type !== costTypeFilter) return false;
+        }
+        return true;
+      });
+  }, [displayCost, costQuery, costCatFilter, costTypeFilter]);
+
+  const costIdxMap = useMemo(() => filteredCost.map((x) => x.i), [filteredCost]);
+  const costRows = useMemo(() => filteredCost.map((x) => x.e), [filteredCost]);
+
   const addLinkDialog = (kind: "cost" | "revenue") => (
     <AddFinanceLinkDialog
       milestoneNames={milestoneNames}

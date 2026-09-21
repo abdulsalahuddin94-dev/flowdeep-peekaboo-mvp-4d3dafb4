@@ -2885,12 +2885,38 @@ function FinancialsTab({
             </div>
 
             <div>
-              <div className="mb-2 flex items-center justify-between">
-                <div className="label-eyebrow">Revenue plan</div>
-                {canEdit && addLinkDialog("revenue")}
-              </div>
+              <PageToolbar
+                query={revQuery}
+                onQueryChange={setRevQuery}
+                placeholder="Search by event name…"
+                filterGroups={[
+                  {
+                    key: "status",
+                    label: "Status",
+                    value: revStatusFilter,
+                    onChange: setRevStatusFilter,
+                    options: [
+                      { value: "all", label: "All statuses" },
+                      ...REV_STATUSES.map((s) => ({ value: s.sl, label: s.sl })),
+                    ],
+                  },
+                  {
+                    key: "date",
+                    label: "Expected date",
+                    value: revDateFilter,
+                    onChange: setRevDateFilter,
+                    options: [
+                      { value: "all", label: "All dates" },
+                      { value: "overdue", label: "Overdue" },
+                      { value: "month", label: "This month" },
+                      { value: "next30", label: "Next 30 days" },
+                    ],
+                  },
+                ]}
+                trailing={canEdit ? addLinkDialog("revenue") : undefined}
+              />
               <RevenuePlanTable
-                entries={displayRev}
+                entries={revRows}
                 canEdit={canEdit}
                 milestoneNames={milestoneNames}
                 dateOf={revDate}

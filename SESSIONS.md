@@ -1,3 +1,9 @@
+## Session — 2026-09-21 (Dependency deletion confirmation + re-wired View Dependencies)
+
+- Removed the instant-delete behavior in the schedule "View Dependencies" dialog; the red trash icon now opens a DS02 ConfirmDialog ("Remove dependency?", Cancel · Remove) before removing a dependency.
+- Re-wired the dependency cell so clicking a predecessor opens the View Dependencies dialog (the click handler was lost during the burger-menu refactor). Empty cells still show "—".
+- Verified end-to-end in the preview: View Dependencies → trash → "Remove dependency?" confirm → Remove removes the dependency.
+
 ## Session — 2026-09-21 (Schedule popup editing and row actions)
 
 - Removed inline milestone/task editing and the right-click schedule menu.

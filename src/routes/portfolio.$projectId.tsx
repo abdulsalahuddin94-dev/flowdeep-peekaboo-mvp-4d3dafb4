@@ -6275,6 +6275,8 @@ function ViewDependenciesDialog({
     [allItems, currentItem],
   );
 
+  const [pendingDepIdx, setPendingDepIdx] = useState<number | null>(null);
+
   function removeDependency(idx: number) {
     if (!currentItem) return;
     const updated = deps.filter((_, i) => i !== idx);
@@ -6283,7 +6285,19 @@ function ViewDependenciesDialog({
     toast.done("Dependency", "removed");
   }
 
+  const pendingDep = pendingDepIdx != null ? deps[pendingDepIdx] : null;
+  let pendingDepDesc: string;
+  if (pendingDep && currentItem) {
+    pendingDepDesc = `Remove the ${depLabel(pendingDep)} dependency on "${pendingDep.predecessor}" from "${currentItem.name}".`;
+    if (successors.length > 0) {
+      pendingDepDesc += ` ${successors.length} task${successors.length === 1 ? "" : "s"} that depend${successors.length === 1 ? "s" : ""} on this item will not be changed.`;
+    }
+  } else {
+    pendingDepDesc = "";
+  }
+
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
@@ -6330,7 +6344,7 @@ function ViewDependenciesDialog({
                     <span className="truncate font-medium">{d.predecessor}</span>
                     <span className="shrink-0 text-xs text-muted-foreground">{depLabel(d)}</span>
                   </div>
-                  <button onClick={() => removeDependency(i)} title="Remove dependency" aria-label="Remove dependency"
+                  <button onClick={() => setPendingDepIdx(i)} title="Remove dependency" aria-label="Remove dependency"
                     className="flex shrink-0 items-center justify-center rounded-md p-1.5 text-rag-red hover:bg-rag-red/10 hover:text-rag-red">
                     <DeleteAction size={16} />
                   </button>
@@ -6344,6 +6358,22 @@ function ViewDependenciesDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <ConfirmDialog
+      open={pendingDepIdx != null}
+      onOpenChange={(v) => { if (!v) setPendingDepIdx(null); }}
+      tone="danger"
+      title="Remove dependency?"
+      description={pendingDepDesc}
+      cancelLabel="Cancel"
+      confirmLabel="Remove"
+      onConfirm={() => {
+        if (pendingDepIdx != null) {
+          removeDependency(pendingDepIdx);
+        }
+        setPendingDepIdx(null);
+      }}
+    />
+    </>
   );
 }
 

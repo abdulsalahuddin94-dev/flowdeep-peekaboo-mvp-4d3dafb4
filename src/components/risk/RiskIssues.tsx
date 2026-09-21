@@ -138,8 +138,8 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
               {!project && <StyledTableHead>Project</StyledTableHead>}
               <StyledTableHead>Risk</StyledTableHead>
               <StyledTableHead>Category</StyledTableHead>
-              <StyledTableHead className="text-center">P</StyledTableHead>
-              <StyledTableHead className="text-center">I</StyledTableHead>
+              <StyledTableHead className="text-center">Probability</StyledTableHead>
+              <StyledTableHead className="text-center">Impact</StyledTableHead>
               <StyledTableHead className="text-center">Score</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Severity</StyledTableHead>
               <StyledTableHead>Mitigation plan</StyledTableHead>

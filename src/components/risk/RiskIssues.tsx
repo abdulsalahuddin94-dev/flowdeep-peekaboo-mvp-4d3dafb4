@@ -83,7 +83,8 @@ export function useSeverity() {
 /* ── Risk register ────────────────────────────────────────────────────────── */
 
 export function RiskRegisterTab({ project, milestoneOptions }: { project?: string; milestoneOptions?: string[] }) {
-  const { risks, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, convertRiskToIssue } = useRiskRegister();
+  const { risks, issues, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, convertRiskToIssue } = useRiskRegister();
+  const hasLinkedIssue = (riskId: string) => issues.some((i) => i.riskId === riskId);
   const { severityOf } = useSeverity();
   const { isActive } = useOrgActive("risk-category");
   const { currentUser } = useCurrentUser();
@@ -169,7 +170,13 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
                     statusLabel="Update risk status"
                     statusIcon={<ClipboardCheck size={16} />}
                     onEdit={() => { setEditing(r); setFormOpen(true); }}
-                    onDelete={() => setPendingDelete(r)}
+                    onDelete={() => {
+                      if (hasLinkedIssue(r.id)) {
+                        toast.warning("Cannot delete risk", "This risk has a linked issue. Resolve or delete the issue first.");
+                        return;
+                      }
+                      setPendingDelete(r);
+                    }}
                   />
                 </StyledTableCell>
               </StyledTableRow>

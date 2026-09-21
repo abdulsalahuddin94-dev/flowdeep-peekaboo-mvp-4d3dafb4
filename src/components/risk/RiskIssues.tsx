@@ -362,7 +362,7 @@ function RiskFormDialog({
           <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
             <SelectTrigger id="risk-status"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {RISK_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+              {statusOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
@@ -484,7 +484,7 @@ function RiskSheet({
         <div className="space-y-2 border-t border-border px-6 py-4">
           <div className="flex gap-2">
             <Button variant="primary" className="flex-1" onClick={() => { onClose(); onUpdate(risk); }}>Update risk status</Button>
-            <Button variant="outline" className="flex-1" onClick={() => { onClose(); onConvert(risk); }}>Convert to Issue</Button>
+            <Button variant="outline" className="flex-1" disabled={!!linkedIssue} onClick={() => { onClose(); onConvert(risk); }}>Convert to Issue</Button>
           </div>
           <Button variant="secondary" className="w-full" onClick={() => onEdit(risk)}>Edit Risk</Button>
         </div>
@@ -1037,7 +1037,7 @@ function RiskStatusDialog({
           <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
             <SelectTrigger id="risk-status-update"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {RISK_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+              {statusOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>

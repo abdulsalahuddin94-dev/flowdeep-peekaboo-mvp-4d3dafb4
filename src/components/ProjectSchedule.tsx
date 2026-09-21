@@ -1373,11 +1373,16 @@ export function ProjectSchedule({
                     {colVisible("dep") && (
                       <div className="flex items-center gap-1 px-3 text-muted-foreground overflow-hidden" style={{ width: widths.dep }}>
                         {item.dependencies && item.dependencies.length > 0 ? (
-                          <span className="truncate text-xs" title={item.dependencies.map((dependency) => `${dependency.predecessor} · ${depLabel(dependency)}`).join(", ")}>
+                          <button
+                            type="button"
+                            onClick={() => onDependencyClick?.(item.name)}
+                            className="truncate text-xs text-foreground/80 underline-offset-2 hover:text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                            title={`View dependencies for ${item.name}`}
+                          >
                             {item.dependencies.length === 1
                               ? `${item.dependencies[0].predecessor} · ${depLabel(item.dependencies[0])}`
                               : `${item.dependencies.length} Dependencies`}
-                          </span>
+                          </button>
                         ) : <span className="text-xs">—</span>}
                       </div>
                     )}

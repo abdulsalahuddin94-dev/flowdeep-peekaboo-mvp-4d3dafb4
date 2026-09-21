@@ -1,3 +1,7 @@
+## Session — 2026-09-21 (Risk scale labels: reference layout)
+
+- Matched the risk drawer summary to the supplied reference: Probability and Impact display their number and description inline (for example, “3 · Possible” and “4 · Major”), while Score remains numeric.
+
 ## Session — 2026-09-21 (Risk details: probability/impact labels)
 
 - The risk details drawer now shows the wording for each scale value under the number: Probability 4 → "Likely", Impact 5 → "Severe" (labels come from Organization rules; Score has no label).

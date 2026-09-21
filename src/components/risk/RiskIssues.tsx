@@ -403,10 +403,12 @@ function RiskSheet({
             { l: "Impact", v: risk.impact, d: rules.risk.impactLabels[risk.impact - 1] },
             { l: "Score", v: risk.score, d: undefined as string | undefined },
           ].map((k) => (
-            <div key={k.l} className="px-4 py-3">
-              <div className="label-eyebrow text-[10px]">{k.l}</div>
-              <div className="mt-0.5 num-mono text-sm font-medium text-foreground">{k.v}</div>
-              {k.d && <div className="mt-0.5 text-[11px] text-muted-foreground">{k.d}</div>}
+            <div key={k.l} className="px-4 py-4">
+              <div className="text-sm text-muted-foreground">{k.l}</div>
+              <div className="mt-1 text-base font-medium text-foreground">
+                <span className="num-mono">{k.v}</span>
+                {k.d && <span> · {k.d}</span>}
+              </div>
             </div>
           ))}
         </div>

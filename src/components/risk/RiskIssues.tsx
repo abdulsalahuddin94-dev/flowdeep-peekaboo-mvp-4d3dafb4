@@ -261,6 +261,7 @@ function RiskFormDialog({
   const [prob, setProb] = useState(String(risk?.prob ?? 3));
   const [impact, setImpact] = useState(String(risk?.impact ?? 3));
   const [status, setStatus] = useState<RiskStatus>(risk?.status ?? "Open");
+  const statusOptions = RISK_STATUSES.includes(status) ? RISK_STATUSES : [...RISK_STATUSES, status];
   const [mitigation, setMitigation] = useState(risk?.mitigation ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -1008,6 +1009,7 @@ function RiskStatusDialog({
 }) {
   const { severityOf } = useSeverity();
   const [status, setStatus] = useState<RiskStatus>(risk?.status ?? "Open");
+  const statusOptions = RISK_STATUSES.includes(status) ? RISK_STATUSES : [...RISK_STATUSES, status];
   const [prob, setProb] = useState(String(risk?.prob ?? 3));
   const [impact, setImpact] = useState(String(risk?.impact ?? 3));
   const [comment, setComment] = useState("");

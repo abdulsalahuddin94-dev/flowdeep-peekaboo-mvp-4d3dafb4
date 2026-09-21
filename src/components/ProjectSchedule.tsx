@@ -846,7 +846,7 @@ export function ProjectSchedule({
   // Schedule structure is edited only through the row action popups.
   const canPatch = !!onItemPatch;
   const editable = false;
-  const assigneeEditable = canPatch;
+  const assigneeEditable = false;
   function patch(name: string, p: Partial<ScheduleItem>) { onItemPatch?.(name, p); }
 
   // ── Export helpers ───────────────────────────────────────────────────────
@@ -1428,7 +1428,7 @@ export function ProjectSchedule({
                                 <TrendingUp className="h-4 w-4" /> Progress update
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem onSelect={() => setPendingDelete(item.name)} className="text-rag-red focus:text-rag-red">
+                              <DropdownMenuItem onSelect={() => onDeleteItem && setPendingDelete(item.name)} disabled={!onDeleteItem} className="text-rag-red focus:text-rag-red">
                                 <Trash2 className="h-4 w-4" /> Delete
                               </DropdownMenuItem>
                             </>

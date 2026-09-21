@@ -172,7 +172,7 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
                     onEdit={() => { setEditing(r); setFormOpen(true); }}
                     onDelete={() => {
                       if (hasLinkedIssue(r.id)) {
-                        toast.warning("Cannot delete risk", "This risk has a linked issue. Resolve or delete the issue first.");
+                        toast.warning("This risk has a linked issue. Resolve or delete the issue first.", { title: "Cannot delete risk" });
                         return;
                       }
                       setPendingDelete(r);

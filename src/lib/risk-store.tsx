@@ -156,7 +156,7 @@ export function useRiskRegister() {
    * the status transition. Closure date is stamped when the issue is resolved.
    */
   const logIssueUpdate = useCallback(
-    (id: string, input: { comment: string; by: string; status: IssueStatus }) => {
+    (id: string, input: { comment: string; by: string; status: IssueStatus; closureDate?: string }) => {
       set({
         issues: state.issues.map((i) => {
           if (i.id !== id) return i;
@@ -170,7 +170,9 @@ export function useRiskRegister() {
           return {
             ...i,
             status: input.status,
-            closureDate: input.status === "Resolved" ? (i.closureDate ?? today()) : undefined,
+            closureDate: input.status === "Resolved"
+              ? (input.closureDate || i.closureDate || today())
+              : undefined,
             updates: [update, ...i.updates],
           };
         }),

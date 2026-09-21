@@ -593,7 +593,7 @@ const fmtDate = (v?: string) => (v ? v : "—");
 
 export function IssuesLogTab({ project, milestoneOptions }: { project?: string; milestoneOptions?: string[] }) {
   const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate } = useRiskRegister();
-  const currentUser = useCurrentUser();
+  const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState<string[]>([]);
   const [priority, setPriority] = useState("all");
@@ -717,7 +717,7 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
         milestoneOptions={milestoneList}
         onSave={(issue) => {
           if (isDuplicateTitle(issue.title, editing?.id)) {
-            toast.error(`Issue "${issue.title.trim()}" already exists`, "Issue titles must be unique.");
+            toast.error(`Issue "${issue.title.trim()}" already exists`, { description: "Issue titles must be unique." });
             return;
           }
           if (editing) updateIssue(editing.id, issue);

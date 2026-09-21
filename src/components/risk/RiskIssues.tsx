@@ -1069,9 +1069,10 @@ function IssueStatusDialog({
   issue: IssueRecord | null;
   presetStatus?: IssueStatus;
   onClose: () => void;
-  onSave: (input: { status: IssueStatus; comment: string }) => void;
+  onSave: (input: { status: IssueStatus; comment: string; closureDate?: string }) => void;
 }) {
   const [status, setStatus] = useState<IssueStatus>(presetStatus ?? issue?.status ?? "Open");
+  const [closureDate, setClosureDate] = useState(issue?.closureDate ?? todayISO());
   const [comment, setComment] = useState("");
   const [error, setError] = useState("");
 
@@ -1080,7 +1081,11 @@ function IssueStatusDialog({
       setError("A comment is required so the change stays documented");
       return;
     }
-    onSave({ status, comment: comment.trim() });
+    onSave({
+      status,
+      comment: comment.trim(),
+      closureDate: status === "Resolved" ? closureDate : undefined,
+    });
   }
 
   return (
@@ -1100,6 +1105,17 @@ function IssueStatusDialog({
           </SelectContent>
         </Select>
       </Field>
+
+      {status === "Resolved" && (
+        <Field label="Closure date" htmlFor="issue-closure-date">
+          <DatePicker
+            id="issue-closure-date"
+            value={closureDate}
+            onChange={setClosureDate}
+            max={todayISO()}
+          />
+        </Field>
+      )}
 
       <Field
         label="Comment"

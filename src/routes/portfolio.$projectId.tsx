@@ -6290,16 +6290,7 @@ function ViewDependenciesDialog({
     toast.done("Dependency", "removed");
   }
 
-  const pendingDep = pendingDepIdx != null ? deps[pendingDepIdx] : null;
-  let pendingDepDesc: string;
-  if (pendingDep && currentItem) {
-    pendingDepDesc = `Remove the ${depLabel(pendingDep)} dependency on "${pendingDep.predecessor}" from "${currentItem.name}".`;
-    if (successors.length > 0) {
-      pendingDepDesc += ` ${successors.length} task${successors.length === 1 ? "" : "s"} that depend${successors.length === 1 ? "s" : ""} on this item will not be changed.`;
-    }
-  } else {
-    pendingDepDesc = "";
-  }
+  const pendingDepDesc = "This dependency will be removed from the item. Removing it may shift the item's planned dates.";
 
   return (
     <>

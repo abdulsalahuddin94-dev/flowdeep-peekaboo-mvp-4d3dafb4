@@ -5,7 +5,7 @@ import { EmptyRegion } from "@/lib/empty-preview";
 
 import { RagBadge } from "@/components/RagBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RiskRegisterTab, RiskHeatmapTab, IssuesLogTab } from "@/components/risk/RiskIssues";
+import { RiskRegisterTab, IssuesLogTab } from "@/components/risk/RiskIssues";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, ChevronUp, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar, ClipboardCheck, LayoutGrid, Lock, Link2 } from "@/lib/icons";
+import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, ChevronUp, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar, ClipboardCheck, Lock, Link2 } from "@/lib/icons";
 import type { Rag, Project } from "@/lib/mock-data";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
@@ -6765,17 +6765,14 @@ function TeamAllocationTab({
 // ── Risk & Issues tab ─────────────────────────────────────────────────────────
 
 function ProjectRiskIssuesTab({ projectName, milestoneOptions }: { projectName: string; milestoneOptions: string[] }) {
-  const [view, setView] = useState<"register" | "heatmap" | "issues">("register");
+  const [view, setView] = useState<"register" | "issues">("register");
 
   return (
     <div className="space-y-4">
       <Tabs value={view} onValueChange={(v) => setView(v as typeof view)}>
-        <TabsList className="grid h-11 w-full grid-cols-3 gap-0 rounded-lg border border-border bg-[var(--field-bg-filled)] p-1">
+        <TabsList className="grid h-11 w-full grid-cols-2 gap-0 rounded-lg border border-border bg-[var(--field-bg-filled)] p-1">
           <TabsTrigger value="register" className="h-9 gap-2 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent">
             <ClipboardCheck size={15} />Risk Register
-          </TabsTrigger>
-          <TabsTrigger value="heatmap" className="h-9 gap-2 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent">
-            <LayoutGrid size={15} />Heat Map
           </TabsTrigger>
           <TabsTrigger value="issues" className="h-9 gap-2 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent">
             <AlertTriangle size={15} />Issues Log
@@ -6783,9 +6780,6 @@ function ProjectRiskIssuesTab({ projectName, milestoneOptions }: { projectName: 
         </TabsList>
         <TabsContent value="register" className="mt-5">
           <RiskRegisterTab project={projectName} milestoneOptions={milestoneOptions} />
-        </TabsContent>
-        <TabsContent value="heatmap" className="mt-5">
-          <RiskHeatmapTab project={projectName} />
         </TabsContent>
         <TabsContent value="issues" className="mt-5">
           <IssuesLogTab project={projectName} milestoneOptions={milestoneOptions} />

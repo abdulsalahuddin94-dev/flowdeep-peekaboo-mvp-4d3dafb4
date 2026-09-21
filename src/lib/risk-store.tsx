@@ -213,12 +213,12 @@ export function useRiskRegister() {
       at: today(),
       by,
       comment: "Risk materialised — converted to an issue.",
-      change: { status: [risk.status, "In Progress"] },
+      change: { status: [risk.status, "Realized"] },
     };
     set({
       issues: [issue, ...state.issues],
       risks: state.risks.map((r) =>
-        r.id === riskId ? { ...r, status: "In Progress" as RiskStatus, updates: [update, ...r.updates] } : r,
+        r.id === riskId ? { ...r, status: "Realized" as RiskStatus, updates: [update, ...r.updates] } : r,
       ),
     });
     return id;

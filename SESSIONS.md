@@ -1,3 +1,8 @@
+## Session — 2026-09-21 (Revenue Breakdown search and filters)
+
+- Added the DS02 PageToolbar to the Revenue Breakdown tab: search by event name plus a filter drawer with Status (Planned / Pending / Received / Overdue) and Expected date (Overdue / This month / Next 30 days) groups; Add revenue line sits as the trailing CTA.
+- Filtering preserves original entry indices (revIdxMap) so row and actual-payment actions still patch the correct record while filtered.
+
 ## Session — 2026-09-21 (Issue severity terminology and form layout)
 
 - Renamed Issue Criticality to Severity across the filter, table, and log/edit popup.

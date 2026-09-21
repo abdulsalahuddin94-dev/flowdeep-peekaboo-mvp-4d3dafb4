@@ -2727,6 +2727,36 @@ function FinancialsTab({
   const costIdxMap = useMemo(() => filteredCost.map((x) => x.i), [filteredCost]);
   const costRows = useMemo(() => filteredCost.map((x) => x.e), [filteredCost]);
 
+  /* Revenue breakdown search (by event name) + filters (status, expected date). */
+  const [revQuery, setRevQuery] = useState("");
+  const [revStatusFilter, setRevStatusFilter] = useState("all");
+  const [revDateFilter, setRevDateFilter] = useState("all");
+
+  const filteredRev = useMemo(() => {
+    const q = revQuery.trim().toLowerCase();
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return displayRev
+      .map((e, i) => ({ e, i }))
+      .filter(({ e }) => {
+        if (q && !(e.evt ?? "").toLowerCase().includes(q)) return false;
+        if (revStatusFilter !== "all" && e.sl !== revStatusFilter) return false;
+        if (revDateFilter !== "all") {
+          const dt = new Date(revDate(e));
+          if (Number.isNaN(dt.getTime())) return false;
+          if (revDateFilter === "overdue" && dt >= today) return false;
+          if (revDateFilter === "month" && (dt.getFullYear() !== today.getFullYear() || dt.getMonth() !== today.getMonth())) return false;
+          if (revDateFilter === "next30") {
+            const limit = new Date(today); limit.setDate(limit.getDate() + 30);
+            if (dt < today || dt > limit) return false;
+          }
+        }
+        return true;
+      });
+  }, [displayRev, revQuery, revStatusFilter, revDateFilter, revDate]);
+
+  const revIdxMap = useMemo(() => filteredRev.map((x) => x.i), [filteredRev]);
+  const revRows = useMemo(() => filteredRev.map((x) => x.e), [filteredRev]);
+
   const addLinkDialog = (kind: "cost" | "revenue") => (
     <AddFinanceLinkDialog
       milestoneNames={milestoneNames}
@@ -2855,20 +2885,47 @@ function FinancialsTab({
             </div>
 
             <div>
-              <div className="mb-2 flex items-center justify-between">
-                <div className="label-eyebrow">Revenue plan</div>
-                {canEdit && addLinkDialog("revenue")}
-              </div>
+              <PageToolbar
+                query={revQuery}
+                onQueryChange={setRevQuery}
+                placeholder="Search by event name…"
+                filterGroups={[
+                  {
+                    key: "status",
+                    label: "Status",
+                    value: revStatusFilter,
+                    onChange: setRevStatusFilter,
+                    options: [
+                      { value: "all", label: "All statuses" },
+                      ...REV_STATUSES.map((s) => ({ value: s.sl, label: s.sl })),
+                    ],
+                  },
+                  {
+                    key: "date",
+                    label: "Expected date",
+                    value: revDateFilter,
+                    onChange: setRevDateFilter,
+                    options: [
+                      { value: "all", label: "All dates" },
+                      { value: "overdue", label: "Overdue" },
+                      { value: "month", label: "This month" },
+                      { value: "next30", label: "Next 30 days" },
+                    ],
+                  },
+                ]}
+                trailing={canEdit ? addLinkDialog("revenue") : undefined}
+              />
               <RevenuePlanTable
-                entries={displayRev}
+                entries={revRows}
                 canEdit={canEdit}
                 milestoneNames={milestoneNames}
                 dateOf={revDate}
                 totals={revTotals}
                 onMilestoneClick={onMilestoneClick}
-                onSave={(idx, patch) => setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
-                onDelete={(idx) => setRevEntries((prev) => prev.filter((_, i) => i !== idx))}
-                onAddActual={(idx, actual) =>
+                onSave={(rowIdx, patch) => { const idx = revIdxMap[rowIdx]; setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e)); }}
+                onDelete={(rowIdx) => { const idx = revIdxMap[rowIdx]; setRevEntries((prev) => prev.filter((_, i) => i !== idx)); }}
+                onAddActual={(rowIdx, actual) => {
+                  const idx = revIdxMap[rowIdx];
                   setRevEntries((prev) =>
                     prev.map((e, i) => {
                       if (i !== idx) return e;
@@ -2878,9 +2935,10 @@ function FinancialsTab({
                       const status = collected >= 1 ? REV_STATUSES[2] : REV_STATUSES[1];
                       return { ...e, actuals, act: total, s: status.s, sl: status.sl };
                     }),
-                  )
-                }
-                onEditActual={(idx, actualIdx, patch) =>
+                  );
+                }}
+                onEditActual={(rowIdx, actualIdx, patch) => {
+                  const idx = revIdxMap[rowIdx];
                   setRevEntries((prev) =>
                     prev.map((e, i) => {
                       if (i !== idx) return e;
@@ -2891,9 +2949,10 @@ function FinancialsTab({
                       const status = collected >= 1 ? REV_STATUSES[2] : REV_STATUSES[1];
                       return { ...e, actuals: updated, act: total, s: status.s, sl: status.sl };
                     }),
-                  )
-                }
-                onDeleteActual={(idx, actualIdx) =>
+                  );
+                }}
+                onDeleteActual={(rowIdx, actualIdx) => {
+                  const idx = revIdxMap[rowIdx];
                   setRevEntries((prev) =>
                     prev.map((e, i) => {
                       if (i !== idx) return e;
@@ -2904,8 +2963,8 @@ function FinancialsTab({
                       const status = total === 0 ? REV_STATUSES[0] : collected >= 1 ? REV_STATUSES[2] : REV_STATUSES[1];
                       return { ...e, actuals: updated, act: updated.length > 0 ? total : null, s: status.s, sl: status.sl };
                     }),
-                  )
-                }
+                  );
+                }}
               />
             </div>
           </div>

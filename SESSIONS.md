@@ -1,3 +1,7 @@
+## Session — 2026-09-21 (Issue logging status field)
+
+- Added Status back to the Log/Edit Issue popup, matching the Risk logging flow; new issues default to Open and resolved issues stamp a closure date automatically.
+
 ## Session — 2026-09-21 (Project Risk & Issues drawer context)
 
 - Hid the project name inside Risk and Issue detail drawers when opened from a project detail page, while keeping it visible in the standalone Risk & Issues module.

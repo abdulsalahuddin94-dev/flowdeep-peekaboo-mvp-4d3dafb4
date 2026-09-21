@@ -41,9 +41,14 @@ const RISK_STATUS_TONE: Record<RiskStatus, string> = {
   Open: "border-rag-red/40 bg-rag-red/10 text-rag-red",
   "In Progress": "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
   Mitigated: "border-rag-green/40 bg-rag-green/10 text-rag-green",
+  Realized: "border-rag-red/40 bg-rag-red/15 text-rag-red",
+  Closed: "border-border bg-[var(--field-bg-filled)] text-muted-foreground",
 };
 
-const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated"];
+/** Selectable by hand. "Realized" is set automatically on Convert to Issue. */
+const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated", "Closed"];
+/** Every status a risk can hold — used for filtering. */
+const RISK_STATUSES_ALL: RiskStatus[] = ["Open", "In Progress", "Mitigated", "Realized", "Closed"];
 const ISSUE_STATUSES: IssueStatus[] = ["Open", "In Progress", "Resolved", "Escalated"];
 const COMMENT_MAX = 500;
 

@@ -98,6 +98,7 @@ export const Command = sax("Command");
 export const Diamond = sax("Record");
 export const DollarSign = sax("DollarCircle");
 export const Download = sax("DocumentDownload");
+export const Eye = sax("Eye");
 export const FileSpreadsheet = sax("DocumentText");
 export const FileText = sax("DocumentText");
 export const FileUp = sax("DocumentUpload");

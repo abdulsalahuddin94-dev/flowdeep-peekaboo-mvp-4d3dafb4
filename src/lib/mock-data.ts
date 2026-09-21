@@ -276,16 +276,26 @@ export const risks: RiskItem[] = [
 ];
 
 export type IssuePriority = "High" | "Medium" | "Low";
-export type IssueStatus = "Open" | "Resolved" | "Escalated";
+export type IssueStatus = "Open" | "In Progress" | "Resolved" | "Escalated";
 
 export interface IssueItem {
   id: string;
   project: string;
   title: string;
+  /** Criticality of the issue (High / Medium / Low). */
   priority: IssuePriority;
+  /** Impact rating, 1–5. */
+  impact: number;
   owner: string;
   status: IssueStatus;
   raised: string;
+  /** ISO date the issue was opened. */
+  openDate: string;
+  /** ISO target date for closure. */
+  targetDate?: string;
+  /** ISO date the issue was actually closed — set when it is resolved. */
+  closureDate?: string;
+  /** Action plan / corrective actions taken. */
   action: string;
   /** Originating risk id — optional, issues can be logged with no prior risk. */
   riskId?: string;
@@ -299,12 +309,12 @@ export interface IssueItem {
 
 
 export const issues: IssueItem[] = [
-  { id: "I-044", project: "ERP System Upgrade", title: "Test environment outage blocking QA", priority: "High", owner: "Mei Chen", status: "Escalated", raised: "2d ago", riskId: "R-091", action: "Infra team restoring cluster; QA re-plan issued" },
-  { id: "I-042", project: "Coastal Refinery Expansion", title: "Crane availability slip", priority: "Medium", owner: "John Smith", status: "Open", raised: "5d ago", riskId: "R-088", action: "Alternative lifting subcontractor being quoted" },
-  { id: "I-040", project: "Wellhead Automation", title: "Vendor on-site no-show", priority: "High", owner: "Omar Haddad", status: "Escalated", raised: "1d ago", riskId: "R-081", action: "Escalated to vendor account manager" },
-  { id: "I-038", project: "Self-Service BI", title: "Source system schema change", priority: "Low", owner: "Diego Ortiz", status: "Open", raised: "1w ago", action: "Mapping layer rework scheduled next sprint" },
-  { id: "I-035", project: "Warehouse Robotics", title: "Safety sign-off pending for pilot cell", priority: "Medium", owner: "Priya Iyer", status: "Open", raised: "3d ago", action: "HSE walkthrough booked" },
-  { id: "I-031", project: "Security Hardening 2026", title: "Patch window conflict with month-end close", priority: "Medium", owner: "Mei Chen", status: "Resolved", raised: "2w ago", action: "Window moved to first weekend of the month", resolution: "Patch window rescheduled and validated with Finance; no downtime during close.", attachment: "patch-window-signoff.pdf" },
+  { id: "I-044", project: "ERP System Upgrade", title: "Test environment outage blocking QA", priority: "High", impact: 4, owner: "Mei Chen", status: "Escalated", raised: "2d ago", openDate: "2026-09-19", targetDate: "2026-09-30", riskId: "R-091", action: "Infra team restoring cluster; QA re-plan issued" },
+  { id: "I-042", project: "Coastal Refinery Expansion", title: "Crane availability slip", priority: "Medium", impact: 3, owner: "John Smith", status: "Open", raised: "5d ago", openDate: "2026-09-16", targetDate: "2026-10-05", riskId: "R-088", action: "Alternative lifting subcontractor being quoted" },
+  { id: "I-040", project: "Wellhead Automation", title: "Vendor on-site no-show", priority: "High", impact: 4, owner: "Omar Haddad", status: "In Progress", raised: "1d ago", openDate: "2026-09-20", targetDate: "2026-09-27", riskId: "R-081", action: "Escalated to vendor account manager" },
+  { id: "I-038", project: "Self-Service BI", title: "Source system schema change", priority: "Low", impact: 2, owner: "Diego Ortiz", status: "Open", raised: "1w ago", openDate: "2026-09-14", targetDate: "2026-10-12", action: "Mapping layer rework scheduled next sprint" },
+  { id: "I-035", project: "Warehouse Robotics", title: "Safety sign-off pending for pilot cell", priority: "Medium", impact: 3, owner: "Priya Iyer", status: "Open", raised: "3d ago", openDate: "2026-09-18", targetDate: "2026-09-29", action: "HSE walkthrough booked" },
+  { id: "I-031", project: "Security Hardening 2026", title: "Patch window conflict with month-end close", priority: "Medium", impact: 2, owner: "Mei Chen", status: "Resolved", raised: "2w ago", openDate: "2026-09-07", targetDate: "2026-09-18", closureDate: "2026-09-17", action: "Window moved to first weekend of the month", resolution: "Patch window rescheduled and validated with Finance; no downtime during close.", attachment: "patch-window-signoff.pdf" },
 ];
 
 export const resources = [

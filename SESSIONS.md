@@ -1,3 +1,11 @@
+## Session — 2026-09-21 (Issues log — RSD alignment)
+
+- Issue model now carries Impact (1–5), Open date, Target date for closure and Closure date (stamped automatically on Resolved); status gained "In Progress" and Priority is labelled Criticality.
+- Log/Edit issue popups use date pickers, drop the manual Status field (new issues default to Open) and enforce unique issue titles with a toast on duplicates.
+- Issues list shows Title, Risk, Criticality, Impact, Open/Target/Closure dates, Status and Actions taken with View / Update status / Edit / Delete row actions.
+- Update issue status popup is Status + required Comment (500 chars) and keeps a dated comment history.
+- New View Issue drawer shows all issue fields, action plan and comments by date with Resolve / Escalate actions.
+
 ## Session — 2026-09-21 (Dependency editing and computed-date guidance)
 
 - Added an Edit icon to each row in View Dependencies and a prefilled dependency edit flow for predecessor, relation type, and lead/lag.

@@ -20,9 +20,10 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { ClipboardCheck, Paperclip } from "@/lib/icons";
+import { ClipboardCheck, Paperclip, Eye } from "@/lib/icons";
+import { DatePicker } from "@/components/ui/date-picker";
 import { projects, milestones as seedMilestones, type RiskStatus, type IssueItem, type IssuePriority, type IssueStatus } from "@/lib/mock-data";
-import { useRiskRegister, type RiskRecord } from "@/lib/risk-store";
+import { useRiskRegister, type RiskRecord, type IssueRecord } from "@/lib/risk-store";
 import { useOrgRules, severityForScore, type RiskSeverity } from "@/lib/org-rules";
 import { useOrgActive } from "@/lib/org-active";
 import { useCurrentUser } from "@/lib/projects-store";
@@ -43,7 +44,8 @@ const RISK_STATUS_TONE: Record<RiskStatus, string> = {
 };
 
 const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated"];
-const ISSUE_STATUSES: IssueStatus[] = ["Open", "Resolved", "Escalated"];
+const ISSUE_STATUSES: IssueStatus[] = ["Open", "In Progress", "Resolved", "Escalated"];
+const COMMENT_MAX = 500;
 
 const PRIORITY_TONE: Record<IssuePriority, string> = {
   High: "border-rag-red/40 bg-rag-red/10 text-rag-red",
@@ -53,6 +55,7 @@ const PRIORITY_TONE: Record<IssuePriority, string> = {
 
 const ISSUE_STATUS_TONE: Record<IssueStatus, string> = {
   Open: "border-rag-red/40 bg-rag-red/10 text-rag-red",
+  "In Progress": "border-rag-blue/40 bg-rag-blue/10 text-rag-blue",
   Escalated: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
   Resolved: "border-rag-green/40 bg-rag-green/10 text-rag-green",
 };

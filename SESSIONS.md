@@ -1,3 +1,7 @@
+## Session — 2026-09-21 (Risk details: probability/impact labels)
+
+- The risk details drawer now shows the wording for each scale value under the number: Probability 4 → "Likely", Impact 5 → "Severe" (labels come from Organization rules; Score has no label).
+
 ## Session — 2026-09-21 (Revenue Breakdown actual-date range filter)
 
 - PageToolbar gained a "daterange" filter group mode: the drawer panel shows Start Date / End Date pickers (min/max cross-constrained) with Cancel / Apply, an applied chip showing the range, and clear/remove support.

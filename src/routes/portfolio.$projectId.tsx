@@ -6357,6 +6357,22 @@ function ViewDependenciesDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <ConfirmDialog
+      open={pendingDepIdx != null}
+      onOpenChange={(v) => { if (!v) setPendingDepIdx(null); }}
+      tone="danger"
+      title="Remove dependency?"
+      description={pendingDepDesc}
+      cancelLabel="Cancel"
+      confirmLabel="Remove"
+      onConfirm={() => {
+        if (pendingDepIdx != null) {
+          removeDependency(pendingDepIdx);
+        }
+        setPendingDepIdx(null);
+      }}
+    />
+    </>,
   );
 }
 

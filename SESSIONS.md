@@ -1,3 +1,9 @@
+## Session — 2026-09-21 (Risk & Issues row interactions and issue form alignment)
+
+- Removed the Issue View action and made the full Issue row open its details drawer, matching Risk rows.
+- Moved Status to the final column in both tables and made row actions replace the status badge on hover or keyboard focus.
+- Renamed “Target date for closure” to “Target closure date” and aligned the three Issue date/impact fields consistently.
+
 ## Session — 2026-09-21 (Issues log — RSD alignment)
 
 - Issue model now carries Impact (1–5), Open date, Target date for closure and Closure date (stamped automatically on Resolved); status gained "In Progress" and Priority is labelled Criticality.

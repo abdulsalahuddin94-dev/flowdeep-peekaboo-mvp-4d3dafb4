@@ -242,7 +242,32 @@ export function PageToolbar({
 
               <ScrollArea className="flex-1 px-5">
                 <div className="space-y-1 pb-4">
-                  {isMultiGroup(activePanel) ? (
+                  {activePanelIsDateRange ? (
+                    <div className="space-y-4 pt-1">
+                      {(["from", "to"] as const).map((bound) => {
+                        const current = (draft[activePanel.key] ?? activePanel.value) as DateRangeValue;
+                        const range = typeof current === "object" && !Array.isArray(current) ? current : { from: "", to: "" };
+                        return (
+                          <div key={bound} className="space-y-1.5">
+                            <span className="text-sm font-medium text-foreground">{bound === "from" ? "Start Date" : "End Date"}</span>
+                            <DatePicker
+                              value={range[bound]}
+                              onChange={(v) =>
+                                setDraft((d) => ({
+                                  ...d,
+                                  [activePanel.key]: { ...range, [bound]: v },
+                                }))
+                              }
+                              min={bound === "to" ? range.from || undefined : undefined}
+                              max={bound === "from" ? range.to || undefined : undefined}
+                              placeholder="Select Date"
+                              className="rounded-md"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : isMultiGroup(activePanel) ? (
                     panelOptions.map((o) => {
                       const allValue = groupFirstValue(activePanel);
                       const isAll = o.value === allValue;
@@ -340,7 +365,7 @@ export function PageToolbar({
                     <span className="text-xs font-medium text-foreground">Applied Filters</span>
                     <button
                       type="button"
-                      onClick={() => setDraft(Object.fromEntries(filterGroups.map((g) => [g.key, isMultiGroup(g) ? [] : groupFirstValue(g)])))}
+                      onClick={() => setDraft(Object.fromEntries(filterGroups.map((g) => [g.key, isMultiGroup(g) ? [] : isDateRangeGroup(g) ? { from: "", to: "" } : groupFirstValue(g)])))}
                       className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
                     >
                       Clear Filters <X className="h-3 w-3" />

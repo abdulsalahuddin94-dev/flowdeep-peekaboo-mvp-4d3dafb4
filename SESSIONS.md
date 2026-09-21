@@ -1,7 +1,7 @@
-## Session — 2026-09-21 (Schedule row actions hover overlay)
+## Session — 2026-09-21 (Schedule row actions dynamic hover overlay)
 
-- Project Schedule: removed the dedicated always-visible actions column; the burger (⋮) row menu now overlays the Financial Link (last) column on row hover/focus, matching the Organization/Risk/Issues table behavior.
-- Payment cell made `relative`; financial-link badge fades out (group-hover opacity 0) and the burger menu fades in (opacity 1) on hover. Restricted/gate rows keep the menu.
+- Project Schedule: removed the dedicated always-visible actions column; the burger (⋮) row menu now overlays whichever visible column is last on row hover/focus, matching the Organization/Risk/Issues table behavior.
+- The overlay width follows the current last visible column, so it uses Financial Link today and automatically adapts to future column-visibility changes. Restricted/gate rows keep the menu.
 - Removed `ACTIONS_W` constant and header spacer cell; `tableW` no longer adds the actions width.
 - Verified via Playwright on /portfolio/p-001 → Project Schedule → Change Plan (`e`): overlay opacity 0 at rest → 1 on hover; build OK.
 

@@ -840,6 +840,8 @@ export function ProjectSchedule({
   const colsW = COLUMNS.filter(c => colVisible(c.key)).reduce((s, c) => s + widths[c.key], 0);
   const nameW = Math.max(widths.name, viewportW ? viewportW - colsW : widths.name);
   const tableW = nameW + colsW;
+  const lastVisibleColumn = [...COLUMNS].reverse().find(c => colVisible(c.key));
+  const rowActionsWidth = lastVisibleColumn ? widths[lastVisibleColumn.key] : nameW;
 
 
   // Schedule structure is edited only through the row action popups.
@@ -1139,7 +1141,7 @@ export function ProjectSchedule({
                       : "Locked until all tasks reach 100%";
                 const isFlashing = flashRow === item.name;
                 return (
-                  <div key={item.name} data-row-name={item.name} className={`group flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
+                  <div key={item.name} data-row-name={item.name} className={`group relative flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
                     <div className="flex items-center gap-1 overflow-hidden px-3" style={{ width: nameW, paddingLeft: 12 + depth * 14 }}>
                       {hasChildren ? (
                         <button
@@ -1385,8 +1387,8 @@ export function ProjectSchedule({
                       </div>
                     )}
                     {colVisible("payment") && (
-                      <div className="relative flex items-center px-3 overflow-hidden" style={{ width: widths.payment }}>
-                        <div className="flex max-w-full items-center overflow-hidden text-left transition-opacity duration-150 group-hover:opacity-0 group-focus-within:opacity-0">
+                      <div className="flex items-center overflow-hidden px-3" style={{ width: widths.payment }}>
+                        <div className="flex max-w-full items-center overflow-hidden text-left">
                           {!item.payment || item.payment.kind === "None" ? (
                             <span className={restricted || isGate ? "text-muted-foreground" : "text-xs text-accent hover:underline"}>
                               —
@@ -1401,7 +1403,12 @@ export function ProjectSchedule({
                             </Badge>
                           )}
                         </div>
-                        <div className="absolute inset-y-0 right-0 flex items-center justify-end pr-2 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                      </div>
+                    )}
+                    <div
+                      className="pointer-events-none absolute inset-y-0 right-0 z-10 flex items-center justify-end bg-[var(--table-row-bg)] pr-2 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
+                      style={{ width: rowActionsWidth }}
+                    >
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" aria-label={`Actions for ${item.name}`}>
@@ -1436,9 +1443,7 @@ export function ProjectSchedule({
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>
-                        </div>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 );
               })}

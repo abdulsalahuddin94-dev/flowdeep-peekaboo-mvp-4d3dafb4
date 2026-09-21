@@ -2963,8 +2963,8 @@ function FinancialsTab({
                       const status = total === 0 ? REV_STATUSES[0] : collected >= 1 ? REV_STATUSES[2] : REV_STATUSES[1];
                       return { ...e, actuals: updated, act: updated.length > 0 ? total : null, s: status.s, sl: status.sl };
                     }),
-                  )
-                }
+                  );
+                }}
               />
             </div>
           </div>

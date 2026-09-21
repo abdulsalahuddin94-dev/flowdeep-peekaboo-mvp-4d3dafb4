@@ -1,3 +1,7 @@
+## Session — 2026-09-21 (Project Risk & Issues drawer context)
+
+- Hid the project name inside Risk and Issue detail drawers when opened from a project detail page, while keeping it visible in the standalone Risk & Issues module.
+
 ## Session — 2026-09-21 (Risk scale labels: reference layout)
 
 - Matched the risk drawer summary to the supplied reference: Probability and Impact display their number and description inline (for example, “3 · Possible” and “4 · Major”), while Score remains numeric.

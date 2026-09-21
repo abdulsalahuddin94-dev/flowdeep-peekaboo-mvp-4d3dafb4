@@ -195,6 +195,7 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
 
       <RiskSheet
         risk={view}
+        showProjectName={!project}
         onClose={() => setViewId(null)}
         onEdit={(r) => { setViewId(null); setEditing(r); setFormOpen(true); }}
         onUpdate={(r) => setStatusFor(r)}
@@ -372,9 +373,10 @@ function RiskFormDialog({
 /* ── Risk detail sheet ────────────────────────────────────────────────────── */
 
 function RiskSheet({
-  risk, onClose, onEdit, onUpdate, onConvert,
+  risk, showProjectName = true, onClose, onEdit, onUpdate, onConvert,
 }: {
   risk: RiskRecord | null;
+  showProjectName?: boolean;
   onClose: () => void;
   onEdit: (r: RiskRecord) => void;
   onUpdate: (r: RiskRecord) => void;
@@ -394,7 +396,7 @@ function RiskSheet({
           </div>
           <SheetTitle className="mt-2 text-lg">{risk.title}</SheetTitle>
           <SheetDescription className="sr-only">Risk details, mitigation plan, and update history.</SheetDescription>
-          <p className="mt-1 text-xs text-muted-foreground">{risk.project}</p>
+          {showProjectName && <p className="mt-1 text-xs text-muted-foreground">{risk.project}</p>}
         </SheetHeader>
 
         <div className="grid grid-cols-3 divide-x divide-border border-b border-border">
@@ -731,6 +733,7 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
       <IssueDetailDrawer
         issue={viewed}
         riskTitle={riskTitle}
+        showProjectName={!project}
         onClose={() => setViewing(null)}
         onUpdateStatus={(issue, preset) => { setViewing(null); setStatusFor({ issue, preset }); }}
       />
@@ -755,10 +758,11 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
 /* ── Issue detail drawer ──────────────────────────────────────────────────── */
 
 function IssueDetailDrawer({
-  issue, riskTitle, onClose, onUpdateStatus,
+  issue, riskTitle, showProjectName = true, onClose, onUpdateStatus,
 }: {
   issue: IssueRecord | null;
   riskTitle: (id?: string) => string;
+  showProjectName?: boolean;
   onClose: () => void;
   onUpdateStatus: (issue: IssueRecord, preset?: IssueStatus) => void;
 }) {
@@ -773,7 +777,7 @@ function IssueDetailDrawer({
           </div>
           <SheetTitle className="mt-2 text-lg">{issue.title}</SheetTitle>
           <SheetDescription className="sr-only">Issue details, action plan, and comment history.</SheetDescription>
-          <p className="mt-1 text-xs text-muted-foreground">{issue.project}</p>
+          {showProjectName && <p className="mt-1 text-xs text-muted-foreground">{issue.project}</p>}
         </SheetHeader>
 
         <div className="grid grid-cols-3 divide-x divide-border border-b border-border">

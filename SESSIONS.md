@@ -1,3 +1,9 @@
+## Session — 2026-09-21 (Schedule burger centering + row hover color)
+
+- Project Schedule: centered the burger (⋮) row menu horizontally within the last visible column (overlay `justify-center` instead of `justify-end`).
+- Added the DS02 row-hover background (`hover:bg-table-row-hover`, #45464F) to WBS rows, matching Organization/Risk/Issues table behavior; overlay bg aligned to the hover token.
+- Verified via Playwright on /portfolio/p-001 → Project Schedule → Change Plan (`e`): burger centered in the 160px Financial Link column; row hover bg = rgb(69,70,79); build OK.
+
 ## Session — 2026-09-21 (Schedule row actions dynamic hover overlay)
 
 - Project Schedule: removed the dedicated always-visible actions column; the burger (⋮) row menu now overlays whichever visible column is last on row hover/focus, matching the Organization/Risk/Issues table behavior.

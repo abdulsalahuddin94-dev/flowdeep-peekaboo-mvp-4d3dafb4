@@ -1141,7 +1141,7 @@ export function ProjectSchedule({
                       : "Locked until all tasks reach 100%";
                 const isFlashing = flashRow === item.name;
                 return (
-                  <div key={item.name} data-row-name={item.name} className={`group relative flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
+                  <div key={item.name} data-row-name={item.name} className={`group relative flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 hover:bg-table-row-hover ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
                     <div className="flex items-center gap-1 overflow-hidden px-3" style={{ width: nameW, paddingLeft: 12 + depth * 14 }}>
                       {hasChildren ? (
                         <button
@@ -1406,7 +1406,7 @@ export function ProjectSchedule({
                       </div>
                     )}
                     <div
-                      className="pointer-events-none absolute inset-y-0 right-0 z-10 flex items-center justify-end bg-[var(--table-row-bg)] pr-2 opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
+                      className="pointer-events-none absolute inset-y-0 right-0 z-10 flex items-center justify-center bg-table-row-hover opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
                       style={{ width: rowActionsWidth }}
                     >
                           <DropdownMenu>

@@ -1,3 +1,9 @@
+## Session — 2026-09-21 (Schedule popup editing and row actions)
+
+- Removed inline milestone/task editing and the right-click schedule menu.
+- Added a square burger action menu at the end of every schedule row with Add subtask, Edit, Add dependency, Add financial link, Progress update, and Delete.
+- Moved parent changes into the shared Edit milestone/task popup for both item types and removed the separate Change parent flow.
+
 ## Session — 2026-09-17 (Project Risk segmented control)
 
 - Changed the project Risk & Issues sub-tabs into a single segmented control with one shared container and active segment styling.

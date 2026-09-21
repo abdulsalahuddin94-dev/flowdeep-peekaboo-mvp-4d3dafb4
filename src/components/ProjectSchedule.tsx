@@ -25,12 +25,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FormDialog } from "@/components/ui/form-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import {
-  ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger,
-} from "@/components/ui/context-menu";
-import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, GanttChartSquare, PanelLeftClose, PanelLeftOpen, Pencil, Plus, Trash2, Upload, UserPlus, X } from "@/lib/icons";
+import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, GanttChartSquare, Link2, PanelLeft, PanelLeftClose, Pencil, Plus, Trash2, TrendingUp, Upload, UserPlus, X } from "@/lib/icons";
 import { RagBadge } from "@/components/RagBadge";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -278,6 +274,7 @@ const DEFAULT_NAME_W = 280;
 const MIN_COL_W = 56;
 const MAX_COL_W = 800;
 const COL_PAD = 28; // px of horizontal padding for autofit (px-3 on both sides + border)
+const ACTIONS_W = 52;
 
 // Shared canvas for text measurement (Excel-like auto-fit)
 let _measureCtx: CanvasRenderingContext2D | null = null;
@@ -333,8 +330,8 @@ export function ProjectSchedule({
   jobRoles?: string[];
   /**
    * When true, only Progress Update and Assignee edits are allowed.
-   * All other inline edits (name, dates, owner, roles, status, dependencies,
-   * Gantt drag, right-click add/edit/delete) are hidden or read-only.
+   * All other edits are launched from the row actions menu and remain subject
+   * to the project's Change Plan rules.
    */
   restricted?: boolean;
   /** Cross-module navigation: flash this WBS row and scroll it into view (e.g. from the Cost tab). */
@@ -359,9 +356,6 @@ export function ProjectSchedule({
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingImport, setPendingImport] = useState<ScheduleItem[] | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
-  // Right-click → Change parent (re-parent a task/milestone in the WBS)
-  const [changeParentFor, setChangeParentFor] = useState<string | null>(null);
-  const [nextParent, setNextParent] = useState<string>("__root__");
   // Live preview overrides while dragging/resizing a bar
   const [dragPreview, setDragPreview] = useState<Record<string, { startDate: string; endDate: string }>>({});
   // Undo history: each entry is the list of patches needed to restore the prior state
@@ -846,14 +840,13 @@ export function ProjectSchedule({
   // Stretch the Item Name column so the table always fills the viewport width
   const colsW = COLUMNS.filter(c => colVisible(c.key)).reduce((s, c) => s + widths[c.key], 0);
   const nameW = Math.max(widths.name, viewportW ? viewportW - colsW : widths.name);
-  const tableW = nameW + colsW;
+  const tableW = nameW + colsW + ACTIONS_W;
 
 
-  // Inline edit helpers
+  // Schedule structure is edited only through the row action popups.
   const canPatch = !!onItemPatch;
-  const editable = canPatch && !restricted;
-  const assigneeEditable = canPatch;
-  const ragOptions: Rag[] = ["blue", "amber", "green", "red", "grey"];
+  const editable = false;
+  const assigneeEditable = false;
   function patch(name: string, p: Partial<ScheduleItem>) { onItemPatch?.(name, p); }
 
   // ── Export helpers ───────────────────────────────────────────────────────
@@ -1124,6 +1117,7 @@ export function ProjectSchedule({
                 {COLUMNS.filter(c => colVisible(c.key)).map(c => (
                   <ColHeader key={c.key} label={c.label} width={widths[c.key]} onResize={(e) => startColResize(c.key, e)} onAutoFit={() => autoFitCol(c.key)} />
                 ))}
+                <div className="shrink-0" style={{ width: ACTIONS_W }} aria-label="Actions" />
               </div>
               {visibleRows.map(({ item, depth, hasChildren }, rowIdx) => {
                 const isOpen = expanded.has(item.name);
@@ -1147,9 +1141,7 @@ export function ProjectSchedule({
                       : "Locked until all tasks reach 100%";
                 const isFlashing = flashRow === item.name;
                 return (
-                  <ContextMenu key={item.name}>
-                    <ContextMenuTrigger asChild>
-                  <div data-row-name={item.name} className={`flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
+                  <div key={item.name} data-row-name={item.name} className={`flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
                     <div className="flex items-center gap-1 overflow-hidden px-3" style={{ width: nameW, paddingLeft: 12 + depth * 14 }}>
                       {hasChildren ? (
                         <button
@@ -1182,12 +1174,7 @@ export function ProjectSchedule({
                           {gateApproved ? "✓" : "!"}
                         </span>
                       )}
-                      <EditableText
-                        value={item.name}
-                        editable={editable && !isGate}
-                        className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOff ? "text-rag-red" : isRisk ? "text-rag-amber" : ""}`}
-                        onCommit={(v) => v && v !== item.name && patch(item.name, { name: v })}
-                      />
+                      <span className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOff ? "text-rag-red" : isRisk ? "text-rag-amber" : ""}`}>{item.name}</span>
                     </div>
                     {colVisible("type") && (
                       <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.type }}>
@@ -1203,12 +1190,7 @@ export function ProjectSchedule({
                             title="Rescheduled by a dependency change"
                           />
                         )}
-                        <DateCell
-                          item={item}
-                          field="start"
-                          editable={editable}
-                          onCommit={(p) => patch(item.name, p)}
-                        />
+                        <span className="truncate">{item.startDate || "—"}</span>
                       </div>
                     )}
                     {colVisible("end") && (
@@ -1219,12 +1201,7 @@ export function ProjectSchedule({
                             title="Rescheduled by a dependency change"
                           />
                         )}
-                        <DateCell
-                          item={item}
-                          field="end"
-                          editable={editable}
-                          onCommit={(p) => patch(item.name, p)}
-                        />
+                        <span className="truncate">{item.endDate || "—"}</span>
                       </div>
                     )}
                     {colVisible("duration") && (
@@ -1317,22 +1294,7 @@ export function ProjectSchedule({
                     {colVisible("weight") && (
                       <div className="flex items-center px-3 overflow-hidden num-mono" style={{ width: widths.weight }}>
                         {item.kind === "Task" ? (
-                          editable ? (
-                            <Input
-                              type="number"
-                              min={1}
-                              max={10}
-                              step={1}
-                              value={item.weightScore ?? 1}
-                              onChange={(e) => {
-                                const v = Math.max(1, Math.min(10, Math.round(Number(e.target.value) || 1)));
-                                patch(item.name, { weightScore: v });
-                              }}
-                              className="h-7 w-16 px-2 text-xs num-mono"
-                            />
-                          ) : (
-                            <span className="text-xs">{item.weightScore ?? 1}</span>
-                          )
+                          <span className="text-xs">{item.weightScore ?? 1}</span>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
@@ -1340,42 +1302,13 @@ export function ProjectSchedule({
                     )}
                     {colVisible("status") && (
                       <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.status }}>
-                        {editable ? (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button className="outline-none focus:ring-1 focus:ring-accent rounded-md">
-                                <RagBadge rag={item.rag} label={statusText[item.rag]} />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="w-44">
-                              {ragOptions.map((r) => (
-                                <DropdownMenuItem
-                                  key={r}
-                                  onClick={() => {
-                                    // "In Progress" requires a positive progress value.
-                                    if (r === "amber" && (item.progress ?? 0) <= 0) {
-                                      toast.error("Add progress above 0% before setting In Progress");
-                                      return;
-                                    }
-                                    patch(item.name, { rag: r });
-                                  }}
-                                  className="gap-2"
-                                >
-                                  <RagBadge rag={r} label={statusText[r]} />
-                                </DropdownMenuItem>
-                              ))}
-
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        ) : (
-                          <RagBadge rag={item.rag} label={statusText[item.rag]} />
-                        )}
+                        <RagBadge rag={item.rag} label={statusText[item.rag]} />
                       </div>
                     )}
                     {(() => {
                       const planned = computePlannedProgress(item.startDate, item.endDate);
                       const actual = item.progress ?? 0;
-                      const canClick = !!onProgressClick && !isGate;
+                       const canClick = false;
                       const gateBar = gateApproved ? "bg-rag-green" : "bg-rag-amber";
                       const delta = Math.round(actual - planned);
                       return (
@@ -1386,12 +1319,12 @@ export function ProjectSchedule({
                               tabIndex={canClick ? 0 : undefined}
                               aria-label={`Update progress for ${item.name}`}
                               title={isGate ? gateTitle : canClick ? "Click to update progress" : `Actual ${actual}%`}
-                              onClick={() => canClick && onProgressClick?.(item.name, item.kind)}
+                               onClick={undefined}
                               onKeyDown={(e) => {
                                 if (!canClick) return;
                                 if (e.key === "Enter" || e.key === " ") {
                                   e.preventDefault();
-                                  onProgressClick?.(item.name, item.kind);
+                                   return;
                                 }
                               }}
                               className={`flex items-center gap-2 px-3 overflow-hidden ${canClick ? "cursor-pointer" : ""}`}
@@ -1440,55 +1373,20 @@ export function ProjectSchedule({
                     {colVisible("dep") && (
                       <div className="flex items-center gap-1 px-3 text-muted-foreground overflow-hidden" style={{ width: widths.dep }}>
                         {item.dependencies && item.dependencies.length > 0 ? (
-                          <>
-                            <button
-                              onClick={() => !restricted && onDependencyClick?.(item.name)}
-                              disabled={restricted}
-                              className={`text-xs truncate min-w-0 ${restricted ? "text-muted-foreground cursor-default" : "text-accent hover:underline cursor-pointer"}`}
-                              title={restricted ? "Locked — use Change Plan to edit dependencies" : "Click to view dependencies"}
-                            >
-                              {item.dependencies.length === 1
-                                ? `${item.dependencies[0].predecessor} · ${depLabel(item.dependencies[0])}`
-                                : `${item.dependencies.length} Dependencies`}
-                            </button>
-                            {!restricted && (
-                              <button
-                                type="button"
-                                onClick={() => onAddDependencyClick?.(item.name)}
-                                title="Add a dependency"
-                                className="flex shrink-0 items-center justify-center rounded-md border border-accent/40 bg-accent/15 px-1.5 py-0.5 text-accent hover:bg-accent/25 hover:border-accent/60"
-                              >
-                                <Plus className="h-3 w-3" />
-                              </button>
-                            )}
-                          </>
-                        ) : restricted ? (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => onAddDependencyClick?.(item.name)}
-                            title="Add a dependency"
-                            className="inline-flex shrink-0 items-center gap-1 rounded-md border border-accent/40 bg-accent/15 px-2 py-1 text-xs font-medium text-accent hover:bg-accent/25 hover:border-accent/60"
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                            <span>Add Dependency</span>
-                          </button>
-                        )}
+                          <span className="truncate text-xs" title={item.dependencies.map((dependency) => `${dependency.predecessor} · ${depLabel(dependency)}`).join(", ")}>
+                            {item.dependencies.length === 1
+                              ? `${item.dependencies[0].predecessor} · ${depLabel(item.dependencies[0])}`
+                              : `${item.dependencies.length} Dependencies`}
+                          </span>
+                        ) : <span className="text-xs">—</span>}
                       </div>
                     )}
                     {colVisible("payment") && (
                       <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.payment }}>
-                        <button
-                          type="button"
-                          disabled={restricted || isGate}
-                          onClick={() => !restricted && !isGate && onFinancialLinkClick?.(item.name)}
-                          className={`flex max-w-full items-center overflow-hidden text-left ${restricted || isGate ? "cursor-default" : "cursor-pointer"}`}
-                          title={restricted ? "Locked — use Change Plan to edit financial links" : "Click to link financial items"}
-                        >
+                        <div className="flex max-w-full items-center overflow-hidden text-left">
                           {!item.payment || item.payment.kind === "None" ? (
                             <span className={restricted || isGate ? "text-muted-foreground" : "text-xs text-accent hover:underline"}>
-                              {restricted || isGate ? "—" : "Link items"}
+                              —
                             </span>
                           ) : item.payment.kind === "Client Revenue" ? (
                             <Badge variant="outline" className="border-rag-green/40 bg-rag-green/10 text-rag-green text-[10px] truncate">
@@ -1499,56 +1397,46 @@ export function ProjectSchedule({
                               {item.payment.packageId || "Pkg"} · {item.payment.amount || "—"}
                             </Badge>
                           )}
-                        </button>
+                        </div>
                       </div>
                     )}
+                    <div className="flex shrink-0 items-center justify-center" style={{ width: ACTIONS_W }}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" aria-label={`Actions for ${item.name}`}>
+                            <PanelLeft className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52">
+                          {isGate ? (
+                            <DropdownMenuItem disabled>Approval gate — managed by approvers</DropdownMenuItem>
+                          ) : (
+                            <>
+                              <DropdownMenuItem onSelect={() => onAddSubtask?.(item.name)}>
+                                <Plus className="h-4 w-4" /> Add subtask
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => onEditItem?.(item.name)}>
+                                <Pencil className="h-4 w-4" /> Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => onAddDependencyClick?.(item.name)}>
+                                <Link2 className="h-4 w-4" /> Add dependency
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => onFinancialLinkClick?.(item.name)}>
+                                <Link2 className="h-4 w-4" /> Add financial link
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onSelect={() => onProgressClick?.(item.name, item.kind)}>
+                                <TrendingUp className="h-4 w-4" /> Progress update
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onSelect={() => onDeleteItem && setPendingDelete(item.name)} disabled={!onDeleteItem} className="text-rag-red focus:text-rag-red">
+                                <Trash2 className="h-4 w-4" /> Delete
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent className="w-48">
-                      {isGate && (
-                        <ContextMenuItem disabled className="text-xs text-muted-foreground">
-                          Approval gate — managed by approvers
-                        </ContextMenuItem>
-                      )}
-                      {!isGate && !restricted && onAddSubtask && (
-                        <ContextMenuItem onSelect={() => onAddSubtask(item.name)}>
-                          <Plus className="mr-2 h-3.5 w-3.5" /> Add subtask
-                        </ContextMenuItem>
-                      )}
-                      {!isGate && !restricted && onItemPatch && (
-                        <ContextMenuItem
-                          onSelect={() => {
-                            setChangeParentFor(item.name);
-                            setNextParent(item.parent && nameSet.has(item.parent) ? item.parent : "__root__");
-                          }}
-                        >
-                          <PanelLeftOpen className="mr-2 h-3.5 w-3.5" /> Change parent
-                        </ContextMenuItem>
-                      )}
-                      {!isGate && !restricted && onEditItem && (
-                        <ContextMenuItem onSelect={() => onEditItem(item.name)}>
-                          <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
-                        </ContextMenuItem>
-                      )}
-
-                      {!isGate && !restricted && onDeleteItem && (
-                        <>
-                          <ContextMenuSeparator />
-                          <ContextMenuItem
-                            onSelect={() => setPendingDelete(item.name)}
-                            className="text-rag-red focus:text-rag-red"
-                          >
-                            <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
-                          </ContextMenuItem>
-                        </>
-                      )}
-                      {!isGate && restricted && (
-                        <ContextMenuItem disabled className="text-xs text-muted-foreground">
-                          Click "Change Plan" to edit
-                        </ContextMenuItem>
-                      )}
-                    </ContextMenuContent>
-                  </ContextMenu>
                 );
               })}
             </div>
@@ -1919,51 +1807,6 @@ export function ProjectSchedule({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Change parent */}
-      <FormDialog
-        open={!!changeParentFor}
-        onOpenChange={(o) => { if (!o) setChangeParentFor(null); }}
-        title={`Change parent of “${changeParentFor ?? ""}”`}
-        description="Move this item under a different parent, or make it a top-level item."
-        size="md"
-        submitLabel="Save"
-        onSubmit={() => {
-          if (changeParentFor) {
-            onItemPatch?.(changeParentFor, { parent: nextParent === "__root__" ? undefined : nextParent });
-            toast.done("Parent", "updated");
-          }
-          setChangeParentFor(null);
-        }}
-      >
-        <div className="grid gap-1.5">
-          <Label>Parent</Label>
-          <Select value={nextParent} onValueChange={setNextParent}>
-            <SelectTrigger><SelectValue placeholder="Select parent" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__root__">None (Top level)</SelectItem>
-              {(() => {
-                if (!changeParentFor) return null;
-                // Exclude self and its descendants to keep the tree acyclic.
-                const blocked = new Set<string>([changeParentFor]);
-                const stack = [changeParentFor];
-                while (stack.length) {
-                  const cur = stack.pop();
-                  if (!cur) break;
-                  for (const kid of childrenOf.get(cur) ?? []) {
-                    if (!blocked.has(kid.name)) { blocked.add(kid.name); stack.push(kid.name); }
-                  }
-                }
-                return items
-                  .filter((it) => !blocked.has(it.name) && !it.isApprovalTask)
-                  .map((it) => (
-                    <SelectItem key={it.name} value={it.name}>{it.kind} · {it.name}</SelectItem>
-                  ));
-              })()}
-            </SelectContent>
-          </Select>
-        </div>
-      </FormDialog>
 
       {/* Delete confirmation */}
       <ConfirmDialog

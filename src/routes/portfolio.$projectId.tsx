@@ -996,6 +996,10 @@ function ProjectDetail() {
               setDependencyOpen(true);
             }}
             onAddDependencyClick={(name) => {
+              if (!isEditingAllowed) {
+                toast.error("📖 View Only — Click 'Change Plan' to edit");
+                return;
+              }
               setSelectedItemForDep(name);
               setCreateDependencyOpen(true);
             }}
@@ -1060,7 +1064,7 @@ function ProjectDetail() {
             }}
           />
 
-          {/* Controlled dialog for right-click "Add subtask" / "Edit" */}
+          {/* Controlled dialog for row-menu "Add subtask" / "Edit" */}
           <AddMilestoneDialog
             defaultOwner={project.pm}
             packages={SEED_PACKAGES}
@@ -4035,11 +4039,13 @@ function AddMilestoneDialog({
             };
           })
         : [];
+      const parent = parentName === "__none__" ? undefined : parentName;
       newItems.push({
         name: name.trim(), kind: "Milestone",
         startDate: endDate, endDate, owner: owner || defaultOwner, rag, dep,
         roles: skillRoles.filter((r) => r.role.trim()).map((r) => ({ role: r.role.trim(), skill: r.skill, fte: Number(r.fte) || 0 })),
         payment: mainPayment, extraPayments: extraPayments.length ? extraPayments : undefined, progress: 0,
+        parent,
         lagDays: Number(lagDays) || 0,
         milestoneType,
         requiresApproval,
@@ -4171,6 +4177,47 @@ function AddMilestoneDialog({
             <Input id="schedule-item-name" value={name} onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: undefined })); }} placeholder="e.g. UAT Sign-off" />
           </Field>
 
+          {(isEditing || kind === "Task") && (
+            <div>
+              <Label>Parent</Label>
+              <RadioGroup
+                value={parentMode}
+                onValueChange={(v) => { setParentMode(v as "none" | "milestone" | "task"); setParentName("__none__"); }}
+                className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2"
+              >
+                {([
+                  { id: "none", label: "None (top level)" },
+                  { id: "milestone", label: "Milestone" },
+                  { id: "task", label: "Task" },
+                ] as const).map((opt) => {
+                  const count = opt.id === "none" ? 1 : parentOptions.filter((p) => (opt.id === "milestone" ? p.kind === "Milestone" : p.kind === "Task")).length;
+                  return (
+                    <div key={opt.id} className="flex items-center gap-2">
+                      <RadioGroupItem id={`parent-${opt.id}`} value={opt.id} disabled={count === 0} />
+                      <Label htmlFor={`parent-${opt.id}`} className={cn("cursor-pointer text-sm", count === 0 && "opacity-40")}>{opt.label}</Label>
+                    </div>
+                  );
+                })}
+              </RadioGroup>
+              {parentMode !== "none" && (
+                <div className="mt-2">
+                  <Select value={parentName} onValueChange={setParentName}>
+                    <SelectTrigger><SelectValue placeholder={parentMode === "milestone" ? "Select a milestone…" : "Select a task…"} /></SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {parentOptions
+                        .filter((p) => (parentMode === "milestone" ? p.kind === "Milestone" : p.kind === "Task"))
+                        .map((p) => (
+                          <SelectItem key={`${parentMode}-${p.name}`} value={p.name}>
+                            {parentMode === "milestone" ? `◆ ${p.name}` : p.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* MILESTONE: subtype + end date + lag */}
           {kind === "Milestone" && (
             <>
@@ -4266,51 +4313,6 @@ function AddMilestoneDialog({
           {/* TASK: parent (any milestone or task) + start + (end date | duration) + weight */}
           {kind === "Task" && (
             <>
-              {!isEditing && (
-              <div>
-                <Label>Parent</Label>
-                <RadioGroup
-                  value={parentMode}
-                  onValueChange={(v) => { setParentMode(v as "none" | "milestone" | "task"); setParentName("__none__"); }}
-                  className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2"
-                >
-                  {([
-                    { id: "none", label: "None (top level)" },
-                    { id: "milestone", label: "Milestone" },
-                    { id: "task", label: "Task" },
-                  ] as const).map((opt) => {
-                    const count = opt.id === "none" ? 1 : parentOptions.filter((p) => (opt.id === "milestone" ? p.kind === "Milestone" : p.kind === "Task")).length;
-                    return (
-                      <div key={opt.id} className="flex items-center gap-2">
-                        <RadioGroupItem id={`parent-${opt.id}`} value={opt.id} disabled={count === 0} />
-                        <Label htmlFor={`parent-${opt.id}`} className={cn("cursor-pointer text-sm", count === 0 && "opacity-40")}>{opt.label}</Label>
-                      </div>
-                    );
-                  })}
-                </RadioGroup>
-
-                {parentMode !== "none" && (
-                  <div className="mt-2">
-                    <Select value={parentName} onValueChange={setParentName}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={parentMode === "milestone" ? "Select a milestone…" : "Select a task…"} />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-72">
-                        {parentOptions
-                          .filter((p) => (parentMode === "milestone" ? p.kind === "Milestone" : p.kind === "Task"))
-                          .map((p) => (
-                            <SelectItem key={`${parentMode}-${p.name}`} value={p.name}>
-                              {parentMode === "milestone" ? `◆ ${p.name}` : p.name}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-              )}
-
-
               <Field label="Start date" htmlFor="task-start-date" required error={errors.startDate}>
                 <DatePicker id="task-start-date" value={startDate} min={parentWindow.min} max={parentWindow.max} onChange={(value) => { setStartDate(value); setErrors((p) => ({ ...p, startDate: undefined })); }} placeholder="Pick start date" />
               </Field>

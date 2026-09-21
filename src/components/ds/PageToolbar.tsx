@@ -32,20 +32,38 @@ export type MultiFilterGroup = {
   mode: "multi";
 };
 
-export type FilterGroup = SingleFilterGroup | MultiFilterGroup;
+export type DateRangeValue = { from: string; to: string };
+
+export type DateRangeFilterGroup = {
+  key: string;
+  label: string;
+  value: DateRangeValue;
+  onChange: (v: DateRangeValue) => void;
+  mode: "daterange";
+};
+
+export type FilterGroup = SingleFilterGroup | MultiFilterGroup | DateRangeFilterGroup;
 
 function isMultiGroup(g: FilterGroup): g is MultiFilterGroup {
   return g.mode === "multi";
+}
+
+function isDateRangeGroup(g: FilterGroup): g is DateRangeFilterGroup {
+  return g.mode === "daterange";
 }
 
 function isGroupActive(g: FilterGroup): boolean {
   if (isMultiGroup(g)) {
     return g.value.length > 0;
   }
+  if (isDateRangeGroup(g)) {
+    return Boolean(g.value.from || g.value.to);
+  }
   return g.value !== g.options[0]?.value;
 }
 
 function groupFirstValue(g: FilterGroup): string {
+  if (isDateRangeGroup(g)) return "";
   return g.options[0]?.value ?? "";
 }
 

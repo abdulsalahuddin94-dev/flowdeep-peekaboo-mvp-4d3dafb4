@@ -141,7 +141,7 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {list.length === 0 && <EmptyRow colSpan={project ? 9 : 10} />}
+            {list.length === 0 && <EmptyRow colSpan={project ? 8 : 9} />}
             {pagination.pageItems.map((r) => (
               <StyledTableRow key={r.id} onClick={() => setViewId(r.id)} className="cursor-pointer">
                 {!project && <StyledTableCell className="text-muted-foreground">{r.project}</StyledTableCell>}
@@ -657,7 +657,7 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {list.length === 0 && <EmptyRow colSpan={project ? 10 : 11} />}
+            {list.length === 0 && <EmptyRow colSpan={project ? 9 : 10} />}
             {pagination.pageItems.map((i) => (
               <StyledTableRow key={i.id} onClick={() => setViewing(i.id)} className="cursor-pointer">
                 {!project && <StyledTableCell className="max-w-[140px] truncate text-muted-foreground" title={i.project}>{i.project}</StyledTableCell>}

@@ -6,6 +6,7 @@ import {
   type RiskItem,
   type RiskStatus,
   type IssueItem,
+  type IssueStatus,
 } from "@/lib/mock-data";
 
 /**
@@ -30,11 +31,23 @@ export type RiskUpdate = {
 
 export type RiskRecord = RiskItem & { updates: RiskUpdate[] };
 
+export type IssueUpdate = {
+  id: string;
+  /** ISO date of the update. */
+  at: string;
+  by: string;
+  comment: string;
+  /** Recorded status change, when the update carried one. */
+  statusChange?: [IssueStatus, IssueStatus];
+};
+
+export type IssueRecord = IssueItem & { updates: IssueUpdate[] };
+
 export type RiskCategory = { id: string; name: string; description: string };
 
 type State = {
   risks: RiskRecord[];
-  issues: IssueItem[];
+  issues: IssueRecord[];
   categories: RiskCategory[];
 };
 
@@ -52,7 +65,13 @@ const SEED_UPDATES: Record<string, RiskUpdate[]> = {
 
 let state: State = {
   risks: seedRisks.map((r) => ({ ...r, updates: SEED_UPDATES[r.id] ?? [] })),
-  issues: seedIssues.map((i) => ({ ...i })),
+  issues: seedIssues.map((i) => ({
+    ...i,
+    updates:
+      i.status === "Resolved" && i.resolution
+        ? [{ id: `${i.id}-u1`, at: i.closureDate ?? i.openDate, by: i.owner, comment: i.resolution, statusChange: ["Open", "Resolved"] as [IssueStatus, IssueStatus] }]
+        : [],
+  })),
   categories: RISK_CATEGORIES.map((name) => ({
     id: name.toLowerCase().replace(/\s+/g, "-"),
     name,
@@ -128,9 +147,37 @@ export function useRiskRegister() {
 
   const addIssue = useCallback((issue: Omit<IssueItem, "id"> & { id?: string }) => {
     const id = issue.id ?? nextIssueId();
-    set({ issues: [{ ...issue, id }, ...state.issues] });
+    set({ issues: [{ ...issue, id, updates: [] }, ...state.issues] });
     return id;
   }, []);
+
+  /**
+   * Records a documented issue status update: required free-text comment plus
+   * the status transition. Closure date is stamped when the issue is resolved.
+   */
+  const logIssueUpdate = useCallback(
+    (id: string, input: { comment: string; by: string; status: IssueStatus }) => {
+      set({
+        issues: state.issues.map((i) => {
+          if (i.id !== id) return i;
+          const update: IssueUpdate = {
+            id: `iu-${Date.now()}`,
+            at: today(),
+            by: input.by,
+            comment: input.comment,
+            statusChange: input.status !== i.status ? [i.status, input.status] : undefined,
+          };
+          return {
+            ...i,
+            status: input.status,
+            closureDate: input.status === "Resolved" ? (i.closureDate ?? today()) : undefined,
+            updates: [update, ...i.updates],
+          };
+        }),
+      });
+    },
+    [],
+  );
 
   const updateIssue = useCallback((id: string, patch: Partial<IssueItem>) => {
     set({ issues: state.issues.map((i) => (i.id === id ? { ...i, ...patch } : i)) });
@@ -145,16 +192,19 @@ export function useRiskRegister() {
     const risk = state.risks.find((r) => r.id === riskId);
     if (!risk) return null;
     const id = nextIssueId();
-    const issue: IssueItem = {
+    const issue: IssueRecord = {
       id,
       project: risk.project,
       title: risk.title,
       priority: risk.score >= 15 ? "High" : risk.score >= 9 ? "Medium" : "Low",
+      impact: risk.impact,
       owner: risk.owner,
       status: "Open",
       raised: "Today",
+      openDate: today(),
       riskId,
       action: risk.mitigation || "",
+      updates: [],
     };
     const update: RiskUpdate = {
       id: `u-${Date.now()}`,
@@ -188,7 +238,7 @@ export function useRiskRegister() {
     issues: state.issues,
     categories: state.categories,
     addRisk, updateRisk, removeRisk, logRiskUpdate,
-    addIssue, updateIssue, removeIssue, convertRiskToIssue,
+    addIssue, updateIssue, removeIssue, logIssueUpdate, convertRiskToIssue,
     addCategory, updateCategory, removeCategory,
   };
 }

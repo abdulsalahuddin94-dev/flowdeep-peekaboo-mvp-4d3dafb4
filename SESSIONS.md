@@ -1,3 +1,7 @@
+## Session — 2026-09-21 (Risk table scale labels)
+
+- Renamed the abbreviated Risk Register headers “P” and “I” to “Probability” and “Impact” in both the project view and standalone Risk & Issues module.
+
 ## Session — 2026-09-21 (Risk & Issues demo examples)
 
 - Added richer ERP System Upgrade demo data: multiple risk statuses (Open, In Progress, Mitigated, Realized, Closed), milestone-linked risks, linked issues, independent issues, resolved issue examples, and seeded comment/status history for the Risk & Issues drawers.

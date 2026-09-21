@@ -2742,9 +2742,18 @@ function FinancialsTab({
         if (q && !(e.evt ?? "").toLowerCase().includes(q)) return false;
         if (revStatusFilter !== "all" && e.sl !== revStatusFilter) return false;
         if (rangeActive) {
+          const parseActualDate = (raw: string): Date | null => {
+            const iso = new Date(raw);
+            if (!Number.isNaN(iso.getTime())) return iso;
+            /* Legacy display strings like "May 02" carry no year — assume the current one. */
+            const m = /^([A-Za-z]{3,})\s+(\d{1,2})$/.exec(raw.trim());
+            if (!m) return null;
+            const d = new Date(`${m[1]} ${m[2]}, ${new Date().getFullYear()}`);
+            return Number.isNaN(d.getTime()) ? null : d;
+          };
           const actualDates = (e.actuals ?? (e.act != null ? [{ amount: e.act, date: e.date }] : []))
-            .map((a) => new Date(a.date))
-            .filter((d) => !Number.isNaN(d.getTime()));
+            .map((a) => parseActualDate(a.date))
+            .filter((d): d is Date => d !== null);
           const inRange = actualDates.some((d) => {
             if (from && d < new Date(from)) return false;
             if (to) {

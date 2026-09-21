@@ -6275,12 +6275,25 @@ function ViewDependenciesDialog({
     [allItems, currentItem],
   );
 
+  const [pendingDepIdx, setPendingDepIdx] = useState<number | null>(null);
+
   function removeDependency(idx: number) {
     if (!currentItem) return;
     const updated = deps.filter((_, i) => i !== idx);
     const impacts = computeDependencyImpact(allItems as any, currentItem.name, updated);
     onSetDependencies(currentItem.name, updated, impacts);
     toast.done("Dependency", "removed");
+  }
+
+  const pendingDep = pendingDepIdx != null ? deps[pendingDepIdx] : null;
+  let pendingDepDesc: string;
+  if (pendingDep && currentItem) {
+    pendingDepDesc = `Remove the ${depLabel(pendingDep)} dependency on "${pendingDep.predecessor}" from "${currentItem.name}".`;
+    if (successors.length > 0) {
+      pendingDepDesc += ` ${successors.length} task${successors.length === 1 ? "" : "s"} that depend${successors.length === 1 ? "s" : ""} on this item will not be changed.`;
+    }
+  } else {
+    pendingDepDesc = "";
   }
 
   return (

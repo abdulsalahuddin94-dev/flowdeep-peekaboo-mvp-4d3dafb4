@@ -2776,12 +2776,25 @@ function FinancialsTab({
           </div>
 
           <div>
-            <div className="mb-2 flex items-center justify-between">
-              <div className="label-eyebrow">Cost breakdown</div>
-              {canEdit && addLinkDialog("cost")}
-            </div>
+            <PageToolbar
+              query={costQuery}
+              onQueryChange={setCostQuery}
+              placeholder="Search Cost line name…"
+              filterGroups={[
+                {
+                  key: "category",
+                  label: "Categories",
+                  mode: "multi",
+                  value: costCatFilter,
+                  onChange: setCostCatFilter,
+                  options: [{ value: "all", label: "All categories" }, ...costCatOptions.map((c) => ({ value: c, label: c }))],
+                },
+                capexOpexGroup(costTypeFilter, setCostTypeFilter),
+              ]}
+              trailing={canEdit ? addLinkDialog("cost") : undefined}
+            />
             <CostBreakdownTable
-              entries={displayCost}
+              entries={costRows}
               canEdit={canEdit}
               categories={costCategoryNames}
               milestoneNames={milestoneNames}

@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { format, isValid, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -164,9 +166,10 @@ export function PageToolbar({
 
 
   const activePanel = filterGroups.find((g) => g.key === panel);
+  const activePanelIsDateRange = activePanel ? isDateRangeGroup(activePanel) : false;
   /** Drop the leading "All …" row when there are only two real choices. */
   const panelOptionsAll = (() => {
-    if (!activePanel) return [];
+    if (!activePanel || isDateRangeGroup(activePanel)) return [];
     const opts = activePanel.options;
     const firstIsAll = /^all\b/i.test(opts[0]?.label ?? "");
     return firstIsAll && opts.length <= 3 ? opts.slice(1) : opts;

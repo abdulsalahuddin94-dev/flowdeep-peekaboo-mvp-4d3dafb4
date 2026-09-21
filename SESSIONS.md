@@ -5,7 +5,6 @@
 - Verified end-to-end in the preview: View Dependencies → trash → "Remove dependency?" confirm → Remove removes the dependency.
 
 ## Session — 2026-09-21 (Schedule popup editing and row actions)
-## Session — 2026-09-21 (Schedule popup editing and row actions)
 
 - Removed inline milestone/task editing and the right-click schedule menu.
 - Added a square burger action menu at the end of every schedule row with Add subtask, Edit, Add dependency, Add financial link, Progress update, and Delete.

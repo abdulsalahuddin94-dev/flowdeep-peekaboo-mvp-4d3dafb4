@@ -4332,7 +4332,6 @@ function AddMilestoneDialog({
                   value={endMode}
                   onValueChange={(v) => v && setEndMode(v as "date" | "duration")}
                   className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2"
-                  disabled={dependencyDatesLocked}
                 >
                   <div className="flex items-center gap-2">
                     <RadioGroupItem id="end-mode-date" value="date" />
@@ -4348,10 +4347,10 @@ function AddMilestoneDialog({
                     <DatePicker id="task-end-date" className="mt-2" value={taskEndDate} disabled={dependencyDatesLocked} min={startDate || parentWindow.min} max={parentWindow.max} onChange={(value) => { setTaskEndDate(value); setErrors((p) => ({ ...p, taskEndDate: undefined })); }} placeholder="Pick end date" />
                   </Field>
                 ) : (
-                  <Field className="mt-2" htmlFor="task-duration" required error={errors.duration} hint={dependencyDateHint}>
+                  <Field className="mt-2" htmlFor="task-duration" required error={errors.duration}>
                     <div className="grid grid-cols-2 gap-2">
-                    <Input id="task-duration" type="number" min="0" step="0.5" value={durationValue} disabled={dependencyDatesLocked} onChange={(e) => { setDurationValue(Number(e.target.value)); setErrors((p) => ({ ...p, duration: undefined })); }} placeholder="Duration" />
-                    <Select value={durationUnit} disabled={dependencyDatesLocked} onValueChange={(v) => setDurationUnit(v as "hours" | "days")}>
+                    <Input id="task-duration" type="number" min="0" step="0.5" value={durationValue} onChange={(e) => { setDurationValue(Number(e.target.value)); setErrors((p) => ({ ...p, duration: undefined })); }} placeholder="Duration" />
+                    <Select value={durationUnit} onValueChange={(v) => setDurationUnit(v as "hours" | "days")}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="hours">Hours</SelectItem>
@@ -6258,7 +6257,7 @@ function ChangeRequestApprovalDialog({
 
 // ── Dependency Management Dialog ────────────────────────────────────────────────
 type DepItem = Parameters<typeof ProjectSchedule>[0]["items"][number];
-/** View-only: lists a task's current dependencies, with immediate per-row removal. */
+/** Lists a task's current dependencies with per-row edit and confirmed removal actions. */
 function ViewDependenciesDialog({
   open,
   onOpenChange,

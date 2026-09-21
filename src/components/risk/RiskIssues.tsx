@@ -380,7 +380,7 @@ function RiskSheet({
   onUpdate: (r: RiskRecord) => void;
   onConvert: (r: RiskRecord) => void;
 }) {
-  const { severityOf } = useSeverity();
+  const { severityOf, rules } = useSeverity();
   if (!risk) return null;
   const severity = severityOf(risk.score);
 
@@ -399,13 +399,14 @@ function RiskSheet({
 
         <div className="grid grid-cols-3 divide-x divide-border border-b border-border">
           {[
-            { l: "Probability", v: risk.prob },
-            { l: "Impact", v: risk.impact },
-            { l: "Score", v: risk.score },
+            { l: "Probability", v: risk.prob, d: rules.risk.probabilityLabels[risk.prob - 1] },
+            { l: "Impact", v: risk.impact, d: rules.risk.impactLabels[risk.impact - 1] },
+            { l: "Score", v: risk.score, d: undefined as string | undefined },
           ].map((k) => (
             <div key={k.l} className="px-4 py-3">
               <div className="label-eyebrow text-[10px]">{k.l}</div>
               <div className="mt-0.5 num-mono text-sm font-medium text-foreground">{k.v}</div>
+              {k.d && <div className="mt-0.5 text-[11px] text-muted-foreground">{k.d}</div>}
             </div>
           ))}
         </div>

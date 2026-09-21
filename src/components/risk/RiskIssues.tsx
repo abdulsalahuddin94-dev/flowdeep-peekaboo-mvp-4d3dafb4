@@ -380,7 +380,7 @@ function RiskSheet({
   onUpdate: (r: RiskRecord) => void;
   onConvert: (r: RiskRecord) => void;
 }) {
-  const { severityOf } = useSeverity();
+  const { severityOf, rules } = useSeverity();
   if (!risk) return null;
   const severity = severityOf(risk.score);
 

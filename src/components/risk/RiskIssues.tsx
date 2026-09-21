@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { ClipboardCheck, Paperclip, Eye } from "@/lib/icons";
+import { ClipboardCheck, Eye } from "@/lib/icons";
 import { DatePicker } from "@/components/ui/date-picker";
 import { projects, milestones as seedMilestones, type RiskStatus, type IssueItem, type IssuePriority, type IssueStatus } from "@/lib/mock-data";
 import { useRiskRegister, type RiskRecord, type IssueRecord } from "@/lib/risk-store";
@@ -586,17 +586,24 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
 
 /* ── Issues log ───────────────────────────────────────────────────────────── */
 
+const todayISO = () => new Date().toISOString().slice(0, 10);
+/** Normalised title used for the uniqueness check. */
+const normTitle = (v: string) => v.trim().replace(/\s+/g, " ").toLowerCase();
+const fmtDate = (v?: string) => (v ? v : "—");
+
 export function IssuesLogTab({ project, milestoneOptions }: { project?: string; milestoneOptions?: string[] }) {
-  const { risks, issues, addIssue, updateIssue, removeIssue } = useRiskRegister();
+  const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate } = useRiskRegister();
+  const currentUser = useCurrentUser();
   const [query, setQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState<string[]>([]);
   const [priority, setPriority] = useState("all");
   const [status, setStatus] = useState("all");
   const [riskFilter, setRiskFilter] = useState<string[]>([]);
   const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<IssueItem | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<IssueItem | null>(null);
-  const [statusFor, setStatusFor] = useState<IssueItem | null>(null);
+  const [editing, setEditing] = useState<IssueRecord | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<IssueRecord | null>(null);
+  const [statusFor, setStatusFor] = useState<{ issue: IssueRecord; preset?: IssueStatus } | null>(null);
+  const [viewing, setViewing] = useState<string | null>(null);
 
   const riskTitle = (id?: string) => (id ? (risks.find((r) => r.id === id)?.title ?? id) : "");
 
@@ -612,7 +619,13 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
   const pagination = usePagination(list, 10);
   const projectOptions = Array.from(new Set([...projects.map((p) => p.name), ...issues.map((r) => r.project)]));
   const milestoneList = milestoneOptions ?? milestonesForProject(project);
+  const viewed = viewing ? (issues.find((i) => i.id === viewing) ?? null) : null;
 
+  /** Issue titles must stay unique inside their project. */
+  function isDuplicateTitle(title: string, excludeId?: string) {
+    const n = normTitle(title);
+    return issues.some((i) => i.id !== excludeId && normTitle(i.title) === n);
+  }
 
   return (
     <>
@@ -622,7 +635,7 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
         placeholder="Search issue…"
         filterGroups={[
           ...(project ? [] : [{ key: "project", label: "Projects", mode: "multi" as const, value: projectFilter, onChange: setProjectFilter, options: [{ value: "all", label: "All projects" }, ...projectOptions.map((p) => ({ value: p, label: p }))] }]),
-          { key: "priority", label: "Priority", value: priority, onChange: setPriority, options: [{ value: "all", label: "All priorities" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
+          { key: "priority", label: "Criticality", value: priority, onChange: setPriority, options: [{ value: "all", label: "All criticalities" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...ISSUE_STATUSES.map((v) => ({ value: v, label: v }))] },
           { key: "risk", label: "Originating Risk", mode: "multi", value: riskFilter, onChange: setRiskFilter, options: [{ value: "all", label: "All risks" }, { value: "none", label: "No originating risk" }, ...risks.map((r) => ({ value: r.id, label: r.title }))] },
         ]}
@@ -635,34 +648,53 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
             <StyledTableHeaderRow>
               {!project && <StyledTableHead>Project</StyledTableHead>}
               <StyledTableHead>Issue</StyledTableHead>
-              <StyledTableHead className="whitespace-nowrap">Originating Risk</StyledTableHead>
-              <StyledTableHead className="whitespace-nowrap">Action taken</StyledTableHead>
-              <StyledTableHead className="text-center">Priority</StyledTableHead>
-              <StyledTableHead className="text-center whitespace-nowrap">Raised</StyledTableHead>
+              <StyledTableHead className="whitespace-nowrap">Risk</StyledTableHead>
+              <StyledTableHead className="text-center">Criticality</StyledTableHead>
+              <StyledTableHead className="text-center">Impact</StyledTableHead>
+              <StyledTableHead className="text-center whitespace-nowrap">Open date</StyledTableHead>
+              <StyledTableHead className="text-center whitespace-nowrap">Target date</StyledTableHead>
+              <StyledTableHead className="text-center whitespace-nowrap">Closure date</StyledTableHead>
               <StyledTableHead className="text-center">Status</StyledTableHead>
-              <StyledTableHead className="w-32" />
+              <StyledTableHead className="whitespace-nowrap">Actions taken</StyledTableHead>
+              <StyledTableHead className="w-40" />
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {list.length === 0 && <EmptyRow colSpan={project ? 7 : 8} />}
+            {list.length === 0 && <EmptyRow colSpan={project ? 10 : 11} />}
             {pagination.pageItems.map((i) => (
               <StyledTableRow key={i.id}>
                 {!project && <StyledTableCell className="text-muted-foreground">{i.project}</StyledTableCell>}
                 <StyledTableCell className="font-medium text-foreground">{i.title}</StyledTableCell>
-                <StyledTableCell className="max-w-[200px] truncate text-muted-foreground" title={riskTitle(i.riskId) || undefined}>
+                <StyledTableCell className="max-w-[180px] truncate text-muted-foreground" title={riskTitle(i.riskId) || undefined}>
                   {i.riskId ? riskTitle(i.riskId) : "—"}
                 </StyledTableCell>
-                <StyledTableCell className="max-w-[220px] truncate text-muted-foreground" title={i.action || undefined}>
+                <StyledTableCell className="text-center"><Pill label={i.priority} tone={PRIORITY_TONE[i.priority]} /></StyledTableCell>
+                <StyledTableCell className="text-center num-mono text-sm text-foreground">{i.impact}</StyledTableCell>
+                <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.openDate)}</StyledTableCell>
+                <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.targetDate)}</StyledTableCell>
+                <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.closureDate)}</StyledTableCell>
+                <StyledTableCell className="text-center"><Pill label={i.status} tone={ISSUE_STATUS_TONE[i.status]} /></StyledTableCell>
+                <StyledTableCell className="max-w-[200px] truncate text-muted-foreground" title={i.action || undefined}>
                   {i.action || "—"}
                 </StyledTableCell>
-                <StyledTableCell className="text-center"><Pill label={i.priority} tone={PRIORITY_TONE[i.priority]} /></StyledTableCell>
-                <StyledTableCell className="text-center text-xs text-muted-foreground">{i.raised}</StyledTableCell>
-                <StyledTableCell className="text-center"><Pill label={i.status} tone={ISSUE_STATUS_TONE[i.status]} /></StyledTableCell>
                 <StyledTableCell>
                   <TableRowActions
-                    onStatus={() => setStatusFor(i)}
+                    onStatus={() => setStatusFor({ issue: i })}
                     statusLabel="Update issue status"
                     statusIcon={<ClipboardCheck size={16} />}
+                    extraActions={
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+                        title="View issue"
+                        aria-label="View issue"
+                        onClick={() => setViewing(i.id)}
+                      >
+                        <Eye size={16} />
+                      </Button>
+                    }
                     onEdit={() => { setEditing(i); setFormOpen(true); }}
                     onDelete={() => setPendingDelete(i)}
                   />
@@ -683,8 +715,11 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
         projectOptions={projectOptions}
         risks={risks}
         milestoneOptions={milestoneList}
-
         onSave={(issue) => {
+          if (isDuplicateTitle(issue.title, editing?.id)) {
+            toast.error(`Issue "${issue.title.trim()}" already exists`, "Issue titles must be unique.");
+            return;
+          }
           if (editing) updateIssue(editing.id, issue);
           else addIssue(issue);
           toast.done("Issue", editing ? "updated" : "logged");
@@ -694,14 +729,22 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
       />
 
       <IssueStatusDialog
-        key={`istatus-${statusFor?.id ?? "none"}`}
-        issue={statusFor}
+        key={`istatus-${statusFor?.issue.id ?? "none"}-${statusFor?.preset ?? ""}`}
+        issue={statusFor?.issue ?? null}
+        presetStatus={statusFor?.preset}
         onClose={() => setStatusFor(null)}
-        onSave={(patch) => {
-          if (statusFor) updateIssue(statusFor.id, patch);
+        onSave={(input) => {
+          if (statusFor) logIssueUpdate(statusFor.issue.id, { ...input, by: currentUser.name });
           toast.done("Issue status", "updated");
           setStatusFor(null);
         }}
+      />
+
+      <IssueDetailDrawer
+        issue={viewed}
+        riskTitle={riskTitle}
+        onClose={() => setViewing(null)}
+        onUpdateStatus={(issue, preset) => { setViewing(null); setStatusFor({ issue, preset }); }}
       />
 
       <ConfirmDialog
@@ -721,12 +764,101 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
   );
 }
 
+/* ── Issue detail drawer ──────────────────────────────────────────────────── */
+
+function IssueDetailDrawer({
+  issue, riskTitle, onClose, onUpdateStatus,
+}: {
+  issue: IssueRecord | null;
+  riskTitle: (id?: string) => string;
+  onClose: () => void;
+  onUpdateStatus: (issue: IssueRecord, preset?: IssueStatus) => void;
+}) {
+  if (!issue) return null;
+  return (
+    <Sheet open={!!issue} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <SheetContent side="right" className="flex w-[480px] max-w-full flex-col rounded-l-lg border-l border-border bg-drawer p-0 sm:max-w-[480px]">
+        <SheetHeader className="border-b border-border px-6 pb-4 pt-6">
+          <div className="flex items-center gap-2">
+            <Pill label={issue.priority} tone={PRIORITY_TONE[issue.priority]} />
+            <Pill label={issue.status} tone={ISSUE_STATUS_TONE[issue.status]} />
+          </div>
+          <SheetTitle className="mt-2 text-lg">{issue.title}</SheetTitle>
+          <SheetDescription className="sr-only">Issue details, action plan, and comment history.</SheetDescription>
+          <p className="mt-1 text-xs text-muted-foreground">{issue.project}</p>
+        </SheetHeader>
+
+        <div className="grid grid-cols-3 divide-x divide-border border-b border-border">
+          {[
+            { l: "Impact", v: issue.impact },
+            { l: "Open date", v: fmtDate(issue.openDate) },
+            { l: "Target date", v: fmtDate(issue.targetDate) },
+          ].map((k) => (
+            <div key={k.l} className="px-4 py-3">
+              <div className="label-eyebrow text-[10px]">{k.l}</div>
+              <div className="mt-0.5 num-mono text-sm font-medium text-foreground">{k.v}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex-1 space-y-5 overflow-y-auto px-6 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="label-eyebrow mb-1">Originating risk</div>
+              <p className="text-sm text-foreground">{issue.riskId ? riskTitle(issue.riskId) : "—"}</p>
+            </div>
+            <div>
+              <div className="label-eyebrow mb-1">Closure date</div>
+              <p className="num-mono text-sm text-foreground">{fmtDate(issue.closureDate)}</p>
+            </div>
+          </div>
+          <div>
+            <div className="label-eyebrow mb-1">Linked milestone</div>
+            <p className="text-sm text-foreground">{issue.milestone || "—"}</p>
+          </div>
+          <Separator />
+          <div>
+            <div className="label-eyebrow mb-1">Action plan</div>
+            <p className="text-sm text-muted-foreground">{issue.action || "No action plan recorded yet."}</p>
+          </div>
+          <Separator />
+          <div>
+            <div className="label-eyebrow mb-2">Comments</div>
+            {issue.updates.length === 0 && <p className="text-sm text-muted-foreground">No comments recorded yet.</p>}
+            <div className="space-y-3">
+              {issue.updates.map((u) => (
+                <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-medium text-foreground">{u.by}</span>
+                    <span className="num-mono text-[10px] text-muted-foreground">{u.at}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{u.comment}</p>
+                  {u.statusChange && (
+                    <div className="mt-2">
+                      <Badge variant="outline" className="rounded-full text-[10px]">Status {u.statusChange[0]} → {u.statusChange[1]}</Badge>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-2 border-t border-border px-6 py-4">
+          <Button variant="primary" className="flex-1" onClick={() => onUpdateStatus(issue, "Resolved")}>Resolve</Button>
+          <Button variant="outline" className="flex-1" onClick={() => onUpdateStatus(issue, "Escalated")}>Escalate</Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 function IssueFormDialog({
   open, onOpenChange, issue, projectOptions, risks, milestoneOptions, lockedProject, onSave,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  issue: IssueItem | null;
+  issue: IssueRecord | null;
   projectOptions: string[];
   risks: RiskRecord[];
   milestoneOptions: string[];
@@ -736,7 +868,9 @@ function IssueFormDialog({
   const [title, setTitle] = useState(issue?.title ?? "");
   const [project, setProject] = useState(issue?.project ?? lockedProject ?? "");
   const [priority, setPriority] = useState<IssuePriority>(issue?.priority ?? "Medium");
-  const [status, setStatus] = useState<IssueStatus>(issue?.status ?? "Open");
+  const [impact, setImpact] = useState(String(issue?.impact ?? 3));
+  const [openDate, setOpenDate] = useState(issue?.openDate ?? todayISO());
+  const [targetDate, setTargetDate] = useState(issue?.targetDate ?? "");
   const [action, setAction] = useState(issue?.action ?? "");
   const [riskId, setRiskId] = useState(issue?.riskId ?? "none");
   const [milestone, setMilestone] = useState(issue?.milestone ?? "none");
@@ -746,12 +880,19 @@ function IssueFormDialog({
     const next: Record<string, string> = {};
     if (!title.trim()) next.title = "Issue title is required";
     if (!project) next.project = "Select the project this issue belongs to";
+    if (!openDate) next.openDate = "Open date is required";
+    if (targetDate && openDate && targetDate < openDate) next.targetDate = "Target date cannot be before the open date";
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
     onSave({
-      project, title: title.trim(), owner: issue?.owner ?? "", priority, status,
+      project, title: title.trim(), owner: issue?.owner ?? "", priority,
+      impact: Number(impact),
+      status: issue?.status ?? "Open",
       raised: issue?.raised ?? "Today",
+      openDate,
+      targetDate: targetDate || undefined,
+      closureDate: issue?.closureDate,
       action: action.trim(),
       riskId: riskId === "none" ? undefined : riskId,
       milestone: milestone === "none" ? undefined : milestone,
@@ -760,21 +901,16 @@ function IssueFormDialog({
     });
   }
 
-
   return (
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
       title={issue ? (lockedProject ? `Edit issue for ${lockedProject}` : "Edit issue") : (lockedProject ? `Log a new issue for ${lockedProject}` : "Log a new issue")}
-      description={issue ? "Update this issue's details and corrective action." : "Record a realized event that requires immediate corrective action."}
+      description={issue ? "Update this issue's details and action plan." : "Record a realized event that requires immediate corrective action."}
       size="lg"
       submitLabel={issue ? "Save Changes" : "Log Issue"}
       onSubmit={submit}
     >
-      <Field label="Issue title" htmlFor="issue-title" error={errors.title}>
-        <Input id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="What is blocking or going wrong?" />
-      </Field>
-
       {!lockedProject && (
         <Field label="Project" htmlFor="issue-project" error={errors.project}>
           <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }}>
@@ -785,7 +921,10 @@ function IssueFormDialog({
       )}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Priority" htmlFor="issue-priority">
+        <Field label="Issue title" htmlFor="issue-title" error={errors.title}>
+          <Input id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="What is blocking or going wrong?" />
+        </Field>
+        <Field label="Criticality" htmlFor="issue-priority">
           <Select value={priority} onValueChange={(v) => setPriority(v as IssuePriority)}>
             <SelectTrigger id="issue-priority"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -795,13 +934,20 @@ function IssueFormDialog({
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Status" htmlFor="issue-status">
-          <Select value={status} onValueChange={(v) => setStatus(v as IssueStatus)}>
-            <SelectTrigger id="issue-status"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {ISSUE_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
-            </SelectContent>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Field label="Impact" htmlFor="issue-impact" hint="1 (lowest) – 5 (highest)">
+          <Select value={impact} onValueChange={setImpact}>
+            <SelectTrigger id="issue-impact"><SelectValue /></SelectTrigger>
+            <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
           </Select>
+        </Field>
+        <Field label="Open date" htmlFor="issue-open-date" error={errors.openDate}>
+          <DatePicker id="issue-open-date" value={openDate} onChange={(v) => { setOpenDate(v); setErrors((x) => ({ ...x, openDate: "" })); }} placeholder="Pick a date" />
+        </Field>
+        <Field label="Target date for closure" htmlFor="issue-target-date" optional error={errors.targetDate}>
+          <DatePicker id="issue-target-date" value={targetDate} onChange={(v) => { setTargetDate(v); setErrors((x) => ({ ...x, targetDate: "" })); }} placeholder="Pick a date" min={openDate || undefined} />
         </Field>
       </div>
 
@@ -825,10 +971,8 @@ function IssueFormDialog({
         </Select>
       </Field>
 
-
-
-      <Field label="Action taken" htmlFor="issue-action" optional>
-        <Textarea id="issue-action" value={action} onChange={(e) => setAction(e.target.value)} placeholder="Current corrective action" rows={3} />
+      <Field label="Action plan" htmlFor="issue-action" optional>
+        <Textarea id="issue-action" value={action} onChange={(e) => setAction(e.target.value)} placeholder="Planned corrective action" rows={3} />
       </Field>
     </FormDialog>
   );
@@ -917,25 +1061,23 @@ function RiskStatusDialog({
 }
 
 function IssueStatusDialog({
-  issue, onClose, onSave,
+  issue, presetStatus, onClose, onSave,
 }: {
-  issue: IssueItem | null;
+  issue: IssueRecord | null;
+  presetStatus?: IssueStatus;
   onClose: () => void;
-  onSave: (patch: Partial<IssueItem>) => void;
+  onSave: (input: { status: IssueStatus; comment: string }) => void;
 }) {
-  const [status, setStatus] = useState<IssueStatus>(issue?.status ?? "Open");
-  const [resolution, setResolution] = useState(issue?.resolution ?? "");
-  const [attachment, setAttachment] = useState(issue?.attachment ?? "");
+  const [status, setStatus] = useState<IssueStatus>(presetStatus ?? issue?.status ?? "Open");
+  const [comment, setComment] = useState("");
   const [error, setError] = useState("");
 
-  const needsResolution = status === "Resolved";
-
   function submit() {
-    if (needsResolution && !resolution.trim()) {
-      setError("A resolution description is required to resolve the issue");
+    if (!comment.trim()) {
+      setError("A comment is required so the change stays documented");
       return;
     }
-    onSave({ status, resolution: resolution.trim() || undefined, attachment: attachment || undefined });
+    onSave({ status, comment: comment.trim() });
   }
 
   return (
@@ -957,38 +1099,19 @@ function IssueStatusDialog({
       </Field>
 
       <Field
-        label="Resolution description"
-        htmlFor="issue-resolution"
-        optional={!needsResolution}
+        label="Comment"
+        htmlFor="issue-status-comment"
         error={error}
-        hint={needsResolution ? "Describe how the issue was resolved before closing it." : undefined}
+        hint={`Kept in the issue view. ${comment.length}/${COMMENT_MAX} characters.`}
       >
         <Textarea
-          id="issue-resolution"
-          value={resolution}
-          onChange={(e) => { setResolution(e.target.value); setError(""); }}
+          id="issue-status-comment"
+          value={comment}
+          maxLength={COMMENT_MAX}
+          onChange={(e) => { setComment(e.target.value.slice(0, COMMENT_MAX)); setError(""); }}
           rows={3}
-          placeholder="What was done to resolve the issue?"
+          placeholder="What changed, and what happens next?"
         />
-      </Field>
-
-      <Field label="Supporting proof" htmlFor="issue-attachment" optional hint="Photo or document that evidences the resolution.">
-        <div className="flex items-center gap-3">
-          <Button asChild type="button" variant="secondary" size="sm">
-            <label htmlFor="issue-attachment" className="cursor-pointer">
-              <Paperclip size={14} />
-              Attach file
-            </label>
-          </Button>
-          <input
-            id="issue-attachment"
-            type="file"
-            accept="image/*,.pdf,.doc,.docx,.xlsx"
-            className="sr-only"
-            onChange={(e) => setAttachment(e.target.files?.[0]?.name ?? "")}
-          />
-          <span className="truncate text-xs text-muted-foreground">{attachment || "No file attached"}</span>
-        </div>
       </Field>
     </FormDialog>
   );

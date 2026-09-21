@@ -6373,7 +6373,7 @@ function ViewDependenciesDialog({
         setPendingDepIdx(null);
       }}
     />
-    </>,
+    </>
   );
 }
 

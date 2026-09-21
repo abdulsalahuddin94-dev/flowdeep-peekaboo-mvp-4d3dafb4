@@ -91,7 +91,7 @@ export function PageToolbar({
   trailing?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<Record<string, string | string[]>>({});
+  const [draft, setDraft] = useState<Record<string, string | string[] | DateRangeValue>>({});
   const [panel, setPanel] = useState<string | null>(null);
   const [panelQuery, setPanelQuery] = useState("");
 
@@ -115,6 +115,9 @@ export function PageToolbar({
       if (isMultiGroup(g)) {
         const arr = Array.isArray(next) ? next : [];
         if (JSON.stringify(arr) !== JSON.stringify(g.value)) g.onChange(arr);
+      } else if (isDateRangeGroup(g)) {
+        const range = (typeof next === "object" && !Array.isArray(next) ? next : { from: "", to: "" }) as DateRangeValue;
+        if (range.from !== g.value.from || range.to !== g.value.to) g.onChange(range);
       } else if (next !== g.value) {
         g.onChange(String(next));
       }
@@ -123,6 +126,20 @@ export function PageToolbar({
   }
 
   const appliedChips: Chip[] = filterGroups.reduce((acc, g) => {
+    if (isDateRangeGroup(g)) {
+      if (!g.value.from && !g.value.to) return acc;
+      const fmt = (iso: string) => {
+        const d = parseISO(iso);
+        return isValid(d) ? format(d, "MMM d, yyyy") : iso;
+      };
+      acc.push({
+        key: g.key,
+        label: `${g.value.from ? fmt(g.value.from) : "…"} → ${g.value.to ? fmt(g.value.to) : "…"}`,
+        group: g,
+        removeValue: "",
+      });
+      return acc;
+    }
     if (isMultiGroup(g)) {
       for (const v of g.value) {
         acc.push({

@@ -41,9 +41,14 @@ const RISK_STATUS_TONE: Record<RiskStatus, string> = {
   Open: "border-rag-red/40 bg-rag-red/10 text-rag-red",
   "In Progress": "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
   Mitigated: "border-rag-green/40 bg-rag-green/10 text-rag-green",
+  Realized: "border-rag-red/40 bg-rag-red/15 text-rag-red",
+  Closed: "border-border bg-[var(--field-bg-filled)] text-muted-foreground",
 };
 
-const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated"];
+/** Selectable by hand. "Realized" is set automatically on Convert to Issue. */
+const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated", "Closed"];
+/** Every status a risk can hold — used for filtering. */
+const RISK_STATUSES_ALL: RiskStatus[] = ["Open", "In Progress", "Mitigated", "Realized", "Closed"];
 const ISSUE_STATUSES: IssueStatus[] = ["Open", "In Progress", "Resolved", "Escalated"];
 const COMMENT_MAX = 500;
 
@@ -120,7 +125,7 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
           ...(project ? [] : [{ key: "project", label: "Projects", mode: "multi" as const, value: projectFilter, onChange: setProjectFilter, options: [{ value: "all", label: "All projects" }, ...projectOptions.map((p) => ({ value: p, label: p }))] }]),
           { key: "category", label: "Categories", mode: "multi", value: categoryFilter, onChange: setCategoryFilter, options: [{ value: "all", label: "All categories" }, ...categories.map((c) => ({ value: c.name, label: c.name }))] },
           { key: "severity", label: "Score", value: severity, onChange: setSeverity, options: [{ value: "all", label: "All severities" }, { value: "Critical", label: "Critical" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
-          { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...RISK_STATUSES.map((v) => ({ value: v, label: v }))] },
+          { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...RISK_STATUSES_ALL.map((v) => ({ value: v, label: v }))] },
         ]}
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Risk</Button>}
       />
@@ -256,6 +261,7 @@ function RiskFormDialog({
   const [prob, setProb] = useState(String(risk?.prob ?? 3));
   const [impact, setImpact] = useState(String(risk?.impact ?? 3));
   const [status, setStatus] = useState<RiskStatus>(risk?.status ?? "Open");
+  const statusOptions = RISK_STATUSES.includes(status) ? RISK_STATUSES : [...RISK_STATUSES, status];
   const [mitigation, setMitigation] = useState(risk?.mitigation ?? "");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -357,7 +363,7 @@ function RiskFormDialog({
           <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
             <SelectTrigger id="risk-status"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {RISK_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+              {statusOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>
@@ -383,8 +389,10 @@ function RiskSheet({
   onConvert: (r: RiskRecord) => void;
 }) {
   const { severityOf, rules } = useSeverity();
+  const { issues } = useRiskRegister();
   if (!risk) return null;
   const severity = severityOf(risk.score);
+  const linkedIssue = issues.find((i) => i.riskId === risk.id) ?? null;
 
   return (
     <Sheet open={!!risk} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -424,6 +432,15 @@ function RiskSheet({
             <div className="label-eyebrow mb-1">Linked milestone</div>
             <p className="text-sm text-foreground">{risk.milestone || "—"}</p>
           </div>
+          {linkedIssue && (
+            <div>
+              <div className="label-eyebrow mb-1">Linked issue</div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-foreground">{linkedIssue.title}</p>
+                <Pill label={linkedIssue.status} tone={ISSUE_STATUS_TONE[linkedIssue.status]} />
+              </div>
+            </div>
+          )}
           <Separator />
           <div>
             <div className="label-eyebrow mb-1">Mitigation plan</div>
@@ -468,7 +485,7 @@ function RiskSheet({
         <div className="space-y-2 border-t border-border px-6 py-4">
           <div className="flex gap-2">
             <Button variant="primary" className="flex-1" onClick={() => { onClose(); onUpdate(risk); }}>Update risk status</Button>
-            <Button variant="outline" className="flex-1" onClick={() => { onClose(); onConvert(risk); }}>Convert to Issue</Button>
+            <Button variant="outline" className="flex-1" disabled={!!linkedIssue} onClick={() => { onClose(); onConvert(risk); }}>Convert to Issue</Button>
           </div>
           <Button variant="secondary" className="w-full" onClick={() => onEdit(risk)}>Edit Risk</Button>
         </div>
@@ -992,6 +1009,7 @@ function RiskStatusDialog({
 }) {
   const { severityOf } = useSeverity();
   const [status, setStatus] = useState<RiskStatus>(risk?.status ?? "Open");
+  const statusOptions = RISK_STATUSES.includes(status) ? RISK_STATUSES : [...RISK_STATUSES, status];
   const [prob, setProb] = useState(String(risk?.prob ?? 3));
   const [impact, setImpact] = useState(String(risk?.impact ?? 3));
   const [comment, setComment] = useState("");
@@ -1021,7 +1039,7 @@ function RiskStatusDialog({
           <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
             <SelectTrigger id="risk-status-update"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {RISK_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+              {statusOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
             </SelectContent>
           </Select>
         </Field>

@@ -238,7 +238,7 @@ export const pipelineItems = [
   { id: "BC-2026-011", title: "Field Engineer App Refresh", stage: "Rejected", score: 31, roi: "$0.4M", submittedBy: "Diego Ortiz", sponsor: "Khalid Al-Farsi", dept: "Engineering", date: "1mo ago", pillar: "Efficiency" },
 ];
 
-export type RiskStatus = "Open" | "In Progress" | "Mitigated";
+export type RiskStatus = "Open" | "In Progress" | "Mitigated" | "Realized" | "Closed";
 
 export interface RiskItem {
   id: string;

@@ -3840,6 +3840,10 @@ function AddMilestoneDialog({
     onOpenChange?.(o);
   };
   const isEditing = !!editingItem;
+  const dependencyDatesLocked = isEditing && (editingItem?.dependencies?.length ?? 0) > 0;
+  const dependencyDateHint = dependencyDatesLocked
+    ? "Computed from dependency. Remove it to edit directly"
+    : undefined;
   const [kind, setKind] = useState<ItemKind>("Task");
   const [name, setName] = useState("");
   const [owner, setOwner] = useState(defaultOwner);
@@ -4233,8 +4237,8 @@ function AddMilestoneDialog({
                 <p className="mt-1 text-[10px] text-muted-foreground">Progress is rolled up automatically from child tasks (weighted by score).</p>
               </div>
               <div>
-                <Field label="Date" htmlFor="milestone-date" required error={errors.endDate}>
-                  <DatePicker id="milestone-date" value={endDate} onChange={(value) => { setEndDate(value); setErrors((p) => ({ ...p, endDate: undefined })); }} placeholder="Pick milestone date" />
+                <Field label="Date" htmlFor="milestone-date" required error={errors.endDate} hint={dependencyDateHint}>
+                  <DatePicker id="milestone-date" value={endDate} disabled={dependencyDatesLocked} onChange={(value) => { setEndDate(value); setErrors((p) => ({ ...p, endDate: undefined })); }} placeholder="Pick milestone date" />
                 </Field>
               </div>
 
@@ -4313,8 +4317,8 @@ function AddMilestoneDialog({
           {/* TASK: parent (any milestone or task) + start + (end date | duration) + weight */}
           {kind === "Task" && (
             <>
-              <Field label="Start date" htmlFor="task-start-date" required error={errors.startDate}>
-                <DatePicker id="task-start-date" value={startDate} min={parentWindow.min} max={parentWindow.max} onChange={(value) => { setStartDate(value); setErrors((p) => ({ ...p, startDate: undefined })); }} placeholder="Pick start date" />
+              <Field label="Start date" htmlFor="task-start-date" required error={errors.startDate} hint={dependencyDateHint}>
+                <DatePicker id="task-start-date" value={startDate} disabled={dependencyDatesLocked} min={parentWindow.min} max={parentWindow.max} onChange={(value) => { setStartDate(value); setErrors((p) => ({ ...p, startDate: undefined })); }} placeholder="Pick start date" />
               </Field>
               {parentItem && (parentWindow.min || parentWindow.max) && (
                 <p className="-mt-2 text-[10px] text-muted-foreground">
@@ -4328,6 +4332,7 @@ function AddMilestoneDialog({
                   value={endMode}
                   onValueChange={(v) => v && setEndMode(v as "date" | "duration")}
                   className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2"
+                  disabled={dependencyDatesLocked}
                 >
                   <div className="flex items-center gap-2">
                     <RadioGroupItem id="end-mode-date" value="date" />
@@ -4339,14 +4344,14 @@ function AddMilestoneDialog({
                   </div>
                 </RadioGroup>
                 {endMode === "date" ? (
-                  <Field htmlFor="task-end-date" required error={errors.taskEndDate}>
-                    <DatePicker id="task-end-date" className="mt-2" value={taskEndDate} min={startDate || parentWindow.min} max={parentWindow.max} onChange={(value) => { setTaskEndDate(value); setErrors((p) => ({ ...p, taskEndDate: undefined })); }} placeholder="Pick end date" />
+                  <Field htmlFor="task-end-date" required error={errors.taskEndDate} hint={dependencyDateHint}>
+                    <DatePicker id="task-end-date" className="mt-2" value={taskEndDate} disabled={dependencyDatesLocked} min={startDate || parentWindow.min} max={parentWindow.max} onChange={(value) => { setTaskEndDate(value); setErrors((p) => ({ ...p, taskEndDate: undefined })); }} placeholder="Pick end date" />
                   </Field>
                 ) : (
-                  <Field className="mt-2" htmlFor="task-duration" required error={errors.duration}>
+                  <Field className="mt-2" htmlFor="task-duration" required error={errors.duration} hint={dependencyDateHint}>
                     <div className="grid grid-cols-2 gap-2">
-                    <Input id="task-duration" type="number" min="0" step="0.5" value={durationValue} onChange={(e) => { setDurationValue(Number(e.target.value)); setErrors((p) => ({ ...p, duration: undefined })); }} placeholder="Duration" />
-                    <Select value={durationUnit} onValueChange={(v) => setDurationUnit(v as "hours" | "days")}>
+                    <Input id="task-duration" type="number" min="0" step="0.5" value={durationValue} disabled={dependencyDatesLocked} onChange={(e) => { setDurationValue(Number(e.target.value)); setErrors((p) => ({ ...p, duration: undefined })); }} placeholder="Duration" />
+                    <Select value={durationUnit} disabled={dependencyDatesLocked} onValueChange={(v) => setDurationUnit(v as "hours" | "days")}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="hours">Hours</SelectItem>
@@ -6276,6 +6281,7 @@ function ViewDependenciesDialog({
   );
 
   const [pendingDepIdx, setPendingDepIdx] = useState<number | null>(null);
+  const [editingDepIdx, setEditingDepIdx] = useState<number | null>(null);
 
   function removeDependency(idx: number) {
     if (!currentItem) return;
@@ -6344,10 +6350,16 @@ function ViewDependenciesDialog({
                     <span className="truncate font-medium">{d.predecessor}</span>
                     <span className="shrink-0 text-xs text-muted-foreground">{depLabel(d)}</span>
                   </div>
-                  <button onClick={() => setPendingDepIdx(i)} title="Remove dependency" aria-label="Remove dependency"
-                    className="flex shrink-0 items-center justify-center rounded-md p-1.5 text-rag-red hover:bg-rag-red/10 hover:text-rag-red">
-                    <DeleteAction size={16} />
-                  </button>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button onClick={() => setEditingDepIdx(i)} title="Edit dependency" aria-label="Edit dependency"
+                      className="flex items-center justify-center rounded-md p-1.5 text-accent hover:bg-accent/10 hover:text-accent">
+                      <Pencil size={16} />
+                    </button>
+                    <button onClick={() => setPendingDepIdx(i)} title="Remove dependency" aria-label="Remove dependency"
+                      className="flex items-center justify-center rounded-md p-1.5 text-rag-red hover:bg-rag-red/10 hover:text-rag-red">
+                      <DeleteAction size={16} />
+                    </button>
+                  </div>
                 </div>
               ))
             )}
@@ -6373,22 +6385,32 @@ function ViewDependenciesDialog({
         setPendingDepIdx(null);
       }}
     />
+    <CreateDependencyDialog
+      open={editingDepIdx != null}
+      onOpenChange={(v) => { if (!v) setEditingDepIdx(null); }}
+      currentItem={currentItem}
+      allItems={allItems}
+      editIndex={editingDepIdx}
+      onSetDependencies={onSetDependencies}
+    />
     </>
   );
 }
 
-/** Create-only: adds exactly one new dependency and saves immediately — no batching. */
+/** Adds or edits exactly one dependency and saves immediately — no batching. */
 function CreateDependencyDialog({
   open,
   onOpenChange,
   currentItem,
   allItems,
+  editIndex = null,
   onSetDependencies,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   currentItem?: DepItem;
   allItems: DepItem[];
+  editIndex?: number | null;
   onSetDependencies: (name: string, dependencies: any[], impacts: DepImpact[]) => void;
 }) {
   const [selectedPred, setSelectedPred] = useState<string>("");
@@ -6396,23 +6418,36 @@ function CreateDependencyDialog({
   const [relation, setRelation] = useState<"FS" | "SF" | "SS" | "FF">("FS");
   const [lag, setLag] = useState(0);
   const [acceptShift, setAcceptShift] = useState(false);
+  const existingDeps = (currentItem?.dependencies ?? []).map((d) => ({ ...d, lag: depLag(d) }));
+  const editingDep = editIndex != null ? existingDeps[editIndex] : undefined;
+  const isEditingDependency = editingDep !== undefined;
 
   useEffect(() => {
     if (open) {
-      setSelectedPred("");
-      setPredecessorKind("Task");
-      setRelation("FS");
-      setLag(0);
+      setSelectedPred(editingDep?.predecessor ?? "");
+      setPredecessorKind(
+        editingDep
+          ? allItems.find((item) => item.name === editingDep.predecessor)?.kind ?? "Task"
+          : "Task",
+      );
+      setRelation(editingDep?.relation ?? "FS");
+      setLag(editingDep ? depLag(editingDep) : 0);
       setAcceptShift(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, currentItem?.name]);
+  }, [open, currentItem?.name, editIndex]);
 
-  const existingDeps = (currentItem?.dependencies ?? []).map((d) => ({ ...d, lag: depLag(d) }));
   /** Dates that will move once this new dependency is saved. */
   const draftDeps = useMemo(
-    () => (selectedPred ? [...existingDeps, { predecessor: selectedPred, relation, lag: lag || undefined }] : existingDeps),
-    [existingDeps, selectedPred, relation, lag],
+    () => {
+      if (!selectedPred) return existingDeps;
+      const nextDependency = { predecessor: selectedPred, relation, lag: lag || undefined };
+      if (editIndex != null && existingDeps[editIndex]) {
+        return existingDeps.map((dependency, index) => index === editIndex ? nextDependency : dependency);
+      }
+      return [...existingDeps, nextDependency];
+    },
+    [existingDeps, selectedPred, relation, lag, editIndex],
   );
   const impacts = useMemo(
     () => (currentItem && selectedPred ? computeDependencyImpact(allItems as any, currentItem.name, draftDeps) : []),
@@ -6427,7 +6462,7 @@ function CreateDependencyDialog({
       return;
     }
     onSetDependencies(currentItem.name, draftDeps, impacts);
-    toast.done("Dependency", "added");
+    toast.done("Dependency", isEditingDependency ? "updated" : "added");
     onOpenChange(false);
   }
 
@@ -6435,7 +6470,7 @@ function CreateDependencyDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add Dependency — {currentItem?.name}</DialogTitle>
+          <DialogTitle>{isEditingDependency ? "Edit Dependency" : "Add Dependency"} — {currentItem?.name}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-3">
           <div>

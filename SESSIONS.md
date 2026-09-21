@@ -1,3 +1,8 @@
+## Session — 2026-09-21 (Dependency editing and computed-date guidance)
+
+- Added an Edit icon to each row in View Dependencies and a prefilled dependency edit flow for predecessor, relation type, and lead/lag.
+- Locked dependency-computed dates in milestone/task edit popups and added the hint “Computed from dependency. Remove it to edit directly”.
+
 ## Session — 2026-09-21 (Dependency deletion confirmation + re-wired View Dependencies)
 
 - Removed the instant-delete behavior in the schedule "View Dependencies" dialog; the red trash icon now opens a DS02 ConfirmDialog ("Remove dependency?", Cancel · Remove) before removing a dependency.

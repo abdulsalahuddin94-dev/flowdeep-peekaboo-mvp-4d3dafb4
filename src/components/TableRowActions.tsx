@@ -39,6 +39,7 @@ export function TableRowActions({
   deleteDisabled,
   alwaysVisible,
   showStatus,
+  statusNode,
   extraActions,
   className,
 }: {
@@ -54,11 +55,13 @@ export function TableRowActions({
   deleteDisabled?: boolean;
   alwaysVisible?: boolean;
   showStatus?: boolean;
+  /** Custom status content shown at rest and replaced by actions on row hover. */
+  statusNode?: ReactNode;
   /** Extra row-specific buttons (e.g. "Add actual") rendered between Edit and Delete. */
   extraActions?: ReactNode;
   className?: string;
 }) {
-  const withStatus = (showStatus ?? !!onToggleActive) && !alwaysVisible;
+  const withStatus = (showStatus ?? (!!onToggleActive || !!statusNode)) && !alwaysVisible;
   // DS02: status columns are always centered so the pill and the hover actions
   // share the same optical center; action-only columns stay right-aligned.
   const align = withStatus ? "justify-center" : "justify-end";
@@ -71,7 +74,7 @@ export function TableRowActions({
     <div className={cn("relative h-9 min-w-32 flex items-center", align)}>
       {withStatus && (
         <div className="flex h-7 items-center justify-center group-hover:hidden group-focus-within:hidden">
-          <StatusPill isActive={isActive} />
+          {statusNode ?? <StatusPill isActive={isActive} />}
         </div>
       )}
       <div className={cn("flex h-9 items-center gap-1.5", align, visibility, className)}>

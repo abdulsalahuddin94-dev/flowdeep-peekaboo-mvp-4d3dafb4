@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { ClipboardCheck, Eye } from "@/lib/icons";
+import { ClipboardCheck } from "@/lib/icons";
 import { DatePicker } from "@/components/ui/date-picker";
 import { projects, milestones as seedMilestones, type RiskStatus, type IssueItem, type IssuePriority, type IssueStatus } from "@/lib/mock-data";
 import { useRiskRegister, type RiskRecord, type IssueRecord } from "@/lib/risk-store";
@@ -137,8 +137,7 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
               <StyledTableHead className="text-center">Score</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Severity</StyledTableHead>
               <StyledTableHead>Mitigation plan</StyledTableHead>
-              <StyledTableHead className="text-center">Status</StyledTableHead>
-              <StyledTableHead className="w-40" />
+              <StyledTableHead className="w-40 text-center">Status</StyledTableHead>
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
@@ -157,11 +156,10 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
                 <StyledTableCell className="max-w-[220px] truncate text-muted-foreground" title={r.mitigation || undefined}>
                   {r.mitigation || "—"}
                 </StyledTableCell>
-                <StyledTableCell className="text-center">
-                  <Pill label={r.status} tone={RISK_STATUS_TONE[r.status]} />
-                </StyledTableCell>
                 <StyledTableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
+                    showStatus
+                    statusNode={<Pill label={r.status} tone={RISK_STATUS_TONE[r.status]} />}
                     onStatus={() => setStatusFor(r)}
                     statusLabel="Update risk status"
                     statusIcon={<ClipboardCheck size={16} />}
@@ -654,15 +652,14 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
               <StyledTableHead className="text-center whitespace-nowrap">Open date</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Target date</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Closure date</StyledTableHead>
-              <StyledTableHead className="text-center">Status</StyledTableHead>
               <StyledTableHead className="whitespace-nowrap">Actions taken</StyledTableHead>
-              <StyledTableHead className="w-40" />
+               <StyledTableHead className="w-40 text-center">Status</StyledTableHead>
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
             {list.length === 0 && <EmptyRow colSpan={project ? 10 : 11} />}
             {pagination.pageItems.map((i) => (
-              <StyledTableRow key={i.id}>
+              <StyledTableRow key={i.id} onClick={() => setViewing(i.id)} className="cursor-pointer">
                 {!project && <StyledTableCell className="max-w-[140px] truncate text-muted-foreground" title={i.project}>{i.project}</StyledTableCell>}
                 <StyledTableCell className="max-w-[220px] truncate font-medium text-foreground" title={i.title}>{i.title}</StyledTableCell>
                 <StyledTableCell className="max-w-[140px] truncate text-muted-foreground" title={riskTitle(i.riskId) || undefined}>
@@ -673,28 +670,16 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.openDate)}</StyledTableCell>
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.targetDate)}</StyledTableCell>
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.closureDate)}</StyledTableCell>
-                <StyledTableCell className="text-center"><Pill label={i.status} tone={ISSUE_STATUS_TONE[i.status]} /></StyledTableCell>
                 <StyledTableCell className="max-w-[160px] truncate text-muted-foreground" title={i.action || undefined}>
                   {i.action || "—"}
                 </StyledTableCell>
-                <StyledTableCell>
+                <StyledTableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
+                    showStatus
+                    statusNode={<Pill label={i.status} tone={ISSUE_STATUS_TONE[i.status]} />}
                     onStatus={() => setStatusFor({ issue: i })}
                     statusLabel="Update issue status"
                     statusIcon={<ClipboardCheck size={16} />}
-                    extraActions={
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-                        title="View issue"
-                        aria-label="View issue"
-                        onClick={() => setViewing(i.id)}
-                      >
-                        <Eye size={16} />
-                      </Button>
-                    }
                     onEdit={() => { setEditing(i); setFormOpen(true); }}
                     onDelete={() => setPendingDelete(i)}
                   />
@@ -936,17 +921,17 @@ function IssueFormDialog({
         </Field>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Impact" htmlFor="issue-impact" hint="1 (lowest) – 5 (highest)">
+      <div className="grid items-start gap-4 sm:grid-cols-3">
+        <Field label="Impact" htmlFor="issue-impact" hint="1 (lowest) – 5 (highest)" className="min-w-0">
           <Select value={impact} onValueChange={setImpact}>
             <SelectTrigger id="issue-impact"><SelectValue /></SelectTrigger>
             <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
           </Select>
         </Field>
-        <Field label="Open date" htmlFor="issue-open-date" error={errors.openDate}>
+        <Field label="Open date" htmlFor="issue-open-date" error={errors.openDate} className="min-w-0">
           <DatePicker id="issue-open-date" value={openDate} onChange={(v) => { setOpenDate(v); setErrors((x) => ({ ...x, openDate: "" })); }} placeholder="Pick a date" />
         </Field>
-        <Field label="Target date for closure" htmlFor="issue-target-date" optional error={errors.targetDate}>
+        <Field label="Target closure date" htmlFor="issue-target-date" optional error={errors.targetDate} className="min-w-0">
           <DatePicker id="issue-target-date" value={targetDate} onChange={(v) => { setTargetDate(v); setErrors((x) => ({ ...x, targetDate: "" })); }} placeholder="Pick a date" min={openDate || undefined} />
         </Field>
       </div>

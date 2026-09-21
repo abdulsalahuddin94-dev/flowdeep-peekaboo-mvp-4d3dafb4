@@ -1629,3 +1629,9 @@ Created `product-spec.md` â€” the master product design specification for N
 - MoSCoW feature prioritization (Phase 1/2/3)
 - RTL (Arabic) design rules appendix
 - Persona-to-screen access matrix
+
+## Session — 2026-09-21 (Risk deletion guard for linked issues)
+
+- A risk that has been converted to / linked with an issue can no longer be deleted.
+- RiskRegisterTab (src/components/risk/RiskIssues.tsx) now derives `hasLinkedIssue` from the issues list and, when deleting a linked risk, shows a warning toast ("Cannot delete risk / This risk has a linked issue. Resolve or delete the issue first.") instead of opening the delete confirm dialog.
+- Verified on /portfolio/p-001 Risk & Issues tab (risk R-091 linked to issue I-044).

@@ -6343,7 +6343,7 @@ function ViewDependenciesDialog({
                     <span className="truncate font-medium">{d.predecessor}</span>
                     <span className="shrink-0 text-xs text-muted-foreground">{depLabel(d)}</span>
                   </div>
-                  <button onClick={() => removeDependency(i)} title="Remove dependency" aria-label="Remove dependency"
+                  <button onClick={() => setPendingDepIdx(i)} title="Remove dependency" aria-label="Remove dependency"
                     className="flex shrink-0 items-center justify-center rounded-md p-1.5 text-rag-red hover:bg-rag-red/10 hover:text-rag-red">
                     <DeleteAction size={16} />
                   </button>

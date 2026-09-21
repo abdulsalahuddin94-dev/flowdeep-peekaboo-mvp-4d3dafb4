@@ -38,6 +38,8 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { EmptyState } from "@/components/ds/EmptyState";
+import { PageToolbar } from "@/components/ds/PageToolbar";
+import { capexOpexGroup } from "@/components/ds/filters";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress, depLag, depLabel } from "@/components/ProjectSchedule";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";

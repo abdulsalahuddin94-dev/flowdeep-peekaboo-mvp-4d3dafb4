@@ -388,8 +388,10 @@ function RiskSheet({
   onConvert: (r: RiskRecord) => void;
 }) {
   const { severityOf, rules } = useSeverity();
+  const { issues } = useRiskRegister();
   if (!risk) return null;
   const severity = severityOf(risk.score);
+  const linkedIssue = issues.find((i) => i.riskId === risk.id) ?? null;
 
   return (
     <Sheet open={!!risk} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -429,6 +431,15 @@ function RiskSheet({
             <div className="label-eyebrow mb-1">Linked milestone</div>
             <p className="text-sm text-foreground">{risk.milestone || "—"}</p>
           </div>
+          {linkedIssue && (
+            <div>
+              <div className="label-eyebrow mb-1">Linked issue</div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-foreground">{linkedIssue.title}</p>
+                <Pill label={linkedIssue.status} tone={ISSUE_STATUS_TONE[linkedIssue.status]} />
+              </div>
+            </div>
+          )}
           <Separator />
           <div>
             <div className="label-eyebrow mb-1">Mitigation plan</div>

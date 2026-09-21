@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { format, isValid, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -32,20 +34,38 @@ export type MultiFilterGroup = {
   mode: "multi";
 };
 
-export type FilterGroup = SingleFilterGroup | MultiFilterGroup;
+export type DateRangeValue = { from: string; to: string };
+
+export type DateRangeFilterGroup = {
+  key: string;
+  label: string;
+  value: DateRangeValue;
+  onChange: (v: DateRangeValue) => void;
+  mode: "daterange";
+};
+
+export type FilterGroup = SingleFilterGroup | MultiFilterGroup | DateRangeFilterGroup;
 
 function isMultiGroup(g: FilterGroup): g is MultiFilterGroup {
   return g.mode === "multi";
+}
+
+function isDateRangeGroup(g: FilterGroup): g is DateRangeFilterGroup {
+  return g.mode === "daterange";
 }
 
 function isGroupActive(g: FilterGroup): boolean {
   if (isMultiGroup(g)) {
     return g.value.length > 0;
   }
+  if (isDateRangeGroup(g)) {
+    return Boolean(g.value.from || g.value.to);
+  }
   return g.value !== g.options[0]?.value;
 }
 
 function groupFirstValue(g: FilterGroup): string {
+  if (isDateRangeGroup(g)) return "";
   return g.options[0]?.value ?? "";
 }
 
@@ -73,7 +93,7 @@ export function PageToolbar({
   trailing?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<Record<string, string | string[]>>({});
+  const [draft, setDraft] = useState<Record<string, string | string[] | DateRangeValue>>({});
   const [panel, setPanel] = useState<string | null>(null);
   const [panelQuery, setPanelQuery] = useState("");
 
@@ -97,6 +117,9 @@ export function PageToolbar({
       if (isMultiGroup(g)) {
         const arr = Array.isArray(next) ? next : [];
         if (JSON.stringify(arr) !== JSON.stringify(g.value)) g.onChange(arr);
+      } else if (isDateRangeGroup(g)) {
+        const range = (typeof next === "object" && !Array.isArray(next) ? next : { from: "", to: "" }) as DateRangeValue;
+        if (range.from !== g.value.from || range.to !== g.value.to) g.onChange(range);
       } else if (next !== g.value) {
         g.onChange(String(next));
       }
@@ -105,6 +128,20 @@ export function PageToolbar({
   }
 
   const appliedChips: Chip[] = filterGroups.reduce((acc, g) => {
+    if (isDateRangeGroup(g)) {
+      if (!g.value.from && !g.value.to) return acc;
+      const fmt = (iso: string) => {
+        const d = parseISO(iso);
+        return isValid(d) ? format(d, "MMM d, yyyy") : iso;
+      };
+      acc.push({
+        key: g.key,
+        label: `${g.value.from ? fmt(g.value.from) : "…"} → ${g.value.to ? fmt(g.value.to) : "…"}`,
+        group: g,
+        removeValue: "",
+      });
+      return acc;
+    }
     if (isMultiGroup(g)) {
       for (const v of g.value) {
         acc.push({
@@ -129,9 +166,10 @@ export function PageToolbar({
 
 
   const activePanel = filterGroups.find((g) => g.key === panel);
+  const activePanelIsDateRange = activePanel ? isDateRangeGroup(activePanel) : false;
   /** Drop the leading "All …" row when there are only two real choices. */
   const panelOptionsAll = (() => {
-    if (!activePanel) return [];
+    if (!activePanel || isDateRangeGroup(activePanel)) return [];
     const opts = activePanel.options;
     const firstIsAll = /^all\b/i.test(opts[0]?.label ?? "");
     return firstIsAll && opts.length <= 3 ? opts.slice(1) : opts;
@@ -204,7 +242,32 @@ export function PageToolbar({
 
               <ScrollArea className="flex-1 px-5">
                 <div className="space-y-1 pb-4">
-                  {isMultiGroup(activePanel) ? (
+                  {activePanelIsDateRange ? (
+                    <div className="space-y-4 pt-1">
+                      {(["from", "to"] as const).map((bound) => {
+                        const current = (draft[activePanel.key] ?? activePanel.value) as DateRangeValue;
+                        const range = typeof current === "object" && !Array.isArray(current) ? current : { from: "", to: "" };
+                        return (
+                          <div key={bound} className="space-y-1.5">
+                            <span className="text-sm font-medium text-foreground">{bound === "from" ? "Start Date" : "End Date"}</span>
+                            <DatePicker
+                              value={range[bound]}
+                              onChange={(v) =>
+                                setDraft((d) => ({
+                                  ...d,
+                                  [activePanel.key]: { ...range, [bound]: v },
+                                }))
+                              }
+                              min={bound === "to" ? range.from || undefined : undefined}
+                              max={bound === "from" ? range.to || undefined : undefined}
+                              placeholder="Select Date"
+                              className="rounded-md"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : isMultiGroup(activePanel) ? (
                     panelOptions.map((o) => {
                       const allValue = groupFirstValue(activePanel);
                       const isAll = o.value === allValue;
@@ -262,7 +325,7 @@ export function PageToolbar({
                       );
                     })
                   )}
-                  {panelOptions.length === 0 && (
+                  {!activePanelIsDateRange && panelOptions.length === 0 && (
                     <p className="py-6 text-center text-xs text-muted-foreground">No options</p>
                   )}
                 </div>
@@ -302,7 +365,7 @@ export function PageToolbar({
                     <span className="text-xs font-medium text-foreground">Applied Filters</span>
                     <button
                       type="button"
-                      onClick={() => setDraft(Object.fromEntries(filterGroups.map((g) => [g.key, isMultiGroup(g) ? [] : groupFirstValue(g)])))}
+                      onClick={() => setDraft(Object.fromEntries(filterGroups.map((g) => [g.key, isMultiGroup(g) ? [] : isDateRangeGroup(g) ? { from: "", to: "" } : groupFirstValue(g)])))}
                       className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
                     >
                       Clear Filters <X className="h-3 w-3" />
@@ -320,6 +383,9 @@ export function PageToolbar({
                               const current = Array.isArray(d[c.group.key]) ? (d[c.group.key] as string[]) : c.group.value;
                               const next = current.filter((v) => v !== c.removeValue);
                               return { ...d, [c.group.key]: next };
+                            }
+                            if (isDateRangeGroup(c.group)) {
+                              return { ...d, [c.group.key]: { from: "", to: "" } };
                             }
                             return { ...d, [c.group.key]: groupFirstValue(c.group) };
                           })}

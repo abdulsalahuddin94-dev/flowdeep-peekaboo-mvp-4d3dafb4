@@ -1,3 +1,8 @@
+## Session — 2026-09-21 (Revenue Breakdown actual-date range filter)
+
+- PageToolbar gained a "daterange" filter group mode: the drawer panel shows Start Date / End Date pickers (min/max cross-constrained) with Cancel / Apply, an applied chip showing the range, and clear/remove support.
+- Revenue Breakdown's date filter now uses it as "Actual date" and matches rows by their actual payment dates (including legacy "May 02" display strings, parsed with the current year); rows without actual payments are excluded while a range is active.
+
 ## Session — 2026-09-21 (Revenue Breakdown search and filters)
 
 - Added the DS02 PageToolbar to the Revenue Breakdown tab: search by event name plus a filter drawer with Status (Planned / Pending / Received / Overdue) and Expected date (Overdue / This month / Next 30 days) groups; Add revenue line sits as the trailing CTA.

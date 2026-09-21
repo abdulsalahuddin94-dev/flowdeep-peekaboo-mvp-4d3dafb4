@@ -2727,32 +2727,48 @@ function FinancialsTab({
   const costIdxMap = useMemo(() => filteredCost.map((x) => x.i), [filteredCost]);
   const costRows = useMemo(() => filteredCost.map((x) => x.e), [filteredCost]);
 
-  /* Revenue breakdown search (by event name) + filters (status, expected date). */
+  /* Revenue breakdown search (by event name) + filters (status, actual payment date range). */
   const [revQuery, setRevQuery] = useState("");
   const [revStatusFilter, setRevStatusFilter] = useState("all");
-  const [revDateFilter, setRevDateFilter] = useState("all");
+  const [revDateFilter, setRevDateFilter] = useState<{ from: string; to: string }>({ from: "", to: "" });
 
   const filteredRev = useMemo(() => {
     const q = revQuery.trim().toLowerCase();
-    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const { from, to } = revDateFilter;
+    const rangeActive = Boolean(from || to);
     return displayRev
       .map((e, i) => ({ e, i }))
       .filter(({ e }) => {
         if (q && !(e.evt ?? "").toLowerCase().includes(q)) return false;
         if (revStatusFilter !== "all" && e.sl !== revStatusFilter) return false;
-        if (revDateFilter !== "all") {
-          const dt = new Date(revDate(e));
-          if (Number.isNaN(dt.getTime())) return false;
-          if (revDateFilter === "overdue" && dt >= today) return false;
-          if (revDateFilter === "month" && (dt.getFullYear() !== today.getFullYear() || dt.getMonth() !== today.getMonth())) return false;
-          if (revDateFilter === "next30") {
-            const limit = new Date(today); limit.setDate(limit.getDate() + 30);
-            if (dt < today || dt > limit) return false;
-          }
+        if (rangeActive) {
+          const parseActualDate = (raw: string): Date | null => {
+            /* Legacy display strings like "May 02" carry no year — assume the current one.
+             * Checked first: new Date("May 02") parses as year 2001 in some engines. */
+            const m = /^([A-Za-z]{3,})\s+(\d{1,2})$/.exec(raw.trim());
+            if (m) {
+              const d = new Date(`${m[1]} ${m[2]}, ${new Date().getFullYear()}`);
+              return Number.isNaN(d.getTime()) ? null : d;
+            }
+            const iso = new Date(raw);
+            return Number.isNaN(iso.getTime()) ? null : iso;
+          };
+          const actualDates = (e.actuals ?? (e.act != null ? [{ amount: e.act, date: e.date }] : []))
+            .map((a) => parseActualDate(a.date))
+            .filter((d): d is Date => d !== null);
+          const inRange = actualDates.some((d) => {
+            if (from && d < new Date(from)) return false;
+            if (to) {
+              const end = new Date(to); end.setHours(23, 59, 59, 999);
+              if (d > end) return false;
+            }
+            return true;
+          });
+          if (!inRange) return false;
         }
         return true;
       });
-  }, [displayRev, revQuery, revStatusFilter, revDateFilter, revDate]);
+  }, [displayRev, revQuery, revStatusFilter, revDateFilter]);
 
   const revIdxMap = useMemo(() => filteredRev.map((x) => x.i), [filteredRev]);
   const revRows = useMemo(() => filteredRev.map((x) => x.e), [filteredRev]);
@@ -2902,15 +2918,10 @@ function FinancialsTab({
                   },
                   {
                     key: "date",
-                    label: "Expected date",
+                    label: "Actual date",
+                    mode: "daterange",
                     value: revDateFilter,
                     onChange: setRevDateFilter,
-                    options: [
-                      { value: "all", label: "All dates" },
-                      { value: "overdue", label: "Overdue" },
-                      { value: "month", label: "This month" },
-                      { value: "next30", label: "Next 30 days" },
-                    ],
                   },
                 ]}
                 trailing={canEdit ? addLinkDialog("revenue") : undefined}

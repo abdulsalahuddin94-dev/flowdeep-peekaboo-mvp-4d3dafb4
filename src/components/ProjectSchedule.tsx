@@ -1141,7 +1141,7 @@ export function ProjectSchedule({
                       : "Locked until all tasks reach 100%";
                 const isFlashing = flashRow === item.name;
                 return (
-                  <div key={item.name} data-row-name={item.name} className={`flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
+                  <div key={item.name} data-row-name={item.name} className={`group flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
                     <div className="flex items-center gap-1 overflow-hidden px-3" style={{ width: nameW, paddingLeft: 12 + depth * 14 }}>
                       {hasChildren ? (
                         <button

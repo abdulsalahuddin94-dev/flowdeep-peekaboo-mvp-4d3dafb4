@@ -663,9 +663,9 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
             {list.length === 0 && <EmptyRow colSpan={project ? 10 : 11} />}
             {pagination.pageItems.map((i) => (
               <StyledTableRow key={i.id}>
-                {!project && <StyledTableCell className="text-muted-foreground">{i.project}</StyledTableCell>}
-                <StyledTableCell className="font-medium text-foreground">{i.title}</StyledTableCell>
-                <StyledTableCell className="max-w-[180px] truncate text-muted-foreground" title={riskTitle(i.riskId) || undefined}>
+                {!project && <StyledTableCell className="max-w-[140px] truncate text-muted-foreground" title={i.project}>{i.project}</StyledTableCell>}
+                <StyledTableCell className="max-w-[220px] truncate font-medium text-foreground" title={i.title}>{i.title}</StyledTableCell>
+                <StyledTableCell className="max-w-[140px] truncate text-muted-foreground" title={riskTitle(i.riskId) || undefined}>
                   {i.riskId ? riskTitle(i.riskId) : "—"}
                 </StyledTableCell>
                 <StyledTableCell className="text-center"><Pill label={i.priority} tone={PRIORITY_TONE[i.priority]} /></StyledTableCell>
@@ -674,7 +674,7 @@ export function IssuesLogTab({ project, milestoneOptions }: { project?: string; 
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.targetDate)}</StyledTableCell>
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.closureDate)}</StyledTableCell>
                 <StyledTableCell className="text-center"><Pill label={i.status} tone={ISSUE_STATUS_TONE[i.status]} /></StyledTableCell>
-                <StyledTableCell className="max-w-[200px] truncate text-muted-foreground" title={i.action || undefined}>
+                <StyledTableCell className="max-w-[160px] truncate text-muted-foreground" title={i.action || undefined}>
                   {i.action || "—"}
                 </StyledTableCell>
                 <StyledTableCell>

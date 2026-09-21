@@ -1,3 +1,8 @@
+## Session — 2026-09-21 (Hide Heat Map from project Risk & Issues)
+
+- Removed the "Heat Map" sub-tab from the project detail Risk & Issues tab; the project tab now shows only Risk Register and Issues Log (2-column segmented control).
+- Heat Map remains available in the standalone Risk & Issues module.
+- Removed now-unused RiskHeatmapTab import and LayoutGrid icon import from portfolio.$projectId.tsx.
 ## Session — 2026-09-21 (Risk & Issues row interactions and issue form alignment)
 
 - Removed the Issue View action and made the full Issue row open its details drawer, matching Risk rows.

@@ -2922,9 +2922,10 @@ function FinancialsTab({
                 dateOf={revDate}
                 totals={revTotals}
                 onMilestoneClick={onMilestoneClick}
-                onSave={(idx, patch) => setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e))}
-                onDelete={(idx) => setRevEntries((prev) => prev.filter((_, i) => i !== idx))}
-                onAddActual={(idx, actual) =>
+                onSave={(rowIdx, patch) => { const idx = revIdxMap[rowIdx]; setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e)); }}
+                onDelete={(rowIdx) => { const idx = revIdxMap[rowIdx]; setRevEntries((prev) => prev.filter((_, i) => i !== idx)); }}
+                onAddActual={(rowIdx, actual) => {
+                  const idx = revIdxMap[rowIdx];
                   setRevEntries((prev) =>
                     prev.map((e, i) => {
                       if (i !== idx) return e;
@@ -2934,9 +2935,10 @@ function FinancialsTab({
                       const status = collected >= 1 ? REV_STATUSES[2] : REV_STATUSES[1];
                       return { ...e, actuals, act: total, s: status.s, sl: status.sl };
                     }),
-                  )
-                }
-                onEditActual={(idx, actualIdx, patch) =>
+                  );
+                }}
+                onEditActual={(rowIdx, actualIdx, patch) => {
+                  const idx = revIdxMap[rowIdx];
                   setRevEntries((prev) =>
                     prev.map((e, i) => {
                       if (i !== idx) return e;
@@ -2947,9 +2949,10 @@ function FinancialsTab({
                       const status = collected >= 1 ? REV_STATUSES[2] : REV_STATUSES[1];
                       return { ...e, actuals: updated, act: total, s: status.s, sl: status.sl };
                     }),
-                  )
-                }
-                onDeleteActual={(idx, actualIdx) =>
+                  );
+                }}
+                onDeleteActual={(rowIdx, actualIdx) => {
+                  const idx = revIdxMap[rowIdx];
                   setRevEntries((prev) =>
                     prev.map((e, i) => {
                       if (i !== idx) return e;

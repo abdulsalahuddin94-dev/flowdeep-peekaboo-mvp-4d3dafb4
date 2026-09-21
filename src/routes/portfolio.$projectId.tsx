@@ -2727,6 +2727,36 @@ function FinancialsTab({
   const costIdxMap = useMemo(() => filteredCost.map((x) => x.i), [filteredCost]);
   const costRows = useMemo(() => filteredCost.map((x) => x.e), [filteredCost]);
 
+  /* Revenue breakdown search (by event name) + filters (status, expected date). */
+  const [revQuery, setRevQuery] = useState("");
+  const [revStatusFilter, setRevStatusFilter] = useState("all");
+  const [revDateFilter, setRevDateFilter] = useState("all");
+
+  const filteredRev = useMemo(() => {
+    const q = revQuery.trim().toLowerCase();
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return displayRev
+      .map((e, i) => ({ e, i }))
+      .filter(({ e }) => {
+        if (q && !(e.evt ?? "").toLowerCase().includes(q)) return false;
+        if (revStatusFilter !== "all" && e.sl !== revStatusFilter) return false;
+        if (revDateFilter !== "all") {
+          const dt = new Date(revDate(e));
+          if (Number.isNaN(dt.getTime())) return false;
+          if (revDateFilter === "overdue" && dt >= today) return false;
+          if (revDateFilter === "month" && (dt.getFullYear() !== today.getFullYear() || dt.getMonth() !== today.getMonth())) return false;
+          if (revDateFilter === "next30") {
+            const limit = new Date(today); limit.setDate(limit.getDate() + 30);
+            if (dt < today || dt > limit) return false;
+          }
+        }
+        return true;
+      });
+  }, [displayRev, revQuery, revStatusFilter, revDateFilter, revDate]);
+
+  const revIdxMap = useMemo(() => filteredRev.map((x) => x.i), [filteredRev]);
+  const revRows = useMemo(() => filteredRev.map((x) => x.e), [filteredRev]);
+
   const addLinkDialog = (kind: "cost" | "revenue") => (
     <AddFinanceLinkDialog
       milestoneNames={milestoneNames}

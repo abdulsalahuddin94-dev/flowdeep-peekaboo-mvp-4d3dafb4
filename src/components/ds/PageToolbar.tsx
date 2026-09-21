@@ -384,6 +384,9 @@ export function PageToolbar({
                               const next = current.filter((v) => v !== c.removeValue);
                               return { ...d, [c.group.key]: next };
                             }
+                            if (isDateRangeGroup(c.group)) {
+                              return { ...d, [c.group.key]: { from: "", to: "" } };
+                            }
                             return { ...d, [c.group.key]: groupFirstValue(c.group) };
                           })}
                           className="text-muted-foreground hover:text-foreground"

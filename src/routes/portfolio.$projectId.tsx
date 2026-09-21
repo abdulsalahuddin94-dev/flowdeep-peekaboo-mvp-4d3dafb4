@@ -38,6 +38,8 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { EmptyState } from "@/components/ds/EmptyState";
+import { PageToolbar } from "@/components/ds/PageToolbar";
+import { capexOpexGroup } from "@/components/ds/filters";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress, depLag, depLabel } from "@/components/ProjectSchedule";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -2694,6 +2696,37 @@ function FinancialsTab({
 
   const costCategoryNames = useMemo(() => DEFAULT_COST_CATEGORIES.map((c) => c.name), []);
 
+  /* Cost breakdown search (by cost line name) + filters (category, CapEx/OpEx). */
+  const [costQuery, setCostQuery] = useState("");
+  const [costCatFilter, setCostCatFilter] = useState<string[]>([]);
+  const [costTypeFilter, setCostTypeFilter] = useState("all");
+
+  const costCatOptions = useMemo(() => {
+    const present = displayCost.map((e) => e.cat ?? e.c).filter(Boolean) as string[];
+    return Array.from(new Set([...costCategoryNames, ...present]));
+  }, [costCategoryNames, displayCost]);
+
+  /** Keep the original index so row actions still patch the right entry while filtered. */
+  const filteredCost = useMemo(() => {
+    const q = costQuery.trim().toLowerCase();
+    return displayCost
+      .map((e, i) => ({ e, i }))
+      .filter(({ e }) => {
+        const name = (e.desc ?? e.c ?? "").toLowerCase();
+        if (q && !name.includes(q)) return false;
+        const cat = e.cat ?? e.c ?? "";
+        if (costCatFilter.length > 0 && !costCatFilter.includes(cat)) return false;
+        if (costTypeFilter !== "all") {
+          const type = e.classification === "capex" ? "CapEx" : "OpEx";
+          if (type !== costTypeFilter) return false;
+        }
+        return true;
+      });
+  }, [displayCost, costQuery, costCatFilter, costTypeFilter]);
+
+  const costIdxMap = useMemo(() => filteredCost.map((x) => x.i), [filteredCost]);
+  const costRows = useMemo(() => filteredCost.map((x) => x.e), [filteredCost]);
+
   const addLinkDialog = (kind: "cost" | "revenue") => (
     <AddFinanceLinkDialog
       milestoneNames={milestoneNames}
@@ -2743,30 +2776,45 @@ function FinancialsTab({
           </div>
 
           <div>
-            <div className="mb-2 flex items-center justify-between">
-              <div className="label-eyebrow">Cost breakdown</div>
-              {canEdit && addLinkDialog("cost")}
-            </div>
+            <PageToolbar
+              query={costQuery}
+              onQueryChange={setCostQuery}
+              placeholder="Search Cost line name…"
+              filterGroups={[
+                {
+                  key: "category",
+                  label: "Categories",
+                  mode: "multi",
+                  value: costCatFilter,
+                  onChange: setCostCatFilter,
+                  options: [{ value: "all", label: "All categories" }, ...costCatOptions.map((c) => ({ value: c, label: c }))],
+                },
+                capexOpexGroup(costTypeFilter, setCostTypeFilter),
+              ]}
+              trailing={canEdit ? addLinkDialog("cost") : undefined}
+            />
             <CostBreakdownTable
-              entries={displayCost}
+              entries={costRows}
               canEdit={canEdit}
               categories={costCategoryNames}
               milestoneNames={milestoneNames}
               dateOf={costDate}
               totals={costTotals}
               onMilestoneClick={onMilestoneClick}
-              onSave={(idx, patch) => setCostEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e)))}
-              onDelete={(idx) => setCostEntries((prev) => prev.filter((_, i) => i !== idx))}
-              onAddActual={(idx, actual) =>
+              onSave={(rowIdx, patch) => { const idx = costIdxMap[rowIdx]; setCostEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e))); }}
+              onDelete={(rowIdx) => { const idx = costIdxMap[rowIdx]; setCostEntries((prev) => prev.filter((_, i) => i !== idx)); }}
+              onAddActual={(rowIdx, actual) => {
+                const idx = costIdxMap[rowIdx];
                 setCostEntries((prev) =>
                   prev.map((e, i) => {
                     if (i !== idx) return e;
                     const actuals = [...(e.actuals ?? (e.a > 0 ? [{ amount: e.a, date: "—", note: "Opening actual" }] : [])), actual];
                     return { ...e, actuals, a: actuals.reduce((s, x) => s + x.amount, 0) };
                   }),
-                )
-              }
-              onEditActual={(idx, actualIdx, patch) =>
+                );
+              }}
+              onEditActual={(rowIdx, actualIdx, patch) => {
+                const idx = costIdxMap[rowIdx];
                 setCostEntries((prev) =>
                   prev.map((e, i) => {
                     if (i !== idx) return e;
@@ -2774,9 +2822,10 @@ function FinancialsTab({
                     const updated = actuals.map((a, ai) => (ai === actualIdx ? { ...a, ...patch } : a));
                     return { ...e, actuals: updated, a: updated.reduce((s, x) => s + x.amount, 0) };
                   }),
-                )
-              }
-              onDeleteActual={(idx, actualIdx) =>
+                );
+              }}
+              onDeleteActual={(rowIdx, actualIdx) => {
+                const idx = costIdxMap[rowIdx];
                 setCostEntries((prev) =>
                   prev.map((e, i) => {
                     if (i !== idx) return e;
@@ -2784,8 +2833,8 @@ function FinancialsTab({
                     const updated = actuals.filter((_, ai) => ai !== actualIdx);
                     return { ...e, actuals: updated, a: updated.reduce((s, x) => s + x.amount, 0) };
                   }),
-                )
-              }
+                );
+              }}
             />
           </div>
         </div>

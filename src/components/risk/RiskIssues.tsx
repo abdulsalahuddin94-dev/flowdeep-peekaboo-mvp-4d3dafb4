@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { EmptyRegion } from "@/lib/empty-preview";
 import { TableRowActions } from "@/components/TableRowActions";
@@ -273,6 +273,21 @@ function RiskFormDialog({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const score = Number(prob) * Number(impact);
+  const [scoreResult, setScoreResult] = useState<number | null>(null);
+  const [scoreLoading, setScoreLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    setScoreLoading(true);
+    setScoreResult(null);
+    const request = window.setTimeout(() => {
+      setScoreResult(score);
+      setScoreLoading(false);
+    }, 700);
+
+    return () => window.clearTimeout(request);
+  }, [open, score]);
 
   function submit() {
     const next: Record<string, string> = {};
@@ -300,6 +315,7 @@ function RiskFormDialog({
       description={risk ? "Update this risk's classification, scoring and mitigation plan." : "Record a potential event, assess its likelihood and impact, and define an optional mitigation plan."}
       size="lg"
       submitLabel={risk ? "Save Changes" : "Log Risk"}
+      submitDisabled={scoreLoading}
       onSubmit={submit}
     >
       {!lockedProject && (
@@ -361,9 +377,22 @@ function RiskFormDialog({
           </Select>
         </Field>
         <Field label="Score" hint="Probability × Impact">
-          <div className="flex h-9 items-center gap-2 rounded-md border border-border bg-[var(--field-bg-filled)] px-3">
-            <span className="num-mono text-sm text-foreground">{score}</span>
-            <Pill label={severityOf(score)} tone={SEVERITY_TONE[severityOf(score)]} />
+          <div
+            className="flex h-9 items-center gap-2 rounded-md border border-border bg-[var(--field-bg-filled)] px-3"
+            aria-live="polite"
+            aria-busy={scoreLoading}
+          >
+            {scoreLoading || scoreResult === null ? (
+              <span role="status" className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-accent" aria-hidden="true" />
+                Calculating…
+              </span>
+            ) : (
+              <>
+                <span className="num-mono text-sm text-foreground">{scoreResult}</span>
+                <Pill label={severityOf(scoreResult)} tone={SEVERITY_TONE[severityOf(scoreResult)]} />
+              </>
+            )}
           </div>
         </Field>
         <Field label="Status" htmlFor="risk-status" className="lg:col-span-3">

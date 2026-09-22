@@ -212,11 +212,17 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
                   <StyledTableCell><Badge variant="outline" className={PRIORITY_STYLE[req.priority]}>{req.priority}</Badge></StyledTableCell>
                   <StyledTableCell><div>{req.submittedBy}</div><div className="text-xs text-muted-foreground">{/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date}</div></StyledTableCell>
                   <StyledTableCell onClick={(e) => e.stopPropagation()}>
-                    <TableRowActions
-                      alwaysVisible={false}
-                      statusNode={<Badge variant="outline" className={statusTone(req.status)}>{req.status}</Badge>}
-                      extraActions={req.status === "Pending" ? <><FulfillDialog req={req} pool={pool} onFulfill={onFulfill} compact /><DeclineDialog req={req} onDecline={onDecline} compact /></> : undefined}
-                    />
+                    {req.status === "Pending" ? (
+                      <TableRowActions
+                        alwaysVisible={false}
+                        statusNode={<Badge variant="outline" className={statusTone(req.status)}>{req.status}</Badge>}
+                        extraActions={<><FulfillDialog req={req} pool={pool} onFulfill={onFulfill} compact /><DeclineDialog req={req} onDecline={onDecline} compact /></>}
+                      />
+                    ) : (
+                      <div className="flex h-9 items-center justify-center">
+                        <Badge variant="outline" className={statusTone(req.status)}>{req.status}</Badge>
+                      </div>
+                    )}
                   </StyledTableCell>
                 </StyledTableRow>
               ))}

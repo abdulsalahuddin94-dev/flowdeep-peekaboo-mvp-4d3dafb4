@@ -1,3 +1,10 @@
+## 2026-09-22 — Design System: Modal vs Drawer decision rule documented
+
+- Added the official overlay-container decision rule to the root `DESIGN.md` (new "Overlays — Modal vs Drawer Decision Rule" section under Shared Rules) and bumped `DS02/DESIGN.md` to v3.6.
+- Rule: choose container by task type, not habit — Modal for short decisive tasks that must block context; Drawer for rich read/edit detail that keeps the source list visible.
+- Establishes system consistency as consistency of task type, not container shape (Calendar Add Event modal vs Risk view drawer are not inconsistent).
+- Documentation-only change; no code or behavior modified.
+
 ## 2026-09-22 — Resources module DS02 alignment
 
 - Rebuilt all Resources subpages around the shared DS02 hierarchy: page title/actions, KPI strip, toolbar, data table, and pagination.

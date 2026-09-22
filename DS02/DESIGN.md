@@ -147,6 +147,11 @@ Theme controlled via `data-theme` attribute on `<html>`:
 
 ## 8. Changelog
 
+### DS02.v3.6 (2026-09-22)
+**Interaction Rule — Modal vs Drawer Decision Rule**
+- Documented the official overlay-container decision rule (see root `DESIGN.md` → "Overlays — Modal vs Drawer Decision Rule"): choose container by task type, not habit. Modal = short decisive task that must block context; Drawer = rich read/edit detail that keeps the source list visible.
+- Establishes system consistency as consistency of task type, not container shape (Calendar Add Event modal vs Risk view drawer are not inconsistent).
+
 ### DS02.v3.5 (2026-07-26)
 **Documentation Update — Live Standards Sync**
 - Updated Shadow values for Dark mode

@@ -488,6 +488,52 @@ Sidebar (240px, collapsible to 44px) + Topbar (48px) + main (px-10 py-8)
 </Tabs>
 ```
 
+## Overlays — Modal vs Drawer Decision Rule
+
+**Rule:** choose the overlay container by the *nature of the task*, not by visual
+habit. Consistency across the product comes from matching the container to the
+task type — two surfaces doing the same kind of job must use the same container.
+This rule applies in every design system and over the Components detail below.
+
+### Use a Modal (centered popup) when
+
+- The task is **short and decisive**: one decision or a compact form the user must
+  complete before continuing.
+- It should **interrupt the full context** on purpose.
+- Content fits without scrolling alongside the originating list.
+- It commits or cancels a single atomic action.
+
+**Examples:** `ConfirmDialog` (delete / acknowledge), `FormDialog` quick-adds
+(Cost Category, Job Role, Department), Calendar event create / edit, approval
+prompts.
+
+### Use a Drawer (side panel) when
+
+- The task is **reading or editing rich detail** that benefits from keeping the
+  source list visible.
+- Content is large or multi-section and would crowd a modal.
+- The user moves between the list and the detail repeatedly.
+- Reading the detail does not require blocking the whole screen.
+
+**Examples:** Risk view, Issue view, resource request detail, filter side drawer,
+record detail panels.
+
+### Decision test
+
+1. One decision / short form, must block everything else → **Modal**.
+2. Rich detail, keep the list in view, read-and-act → **Drawer**.
+
+### Consistency note
+
+A Calendar "Add Event" modal and a Risk "view detail" drawer are *not*
+inconsistent — they serve different task types. True system consistency is
+consistency of **task type**, not of container shape. When in doubt, ask "what
+kind of task is this?" and pick the container for that task type.
+
+> **Reuse:** confirmation → `ConfirmDialog`; form / content popup → `FormDialog`;
+> rich read / edit detail → right side `Sheet` drawer (480px, see Filter Side
+> Drawer for the shared close affordance and surface tokens).
+
 ## Components
 
 ### Buttons

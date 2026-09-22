@@ -44,6 +44,7 @@ import { capexOpexGroup } from "@/components/ds/filters";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress, depLag, depLabel } from "@/components/ProjectSchedule";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatDateForDisplay, formatDateWithYear } from "@/lib/date-format";
 import {
   useTabBaseline,
   BaselineHeader,
@@ -597,7 +598,7 @@ function ProjectDetail() {
                     <div className="flex flex-col leading-tight">
                       <span>Latest (v{projectBaselineVersions.length})</span>
                       <span className="text-[10px] text-muted-foreground">
-                        {projectBaselineVersions[projectBaselineVersions.length - 1]?.createdAt}
+                        {formatDateWithYear(projectBaselineVersions[projectBaselineVersions.length - 1]?.createdAt)}
                         {" · by "}
                         {versionAuthors[projectBaselineVersions.length] ?? "—"}
                       </span>
@@ -608,7 +609,7 @@ function ProjectDetail() {
                       <div className="flex flex-col leading-tight">
                         <span>v{v.version}</span>
                         <span className="text-[10px] text-muted-foreground">
-                          {v.createdAt} · by {versionAuthors[v.version] ?? "—"}
+                          {formatDateWithYear(v.createdAt)} · by {versionAuthors[v.version] ?? "—"}
                         </span>
                       </div>
                     </SelectItem>
@@ -830,7 +831,7 @@ function ProjectDetail() {
             <div className="text-xs text-muted-foreground">Timeline</div>
             <div className="flex flex-wrap items-baseline gap-2">
               <span className="num-mono text-sm font-medium text-accent">{durationDays != null ? `${durationDays}d` : "—"}</span>
-              <span className="num-mono text-[10px] text-muted-foreground">({project.startDate} → {project.endDate})</span>
+              <span className="num-mono text-[10px] text-muted-foreground">({formatDateWithYear(project.startDate)} → {formatDateWithYear(project.endDate)})</span>
             </div>
           </div>
 
@@ -1116,7 +1117,7 @@ function ProjectDetail() {
                     <div className="flex-1">
                       <div className="font-medium text-foreground">{cr.id} · {cr.summary}</div>
                       <div className="mt-1 text-xs text-muted-foreground">
-                        Submitted by {cr.submittedBy} · {cr.createdAt}
+                        Submitted by {cr.submittedBy} · {formatDateWithYear(cr.createdAt)}
                       </div>
                       {cr.changes && cr.changes.length > 0 && (
                         <div className="mt-2 text-xs">
@@ -1552,10 +1553,10 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
           <div className="glass-card p-5 space-y-3">
             <div className="label-eyebrow text-accent">Approval Record</div>
             {[
-              { role: "Executive Sponsor", name: "Ahmad Al-Farsi", date: approved ? "May 02, 2026" : "—", done: approved },
-              { role: "Portfolio Director", name: "Aisha Khoury",  date: approved ? "May 04, 2026" : "—", done: approved },
-              { role: "Project Manager",   name: project.pm,       date: approved ? "Apr 29, 2026" : "—", done: true },
-              { role: "Finance Manager",   name: "John Smith",     date: approved ? "May 04, 2026" : "—", done: approved },
+              { role: "Executive Sponsor", name: "Ahmad Al-Farsi", date: approved ? "02 May, 2026" : "—", done: approved },
+              { role: "Portfolio Director", name: "Aisha Khoury",  date: approved ? "04 May, 2026" : "—", done: approved },
+              { role: "Project Manager",   name: project.pm,       date: approved ? "29 Apr, 2026" : "—", done: true },
+              { role: "Finance Manager",   name: "John Smith",     date: approved ? "04 May, 2026" : "—", done: approved },
             ].map((a) => (
               <div key={a.role} className="flex items-center justify-between">
                 <div>
@@ -1563,7 +1564,7 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
                   <div className="text-xs text-muted-foreground">{a.role}</div>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="text-muted-foreground">{a.date}</span>
+                  <span className="text-muted-foreground">{formatDateWithYear(a.date)}</span>
                   <span className={`h-5 w-5 flex items-center justify-center rounded-full text-[10px] font-bold ${
                     a.done ? "bg-rag-green/10 text-rag-green" : "bg-rag-amber/10 text-rag-amber"
                   }`}>{a.done ? "✓" : "…"}</span>
@@ -1648,11 +1649,11 @@ function OverviewTab({
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Start Date:</span>
-              <span className="num-mono font-medium text-foreground">{project.startDate}</span>
+              <span className="num-mono font-medium text-foreground">{formatDateWithYear(project.startDate)}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">End Date:</span>
-              <span className="num-mono font-medium text-foreground">{project.endDate}</span>
+              <span className="num-mono font-medium text-foreground">{formatDateWithYear(project.endDate)}</span>
             </div>
           </div>
         </div>
@@ -1730,7 +1731,7 @@ function OverviewTab({
                   <span className={`h-2 w-2 rounded-full ${m.rag === "green" ? "bg-rag-green" : "bg-rag-amber"}`} />
                   <span className="text-sm font-medium text-foreground">{m.name}</span>
                 </div>
-                <span className="num-mono text-xs text-muted-foreground">{m.date}</span>
+                <span className="num-mono text-xs text-muted-foreground">{formatDateWithYear(m.date)}</span>
               </li>
             ))}
           </ul>
@@ -1918,12 +1919,12 @@ type TenderPackage = {
 };
 
 const SEED_PACKAGES: TenderPackage[] = [
-  { id: "PKG-001", scope: "Integration partner services", est: "$680K", status: "Awarded", rfp: "RFP-014", vendor: "Siemens MENA", contract: "CT-2026-038", awarded: "May 12" },
+  { id: "PKG-001", scope: "Integration partner services", est: "$680K", status: "Awarded", rfp: "RFP-014", vendor: "Siemens MENA", contract: "CT-2026-038", awarded: "12 May" },
   { id: "PKG-002", scope: "Cybersecurity audit & pen-test", est: "$140K", status: "Proposals Received", rfp: "RFP-015", proposals: [
     { vendor: "CyberShield Arabia", score: 88, value: "$135K" },
     { vendor: "SecureIT MENA", score: 74, value: "$142K" },
   ]},
-  { id: "PKG-003", scope: "Training services rollout", est: "$95K", status: "Sent for Tendering", rfp: "RFP-016", issued: "Jun 01", closes: "Jun 28" },
+  { id: "PKG-003", scope: "Training services rollout", est: "$95K", status: "Sent for Tendering", rfp: "RFP-016", issued: "01 Jun", closes: "28 Jun" },
   { id: "PKG-004", scope: "Managed support (1 year)", est: "$285K", status: "Draft" },
 ];
 
@@ -2250,8 +2251,8 @@ function ProgressUpdateDialog({
                   </CollapsibleTrigger>
                   <CollapsibleContent className="pt-2">
                     <dl className="grid grid-cols-2 gap-x-5 gap-y-2 text-[11px]">
-                      <div><dt className="text-muted-foreground">Start</dt><dd className="mt-0.5 text-foreground">{current.startDate}</dd></div>
-                      <div><dt className="text-muted-foreground">End</dt><dd className="mt-0.5 text-foreground">{current.endDate}</dd></div>
+                      <div><dt className="text-muted-foreground">Start</dt><dd className="mt-0.5 text-foreground">{formatDateWithYear(current.startDate)}</dd></div>
+                      <div><dt className="text-muted-foreground">End</dt><dd className="mt-0.5 text-foreground">{formatDateWithYear(current.endDate)}</dd></div>
                       <div><dt className="text-muted-foreground">Owner</dt><dd className="mt-0.5 truncate text-foreground">{current.owner || "—"}</dd></div>
                       <div><dt className="text-muted-foreground">Assignee</dt><dd className="mt-0.5 truncate text-foreground">{current.assignee || "—"}</dd></div>
                       {current.dep && <div><dt className="text-muted-foreground">Depends on</dt><dd className="mt-0.5 truncate text-foreground">{current.dep}</dd></div>}
@@ -2394,10 +2395,10 @@ function PlanVsActualBar({ actual, planned }: { actual: number; planned: number 
 // ── Business Trips tab ───────────────────────────────────────────────────────
 function BusinessTripsTab({ pm }: { pm: string }) {
   const [trips, setTrips] = useState<Trip[]>([
-    { id: "T-01", purpose: "Site survey", dest: "Dubai, UAE", dates: "Jun 12 – Jun 15", travelers: "Sara, Mei", cost: "$5.2K", rag: "green", status: "Completed" },
-    { id: "T-02", purpose: "Vendor workshop", dest: "Munich, DE", dates: "Jul 08 – Jul 11", travelers: "K. Bauer", cost: "$3.0K", rag: "green", status: "Completed" },
-    { id: "T-03", purpose: "User training", dest: "Riyadh, KSA", dates: "Aug 18 – Aug 22", travelers: "H. Tanaka, Priya, +2", cost: "$9.8K", rag: "amber", status: "Booked" },
-    { id: "T-04", purpose: "Go-live support", dest: "Doha, QA", dates: "Sep 14 – Sep 28", travelers: "John, Mei, +2", cost: "$6.5K", rag: "blue", status: "Planned" },
+    { id: "T-01", purpose: "Site survey", dest: "Dubai, UAE", dates: "12 Jun – 15 Jun", travelers: "Sara, Mei", cost: "$5.2K", rag: "green", status: "Completed" },
+    { id: "T-02", purpose: "Vendor workshop", dest: "Munich, DE", dates: "08 Jul – 11 Jul", travelers: "K. Bauer", cost: "$3.0K", rag: "green", status: "Completed" },
+    { id: "T-03", purpose: "User training", dest: "Riyadh, KSA", dates: "18 Aug – 22 Aug", travelers: "H. Tanaka, Priya, +2", cost: "$9.8K", rag: "amber", status: "Booked" },
+    { id: "T-04", purpose: "Go-live support", dest: "Doha, QA", dates: "14 Sep – 28 Sep", travelers: "John, Mei, +2", cost: "$6.5K", rag: "blue", status: "Planned" },
   ]);
   return (
     <div className="space-y-4">
@@ -2701,12 +2702,12 @@ function FinancialsTab({
     { c: "Contingency", cat: "Services", b: 0.60, a: 0.26, color: "bg-muted-foreground", desc: "Reserve", ctype: "internal", classification: "opex", linkKind: "fixed", linkRef: "" },
   ]);
   const [revEntries, setRevEntries] = useState<RevEntry[]>(isNew ? [] : [
-    { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "May 02",        s: "green", sl: "Received", act: 0.96, linkKind: "fixed",
-      actuals: [{ amount: 0.60, date: "May 02", note: "Invoice INV-0012" }, { amount: 0.36, date: "May 21", note: "Invoice INV-0018" }] },
-    { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "Jun 30",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "fixed",
-      actuals: [{ amount: 0.20, date: "Jul 04", note: "Partial settlement" }] },
+    { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "02 May",        s: "green", sl: "Received", act: 0.96, linkKind: "fixed",
+      actuals: [{ amount: 0.60, date: "02 May", note: "Invoice INV-0012" }, { amount: 0.36, date: "21 May", note: "Invoice INV-0018" }] },
+    { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "30 Jun",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "fixed",
+      actuals: [{ amount: 0.20, date: "04 Jul", note: "Partial settlement" }] },
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
-    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "Sep 14",        s: "blue",  sl: "Planned",  act: null, linkKind: "fixed" },
+    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "14 Sep",        s: "blue",  sl: "Planned",  act: null, linkKind: "fixed" },
   ]);
   // Editing is governed by the single project-level baseline (see the project header).
   const displayCost = costEntries;
@@ -2786,11 +2787,11 @@ function FinancialsTab({
         if (revStatusFilter !== "all" && e.sl !== revStatusFilter) return false;
         if (rangeActive) {
           const parseActualDate = (raw: string): Date | null => {
-            /* Legacy display strings like "May 02" carry no year — assume the current one.
-             * Checked first: new Date("May 02") parses as year 2001 in some engines. */
-            const m = /^([A-Za-z]{3,})\s+(\d{1,2})$/.exec(raw.trim());
+            /* Legacy display strings like "02 May" carry no year — assume the current one.
+             * Checked first: new Date("02 May") parses as year 2001 in some engines. */
+            const m = /^(\d{1,2})\s+([A-Za-z]{3,})$/.exec(raw.trim());
             if (m) {
-              const d = new Date(`${m[1]} ${m[2]}, ${new Date().getFullYear()}`);
+              const d = new Date(`${m[2]} ${m[1]}, ${new Date().getFullYear()}`);
               return Number.isNaN(d.getTime()) ? null : d;
             }
             const iso = new Date(raw);
@@ -3117,7 +3118,7 @@ function RevenuePlanTable({
                     <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
                   )}
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{dateOf(r)}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{formatDateForDisplay(dateOf(r))}</TableCell>
                 <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                   {/* Logging an actual stays available after baseline lock; re-planning does not. */}
                   <TableRowActions
@@ -3152,7 +3153,7 @@ function RevenuePlanTable({
                             <span className="text-foreground">
                               {a.name ?? "Actual payment"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
                             </span>
-                            <span>{a.date || "—"}</span>
+                            <span>{formatDateForDisplay(a.date)}</span>
                             <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
                             <span className="flex justify-end">
                               {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
@@ -3339,7 +3340,7 @@ function CostBreakdownTable({
                     <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
                   )}
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{dateOf(e)}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{formatDateForDisplay(dateOf(e))}</TableCell>
 
                 <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                   {/* Logging an actual expense stays available after baseline lock; re-planning does not. */}
@@ -3375,7 +3376,7 @@ function CostBreakdownTable({
                             <span className="text-foreground">
                               {a.name ?? "Actual spend"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
                             </span>
-                            <span>{a.date || "—"}</span>
+                            <span>{formatDateForDisplay(a.date)}</span>
                             <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
                             <span className="flex justify-end">
                               {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
@@ -4579,7 +4580,7 @@ function LogTripDialog({ onAdd, teamMembers }: { onAdd: (t: Omit<Trip, "id">) =>
           <div><Label>Purpose</Label><Input value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="e.g. Vendor workshop" /></div>
           <div><Label>Destination</Label><Input value={dest} onChange={(e) => setDest(e.target.value)} placeholder="e.g. Munich, DE" /></div>
           <div className="grid grid-cols-2 gap-2">
-            <div><Label>Dates</Label><Input value={dates} onChange={(e) => setDates(e.target.value)} placeholder="Jul 08 – Jul 11" /></div>
+            <div><Label>Dates</Label><Input value={dates} onChange={(e) => setDates(e.target.value)} placeholder="08 Jul – 11 Jul" /></div>
             <div><Label>Est. Cost</Label><Input value={cost} onChange={(e) => setCost(e.target.value)} placeholder="$3.0K" /></div>
           </div>
           <div>
@@ -4844,13 +4845,13 @@ function StatusReportsTab({
 // ── Procurement (project) tab ─────────────────────────────────────────────────
 function ProcurementProjectTab({ projectName, addRfp }: { projectName: string; addRfp: (r: RfpEntry) => void }) {
   const contracts = [
-    { id: "CT-2026-038", vendor: "Oracle Consulting", value: "$680K", end: "Dec 12", rag: "green" as Rag, status: "Active" },
-    { id: "CT-2026-029", vendor: "Cyberguard", value: "$140K", end: "Sep 30", rag: "green" as Rag, status: "Active" },
-    { id: "CT-2026-031", vendor: "LearnSphere", value: "$95K", end: "Aug 25", rag: "amber" as Rag, status: "Expiring" },
+    { id: "CT-2026-038", vendor: "Oracle Consulting", value: "$680K", end: "12 Dec", rag: "green" as Rag, status: "Active" },
+    { id: "CT-2026-029", vendor: "Cyberguard", value: "$140K", end: "30 Sep", rag: "green" as Rag, status: "Active" },
+    { id: "CT-2026-031", vendor: "LearnSphere", value: "$95K", end: "25 Aug", rag: "amber" as Rag, status: "Expiring" },
   ];
   const rfps = [
-    { id: "RFP-014", title: "Robotics Integration Partner", type: "RFP", due: "Jun 28", bidders: 4, rag: "amber" as Rag, status: "Open" },
-    { id: "RFP-016", title: "Training services rollout", type: "RFP", due: "Jul 12", bidders: 2, rag: "amber" as Rag, status: "Open" },
+    { id: "RFP-014", title: "Robotics Integration Partner", type: "RFP", due: "28 Jun", bidders: 4, rag: "amber" as Rag, status: "Open" },
+    { id: "RFP-016", title: "Training services rollout", type: "RFP", due: "12 Jul", bidders: 2, rag: "amber" as Rag, status: "Open" },
   ];
 
   const [packages, setPackages] = useState<TenderPackage[]>(SEED_PACKAGES);
@@ -5681,7 +5682,7 @@ function AddRevenueDialog({ onAdd }: { onAdd: (e: RevEntry) => void }) {
           <div><Label>Revenue event</Label><Input value={evt} onChange={(e) => setEvt(e.target.value)} placeholder="e.g. Progress invoice (15%)" /></div>
           <div className="grid grid-cols-2 gap-2">
             <div><Label>Planned ($M)</Label><Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} placeholder="0.50" /></div>
-            <div><Label>Expected date</Label><Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="Oct 30" /></div>
+            <div><Label>Expected date</Label><Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="30 Oct" /></div>
           </div>
         </div>
         <DialogFooter>
@@ -5847,12 +5848,12 @@ const LESSON_CAT_STYLE: Record<string, string> = {
 
 function LessonsTab({ project }: { project: typeof projects[number] }) {
   const [items, setItems] = useState<Lesson[]>([
-    { tag: "What Went Well", text: "Early stakeholder alignment on scope prevented scope creep.", by: project.pm, when: "May 20" },
-    { tag: "Challenges", text: "Vendor delivery delay on Oracle ERP — impacted integration milestone by 2 weeks.", by: "Mei Chen", when: "May 18" },
-    { tag: "Recommendations", text: "Run UAT in parallel with integration build on future projects — saves 1 sprint.", by: "Priya Iyer", when: "May 15" },
-    { tag: "Process", text: "Earlier vendor SLA reviews surface delays sooner.", by: project.pm, when: "May 14" },
-    { tag: "People", text: "Pair architect with junior dev for knowledge transfer.", by: "Mei Chen", when: "May 11" },
-    { tag: "Governance", text: "Bi-weekly steering tempo too slow for critical phase.", by: project.pm, when: "May 09" },
+    { tag: "What Went Well", text: "Early stakeholder alignment on scope prevented scope creep.", by: project.pm, when: "20 May" },
+    { tag: "Challenges", text: "Vendor delivery delay on Oracle ERP — impacted integration milestone by 2 weeks.", by: "Mei Chen", when: "18 May" },
+    { tag: "Recommendations", text: "Run UAT in parallel with integration build on future projects — saves 1 sprint.", by: "Priya Iyer", when: "15 May" },
+    { tag: "Process", text: "Earlier vendor SLA reviews surface delays sooner.", by: project.pm, when: "14 May" },
+    { tag: "People", text: "Pair architect with junior dev for knowledge transfer.", by: "Mei Chen", when: "11 May" },
+    { tag: "Governance", text: "Bi-weekly steering tempo too slow for critical phase.", by: project.pm, when: "09 May" },
   ]);
   const [open, setOpen] = useState(false);
   const [tag, setTag] = useState<LessonCat>("What Went Well");
@@ -6347,7 +6348,7 @@ function ChangeRequestApprovalDialog({
           </div>
 
           <div className="text-xs text-muted-foreground">
-            Submitted by {changeRequest.submittedBy} on {changeRequest.createdAt}
+            Submitted by {changeRequest.submittedBy} on {formatDateWithYear(changeRequest.createdAt)}
           </div>
 
           {mode === "review" && (

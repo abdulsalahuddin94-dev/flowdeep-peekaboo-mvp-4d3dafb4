@@ -27,6 +27,7 @@ import { useResourceRequests } from "@/lib/projects-store";
 import type { ResourceRequest } from "@/lib/projects-store";
 import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck } from "@/lib/icons";
 import { toast } from "@/lib/toast";
+import { formatDateWithYear } from "@/lib/date-format";
 
 export const Route = createFileRoute("/resources")({
   component: ResourcesPage,
@@ -192,7 +193,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
                   <StyledTableCell className="num-mono">{req.fte}</StyledTableCell>
                   <StyledTableCell className="num-mono text-xs text-muted-foreground">{req.from} → {req.until}</StyledTableCell>
                   <StyledTableCell><Badge variant="outline" className={PRIORITY_STYLE[req.priority]}>{req.priority}</Badge></StyledTableCell>
-                  <StyledTableCell><div>{req.submittedBy}</div><div className="text-xs text-muted-foreground">{req.date}</div></StyledTableCell>
+                  <StyledTableCell><div>{req.submittedBy}</div><div className="text-xs text-muted-foreground">{/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date}</div></StyledTableCell>
                   <StyledTableCell>
                     <TableRowActions
                       alwaysVisible={false}

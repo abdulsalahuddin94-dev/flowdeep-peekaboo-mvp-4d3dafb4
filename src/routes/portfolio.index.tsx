@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { formatDateWithYear } from "@/lib/date-format";
 
 export const Route = createFileRoute("/portfolio/")({
   component: PortfolioPage,
@@ -404,8 +405,8 @@ function ProjectGrid({
             <Progress value={p.progress} className="h-1.5" />
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-            <div><div className="label-eyebrow">Start</div><div className="text-foreground">{p.startDate}</div></div>
-            <div><div className="label-eyebrow">End</div><div className="text-foreground">{p.endDate}</div></div>
+            <div><div className="label-eyebrow">Start</div><div className="text-foreground">{formatDateWithYear(p.startDate)}</div></div>
+            <div><div className="label-eyebrow">End</div><div className="text-foreground">{formatDateWithYear(p.endDate)}</div></div>
           </div>
           <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
             <div><div className="label-eyebrow">Budget</div><div className="num-mono text-foreground">${p.budgetUsed.toFixed(1)}M / ${p.budgetTotal.toFixed(1)}M</div></div>
@@ -468,7 +469,7 @@ function ProjectListView({ items, onOpen, onEdit, pendingByProject }: { items: P
               <TableCell className="text-muted-foreground">{p.department.join(" · ")}</TableCell>
               <TableCell className="w-40"><div className="flex items-center gap-2"><Progress value={p.progress} className="h-1.5" /><span className="num-mono text-xs">{p.progress}%</span></div></TableCell>
               <TableCell className="num-mono text-xs">${p.budgetUsed.toFixed(1)}/${p.budgetTotal.toFixed(1)}M</TableCell>
-              <TableCell className="text-xs text-muted-foreground">{p.endDate}</TableCell>
+              <TableCell className="text-xs text-muted-foreground">{formatDateWithYear(p.endDate)}</TableCell>
               <TableCell className="text-xs">{p.risks + p.issues}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <TableRowActions onEdit={onEdit ? () => onEdit(p) : undefined} />
@@ -584,7 +585,7 @@ function ProjectSlideOver({ project, onClose }: { project: Project | null; onClo
               <div className="label-eyebrow mb-2">Next milestone</div>
               <div className="rounded-md border border-border bg-background/30 p-3 text-sm">
                 <div className="text-foreground">UAT Sign-off</div>
-                <div className="text-xs text-muted-foreground">Due {project.endDate} · ⏳ 18 days remaining</div>
+                <div className="text-xs text-muted-foreground">Due {formatDateWithYear(project.endDate)} · ⏳ 18 days remaining</div>
               </div>
             </div>
 
@@ -611,9 +612,9 @@ function ArchivedTab() {
         </TableRow></TableHeader>
         <TableBody>
           {[
-            { n: "Tablet Rollout 2025", bl: "Software", pm: "Mei Chen", c: "Dec 2025", r: "green" as const, b: "+2%", o: "Closed — success" },
-            { n: "North Site Upgrade", bl: "EPC", pm: "John Smith", c: "Oct 2025", r: "amber" as const, b: "+11%", o: "Closed — partial" },
-            { n: "POS Modernization", bl: "Software", pm: "Priya Iyer", c: "Aug 2025", r: "red" as const, b: "+24%", o: "Cancelled" },
+            { n: "Tablet Rollout 2025", bl: "Software", pm: "Mei Chen", c: "20 Dec25", r: "green" as const, b: "+2%", o: "Closed — success" },
+            { n: "North Site Upgrade", bl: "EPC", pm: "John Smith", c: "20 Oct25", r: "amber" as const, b: "+11%", o: "Closed — partial" },
+            { n: "POS Modernization", bl: "Software", pm: "Priya Iyer", c: "20 Aug25", r: "red" as const, b: "+24%", o: "Cancelled" },
           ].map((r) => (
             <TableRow key={r.n} className="bg-table-row-bg hover:bg-table-row-hover border-0">
               <TableCell className="font-medium text-foreground">{r.n}</TableCell>
@@ -647,7 +648,7 @@ function BusinessCasesTab() {
               <TableCell className="num-mono text-xs text-muted-foreground">{b.id}</TableCell>
               <TableCell className="font-medium text-foreground">{b.title}</TableCell>
               <TableCell className="text-xs text-muted-foreground">{b.pillar}</TableCell>
-              <TableCell className="text-xs">{b.submittedBy} · {b.date}</TableCell>
+              <TableCell className="text-xs">{b.submittedBy} · {formatDateWithYear(b.date)}</TableCell>
               <TableCell>
                 <span className={`num-mono rounded px-1.5 py-0.5 text-xs ${
                   b.score >= 71 ? "bg-rag-green/10 text-rag-green" : b.score >= 41 ? "bg-rag-amber/10 text-rag-amber" : "bg-rag-red/10 text-rag-red"
@@ -676,11 +677,11 @@ function StageBadge({ stage }: { stage: string }) {
 
 function GovernanceTab() {
   const entries = [
-    { d: "May 18", actor: "A. Khoury", action: "Approved", target: "BC-015 Customer Loyalty Platform", note: "Pillar: Growth · Score 88" },
-    { d: "May 14", actor: "M. Cole", action: "Deferred", target: "BC-014 Legacy Decommissioning", note: "Revisit Q3 with revised ROI" },
-    { d: "May 12", actor: "A. Khoury", action: "Requested revision", target: "BC-016 Internal Audit Tooling", note: "Add risk mitigation plan" },
-    { d: "May 09", actor: "Board", action: "Approved budget", target: "Coastal Refinery Expansion", note: "+$2.4M change order" },
-    { d: "May 03", actor: "Finance", action: "Locked baseline", target: "ERP Upgrade", note: "Baseline v3 frozen" },
+    { d: "18 May", actor: "A. Khoury", action: "Approved", target: "BC-015 Customer Loyalty Platform", note: "Pillar: Growth · Score 88" },
+    { d: "14 May", actor: "M. Cole", action: "Deferred", target: "BC-014 Legacy Decommissioning", note: "Revisit Q3 with revised ROI" },
+    { d: "12 May", actor: "A. Khoury", action: "Requested revision", target: "BC-016 Internal Audit Tooling", note: "Add risk mitigation plan" },
+    { d: "09 May", actor: "Board", action: "Approved budget", target: "Coastal Refinery Expansion", note: "+$2.4M change order" },
+    { d: "03 May", actor: "Finance", action: "Locked baseline", target: "ERP Upgrade", note: "Baseline v3 frozen" },
   ];
   return (
     <div className="">

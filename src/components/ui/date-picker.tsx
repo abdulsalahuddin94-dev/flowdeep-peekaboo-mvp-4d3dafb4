@@ -4,6 +4,7 @@ import * as React from "react";
 import { format, isValid, parseISO } from "date-fns";
 import { CalendarIcon, X } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { formatDateWithYear } from "@/lib/date-format";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -88,7 +89,7 @@ export function DatePicker({
           )}
         >
           <span className="truncate">
-            {date ? format(date, "MMM d, yyyy") : placeholder}
+            {date ? formatDateWithYear(date) : placeholder}
           </span>
           {date ? (
             <span

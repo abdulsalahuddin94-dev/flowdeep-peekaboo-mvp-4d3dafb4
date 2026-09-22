@@ -534,6 +534,27 @@ kind of task is this?" and pick the container for that task type.
 > rich read / edit detail → right side `Sheet` drawer (480px, see Filter Side
 > Drawer for the shared close affordance and surface tokens).
 
+## Date Display Standard
+
+All user-visible calendar dates use one English, day-first format:
+
+| Date content | Format | Example |
+|---|---|---|
+| Includes a year | `DD MMM, YYYY` | `22 Sep, 2026` |
+| Omits the year | `DD MMM` | `22 Sep` |
+
+- Always zero-pad the day and use the English three-letter month abbreviation.
+- Apply the rule to tables, cards, drawers, dialogs, tooltips, schedules, filters,
+  exports intended for people, and selected values in date controls.
+- Relative time such as `Today`, `Yesterday`, or `2d ago` remains relative.
+- Month-only or period labels such as `Sep 2026`, `Q3`, and `FY2026` remain period labels.
+- Store, calculate, submit, filter, and route with machine-readable ISO dates
+  (`YYYY-MM-DD`). Native date-input values also remain ISO. Formatting is a
+  presentation-layer concern only.
+- Parse date-only ISO values as local calendar dates to prevent timezone shifts.
+- Reuse `formatDateWithYear` and `formatDateWithoutYear` from
+  `src/lib/date-format.ts`; do not create local display formatters.
+
 ## Components
 
 ### Buttons

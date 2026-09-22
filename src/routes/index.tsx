@@ -16,6 +16,7 @@ import { useProjects, useNotifications, useResourceRequests, useApprovals } from
 import { ViewAsSelect } from "@/components/ViewAsSelect";
 import { toast } from "@/lib/toast";
 import { EmptyRegion } from "@/lib/empty-preview";
+import { formatDateWithYear } from "@/lib/date-format";
 
 
 export const Route = createFileRoute("/")({
@@ -42,7 +43,7 @@ function Dashboard() {
     <div>
       <PageHeader
         title="Good morning, Aisha"
-        subtitle="Saturday, June 6, 2026 · FY2026 portfolio overview"
+        subtitle="Saturday, 06 Jun, 2026 · FY2026 portfolio overview"
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <ViewAsSelect />
@@ -172,7 +173,7 @@ function ApprovalsWidget() {
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm text-foreground">{a.title}</div>
                 <div className="text-[11px] text-muted-foreground">
-                  {a.projectName} · {a.type === "milestone-gate" ? "Milestone gate" : "Change request"} · {a.requestedAt}
+                  {a.projectName} · {a.type === "milestone-gate" ? "Milestone gate" : "Change request"} · {formatDateWithYear(a.requestedAt)}
                 </div>
               </div>
               <Link to="/approvals">
@@ -199,7 +200,7 @@ function AwaitingOthersWidget() {
             <li key={a.id} className="flex items-center justify-between gap-3 rounded-md border border-border bg-background/30 p-3">
               <div className="min-w-0">
                 <div className="truncate text-sm text-foreground">{a.title}</div>
-                <div className="text-[11px] text-muted-foreground">{a.projectName} · sent {a.requestedAt}</div>
+                <div className="text-[11px] text-muted-foreground">{a.projectName} · sent {formatDateWithYear(a.requestedAt)}</div>
               </div>
               <span className="shrink-0 text-[11px] text-rag-amber">
                 {a.approvers.filter((ap) => ap.decision === "approved").length}/{a.approvers.length} approved
@@ -502,7 +503,7 @@ function PMView() {
               <RagBadge rag={p.rag} />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-foreground">{p.name}</div>
-                <div className="text-xs text-muted-foreground">{p.businessLine} · ends {p.endDate}</div>
+                <div className="text-xs text-muted-foreground">{p.businessLine} · ends {formatDateWithYear(p.endDate)}</div>
               </div>
               <div className="hidden w-40 md:block"><Progress value={p.progress} className="h-1.5" /></div>
               <span className="num-mono w-10 text-right text-xs text-muted-foreground">{p.progress}%</span>

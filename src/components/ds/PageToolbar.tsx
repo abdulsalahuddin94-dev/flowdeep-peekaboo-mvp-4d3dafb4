@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { format, isValid, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,6 +9,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Search, Filter, ChevronRight, ChevronLeft, X } from "@/lib/icons";
 import { PageActions } from "@/components/ds/PageActionsSlot";
 import { StatusPill } from "@/components/TableRowActions";
+import { formatDateWithYear } from "@/lib/date-format";
 
 /*
  * DS02 page toolbar — search (left) + filter drawer + main CTA (right).
@@ -130,10 +130,7 @@ export function PageToolbar({
   const appliedChips: Chip[] = filterGroups.reduce((acc, g) => {
     if (isDateRangeGroup(g)) {
       if (!g.value.from && !g.value.to) return acc;
-      const fmt = (iso: string) => {
-        const d = parseISO(iso);
-        return isValid(d) ? format(d, "MMM d, yyyy") : iso;
-      };
+      const fmt = (iso: string) => formatDateWithYear(iso, iso);
       acc.push({
         key: g.key,
         label: `${g.value.from ? fmt(g.value.from) : "…"} → ${g.value.to ? fmt(g.value.to) : "…"}`,

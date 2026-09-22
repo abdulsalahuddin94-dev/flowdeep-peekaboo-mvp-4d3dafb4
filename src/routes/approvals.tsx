@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { useApprovals, type ApprovalRequest } from "@/lib/projects-store";
 import { toast } from "@/lib/toast";
+import { formatDateWithYear } from "@/lib/date-format";
 
 export const Route = createFileRoute("/approvals")({
   component: ApprovalsInbox,
@@ -177,7 +178,7 @@ function ApprovalsInbox() {
                         {" · "}{a.type === "milestone-gate" ? "Milestone completion gate"
                           : a.type === "calendar-change" ? "Organization calendar change"
                           : "Baseline change request"}
-                        {" · "}requested by {a.requestedBy} on {a.requestedAt}
+                        {" · "}requested by {a.requestedBy} on {formatDateWithYear(a.requestedAt)}
                         {a.reminders > 0 && ` · ${a.reminders} reminder${a.reminders === 1 ? "" : "s"}`}
                       </div>
                     </div>
@@ -228,7 +229,7 @@ function ApprovalsInbox() {
                       }>
                         {ap.decision === "approved" && <Check className="h-3 w-3" />}
                         {ap.decision === "rejected" && <X className="h-3 w-3" />}
-                        {ap.decision === "pending" ? "Pending" : `${ap.decision === "approved" ? "Approved" : "Rejected"} ${ap.decidedAt ?? ""}`}
+                        {ap.decision === "pending" ? "Pending" : `${ap.decision === "approved" ? "Approved" : "Rejected"} ${formatDateWithYear(ap.decidedAt, "")}`}
                       </span>
                     </li>
                   ))}

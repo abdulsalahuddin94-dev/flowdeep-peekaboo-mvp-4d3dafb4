@@ -147,6 +147,12 @@ Theme controlled via `data-theme` attribute on `<html>`:
 
 ## 8. Changelog
 
+### DS02.v3.7 (2026-09-22)
+**Display Rule — Calendar Dates**
+- Standardized every user-visible date with a year as `DD MMM, YYYY` (for example `22 Sep, 2026`) and without a year as `DD MMM` (for example `22 Sep`).
+- Requires zero-padded days and English three-letter month abbreviations while preserving ISO `YYYY-MM-DD` for storage, calculations, routing, filtering, and native date controls.
+- Exempts relative time and period-only labels; implementation uses the shared presentation helpers in `src/lib/date-format.ts`.
+
 ### DS02.v3.6 (2026-09-22)
 **Interaction Rule — Modal vs Drawer Decision Rule**
 - Documented the official overlay-container decision rule (see root `DESIGN.md` → "Overlays — Modal vs Drawer Decision Rule"): choose container by task type, not habit. Modal = short decisive task that must block context; Drawer = rich read/edit detail that keeps the source list visible.
@@ -168,4 +174,4 @@ Theme controlled via `data-theme` attribute on `<html>`:
 
 ---
 
-**End of DS02 Design System Documentation (v3.5) — MVP Edition**
+**End of DS02 Design System Documentation (v3.7) — MVP Edition**

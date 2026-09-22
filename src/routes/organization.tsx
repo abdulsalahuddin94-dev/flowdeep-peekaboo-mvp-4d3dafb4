@@ -35,6 +35,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, parseISO } from "date-fns";
+import { formatDateWithYear } from "@/lib/date-format";
 import { toast } from "@/lib/toast";
 import { EmptyRegion } from "@/lib/empty-preview";
 
@@ -1022,7 +1023,7 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
                 <PopoverTrigger asChild>
                   <Button type="button" variant="outline" className={`w-full justify-start gap-2 sm:w-44 ${!newDate ? "text-muted-foreground" : ""}`}>
                     <CalendarIcon className="h-4 w-4 text-accent" />
-                    {newDate ? format(newDate, "MMM d, yyyy") : "Pick a date"}
+                    {newDate ? formatDateWithYear(newDate) : "Pick a date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
@@ -1060,7 +1061,7 @@ function CalendarDialog({ open, onOpenChange, calendar }: { open: boolean; onOpe
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium text-foreground">{h.label}</div>
-                        <div className="text-[11px] text-muted-foreground">{format(d, "EEEE, yyyy")}</div>
+                        <div className="text-[11px] text-muted-foreground">{formatDateWithYear(d)}</div>
                       </div>
                       <Button aria-label={`Delete ${h.label}`} size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:!bg-rag-red/15 hover:!text-rag-red" onClick={() => removeHoliday(h.date)}>
                         <Trash2 className="h-3.5 w-3.5" />

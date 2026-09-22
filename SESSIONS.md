@@ -1,3 +1,10 @@
+## 2026-09-22 — Date display standardization
+
+- Established `DD MMM, YYYY` for visible dates with a year and `DD MMM` for visible dates without a year, using zero-padded days and English abbreviated months.
+- Added centralized timezone-safe display helpers in `src/lib/date-format.ts` and applied them across shared date controls, schedules, portfolio, project detail, approvals, Risks & Issues, Resources, Organization, Financials, and dashboard surfaces.
+- Preserved ISO values for storage, calculations, imports/exports, filtering, URLs, and native date inputs; relative and period-only labels remain unchanged.
+- Documented the rule in root `DESIGN.md` and `DS02/DESIGN.md` v3.7.
+
 ## 2026-09-22 — Design System: Modal vs Drawer decision rule documented
 
 - Added the official overlay-container decision rule to the root `DESIGN.md` (new "Overlays — Modal vs Drawer Decision Rule" section under Shared Rules) and bumped `DS02/DESIGN.md` to v3.6.

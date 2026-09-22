@@ -1,3 +1,9 @@
+## 2026-09-22 — Pill badges + Requests table cleanup
+
+- Removed the Outcome column from the Resources Requests table; the decision details stay in the request detail drawer.
+- Status indicators in Requests now use the shared rounded status pill treatment used by the Organization module.
+- DS02 rule: every badge/tag/chip/status indicator is a fully rounded pill (rounded-full, h-7, px-3, text-xs font-medium). Encoded in the shared Badge component and documented in DESIGN.md.
+
 ## 2026-09-22 — Resource request outcome visibility
 
 - Added an Outcome column to the Resources Requests table showing the assigned person with allocation and resulting utilization, or the decline reason.

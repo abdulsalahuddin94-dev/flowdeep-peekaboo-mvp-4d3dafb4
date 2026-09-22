@@ -211,22 +211,6 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
                   <StyledTableCell className="num-mono text-xs text-muted-foreground">{req.from} → {req.until}</StyledTableCell>
                   <StyledTableCell><Badge variant="outline" className={PRIORITY_STYLE[req.priority]}>{req.priority}</Badge></StyledTableCell>
                   <StyledTableCell><div>{req.submittedBy}</div><div className="text-xs text-muted-foreground">{/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date}</div></StyledTableCell>
-                  <StyledTableCell className="max-w-64">
-                    {req.status === "Fulfilled" ? (
-                      <>
-                        <div className="text-foreground">{req.assignedTo ?? "—"}</div>
-                        {req.allocation != null && (
-                          <div className="num-mono text-xs text-muted-foreground">
-                            {req.allocation}% allocation{req.utilAfter != null ? ` · utilization ${req.utilAfter}%` : ""}
-                          </div>
-                        )}
-                      </>
-                    ) : req.status === "Declined" ? (
-                      <div className="truncate text-xs text-rag-red" title={req.declineReason}>{req.declineReason ?? "Declined"}</div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">Awaiting decision</span>
-                    )}
-                  </StyledTableCell>
                   <StyledTableCell onClick={(e) => e.stopPropagation()}>
                     <TableRowActions
                       alwaysVisible={false}

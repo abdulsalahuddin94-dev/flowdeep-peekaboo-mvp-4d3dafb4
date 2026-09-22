@@ -27,3 +27,13 @@ export function formatDateWithoutYear(value: DisplayDateValue, fallback = "—")
   const date = parseDisplayDate(value);
   return date ? format(date, "dd MMM") : fallback;
 }
+
+/** Formats a visible date according to whether its source explicitly includes a year. */
+export function formatDateForDisplay(value: DisplayDateValue, fallback = "—"): string {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    const includesYear = /(?:^|\D)\d{4}(?:\D|$)/.test(trimmed);
+    return includesYear ? formatDateWithYear(trimmed, fallback) : formatDateWithoutYear(trimmed, fallback);
+  }
+  return formatDateWithYear(value, fallback);
+}

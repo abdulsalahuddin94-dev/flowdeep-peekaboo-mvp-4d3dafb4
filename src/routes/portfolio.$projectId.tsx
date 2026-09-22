@@ -44,7 +44,7 @@ import { capexOpexGroup } from "@/components/ds/filters";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ProjectSchedule, computePlannedProgress, depLag, depLabel } from "@/components/ProjectSchedule";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatDateWithYear } from "@/lib/date-format";
+import { formatDateForDisplay, formatDateWithYear } from "@/lib/date-format";
 import {
   useTabBaseline,
   BaselineHeader,
@@ -2789,9 +2789,9 @@ function FinancialsTab({
           const parseActualDate = (raw: string): Date | null => {
             /* Legacy display strings like "02 May" carry no year — assume the current one.
              * Checked first: new Date("02 May") parses as year 2001 in some engines. */
-            const m = /^([A-Za-z]{3,})\s+(\d{1,2})$/.exec(raw.trim());
+            const m = /^(\d{1,2})\s+([A-Za-z]{3,})$/.exec(raw.trim());
             if (m) {
-              const d = new Date(`${m[1]} ${m[2]}, ${new Date().getFullYear()}`);
+              const d = new Date(`${m[2]} ${m[1]}, ${new Date().getFullYear()}`);
               return Number.isNaN(d.getTime()) ? null : d;
             }
             const iso = new Date(raw);
@@ -3118,7 +3118,7 @@ function RevenuePlanTable({
                     <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
                   )}
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{dateOf(r)}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{formatDateForDisplay(dateOf(r))}</TableCell>
                 <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                   {/* Logging an actual stays available after baseline lock; re-planning does not. */}
                   <TableRowActions
@@ -3153,7 +3153,7 @@ function RevenuePlanTable({
                             <span className="text-foreground">
                               {a.name ?? "Actual payment"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
                             </span>
-                            <span>{a.date || "—"}</span>
+                            <span>{formatDateForDisplay(a.date)}</span>
                             <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
                             <span className="flex justify-end">
                               {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
@@ -3340,7 +3340,7 @@ function CostBreakdownTable({
                     <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
                   )}
                 </TableCell>
-                <TableCell className="text-xs text-muted-foreground">{dateOf(e)}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{formatDateForDisplay(dateOf(e))}</TableCell>
 
                 <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                   {/* Logging an actual expense stays available after baseline lock; re-planning does not. */}
@@ -3376,7 +3376,7 @@ function CostBreakdownTable({
                             <span className="text-foreground">
                               {a.name ?? "Actual spend"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
                             </span>
-                            <span>{a.date || "—"}</span>
+                            <span>{formatDateForDisplay(a.date)}</span>
                             <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
                             <span className="flex justify-end">
                               {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}

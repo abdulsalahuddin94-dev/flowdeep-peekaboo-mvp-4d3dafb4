@@ -1,3 +1,10 @@
+## 2026-09-22 — Resources module DS02 alignment
+
+- Rebuilt all Resources subpages around the shared DS02 hierarchy: page title/actions, KPI strip, toolbar, data table, and pagination.
+- Converted Requests, People, Manpower Planning, and Skill Demand to token-driven tables with shared row hover and status/action behavior.
+- Added tab-specific search and side-drawer filters; retained fulfillment, decline, assignment, import, and add-resource workflows.
+- Restyled the Utilization Heatmap as a consistent DS02 data surface and corrected tab-to-content rendering.
+
 ## 2026-09-22 — Project Overview risks summary
 
 - Added a scrollable Risks Summary card to the project Overview, populated from the shared risk register and filtered to the current project.

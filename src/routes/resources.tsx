@@ -1,11 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { EmptyRegion } from "@/lib/empty-preview";
-import { relatedProjectsGroup, matchRelated } from "@/components/ds/filters";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { matchRelated, relatedProjectsGroup } from "@/components/ds/filters";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import {
+  StyledTable, StyledTableBody, StyledTableCell, StyledTableHead,
+  StyledTableHeader, StyledTableHeaderRow, StyledTableRow,
+} from "@/components/StyledTable";
+import { TablePagination, usePagination } from "@/components/TablePagination";
+import { TableRowActions } from "@/components/TableRowActions";
+import { KpiCard } from "@/components/KpiCard";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -30,7 +36,7 @@ export const Route = createFileRoute("/resources")({
   head: () => ({
     meta: [
       { title: "Resources — Nexus PMO" },
-      { name: "description", content: "Capacity planning, allocation vs assignment, utilization heatmap and skill demand." },
+      { name: "description", content: "Capacity planning, resource requests, utilization and skill demand." },
       { property: "og:title", content: "Resources — Nexus PMO" },
       { property: "og:description", content: "Plan resource capacity, allocations, utilization, and skill demand across projects." },
       { property: "og:type", content: "website" },
@@ -39,36 +45,46 @@ export const Route = createFileRoute("/resources")({
   }),
 });
 
-// ── Resource request types ────────────────────────────────────────────────────
-
 type Priority = "Critical" | "High" | "Medium" | "Low";
+type PoolResource = typeof resources[number];
 
 const PRIORITY_STYLE: Record<Priority, string> = {
   Critical: "border-rag-red/40 bg-rag-red/10 text-rag-red",
-  High:     "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
-  Medium:   "border-rag-blue/40 bg-rag-blue/10 text-rag-blue",
-  Low:      "border-border bg-secondary/40 text-muted-foreground",
+  High: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
+  Medium: "border-rag-blue/40 bg-rag-blue/10 text-rag-blue",
+  Low: "border-border bg-secondary/40 text-muted-foreground",
 };
-
-// ── Page ─────────────────────────────────────────────────────────────────────
 
 const RES_TAB_LABELS: Record<string, string> = {
   requests: "Requests", people: "People", heatmap: "Utilization Heatmap",
   planning: "Manpower Planning", skills: "Skill Demand",
 };
 
-type PoolResource = typeof resources[number];
+const SKILL_DEMAND = [
+  { skill: "Cloud Architecture", department: "Engineering", demand: "High" as Priority, available: 12, required: 16, duration: "6 months" },
+  { skill: "Industrial Control Systems", department: "Operations", demand: "Critical" as Priority, available: 4, required: 9, duration: "9 months" },
+  { skill: "Data Engineering", department: "Data & Analytics", demand: "Medium" as Priority, available: 9, required: 11, duration: "4 months" },
+  { skill: "Cyber Security", department: "Technology", demand: "Critical" as Priority, available: 3, required: 7, duration: "12 months" },
+  { skill: "Project Management", department: "PMO", demand: "Medium" as Priority, available: 22, required: 24, duration: "Ongoing" },
+  { skill: "Procurement / Contracts", department: "Procurement", demand: "Low" as Priority, available: 6, required: 6, duration: "3 months" },
+];
+
+const MANPOWER_PLAN = [
+  { role: "Solution Architect", department: "Engineering", demand: 4, supply: 2, action: "Hire 2 / partner" },
+  { role: "QA Engineer", department: "Technology", demand: 8, supply: 6, action: "Hire 1 / subcontract 1" },
+  { role: "Field Engineer", department: "Operations", demand: 6, supply: 7, action: "Capacity available" },
+  { role: "Security Lead", department: "Technology", demand: 2, supply: 1, action: "Critical hire" },
+];
 
 function ResourcesPage() {
   const { tab = "requests" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const [pool, setPool] = useState<PoolResource[]>(resources.map((r) => ({ ...r })));
-  const [peopleQuery, setPeopleQuery] = useState("");
-  const [peopleDept, setPeopleDept] = useState("all");
-  const [peopleRelated, setPeopleRelated] = useState("all");
   const { resourceRequests: requests, updateResourceRequest } = useResourceRequests();
 
   const pendingCount = requests.filter((r) => r.status === "Pending").length;
+  const avgUtilization = pool.length ? Math.round(pool.reduce((sum, r) => sum + r.util, 0) / pool.length) : 0;
+  const capacityGap = MANPOWER_PLAN.reduce((sum, row) => sum + Math.max(0, row.demand - row.supply), 0);
 
   function addToPool(entry: PoolResource) {
     setPool((prev) => [...prev, entry]);
@@ -101,330 +117,216 @@ function ResourcesPage() {
         }
       />
 
-      {/* KPI strip */}
-      <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-5">
-        {[
-          { l: "Headcount",       v: String(pool.length) },
-          { l: "Avg utilization", v: "78%",  c: "text-rag-green" },
-          { l: "Over-allocated",  v: "3",    c: "text-rag-red" },
-          { l: "Bench",           v: "12" },
-          { l: "Open requests",   v: String(pendingCount), c: pendingCount > 0 ? "text-rag-amber" : "text-foreground" },
-        ].map((k) => (
-          <div key={k.l} className="glass-card p-4">
-            <div className="label-eyebrow">{k.l}</div>
-            <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
-          </div>
-        ))}
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <KpiCard label="Headcount" value={pool.length} className="p-4" />
+        <KpiCard label="Avg utilization" value={`${avgUtilization}%`} accent={avgUtilization > 90 ? "amber" : "teal"} className="p-4" />
+        <KpiCard label="Open requests" value={pendingCount} accent={pendingCount ? "amber" : undefined} className="p-4" />
+        <KpiCard label="Capacity gap" value={`-${capacityGap}`} accent={capacityGap ? "red" : "green"} className="p-4" />
       </div>
 
-      {/* Subpages live in the sidebar (?tab=) */}
-      <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
-
-
-        {/* ── Requests tab ──────────────────────────────────────────────────── */}
-        <TabsContent value="requests" className="mt-5 space-y-3">
+      <Tabs value={tab} onValueChange={(value) => navigate({ search: { tab: value } })}>
+        <TabsContent value="requests" className="mt-0">
           <EmptyRegion id="resources-requests">
-            <RequestsTab
-              requests={requests}
-              pool={pool}
-              onFulfill={fulfillRequest}
-              onDecline={declineRequest}
-            />
+            <RequestsTable requests={requests} pool={pool} onFulfill={fulfillRequest} onDecline={declineRequest} />
           </EmptyRegion>
         </TabsContent>
-
-        {/* ── People tab ────────────────────────────────────────────────────── */}
-        <TabsContent value="people" className="mt-5">
-          <PageToolbar
-            query={peopleQuery}
-            onQueryChange={setPeopleQuery}
-            placeholder="Search member or role…"
-            filterGroups={[
-              relatedProjectsGroup(peopleRelated, setPeopleRelated),
-              { key: "dept", label: "Department", value: peopleDept, onChange: setPeopleDept, options: [{ value: "all", label: "All departments" }, ...departments.map((d) => ({ value: d.name, label: d.name }))] },
-            ]}
-          />
-          <EmptyRegion id="resources-capacity">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent bg-transparent border-0">
-                <TableHead>Member</TableHead><TableHead>Role</TableHead><TableHead>Department</TableHead>
-                <TableHead>Capacity / wk</TableHead><TableHead>Utilization</TableHead><TableHead>Projects</TableHead><TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {(() => {
-                const q = peopleQuery.trim().toLowerCase();
-                const list = pool
-                  .filter((r) => !q || r.name.toLowerCase().includes(q) || r.role.toLowerCase().includes(q))
-                  .filter((r) => peopleDept === "all" || r.dept === peopleDept)
-                  .filter((r) => matchRelated(peopleRelated, r.projects.length));
-                if (list.length === 0) return <EmptyRow colSpan={7} />;
-                return list.map((r) => (
-                <TableRow key={r.name} className="bg-table-row-bg hover:bg-table-row-hover border-0">
-                  <TableCell className="font-medium text-foreground">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-7 w-7">
-                        <AvatarFallback className="bg-accent-dim text-[10px] text-accent">
-                          {r.name.split(" ").map((s) => s[0]).join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      {r.name}
-                    </div>
-                  </TableCell>
-                  <TableCell>{r.role}</TableCell>
-                  <TableCell className="text-muted-foreground">{r.dept}</TableCell>
-                  <TableCell className="num-mono">{r.capacity}h</TableCell>
-                  <TableCell className="w-44">
-                    <div className="flex items-center gap-2">
-                      <Progress
-                        value={Math.min(r.util, 100)}
-                        className={`h-1.5 ${r.util > 100 ? "[&>div]:bg-rag-red" : r.util > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-rag-green"}`}
-                      />
-                      <span className={`num-mono text-xs ${r.util > 100 ? "text-rag-red" : r.util > 90 ? "text-rag-amber" : "text-foreground"}`}>{r.util}%</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{r.projects.join(", ")}</TableCell>
-                  <TableCell><AssignDialog resource={r} onAssign={(projectName, alloc) => setPool((prev) => prev.map((x) => x.name === r.name ? { ...x, util: Math.min(x.util + alloc, 200), projects: x.projects.includes(projectName) ? x.projects : [...x.projects, projectName] } : x))} /></TableCell>
-                </TableRow>
-                ));
-              })()}
-            </TableBody>
-          </Table>
-          </EmptyRegion>
+        <TabsContent value="people" className="mt-0">
+          <PeopleTable pool={pool} setPool={setPool} />
         </TabsContent>
-
-        {/* ── Heatmap tab ───────────────────────────────────────────────────── */}
-        <TabsContent value="heatmap" className="mt-5 glass-card p-5">
-          <Heatmap pool={pool} />
+        <TabsContent value="heatmap" className="mt-0">
+          <HeatmapView pool={pool} />
         </TabsContent>
-
-        {/* ── Manpower planning tab ─────────────────────────────────────────── */}
-        <TabsContent value="planning" className="mt-5 glass-card p-5 text-sm">
-          <div className="label-eyebrow mb-3">Forward manpower plan · next quarter</div>
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent bg-transparent border-0">
-                <TableHead>Role</TableHead><TableHead>Demand (FTE)</TableHead>
-                <TableHead>Supply</TableHead><TableHead>Gap</TableHead><TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[
-                { r: "Solution Architect", d: 4, s: 2, a: "Hire 2 / partner" },
-                { r: "QA Engineer",        d: 8, s: 6, a: "Hire 1 / subcontract 1" },
-                { r: "Field Engineer",     d: 6, s: 7, a: "Capacity ok" },
-                { r: "Security Lead",      d: 2, s: 1, a: "Critical hire" },
-              ].map((row) => {
-                const gap = row.d - row.s;
-                return (
-                  <TableRow key={row.r} className="bg-table-row-bg hover:bg-table-row-hover border-0">
-                    <TableCell>{row.r}</TableCell>
-                    <TableCell className="num-mono">{row.d}</TableCell>
-                    <TableCell className="num-mono">{row.s}</TableCell>
-                    <TableCell className={`num-mono ${gap > 0 ? "text-rag-red" : "text-rag-green"}`}>{gap > 0 ? `+${gap}` : gap}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{row.a}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+        <TabsContent value="planning" className="mt-0">
+          <PlanningTable />
         </TabsContent>
-
-        {/* ── Skill demand tab ──────────────────────────────────────────────── */}
-        <TabsContent value="skills" className="mt-5 grid gap-3 md:grid-cols-3">
-          {[
-            { s: "Cloud Architecture",       c: "High",     n: 12 },
-            { s: "Industrial Control Systems",c: "Critical", n: 4 },
-            { s: "Data Engineering",          c: "Medium",   n: 9 },
-            { s: "Cyber Security",            c: "Critical", n: 3 },
-            { s: "Project Management",        c: "Medium",   n: 22 },
-            { s: "Procurement / Contracts",   c: "Low",      n: 6 },
-          ].map((s) => (
-            <div key={s.s} className="glass-card p-4">
-              <div className="text-sm font-medium text-foreground">{s.s}</div>
-              <div className="mt-1 text-xs text-muted-foreground">{s.n} people available</div>
-              <div className={`mt-2 inline-block rounded px-2 py-0.5 text-[11px] ${
-                s.c === "Critical" ? "bg-rag-red/10 text-rag-red" :
-                s.c === "High"     ? "bg-rag-amber/10 text-rag-amber" :
-                s.c === "Medium"   ? "bg-rag-blue/10 text-rag-blue" :
-                                     "bg-rag-green/10 text-rag-green"
-              }`}>{s.c} demand</div>
-            </div>
-          ))}
+        <TabsContent value="skills" className="mt-0">
+          <SkillsTable />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-// ── Requests tab component ────────────────────────────────────────────────────
-
-function RequestsTab({
-  requests,
-  pool,
-  onFulfill,
-  onDecline,
-}: {
+function RequestsTable({ requests, pool, onFulfill, onDecline }: {
   requests: ResourceRequest[];
   pool: PoolResource[];
   onFulfill: (id: string, assignedTo: string, alloc: number) => void;
   onDecline: (id: string, reason: string) => void;
 }) {
-  const pending   = requests.filter((r) => r.status === "Pending");
-  const fulfilled = requests.filter((r) => r.status === "Fulfilled");
-  const declined  = requests.filter((r) => r.status === "Declined");
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("all");
+  const [priority, setPriority] = useState("all");
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return requests.filter((r) => (!q || r.role.toLowerCase().includes(q) || r.skill.toLowerCase().includes(q) || r.project.toLowerCase().includes(q)))
+      .filter((r) => status === "all" || r.status === status)
+      .filter((r) => priority === "all" || r.priority === priority);
+  }, [priority, query, requests, status]);
+  const pagination = usePagination(filtered, 10);
 
   return (
-    <div className="space-y-6">
-      {/* ── Pending ── */}
-      {pending.length > 0 && (
-        <div>
-          <div className="mb-2 flex items-center gap-2">
-            <Clock className="h-3.5 w-3.5 text-rag-amber" />
-            <span className="label-eyebrow text-rag-amber">Pending ({pending.length})</span>
-          </div>
-          <div className="space-y-2">
-            {pending.map((req) => (
-              <RequestCard key={req.id} req={req} pool={pool} onFulfill={onFulfill} onDecline={onDecline} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Fulfilled ── */}
-      {fulfilled.length > 0 && (
-        <div>
-          <div className="mb-2 flex items-center gap-2">
-            <CheckCircle2 className="h-3.5 w-3.5 text-rag-green" />
-            <span className="label-eyebrow text-rag-green">Fulfilled ({fulfilled.length})</span>
-          </div>
-          <div className="space-y-2">
-            {fulfilled.map((req) => (
-              <RequestCard key={req.id} req={req} pool={pool} onFulfill={onFulfill} onDecline={onDecline} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── Declined ── */}
-      {declined.length > 0 && (
-        <div>
-          <div className="mb-2 flex items-center gap-2">
-            <XCircle className="h-3.5 w-3.5 text-rag-red" />
-            <span className="label-eyebrow text-rag-red">Declined ({declined.length})</span>
-          </div>
-          <div className="space-y-2">
-            {declined.map((req) => (
-              <RequestCard key={req.id} req={req} pool={pool} onFulfill={onFulfill} onDecline={onDecline} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {requests.length === 0 && (
-        <div className="glass-card p-10 text-center text-sm text-muted-foreground">
-          No resource requests yet. PMs submit them from Project → Planning → Manpower Requirements.
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Individual request card ───────────────────────────────────────────────────
-
-function RequestCard({
-  req,
-  pool,
-  onFulfill,
-  onDecline,
-}: {
-  req: ResourceRequest;
-  pool: PoolResource[];
-  onFulfill: (id: string, assignedTo: string, alloc: number) => void;
-  onDecline: (id: string, reason: string) => void;
-}) {
-  const StatusIcon = req.status === "Fulfilled" ? CheckCircle2
-                   : req.status === "Declined"  ? XCircle
-                   : Clock;
-  const statusColor = req.status === "Fulfilled" ? "text-rag-green"
-                    : req.status === "Declined"  ? "text-rag-red"
-                    : "text-rag-amber";
-
-  return (
-    <div className="glass-card p-4">
-      <div className="flex flex-wrap items-start gap-3">
-        {/* Left: request details */}
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="num-mono text-xs text-muted-foreground">{req.id}</span>
-            <Badge variant="outline" className={`text-[10px] ${PRIORITY_STYLE[req.priority]}`}>
-              {req.priority}
-            </Badge>
-            {req.priority === "Critical" && (
-              <AlertTriangle className="h-3 w-3 text-rag-red" />
-            )}
-          </div>
-
-          <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-            <span className="text-sm font-medium text-foreground">{req.role}</span>
-            <span className="text-xs text-muted-foreground">({req.skill})</span>
-            <span className="text-xs text-accent num-mono">{req.fte} FTE</span>
-          </div>
-
-          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
-            <span>Project: <span className="text-foreground">{req.project}</span></span>
-            <span>Period: <span className="num-mono text-foreground">{req.from} → {req.until}</span></span>
-            <span>By: {req.submittedBy} · {req.date}</span>
-          </div>
-
-          {req.notes && (
-            <div className="mt-1.5 text-xs text-muted-foreground italic">"{req.notes}"</div>
-          )}
-
-          {req.status === "Fulfilled" && req.assignedTo && (
-            <div className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-rag-green/30 bg-rag-green/10 px-2 py-1 text-xs text-rag-green">
-              <CheckCircle2 className="h-3 w-3" />
-              Assigned to <span className="font-medium">{req.assignedTo}</span>
-            </div>
-          )}
-
-          {req.status === "Declined" && req.declineReason && (
-            <div className="mt-2 inline-flex items-start gap-1.5 rounded-md border border-rag-red/30 bg-rag-red/10 px-2 py-1 text-xs text-rag-red">
-              <XCircle className="h-3 w-3 mt-px shrink-0" />
-              <span>{req.declineReason}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Right: status + actions */}
-        <div className="flex shrink-0 flex-col items-end gap-2">
-          <div className={`flex items-center gap-1 text-xs ${statusColor}`}>
-            <StatusIcon className="h-3.5 w-3.5" />
-            {req.status}
-          </div>
-          {req.status === "Pending" && (
-            <div className="flex gap-2">
-              <FulfillDialog req={req} pool={pool} onFulfill={onFulfill} />
-              <DeclineDialog req={req} onDecline={onDecline} />
-            </div>
-          )}
-        </div>
+    <>
+      <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search role, skill or project…" filterGroups={[
+        { key: "status", label: "Status", value: status, onChange: setStatus, options: [
+          { value: "all", label: "All statuses" }, { value: "Pending", label: "Pending" },
+          { value: "Fulfilled", label: "Fulfilled" }, { value: "Declined", label: "Declined" },
+        ] },
+        { key: "priority", label: "Priority", value: priority, onChange: setPriority, options: [
+          { value: "all", label: "All priorities" }, ...(["Critical", "High", "Medium", "Low"] as Priority[]).map((v) => ({ value: v, label: v })),
+        ] },
+      ]} />
+      <div className="overflow-hidden rounded-lg border border-border bg-surface">
+        <StyledTable>
+          <StyledTableHeader><StyledTableHeaderRow>
+            <StyledTableHead>Role / Skill</StyledTableHead><StyledTableHead>Project</StyledTableHead>
+            <StyledTableHead>FTE</StyledTableHead><StyledTableHead>Period</StyledTableHead>
+            <StyledTableHead>Priority</StyledTableHead><StyledTableHead>Submitted by</StyledTableHead>
+            <StyledTableHead className="w-44 text-center">Status</StyledTableHead>
+          </StyledTableHeaderRow></StyledTableHeader>
+          <StyledTableBody>
+            {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((req) => {
+              const tone = req.status === "Fulfilled" ? "border-rag-green/50 bg-rag-green/10 text-rag-green" : req.status === "Declined" ? "border-rag-red/50 bg-rag-red/10 text-rag-red" : "border-rag-amber/50 bg-rag-amber/10 text-rag-amber";
+              return (
+                <StyledTableRow key={req.id} className="group">
+                  <StyledTableCell><div className="font-medium text-foreground">{req.role}</div><div className="text-xs text-muted-foreground">{req.skill}</div></StyledTableCell>
+                  <StyledTableCell>{req.project}</StyledTableCell>
+                  <StyledTableCell className="num-mono">{req.fte}</StyledTableCell>
+                  <StyledTableCell className="num-mono text-xs text-muted-foreground">{req.from} → {req.until}</StyledTableCell>
+                  <StyledTableCell><Badge variant="outline" className={PRIORITY_STYLE[req.priority]}>{req.priority}</Badge></StyledTableCell>
+                  <StyledTableCell><div>{req.submittedBy}</div><div className="text-xs text-muted-foreground">{req.date}</div></StyledTableCell>
+                  <StyledTableCell>
+                    <TableRowActions
+                      alwaysVisible={false}
+                      statusNode={<Badge variant="outline" className={tone}>{req.status}</Badge>}
+                      extraActions={req.status === "Pending" ? <><FulfillDialog req={req} pool={pool} onFulfill={onFulfill} compact /><DeclineDialog req={req} onDecline={onDecline} compact /></> : undefined}
+                    />
+                  </StyledTableCell>
+                </StyledTableRow>
+              );
+            })}
+          </StyledTableBody>
+        </StyledTable>
       </div>
-    </div>
+      <TablePagination {...pagination} itemLabel="requests" demoPages={1} />
+    </>
   );
 }
 
-// ── Fulfill dialog ────────────────────────────────────────────────────────────
+function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: React.Dispatch<React.SetStateAction<PoolResource[]>> }) {
+  const [query, setQuery] = useState("");
+  const [department, setDepartment] = useState("all");
+  const [related, setRelated] = useState("all");
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return pool.filter((r) => !q || r.name.toLowerCase().includes(q) || r.role.toLowerCase().includes(q))
+      .filter((r) => department === "all" || r.dept === department)
+      .filter((r) => matchRelated(related, r.projects.length));
+  }, [department, pool, query, related]);
+  const pagination = usePagination(filtered, 10);
+
+  return (
+    <>
+      <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search member or role…" filterGroups={[
+        relatedProjectsGroup(related, setRelated),
+        { key: "department", label: "Department", value: department, onChange: setDepartment, options: [{ value: "all", label: "All departments" }, ...departments.map((d) => ({ value: d.name, label: d.name }))] },
+      ]} />
+      <EmptyRegion id="resources-capacity">
+        <div className="overflow-hidden rounded-lg border border-border bg-surface">
+          <StyledTable>
+            <StyledTableHeader><StyledTableHeaderRow>
+              <StyledTableHead>Member</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead>
+              <StyledTableHead>Capacity / wk</StyledTableHead><StyledTableHead>Utilization</StyledTableHead><StyledTableHead>Projects</StyledTableHead>
+              <StyledTableHead className="w-44 text-center">Status</StyledTableHead>
+            </StyledTableHeaderRow></StyledTableHeader>
+            <StyledTableBody>
+              {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((r) => {
+                const state = r.util > 100 ? "Over-allocated" : r.util === 0 ? "Bench" : "Allocated";
+                const tone = r.util > 100 ? "border-rag-red/50 bg-rag-red/10 text-rag-red" : r.util === 0 ? "border-border bg-secondary/40 text-muted-foreground" : "border-rag-green/50 bg-rag-green/10 text-rag-green";
+                return (
+                  <StyledTableRow key={r.name} className="group">
+                    <StyledTableCell className="font-medium text-foreground"><div className="flex items-center gap-2"><Avatar className="h-8 w-8"><AvatarFallback className="bg-accent-dim text-[10px] text-accent">{r.name.split(" ").map((s) => s[0]).join("")}</AvatarFallback></Avatar>{r.name}</div></StyledTableCell>
+                    <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell className="text-muted-foreground">{r.dept}</StyledTableCell>
+                    <StyledTableCell className="num-mono">{r.capacity}h</StyledTableCell>
+                    <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(r.util, 100)} className={`h-1.5 ${r.util > 100 ? "[&>div]:bg-rag-red" : r.util > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${r.util > 100 ? "text-rag-red" : "text-foreground"}`}>{r.util}%</span></div></StyledTableCell>
+                    <StyledTableCell className="max-w-56 truncate text-xs text-muted-foreground">{r.projects.length ? r.projects.join(", ") : "—"}</StyledTableCell>
+                    <StyledTableCell><TableRowActions statusNode={<Badge variant="outline" className={tone}>{state}</Badge>} extraActions={<AssignDialog resource={r} compact onAssign={(projectName, alloc) => setPool((prev) => prev.map((x) => x.name === r.name ? { ...x, util: Math.min(x.util + alloc, 200), projects: x.projects.includes(projectName) ? x.projects : [...x.projects, projectName] } : x))} />} /></StyledTableCell>
+                  </StyledTableRow>
+                );
+              })}
+            </StyledTableBody>
+          </StyledTable>
+        </div>
+      </EmptyRegion>
+      <TablePagination {...pagination} itemLabel="resources" demoPages={1} />
+    </>
+  );
+}
+
+function SkillsTable() {
+  const [query, setQuery] = useState("");
+  const [demand, setDemand] = useState("all");
+  const [department, setDepartment] = useState("all");
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return SKILL_DEMAND.filter((row) => !q || row.skill.toLowerCase().includes(q) || row.department.toLowerCase().includes(q))
+      .filter((row) => demand === "all" || row.demand === demand)
+      .filter((row) => department === "all" || row.department === department);
+  }, [demand, department, query]);
+  const pagination = usePagination(filtered, 10);
+  const skillDepartments = Array.from(new Set(SKILL_DEMAND.map((row) => row.department)));
+
+  return <>
+    <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search skill or department…" filterGroups={[
+      { key: "demand", label: "Demand intensity", value: demand, onChange: setDemand, options: [{ value: "all", label: "All demand levels" }, ...(["Critical", "High", "Medium", "Low"] as Priority[]).map((v) => ({ value: v, label: v }))] },
+      { key: "department", label: "Department", value: department, onChange: setDepartment, options: [{ value: "all", label: "All departments" }, ...skillDepartments.map((v) => ({ value: v, label: v }))] },
+    ]} />
+    <div className="overflow-hidden rounded-lg border border-border bg-surface">
+      <StyledTable><StyledTableHeader><StyledTableHeaderRow>
+        <StyledTableHead>Skill name</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Available</StyledTableHead><StyledTableHead>Required</StyledTableHead><StyledTableHead>Gap</StyledTableHead><StyledTableHead>Project duration</StyledTableHead><StyledTableHead className="text-center">Demand</StyledTableHead>
+      </StyledTableHeaderRow></StyledTableHeader><StyledTableBody>
+        {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((row) => <StyledTableRow key={row.skill} className="group">
+          <StyledTableCell className="font-medium text-foreground">{row.skill}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.department}</StyledTableCell><StyledTableCell className="num-mono">{row.available}</StyledTableCell><StyledTableCell className="num-mono">{row.required}</StyledTableCell><StyledTableCell className={`num-mono ${row.required > row.available ? "text-rag-red" : "text-rag-green"}`}>{row.available - row.required}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.duration}</StyledTableCell><StyledTableCell className="text-center"><Badge variant="outline" className={PRIORITY_STYLE[row.demand]}>{row.demand}</Badge></StyledTableCell>
+        </StyledTableRow>)}
+      </StyledTableBody></StyledTable>
+    </div>
+    <TablePagination {...pagination} itemLabel="skills" demoPages={1} />
+  </>;
+}
+
+function PlanningTable() {
+  const [query, setQuery] = useState("");
+  const [gapFilter, setGapFilter] = useState("all");
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return MANPOWER_PLAN.filter((row) => !q || row.role.toLowerCase().includes(q) || row.department.toLowerCase().includes(q))
+      .filter((row) => gapFilter === "all" || (gapFilter === "gap" ? row.demand > row.supply : row.demand <= row.supply));
+  }, [gapFilter, query]);
+  const pagination = usePagination(filtered, 10);
+  return <>
+    <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search role or department…" filterGroups={[{ key: "gap", label: "Capacity", value: gapFilter, onChange: setGapFilter, options: [{ value: "all", label: "All roles" }, { value: "gap", label: "Capacity gap" }, { value: "covered", label: "Capacity covered" }] }]} />
+    <div className="overflow-hidden rounded-lg border border-border bg-surface"><StyledTable><StyledTableHeader><StyledTableHeaderRow><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Demand (FTE)</StyledTableHead><StyledTableHead>Supply</StyledTableHead><StyledTableHead>Gap</StyledTableHead><StyledTableHead>Recommended action</StyledTableHead><StyledTableHead className="text-center">Status</StyledTableHead></StyledTableHeaderRow></StyledTableHeader><StyledTableBody>
+      {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((row) => { const gap = row.demand - row.supply; return <StyledTableRow key={row.role} className="group"><StyledTableCell className="font-medium text-foreground">{row.role}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.department}</StyledTableCell><StyledTableCell className="num-mono">{row.demand}</StyledTableCell><StyledTableCell className="num-mono">{row.supply}</StyledTableCell><StyledTableCell className={`num-mono ${gap > 0 ? "text-rag-red" : "text-rag-green"}`}>{gap > 0 ? `+${gap}` : gap}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.action}</StyledTableCell><StyledTableCell className="text-center"><Badge variant="outline" className={gap > 0 ? "border-rag-red/40 bg-rag-red/10 text-rag-red" : "border-rag-green/40 bg-rag-green/10 text-rag-green"}>{gap > 0 ? "Action needed" : "Covered"}</Badge></StyledTableCell></StyledTableRow>; })}
+    </StyledTableBody></StyledTable></div><TablePagination {...pagination} itemLabel="roles" demoPages={1} />
+  </>;
+}
+
+function HeatmapView({ pool }: { pool: PoolResource[] }) {
+  const [query, setQuery] = useState("");
+  const [department, setDepartment] = useState("all");
+  const filtered = useMemo(() => { const q = query.trim().toLowerCase(); return pool.filter((r) => !q || r.name.toLowerCase().includes(q) || r.role.toLowerCase().includes(q)).filter((r) => department === "all" || r.dept === department); }, [department, pool, query]);
+  return <><PageToolbar query={query} onQueryChange={setQuery} placeholder="Search member or role…" filterGroups={[{ key: "department", label: "Department", value: department, onChange: setDepartment, options: [{ value: "all", label: "All departments" }, ...departments.map((d) => ({ value: d.name, label: d.name }))] }]} /><div className="rounded-lg border border-border bg-surface p-5"><Heatmap pool={filtered} /></div></>;
+}
 
 function FulfillDialog({
   req,
   pool,
   onFulfill,
+  compact = false,
 }: {
   req: ResourceRequest;
   pool: PoolResource[];
   onFulfill: (id: string, assignedTo: string, alloc: number) => void;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [personName, setPersonName] = useState("");
@@ -445,8 +347,8 @@ function FulfillDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="primary">
-          <CheckCircle2 className="mr-1 h-3.5 w-3.5" />Fulfill
+        <Button size={compact ? "icon" : "sm"} variant="secondary" data-ds-size={compact ? "auto" : undefined} aria-label="Fulfill request" title="Fulfill request" className={compact ? "h-9 w-9 rounded-full border border-border/60 text-rag-green" : undefined}>
+          <CheckCircle2 className={compact ? "h-4 w-4" : "mr-1 h-3.5 w-3.5"} />{compact ? null : "Fulfill"}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
@@ -543,9 +445,11 @@ function FulfillDialog({
 function DeclineDialog({
   req,
   onDecline,
+  compact = false,
 }: {
   req: ResourceRequest;
   onDecline: (id: string, reason: string) => void;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -561,8 +465,8 @@ function DeclineDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline">
-          <XCircle className="mr-1 h-3.5 w-3.5" />Decline
+        <Button size={compact ? "icon" : "sm"} variant="secondary" data-ds-size={compact ? "auto" : undefined} aria-label="Decline request" title="Decline request" className={compact ? "h-9 w-9 rounded-full border border-border/60 text-rag-red" : undefined}>
+          <XCircle className={compact ? "h-4 w-4" : "mr-1 h-3.5 w-3.5"} />{compact ? null : "Decline"}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-sm">
@@ -715,7 +619,7 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
 
 // ── Direct-assign dialog (from People tab) ────────────────────────────────────
 
-function AssignDialog({ resource, onAssign }: { resource: PoolResource; onAssign?: (projectName: string, alloc: number) => void }) {
+function AssignDialog({ resource, onAssign, compact = false }: { resource: PoolResource; onAssign?: (projectName: string, alloc: number) => void; compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const [projectId, setProjectId] = useState("");
   const [role, setRole] = useState(resource.role);
@@ -740,7 +644,7 @@ function AssignDialog({ resource, onAssign }: { resource: PoolResource; onAssign
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline">Assign</Button>
+        <Button size={compact ? "icon" : "sm"} variant="secondary" data-ds-size={compact ? "auto" : undefined} aria-label="Assign to project" title="Assign to project" className={compact ? "h-9 w-9 rounded-full border border-border/60 text-accent-secondary" : undefined}><UserCheck className="h-4 w-4" />{compact ? null : "Assign"}</Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>

@@ -1686,48 +1686,6 @@ function OverviewTab({
 
       <div className="space-y-4">
         <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Recent Activity</div>
-          <ul className="space-y-3">
-            {activity.map((a) => (
-              <li key={a.title} className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-sm font-medium text-foreground">{a.title}</div>
-                  <div className="text-xs text-accent">{a.who}</div>
-                </div>
-                <span className="shrink-0 text-xs text-muted-foreground">{a.when}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Next Milestones</div>
-          <ul className="space-y-3">
-            {milestones.map((m) => (
-              <li key={m.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className={`h-2 w-2 rounded-full ${m.rag === "green" ? "bg-rag-green" : "bg-rag-amber"}`} />
-                  <span className="text-sm font-medium text-foreground">{m.name}</span>
-                </div>
-                <span className="num-mono text-xs text-muted-foreground">{m.date}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Budget Status</div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Spent</span>
-            <span className="num-mono font-medium text-foreground">${project.budgetUsed.toFixed(1)}M / ${project.budgetTotal.toFixed(1)}M</span>
-          </div>
-          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-secondary/50">
-            <div className="h-full rounded-full bg-rag-green" style={{ width: `${spentPct}%` }} />
-          </div>
-          <div className="mt-3 text-xs text-muted-foreground">Remaining: ${remaining}M</div>
-        </div>
-
-        <div className="glass-card p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div className="label-eyebrow">Risks Summary</div>
             <span className="num-mono text-xs text-muted-foreground">{projectRisks.length} risks</span>
@@ -1761,6 +1719,48 @@ function OverviewTab({
           ) : (
             <p className="text-sm text-muted-foreground">No risks logged for this project.</p>
           )}
+        </div>
+
+        <div className="glass-card p-5">
+          <div className="label-eyebrow mb-4">Next Milestones</div>
+          <ul className="space-y-3">
+            {milestones.map((m) => (
+              <li key={m.name} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full ${m.rag === "green" ? "bg-rag-green" : "bg-rag-amber"}`} />
+                  <span className="text-sm font-medium text-foreground">{m.name}</span>
+                </div>
+                <span className="num-mono text-xs text-muted-foreground">{m.date}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="glass-card p-5">
+          <div className="label-eyebrow mb-4">Budget Status</div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Spent</span>
+            <span className="num-mono font-medium text-foreground">${project.budgetUsed.toFixed(1)}M / ${project.budgetTotal.toFixed(1)}M</span>
+          </div>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-secondary/50">
+            <div className="h-full rounded-full bg-rag-green" style={{ width: `${spentPct}%` }} />
+          </div>
+          <div className="mt-3 text-xs text-muted-foreground">Remaining: ${remaining}M</div>
+        </div>
+
+        <div className="glass-card p-5">
+          <div className="label-eyebrow mb-4">Recent Activity</div>
+          <ul className="space-y-3">
+            {activity.map((a) => (
+              <li key={a.title} className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-foreground">{a.title}</div>
+                  <div className="text-xs text-accent">{a.who}</div>
+                </div>
+                <span className="shrink-0 text-xs text-muted-foreground">{a.when}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>

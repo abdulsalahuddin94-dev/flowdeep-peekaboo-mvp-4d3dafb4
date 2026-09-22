@@ -568,12 +568,13 @@ All user-visible calendar dates use one English, day-first format:
 
 **Control metrics & font:** every `Button` is height **36px**, radius **8px**. All button labels — including the Main CTA (`size="sm"` primary in the toolbar) — render at **`text-sm` = 14px**. The `sm` size only narrows horizontal padding (`px-3`); it never reduces the label to `text-xs`. Buttons that genuinely need a smaller label override explicitly with `text-xs`/`text-[11px]`.
 
-### Status Pills
+### Badges & Status Pills
+**Pill rule (mandatory):** every badge, tag, chip, and status indicator is a **fully rounded pill** — `rounded-full`, height **28px** (`h-7`), `px-3`, `text-xs font-medium`. Never a rounded rectangle (`rounded-sm` / `rounded-md`). The shared `Badge` component already encodes this, so use it instead of hand-rolled spans.
+
 Map to RAG: green=approved/active, amber=pending/risk, red=rejected/critical, blue=new/draft, grey=archived/hold.
 
 ```tsx
-<span className="rounded-full border px-2.5 py-0.5 text-xs font-medium
-  border-rag-green/30 bg-rag-green/10 text-rag-green">Approved</span>
+<Badge variant="outline" className="border-rag-green/30 bg-rag-green/10 text-rag-green">Approved</Badge>
 ```
 
 ### Empty States

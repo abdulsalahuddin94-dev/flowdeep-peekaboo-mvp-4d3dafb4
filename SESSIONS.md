@@ -1,3 +1,9 @@
+## Session — 2026-09-22 (Risk score loading state)
+
+- Added an accessible loading state to the Log/Edit Risk Score field while its severity badge result is pending.
+- The field now shows a compact spinner with “Calculating…”, hides stale score/badge values, and recalculates whenever Probability or Impact changes.
+- Risk submission stays disabled until the latest score response is ready; the current local calculation remains a temporary API-response stand-in.
+
 ## Session — 2026-09-21 (Schedule burger centering + row hover color)
 
 - Project Schedule: centered the burger (⋮) row menu horizontally within the last visible column (overlay `justify-center` instead of `justify-end`).

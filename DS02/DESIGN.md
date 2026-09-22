@@ -147,6 +147,12 @@ Theme controlled via `data-theme` attribute on `<html>`:
 
 ## 8. Changelog
 
+### DS02.v3.8 (2026-09-22)
+**Shape Rule — Badges are fully rounded pills**
+- Every badge, tag, chip, and status indicator is a fully rounded pill: `rounded-full`, height 28px (`h-7`), `px-3`, `text-xs font-medium`, 1px border.
+- Rounded rectangles (`rounded-sm` / `rounded-md`) are no longer allowed for badges; the rule is encoded in the shared `Badge` component so all future badges inherit it.
+- Aligns all modules with the Organization module status-pill treatment.
+
 ### DS02.v3.7 (2026-09-22)
 **Display Rule — Calendar Dates**
 - Standardized every user-visible date with a year as `DD MMM, YYYY` (for example `22 Sep, 2026`) and without a year as `DD MMM` (for example `22 Sep`).

@@ -1,6 +1,6 @@
 # DS02 Design System — Enterprise PMO (Nexus)
 
-**Version:** DS02.v3.5  
+**Version:** DS02.v3.8  
 **Last Updated:** 2026-07-26  
 **Status:** Active in production (Complete & Production-Ready)  
 **Structure:** Primitives (110: 85 colors + 25 dimensions) → Semantic (77: Light & Dark modes)  
@@ -180,4 +180,4 @@ Theme controlled via `data-theme` attribute on `<html>`:
 
 ---
 
-**End of DS02 Design System Documentation (v3.7) — MVP Edition**
+**End of DS02 Design System Documentation (v3.8) — MVP Edition**

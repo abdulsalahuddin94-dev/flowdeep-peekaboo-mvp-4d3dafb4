@@ -1,3 +1,10 @@
+## 2026-09-22 — Risk statuses trimmed, multi-issue links
+
+- Removed the `Realized` and `Closed` risk statuses; risks now hold Open / In Progress / Mitigated only (`src/lib/mock-data.ts`, seeds and seed update history adjusted).
+- Convert to Issue no longer forces a terminal status (moves Open → In Progress) and is no longer disabled, so a risk can carry multiple linked issues (`src/lib/risk-store.tsx`, `RiskIssues.tsx`).
+- Risk drawer shows "Linked issues" as a count hyperlink; clicking it opens the Issues Log filtered to that risk (new `onViewLinkedIssues` on `RiskRegisterTab`, controlled `riskFilter` on `IssuesLogTab`, wired in `src/routes/risks.tsx` and `src/routes/portfolio.$projectId.tsx`).
+- Added demo issue I-055 linked to R-091 so a risk with two issues is visible.
+
 ## Session — 2026-09-22 (Risk score loading state)
 
 - Added an accessible loading state to the Log/Edit Risk Score field while its severity badge result is pending.

@@ -238,7 +238,7 @@ export const pipelineItems = [
   { id: "BC-2026-011", title: "Field Engineer App Refresh", stage: "Rejected", score: 31, roi: "$0.4M", submittedBy: "Diego Ortiz", sponsor: "Khalid Al-Farsi", dept: "Engineering", date: "1mo ago", pillar: "Efficiency" },
 ];
 
-export type RiskStatus = "Open" | "In Progress" | "Mitigated" | "Realized" | "Closed";
+export type RiskStatus = "Open" | "In Progress" | "Mitigated";
 
 export interface RiskItem {
   id: string;
@@ -263,12 +263,12 @@ export const RISK_CATEGORIES = [
 ];
 
 export const risks: RiskItem[] = [
-  { id: "R-091", project: "ERP System Upgrade", title: "Vendor delivery delay > 4 weeks", category: "Vendor", prob: 4, impact: 5, score: 20, status: "Realized", owner: "Sara Al-Rashid", mitigation: "Switch to backup vendor; weekly SLA reviews", milestone: "UAT Sign-off" },
+  { id: "R-091", project: "ERP System Upgrade", title: "Vendor delivery delay > 4 weeks", category: "Vendor", prob: 4, impact: 5, score: 20, status: "In Progress", owner: "Sara Al-Rashid", mitigation: "Switch to backup vendor; weekly SLA reviews", milestone: "UAT Sign-off" },
   { id: "R-096", project: "ERP System Upgrade", title: "Data migration defect leakage into UAT", category: "Technical", prob: 3, impact: 4, score: 12, status: "In Progress", owner: "Mei Chen", mitigation: "Run daily reconciliation, freeze mappings, and assign data stewards to each workstream", milestone: "UAT Sign-off" },
   { id: "R-097", project: "ERP System Upgrade", title: "Finance cutover window conflicts with month-end", category: "Schedule", prob: 3, impact: 3, score: 9, status: "Open", owner: "Liam Walker", mitigation: "Prepare fallback weekend window and agree finance blackout exceptions", milestone: "UAT Sign-off" },
-  { id: "R-098", project: "ERP System Upgrade", title: "Legacy integration performance below SLA", category: "Technical", prob: 2, impact: 5, score: 10, status: "Realized", owner: "Omar Haddad", mitigation: "Throttle batch jobs and move high-volume interfaces to async queue", milestone: "UAT Sign-off" },
+  { id: "R-098", project: "ERP System Upgrade", title: "Legacy integration performance below SLA", category: "Technical", prob: 2, impact: 5, score: 10, status: "In Progress", owner: "Omar Haddad", mitigation: "Throttle batch jobs and move high-volume interfaces to async queue", milestone: "UAT Sign-off" },
   { id: "R-099", project: "ERP System Upgrade", title: "Additional reporting scope requested after baseline", category: "Scope", prob: 2, impact: 3, score: 6, status: "Mitigated", owner: "Sara Al-Rashid", mitigation: "Move non-critical dashboards to phase 2 and route changes through the CR board" },
-  { id: "R-100", project: "ERP System Upgrade", title: "Key payroll SME unavailable during testing", category: "Resource", prob: 2, impact: 4, score: 8, status: "Closed", owner: "Priya Iyer", mitigation: "Backup SME assigned and walkthroughs completed before test execution" },
+  { id: "R-100", project: "ERP System Upgrade", title: "Key payroll SME unavailable during testing", category: "Resource", prob: 2, impact: 4, score: 8, status: "Mitigated", owner: "Priya Iyer", mitigation: "Backup SME assigned and walkthroughs completed before test execution" },
   { id: "R-088", project: "Coastal Refinery Expansion", title: "Permit approval slip", category: "Regulatory", prob: 3, impact: 5, score: 15, status: "In Progress", owner: "John Smith", mitigation: "Direct govt liaison engaged" },
   { id: "R-085", project: "Security Hardening 2026", title: "Audit finding remediation overrun", category: "Compliance", prob: 4, impact: 4, score: 16, status: "Open", owner: "Mei Chen", mitigation: "Daily standups, executive escalation" },
   { id: "R-081", project: "Wellhead Automation", title: "Specialist resource attrition", category: "Resource", prob: 3, impact: 4, score: 12, status: "Open", owner: "Omar Haddad", mitigation: "Retention bonus + knowledge transfer" },
@@ -315,6 +315,7 @@ export interface IssueItem {
 
 export const issues: IssueItem[] = [
   { id: "I-044", project: "ERP System Upgrade", title: "Test environment outage blocking QA", priority: "High", impact: 4, owner: "Mei Chen", status: "Escalated", raised: "2d ago", openDate: "2026-09-19", targetDate: "2026-09-30", riskId: "R-091", action: "Infra team restoring cluster; QA re-plan issued" },
+  { id: "I-055", project: "ERP System Upgrade", title: "Vendor shipment held at customs", priority: "Medium", impact: 3, owner: "Sara Al-Rashid", status: "In Progress", raised: "3d ago", openDate: "2026-09-18", targetDate: "2026-09-29", riskId: "R-091", action: "Customs broker engaged; revised clearance date requested" },
   { id: "I-051", project: "ERP System Upgrade", title: "Interface throughput below cutover threshold", priority: "High", impact: 5, owner: "Omar Haddad", status: "Escalated", raised: "1d ago", openDate: "2026-09-20", targetDate: "2026-09-25", riskId: "R-098", action: "Integration team tuning batch windows and prioritising payroll interface tests" },
   { id: "I-052", project: "ERP System Upgrade", title: "Master data reconciliation backlog", priority: "Medium", impact: 3, owner: "Mei Chen", status: "In Progress", raised: "3d ago", openDate: "2026-09-18", targetDate: "2026-10-04", action: "Data owners reviewing exceptions daily; backlog burn-down shared with PMO" },
   { id: "I-053", project: "ERP System Upgrade", title: "Training attendance missing for finance users", priority: "Low", impact: 2, owner: "Liam Walker", status: "Open", raised: "4d ago", openDate: "2026-09-17", targetDate: "2026-09-28", action: "Finance lead rebooking mandatory sessions and tracking completion" },

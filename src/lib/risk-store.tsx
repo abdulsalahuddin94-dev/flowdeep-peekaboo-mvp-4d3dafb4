@@ -55,20 +55,20 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 const SEED_UPDATES: Record<string, RiskUpdate[]> = {
   "R-091": [
-    { id: "u1", at: "2026-09-19", by: "Sara Al-Rashid", comment: "Vendor delay materialised and QA outage was opened as a linked issue.", change: { status: ["Open", "Realized"] } },
+    { id: "u1", at: "2026-09-19", by: "Sara Al-Rashid", comment: "Vendor delay materialised and QA outage was opened as a linked issue.", change: { status: ["Open", "In Progress"] } },
     { id: "u2", at: "2026-08-18", by: "Sara Al-Rashid", comment: "Backup vendor shortlisted, contract under legal review." },
   ],
   "R-096": [
     { id: "u1", at: "2026-09-18", by: "Mei Chen", comment: "Data stewards assigned to the top 50 exception records.", change: { status: ["Open", "In Progress"] } },
   ],
   "R-098": [
-    { id: "u1", at: "2026-09-20", by: "Omar Haddad", comment: "Interface performance breach confirmed during volume test and logged as an issue.", change: { status: ["Open", "Realized"] } },
+    { id: "u1", at: "2026-09-20", by: "Omar Haddad", comment: "Interface performance breach confirmed during volume test and logged as an issue.", change: { status: ["Open", "In Progress"] } },
   ],
   "R-099": [
     { id: "u1", at: "2026-09-15", by: "Sara Al-Rashid", comment: "Reporting requests moved to phase 2; baseline scope protected.", change: { status: ["In Progress", "Mitigated"] } },
   ],
   "R-100": [
-    { id: "u1", at: "2026-09-14", by: "Priya Iyer", comment: "Backup SME onboarded and no further testing impact remains.", change: { status: ["Open", "Closed"] } },
+    { id: "u1", at: "2026-09-14", by: "Priya Iyer", comment: "Backup SME onboarded and no further testing impact remains.", change: { status: ["Open", "Mitigated"] } },
   ],
   "R-058": [
     { id: "u1", at: "2026-07-02", by: "Liam Walker", comment: "Forward contracts placed for 80% of the exposure.", change: { prob: [3, 2], score: [6, 4] } },
@@ -240,12 +240,14 @@ export function useRiskRegister() {
       at: today(),
       by,
       comment: "Risk materialised — converted to an issue.",
-      change: { status: [risk.status, "Realized"] },
+      change: risk.status === "Open" ? { status: ["Open", "In Progress"] } : undefined,
     };
     set({
       issues: [issue, ...state.issues],
       risks: state.risks.map((r) =>
-        r.id === riskId ? { ...r, status: "Realized" as RiskStatus, updates: [update, ...r.updates] } : r,
+        r.id === riskId
+          ? { ...r, status: (r.status === "Open" ? "In Progress" : r.status) as RiskStatus, updates: [update, ...r.updates] }
+          : r,
       ),
     });
     return id;

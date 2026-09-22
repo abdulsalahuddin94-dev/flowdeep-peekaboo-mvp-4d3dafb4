@@ -41,14 +41,9 @@ const RISK_STATUS_TONE: Record<RiskStatus, string> = {
   Open: "border-rag-red/40 bg-rag-red/10 text-rag-red",
   "In Progress": "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
   Mitigated: "border-rag-green/40 bg-rag-green/10 text-rag-green",
-  Realized: "border-rag-red/40 bg-rag-red/15 text-rag-red",
-  Closed: "border-border bg-[var(--field-bg-filled)] text-muted-foreground",
 };
 
-/** Selectable by hand. "Realized" is set automatically on Convert to Issue. */
-const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated", "Closed"];
-/** Every status a risk can hold — used for filtering. */
-const RISK_STATUSES_ALL: RiskStatus[] = ["Open", "In Progress", "Mitigated", "Realized", "Closed"];
+const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated"];
 const ISSUE_STATUSES: IssueStatus[] = ["Open", "In Progress", "Resolved", "Escalated"];
 const COMMENT_MAX = 500;
 
@@ -82,7 +77,7 @@ export function useSeverity() {
 
 /* ── Risk register ────────────────────────────────────────────────────────── */
 
-export function RiskRegisterTab({ project, milestoneOptions }: { project?: string; milestoneOptions?: string[] }) {
+export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues }: { project?: string; milestoneOptions?: string[]; onViewLinkedIssues?: (riskId: string) => void }) {
   const { risks, issues, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, convertRiskToIssue } = useRiskRegister();
   const hasLinkedIssue = (riskId: string) => issues.some((i) => i.riskId === riskId);
   const { severityOf } = useSeverity();
@@ -126,7 +121,7 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
           ...(project ? [] : [{ key: "project", label: "Projects", mode: "multi" as const, value: projectFilter, onChange: setProjectFilter, options: [{ value: "all", label: "All projects" }, ...projectOptions.map((p) => ({ value: p, label: p }))] }]),
           { key: "category", label: "Categories", mode: "multi", value: categoryFilter, onChange: setCategoryFilter, options: [{ value: "all", label: "All categories" }, ...categories.map((c) => ({ value: c.name, label: c.name }))] },
           { key: "severity", label: "Score", value: severity, onChange: setSeverity, options: [{ value: "all", label: "All severities" }, { value: "Critical", label: "Critical" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
-          { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...RISK_STATUSES_ALL.map((v) => ({ value: v, label: v }))] },
+          { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...RISK_STATUSES.map((v) => ({ value: v, label: v }))] },
         ]}
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Risk</Button>}
       />
@@ -172,7 +167,7 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
                     onEdit={() => { setEditing(r); setFormOpen(true); }}
                     onDelete={() => {
                       if (hasLinkedIssue(r.id)) {
-                        toast.warning("This risk has a linked issue. Resolve or delete the issue first.", { title: "Cannot delete risk" });
+                        toast.warning("This risk has linked issues. Resolve or delete them first.", { title: "Cannot delete risk" });
                         return;
                       }
                       setPendingDelete(r);
@@ -208,6 +203,7 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
       <RiskSheet
         risk={view}
         showProjectName={!project}
+        onViewLinkedIssues={onViewLinkedIssues}
         onClose={() => setViewId(null)}
         onEdit={(r) => { setViewId(null); setEditing(r); setFormOpen(true); }}
         onUpdate={(r) => setStatusFor(r)}
@@ -415,10 +411,11 @@ function RiskFormDialog({
 /* ── Risk detail sheet ────────────────────────────────────────────────────── */
 
 function RiskSheet({
-  risk, showProjectName = true, onClose, onEdit, onUpdate, onConvert,
+  risk, showProjectName = true, onClose, onEdit, onUpdate, onConvert, onViewLinkedIssues,
 }: {
   risk: RiskRecord | null;
   showProjectName?: boolean;
+  onViewLinkedIssues?: (riskId: string) => void;
   onClose: () => void;
   onEdit: (r: RiskRecord) => void;
   onUpdate: (r: RiskRecord) => void;
@@ -428,7 +425,7 @@ function RiskSheet({
   const { issues } = useRiskRegister();
   if (!risk) return null;
   const severity = severityOf(risk.score);
-  const linkedIssue = issues.find((i) => i.riskId === risk.id) ?? null;
+  const linkedCount = issues.filter((i) => i.riskId === risk.id).length;
 
   return (
     <Sheet open={!!risk} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -468,13 +465,20 @@ function RiskSheet({
             <div className="label-eyebrow mb-1">Linked milestone</div>
             <p className="text-sm text-foreground">{risk.milestone || "—"}</p>
           </div>
-          {linkedIssue && (
+          {linkedCount > 0 && (
             <div>
-              <div className="label-eyebrow mb-1">Linked issue</div>
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-foreground">{linkedIssue.title}</p>
-                <Pill label={linkedIssue.status} tone={ISSUE_STATUS_TONE[linkedIssue.status]} />
-              </div>
+              <div className="label-eyebrow mb-1">Linked issues</div>
+              {onViewLinkedIssues ? (
+                <button
+                  type="button"
+                  className="text-sm font-medium text-accent underline underline-offset-4 hover:text-accent/80"
+                  onClick={() => { onClose(); onViewLinkedIssues(risk.id); }}
+                >
+                  {linkedCount} {linkedCount === 1 ? "issue" : "issues"}
+                </button>
+              ) : (
+                <p className="text-sm text-foreground">{linkedCount} {linkedCount === 1 ? "issue" : "issues"}</p>
+              )}
             </div>
           )}
           <Separator />
@@ -521,7 +525,7 @@ function RiskSheet({
         <div className="space-y-2 border-t border-border px-6 py-4">
           <div className="flex gap-2">
             <Button variant="primary" className="flex-1" onClick={() => { onClose(); onUpdate(risk); }}>Update risk status</Button>
-            <Button variant="outline" className="flex-1" disabled={!!linkedIssue} onClick={() => { onClose(); onConvert(risk); }}>Convert to Issue</Button>
+            <Button variant="outline" className="flex-1" onClick={() => { onClose(); onConvert(risk); }}>Convert to Issue</Button>
           </div>
           <Button variant="secondary" className="w-full" onClick={() => onEdit(risk)}>Edit Risk</Button>
         </div>
@@ -647,14 +651,16 @@ const todayISO = () => new Date().toISOString().slice(0, 10);
 const normTitle = (v: string) => v.trim().replace(/\s+/g, " ").toLowerCase();
 const fmtDate = (v?: string) => (v ? v : "—");
 
-export function IssuesLogTab({ project, milestoneOptions }: { project?: string; milestoneOptions?: string[] }) {
+export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilterProp, onRiskFilterChange }: { project?: string; milestoneOptions?: string[]; riskFilter?: string[]; onRiskFilterChange?: (v: string[]) => void }) {
   const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate } = useRiskRegister();
   const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState<string[]>([]);
   const [priority, setPriority] = useState("all");
   const [status, setStatus] = useState("all");
-  const [riskFilter, setRiskFilter] = useState<string[]>([]);
+  const [riskFilterState, setRiskFilterState] = useState<string[]>([]);
+  const riskFilter = riskFilterProp ?? riskFilterState;
+  const setRiskFilter = onRiskFilterChange ?? setRiskFilterState;
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<IssueRecord | null>(null);
   const [pendingDelete, setPendingDelete] = useState<IssueRecord | null>(null);

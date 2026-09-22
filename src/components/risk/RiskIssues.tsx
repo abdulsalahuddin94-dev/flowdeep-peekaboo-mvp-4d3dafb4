@@ -27,6 +27,7 @@ import { useRiskRegister, type RiskRecord, type IssueRecord } from "@/lib/risk-s
 import { useOrgRules, severityForScore, type RiskSeverity } from "@/lib/org-rules";
 import { useOrgActive } from "@/lib/org-active";
 import { useCurrentUser } from "@/lib/projects-store";
+import { formatDateWithYear } from "@/lib/date-format";
 
 /* ── Tone helpers ─────────────────────────────────────────────────────────── */
 
@@ -649,7 +650,7 @@ export function RiskHeatmapTab({ project }: { project?: string }) {
 const todayISO = () => new Date().toISOString().slice(0, 10);
 /** Normalised title used for the uniqueness check. */
 const normTitle = (v: string) => v.trim().replace(/\s+/g, " ").toLowerCase();
-const fmtDate = (v?: string) => (v ? v : "—");
+const fmtDate = (v?: string) => formatDateWithYear(v);
 
 export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilterProp, onRiskFilterChange }: { project?: string; milestoneOptions?: string[]; riskFilter?: string[]; onRiskFilterChange?: (v: string[]) => void }) {
   const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate } = useRiskRegister();
@@ -881,7 +882,7 @@ function IssueDetailDrawer({
                 <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium text-foreground">{u.by}</span>
-                    <span className="num-mono text-[10px] text-muted-foreground">{u.at}</span>
+                    <span className="num-mono text-[10px] text-muted-foreground">{formatDateWithYear(u.at)}</span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{u.comment}</p>
                   {u.statusChange && (

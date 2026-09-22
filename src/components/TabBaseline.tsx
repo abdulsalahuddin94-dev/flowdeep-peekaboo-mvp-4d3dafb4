@@ -21,6 +21,7 @@ import { CheckCircle2, XCircle, Send, Pencil } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 import { useParams } from "@tanstack/react-router";
 import { useApprovals, useProjects } from "@/lib/projects-store";
+import { formatDateWithYear } from "@/lib/date-format";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -368,7 +369,7 @@ export function BaselineHeader<TSnapshot>({
                   Current (v{latestVersion?.version ?? 1}) ⭐
                 </span>
                 <span className="text-[10px] text-muted-foreground">
-                  {latestVersion?.createdAt} · by {latestVersion?.author}
+                  {formatDateWithYear(latestVersion?.createdAt)} · by {latestVersion?.author}
                 </span>
               </div>
             </SelectItem>
@@ -380,7 +381,7 @@ export function BaselineHeader<TSnapshot>({
                   <div className="flex flex-col leading-tight">
                     <span>v{v.version}</span>
                     <span className="text-[10px] text-muted-foreground">
-                      {v.createdAt} · by {v.author}
+                      {formatDateWithYear(v.createdAt)} · by {v.author}
                     </span>
                   </div>
                 </SelectItem>
@@ -607,7 +608,7 @@ export function TabApprovalDialog<TSnapshot>({
         <DialogHeader>
           <DialogTitle>Review Change Request — {label}</DialogTitle>
           <DialogDescription>
-            Submitted by {cr.submittedBy} on {cr.createdAt}
+            Submitted by {cr.submittedBy} on {formatDateWithYear(cr.createdAt)}
           </DialogDescription>
         </DialogHeader>
 

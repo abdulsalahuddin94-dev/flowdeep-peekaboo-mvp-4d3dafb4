@@ -1,5 +1,6 @@
 import { Check, X, Clock } from "@/lib/icons";
 import type { ApprovalRequest } from "@/lib/projects-store";
+import { formatDateWithYear } from "@/lib/date-format";
 
 /**
  * Shared read-out of a central Approvals Inbox decision, rendered at the place
@@ -49,7 +50,7 @@ export function ApprovalOutcomeBanner({
               <span className="ml-1 text-muted-foreground">· {a.role}</span>
               <span className={`ml-1 ${a.decision === "approved" ? "text-rag-green" : "text-rag-red"}`}>
                 {a.decision === "approved" ? "Approved" : "Rejected"}
-                {a.decidedAt ? ` · ${a.decidedAt}` : ""}
+                {a.decidedAt ? ` · ${formatDateWithYear(a.decidedAt)}` : ""}
               </span>
               {a.comment && (
                 <div className="mt-0.5 rounded bg-background/40 px-1.5 py-1 text-[10px] text-muted-foreground">

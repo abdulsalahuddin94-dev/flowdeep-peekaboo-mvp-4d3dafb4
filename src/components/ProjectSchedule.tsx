@@ -31,6 +31,7 @@ import { RagBadge } from "@/components/RagBadge";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
+import { formatDateWithYear, formatDateWithoutYear } from "@/lib/date-format";
 
 // ── MS Project XML import ────────────────────────────────────────────────────
 function parseMsProjectXml(xmlText: string): ScheduleItem[] {
@@ -235,7 +236,7 @@ function parseISO(s: string): Date | null {
 }
 function diffDays(a: Date, b: Date) { return Math.round((a.getTime() - b.getTime()) / 86400000); }
 function addDays(d: Date, n: number) { const o = new Date(d); o.setDate(o.getDate() + n); return o; }
-function fmt(d: Date) { return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }); }
+function fmt(d: Date) { return formatDateWithoutYear(d); }
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -1190,7 +1191,7 @@ export function ProjectSchedule({
                             title="Rescheduled by a dependency change"
                           />
                         )}
-                        <span className="truncate">{item.startDate || "—"}</span>
+                        <span className="truncate">{formatDateWithYear(item.startDate)}</span>
                       </div>
                     )}
                     {colVisible("end") && (
@@ -1201,7 +1202,7 @@ export function ProjectSchedule({
                             title="Rescheduled by a dependency change"
                           />
                         )}
-                        <span className="truncate">{item.endDate || "—"}</span>
+                        <span className="truncate">{formatDateWithYear(item.endDate)}</span>
                       </div>
                     )}
                     {colVisible("duration") && (
@@ -1612,7 +1613,7 @@ export function ProjectSchedule({
                     return (
                       <div
                         key={item.name}
-                        title={`${item.name} · ${ov?.endDate ?? item.endDate}`}
+                        title={`${item.name} · ${formatDateWithYear(ov?.endDate ?? item.endDate)}`}
                         className={`absolute ${editable ? "cursor-grab active:cursor-grabbing" : ""}`}
                         style={{ left: cx - 8, top: cy - 8, width: 16, height: 16 }}
                         onPointerDown={(ev) => beginBarDrag(item.name, "move", ev)}
@@ -1774,8 +1775,8 @@ export function ProjectSchedule({
                           <TableCell>
                             <span className={`rounded border px-1.5 py-0.5 text-[10px] ${kindColor(it.kind)}`}>{it.kind}</span>
                           </TableCell>
-                          <TableCell className="text-muted-foreground">{it.startDate || "—"}</TableCell>
-                          <TableCell className="text-muted-foreground">{it.endDate || "—"}</TableCell>
+                          <TableCell className="text-muted-foreground">{formatDateWithYear(it.startDate)}</TableCell>
+                          <TableCell className="text-muted-foreground">{formatDateWithYear(it.endDate)}</TableCell>
                           <TableCell className="text-muted-foreground">{it.dep || "—"}</TableCell>
                           <TableCell className="text-muted-foreground">{it.assignee || "—"}</TableCell>
                         </TableRow>
@@ -2023,7 +2024,7 @@ function DateCell({
   };
 
   const formatPickerDate = (date: Date | null) =>
-    date?.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) ?? "Select date";
+    date ? formatDateWithYear(date) : "Select date";
 
   const selectedRange = useMemo(() => {
     if (activeStart && activeEnd) {

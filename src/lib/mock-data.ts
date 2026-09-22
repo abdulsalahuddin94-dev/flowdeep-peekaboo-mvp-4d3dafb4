@@ -27,7 +27,9 @@ export interface Project {
   baselineLocked?: boolean;
 }
 
-/** Parses the "MMM DD, YYYY" display format used for project dates. Returns null for "—" or unparsable input. */
+import { formatDateWithYear } from "@/lib/date-format";
+
+/** Parses a display or ISO project date. Returns null for "—" or unparsable input. */
 export function parseLabelDate(s: string | undefined): Date | null {
   if (!s || s === "—") return null;
   const d = new Date(s);
@@ -35,7 +37,7 @@ export function parseLabelDate(s: string | undefined): Date | null {
 }
 
 export function formatLabelDate(d: Date): string {
-  return d.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+  return formatDateWithYear(d);
 }
 
 /** Formats a Date as a local YYYY-MM-DD (for <input type="date"> values) without the UTC-shift `toISOString` can introduce. */
@@ -46,7 +48,7 @@ export function toIsoDateLocal(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-/** Inclusive day count between two "MMM DD, YYYY" labels, or null if either is missing/unparsable. */
+/** Inclusive day count between two display-date labels, or null if either is missing/unparsable. */
 export function projectDurationDays(p: Pick<Project, "startDate" | "endDate">): number | null {
   const start = parseLabelDate(p.startDate);
   const end = parseLabelDate(p.endDate);
@@ -79,28 +81,28 @@ const depts = ["Engineering", "IT", "Operations", "R&D", "Finance"];
 const tags = ["Strategic", "Compliance", "Innovation", "Cost-Saving", "Customer-Facing"];
 
 const seed = [
-  ["ERP System Upgrade", "red", 61, 2.1, 3.2, "Jun 15, 2026", "Critical", "Execution"],
-  ["Coastal Refinery Expansion", "amber", 38, 14.2, 42.0, "Dec 02, 2026", "Vendor SLA", "Execution"],
-  ["Salesforce Migration", "green", 84, 0.84, 1.10, "Jul 22, 2026", "On Track", "Monitoring"],
-  ["Smart Grid Pilot", "green", 22, 0.45, 2.8, "Mar 14, 2027", "On Track", "Planning"],
-  ["Warehouse Robotics", "amber", 56, 3.7, 5.4, "Oct 08, 2026", "Scope creep", "Execution"],
-  ["Customer Portal v3", "green", 71, 0.62, 0.95, "Aug 30, 2026", "On Track", "Execution"],
-  ["Data Lake Foundation", "blue", 8, 0.05, 1.6, "Jan 19, 2027", "Initiating", "Initiation"],
-  ["Plant Maintenance Q3", "amber", 47, 0.88, 1.40, "Sep 12, 2026", "Parts delay", "Execution"],
-  ["AI Forecasting Engine", "green", 33, 0.31, 1.20, "Nov 05, 2026", "On Track", "Planning"],
-  ["Security Hardening 2026", "red", 19, 0.42, 0.60, "Jul 03, 2026", "Audit findings", "Execution"],
-  ["Mobile Workforce App", "green", 64, 0.55, 0.90, "Aug 11, 2026", "On Track", "Execution"],
-  ["EPC Substation Bravo", "amber", 51, 7.2, 12.5, "Feb 28, 2027", "Permit risk", "Execution"],
-  ["Document AI Pilot", "blue", 4, 0.02, 0.40, "Apr 22, 2027", "Initiating", "Initiation"],
-  ["Procurement Modernization", "green", 77, 1.10, 1.50, "Jul 30, 2026", "On Track", "Monitoring"],
-  ["Cloud Cost Optimization", "green", 89, 0.18, 0.22, "Jun 09, 2026", "On Track", "Closure"],
-  ["LNG Terminal Refit", "amber", 41, 9.4, 18.0, "Mar 30, 2027", "Weather slip", "Execution"],
-  ["HRIS Replacement", "green", 58, 0.74, 1.30, "Oct 21, 2026", "On Track", "Execution"],
-  ["Asset Tracking IoT", "green", 27, 0.21, 0.90, "Dec 14, 2026", "On Track", "Planning"],
-  ["Regulatory Reporting", "amber", 62, 0.49, 0.70, "Aug 02, 2026", "SME shortage", "Execution"],
+  ["ERP System Upgrade", "red", 61, 2.1, 3.2, "15 Jun, 2026", "Critical", "Execution"],
+  ["Coastal Refinery Expansion", "amber", 38, 14.2, 42.0, "02 Dec, 2026", "Vendor SLA", "Execution"],
+  ["Salesforce Migration", "green", 84, 0.84, 1.10, "22 Jul, 2026", "On Track", "Monitoring"],
+  ["Smart Grid Pilot", "green", 22, 0.45, 2.8, "14 Mar, 2027", "On Track", "Planning"],
+  ["Warehouse Robotics", "amber", 56, 3.7, 5.4, "08 Oct, 2026", "Scope creep", "Execution"],
+  ["Customer Portal v3", "green", 71, 0.62, 0.95, "30 Aug, 2026", "On Track", "Execution"],
+  ["Data Lake Foundation", "blue", 8, 0.05, 1.6, "19 Jan, 2027", "Initiating", "Initiation"],
+  ["Plant Maintenance Q3", "amber", 47, 0.88, 1.40, "12 Sep, 2026", "Parts delay", "Execution"],
+  ["AI Forecasting Engine", "green", 33, 0.31, 1.20, "05 Nov, 2026", "On Track", "Planning"],
+  ["Security Hardening 2026", "red", 19, 0.42, 0.60, "03 Jul, 2026", "Audit findings", "Execution"],
+  ["Mobile Workforce App", "green", 64, 0.55, 0.90, "11 Aug, 2026", "On Track", "Execution"],
+  ["EPC Substation Bravo", "amber", 51, 7.2, 12.5, "28 Feb, 2027", "Permit risk", "Execution"],
+  ["Document AI Pilot", "blue", 4, 0.02, 0.40, "22 Apr, 2027", "Initiating", "Initiation"],
+  ["Procurement Modernization", "green", 77, 1.10, 1.50, "30 Jul, 2026", "On Track", "Monitoring"],
+  ["Cloud Cost Optimization", "green", 89, 0.18, 0.22, "09 Jun, 2026", "On Track", "Closure"],
+  ["LNG Terminal Refit", "amber", 41, 9.4, 18.0, "30 Mar, 2027", "Weather slip", "Execution"],
+  ["HRIS Replacement", "green", 58, 0.74, 1.30, "21 Oct, 2026", "On Track", "Execution"],
+  ["Asset Tracking IoT", "green", 27, 0.21, 0.90, "14 Dec, 2026", "On Track", "Planning"],
+  ["Regulatory Reporting", "amber", 62, 0.49, 0.70, "02 Aug, 2026", "SME shortage", "Execution"],
   ["Solar Microgrid", "grey", 12, 0.10, 3.4, "—", "On Hold", "Planning"],
-  ["BI Self-Service", "green", 44, 0.38, 0.85, "Nov 18, 2026", "On Track", "Execution"],
-  ["Wellhead Automation", "red", 35, 5.1, 6.8, "Sep 27, 2026", "Critical vendor", "Execution"],
+  ["BI Self-Service", "green", 44, 0.38, 0.85, "18 Nov, 2026", "On Track", "Execution"],
+  ["Wellhead Automation", "red", 35, 5.1, 6.8, "27 Sep, 2026", "Critical vendor", "Execution"],
 ] as const;
 
 export const projects: Project[] = seed.map((row, i) => {
@@ -339,17 +341,17 @@ export const resources = [
 ];
 
 export const contracts = [
-  { id: "CT-2026-041", vendor: "Siemens MENA", project: "Substation Bravo", value: 4.2, status: "Active", end: "Dec 2026" },
-  { id: "CT-2026-038", vendor: "Oracle Consulting", project: "ERP Upgrade", value: 1.6, status: "Active", end: "Sep 2026" },
-  { id: "CT-2026-035", vendor: "Bechtel Subcontract", project: "Refinery Expansion", value: 18.0, status: "Active", end: "Mar 2027" },
-  { id: "CT-2026-029", vendor: "Cyberguard", project: "Security Hardening", value: 0.9, status: "Expiring", end: "Jul 2026" },
+  { id: "CT-2026-041", vendor: "Siemens MENA", project: "Substation Bravo", value: 4.2, status: "Active", end: "20 Dec26" },
+  { id: "CT-2026-038", vendor: "Oracle Consulting", project: "ERP Upgrade", value: 1.6, status: "Active", end: "20 Sep26" },
+  { id: "CT-2026-035", vendor: "Bechtel Subcontract", project: "Refinery Expansion", value: 18.0, status: "Active", end: "20 Mar27" },
+  { id: "CT-2026-029", vendor: "Cyberguard", project: "Security Hardening", value: 0.9, status: "Expiring", end: "20 Jul26" },
 ];
 
 export const rfps = [
-  { id: "RFP-014", title: "Robotics Integration Partner", type: "RFP", status: "Open", bidders: 5, due: "Jun 30" },
-  { id: "RFI-009", title: "AI Vendor Capability Survey", type: "RFI", status: "Closed", bidders: 12, due: "May 12" },
-  { id: "RFP-013", title: "Substation Civil Works", type: "RFP", status: "Evaluation", bidders: 4, due: "May 28" },
-  { id: "RFP-012", title: "Cloud Reseller Agreement", type: "RFP", status: "Awarded", bidders: 6, due: "Apr 18" },
+  { id: "RFP-014", title: "Robotics Integration Partner", type: "RFP", status: "Open", bidders: 5, due: "30 Jun" },
+  { id: "RFI-009", title: "AI Vendor Capability Survey", type: "RFI", status: "Closed", bidders: 12, due: "12 May" },
+  { id: "RFP-013", title: "Substation Civil Works", type: "RFP", status: "Evaluation", bidders: 4, due: "28 May" },
+  { id: "RFP-012", title: "Cloud Reseller Agreement", type: "RFP", status: "Awarded", bidders: 6, due: "18 Apr" },
 ];
 
 export const reports = [
@@ -357,8 +359,8 @@ export const reports = [
   { id: "RPT-FIN", name: "Finance Burn-Down", audience: "Finance Manager", frequency: "Weekly", lastRun: "Yesterday" },
   { id: "RPT-RES", name: "Resource Utilization Heatmap", audience: "Resource Manager", frequency: "Daily", lastRun: "Today" },
   { id: "RPT-RAID", name: "Portfolio RAID Roll-up", audience: "Director", frequency: "Weekly", lastRun: "2d ago" },
-  { id: "RPT-GOV", name: "Governance Decisions Log", audience: "Board", frequency: "Monthly", lastRun: "May 03" },
-  { id: "RPT-VEN", name: "Vendor Performance Scorecard", audience: "Procurement", frequency: "Quarterly", lastRun: "Apr 01" },
+  { id: "RPT-GOV", name: "Governance Decisions Log", audience: "Board", frequency: "Monthly", lastRun: "03 May" },
+  { id: "RPT-VEN", name: "Vendor Performance Scorecard", audience: "Procurement", frequency: "Quarterly", lastRun: "01 Apr" },
 ];
 
 export const roleCatalogue = [
@@ -373,9 +375,9 @@ export const roleCatalogue = [
 ];
 
 export const milestones = [
-  { project: "ERP System Upgrade", name: "UAT Sign-off", due: "Jun 15, 2026", in: 18, status: "amber" },
-  { project: "Customer Portal v3", name: "Production cutover", due: "Aug 30, 2026", in: 94, status: "green" },
-  { project: "Security Hardening 2026", name: "Pen-test remediation", due: "Jul 03, 2026", in: 36, status: "red" },
-  { project: "Coastal Refinery Expansion", name: "Civil phase complete", due: "Sep 22, 2026", in: 117, status: "amber" },
-  { project: "Smart Grid Pilot", name: "Pilot kick-off", due: "Jun 02, 2026", in: 5, status: "green" },
+  { project: "ERP System Upgrade", name: "UAT Sign-off", due: "15 Jun, 2026", in: 18, status: "amber" },
+  { project: "Customer Portal v3", name: "Production cutover", due: "30 Aug, 2026", in: 94, status: "green" },
+  { project: "Security Hardening 2026", name: "Pen-test remediation", due: "03 Jul, 2026", in: 36, status: "red" },
+  { project: "Coastal Refinery Expansion", name: "Civil phase complete", due: "22 Sep, 2026", in: 117, status: "amber" },
+  { project: "Smart Grid Pilot", name: "Pilot kick-off", due: "02 Jun, 2026", in: 5, status: "green" },
 ];

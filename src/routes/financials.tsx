@@ -27,13 +27,13 @@ import {
 } from "recharts";
 
 const COST_ITEMS = [
-  { project: "ERP Upgrade", item: "SAP licensing (Y1)", cat: "Software", type: "CapEx", amount: "$1.2M", milestone: "Kickoff", due: "Feb 10", status: "Recognised" },
-  { project: "ERP Upgrade", item: "Integration labour", cat: "Staff", type: "OpEx", amount: "$0.8M", milestone: "UAT Sign-off", due: "Jun 15", status: "Pending" },
-  { project: "Refinery Expansion", item: "Civil works — Phase 1", cat: "Contracts", type: "CapEx", amount: "$8.4M", milestone: "Civil phase complete", due: "Sep 22", status: "In progress" },
+  { project: "ERP Upgrade", item: "SAP licensing (Y1)", cat: "Software", type: "CapEx", amount: "$1.2M", milestone: "Kickoff", due: "10 Feb", status: "Recognised" },
+  { project: "ERP Upgrade", item: "Integration labour", cat: "Staff", type: "OpEx", amount: "$0.8M", milestone: "UAT Sign-off", due: "15 Jun", status: "Pending" },
+  { project: "Refinery Expansion", item: "Civil works — Phase 1", cat: "Contracts", type: "CapEx", amount: "$8.4M", milestone: "Civil phase complete", due: "22 Sep", status: "In progress" },
   { project: "Refinery Expansion", item: "Site supervision", cat: "Services", type: "OpEx", amount: "$1.1M", milestone: "Fixed monthly", due: "Monthly", status: "Recurring" },
-  { project: "Customer Portal v3", item: "Dev sprint capacity", cat: "Staff", type: "OpEx", amount: "$0.6M", milestone: "Production cutover", due: "Aug 30", status: "Pending" },
-  { project: "Salesforce Migration", item: "SF platform fees", cat: "Software", type: "CapEx", amount: "$0.9M", milestone: "Hypercare exit", due: "Jul 22", status: "Recognised" },
-  { project: "Smart Grid Pilot", item: "Field engineers travel", cat: "Business Trips", type: "OpEx", amount: "$0.3M", milestone: "Fixed date", due: "Aug 05", status: "Pending" },
+  { project: "Customer Portal v3", item: "Dev sprint capacity", cat: "Staff", type: "OpEx", amount: "$0.6M", milestone: "Production cutover", due: "30 Aug", status: "Pending" },
+  { project: "Salesforce Migration", item: "SF platform fees", cat: "Software", type: "CapEx", amount: "$0.9M", milestone: "Hypercare exit", due: "22 Jul", status: "Recognised" },
+  { project: "Smart Grid Pilot", item: "Field engineers travel", cat: "Business Trips", type: "OpEx", amount: "$0.3M", milestone: "Fixed date", due: "05 Aug", status: "Pending" },
 ];
 
 const FIN_TAB_LABELS: Record<string, string> = {
@@ -417,10 +417,10 @@ function FinancialsPage() {
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Project</TableHead><TableHead>Milestone</TableHead><TableHead>Due</TableHead><TableHead>Total Contract</TableHead><TableHead>Recognised</TableHead><TableHead>Pending</TableHead><TableHead>% Realized</TableHead><TableHead>Payment</TableHead><TableHead>Days</TableHead></TableRow></TableHeader>
             <TableBody>{([
-              { project: "ERP Upgrade", milestone: "UAT Sign-off", due: "Jun 15", contract: "$10.0M", recognised: "$0.4M", pending: "$0.8M", pct: 33, payment: "Invoiced", days: "+5d" },
-              { project: "Customer Portal v3", milestone: "Production cutover", due: "Aug 30", contract: "$6.0M", recognised: "$0.6M", pending: "$0.2M", pct: 75, payment: "Paid", days: "25d" },
-              { project: "Refinery Expansion", milestone: "Civil phase complete", due: "Sep 22", contract: "$22.0M", recognised: "$8.0M", pending: "$4.2M", pct: 65, payment: "Partial", days: "75d" },
-              { project: "Salesforce Migration", milestone: "Hypercare exit", due: "Jul 22", contract: "$2.0M", recognised: "$0.9M", pending: "$0.1M", pct: 90, payment: "Paid", days: "0d" },
+              { project: "ERP Upgrade", milestone: "UAT Sign-off", due: "15 Jun", contract: "$10.0M", recognised: "$0.4M", pending: "$0.8M", pct: 33, payment: "Invoiced", days: "+5d" },
+              { project: "Customer Portal v3", milestone: "Production cutover", due: "30 Aug", contract: "$6.0M", recognised: "$0.6M", pending: "$0.2M", pct: 75, payment: "Paid", days: "25d" },
+              { project: "Refinery Expansion", milestone: "Civil phase complete", due: "22 Sep", contract: "$22.0M", recognised: "$8.0M", pending: "$4.2M", pct: 65, payment: "Partial", days: "75d" },
+              { project: "Salesforce Migration", milestone: "Hypercare exit", due: "22 Jul", contract: "$2.0M", recognised: "$0.9M", pending: "$0.1M", pct: 90, payment: "Paid", days: "0d" },
             ]).map((r) => {
               const daysNum = parseInt(String(r.days ?? "").replace(/[^\d-]/g, ''), 10);
               const daysStatus = daysNum < 0 ? "text-rag-red" : daysNum < 7 ? "text-rag-amber" : "text-rag-green";

@@ -11,6 +11,7 @@ import { Field } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "@/lib/icons";
 import { toast } from "@/lib/toast";
+import { formatDateWithYear, formatDateWithoutYear } from "@/lib/date-format";
 
 type ColorKey = "blue" | "green" | "peach" | "pink" | "violet" | "amber";
 
@@ -36,8 +37,6 @@ const palette: Record<ColorKey, { bg: string; bd: string; tx: string; av: string
 };
 
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
 function startOfWeek(d: Date) {
   const out = new Date(d);
   out.setHours(0, 0, 0, 0);
@@ -205,7 +204,7 @@ export function ProjectGantt({ projectId, defaultAssignee }: { projectId: string
     window.addEventListener("pointerup", onUp);
   }
 
-  const weekLabel = `${MONTHS[weekStart.getMonth()]} ${weekStart.getDate()} – ${weekEnd.getMonth() === weekStart.getMonth() ? weekEnd.getDate() : `${MONTHS[weekEnd.getMonth()]} ${weekEnd.getDate()}`}, ${weekEnd.getFullYear()}`;
+  const weekLabel = `${formatDateWithYear(weekStart)} – ${formatDateWithYear(weekEnd)}`;
 
   return (
     <div className="glass-card p-5">
@@ -233,7 +232,7 @@ export function ProjectGantt({ projectId, defaultAssignee }: { projectId: string
               const isToday = d.getTime() === today.getTime();
               return (
                 <div key={i} className={`px-3 py-3 text-center ${isToday ? "bg-accent-dim/40 rounded-t-md" : ""}`}>
-                  <div className={`text-xs ${isToday ? "text-accent font-medium" : "text-muted-foreground"}`}>{MONTHS[d.getMonth()]}, {d.getDate()}</div>
+                  <div className={`text-xs ${isToday ? "text-accent font-medium" : "text-muted-foreground"}`}>{formatDateWithoutYear(d)}</div>
                   <div className={`mt-0.5 text-sm font-medium ${isToday ? "text-accent" : "text-foreground"}`}>{WEEKDAYS[d.getDay()]}</div>
                 </div>
               );

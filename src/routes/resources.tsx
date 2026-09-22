@@ -175,8 +175,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
           { value: "all", label: "All priorities" }, ...(["Critical", "High", "Medium", "Low"] as Priority[]).map((v) => ({ value: v, label: v })),
         ] },
       ]} />
-      <div className="overflow-hidden rounded-lg border border-border bg-surface">
-        <StyledTable>
+        <StyledTable wrapperClassName="">
           <StyledTableHeader><StyledTableHeaderRow>
             <StyledTableHead>Role / Skill</StyledTableHead><StyledTableHead>Project</StyledTableHead>
             <StyledTableHead>FTE</StyledTableHead><StyledTableHead>Period</StyledTableHead>
@@ -206,7 +205,6 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
             })}
           </StyledTableBody>
         </StyledTable>
-      </div>
       <TablePagination {...pagination} itemLabel="requests" demoPages={1} />
     </>
   );
@@ -231,8 +229,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: React.D
         { key: "department", label: "Department", value: department, onChange: setDepartment, options: [{ value: "all", label: "All departments" }, ...departments.map((d) => ({ value: d.name, label: d.name }))] },
       ]} />
       <EmptyRegion id="resources-capacity">
-        <div className="overflow-hidden rounded-lg border border-border bg-surface">
-          <StyledTable>
+          <StyledTable wrapperClassName="">
             <StyledTableHeader><StyledTableHeaderRow>
               <StyledTableHead>Member</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead>
               <StyledTableHead>Capacity / wk</StyledTableHead><StyledTableHead>Utilization</StyledTableHead><StyledTableHead>Projects</StyledTableHead>
@@ -255,7 +252,6 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: React.D
               })}
             </StyledTableBody>
           </StyledTable>
-        </div>
       </EmptyRegion>
       <TablePagination {...pagination} itemLabel="resources" demoPages={1} />
     </>
@@ -280,15 +276,13 @@ function SkillsTable() {
       { key: "demand", label: "Demand intensity", value: demand, onChange: setDemand, options: [{ value: "all", label: "All demand levels" }, ...(["Critical", "High", "Medium", "Low"] as Priority[]).map((v) => ({ value: v, label: v }))] },
       { key: "department", label: "Department", value: department, onChange: setDepartment, options: [{ value: "all", label: "All departments" }, ...skillDepartments.map((v) => ({ value: v, label: v }))] },
     ]} />
-    <div className="overflow-hidden rounded-lg border border-border bg-surface">
-      <StyledTable><StyledTableHeader><StyledTableHeaderRow>
+      <StyledTable wrapperClassName=""><StyledTableHeader><StyledTableHeaderRow>
         <StyledTableHead>Skill name</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Available</StyledTableHead><StyledTableHead>Required</StyledTableHead><StyledTableHead>Gap</StyledTableHead><StyledTableHead>Project duration</StyledTableHead><StyledTableHead className="text-center">Demand</StyledTableHead>
       </StyledTableHeaderRow></StyledTableHeader><StyledTableBody>
         {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((row) => <StyledTableRow key={row.skill} className="group">
           <StyledTableCell className="font-medium text-foreground">{row.skill}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.department}</StyledTableCell><StyledTableCell className="num-mono">{row.available}</StyledTableCell><StyledTableCell className="num-mono">{row.required}</StyledTableCell><StyledTableCell className={`num-mono ${row.required > row.available ? "text-rag-red" : "text-rag-green"}`}>{row.available - row.required}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.duration}</StyledTableCell><StyledTableCell className="text-center"><Badge variant="outline" className={PRIORITY_STYLE[row.demand]}>{row.demand}</Badge></StyledTableCell>
         </StyledTableRow>)}
       </StyledTableBody></StyledTable>
-    </div>
     <TablePagination {...pagination} itemLabel="skills" demoPages={1} />
   </>;
 }
@@ -304,9 +298,9 @@ function PlanningTable() {
   const pagination = usePagination(filtered, 10);
   return <>
     <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search role or department…" filterGroups={[{ key: "gap", label: "Capacity", value: gapFilter, onChange: setGapFilter, options: [{ value: "all", label: "All roles" }, { value: "gap", label: "Capacity gap" }, { value: "covered", label: "Capacity covered" }] }]} />
-    <div className="overflow-hidden rounded-lg border border-border bg-surface"><StyledTable><StyledTableHeader><StyledTableHeaderRow><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Demand (FTE)</StyledTableHead><StyledTableHead>Supply</StyledTableHead><StyledTableHead>Gap</StyledTableHead><StyledTableHead>Recommended action</StyledTableHead><StyledTableHead className="text-center">Status</StyledTableHead></StyledTableHeaderRow></StyledTableHeader><StyledTableBody>
+    <StyledTable wrapperClassName=""><StyledTableHeader><StyledTableHeaderRow><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Demand (FTE)</StyledTableHead><StyledTableHead>Supply</StyledTableHead><StyledTableHead>Gap</StyledTableHead><StyledTableHead>Recommended action</StyledTableHead><StyledTableHead className="text-center">Status</StyledTableHead></StyledTableHeaderRow></StyledTableHeader><StyledTableBody>
       {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((row) => { const gap = row.demand - row.supply; return <StyledTableRow key={row.role} className="group"><StyledTableCell className="font-medium text-foreground">{row.role}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.department}</StyledTableCell><StyledTableCell className="num-mono">{row.demand}</StyledTableCell><StyledTableCell className="num-mono">{row.supply}</StyledTableCell><StyledTableCell className={`num-mono ${gap > 0 ? "text-rag-red" : "text-rag-green"}`}>{gap > 0 ? `+${gap}` : gap}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.action}</StyledTableCell><StyledTableCell className="text-center"><Badge variant="outline" className={gap > 0 ? "border-rag-red/40 bg-rag-red/10 text-rag-red" : "border-rag-green/40 bg-rag-green/10 text-rag-green"}>{gap > 0 ? "Action needed" : "Covered"}</Badge></StyledTableCell></StyledTableRow>; })}
-    </StyledTableBody></StyledTable></div><TablePagination {...pagination} itemLabel="roles" demoPages={1} />
+    </StyledTableBody></StyledTable><TablePagination {...pagination} itemLabel="roles" demoPages={1} />
   </>;
 }
 

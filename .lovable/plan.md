@@ -1,13 +1,12 @@
-# Risk & Issues row interaction update
+# Risk score loading state
 
 ## What will change
-- Remove the View icon from the Issues table.
-- Open the Issue details side drawer when the user clicks anywhere on an Issue row, matching the Risk table.
-- Move Status to the final column in both Risk and Issues tables.
-- Show the row actions in place of the Status badge on hover or keyboard focus, matching the Organization table behavior.
-- Keep action clicks isolated so Edit, status update, and Delete do not also open the details drawer.
+- Show a compact spinner and “Calculating…” inside the Score field while the score badge response is pending.
+- Hide the severity badge until the response completes, then show the calculated score and badge normally.
+- Re-run the loading state whenever Probability or Impact changes and prevent stale responses from replacing newer selections.
+- Keep the existing score calculation as the temporary response source so the UI works now and can be connected to the API later.
+- Update the session log and verify the popup in the preview.
 
 ## Technical details
-- Extend the shared table-row actions presentation to accept each table's own status badge while preserving existing Organization behavior.
-- Update the shared Risk & Issues table component, so the behavior applies both in the standalone module and inside project details.
-- Update the session log and verify the build plus both table interactions in the preview.
+- Keep the loading behavior local to the shared Risk form, so it applies in both the standalone module and project details.
+- Use an accessible loading indicator with an `aria-live` status and preserve the field’s fixed dimensions to avoid layout shifting.

@@ -1,3 +1,9 @@
+## 2026-09-22 — Resource request outcome visibility
+
+- Added an Outcome column to the Resources Requests table showing the assigned person with allocation and resulting utilization, or the decline reason.
+- Added a request detail drawer (row click) with the full request data plus the recorded decision: decline reason, assigned person, allocation on the project, and utilization before/after with over-allocation warning.
+- Fulfilling a request now persists allocation, utilization before/after, and the decision date, and updates the assignee utilization in the resource pool.
+
 ## 2026-09-22 — Date display standardization
 
 - Established `DD MMM, YYYY` for visible dates with a year and `DD MMM` for visible dates without a year, using zero-padded days and English abbreviated months.

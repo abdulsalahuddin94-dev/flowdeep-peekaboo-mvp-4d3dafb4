@@ -17,6 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -93,7 +94,16 @@ function ResourcesPage() {
 
   function fulfillRequest(id: string, assignedTo: string, alloc: number) {
     const req = requests.find((r) => r.id === id);
-    updateResourceRequest(id, { status: "Fulfilled", assignedTo });
+    const person = pool.find((p) => p.name === assignedTo);
+    const utilBefore = person?.util;
+    const utilAfter = utilBefore == null ? undefined : Math.min(utilBefore + alloc, 200);
+    if (person) {
+      setPool((prev) => prev.map((p) => (p.name === assignedTo ? { ...p, util: utilAfter ?? p.util } : p)));
+    }
+    updateResourceRequest(id, {
+      status: "Fulfilled", assignedTo, allocation: alloc,
+      utilBefore, utilAfter, decidedOn: new Date().toISOString().slice(0, 10),
+    });
     toast.success(`${req?.role} assigned to ${req?.project}`, {
       description: `${assignedTo} · ${alloc}% allocation · ${req?.from} → ${req?.until}`,
     });
@@ -101,7 +111,10 @@ function ResourcesPage() {
 
   function declineRequest(id: string, reason: string) {
     const req = requests.find((r) => r.id === id);
-    updateResourceRequest(id, { status: "Declined", declineReason: reason });
+    updateResourceRequest(id, {
+      status: "Declined", declineReason: reason,
+      decidedOn: new Date().toISOString().slice(0, 10),
+    });
     toast.success(`Request ${id} declined`, { description: req?.project });
   }
 
@@ -157,6 +170,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [priority, setPriority] = useState("all");
+  const [openId, setOpenId] = useState<string | null>(null);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return requests.filter((r) => (!q || r.role.toLowerCase().includes(q) || r.skill.toLowerCase().includes(q) || r.project.toLowerCase().includes(q)))
@@ -164,6 +178,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
       .filter((r) => priority === "all" || r.priority === priority);
   }, [priority, query, requests, status]);
   const pagination = usePagination(filtered, 10);
+  const selected = requests.find((r) => r.id === openId) ?? null;
 
   return (
     <>
@@ -181,33 +196,156 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
             <StyledTableHead>Role / Skill</StyledTableHead><StyledTableHead>Project</StyledTableHead>
             <StyledTableHead>FTE</StyledTableHead><StyledTableHead>Period</StyledTableHead>
             <StyledTableHead>Priority</StyledTableHead><StyledTableHead>Submitted by</StyledTableHead>
+            <StyledTableHead>Outcome</StyledTableHead>
             <StyledTableHead className="w-44 text-center">Status</StyledTableHead>
           </StyledTableHeaderRow></StyledTableHeader>
           <StyledTableBody>
-            {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((req) => {
-              const tone = req.status === "Fulfilled" ? "border-rag-green/50 bg-rag-green/10 text-rag-green" : req.status === "Declined" ? "border-rag-red/50 bg-rag-red/10 text-rag-red" : "border-rag-amber/50 bg-rag-amber/10 text-rag-amber";
-              return (
-                <StyledTableRow key={req.id} className="group">
+            {pagination.pageItems.length === 0 ? <EmptyRow colSpan={8} /> : pagination.pageItems.map((req) => (
+                <StyledTableRow
+                  key={req.id}
+                  className="group cursor-pointer"
+                  onClick={() => setOpenId(req.id)}
+                >
                   <StyledTableCell><div className="font-medium text-foreground">{req.role}</div><div className="text-xs text-muted-foreground">{req.skill}</div></StyledTableCell>
                   <StyledTableCell>{req.project}</StyledTableCell>
                   <StyledTableCell className="num-mono">{req.fte}</StyledTableCell>
                   <StyledTableCell className="num-mono text-xs text-muted-foreground">{req.from} → {req.until}</StyledTableCell>
                   <StyledTableCell><Badge variant="outline" className={PRIORITY_STYLE[req.priority]}>{req.priority}</Badge></StyledTableCell>
                   <StyledTableCell><div>{req.submittedBy}</div><div className="text-xs text-muted-foreground">{/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date}</div></StyledTableCell>
-                  <StyledTableCell>
+                  <StyledTableCell className="max-w-64">
+                    {req.status === "Fulfilled" ? (
+                      <>
+                        <div className="text-foreground">{req.assignedTo ?? "—"}</div>
+                        {req.allocation != null && (
+                          <div className="num-mono text-xs text-muted-foreground">
+                            {req.allocation}% allocation{req.utilAfter != null ? ` · utilization ${req.utilAfter}%` : ""}
+                          </div>
+                        )}
+                      </>
+                    ) : req.status === "Declined" ? (
+                      <div className="truncate text-xs text-rag-red" title={req.declineReason}>{req.declineReason ?? "Declined"}</div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Awaiting decision</span>
+                    )}
+                  </StyledTableCell>
+                  <StyledTableCell onClick={(e) => e.stopPropagation()}>
                     <TableRowActions
                       alwaysVisible={false}
-                      statusNode={<Badge variant="outline" className={tone}>{req.status}</Badge>}
+                      statusNode={<Badge variant="outline" className={statusTone(req.status)}>{req.status}</Badge>}
                       extraActions={req.status === "Pending" ? <><FulfillDialog req={req} pool={pool} onFulfill={onFulfill} compact /><DeclineDialog req={req} onDecline={onDecline} compact /></> : undefined}
                     />
                   </StyledTableCell>
                 </StyledTableRow>
-              );
-            })}
+              ))}
           </StyledTableBody>
         </StyledTable>
       <TablePagination {...pagination} itemLabel="requests" demoPages={1} />
+      <RequestSheet req={selected} onClose={() => setOpenId(null)} />
     </>
+  );
+}
+
+function statusTone(status: ResourceRequest["status"]) {
+  return status === "Fulfilled"
+    ? "border-rag-green/50 bg-rag-green/10 text-rag-green"
+    : status === "Declined"
+      ? "border-rag-red/50 bg-rag-red/10 text-rag-red"
+      : "border-rag-amber/50 bg-rag-amber/10 text-rag-amber";
+}
+
+function DrawerRow({ label, value, valueClass = "" }: { label: string; value: React.ReactNode; valueClass?: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4 text-sm">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={`text-right text-foreground ${valueClass}`}>{value}</span>
+    </div>
+  );
+}
+
+/** Request detail drawer: full request data plus the recorded decision outcome. */
+function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: () => void }) {
+  return (
+    <Sheet open={!!req} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <SheetContent side="right" className="flex w-[480px] max-w-full flex-col rounded-l-lg border-l border-border bg-drawer p-0 sm:max-w-[480px]">
+        {req && (
+          <>
+            <SheetHeader className="border-b border-border px-6 pb-4 pt-6 text-left">
+              <div className="flex items-center gap-2">
+                <span className="num-mono text-xs text-muted-foreground">{req.id}</span>
+                <Badge variant="outline" className={statusTone(req.status)}>{req.status}</Badge>
+                <Badge variant="outline" className={PRIORITY_STYLE[req.priority]}>{req.priority}</Badge>
+              </div>
+              <SheetTitle className="mt-2 text-lg">{req.role} <span className="text-sm font-normal text-muted-foreground">({req.skill})</span></SheetTitle>
+              <SheetDescription className="sr-only">Resource request details and decision outcome.</SheetDescription>
+            </SheetHeader>
+
+            <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+              <section className="space-y-2">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Request</h4>
+                <DrawerRow label="Project" value={req.project} />
+                <DrawerRow label="FTE" value={req.fte} valueClass="num-mono" />
+                <DrawerRow label="Period" value={`${req.from} → ${req.until}`} valueClass="num-mono" />
+                <DrawerRow label="Submitted by" value={req.submittedBy} />
+                <DrawerRow label="Submitted" value={/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date} />
+                {req.notes && (
+                  <p className="rounded-md border border-border bg-secondary/30 p-3 text-xs italic text-muted-foreground">"{req.notes}"</p>
+                )}
+              </section>
+
+              <section className="space-y-2">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Outcome</h4>
+                {req.status === "Pending" && (
+                  <p className="text-sm text-muted-foreground">No decision taken yet. Fulfill or decline this request from the requests list.</p>
+                )}
+
+                {req.status === "Declined" && (
+                  <>
+                    {req.decidedOn && <DrawerRow label="Declined on" value={formatDateWithYear(req.decidedOn)} />}
+                    <div className="rounded-md border border-rag-red/40 bg-rag-red/10 p-3">
+                      <div className="text-xs font-medium text-rag-red">Decline reason</div>
+                      <p className="mt-1 text-sm text-foreground">{req.declineReason ?? "—"}</p>
+                    </div>
+                  </>
+                )}
+
+                {req.status === "Fulfilled" && (
+                  <>
+                    <DrawerRow label="Assigned person" value={req.assignedTo ?? "—"} />
+                    {req.allocation != null && (
+                      <DrawerRow label="Allocation on this project" value={`${req.allocation}%`} valueClass="num-mono" />
+                    )}
+                    {req.decidedOn && <DrawerRow label="Assigned on" value={formatDateWithYear(req.decidedOn)} />}
+                    {req.utilAfter != null && (
+                      <div className="space-y-2 rounded-md border border-border bg-background/30 p-3 text-xs">
+                        {req.utilBefore != null && (
+                          <>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Utilization before assignment</span>
+                              <span className="num-mono font-medium text-foreground">{req.utilBefore}%</span>
+                            </div>
+                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary/50">
+                              <div className="h-full rounded-full bg-accent/40" style={{ width: `${Math.min(req.utilBefore, 100)}%` }} />
+                            </div>
+                          </>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Current utilization after this assignment</span>
+                          <span className={`num-mono font-medium ${req.utilAfter > 100 ? "text-rag-red" : req.utilAfter > 80 ? "text-rag-amber" : "text-rag-green"}`}>{req.utilAfter}%</span>
+                        </div>
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary/50">
+                          <div className={`h-full rounded-full ${req.utilAfter > 100 ? "bg-rag-red" : req.utilAfter > 80 ? "bg-rag-amber" : "bg-accent"}`} style={{ width: `${Math.min(req.utilAfter, 100)}%` }} />
+                        </div>
+                        {req.utilAfter > 100 && <p className="text-rag-red">⚠ {req.assignedTo} is over-allocated</p>}
+                      </div>
+                    )}
+                  </>
+                )}
+              </section>
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
   );
 }
 

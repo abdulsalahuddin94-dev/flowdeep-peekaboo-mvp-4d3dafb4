@@ -93,7 +93,16 @@ function ResourcesPage() {
 
   function fulfillRequest(id: string, assignedTo: string, alloc: number) {
     const req = requests.find((r) => r.id === id);
-    updateResourceRequest(id, { status: "Fulfilled", assignedTo });
+    const person = pool.find((p) => p.name === assignedTo);
+    const utilBefore = person?.util;
+    const utilAfter = utilBefore == null ? undefined : Math.min(utilBefore + alloc, 200);
+    if (person) {
+      setPool((prev) => prev.map((p) => (p.name === assignedTo ? { ...p, util: utilAfter ?? p.util } : p)));
+    }
+    updateResourceRequest(id, {
+      status: "Fulfilled", assignedTo, allocation: alloc,
+      utilBefore, utilAfter, decidedOn: new Date().toISOString().slice(0, 10),
+    });
     toast.success(`${req?.role} assigned to ${req?.project}`, {
       description: `${assignedTo} · ${alloc}% allocation · ${req?.from} → ${req?.until}`,
     });
@@ -101,7 +110,10 @@ function ResourcesPage() {
 
   function declineRequest(id: string, reason: string) {
     const req = requests.find((r) => r.id === id);
-    updateResourceRequest(id, { status: "Declined", declineReason: reason });
+    updateResourceRequest(id, {
+      status: "Declined", declineReason: reason,
+      decidedOn: new Date().toISOString().slice(0, 10),
+    });
     toast.success(`Request ${id} declined`, { description: req?.project });
   }
 

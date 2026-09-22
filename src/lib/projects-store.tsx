@@ -199,6 +199,9 @@ export type ResourceRequest = {
   status: "Pending" | "Fulfilled" | "Declined";
   submittedBy: string; date: string; notes: string;
   assignedTo?: string; declineReason?: string;
+  /** Outcome details captured when the request is fulfilled or declined. */
+  allocation?: number; utilBefore?: number; utilAfter?: number;
+  decidedBy?: string; decidedOn?: string;
 };
 
 // ── Seed data ─────────────────────────────────────────────────────────────────

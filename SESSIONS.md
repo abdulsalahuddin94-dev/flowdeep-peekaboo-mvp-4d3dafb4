@@ -1,3 +1,8 @@
+## 2026-09-22 — Project Overview risks summary
+
+- Added a scrollable Risks Summary card to the project Overview, populated from the shared risk register and filtered to the current project.
+- Risks are ordered by score and show title, category, status, probability, impact, and a severity-colored score indicator.
+
 ## 2026-09-22 — Risk statuses trimmed, multi-issue links
 
 - Removed the `Realized` and `Closed` risk statuses; risks now hold Open / In Progress / Mitigated only (`src/lib/mock-data.ts`, seeds and seed update history adjusted).

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -31,6 +32,7 @@ const TAB_LABEL: Record<string, string> = {
 function RisksPage() {
   const { tab = "register" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
+  const [issueRiskFilter, setIssueRiskFilter] = useState<string[]>([]);
 
   return (
     <div>
@@ -40,13 +42,18 @@ function RisksPage() {
 
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
         <TabsContent value="register" className="mt-0">
-          <RiskRegisterTab />
+          <RiskRegisterTab
+            onViewLinkedIssues={(riskId) => {
+              setIssueRiskFilter([riskId]);
+              navigate({ search: { tab: "issues" } });
+            }}
+          />
         </TabsContent>
         <TabsContent value="heatmap" className="mt-0">
           <RiskHeatmapTab />
         </TabsContent>
         <TabsContent value="issues" className="mt-0">
-          <IssuesLogTab />
+          <IssuesLogTab riskFilter={issueRiskFilter} onRiskFilterChange={setIssueRiskFilter} />
         </TabsContent>
       </Tabs>
     </div>

@@ -6876,6 +6876,7 @@ function TeamAllocationTab({
 
 function ProjectRiskIssuesTab({ projectName, milestoneOptions }: { projectName: string; milestoneOptions: string[] }) {
   const [view, setView] = useState<"register" | "issues">("register");
+  const [issueRiskFilter, setIssueRiskFilter] = useState<string[]>([]);
 
   return (
     <div className="space-y-4">
@@ -6889,10 +6890,19 @@ function ProjectRiskIssuesTab({ projectName, milestoneOptions }: { projectName: 
           </TabsTrigger>
         </TabsList>
         <TabsContent value="register" className="mt-5">
-          <RiskRegisterTab project={projectName} milestoneOptions={milestoneOptions} />
+          <RiskRegisterTab
+            project={projectName}
+            milestoneOptions={milestoneOptions}
+            onViewLinkedIssues={(riskId) => { setIssueRiskFilter([riskId]); setView("issues"); }}
+          />
         </TabsContent>
         <TabsContent value="issues" className="mt-5">
-          <IssuesLogTab project={projectName} milestoneOptions={milestoneOptions} />
+          <IssuesLogTab
+            project={projectName}
+            milestoneOptions={milestoneOptions}
+            riskFilter={issueRiskFilter}
+            onRiskFilterChange={setIssueRiskFilter}
+          />
         </TabsContent>
       </Tabs>
     </div>

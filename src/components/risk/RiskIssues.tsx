@@ -41,14 +41,9 @@ const RISK_STATUS_TONE: Record<RiskStatus, string> = {
   Open: "border-rag-red/40 bg-rag-red/10 text-rag-red",
   "In Progress": "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
   Mitigated: "border-rag-green/40 bg-rag-green/10 text-rag-green",
-  Realized: "border-rag-red/40 bg-rag-red/15 text-rag-red",
-  Closed: "border-border bg-[var(--field-bg-filled)] text-muted-foreground",
 };
 
-/** Selectable by hand. "Realized" is set automatically on Convert to Issue. */
-const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated", "Closed"];
-/** Every status a risk can hold — used for filtering. */
-const RISK_STATUSES_ALL: RiskStatus[] = ["Open", "In Progress", "Mitigated", "Realized", "Closed"];
+const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated"];
 const ISSUE_STATUSES: IssueStatus[] = ["Open", "In Progress", "Resolved", "Escalated"];
 const COMMENT_MAX = 500;
 
@@ -126,7 +121,7 @@ export function RiskRegisterTab({ project, milestoneOptions }: { project?: strin
           ...(project ? [] : [{ key: "project", label: "Projects", mode: "multi" as const, value: projectFilter, onChange: setProjectFilter, options: [{ value: "all", label: "All projects" }, ...projectOptions.map((p) => ({ value: p, label: p }))] }]),
           { key: "category", label: "Categories", mode: "multi", value: categoryFilter, onChange: setCategoryFilter, options: [{ value: "all", label: "All categories" }, ...categories.map((c) => ({ value: c.name, label: c.name }))] },
           { key: "severity", label: "Score", value: severity, onChange: setSeverity, options: [{ value: "all", label: "All severities" }, { value: "Critical", label: "Critical" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
-          { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...RISK_STATUSES_ALL.map((v) => ({ value: v, label: v }))] },
+          { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...RISK_STATUSES.map((v) => ({ value: v, label: v }))] },
         ]}
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Risk</Button>}
       />

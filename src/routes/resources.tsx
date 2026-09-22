@@ -196,11 +196,10 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
             <StyledTableHead>Role / Skill</StyledTableHead><StyledTableHead>Project</StyledTableHead>
             <StyledTableHead>FTE</StyledTableHead><StyledTableHead>Period</StyledTableHead>
             <StyledTableHead>Priority</StyledTableHead><StyledTableHead>Submitted by</StyledTableHead>
-            <StyledTableHead>Outcome</StyledTableHead>
             <StyledTableHead className="w-44 text-center">Status</StyledTableHead>
           </StyledTableHeaderRow></StyledTableHeader>
           <StyledTableBody>
-            {pagination.pageItems.length === 0 ? <EmptyRow colSpan={8} /> : pagination.pageItems.map((req) => (
+            {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((req) => (
                 <StyledTableRow
                   key={req.id}
                   className="group cursor-pointer"

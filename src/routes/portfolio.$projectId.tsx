@@ -560,9 +560,6 @@ function ProjectDetail() {
       planned: totalWeight ? Math.round(weightedPlanned / totalWeight) : project.progress,
     };
   })();
-  const budgetUsedPct = project.budgetTotal > 0
-    ? Math.min(100, Math.round((project.budgetUsed / project.budgetTotal) * 100))
-    : 0;
   const pendingApprovalCount = centralApprovals.filter(
     (approval) => approval.projectId === project.id && approval.status === "pending",
   ).length;

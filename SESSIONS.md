@@ -1,3 +1,7 @@
+## 2026-09-23 — Probability/Impact show labels in tables
+
+- Risk Register and Issues Log tables now display the organization-defined label (e.g. "Likely", "Major") instead of the raw 1–5 number in the Probability and Impact columns, sourced from the same Organization rules used in the create/edit forms.
+
 ## 2026-09-23 — Issue impact labels and Critical severity
 
 - Issue Impact options now show the organization-defined description beside each 1–5 value, matching the Log Risk form.

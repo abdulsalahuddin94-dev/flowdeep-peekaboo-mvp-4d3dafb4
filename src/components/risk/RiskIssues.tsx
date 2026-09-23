@@ -82,7 +82,7 @@ export function useSeverity() {
 export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues }: { project?: string; milestoneOptions?: string[]; onViewLinkedIssues?: (riskId: string) => void }) {
   const { risks, issues, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, convertRiskToIssue } = useRiskRegister();
   const hasLinkedIssue = (riskId: string) => issues.some((i) => i.riskId === riskId);
-  const { severityOf } = useSeverity();
+  const { severityOf, rules } = useSeverity();
   const { isActive } = useOrgActive("risk-category");
   const { currentUser } = useCurrentUser();
 
@@ -150,8 +150,8 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues 
                 {!project && <StyledTableCell className="text-muted-foreground">{r.project}</StyledTableCell>}
                 <StyledTableCell className="font-medium text-foreground">{r.title}</StyledTableCell>
                 <StyledTableCell className="text-muted-foreground">{r.category}</StyledTableCell>
-                <StyledTableCell className="text-center num-mono">{r.prob}</StyledTableCell>
-                <StyledTableCell className="text-center num-mono">{r.impact}</StyledTableCell>
+                <StyledTableCell className="text-center text-xs text-muted-foreground whitespace-nowrap">{rules.risk.probabilityLabels[r.prob - 1] ?? r.prob}</StyledTableCell>
+                <StyledTableCell className="text-center text-xs text-muted-foreground whitespace-nowrap">{rules.risk.impactLabels[r.impact - 1] ?? r.impact}</StyledTableCell>
                 <StyledTableCell className="text-center num-mono text-foreground">{r.score}</StyledTableCell>
                 <StyledTableCell className="text-center">
                   <Pill label={severityOf(r.score)} tone={SEVERITY_TONE[severityOf(r.score)]} />
@@ -733,7 +733,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
                   {i.riskId ? riskTitle(i.riskId) : "—"}
                 </StyledTableCell>
                 <StyledTableCell className="text-center"><Pill label={i.priority} tone={PRIORITY_TONE[i.priority]} /></StyledTableCell>
-                <StyledTableCell className="text-center num-mono text-sm text-foreground">{i.impact}</StyledTableCell>
+                <StyledTableCell className="text-center text-xs text-muted-foreground whitespace-nowrap">{rules.risk.impactLabels[i.impact - 1] ?? i.impact}</StyledTableCell>
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.openDate)}</StyledTableCell>
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.targetDate)}</StyledTableCell>
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.closureDate)}</StyledTableCell>

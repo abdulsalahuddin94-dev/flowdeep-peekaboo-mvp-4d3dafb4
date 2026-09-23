@@ -225,7 +225,7 @@ export function useRiskRegister() {
       id,
       project: risk.project,
       title: risk.title,
-      priority: risk.score >= 15 ? "High" : risk.score >= 9 ? "Medium" : "Low",
+      priority: risk.score >= 15 ? "Critical" : risk.score >= 9 ? "High" : risk.score >= 4 ? "Medium" : "Low",
       impact: risk.impact,
       owner: risk.owner,
       status: "Open",

@@ -282,14 +282,14 @@ export const risks: RiskItem[] = [
   { id: "R-058", project: "Cost Optimization", title: "FX movement on imported equipment", category: "Financial", prob: 2, impact: 2, score: 4, status: "Mitigated", owner: "Liam Walker", mitigation: "Forward contracts placed" },
 ];
 
-export type IssuePriority = "High" | "Medium" | "Low";
+export type IssuePriority = "Critical" | "High" | "Medium" | "Low";
 export type IssueStatus = "Open" | "In Progress" | "Resolved" | "Escalated";
 
 export interface IssueItem {
   id: string;
   project: string;
   title: string;
-  /** Criticality of the issue (High / Medium / Low). */
+  /** Criticality of the issue (Critical / High / Medium / Low). */
   priority: IssuePriority;
   /** Impact rating, 1–5. */
   impact: number;

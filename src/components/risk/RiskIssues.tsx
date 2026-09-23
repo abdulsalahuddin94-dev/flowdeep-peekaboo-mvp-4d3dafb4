@@ -49,6 +49,7 @@ const ISSUE_STATUSES: IssueStatus[] = ["Open", "In Progress", "Resolved", "Escal
 const COMMENT_MAX = 500;
 
 const PRIORITY_TONE: Record<IssuePriority, string> = {
+  Critical: "border-rag-red/40 bg-rag-red/10 text-rag-red",
   High: "border-rag-red/40 bg-rag-red/10 text-rag-red",
   Medium: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
   Low: "border-rag-blue/40 bg-rag-blue/10 text-rag-blue",
@@ -654,6 +655,7 @@ const fmtDate = (v?: string) => formatDateWithYear(v);
 
 export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilterProp, onRiskFilterChange }: { project?: string; milestoneOptions?: string[]; riskFilter?: string[]; onRiskFilterChange?: (v: string[]) => void }) {
   const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate } = useRiskRegister();
+  const rules = useOrgRules();
   const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState<string[]>([]);
@@ -698,7 +700,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
         placeholder="Search issue…"
         filterGroups={[
           ...(project ? [] : [{ key: "project", label: "Projects", mode: "multi" as const, value: projectFilter, onChange: setProjectFilter, options: [{ value: "all", label: "All projects" }, ...projectOptions.map((p) => ({ value: p, label: p }))] }]),
-          { key: "priority", label: "Severity", value: priority, onChange: setPriority, options: [{ value: "all", label: "All severities" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
+          { key: "priority", label: "Severity", value: priority, onChange: setPriority, options: [{ value: "all", label: "All severities" }, { value: "Critical", label: "Critical" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...ISSUE_STATUSES.map((v) => ({ value: v, label: v }))] },
           { key: "risk", label: "Originating Risk", mode: "multi", value: riskFilter, onChange: setRiskFilter, options: [{ value: "all", label: "All risks" }, { value: "none", label: "No originating risk" }, ...risks.map((r) => ({ value: r.id, label: r.title }))] },
         ]}
@@ -765,6 +767,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
         projectOptions={projectOptions}
         risks={risks}
         milestoneOptions={milestoneList}
+        impactLabels={rules.risk.impactLabels}
         onSave={(issue) => {
           if (isDuplicateTitle(issue.title, editing?.id)) {
             toast.error(`Issue "${issue.title.trim()}" already exists`, { description: "Issue titles must be unique." });
@@ -906,7 +909,7 @@ function IssueDetailDrawer({
 }
 
 function IssueFormDialog({
-  open, onOpenChange, issue, projectOptions, risks, milestoneOptions, lockedProject, onSave,
+  open, onOpenChange, issue, projectOptions, risks, milestoneOptions, impactLabels, lockedProject, onSave,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -914,6 +917,7 @@ function IssueFormDialog({
   projectOptions: string[];
   risks: RiskRecord[];
   milestoneOptions: string[];
+  impactLabels: string[];
   lockedProject?: string;
   onSave: (issue: Omit<IssueItem, "id">) => void;
 }) {
@@ -981,13 +985,14 @@ function IssueFormDialog({
         <Field label="Impact" htmlFor="issue-impact" hint="1 (lowest) – 5 (highest)" className="min-w-0">
           <Select value={impact} onValueChange={setImpact}>
             <SelectTrigger id="issue-impact"><SelectValue /></SelectTrigger>
-            <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
+            <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n} · {impactLabels[n - 1]}</SelectItem>)}</SelectContent>
           </Select>
         </Field>
         <Field label="Severity" htmlFor="issue-priority" className="min-w-0">
           <Select value={priority} onValueChange={(v) => setPriority(v as IssuePriority)}>
             <SelectTrigger id="issue-priority"><SelectValue /></SelectTrigger>
             <SelectContent>
+              <SelectItem value="Critical">Critical</SelectItem>
               <SelectItem value="High">High</SelectItem>
               <SelectItem value="Medium">Medium</SelectItem>
               <SelectItem value="Low">Low</SelectItem>

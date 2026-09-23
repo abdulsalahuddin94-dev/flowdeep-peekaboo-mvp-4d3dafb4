@@ -1,3 +1,9 @@
+## 2026-09-23 — Issue impact labels and Critical severity
+
+- Issue Impact options now show the organization-defined description beside each 1–5 value, matching the Log Risk form.
+- Added Critical to issue Severity in the create/edit form and Issues Log filter, with the standard critical pill treatment.
+- Issues created from risks now map risk score bands to Critical, High, Medium, or Low consistently.
+
 ## 2026-09-23 — Utilization capped at 100%
 
 - Actual amounts on a cost line can no longer push utilization past 100%: adding or editing an actual is blocked when the running total would exceed the line's Planned amount, with a message telling the user the maximum allowed and to increase Planned first.

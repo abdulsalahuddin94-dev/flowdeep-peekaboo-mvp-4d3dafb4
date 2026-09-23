@@ -2434,7 +2434,7 @@ function BusinessTripsTab({ pm }: { pm: string }) {
  * Logging an actual is bookkeeping, not re-planning: it stays available after the
  * baseline is locked so no Change Plan is needed to record a payment or expense.
  */
-function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEntry) => void }) {
+function AddActualDialog({ title, onAdd, validateAmount }: { title: string; onAdd: (a: ActualEntry) => void; validateAmount?: (amount: number) => string | null }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [date, setDate] = useState("");

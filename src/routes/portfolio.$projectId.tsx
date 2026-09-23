@@ -3350,6 +3350,7 @@ function CostBreakdownTable({
                     extraActions={
                       <AddActualDialog
                         title="Add actual spend"
+                        validateAmount={(amt) => overPlanMessage(amt, remaining)}
                          onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(idx)); }}
                       />
                     }

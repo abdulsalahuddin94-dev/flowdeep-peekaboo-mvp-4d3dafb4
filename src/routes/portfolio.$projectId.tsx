@@ -2480,6 +2480,9 @@ function AddActualDialog({ title, onAdd, validateAmount }: { title: string; onAd
             onClick={() => {
               const amt = parseFloat(amount);
               if (!name.trim() || !date.trim() || isNaN(amt)) { toast.error("Name, date and amount are required"); return; }
+              // Actuals can never exceed the planned amount — utilization is capped at 100%.
+              const err = validateAmount?.(amt);
+              if (err) { toast.error(err, { title: "Actual exceeds the planned amount" }); return; }
               onAdd({ name: name.trim(), date: date.trim(), amount: amt, note: name.trim() });
               setOpen(false);
               toast.done("Actual", "added");

@@ -2508,11 +2508,12 @@ function actualDatePickerValue(value?: string) {
  * so this stays available regardless of baseline lock, same as AddActualDialog.
  */
 function EditActualDialog({
-  entry, onOpenChange, onSave,
+  entry, onOpenChange, onSave, validateAmount,
 }: {
   entry: ActualEntry | null;
   onOpenChange: (open: boolean) => void;
   onSave: (patch: ActualEntry) => void;
+  validateAmount?: (amount: number) => string | null;
 }) {
   const [name, setName] = useState(entry?.name ?? entry?.note ?? "");
   const [date, setDate] = useState(actualDatePickerValue(entry?.date));

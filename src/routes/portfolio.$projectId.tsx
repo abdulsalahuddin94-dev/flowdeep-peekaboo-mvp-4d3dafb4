@@ -3269,7 +3269,13 @@ function CostBreakdownTable({
         {entries.map((e, idx) => {
           const actuals = e.actuals ?? (e.a > 0 ? [{ amount: e.a, date: dateOf(e), note: "Opening actual" }] : []);
           const actual = actuals.reduce((s, a) => s + a.amount, 0);
-          const util = e.b ? Math.round((actual / e.b) * 100) : 0;
+          // Actuals may never exceed the planned amount, so utilization is capped at 100%.
+          const util = e.b ? Math.min(100, Math.round((actual / e.b) * 100)) : 0;
+          const remaining = Math.max(0, (e.b ?? 0) - actual);
+          const overPlanMessage = (amt: number, base: number) =>
+            amt > base + 0.0001
+              ? `Logged actuals would reach $${(actual + amt - (actual - base + 0)).toFixed(2)}M, above the planned $${(e.b ?? 0).toFixed(2)}M. Increase the Planned amount first, or lower this actual (up to $${base.toFixed(2)}M).`
+              : null;
            const open = expanded.has(idx);
           const linkedMs = e.linkKind === "milestone" && e.linkRef && milestoneNames.includes(e.linkRef) ? e.linkRef : undefined;
           // A planned cost line that already has logged (paid) actuals cannot be deleted — only its plan changed.

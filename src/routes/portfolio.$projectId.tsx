@@ -2724,7 +2724,8 @@ function FinancialsTab({
   const costTotals = useMemo(() => {
     const planned = displayCost.reduce((s, e) => s + e.b, 0);
     const actual = displayCost.reduce((s, e) => s + e.a, 0);
-    return { planned, actual, util: planned ? Math.round((actual / planned) * 100) : 0 };
+    // Actuals are capped per line at the planned amount, so utilization never exceeds 100%.
+    return { planned, actual, util: planned ? Math.min(100, Math.round((actual / planned) * 100)) : 0 };
   }, [displayCost]);
   const revTotals = useMemo(() => {
     const planned = displayRev.reduce((s, e) => s + e.plan, 0);

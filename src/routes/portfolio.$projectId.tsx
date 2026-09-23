@@ -3272,9 +3272,9 @@ function CostBreakdownTable({
           // Actuals may never exceed the planned amount, so utilization is capped at 100%.
           const util = e.b ? Math.min(100, Math.round((actual / e.b) * 100)) : 0;
           const remaining = Math.max(0, (e.b ?? 0) - actual);
-          const overPlanMessage = (amt: number, base: number) =>
-            amt > base + 0.0001
-              ? `Logged actuals would reach $${(actual + amt - (actual - base + 0)).toFixed(2)}M, above the planned $${(e.b ?? 0).toFixed(2)}M. Increase the Planned amount first, or lower this actual (up to $${base.toFixed(2)}M).`
+          const overPlanMessage = (amt: number, allowed: number) =>
+            amt > allowed + 0.0001
+              ? `Total actuals can't exceed the planned $${(e.b ?? 0).toFixed(2)}M. This actual can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
               : null;
            const open = expanded.has(idx);
           const linkedMs = e.linkKind === "milestone" && e.linkRef && milestoneNames.includes(e.linkRef) ? e.linkRef : undefined;

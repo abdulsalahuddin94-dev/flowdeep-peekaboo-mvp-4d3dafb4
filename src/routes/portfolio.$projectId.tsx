@@ -835,15 +835,6 @@ function ProjectDetail() {
             </div>
           </div>
 
-          <div className="flex h-16 flex-col justify-center gap-1 rounded-lg bg-[var(--field-bg-filled)] px-4">
-            <div className="text-xs text-muted-foreground">Budget</div>
-            <div className="flex flex-wrap items-baseline gap-2">
-              <span className="num-mono text-sm font-semibold text-foreground">${project.budgetUsed.toFixed(2)}M</span>
-              <span className="num-mono text-sm text-muted-foreground">/ ${project.budgetTotal.toFixed(1)}M</span>
-            </div>
-            <div className="text-xs text-muted-foreground">{budgetUsedPct}% Utilization</div>
-          </div>
-
           <Button
             type="button"
             variant="ghost"

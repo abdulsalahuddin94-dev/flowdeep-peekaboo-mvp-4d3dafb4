@@ -5495,7 +5495,7 @@ function AddFinanceLinkDialog({
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Budget ($M)</Label><Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.50" /></div>
+              <div><Label>Planned amount ($M)</Label><Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.50" /></div>
             </>
           ) : (
             <>
@@ -5604,7 +5604,7 @@ function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div><Label>Budget ($M)</Label><Input type="number" min={0} step={0.01} value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="0.50" /></div>
+            <div><Label>Planned amount ($M)</Label><Input type="number" min={0} step={0.01} value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="0.50" /></div>
             <div><Label>Actual ($M)</Label><Input type="number" min={0} step={0.01} value={actual} onChange={(e) => setActual(e.target.value)} placeholder="0.00" /></div>
           </div>
           <div className="grid grid-cols-2 gap-2">

@@ -1,3 +1,9 @@
+## 2026-09-23 — Utilization capped at 100%
+
+- Actual amounts on a cost line can no longer push utilization past 100%: adding or editing an actual is blocked when the running total would exceed the line's Planned amount, with a message telling the user the maximum allowed and to increase Planned first.
+- Editing a cost line now rejects a Planned amount lower than the actuals already logged against it.
+- Cost utilization (line and KPI strip) is clamped to 100%.
+
 ## 2026-09-22 — Pill badges + Requests table cleanup
 
 - Removed the Outcome column from the Resources Requests table; the decision details stay in the request detail drawer.

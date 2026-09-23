@@ -2434,7 +2434,7 @@ function BusinessTripsTab({ pm }: { pm: string }) {
  * Logging an actual is bookkeeping, not re-planning: it stays available after the
  * baseline is locked so no Change Plan is needed to record a payment or expense.
  */
-function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEntry) => void }) {
+function AddActualDialog({ title, onAdd, validateAmount }: { title: string; onAdd: (a: ActualEntry) => void; validateAmount?: (amount: number) => string | null }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
@@ -2480,6 +2480,9 @@ function AddActualDialog({ title, onAdd }: { title: string; onAdd: (a: ActualEnt
             onClick={() => {
               const amt = parseFloat(amount);
               if (!name.trim() || !date.trim() || isNaN(amt)) { toast.error("Name, date and amount are required"); return; }
+              // Actuals can never exceed the planned amount — utilization is capped at 100%.
+              const err = validateAmount?.(amt);
+              if (err) { toast.error(err, { title: "Actual exceeds the planned amount" }); return; }
               onAdd({ name: name.trim(), date: date.trim(), amount: amt, note: name.trim() });
               setOpen(false);
               toast.done("Actual", "added");
@@ -2505,11 +2508,12 @@ function actualDatePickerValue(value?: string) {
  * so this stays available regardless of baseline lock, same as AddActualDialog.
  */
 function EditActualDialog({
-  entry, onOpenChange, onSave,
+  entry, onOpenChange, onSave, validateAmount,
 }: {
   entry: ActualEntry | null;
   onOpenChange: (open: boolean) => void;
   onSave: (patch: ActualEntry) => void;
+  validateAmount?: (amount: number) => string | null;
 }) {
   const [name, setName] = useState(entry?.name ?? entry?.note ?? "");
   const [date, setDate] = useState(actualDatePickerValue(entry?.date));
@@ -2551,6 +2555,8 @@ function EditActualDialog({
             onClick={() => {
               const amt = parseFloat(amount);
               if (!name.trim() || !date.trim() || isNaN(amt)) { toast.error("Name, date and amount are required"); return; }
+              const err = validateAmount?.(amt);
+              if (err) { toast.error(err, { title: "Actual exceeds the planned amount" }); return; }
               onSave({ name: name.trim(), date: date.trim(), amount: amt, note: name.trim() });
               onOpenChange(false);
               toast.done("Actual", "updated");
@@ -2655,6 +2661,12 @@ function EditCostRowDialog({
             onClick={() => {
               const p = parseFloat(plan);
               if (isNaN(p)) { toast.error("Planned amount is required"); return; }
+              // The plan must still cover everything already logged as actual (utilization caps at 100%).
+              const loggedActual = (entry?.actuals ?? (entry && entry.a > 0 ? [{ amount: entry.a, date: "—" }] : [])).reduce((s, a) => s + a.amount, 0);
+              if (p < loggedActual - 0.0001) {
+                toast.error(`This line already has $${loggedActual.toFixed(2)}M logged as actual. The planned amount can't be lower than that.`, { title: "Planned amount too low" });
+                return;
+              }
               if (linkKind === "milestone" && !linkRef) { toast.error("Please pick a milestone"); return; }
               onSave({ cat: cat || undefined, desc: desc.trim() || undefined, b: p, linkKind, linkRef });
               onOpenChange(false);
@@ -2718,7 +2730,8 @@ function FinancialsTab({
   const costTotals = useMemo(() => {
     const planned = displayCost.reduce((s, e) => s + e.b, 0);
     const actual = displayCost.reduce((s, e) => s + e.a, 0);
-    return { planned, actual, util: planned ? Math.round((actual / planned) * 100) : 0 };
+    // Actuals are capped per line at the planned amount, so utilization never exceeds 100%.
+    return { planned, actual, util: planned ? Math.min(100, Math.round((actual / planned) * 100)) : 0 };
   }, [displayCost]);
   const revTotals = useMemo(() => {
     const planned = displayRev.reduce((s, e) => s + e.plan, 0);
@@ -3263,7 +3276,13 @@ function CostBreakdownTable({
         {entries.map((e, idx) => {
           const actuals = e.actuals ?? (e.a > 0 ? [{ amount: e.a, date: dateOf(e), note: "Opening actual" }] : []);
           const actual = actuals.reduce((s, a) => s + a.amount, 0);
-          const util = e.b ? Math.round((actual / e.b) * 100) : 0;
+          // Actuals may never exceed the planned amount, so utilization is capped at 100%.
+          const util = e.b ? Math.min(100, Math.round((actual / e.b) * 100)) : 0;
+          const remaining = Math.max(0, (e.b ?? 0) - actual);
+          const overPlanMessage = (amt: number, allowed: number) =>
+            amt > allowed + 0.0001
+              ? `Total actuals can't exceed the planned $${(e.b ?? 0).toFixed(2)}M. This actual can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
+              : null;
            const open = expanded.has(idx);
           const linkedMs = e.linkKind === "milestone" && e.linkRef && milestoneNames.includes(e.linkRef) ? e.linkRef : undefined;
           // A planned cost line that already has logged (paid) actuals cannot be deleted — only its plan changed.
@@ -3338,6 +3357,7 @@ function CostBreakdownTable({
                     extraActions={
                       <AddActualDialog
                         title="Add actual spend"
+                        validateAmount={(amt) => overPlanMessage(amt, remaining)}
                          onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(idx)); }}
                       />
                     }
@@ -3407,6 +3427,17 @@ function CostBreakdownTable({
             ? [{ amount: entries[editingActual.rowIdx].a, date: "—", note: "Opening actual" }]
             : []))[editingActual.actualIdx] ?? null
         : null}
+      validateAmount={(amt) => {
+        if (!editingActual) return null;
+        const row = entries[editingActual.rowIdx];
+        if (!row) return null;
+        const rowActuals = row.actuals ?? (row.a > 0 ? [{ amount: row.a, date: "—", note: "Opening actual" }] : []);
+        const others = rowActuals.reduce((s, a, ai) => (ai === editingActual.actualIdx ? s : s + a.amount), 0);
+        const allowed = Math.max(0, (row.b ?? 0) - others);
+        return amt > allowed + 0.0001
+          ? `Total actuals can't exceed the planned $${(row.b ?? 0).toFixed(2)}M. This actual can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
+          : null;
+      }}
       onOpenChange={(o) => !o && setEditingActual(null)}
       onSave={(patch) => {
         if (editingActual) onEditActual(editingActual.rowIdx, editingActual.actualIdx, patch);

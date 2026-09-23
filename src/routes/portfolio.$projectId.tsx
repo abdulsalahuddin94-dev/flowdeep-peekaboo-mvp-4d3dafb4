@@ -2661,6 +2661,12 @@ function EditCostRowDialog({
             onClick={() => {
               const p = parseFloat(plan);
               if (isNaN(p)) { toast.error("Planned amount is required"); return; }
+              // The plan must still cover everything already logged as actual (utilization caps at 100%).
+              const loggedActual = (entry?.actuals ?? (entry && entry.a > 0 ? [{ amount: entry.a, date: "—" }] : [])).reduce((s, a) => s + a.amount, 0);
+              if (p < loggedActual - 0.0001) {
+                toast.error(`This line already has $${loggedActual.toFixed(2)}M logged as actual. The planned amount can't be lower than that.`, { title: "Planned amount too low" });
+                return;
+              }
               if (linkKind === "milestone" && !linkRef) { toast.error("Please pick a milestone"); return; }
               onSave({ cat: cat || undefined, desc: desc.trim() || undefined, b: p, linkKind, linkRef });
               onOpenChange(false);

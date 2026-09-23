@@ -2555,6 +2555,8 @@ function EditActualDialog({
             onClick={() => {
               const amt = parseFloat(amount);
               if (!name.trim() || !date.trim() || isNaN(amt)) { toast.error("Name, date and amount are required"); return; }
+              const err = validateAmount?.(amt);
+              if (err) { toast.error(err, { title: "Actual exceeds the planned amount" }); return; }
               onSave({ name: name.trim(), date: date.trim(), amount: amt, note: name.trim() });
               onOpenChange(false);
               toast.done("Actual", "updated");

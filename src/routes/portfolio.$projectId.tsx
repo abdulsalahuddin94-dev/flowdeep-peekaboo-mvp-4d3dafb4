@@ -3097,7 +3097,13 @@ function RevenuePlanTable({
         {entries.map((r, idx) => {
           const actuals = r.actuals ?? (r.act != null ? [{ amount: r.act, date: r.date }] : []);
           const actual = actuals.reduce((s, a) => s + a.amount, 0);
-          const util = r.plan ? Math.round((actual / r.plan) * 100) : 0;
+          // Payments may never exceed the event's planned amount, so collected is capped at 100%.
+          const util = r.plan ? Math.min(100, Math.round((actual / r.plan) * 100)) : 0;
+          const remaining = Math.max(0, r.plan - actual);
+          const overPlanMessage = (amt: number, allowed: number) =>
+            amt > allowed + 0.0001
+              ? `Total payments can't exceed the planned $${r.plan.toFixed(2)}M. This payment can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
+              : null;
           const open = expanded.has(r.ms);
           const linkedMs = r.linkKind === "milestone" && milestoneNames.includes(r.ms) ? r.ms : undefined;
           return (

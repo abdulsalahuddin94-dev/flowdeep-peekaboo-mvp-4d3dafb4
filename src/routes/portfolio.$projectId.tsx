@@ -3154,6 +3154,7 @@ function RevenuePlanTable({
                     extraActions={
                       <AddActualDialog
                         title="Add revenue recognition"
+                        validateAmount={(amt) => overPlanMessage(amt, remaining)}
                         onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(r.ms)); }}
                       />
                     }
@@ -3233,6 +3234,17 @@ function RevenuePlanTable({
             ? [{ amount: entries[editingActual.rowIdx].act ?? 0, date: entries[editingActual.rowIdx].date }]
             : []))[editingActual.actualIdx] ?? null
         : null}
+      validateAmount={(amt) => {
+        if (!editingActual) return null;
+        const row = entries[editingActual.rowIdx];
+        if (!row) return null;
+        const rowActuals = row.actuals ?? (row.act != null ? [{ amount: row.act, date: row.date }] : []);
+        const others = rowActuals.reduce((s, a, ai) => (ai === editingActual.actualIdx ? s : s + a.amount), 0);
+        const allowed = Math.max(0, row.plan - others);
+        return amt > allowed + 0.0001
+          ? `Total payments can't exceed the planned $${row.plan.toFixed(2)}M. This payment can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
+          : null;
+      }}
       onOpenChange={(o) => !o && setEditingActual(null)}
       onSave={(patch) => {
         if (editingActual) onEditActual(editingActual.rowIdx, editingActual.actualIdx, patch);

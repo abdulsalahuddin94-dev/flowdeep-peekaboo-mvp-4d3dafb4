@@ -2736,8 +2736,14 @@ function FinancialsTab({
   const revTotals = useMemo(() => {
     const planned = displayRev.reduce((s, e) => s + e.plan, 0);
     const actual = displayRev.reduce((s, e) => s + (e.act ?? 0), 0);
-    return { planned, actual, util: planned ? Math.round((actual / planned) * 100) : 0 };
+    // Payments are capped per event at its planned amount, so collected never exceeds 100%.
+    return { planned, actual, util: planned ? Math.min(100, Math.round((actual / planned) * 100)) : 0 };
   }, [displayRev]);
+
+  /** Expected revenue entered at project setup; the revenue plan is reconciled against it. */
+  const expectedRevenue = project.expectedRevenue ?? null;
+  const revVariance = expectedRevenue != null ? revTotals.planned - expectedRevenue : 0;
+  const revMismatch = expectedRevenue != null && Math.abs(revVariance) > 0.0001;
 
   const costCategoryNames = useMemo(() => DEFAULT_COST_CATEGORIES.map((c) => c.name), []);
 
@@ -2932,18 +2938,32 @@ function FinancialsTab({
 
       ) : (
           <div className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className={`grid gap-3 ${expectedRevenue != null ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
               {[
-                { l: "Planned revenue", v: `$${revTotals.planned.toFixed(2)}M` },
+                ...(expectedRevenue != null
+                  ? [{ l: "Expected revenue", v: `$${expectedRevenue.toFixed(2)}M`, n: "Entered at project setup" }]
+                  : []),
+                {
+                  l: "Planned in revenue plan",
+                  v: `$${revTotals.planned.toFixed(2)}M`,
+                  c: revMismatch ? "text-rag-amber" : undefined,
+                  n: revMismatch
+                    ? `${revVariance > 0 ? "Over" : "Under"} expected revenue by $${Math.abs(revVariance).toFixed(2)}M`
+                    : expectedRevenue != null
+                      ? "Matches expected revenue"
+                      : undefined,
+                },
                 { l: "Received", v: `$${revTotals.actual.toFixed(2)}M` },
                 { l: "Collected", v: `${revTotals.util}%`, c: revTotals.util >= 100 ? "text-rag-green" : "text-rag-amber" },
               ].map((k) => (
                 <div key={k.l} className="glass-card p-4">
                   <div className="label-eyebrow">{k.l}</div>
                   <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+                  {k.n && <div className={`mt-1 text-[11px] ${revMismatch && k.l === "Planned in revenue plan" ? "text-rag-amber" : "text-muted-foreground"}`}>{k.n}</div>}
                 </div>
               ))}
             </div>
+
 
             <div>
               <PageToolbar
@@ -3077,7 +3097,13 @@ function RevenuePlanTable({
         {entries.map((r, idx) => {
           const actuals = r.actuals ?? (r.act != null ? [{ amount: r.act, date: r.date }] : []);
           const actual = actuals.reduce((s, a) => s + a.amount, 0);
-          const util = r.plan ? Math.round((actual / r.plan) * 100) : 0;
+          // Payments may never exceed the event's planned amount, so collected is capped at 100%.
+          const util = r.plan ? Math.min(100, Math.round((actual / r.plan) * 100)) : 0;
+          const remaining = Math.max(0, r.plan - actual);
+          const overPlanMessage = (amt: number, allowed: number) =>
+            amt > allowed + 0.0001
+              ? `Total payments can't exceed the planned $${r.plan.toFixed(2)}M. This payment can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
+              : null;
           const open = expanded.has(r.ms);
           const linkedMs = r.linkKind === "milestone" && milestoneNames.includes(r.ms) ? r.ms : undefined;
           return (
@@ -3128,6 +3154,7 @@ function RevenuePlanTable({
                     extraActions={
                       <AddActualDialog
                         title="Add revenue recognition"
+                        validateAmount={(amt) => overPlanMessage(amt, remaining)}
                         onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(r.ms)); }}
                       />
                     }
@@ -3207,6 +3234,17 @@ function RevenuePlanTable({
             ? [{ amount: entries[editingActual.rowIdx].act ?? 0, date: entries[editingActual.rowIdx].date }]
             : []))[editingActual.actualIdx] ?? null
         : null}
+      validateAmount={(amt) => {
+        if (!editingActual) return null;
+        const row = entries[editingActual.rowIdx];
+        if (!row) return null;
+        const rowActuals = row.actuals ?? (row.act != null ? [{ amount: row.act, date: row.date }] : []);
+        const others = rowActuals.reduce((s, a, ai) => (ai === editingActual.actualIdx ? s : s + a.amount), 0);
+        const allowed = Math.max(0, row.plan - others);
+        return amt > allowed + 0.0001
+          ? `Total payments can't exceed the planned $${row.plan.toFixed(2)}M. This payment can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
+          : null;
+      }}
       onOpenChange={(o) => !o && setEditingActual(null)}
       onSave={(patch) => {
         if (editingActual) onEditActual(editingActual.rowIdx, editingActual.actualIdx, patch);
@@ -3558,6 +3596,13 @@ function EditRevenueRowDialog({
               const p = parseFloat(plan);
               if (!evt.trim()) { toast.error("Revenue event is required"); return; }
               if (isNaN(p)) { toast.error("Planned amount is required"); return; }
+              // Collected can never exceed 100%, so Planned cannot drop below what is already received.
+              const logged = (entry?.actuals ?? (entry?.act != null ? [{ amount: entry.act, date: entry.date }] : []))
+                .reduce((s, a) => s + a.amount, 0);
+              if (p + 0.0001 < logged) {
+                toast.error(`$${logged.toFixed(2)}M is already received on this event. Planned can't be lower than that.`, { title: "Planned amount too low" });
+                return;
+              }
               if (linkKind === "fixed" && !linkDate) { toast.error("Please pick a date"); return; }
               if (linkKind === "milestone" && !linkMs) { toast.error("Please pick a milestone"); return; }
               onSave({

@@ -1,3 +1,10 @@
+## 2026-09-24 — Expected revenue vs revenue plan, Collected capped at 100%
+
+- `Project` gains `expectedRevenue`; the project form now persists and prefills the Expected revenue field, and demo client projects carry it.
+- Revenue Breakdown KPI strip shows **Expected revenue** (entered at setup) beside **Planned in revenue plan**, with an amber variance note when the two differ. Nothing is blocked by a mismatch.
+- Collected is capped at 100%: a payment that would push an event above its Planned amount is rejected, Planned can't be lowered below what is already received, and line/total Collected clamp to 100%.
+- Risk status-update dialog Probability/Impact dropdowns now show `n · label` from the Organization rules, matching Log a new risk.
+
 ## 2026-09-23 — Probability/Impact show labels in tables
 
 - Risk Register and Issues Log tables now display the organization-defined label (e.g. "Likely", "Major") instead of the raw 1–5 number in the Probability and Impact columns, sourced from the same Organization rules used in the create/edit forms.

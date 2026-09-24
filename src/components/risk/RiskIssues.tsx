@@ -1055,7 +1055,7 @@ function RiskStatusDialog({
   onClose: () => void;
   onSave: (input: { status: RiskStatus; prob: number; impact: number; comment: string }) => void;
 }) {
-  const { severityOf } = useSeverity();
+  const { severityOf, rules } = useSeverity();
   const [status, setStatus] = useState<RiskStatus>(risk?.status ?? "Open");
   const statusOptions = RISK_STATUSES.includes(status) ? RISK_STATUSES : [...RISK_STATUSES, status];
   const [prob, setProb] = useState(String(risk?.prob ?? 3));
@@ -1094,13 +1094,13 @@ function RiskStatusDialog({
         <Field label="Probability" htmlFor="risk-status-prob">
           <Select value={prob} onValueChange={setProb}>
             <SelectTrigger id="risk-status-prob"><SelectValue /></SelectTrigger>
-            <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
+            <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n} · {rules.risk.probabilityLabels[n - 1]}</SelectItem>)}</SelectContent>
           </Select>
         </Field>
         <Field label="Impact" htmlFor="risk-status-impact">
           <Select value={impact} onValueChange={setImpact}>
             <SelectTrigger id="risk-status-impact"><SelectValue /></SelectTrigger>
-            <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
+            <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n} · {rules.risk.impactLabels[n - 1]}</SelectItem>)}</SelectContent>
           </Select>
         </Field>
         <Field label="Score" hint="Probability × Impact" className="sm:col-span-2 lg:col-span-1">

@@ -13,6 +13,8 @@ export interface Project {
   progress: number;
   budgetUsed: number;
   budgetTotal: number;
+  /** Expected revenue captured at project setup (client work only). Compared against the revenue plan. */
+  expectedRevenue?: number;
   startDate: string;
   endDate: string;
   rag: Rag;
@@ -127,6 +129,8 @@ export const projects: Project[] = seed.map((row, i) => {
     progress,
     budgetUsed: used,
     budgetTotal: total,
+    // Client work carries an expected revenue agreed at setup; internal work has none.
+    expectedRevenue: client === "Internal" ? undefined : Number((total as number).toFixed(2)),
     startDate,
     endDate,
     rag: rag as Rag,

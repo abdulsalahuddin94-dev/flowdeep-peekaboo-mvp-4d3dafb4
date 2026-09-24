@@ -2736,8 +2736,14 @@ function FinancialsTab({
   const revTotals = useMemo(() => {
     const planned = displayRev.reduce((s, e) => s + e.plan, 0);
     const actual = displayRev.reduce((s, e) => s + (e.act ?? 0), 0);
-    return { planned, actual, util: planned ? Math.round((actual / planned) * 100) : 0 };
+    // Payments are capped per event at its planned amount, so collected never exceeds 100%.
+    return { planned, actual, util: planned ? Math.min(100, Math.round((actual / planned) * 100)) : 0 };
   }, [displayRev]);
+
+  /** Expected revenue entered at project setup; the revenue plan is reconciled against it. */
+  const expectedRevenue = project.expectedRevenue ?? null;
+  const revVariance = expectedRevenue != null ? revTotals.planned - expectedRevenue : 0;
+  const revMismatch = expectedRevenue != null && Math.abs(revVariance) > 0.0001;
 
   const costCategoryNames = useMemo(() => DEFAULT_COST_CATEGORIES.map((c) => c.name), []);
 

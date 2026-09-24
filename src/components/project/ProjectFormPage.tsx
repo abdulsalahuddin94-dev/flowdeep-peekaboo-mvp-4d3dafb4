@@ -96,7 +96,7 @@ function fromProject(p: Project, fallbackCalendar: string): FormState {
     duration: startIso && endIso ? String(diffDays(startIso, endIso)) : "",
     endDate: endIso,
     budget: String(p.budgetTotal ?? ""),
-    revenue: "",
+    revenue: p.expectedRevenue != null ? String(p.expectedRevenue) : "",
     tags: p.tags ?? [],
     calendarId: p.calendarId ?? fallbackCalendar,
   };

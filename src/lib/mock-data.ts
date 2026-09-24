@@ -13,6 +13,8 @@ export interface Project {
   progress: number;
   budgetUsed: number;
   budgetTotal: number;
+  /** Expected revenue captured at project setup (client work only). Compared against the revenue plan. */
+  expectedRevenue?: number;
   startDate: string;
   endDate: string;
   rag: Rag;

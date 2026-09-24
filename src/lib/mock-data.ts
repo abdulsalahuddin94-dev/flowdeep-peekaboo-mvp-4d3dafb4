@@ -129,6 +129,8 @@ export const projects: Project[] = seed.map((row, i) => {
     progress,
     budgetUsed: used,
     budgetTotal: total,
+    // Client work carries an expected revenue agreed at setup; internal work has none.
+    expectedRevenue: client === "Internal" ? undefined : Number((total as number).toFixed(2)),
     startDate,
     endDate,
     rag: rag as Rag,

@@ -3596,6 +3596,13 @@ function EditRevenueRowDialog({
               const p = parseFloat(plan);
               if (!evt.trim()) { toast.error("Revenue event is required"); return; }
               if (isNaN(p)) { toast.error("Planned amount is required"); return; }
+              // Collected can never exceed 100%, so Planned cannot drop below what is already received.
+              const logged = (entry?.actuals ?? (entry?.act != null ? [{ amount: entry.act, date: entry.date }] : []))
+                .reduce((s, a) => s + a.amount, 0);
+              if (p + 0.0001 < logged) {
+                toast.error(`$${logged.toFixed(2)}M is already received on this event. Planned can't be lower than that.`, { title: "Planned amount too low" });
+                return;
+              }
               if (linkKind === "fixed" && !linkDate) { toast.error("Please pick a date"); return; }
               if (linkKind === "milestone" && !linkMs) { toast.error("Please pick a milestone"); return; }
               onSave({

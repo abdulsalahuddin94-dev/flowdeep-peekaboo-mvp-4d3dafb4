@@ -1,3 +1,9 @@
+## 2026-09-27 — Progress Update task-focused layout
+
+- Matched the Progress Update popup to the approved reference: task name in the title, roll-up summary, task progress card, and expandable Start, End, Weight score, Parent, and dependency details.
+- Removed the separate approval sidebar and the footer Close button; the standard top-right dismiss control remains available.
+- Kept Save update and approval-request behavior intact.
+
 ## 2026-09-27 — Schedule dependencies and health demo
 
 - Progress Update task details now show every predecessor in a bounded scrollable list, including relationship and lead/lag, with a visible dependency count.

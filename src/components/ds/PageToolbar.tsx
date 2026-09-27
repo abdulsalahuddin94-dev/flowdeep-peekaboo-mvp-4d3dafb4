@@ -273,9 +273,10 @@ export function PageToolbar({
                         : activePanel.value;
                       const selected = isAll ? currentDraft.length === 0 : currentDraft.includes(o.value);
                       return (
-                        <button
+                        <div
                           key={o.value}
-                          type="button"
+                          role="button"
+                          tabIndex={0}
                           aria-pressed={selected}
                           onClick={() => {
                             setDraft((d) => {
@@ -289,20 +290,24 @@ export function PageToolbar({
                               return { ...d, [activePanel.key]: next };
                             });
                           }}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") event.currentTarget.click();
+                          }}
                           className="flex w-full items-center gap-3 rounded-md px-1 py-2 text-left text-sm text-foreground hover:bg-secondary/40"
                         >
                           <Checkbox checked={selected} className="pointer-events-none" />
                           <span className="truncate">{o.label}</span>
-                        </button>
+                        </div>
                       );
                     })
                   ) : (
                     panelOptions.map((o) => {
                       const selected = (draft[activePanel.key] ?? activePanel.value) === o.value;
                       return (
-                        <button
+                        <div
                           key={o.value}
-                          type="button"
+                          role="button"
+                          tabIndex={0}
                           aria-pressed={selected}
                           onClick={() => setDraft((d) => ({
                             ...d,
@@ -310,6 +315,9 @@ export function PageToolbar({
                               ? groupFirstValue(activePanel)
                               : o.value,
                           }))}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") event.currentTarget.click();
+                          }}
                           className="flex w-full items-center gap-3 rounded-md px-1 py-2 text-left text-sm text-foreground hover:bg-secondary/40"
                         >
                           <Checkbox checked={selected} className="pointer-events-none" />
@@ -318,7 +326,7 @@ export function PageToolbar({
                           ) : (
                             <span className="truncate">{o.label}</span>
                           )}
-                        </button>
+                        </div>
                       );
                     })
                   )}

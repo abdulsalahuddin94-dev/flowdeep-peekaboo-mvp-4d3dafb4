@@ -32,6 +32,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear, formatDateWithoutYear } from "@/lib/date-format";
+import { useOrgRules } from "@/lib/org-rules";
 
 // ── MS Project XML import ────────────────────────────────────────────────────
 function parseMsProjectXml(xmlText: string): ScheduleItem[] {
@@ -475,12 +476,16 @@ export function ProjectSchedule({
   const totalDays = Math.max(1, diffDays(maxDate, minDate) + 1);
   const chartWidth = totalDays * dayWidth;
 
-  // Schedule health: overdue work takes priority, then compare actual % to
-  // time-expected %. Healthy and future work remains on track.
-  type HealthStatus = "on-track" | "off-track" | "overdue";
+  // Schedule health follows the organization Rules & Thresholds: the gap
+  // between time-expected % and actual % is banded by the configured Amber
+  // (At Risk) and Red (Off-Track) progress thresholds. Overdue work is Red.
+  type HealthStatus = "on-track" | "at-risk" | "off-track";
+  const orgRules = useOrgRules();
   const healthMap = useMemo(() => {
     const m = new Map<string, { status: HealthStatus; variance: number; expected: number }>();
     const today = new Date(); today.setHours(0, 0, 0, 0);
+    const amberPct = orgRules.rag.progressAmberPct;
+    const redPct = orgRules.rag.progressRedPct;
     for (const it of items) {
       const s = parseISO(it.startDate), e = parseISO(it.endDate);
       if (!s || !e) { m.set(it.name, { status: "on-track", variance: 0, expected: 0 }); continue; }
@@ -490,22 +495,22 @@ export function ProjectSchedule({
       const actual = Math.max(0, Math.min(100, it.progress ?? 0));
       const variance = expected - actual; // positive = behind
       let status: HealthStatus = "on-track";
-      if (e < today && actual < 100) status = "overdue";
-      else if (variance > 7) status = "off-track";
+      if ((e < today && actual < 100) || variance >= redPct) status = "off-track";
+      else if (variance >= amberPct) status = "at-risk";
       m.set(it.name, { status, variance, expected });
     }
     return m;
-  }, [items]);
+  }, [items, orgRules]);
   const atRiskSet = useMemo(() => {
     const s = new Set<string>();
     if (!healthHighlight) return s;
-    for (const [name, h] of healthMap) if (h.status === "off-track") s.add(name);
+    for (const [name, h] of healthMap) if (h.status === "at-risk") s.add(name);
     return s;
   }, [healthHighlight, healthMap]);
   const offTrackSet = useMemo(() => {
     const s = new Set<string>();
     if (!healthHighlight) return s;
-    for (const [name, h] of healthMap) if (h.status === "overdue") s.add(name);
+    for (const [name, h] of healthMap) if (h.status === "off-track") s.add(name);
     return s;
   }, [healthHighlight, healthMap]);
 

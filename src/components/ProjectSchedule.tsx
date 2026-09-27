@@ -475,9 +475,9 @@ export function ProjectSchedule({
   const totalDays = Math.max(1, diffDays(maxDate, minDate) + 1);
   const chartWidth = totalDays * dayWidth;
 
-  // Schedule health: compare actual % to time-expected % per item.
-  // deviation = expected − actual.  0 < dev ≤ 7 → "at-risk", dev > 7 → "off-track".
-  type HealthStatus = "on-track" | "at-risk" | "off-track";
+  // Schedule health: overdue work takes priority, then compare actual % to
+  // time-expected %. Healthy and future work remains on track.
+  type HealthStatus = "on-track" | "off-track" | "overdue";
   const healthMap = useMemo(() => {
     const m = new Map<string, { status: HealthStatus; variance: number; expected: number }>();
     const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -490,8 +490,8 @@ export function ProjectSchedule({
       const actual = Math.max(0, Math.min(100, it.progress ?? 0));
       const variance = expected - actual; // positive = behind
       let status: HealthStatus = "on-track";
-      if (variance > 7) status = "off-track";
-      else if (variance > 0) status = "at-risk";
+      if (e < today && actual < 100) status = "overdue";
+      else if (variance > 7) status = "off-track";
       m.set(it.name, { status, variance, expected });
     }
     return m;
@@ -499,13 +499,13 @@ export function ProjectSchedule({
   const atRiskSet = useMemo(() => {
     const s = new Set<string>();
     if (!healthHighlight) return s;
-    for (const [name, h] of healthMap) if (h.status !== "on-track") s.add(name);
+    for (const [name, h] of healthMap) if (h.status === "off-track") s.add(name);
     return s;
   }, [healthHighlight, healthMap]);
   const offTrackSet = useMemo(() => {
     const s = new Set<string>();
     if (!healthHighlight) return s;
-    for (const [name, h] of healthMap) if (h.status === "off-track") s.add(name);
+    for (const [name, h] of healthMap) if (h.status === "overdue") s.add(name);
     return s;
   }, [healthHighlight, healthMap]);
 
@@ -1122,12 +1122,16 @@ export function ProjectSchedule({
               </div>
               {visibleRows.map(({ item, depth, hasChildren }, rowIdx) => {
                 const isOpen = expanded.has(item.name);
-                const isOff = offTrackSet.has(item.name);
-                const isRisk = atRiskSet.has(item.name) && !isOff;
-                const rowSurface = isOff
+                const health = healthHighlight ? healthMap.get(item.name)?.status : undefined;
+                const isOverdue = health === "overdue";
+                const isOffTrack = health === "off-track";
+                const isOnTrack = health === "on-track";
+                const rowSurface = isOverdue
                   ? "bg-rag-red/5"
-                  : isRisk
+                  : isOffTrack
                     ? "bg-rag-amber/5"
+                    : isOnTrack
+                      ? "bg-rag-green/5"
                     : "bg-[var(--table-row-bg)]";
                 const isMs = item.kind === "Milestone";
                 const isGate = !!item.isApprovalTask;
@@ -1175,7 +1179,7 @@ export function ProjectSchedule({
                           {gateApproved ? "✓" : "!"}
                         </span>
                       )}
-                      <span className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOff ? "text-rag-red" : isRisk ? "text-rag-amber" : ""}`}>{item.name}</span>
+                      <span className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOverdue ? "text-rag-red" : isOffTrack ? "text-rag-amber" : isOnTrack ? "text-rag-green" : ""}`}>{item.name}</span>
                     </div>
                     {colVisible("type") && (
                       <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.type }}>
@@ -1303,7 +1307,14 @@ export function ProjectSchedule({
                     )}
                     {colVisible("status") && (
                       <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.status }}>
-                        <RagBadge rag={item.rag} label={statusText[item.rag]} />
+                        {health ? (
+                          <RagBadge
+                            rag={health === "on-track" ? "green" : health === "off-track" ? "amber" : "red"}
+                            label={health === "on-track" ? "On Track" : health === "off-track" ? "Off Track" : "Overdue"}
+                          />
+                        ) : (
+                          <RagBadge rag={item.rag} label={statusText[item.rag]} />
+                        )}
                       </div>
                     )}
                     {(() => {
@@ -1511,7 +1522,7 @@ export function ProjectSchedule({
                 {visibleRows.map((r, i) => (
                   <div
                     key={r.item.name}
-                    className={`absolute left-0 right-0 border-b border-border/40 ${offTrackSet.has(r.item.name) ? "bg-rag-red/5" : atRiskSet.has(r.item.name) ? "bg-rag-amber/5" : ""}`}
+                    className={`absolute left-0 right-0 border-b border-border/40 ${offTrackSet.has(r.item.name) ? "bg-rag-red/5" : atRiskSet.has(r.item.name) ? "bg-rag-amber/5" : healthHighlight ? "bg-rag-green/5" : ""}`}
                     style={{ top: i * ROW_H, height: ROW_H }}
                   />
                 ))}
@@ -1576,7 +1587,9 @@ export function ProjectSchedule({
                     blue:  { solid: "bg-rag-blue",  soft: "bg-rag-blue/30",  border: "border-rag-blue/60",  hex: "#3B82F6" },
                     grey:  { solid: "bg-rag-grey",  soft: "bg-rag-grey/30",  border: "border-rag-grey/60",  hex: "#94A3B8" },
                   } as const;
-                  const rc = ragColor[item.rag];
+                   const health = healthHighlight ? healthMap.get(item.name)?.status : undefined;
+                   const healthRag: Rag = health === "on-track" ? "green" : health === "off-track" ? "amber" : health === "overdue" ? "red" : item.rag;
+                   const rc = ragColor[healthRag];
 
                   if (item.isApprovalTask) {
                     const approved = item.approvalStatus === "approved";
@@ -1707,8 +1720,9 @@ export function ProjectSchedule({
               <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm border border-foreground bg-foreground/80" /> Summary from subtasks</span>
               {healthHighlight && (
                 <>
-                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-amber" /> At risk (≤ 7% behind)</span>
-                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Off track (&gt; 7% behind)</span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-green" /> On Track</span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-amber" /> Off Track</span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Overdue</span>
                 </>
               )}
             </div>

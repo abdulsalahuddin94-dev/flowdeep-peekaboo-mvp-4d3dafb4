@@ -10,6 +10,6 @@
 - [x] Show expected revenue beside the revenue plan total with a variance note.
 - [x] Cap revenue Collected at 100% (block payments above planned, block lowering planned below received).
 - [x] Show number labels in the risk status-update Probability/Impact dropdowns.
-- [ ] Show multiple predecessors clearly inside Progress Update task details, with a five-dependency demo.
-- [ ] Make Schedule Health distinguish On Track, Off Track, and Overdue across WBS and Gantt.
+- [x] Show multiple predecessors clearly inside Progress Update task details, with a five-dependency demo.
+- [x] Make Schedule Health distinguish On Track, Off Track, and Overdue across WBS and Gantt.
 - [ ] Update schedule demo data so all three health states are visible and verify the interactions.

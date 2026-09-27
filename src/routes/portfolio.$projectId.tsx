@@ -234,10 +234,10 @@ function ProjectDetail() {
     { name: "UAT Sign-off", kind: "Milestone", startDate: "2025-09-19", endDate: "2025-09-19", owner: project.pm, rag: "red", dep: "Testing & QA", roles: [], payment: { kind: "Client Revenue", amount: "$200K" }, progress: 0, milestoneType: "finish" },
 
     // ── Phase 5: Deploy — not started (grey), no skill requests yet ─────────
-    { name: "Deployment & Hypercare", kind: "Task", startDate: "2025-09-22", endDate: "2025-10-17", owner: project.pm, rag: "grey", dep: "UAT Sign-off", roles: [{ role: "DevOps Engineer", skill: "Senior", fte: 1 }], payment: { kind: "Package Cost", packageId: "PKG-DPL", amount: "$60K" }, progress: 0, parent: "Go-Live", weightScore: 10 },
-    { name: "Production cutover", kind: "Task", startDate: "2025-09-22", endDate: "2025-09-26", owner: project.pm, rag: "grey", dep: "UAT Sign-off", roles: [{ role: "DevOps Engineer", skill: "Senior", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 0, parent: "Deployment & Hypercare", weightScore: 5 },
-    { name: "Hypercare support", kind: "Task", startDate: "2025-09-29", endDate: "2025-10-17", owner: project.pm, rag: "grey", dep: "Production cutover", roles: [{ role: "Support Lead", skill: "Mid", fte: 2 }], payment: { kind: "None", amount: "" }, progress: 0, parent: "Deployment & Hypercare", weightScore: 3 },
-    { name: "Knowledge transfer", kind: "Task", startDate: "2025-10-06", endDate: "2025-10-17", owner: project.pm, rag: "grey", dep: "Production cutover", roles: [{ role: "Trainer", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 0, parent: "Deployment & Hypercare", weightScore: 2 },
+    { name: "Deployment & Hypercare", kind: "Task", startDate: "2026-09-22", endDate: "2026-10-17", owner: project.pm, rag: "amber", dep: "UAT Sign-off", roles: [{ role: "DevOps Engineer", skill: "Senior", fte: 1 }], payment: { kind: "Package Cost", packageId: "PKG-DPL", amount: "$60K" }, progress: 10, parent: "Go-Live", weightScore: 10 },
+    { name: "Production cutover", kind: "Task", startDate: "2026-09-22", endDate: "2026-10-06", owner: project.pm, rag: "amber", dep: "UAT Sign-off", dependencies: [{ predecessor: "UAT Sign-off", relation: "FS" }, { predecessor: "Build Complete", relation: "FS", lag: 2 }, { predecessor: "Design Approved", relation: "FF" }, { predecessor: "Discovery Sign-off", relation: "SS", lag: 3 }, { predecessor: "Performance & load test", relation: "FS", lag: -1 }], roles: [{ role: "DevOps Engineer", skill: "Senior", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 5, parent: "Deployment & Hypercare", assignee: project.pm, weightScore: 5 },
+    { name: "Hypercare support", kind: "Task", startDate: "2026-10-07", endDate: "2026-10-17", owner: project.pm, rag: "green", dep: "Production cutover", dependencies: [{ predecessor: "Production cutover", relation: "FS" }], roles: [{ role: "Support Lead", skill: "Mid", fte: 2 }], payment: { kind: "None", amount: "" }, progress: 0, parent: "Deployment & Hypercare", weightScore: 3 },
+    { name: "Knowledge transfer", kind: "Task", startDate: "2026-10-06", endDate: "2026-10-17", owner: project.pm, rag: "green", dep: "Production cutover", dependencies: [{ predecessor: "Production cutover", relation: "SS" }], roles: [{ role: "Trainer", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 0, parent: "Deployment & Hypercare", weightScore: 2 },
     { name: "Go-Live", kind: "Milestone", startDate: project.endDate, endDate: project.endDate, owner: project.pm, rag: "blue", dep: "Deployment & Hypercare", roles: [], payment: { kind: "Client Revenue", amount: "$500K" }, progress: 0, milestoneType: "finish" },
   ]);
   const [reports, setReports] = useState<StatusReport[]>(() => isNewProject ? [] : [
@@ -2009,6 +2009,7 @@ function ProgressUpdateDialog({
 
   const current = leaves.find((t) => t.name === selected);
   const currentPlanned = current ? computePlannedProgress(current.startDate, current.endDate) : 0;
+  const currentDependencies = current?.dependencies ?? [];
   // Find the ancestor milestone (if any) that requires approval for `current`.
   const approvalMilestone = useMemo(() => {
     const byName = new Map(items.map((i) => [i.name, i]));
@@ -2243,7 +2244,26 @@ function ProgressUpdateDialog({
                       <div><dt className="text-muted-foreground">End</dt><dd className="mt-0.5 text-foreground">{formatDateWithYear(current.endDate)}</dd></div>
                       <div><dt className="text-muted-foreground">Owner</dt><dd className="mt-0.5 truncate text-foreground">{current.owner || "—"}</dd></div>
                       <div><dt className="text-muted-foreground">Assignee</dt><dd className="mt-0.5 truncate text-foreground">{current.assignee || "—"}</dd></div>
-                      {current.dep && <div><dt className="text-muted-foreground">Depends on</dt><dd className="mt-0.5 truncate text-foreground">{current.dep}</dd></div>}
+                      <div className="col-span-2">
+                        <dt className="flex items-center justify-between gap-3 text-muted-foreground">
+                          <span>Depends on</span>
+                          {currentDependencies.length > 0 && <span>{currentDependencies.length} dependencies</span>}
+                        </dt>
+                        <dd className="mt-1.5">
+                          {currentDependencies.length > 0 ? (
+                            <div className="max-h-28 space-y-1 overflow-y-auto pr-1" aria-label={`${currentDependencies.length} dependencies`}>
+                              {currentDependencies.map((dependency) => (
+                                <div key={`${dependency.predecessor}-${dependency.relation}`} className="flex min-h-7 items-center justify-between gap-3 rounded-md border border-border bg-secondary/30 px-2.5 py-1.5">
+                                  <span className="min-w-0 truncate text-foreground" title={dependency.predecessor}>{dependency.predecessor}</span>
+                                  <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{depLabel(dependency)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-foreground">{current.dep || "—"}</span>
+                          )}
+                        </dd>
+                      </div>
                       {current.parent && <div><dt className="text-muted-foreground">Parent</dt><dd className="mt-0.5 truncate text-foreground">{current.parent}</dd></div>}
                     </dl>
                   </CollapsibleContent>

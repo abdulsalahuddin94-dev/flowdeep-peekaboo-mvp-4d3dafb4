@@ -1,3 +1,10 @@
+## 2026-09-27 — Schedule dependencies and health demo
+
+- Progress Update task details now show every predecessor in a bounded scrollable list, including relationship and lead/lag, with a visible dependency count.
+- Production cutover now demonstrates five dependencies in the project schedule demo.
+- Schedule Health now derives and displays On Track (green), Off Track (amber), and Overdue (red) across WBS rows, status pills, Gantt bars, and the chart legend.
+- Updated the deployment-phase demo dates and progress so all three schedule-health states can be reviewed together.
+
 ## 2026-09-24 — Expected revenue vs revenue plan, Collected capped at 100%
 
 - `Project` gains `expectedRevenue`; the project form now persists and prefills the Expected revenue field, and demo client projects carry it.

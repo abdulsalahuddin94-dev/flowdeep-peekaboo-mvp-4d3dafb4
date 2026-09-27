@@ -17,3 +17,4 @@
 - [x] Limit Progress Update to lowest-level tasks and remove the in-dialog task picker.
 - [x] Move the Schedule health toggle beside the Project Schedule heading.
 - [x] Keep the Status column unchanged when Schedule health highlighting is enabled.
+- [x] Align the Approvals module with DS02 toolbar, table, pills, pagination, details drawer, and form dialog patterns.

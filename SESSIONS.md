@@ -1,3 +1,10 @@
+## 2026-09-27 — Approvals module aligned with DS02
+
+- Replaced the stacked approval cards and ad-hoc header controls with the shared DS02 search/filter toolbar, standardized table, fully rounded status/type pills, hover actions, empty-row treatment, and pagination.
+- Added a row-opened approval details drawer containing request metadata, change summary, approver decisions/comments, reminders, and the existing Approve/Reject actions.
+- Moved inbox view, project, status, and request type into the standard filter drawer; preserved URL project filtering, role-based decision rules, rejection-comment validation, notifications, and project links.
+- Replaced the legacy decision dialog with the standard DS02 form-dialog pattern.
+
 ## 2026-09-27 — Schedule health demo covers all three states
 
 - ERP System Upgrade WBS demo now shows every Schedule health state when the toggle is on: Off-Track/red (overdue 2025 tasks), At Risk/amber (Production cutover raised to 25% actual vs 40% planned; Deployment & Hypercare 13% vs 23%), On Track/green (future Go-Live, Hypercare support, Knowledge transfer).

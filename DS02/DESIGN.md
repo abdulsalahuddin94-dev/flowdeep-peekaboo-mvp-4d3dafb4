@@ -1,7 +1,7 @@
 # DS02 Design System — Enterprise PMO (Nexus)
 
-**Version:** DS02.v3.8  
-**Last Updated:** 2026-07-26  
+**Version:** DS02.v3.9  
+**Last Updated:** 2026-09-27  
 **Status:** Active in production (Complete & Production-Ready)  
 **Structure:** Primitives (110: 85 colors + 25 dimensions) → Semantic (77: Light & Dark modes)  
 **Total Tokens:** 187 Figma variables, zero broken references, 100% WCAG 2.1 AA/AAA accessible  
@@ -147,6 +147,11 @@ Theme controlled via `data-theme` attribute on `<html>`:
 
 ## 8. Changelog
 
+### DS02.v3.9 (2026-09-27)
+**Module Alignment — Approvals**
+- Approvals now follows the standard module anatomy: shared page header, search and filter drawer, semantic data table, fully rounded pills, status-to-actions hover behavior, pagination, and row-opened detail drawer.
+- Approval and rejection use the shared form-dialog pattern; rich request context remains in a right-side drawer according to the Modal vs Drawer decision rule.
+
 ### DS02.v3.8 (2026-09-22)
 **Shape Rule — Badges are fully rounded pills**
 - Every badge, tag, chip, and status indicator is a fully rounded pill: `rounded-full`, height 28px (`h-7`), `px-3`, `text-xs font-medium`, 1px border.
@@ -180,4 +185,4 @@ Theme controlled via `data-theme` attribute on `<html>`:
 
 ---
 
-**End of DS02 Design System Documentation (v3.8) — MVP Edition**
+**End of DS02 Design System Documentation (v3.9) — MVP Edition**

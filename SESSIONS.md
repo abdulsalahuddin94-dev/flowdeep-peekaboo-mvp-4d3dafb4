@@ -1,3 +1,8 @@
+## 2026-09-27 — Schedule health toggle placement
+
+- Moved the Schedule health toggle from the right-side action group to sit directly beside the Project Schedule heading.
+- Preserved the existing health highlighting behavior and added the reference-style vertical divider.
+
 ## 2026-09-27 — Progress Update limited to leaf tasks
 
 - Progress Update now appears only in the action menu for lowest-level tasks with no children.

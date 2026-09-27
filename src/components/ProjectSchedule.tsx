@@ -1444,9 +1444,11 @@ export function ProjectSchedule({
                                   <DropdownMenuItem onSelect={() => onFinancialLinkClick?.(item.name)}>
                                     <Link2 className="h-4 w-4" /> Add financial link
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onSelect={() => onProgressClick?.(item.name, item.kind)}>
-                                    <TrendingUp className="h-4 w-4" /> Progress update
-                                  </DropdownMenuItem>
+                                  {item.kind === "Task" && !hasChildren && (
+                                    <DropdownMenuItem onSelect={() => onProgressClick?.(item.name, item.kind)}>
+                                      <TrendingUp className="h-4 w-4" /> Progress update
+                                    </DropdownMenuItem>
+                                  )}
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem onSelect={() => onDeleteItem && setPendingDelete(item.name)} disabled={!onDeleteItem} className="text-rag-red focus:text-rag-red">
                                     <Trash2 className="h-4 w-4" /> Delete

@@ -4,6 +4,7 @@
 - Production cutover now demonstrates five dependencies in the project schedule demo.
 - Schedule Health now derives and displays On Track (green), Off Track (amber), and Overdue (red) across WBS rows, status pills, Gantt bars, and the chart legend.
 - Updated the deployment-phase demo dates and progress so all three schedule-health states can be reviewed together.
+- Verified in the live preview: all three health states appear together, and Production cutover shows five predecessors with relationship/lag chips in its scrollable Task details list. Typecheck and preview build pass; the repository has no automated test files.
 
 ## 2026-09-24 — Expected revenue vs revenue plan, Collected capped at 100%
 

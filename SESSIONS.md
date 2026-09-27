@@ -1,3 +1,8 @@
+## 2026-09-27 — Schedule health preserves task status
+
+- Schedule health no longer replaces task workflow statuses in the Status column.
+- The toggle now affects health highlighting only: WBS row colors and Gantt colors continue to show On Track, Off Track, and Overdue.
+
 ## 2026-09-27 — Schedule health toggle placement
 
 - Moved the Schedule health toggle from the right-side action group to sit directly beside the Project Schedule heading.

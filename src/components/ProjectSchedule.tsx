@@ -1307,14 +1307,7 @@ export function ProjectSchedule({
                     )}
                     {colVisible("status") && (
                       <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.status }}>
-                        {health ? (
-                          <RagBadge
-                            rag={health === "on-track" ? "green" : health === "off-track" ? "amber" : "red"}
-                            label={health === "on-track" ? "On Track" : health === "off-track" ? "Off Track" : "Overdue"}
-                          />
-                        ) : (
-                          <RagBadge rag={item.rag} label={statusText[item.rag]} />
-                        )}
+                        <RagBadge rag={item.rag} label={statusText[item.rag]} />
                       </div>
                     )}
                     {(() => {

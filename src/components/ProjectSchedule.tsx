@@ -982,6 +982,11 @@ export function ProjectSchedule({
               <Badge variant="outline" className="border-border bg-secondary/40">{items.length} items</Badge>
             </>
           )}
+          <div className="h-4 w-px bg-border" aria-hidden="true" />
+          <div className="flex items-center gap-2">
+            <Switch id="health" checked={healthHighlight} onCheckedChange={setHealthHighlight} />
+            <Label htmlFor="health" className="text-xs text-muted-foreground">Schedule health</Label>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Button
@@ -1012,11 +1017,6 @@ export function ProjectSchedule({
               <ToggleGroupItem value="month" className="h-7 px-2 text-xs">Months</ToggleGroupItem>
             </ToggleGroup>
           )}
-
-          <div className="flex items-center gap-2">
-            <Switch id="health" checked={healthHighlight} onCheckedChange={setHealthHighlight} />
-            <Label htmlFor="health" className="text-xs text-muted-foreground">Schedule health</Label>
-          </div>
 
           {onImport && (
             <>

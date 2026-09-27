@@ -1,3 +1,7 @@
+## 2026-09-27 — Schedule health demo covers all three states
+
+- ERP System Upgrade WBS demo now shows every Schedule health state when the toggle is on: Off-Track/red (overdue 2025 tasks), At Risk/amber (Production cutover raised to 25% actual vs 40% planned; Deployment & Hypercare 13% vs 23%), On Track/green (future Go-Live, Hypercare support, Knowledge transfer).
+
 ## 2026-09-27 — Schedule health follows Rules & Thresholds
 
 - Schedule health now uses the Organization Rules & Thresholds progress bands instead of a hardcoded 7-point gap: On Track below the Amber threshold, At Risk at/above Amber, Off-Track at/above Red (overdue incomplete work is always Red/Off-Track).

@@ -1,3 +1,9 @@
+## 2026-09-27 — Schedule health follows Rules & Thresholds
+
+- Schedule health now uses the Organization Rules & Thresholds progress bands instead of a hardcoded 7-point gap: On Track below the Amber threshold, At Risk at/above Amber, Off-Track at/above Red (overdue incomplete work is always Red/Off-Track).
+- Statuses renamed to On Track / At Risk / Off-Track; the Gantt legend shows the live threshold values from Rules & Thresholds and updates when they change.
+- The Status column continues to show the original workflow status, unaffected by the toggle.
+
 ## 2026-09-27 — Schedule health preserves task status
 
 - Schedule health no longer replaces task workflow statuses in the Status column.

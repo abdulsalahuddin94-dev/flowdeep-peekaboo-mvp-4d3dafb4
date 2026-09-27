@@ -316,7 +316,7 @@ function ApprovalsInbox() {
             })}
           </StyledTableBody>
         </StyledTable>
-        <TablePagination {...pagination} itemLabel="requests" demoPages={1} />
+        <TablePagination {...pagination} itemLabel="requests" demoPages={0} />
       </EmptyRegion>
 
       <ApprovalDetailsSheet

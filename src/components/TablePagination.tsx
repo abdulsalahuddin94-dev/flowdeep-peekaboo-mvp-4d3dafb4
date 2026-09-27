@@ -57,7 +57,7 @@ export function TablePagination({
 }) {
   if (total === 0) return null;
   const displayPageCount = Math.max(pageCount, demoPages);
-  const displayTotal = Math.max(total, displayPageCount * pageSize);
+  const displayTotal = demoPages > 0 ? Math.max(total, displayPageCount * pageSize) : total;
   const from = (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, displayTotal);
 

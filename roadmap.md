@@ -14,3 +14,4 @@
 - [x] Make Schedule Health distinguish On Track, Off Track, and Overdue across WBS and Gantt.
 - [x] Update schedule demo data so all three health states are visible and verify the interactions.
 - [x] Match the Progress Update dialog to the approved task-focused layout and remove the Close footer action.
+- [x] Limit Progress Update to lowest-level tasks and remove the in-dialog task picker.

@@ -1,3 +1,9 @@
+## 2026-09-27 — Progress Update limited to leaf tasks
+
+- Progress Update now appears only in the action menu for lowest-level tasks with no children.
+- Parent tasks and milestones no longer offer Progress Update, because their progress rolls up from child tasks.
+- Removed the open-task selector from the popup; each popup is tied directly to the selected leaf task.
+
 ## 2026-09-27 — Progress Update task-focused layout
 
 - Matched the Progress Update popup to the approved reference: task name in the title, roll-up summary, task progress card, and expandable Start, End, Weight score, Parent, and dependency details.

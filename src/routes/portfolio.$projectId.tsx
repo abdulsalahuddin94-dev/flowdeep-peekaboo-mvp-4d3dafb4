@@ -915,13 +915,9 @@ function ProjectDetail() {
             onProgressClick={(name, kind) => {
               const derived = computeDerivedSchedule(milestones, resourceRequests);
               const hasChildren = derived.some((d) => d.parent === name);
-              if (kind === "Milestone" || (kind === "Task" && hasChildren)) {
-                setProgressScope(name);
-                setProgressInitial(undefined);
-              } else {
-                setProgressScope(undefined);
-                setProgressInitial(name);
-              }
+              if (kind !== "Task" || hasChildren) return;
+              setProgressScope(undefined);
+              setProgressInitial(name);
               setPlanningProgressOpen(true);
             }}
             highlightItem={scheduleHighlight}
@@ -2164,29 +2160,9 @@ function ProgressUpdateDialog({
           <section className="min-w-0 space-y-4 rounded-lg border border-border bg-secondary/10 p-5">
             <div className="grid grid-cols-[minmax(0,1fr)_112px] items-center gap-3">
               <div className="min-w-0 space-y-1.5">
-                {initialTaskName ? (
-                  <div className="truncate text-sm font-medium text-foreground">
-                    {current?.name ?? initialTaskName}
-                  </div>
-                ) : (
-                  <>
-                    <Label className="text-xs">Pick an open task to update</Label>
-                    <Select value={selected} onValueChange={(v) => {
-                      setSelected(v);
-                      const t = leaves.find((x) => x.name === v);
-                      setDraftPct(t?.progress ?? 0);
-                    }}>
-                      <SelectTrigger><SelectValue placeholder="Choose a task…" /></SelectTrigger>
-                      <SelectContent className="max-h-72">
-                        {openLeaves.map((t) => (
-                          <SelectItem key={t.name} value={t.name}>
-                            {t.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </>
-                )}
+                <div className="truncate text-sm font-medium text-foreground">
+                  {current?.name ?? initialTaskName}
+                </div>
               </div>
               <div className="space-y-1.5">
                 <div className="relative">

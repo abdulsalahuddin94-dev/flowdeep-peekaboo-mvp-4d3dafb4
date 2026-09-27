@@ -1128,8 +1128,8 @@ export function ProjectSchedule({
               {visibleRows.map(({ item, depth, hasChildren }, rowIdx) => {
                 const isOpen = expanded.has(item.name);
                 const health = healthHighlight ? healthMap.get(item.name)?.status : undefined;
-                const isOverdue = health === "overdue";
-                const isOffTrack = health === "off-track";
+                const isOverdue = health === "off-track";
+                const isOffTrack = health === "at-risk";
                 const isOnTrack = health === "on-track";
                 const rowSurface = isOverdue
                   ? "bg-rag-red/5"
@@ -1588,7 +1588,7 @@ export function ProjectSchedule({
                     grey:  { solid: "bg-rag-grey",  soft: "bg-rag-grey/30",  border: "border-rag-grey/60",  hex: "#94A3B8" },
                   } as const;
                    const health = healthHighlight ? healthMap.get(item.name)?.status : undefined;
-                   const healthRag: Rag = health === "on-track" ? "green" : health === "off-track" ? "amber" : health === "overdue" ? "red" : item.rag;
+                   const healthRag: Rag = health === "on-track" ? "green" : health === "at-risk" ? "amber" : health === "off-track" ? "red" : item.rag;
                    const rc = ragColor[healthRag];
 
                   if (item.isApprovalTask) {
@@ -1720,9 +1720,9 @@ export function ProjectSchedule({
               <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm border border-foreground bg-foreground/80" /> Summary from subtasks</span>
               {healthHighlight && (
                 <>
-                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-green" /> On Track</span>
-                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-amber" /> Off Track</span>
-                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Overdue</span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-green" /> On Track <span className="text-muted-foreground">below {orgRules.rag.progressAmberPct}%</span></span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-amber" /> At Risk <span className="text-muted-foreground">at/above {orgRules.rag.progressAmberPct}%</span></span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Off-Track <span className="text-muted-foreground">at/above {orgRules.rag.progressRedPct}%</span></span>
                 </>
               )}
             </div>

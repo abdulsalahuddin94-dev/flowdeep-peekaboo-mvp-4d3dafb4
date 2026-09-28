@@ -2623,30 +2623,13 @@ function FinancialsTab({
     [milestoneEnd],
   );
 
-  const costTotals = useMemo(() => {
-    const planned = displayCost.reduce((s, e) => s + e.b, 0);
-    const actual = displayCost.reduce((s, e) => s + e.a, 0);
-    // Actuals are capped per line at the planned amount, so utilization never exceeds 100%.
-    return { planned, actual, util: planned ? Math.min(100, Math.round((actual / planned) * 100)) : 0 };
-  }, [displayCost]);
-  const revTotals = useMemo(() => {
-    const planned = displayRev.reduce((s, e) => s + e.plan, 0);
-    const actual = displayRev.reduce((s, e) => s + (e.act ?? 0), 0);
-    // Payments are capped per event at its planned amount, so collected never exceeds 100%.
-    return { planned, actual, util: planned ? Math.min(100, Math.round((actual / planned) * 100)) : 0 };
-  }, [displayRev]);
-
-  /** Expected revenue entered at project setup; the revenue plan is reconciled against it. */
-  const expectedRevenue = project.expectedRevenue ?? null;
-  const revVariance = expectedRevenue != null ? revTotals.planned - expectedRevenue : 0;
-  const revMismatch = expectedRevenue != null && Math.abs(revVariance) > 0.0001;
-
-  const costCategoryNames = useMemo(() => DEFAULT_COST_CATEGORIES.map((c) => c.name), []);
-
-  /* Cost breakdown search (by cost line name) + filters (category, CapEx/OpEx). */
+  /* Cost breakdown search (by cost line name) + filters (category, CapEx/OpEx).
+   * Computed before the totals so the KPI cards above the toolbar reflect the active filters. */
   const [costQuery, setCostQuery] = useState("");
   const [costCatFilter, setCostCatFilter] = useState<string[]>([]);
   const [costTypeFilter, setCostTypeFilter] = useState("all");
+
+  const costCategoryNames = useMemo(() => DEFAULT_COST_CATEGORIES.map((c) => c.name), []);
 
   const costCatOptions = useMemo(() => {
     const present = displayCost.map((e) => e.cat ?? e.c).filter(Boolean) as string[];
@@ -2673,6 +2656,24 @@ function FinancialsTab({
 
   const costIdxMap = useMemo(() => filteredCost.map((x) => x.i), [filteredCost]);
   const costRows = useMemo(() => filteredCost.map((x) => x.e), [filteredCost]);
+
+  const costTotals = useMemo(() => {
+    const planned = costRows.reduce((s, e) => s + e.b, 0);
+    const actual = costRows.reduce((s, e) => s + e.a, 0);
+    // Actuals are capped per line at the planned amount, so utilization never exceeds 100%.
+    return { planned, actual, util: planned ? Math.min(100, Math.round((actual / planned) * 100)) : 0 };
+  }, [costRows]);
+  const revTotals = useMemo(() => {
+    const planned = displayRev.reduce((s, e) => s + e.plan, 0);
+    const actual = displayRev.reduce((s, e) => s + (e.act ?? 0), 0);
+    // Payments are capped per event at its planned amount, so collected never exceeds 100%.
+    return { planned, actual, util: planned ? Math.min(100, Math.round((actual / planned) * 100)) : 0 };
+  }, [displayRev]);
+
+  /** Expected revenue entered at project setup; the revenue plan is reconciled against it. */
+  const expectedRevenue = project.expectedRevenue ?? null;
+  const revVariance = expectedRevenue != null ? revTotals.planned - expectedRevenue : 0;
+  const revMismatch = expectedRevenue != null && Math.abs(revVariance) > 0.0001;
 
   /* Revenue breakdown search (by event name) + filters (status, actual payment date range). */
   const [revQuery, setRevQuery] = useState("");
@@ -2746,6 +2747,25 @@ function FinancialsTab({
 
       {mode === "cost" ? (
         <div className="space-y-4">
+          <div>
+            <PageToolbar
+              query={costQuery}
+              onQueryChange={setCostQuery}
+              placeholder="Search Cost line name…"
+              filterGroups={[
+                {
+                  key: "category",
+                  label: "Categories",
+                  mode: "multi",
+                  value: costCatFilter,
+                  onChange: setCostCatFilter,
+                  options: [{ value: "all", label: "All categories" }, ...costCatOptions.map((c) => ({ value: c, label: c }))],
+                },
+                capexOpexGroup(costTypeFilter, setCostTypeFilter),
+              ]}
+              trailing={canEdit ? addLinkDialog("cost") : undefined}
+            />
+          </div>
           <div className="grid gap-3 md:grid-cols-4">
             {[
               { l: "Total Budget", v: `$${project.budgetTotal.toFixed(1)}M` },
@@ -2772,23 +2792,6 @@ function FinancialsTab({
           </div>
 
           <div>
-            <PageToolbar
-              query={costQuery}
-              onQueryChange={setCostQuery}
-              placeholder="Search Cost line name…"
-              filterGroups={[
-                {
-                  key: "category",
-                  label: "Categories",
-                  mode: "multi",
-                  value: costCatFilter,
-                  onChange: setCostCatFilter,
-                  options: [{ value: "all", label: "All categories" }, ...costCatOptions.map((c) => ({ value: c, label: c }))],
-                },
-                capexOpexGroup(costTypeFilter, setCostTypeFilter),
-              ]}
-              trailing={canEdit ? addLinkDialog("cost") : undefined}
-            />
             <CostBreakdownTable
               entries={costRows}
               canEdit={canEdit}

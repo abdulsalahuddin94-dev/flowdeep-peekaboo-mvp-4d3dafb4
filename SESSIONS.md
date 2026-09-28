@@ -1,3 +1,10 @@
+## 2026-09-28 — Cost tab: toolbar above KPI cards, cards reflect filters
+
+- **What:** On the project Cost Breakdown tab, the Search + Filter toolbar now sits **above** the Total Budget / Planned Cost / Actual Spent / Utilization cards, and the cards compute from the filtered rows (search by cost line name, category multi-select, CapEx/OpEx) instead of the full cost list. Total Budget stays project-level.
+- **Why:** Filtering should be reflected in the KPI summary immediately, matching the visual order (filters first, then cards, then table).
+- **Where:** `src/routes/portfolio.$projectId.tsx` — moved cost filter state/`filteredCost` above `costTotals`, which now reduces `costRows`; reordered the tab render (toolbar → cards → table). Table footer totals follow the filtered set too.
+- **Verify:** `tsgo --noEmit` clean, build OK; Playwright on `/portfolio/p-001` Cost tab confirmed filtering to Staff shows Planned $1.20M / Actual $0.84M / Utilization 70% in the cards.
+
 ## 2026-09-28 — Portfolio: KPI strip reworked
 
 - Removed the Active and Budget Used cards from the Portfolio KPI strip.

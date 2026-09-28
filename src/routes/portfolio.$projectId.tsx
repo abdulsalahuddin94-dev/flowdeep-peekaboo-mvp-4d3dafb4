@@ -3028,7 +3028,6 @@ function RevenuePlanTable({
                 <TableCell className="text-muted-foreground">{r.evt}</TableCell>
                 <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
-                <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
                 <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
                 <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
                   {linkedMs ? (

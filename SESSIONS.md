@@ -1,3 +1,9 @@
+## 2026-09-28 — Rules & Thresholds: confirmation popup on Restore defaults
+
+- Clicking Restore defaults now opens a warning confirmation popup ("Restore default rules?") explaining that restoring will override the current rule and threshold values, with Cancel to keep the current settings.
+- Confirm restores the recommended defaults and marks the form dirty (Save changes still applies them); Cancel leaves all current values untouched.
+- Verified in the browser: changed At Risk to 33, popup shows, cancel keeps 33, confirm restores 5.
+
 ## 2026-09-28 — Risk & Issues: edit and delete comments in the detail drawers
 
 - Every comment card in the risk drawer (Status updates) and issue drawer (Comments) now has circular Edit and Delete icon buttons next to the date.

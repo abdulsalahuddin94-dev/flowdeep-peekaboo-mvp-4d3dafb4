@@ -3065,7 +3065,7 @@ function RevenuePlanTable({
               </TableRow>
               {open && (
                 <TableRow className="bg-transparent hover:bg-transparent border-0 [&>td]:!bg-transparent hover:[&>td]:!bg-transparent">
-                  <TableCell colSpan={9} className="px-4 pb-3 pt-1">
+                  <TableCell colSpan={8} className="px-4 pb-3 pt-1">
                     <div className="ml-4 border-l border-border pl-3">
                       {/* Expanded nested actual-spend table uses Gray 600 (#45464F) fill. */}
                       <div className="overflow-hidden rounded-lg bg-p-neutral-600">

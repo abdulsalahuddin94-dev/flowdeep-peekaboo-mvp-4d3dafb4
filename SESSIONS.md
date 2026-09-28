@@ -1,3 +1,9 @@
+## 2026-09-28 — Revenue Breakdown: derived Overdue status + status column moved last
+
+- Revenue event status is now derived from collection and expected date (never stored): fully collected → Received, expected date passed while short → Overdue (red), partially collected → Pending, otherwise Planned. Status filter uses the derived value.
+- Status moved to the final column and now shares the cell with the row actions: pill at rest, Edit/Add payment/Delete on hover (DS02 pattern used in Risk & Issues and Organization).
+- Demo data in ERP System Upgrade shows all four statuses (Received, Pending, Overdue, Planned).
+
 ## 2026-09-27 — Approvals module aligned with DS02
 
 - Replaced the stacked approval cards and ad-hoc header controls with the shared DS02 search/filter toolbar, standardized table, fully rounded status/type pills, hover actions, empty-row treatment, and pagination.

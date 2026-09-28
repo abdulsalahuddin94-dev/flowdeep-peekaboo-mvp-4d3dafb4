@@ -2747,6 +2747,25 @@ function FinancialsTab({
 
       {mode === "cost" ? (
         <div className="space-y-4">
+          <div>
+            <PageToolbar
+              query={costQuery}
+              onQueryChange={setCostQuery}
+              placeholder="Search Cost line name…"
+              filterGroups={[
+                {
+                  key: "category",
+                  label: "Categories",
+                  mode: "multi",
+                  value: costCatFilter,
+                  onChange: setCostCatFilter,
+                  options: [{ value: "all", label: "All categories" }, ...costCatOptions.map((c) => ({ value: c, label: c }))],
+                },
+                capexOpexGroup(costTypeFilter, setCostTypeFilter),
+              ]}
+              trailing={canEdit ? addLinkDialog("cost") : undefined}
+            />
+          </div>
           <div className="grid gap-3 md:grid-cols-4">
             {[
               { l: "Total Budget", v: `$${project.budgetTotal.toFixed(1)}M` },
@@ -2773,23 +2792,6 @@ function FinancialsTab({
           </div>
 
           <div>
-            <PageToolbar
-              query={costQuery}
-              onQueryChange={setCostQuery}
-              placeholder="Search Cost line name…"
-              filterGroups={[
-                {
-                  key: "category",
-                  label: "Categories",
-                  mode: "multi",
-                  value: costCatFilter,
-                  onChange: setCostCatFilter,
-                  options: [{ value: "all", label: "All categories" }, ...costCatOptions.map((c) => ({ value: c, label: c }))],
-                },
-                capexOpexGroup(costTypeFilter, setCostTypeFilter),
-              ]}
-              trailing={canEdit ? addLinkDialog("cost") : undefined}
-            />
             <CostBreakdownTable
               entries={costRows}
               canEdit={canEdit}

@@ -2603,8 +2603,7 @@ function FinancialsTab({
     { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "30 Nov",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "fixed",
       actuals: [{ amount: 0.20, date: "04 Jul", note: "Partial settlement" }] },
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
-    // Demo: expected date already passed with nothing collected — derives as Overdue.
-    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "14 Sep",        s: "blue",  sl: "Planned",  act: null, linkKind: "fixed" },
+    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "14 Dec",        s: "blue",  sl: "Planned",  act: null, linkKind: "fixed" },
   ]);
   // Editing is governed by the single project-level baseline (see the project header).
   const displayCost = costEntries;

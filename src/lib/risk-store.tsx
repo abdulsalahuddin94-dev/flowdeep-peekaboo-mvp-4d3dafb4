@@ -172,6 +172,46 @@ export function useRiskRegister() {
     [],
   );
 
+  /** Edits the comment of a recorded risk update in place. */
+  const editRiskUpdate = useCallback((riskId: string, updateId: string, comment: string) => {
+    set({
+      risks: state.risks.map((r) =>
+        r.id === riskId
+          ? { ...r, updates: r.updates.map((u) => (u.id === updateId ? { ...u, comment } : u)) }
+          : r,
+      ),
+    });
+  }, []);
+
+  /** Removes a recorded risk update from the history. */
+  const removeRiskUpdate = useCallback((riskId: string, updateId: string) => {
+    set({
+      risks: state.risks.map((r) =>
+        r.id === riskId ? { ...r, updates: r.updates.filter((u) => u.id !== updateId) } : r,
+      ),
+    });
+  }, []);
+
+  /** Edits the comment of a recorded issue update in place. */
+  const editIssueUpdate = useCallback((issueId: string, updateId: string, comment: string) => {
+    set({
+      issues: state.issues.map((i) =>
+        i.id === issueId
+          ? { ...i, updates: i.updates.map((u) => (u.id === updateId ? { ...u, comment } : u)) }
+          : i,
+      ),
+    });
+  }, []);
+
+  /** Removes a recorded issue update from the history. */
+  const removeIssueUpdate = useCallback((issueId: string, updateId: string) => {
+    set({
+      issues: state.issues.map((i) =>
+        i.id === issueId ? { ...i, updates: i.updates.filter((u) => u.id !== updateId) } : i,
+      ),
+    });
+  }, []);
+
   const addIssue = useCallback((issue: Omit<IssueItem, "id"> & { id?: string }) => {
     const id = issue.id ?? nextIssueId();
     set({ issues: [{ ...issue, id, updates: [] }, ...state.issues] });
@@ -268,8 +308,8 @@ export function useRiskRegister() {
     risks: state.risks,
     issues: state.issues,
     categories: state.categories,
-    addRisk, updateRisk, removeRisk, logRiskUpdate,
-    addIssue, updateIssue, removeIssue, logIssueUpdate, convertRiskToIssue,
+    addRisk, updateRisk, removeRisk, logRiskUpdate, editRiskUpdate, removeRiskUpdate,
+    addIssue, updateIssue, removeIssue, logIssueUpdate, editIssueUpdate, removeIssueUpdate, convertRiskToIssue,
     addCategory, updateCategory, removeCategory,
   };
 }

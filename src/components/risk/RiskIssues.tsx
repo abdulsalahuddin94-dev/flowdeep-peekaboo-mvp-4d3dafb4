@@ -20,10 +20,10 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { ClipboardCheck } from "@/lib/icons";
+import { ClipboardCheck, EditAction, DeleteAction } from "@/lib/icons";
 import { DatePicker } from "@/components/ui/date-picker";
 import { projects, milestones as seedMilestones, type RiskStatus, type IssueItem, type IssuePriority, type IssueStatus } from "@/lib/mock-data";
-import { useRiskRegister, type RiskRecord, type IssueRecord } from "@/lib/risk-store";
+import { useRiskRegister, type RiskRecord, type RiskUpdate, type IssueRecord, type IssueUpdate } from "@/lib/risk-store";
 import { useOrgRules, severityForScore, type RiskSeverity } from "@/lib/org-rules";
 import { useOrgActive } from "@/lib/org-active";
 import { useCurrentUser } from "@/lib/projects-store";
@@ -80,7 +80,7 @@ export function useSeverity() {
 /* ── Risk register ────────────────────────────────────────────────────────── */
 
 export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues }: { project?: string; milestoneOptions?: string[]; onViewLinkedIssues?: (riskId: string) => void }) {
-  const { risks, issues, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, convertRiskToIssue } = useRiskRegister();
+  const { risks, issues, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, editRiskUpdate, removeRiskUpdate, convertRiskToIssue } = useRiskRegister();
   const hasLinkedIssue = (riskId: string) => issues.some((i) => i.riskId === riskId);
   const { severityOf, rules } = useSeverity();
   const { isActive } = useOrgActive("risk-category");
@@ -96,6 +96,8 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues 
   const [viewId, setViewId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<RiskRecord | null>(null);
   const [statusFor, setStatusFor] = useState<RiskRecord | null>(null);
+  const [editingUpdate, setEditingUpdate] = useState<RiskUpdate | null>(null);
+  const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ risk: RiskRecord; update: RiskUpdate } | null>(null);
 
   const scoped = project ? risks.filter((r) => r.project === project) : risks;
   const q = query.trim().toLowerCase();
@@ -213,17 +215,43 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues 
           const id = convertRiskToIssue(r.id, currentUser.name);
           if (id) toast.success("Issue created from risk");
         }}
+        onEditUpdate={(r, u) => { setEditingUpdate(u); setStatusFor(r); }}
+        onDeleteUpdate={(r, u) => setPendingDeleteUpdate({ risk: r, update: u })}
       />
 
       <RiskStatusDialog
-        key={`status-${statusFor?.id ?? "none"}`}
+        key={`status-${statusFor?.id ?? "none"}-${editingUpdate?.id ?? "new"}`}
         risk={statusFor}
-        onClose={() => setStatusFor(null)}
+        initialComment={editingUpdate?.comment}
+        onClose={() => { setStatusFor(null); setEditingUpdate(null); }}
         onSave={(input) => {
           if (!statusFor) return;
-          logRiskUpdate(statusFor.id, { ...input, by: currentUser.name });
-          toast.done("Risk update", "recorded");
+          if (editingUpdate) {
+            editRiskUpdate(statusFor.id, editingUpdate.id, input.comment);
+            if (input.status !== statusFor.status || input.prob !== statusFor.prob || input.impact !== statusFor.impact) {
+              logRiskUpdate(statusFor.id, { ...input, by: currentUser.name });
+            }
+            toast.done("Comment", "updated");
+          } else {
+            logRiskUpdate(statusFor.id, { ...input, by: currentUser.name });
+            toast.done("Risk update", "recorded");
+          }
           setStatusFor(null);
+          setEditingUpdate(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!pendingDeleteUpdate}
+        onOpenChange={(o) => !o && setPendingDeleteUpdate(null)}
+        title="Delete this comment?"
+        description="The comment is removed from the risk history. This cannot be undone."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={() => {
+          if (pendingDeleteUpdate) removeRiskUpdate(pendingDeleteUpdate.risk.id, pendingDeleteUpdate.update.id);
+          toast.done("Comment", "deleted");
+          setPendingDeleteUpdate(null);
         }}
       />
 
@@ -412,8 +440,26 @@ function RiskFormDialog({
 
 /* ── Risk detail sheet ────────────────────────────────────────────────────── */
 
+/** Small circular icon button used on comment cards (edit / delete). */
+function CommentAction({ label, danger, onClick, children }: { label: string; danger?: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className={cn(
+        "flex h-7 w-7 items-center justify-center rounded-full border border-border/60 bg-[var(--btn-secondary-bg)] hover:bg-[var(--btn-secondary-bg-hover)]",
+        danger ? "text-rag-red" : "text-accent-secondary",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 function RiskSheet({
-  risk, showProjectName = true, onClose, onEdit, onUpdate, onConvert, onViewLinkedIssues,
+  risk, showProjectName = true, onClose, onEdit, onUpdate, onConvert, onViewLinkedIssues, onEditUpdate, onDeleteUpdate,
 }: {
   risk: RiskRecord | null;
   showProjectName?: boolean;
@@ -422,6 +468,8 @@ function RiskSheet({
   onEdit: (r: RiskRecord) => void;
   onUpdate: (r: RiskRecord) => void;
   onConvert: (r: RiskRecord) => void;
+  onEditUpdate?: (r: RiskRecord, u: RiskUpdate) => void;
+  onDeleteUpdate?: (r: RiskRecord, u: RiskUpdate) => void;
 }) {
   const { severityOf, rules } = useSeverity();
   const { issues } = useRiskRegister();
@@ -499,7 +547,19 @@ function RiskSheet({
                 <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium text-foreground">{u.by}</span>
-                    <span className="num-mono text-[10px] text-muted-foreground">{u.at}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="num-mono text-[10px] text-muted-foreground">{u.at}</span>
+                      {onEditUpdate && (
+                        <CommentAction label="Edit comment" onClick={() => onEditUpdate(risk, u)}>
+                          <EditAction size={13} />
+                        </CommentAction>
+                      )}
+                      {onDeleteUpdate && (
+                        <CommentAction label="Delete comment" danger onClick={() => onDeleteUpdate(risk, u)}>
+                          <DeleteAction size={13} />
+                        </CommentAction>
+                      )}
+                    </div>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{u.comment}</p>
                   {u.change && (
@@ -654,7 +714,7 @@ const normTitle = (v: string) => v.trim().replace(/\s+/g, " ").toLowerCase();
 const fmtDate = (v?: string) => formatDateWithYear(v);
 
 export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilterProp, onRiskFilterChange }: { project?: string; milestoneOptions?: string[]; riskFilter?: string[]; onRiskFilterChange?: (v: string[]) => void }) {
-  const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate } = useRiskRegister();
+  const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate, editIssueUpdate, removeIssueUpdate } = useRiskRegister();
   const rules = useOrgRules();
   const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");
@@ -668,6 +728,8 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
   const [editing, setEditing] = useState<IssueRecord | null>(null);
   const [pendingDelete, setPendingDelete] = useState<IssueRecord | null>(null);
   const [statusFor, setStatusFor] = useState<{ issue: IssueRecord; preset?: IssueStatus } | null>(null);
+  const [editingUpdate, setEditingUpdate] = useState<IssueUpdate | null>(null);
+  const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ issue: IssueRecord; update: IssueUpdate } | null>(null);
   const [viewing, setViewing] = useState<string | null>(null);
 
   const riskTitle = (id?: string) => (id ? (risks.find((r) => r.id === id)?.title ?? id) : "");
@@ -782,14 +844,25 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
       />
 
       <IssueStatusDialog
-        key={`istatus-${statusFor?.issue.id ?? "none"}-${statusFor?.preset ?? ""}`}
+        key={`istatus-${statusFor?.issue.id ?? "none"}-${statusFor?.preset ?? ""}-${editingUpdate?.id ?? "new"}`}
         issue={statusFor?.issue ?? null}
         presetStatus={statusFor?.preset}
-        onClose={() => setStatusFor(null)}
+        initialComment={editingUpdate?.comment}
+        onClose={() => { setStatusFor(null); setEditingUpdate(null); }}
         onSave={(input) => {
-          if (statusFor) logIssueUpdate(statusFor.issue.id, { ...input, by: currentUser.name });
-          toast.done("Issue status", "updated");
+          if (!statusFor) return;
+          if (editingUpdate) {
+            editIssueUpdate(statusFor.issue.id, editingUpdate.id, input.comment);
+            if (input.status !== statusFor.issue.status) {
+              logIssueUpdate(statusFor.issue.id, { ...input, by: currentUser.name });
+            }
+            toast.done("Comment", "updated");
+          } else {
+            logIssueUpdate(statusFor.issue.id, { ...input, by: currentUser.name });
+            toast.done("Issue status", "updated");
+          }
           setStatusFor(null);
+          setEditingUpdate(null);
         }}
       />
 
@@ -799,6 +872,22 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
         showProjectName={!project}
         onClose={() => setViewing(null)}
         onUpdateStatus={(issue, preset) => { setViewing(null); setStatusFor({ issue, preset }); }}
+        onEditUpdate={(issue, u) => { setEditingUpdate(u); setStatusFor({ issue }); }}
+        onDeleteUpdate={(issue, u) => setPendingDeleteUpdate({ issue, update: u })}
+      />
+
+      <ConfirmDialog
+        open={!!pendingDeleteUpdate}
+        onOpenChange={(o) => !o && setPendingDeleteUpdate(null)}
+        title="Delete this comment?"
+        description="The comment is removed from the issue history. This cannot be undone."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={() => {
+          if (pendingDeleteUpdate) removeIssueUpdate(pendingDeleteUpdate.issue.id, pendingDeleteUpdate.update.id);
+          toast.done("Comment", "deleted");
+          setPendingDeleteUpdate(null);
+        }}
       />
 
       <ConfirmDialog
@@ -821,13 +910,15 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
 /* ── Issue detail drawer ──────────────────────────────────────────────────── */
 
 function IssueDetailDrawer({
-  issue, riskTitle, showProjectName = true, onClose, onUpdateStatus,
+  issue, riskTitle, showProjectName = true, onClose, onUpdateStatus, onEditUpdate, onDeleteUpdate,
 }: {
   issue: IssueRecord | null;
   riskTitle: (id?: string) => string;
   showProjectName?: boolean;
   onClose: () => void;
   onUpdateStatus: (issue: IssueRecord, preset?: IssueStatus) => void;
+  onEditUpdate?: (issue: IssueRecord, u: IssueUpdate) => void;
+  onDeleteUpdate?: (issue: IssueRecord, u: IssueUpdate) => void;
 }) {
   if (!issue) return null;
   return (
@@ -885,7 +976,19 @@ function IssueDetailDrawer({
                 <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium text-foreground">{u.by}</span>
-                    <span className="num-mono text-[10px] text-muted-foreground">{formatDateWithYear(u.at)}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="num-mono text-[10px] text-muted-foreground">{formatDateWithYear(u.at)}</span>
+                      {onEditUpdate && (
+                        <CommentAction label="Edit comment" onClick={() => onEditUpdate(issue, u)}>
+                          <EditAction size={13} />
+                        </CommentAction>
+                      )}
+                      {onDeleteUpdate && (
+                        <CommentAction label="Delete comment" danger onClick={() => onDeleteUpdate(issue, u)}>
+                          <DeleteAction size={13} />
+                        </CommentAction>
+                      )}
+                    </div>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{u.comment}</p>
                   {u.statusChange && (
@@ -1049,9 +1152,11 @@ function IssueFormDialog({
 /* ── Status update dialogs ────────────────────────────────────────────────── */
 
 function RiskStatusDialog({
-  risk, onClose, onSave,
+  risk, initialComment, onClose, onSave,
 }: {
   risk: RiskRecord | null;
+  /** Pre-fills the comment — used when editing an existing update. */
+  initialComment?: string;
   onClose: () => void;
   onSave: (input: { status: RiskStatus; prob: number; impact: number; comment: string }) => void;
 }) {
@@ -1060,7 +1165,7 @@ function RiskStatusDialog({
   const statusOptions = RISK_STATUSES.includes(status) ? RISK_STATUSES : [...RISK_STATUSES, status];
   const [prob, setProb] = useState(String(risk?.prob ?? 3));
   const [impact, setImpact] = useState(String(risk?.impact ?? 3));
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(initialComment ?? "");
   const [error, setError] = useState("");
 
   const score = Number(prob) * Number(impact);
@@ -1130,16 +1235,18 @@ function RiskStatusDialog({
 }
 
 function IssueStatusDialog({
-  issue, presetStatus, onClose, onSave,
+  issue, presetStatus, initialComment, onClose, onSave,
 }: {
   issue: IssueRecord | null;
   presetStatus?: IssueStatus;
+  /** Pre-fills the comment — used when editing an existing comment. */
+  initialComment?: string;
   onClose: () => void;
   onSave: (input: { status: IssueStatus; comment: string; closureDate?: string }) => void;
 }) {
   const [status, setStatus] = useState<IssueStatus>(presetStatus ?? issue?.status ?? "Open");
   const [closureDate, setClosureDate] = useState(issue?.closureDate ?? todayISO());
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(initialComment ?? "");
   const [error, setError] = useState("");
 
   function submit() {

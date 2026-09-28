@@ -412,8 +412,26 @@ function RiskFormDialog({
 
 /* ── Risk detail sheet ────────────────────────────────────────────────────── */
 
+/** Small circular icon button used on comment cards (edit / delete). */
+function CommentAction({ label, danger, onClick, children }: { label: string; danger?: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className={cn(
+        "flex h-7 w-7 items-center justify-center rounded-full border border-border/60 bg-[var(--btn-secondary-bg)] hover:bg-[var(--btn-secondary-bg-hover)]",
+        danger ? "text-rag-red" : "text-accent-secondary",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 function RiskSheet({
-  risk, showProjectName = true, onClose, onEdit, onUpdate, onConvert, onViewLinkedIssues,
+  risk, showProjectName = true, onClose, onEdit, onUpdate, onConvert, onViewLinkedIssues, onEditUpdate, onDeleteUpdate,
 }: {
   risk: RiskRecord | null;
   showProjectName?: boolean;
@@ -422,6 +440,8 @@ function RiskSheet({
   onEdit: (r: RiskRecord) => void;
   onUpdate: (r: RiskRecord) => void;
   onConvert: (r: RiskRecord) => void;
+  onEditUpdate?: (r: RiskRecord, u: RiskUpdate) => void;
+  onDeleteUpdate?: (r: RiskRecord, u: RiskUpdate) => void;
 }) {
   const { severityOf, rules } = useSeverity();
   const { issues } = useRiskRegister();

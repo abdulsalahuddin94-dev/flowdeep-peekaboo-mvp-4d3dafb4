@@ -714,7 +714,7 @@ const normTitle = (v: string) => v.trim().replace(/\s+/g, " ").toLowerCase();
 const fmtDate = (v?: string) => formatDateWithYear(v);
 
 export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilterProp, onRiskFilterChange }: { project?: string; milestoneOptions?: string[]; riskFilter?: string[]; onRiskFilterChange?: (v: string[]) => void }) {
-  const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate } = useRiskRegister();
+  const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate, editIssueUpdate, removeIssueUpdate } = useRiskRegister();
   const rules = useOrgRules();
   const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");
@@ -728,6 +728,8 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
   const [editing, setEditing] = useState<IssueRecord | null>(null);
   const [pendingDelete, setPendingDelete] = useState<IssueRecord | null>(null);
   const [statusFor, setStatusFor] = useState<{ issue: IssueRecord; preset?: IssueStatus } | null>(null);
+  const [editingUpdate, setEditingUpdate] = useState<IssueUpdate | null>(null);
+  const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ issue: IssueRecord; update: IssueUpdate } | null>(null);
   const [viewing, setViewing] = useState<string | null>(null);
 
   const riskTitle = (id?: string) => (id ? (risks.find((r) => r.id === id)?.title ?? id) : "");
@@ -842,14 +844,25 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
       />
 
       <IssueStatusDialog
-        key={`istatus-${statusFor?.issue.id ?? "none"}-${statusFor?.preset ?? ""}`}
+        key={`istatus-${statusFor?.issue.id ?? "none"}-${statusFor?.preset ?? ""}-${editingUpdate?.id ?? "new"}`}
         issue={statusFor?.issue ?? null}
         presetStatus={statusFor?.preset}
-        onClose={() => setStatusFor(null)}
+        initialComment={editingUpdate?.comment}
+        onClose={() => { setStatusFor(null); setEditingUpdate(null); }}
         onSave={(input) => {
-          if (statusFor) logIssueUpdate(statusFor.issue.id, { ...input, by: currentUser.name });
-          toast.done("Issue status", "updated");
+          if (!statusFor) return;
+          if (editingUpdate) {
+            editIssueUpdate(statusFor.issue.id, editingUpdate.id, input.comment);
+            if (input.status !== statusFor.issue.status) {
+              logIssueUpdate(statusFor.issue.id, { ...input, by: currentUser.name });
+            }
+            toast.done("Comment", "updated");
+          } else {
+            logIssueUpdate(statusFor.issue.id, { ...input, by: currentUser.name });
+            toast.done("Issue status", "updated");
+          }
           setStatusFor(null);
+          setEditingUpdate(null);
         }}
       />
 
@@ -859,6 +872,22 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
         showProjectName={!project}
         onClose={() => setViewing(null)}
         onUpdateStatus={(issue, preset) => { setViewing(null); setStatusFor({ issue, preset }); }}
+        onEditUpdate={(issue, u) => { setEditingUpdate(u); setStatusFor({ issue }); }}
+        onDeleteUpdate={(issue, u) => setPendingDeleteUpdate({ issue, update: u })}
+      />
+
+      <ConfirmDialog
+        open={!!pendingDeleteUpdate}
+        onOpenChange={(o) => !o && setPendingDeleteUpdate(null)}
+        title="Delete this comment?"
+        description="The comment is removed from the issue history. This cannot be undone."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={() => {
+          if (pendingDeleteUpdate) removeIssueUpdate(pendingDeleteUpdate.issue.id, pendingDeleteUpdate.update.id);
+          toast.done("Comment", "deleted");
+          setPendingDeleteUpdate(null);
+        }}
       />
 
       <ConfirmDialog

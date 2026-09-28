@@ -2600,9 +2600,10 @@ function FinancialsTab({
   const [revEntries, setRevEntries] = useState<RevEntry[]>(isNew ? [] : [
     { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "02 May",        s: "green", sl: "Received", act: 0.96, linkKind: "fixed",
       actuals: [{ amount: 0.60, date: "02 May", note: "Invoice INV-0012" }, { amount: 0.36, date: "21 May", note: "Invoice INV-0018" }] },
-    { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "30 Jun",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "fixed",
+    { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "30 Nov",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "fixed",
       actuals: [{ amount: 0.20, date: "04 Jul", note: "Partial settlement" }] },
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
+    // Demo: expected date already passed with nothing collected — derives as Overdue.
     { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "14 Sep",        s: "blue",  sl: "Planned",  act: null, linkKind: "fixed" },
   ]);
   // Editing is governed by the single project-level baseline (see the project header).

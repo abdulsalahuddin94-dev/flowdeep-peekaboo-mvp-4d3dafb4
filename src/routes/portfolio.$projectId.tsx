@@ -2600,10 +2600,10 @@ function FinancialsTab({
   const [revEntries, setRevEntries] = useState<RevEntry[]>(isNew ? [] : [
     { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "02 May",        s: "green", sl: "Received", act: 0.96, linkKind: "fixed",
       actuals: [{ amount: 0.60, date: "02 May", note: "Invoice INV-0012" }, { amount: 0.36, date: "21 May", note: "Invoice INV-0018" }] },
-    { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "30 Jun",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "fixed",
+    { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "30 Nov",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "fixed",
       actuals: [{ amount: 0.20, date: "04 Jul", note: "Partial settlement" }] },
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
-    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "14 Sep",        s: "blue",  sl: "Planned",  act: null, linkKind: "fixed" },
+    { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "14 Dec",        s: "blue",  sl: "Planned",  act: null, linkKind: "fixed" },
   ]);
   // Editing is governed by the single project-level baseline (see the project header).
   const displayCost = costEntries;
@@ -2687,7 +2687,10 @@ function FinancialsTab({
       .map((e, i) => ({ e, i }))
       .filter(({ e }) => {
         if (q && !(e.evt ?? "").toLowerCase().includes(q)) return false;
-        if (revStatusFilter !== "all" && e.sl !== revStatusFilter) return false;
+        if (revStatusFilter !== "all") {
+          const collected = e.plan ? Math.min(100, Math.round(((e.act ?? 0) / e.plan) * 100)) : 0;
+          if (revStatusOf(collected, revDate(e)).sl !== revStatusFilter) return false;
+        }
         if (rangeActive) {
           const parseActualDate = (raw: string): Date | null => {
             /* Legacy display strings like "02 May" carry no year — assume the current one.
@@ -2715,7 +2718,7 @@ function FinancialsTab({
         }
         return true;
       });
-  }, [displayRev, revQuery, revStatusFilter, revDateFilter]);
+  }, [displayRev, revQuery, revStatusFilter, revDateFilter, revDate]);
 
   const revIdxMap = useMemo(() => filteredRev.map((x) => x.i), [filteredRev]);
   const revRows = useMemo(() => filteredRev.map((x) => x.e), [filteredRev]);
@@ -2982,11 +2985,10 @@ function RevenuePlanTable({
           <TableHead>Revenue event</TableHead>
           <TableHead className="text-right">Planned ($M)</TableHead>
           <TableHead className="text-right">Actual ($M)</TableHead>
-          <TableHead>Status</TableHead>
           <TableHead className="text-right">Collected</TableHead>
           <TableHead>Linked to</TableHead>
           <TableHead>Expected date</TableHead>
-          <TableHead className="w-32" />
+          <TableHead className="w-40 text-center">Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -3001,6 +3003,8 @@ function RevenuePlanTable({
               ? `Total payments can't exceed the planned $${r.plan.toFixed(2)}M. This payment can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
               : null;
           const open = expanded.has(r.ms);
+          // Status is derived from collection + expected date, so Overdue appears without a stored flag.
+          const status = revStatusOf(util, dateOf(r));
           const linkedMs = r.linkKind === "milestone" && milestoneNames.includes(r.ms) ? r.ms : undefined;
           return (
             <Fragment key={r.ms}>
@@ -3025,7 +3029,6 @@ function RevenuePlanTable({
                 <TableCell className="text-muted-foreground">{r.evt}</TableCell>
                 <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
-                <TableCell><RagBadge rag={r.s as any} label={r.sl} /></TableCell>
                 <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
                 <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
                   {linkedMs ? (
@@ -3042,9 +3045,11 @@ function RevenuePlanTable({
                   )}
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">{formatDateForDisplay(dateOf(r))}</TableCell>
-                <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
-                  {/* Logging an actual stays available after baseline lock; re-planning does not. */}
+                <TableCell className="text-center" onClick={(ev) => ev.stopPropagation()}>
+                  {/* Status pill at rest; row actions replace it on hover (DS02). */}
                   <TableRowActions
+                    showStatus
+                    statusNode={<RagBadge rag={status.s as any} label={status.sl} />}
                     onEdit={canEdit ? () => setEditingIdx(idx) : undefined}
                     onDelete={canEdit ? () => setPendingDeleteIdx(idx) : undefined}
                     extraActions={
@@ -3059,7 +3064,7 @@ function RevenuePlanTable({
               </TableRow>
               {open && (
                 <TableRow className="bg-transparent hover:bg-transparent border-0 [&>td]:!bg-transparent hover:[&>td]:!bg-transparent">
-                  <TableCell colSpan={9} className="px-4 pb-3 pt-1">
+                  <TableCell colSpan={8} className="px-4 pb-3 pt-1">
                     <div className="ml-4 border-l border-border pl-3">
                       {/* Expanded nested actual-spend table uses Gray 600 (#45464F) fill. */}
                       <div className="overflow-hidden rounded-lg bg-p-neutral-600">
@@ -3102,7 +3107,6 @@ function RevenuePlanTable({
             <TableCell className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
             <TableCell className="num-mono text-right font-medium">${totals.planned.toFixed(2)}M</TableCell>
             <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
-            <TableCell />
             <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
             <TableCell colSpan={3} />
           </TableRow>
@@ -3399,6 +3403,29 @@ const REV_STATUSES: { s: string; sl: string }[] = [
   { s: "green", sl: "Received" },
   { s: "red", sl: "Overdue" },
 ];
+
+/** Accepts ISO dates and legacy display strings like "02 May" (no year — assume the current one). */
+function parseRevDate(raw: string): Date | null {
+  if (!raw) return null;
+  const m = /^(\d{1,2})\s+([A-Za-z]{3,})$/.exec(raw.trim());
+  if (m) {
+    const d = new Date(`${m[2]} ${m[1]}, ${new Date().getFullYear()}`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const iso = new Date(raw);
+  return Number.isNaN(iso.getTime()) ? null : iso;
+}
+
+/**
+ * Revenue status is derived from collection and the expected date, never stored:
+ * fully collected → Received; expected date passed while short → Overdue.
+ */
+function revStatusOf(collectedPct: number, expectedDate: string): { s: string; sl: string } {
+  if (collectedPct >= 100) return REV_STATUSES[2];
+  const due = parseRevDate(expectedDate);
+  if (due && due.getTime() < Date.now()) return REV_STATUSES[3];
+  return collectedPct > 0 ? REV_STATUSES[1] : REV_STATUSES[0];
+}
 
 function EditRevenueRowDialog({
   entry, milestoneNames, onOpenChange, onSave,

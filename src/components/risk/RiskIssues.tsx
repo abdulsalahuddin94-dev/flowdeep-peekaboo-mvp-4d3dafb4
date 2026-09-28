@@ -80,7 +80,7 @@ export function useSeverity() {
 /* ── Risk register ────────────────────────────────────────────────────────── */
 
 export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues }: { project?: string; milestoneOptions?: string[]; onViewLinkedIssues?: (riskId: string) => void }) {
-  const { risks, issues, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, convertRiskToIssue } = useRiskRegister();
+  const { risks, issues, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, editRiskUpdate, removeRiskUpdate, convertRiskToIssue } = useRiskRegister();
   const hasLinkedIssue = (riskId: string) => issues.some((i) => i.riskId === riskId);
   const { severityOf, rules } = useSeverity();
   const { isActive } = useOrgActive("risk-category");
@@ -96,6 +96,8 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues 
   const [viewId, setViewId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<RiskRecord | null>(null);
   const [statusFor, setStatusFor] = useState<RiskRecord | null>(null);
+  const [editingUpdate, setEditingUpdate] = useState<RiskUpdate | null>(null);
+  const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ risk: RiskRecord; update: RiskUpdate } | null>(null);
 
   const scoped = project ? risks.filter((r) => r.project === project) : risks;
   const q = query.trim().toLowerCase();
@@ -213,17 +215,43 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues 
           const id = convertRiskToIssue(r.id, currentUser.name);
           if (id) toast.success("Issue created from risk");
         }}
+        onEditUpdate={(r, u) => { setEditingUpdate(u); setStatusFor(r); }}
+        onDeleteUpdate={(r, u) => setPendingDeleteUpdate({ risk: r, update: u })}
       />
 
       <RiskStatusDialog
-        key={`status-${statusFor?.id ?? "none"}`}
+        key={`status-${statusFor?.id ?? "none"}-${editingUpdate?.id ?? "new"}`}
         risk={statusFor}
-        onClose={() => setStatusFor(null)}
+        initialComment={editingUpdate?.comment}
+        onClose={() => { setStatusFor(null); setEditingUpdate(null); }}
         onSave={(input) => {
           if (!statusFor) return;
-          logRiskUpdate(statusFor.id, { ...input, by: currentUser.name });
-          toast.done("Risk update", "recorded");
+          if (editingUpdate) {
+            editRiskUpdate(statusFor.id, editingUpdate.id, input.comment);
+            if (input.status !== statusFor.status || input.prob !== statusFor.prob || input.impact !== statusFor.impact) {
+              logRiskUpdate(statusFor.id, { ...input, by: currentUser.name });
+            }
+            toast.done("Comment", "updated");
+          } else {
+            logRiskUpdate(statusFor.id, { ...input, by: currentUser.name });
+            toast.done("Risk update", "recorded");
+          }
           setStatusFor(null);
+          setEditingUpdate(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!pendingDeleteUpdate}
+        onOpenChange={(o) => !o && setPendingDeleteUpdate(null)}
+        title="Delete this comment?"
+        description="The comment is removed from the risk history. This cannot be undone."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={() => {
+          if (pendingDeleteUpdate) removeRiskUpdate(pendingDeleteUpdate.risk.id, pendingDeleteUpdate.update.id);
+          toast.done("Comment", "deleted");
+          setPendingDeleteUpdate(null);
         }}
       />
 

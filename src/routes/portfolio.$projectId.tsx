@@ -2629,6 +2629,8 @@ function FinancialsTab({
   const [costCatFilter, setCostCatFilter] = useState<string[]>([]);
   const [costTypeFilter, setCostTypeFilter] = useState("all");
 
+  const costCategoryNames = useMemo(() => DEFAULT_COST_CATEGORIES.map((c) => c.name), []);
+
   const costCatOptions = useMemo(() => {
     const present = displayCost.map((e) => e.cat ?? e.c).filter(Boolean) as string[];
     return Array.from(new Set([...costCategoryNames, ...present]));

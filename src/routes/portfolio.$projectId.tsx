@@ -2623,12 +2623,44 @@ function FinancialsTab({
     [milestoneEnd],
   );
 
+  /* Cost breakdown search (by cost line name) + filters (category, CapEx/OpEx).
+   * Computed before the totals so the KPI cards above the toolbar reflect the active filters. */
+  const [costQuery, setCostQuery] = useState("");
+  const [costCatFilter, setCostCatFilter] = useState<string[]>([]);
+  const [costTypeFilter, setCostTypeFilter] = useState("all");
+
+  const costCatOptions = useMemo(() => {
+    const present = displayCost.map((e) => e.cat ?? e.c).filter(Boolean) as string[];
+    return Array.from(new Set([...costCategoryNames, ...present]));
+  }, [costCategoryNames, displayCost]);
+
+  /** Keep the original index so row actions still patch the right entry while filtered. */
+  const filteredCost = useMemo(() => {
+    const q = costQuery.trim().toLowerCase();
+    return displayCost
+      .map((e, i) => ({ e, i }))
+      .filter(({ e }) => {
+        const name = (e.desc ?? e.c ?? "").toLowerCase();
+        if (q && !name.includes(q)) return false;
+        const cat = e.cat ?? e.c ?? "";
+        if (costCatFilter.length > 0 && !costCatFilter.includes(cat)) return false;
+        if (costTypeFilter !== "all") {
+          const type = e.classification === "capex" ? "CapEx" : "OpEx";
+          if (type !== costTypeFilter) return false;
+        }
+        return true;
+      });
+  }, [displayCost, costQuery, costCatFilter, costTypeFilter]);
+
+  const costIdxMap = useMemo(() => filteredCost.map((x) => x.i), [filteredCost]);
+  const costRows = useMemo(() => filteredCost.map((x) => x.e), [filteredCost]);
+
   const costTotals = useMemo(() => {
-    const planned = displayCost.reduce((s, e) => s + e.b, 0);
-    const actual = displayCost.reduce((s, e) => s + e.a, 0);
+    const planned = costRows.reduce((s, e) => s + e.b, 0);
+    const actual = costRows.reduce((s, e) => s + e.a, 0);
     // Actuals are capped per line at the planned amount, so utilization never exceeds 100%.
     return { planned, actual, util: planned ? Math.min(100, Math.round((actual / planned) * 100)) : 0 };
-  }, [displayCost]);
+  }, [costRows]);
   const revTotals = useMemo(() => {
     const planned = displayRev.reduce((s, e) => s + e.plan, 0);
     const actual = displayRev.reduce((s, e) => s + (e.act ?? 0), 0);

@@ -2687,7 +2687,10 @@ function FinancialsTab({
       .map((e, i) => ({ e, i }))
       .filter(({ e }) => {
         if (q && !(e.evt ?? "").toLowerCase().includes(q)) return false;
-        if (revStatusFilter !== "all" && e.sl !== revStatusFilter) return false;
+        if (revStatusFilter !== "all") {
+          const collected = e.plan ? Math.min(100, Math.round(((e.act ?? 0) / e.plan) * 100)) : 0;
+          if (revStatusOf(collected, revDate(e)).sl !== revStatusFilter) return false;
+        }
         if (rangeActive) {
           const parseActualDate = (raw: string): Date | null => {
             /* Legacy display strings like "02 May" carry no year — assume the current one.

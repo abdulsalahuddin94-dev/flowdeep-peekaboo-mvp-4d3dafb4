@@ -3400,6 +3400,29 @@ const REV_STATUSES: { s: string; sl: string }[] = [
   { s: "red", sl: "Overdue" },
 ];
 
+/** Accepts ISO dates and legacy display strings like "02 May" (no year — assume the current one). */
+function parseRevDate(raw: string): Date | null {
+  if (!raw) return null;
+  const m = /^(\d{1,2})\s+([A-Za-z]{3,})$/.exec(raw.trim());
+  if (m) {
+    const d = new Date(`${m[2]} ${m[1]}, ${new Date().getFullYear()}`);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const iso = new Date(raw);
+  return Number.isNaN(iso.getTime()) ? null : iso;
+}
+
+/**
+ * Revenue status is derived from collection and the expected date, never stored:
+ * fully collected → Received; expected date passed while short → Overdue.
+ */
+function revStatusOf(collectedPct: number, expectedDate: string): { s: string; sl: string } {
+  if (collectedPct >= 100) return REV_STATUSES[2];
+  const due = parseRevDate(expectedDate);
+  if (due && due.getTime() < Date.now()) return REV_STATUSES[3];
+  return collectedPct > 0 ? REV_STATUSES[1] : REV_STATUSES[0];
+}
+
 function EditRevenueRowDialog({
   entry, milestoneNames, onOpenChange, onSave,
 }: {

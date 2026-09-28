@@ -1095,9 +1095,11 @@ function IssueFormDialog({
 /* ── Status update dialogs ────────────────────────────────────────────────── */
 
 function RiskStatusDialog({
-  risk, onClose, onSave,
+  risk, initialComment, onClose, onSave,
 }: {
   risk: RiskRecord | null;
+  /** Pre-fills the comment — used when editing an existing update. */
+  initialComment?: string;
   onClose: () => void;
   onSave: (input: { status: RiskStatus; prob: number; impact: number; comment: string }) => void;
 }) {
@@ -1106,7 +1108,7 @@ function RiskStatusDialog({
   const statusOptions = RISK_STATUSES.includes(status) ? RISK_STATUSES : [...RISK_STATUSES, status];
   const [prob, setProb] = useState(String(risk?.prob ?? 3));
   const [impact, setImpact] = useState(String(risk?.impact ?? 3));
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(initialComment ?? "");
   const [error, setError] = useState("");
 
   const score = Number(prob) * Number(impact);
@@ -1176,16 +1178,18 @@ function RiskStatusDialog({
 }
 
 function IssueStatusDialog({
-  issue, presetStatus, onClose, onSave,
+  issue, presetStatus, initialComment, onClose, onSave,
 }: {
   issue: IssueRecord | null;
   presetStatus?: IssueStatus;
+  /** Pre-fills the comment — used when editing an existing comment. */
+  initialComment?: string;
   onClose: () => void;
   onSave: (input: { status: IssueStatus; comment: string; closureDate?: string }) => void;
 }) {
   const [status, setStatus] = useState<IssueStatus>(presetStatus ?? issue?.status ?? "Open");
   const [closureDate, setClosureDate] = useState(issue?.closureDate ?? todayISO());
-  const [comment, setComment] = useState("");
+  const [comment, setComment] = useState(initialComment ?? "");
   const [error, setError] = useState("");
 
   function submit() {

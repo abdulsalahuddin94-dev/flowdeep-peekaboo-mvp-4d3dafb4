@@ -37,6 +37,7 @@ function NumField({
 export function RulesThresholdsTab() {
   const [rules, setRules] = useState<OrgRules>(DEFAULT_ORG_RULES);
   const [dirty, setDirty] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => { setRules(loadOrgRules()); }, []);
 

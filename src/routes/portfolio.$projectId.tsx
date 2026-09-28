@@ -2718,7 +2718,7 @@ function FinancialsTab({
         }
         return true;
       });
-  }, [displayRev, revQuery, revStatusFilter, revDateFilter]);
+  }, [displayRev, revQuery, revStatusFilter, revDateFilter, revDate]);
 
   const revIdxMap = useMemo(() => filteredRev.map((x) => x.i), [filteredRev]);
   const revRows = useMemo(() => filteredRev.map((x) => x.e), [filteredRev]);

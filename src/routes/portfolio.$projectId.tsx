@@ -3004,6 +3004,8 @@ function RevenuePlanTable({
               ? `Total payments can't exceed the planned $${r.plan.toFixed(2)}M. This payment can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
               : null;
           const open = expanded.has(r.ms);
+          // Status is derived from collection + expected date, so Overdue appears without a stored flag.
+          const status = revStatusOf(util, dateOf(r));
           const linkedMs = r.linkKind === "milestone" && milestoneNames.includes(r.ms) ? r.ms : undefined;
           return (
             <Fragment key={r.ms}>

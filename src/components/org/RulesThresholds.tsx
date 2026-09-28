@@ -60,17 +60,29 @@ export function RulesThresholdsTab() {
     toast.done("Rules & thresholds", "saved");
   }
 
-  function reset() {
+  function applyDefaults() {
     setRules(DEFAULT_ORG_RULES);
     setDirty(true);
+    setConfirmReset(false);
     toast.info("Restored recommended defaults — save to apply");
   }
   return (
     <div>
       <PageActions>
-        <Button variant="outline" onClick={reset}>Restore defaults</Button>
+        <Button variant="outline" onClick={() => setConfirmReset(true)}>Restore defaults</Button>
         <Button variant="primary" onClick={save} disabled={!dirty}>Save changes</Button>
       </PageActions>
+
+      <ConfirmDialog
+        open={confirmReset}
+        onOpenChange={setConfirmReset}
+        tone="warning"
+        title="Restore default rules?"
+        description="Restoring the defaults will override your current rule and threshold values. Save changes to apply them, or cancel to keep your current settings."
+        cancelLabel="Cancel"
+        confirmLabel="Restore defaults"
+        onConfirm={applyDefaults}
+      />
 
       <div className="grid gap-4 xl:grid-cols-2">
         {/* 1 — RAG / Health */}

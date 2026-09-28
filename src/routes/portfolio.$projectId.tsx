@@ -3108,7 +3108,6 @@ function RevenuePlanTable({
             <TableCell className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
             <TableCell className="num-mono text-right font-medium">${totals.planned.toFixed(2)}M</TableCell>
             <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
-            <TableCell />
             <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
             <TableCell colSpan={3} />
           </TableRow>

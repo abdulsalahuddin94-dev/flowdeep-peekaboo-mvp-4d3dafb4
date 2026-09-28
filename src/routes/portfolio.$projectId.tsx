@@ -2986,11 +2986,10 @@ function RevenuePlanTable({
           <TableHead>Revenue event</TableHead>
           <TableHead className="text-right">Planned ($M)</TableHead>
           <TableHead className="text-right">Actual ($M)</TableHead>
-          <TableHead>Status</TableHead>
           <TableHead className="text-right">Collected</TableHead>
           <TableHead>Linked to</TableHead>
           <TableHead>Expected date</TableHead>
-          <TableHead className="w-32" />
+          <TableHead className="w-40 text-center">Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

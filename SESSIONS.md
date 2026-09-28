@@ -1,3 +1,10 @@
+## 2026-09-28 — Risk & Issues: edit and delete comments in the detail drawers
+
+- Every comment card in the risk drawer (Status updates) and issue drawer (Comments) now has circular Edit and Delete icon buttons next to the date.
+- Edit opens the same status-update popup pre-filled with the comment; saving updates the comment in place (and logs a new documented entry only if severity/status values were also changed).
+- Delete opens a danger confirmation popup ("Delete this comment?") before removing the entry from the history.
+- Store: added editRiskUpdate / removeRiskUpdate / editIssueUpdate / removeIssueUpdate to risk-store.
+
 ## 2026-09-28 — Revenue Breakdown: derived Overdue status + status column moved last
 
 - Revenue event status is now derived from collection and expected date (never stored): fully collected → Received, expected date passed while short → Overdue (red), partially collected → Pending, otherwise Planned. Status filter uses the derived value.

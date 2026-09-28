@@ -1321,7 +1321,7 @@ export function RiskKpiStrip({ project }: { project?: string }) {
     critical: scopedRisks.filter((r) => severityOf(r.score) === "Critical").length,
     high: scopedRisks.filter((r) => severityOf(r.score) === "High").length,
     medium: scopedRisks.filter((r) => severityOf(r.score) === "Medium").length,
-    open: scopedRisks.filter((r) => r.status === "Open").length,
+    low: scopedRisks.filter((r) => severityOf(r.score) === "Low").length,
     issues: scopedIssues.filter((i) => i.status !== "Resolved").length,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [scopedRisks, scopedIssues, rules]);
@@ -1332,7 +1332,7 @@ export function RiskKpiStrip({ project }: { project?: string }) {
         { l: `Critical (≥${rules.risk.criticalMin})`, v: stats.critical, bar: "bg-rag-red" },
         { l: `High (${rules.risk.highMin}–${rules.risk.criticalMin - 1})`, v: stats.high, bar: "bg-rag-amber" },
         { l: `Medium (${rules.risk.mediumMin}–${rules.risk.highMin - 1})`, v: stats.medium, bar: "bg-rag-blue" },
-        { l: "Open Risks", v: stats.open, bar: "bg-border" },
+        { l: "Low Risks", v: stats.low, bar: "bg-rag-teal" },
         { l: "Open Issues", v: stats.issues, bar: "bg-border" },
       ].map((m) => (
         <div key={m.l} className="glass-card relative overflow-hidden p-4 pl-5">

@@ -519,7 +519,19 @@ function RiskSheet({
                 <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium text-foreground">{u.by}</span>
-                    <span className="num-mono text-[10px] text-muted-foreground">{u.at}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="num-mono text-[10px] text-muted-foreground">{u.at}</span>
+                      {onEditUpdate && (
+                        <CommentAction label="Edit comment" onClick={() => onEditUpdate(risk, u)}>
+                          <EditAction size={13} />
+                        </CommentAction>
+                      )}
+                      {onDeleteUpdate && (
+                        <CommentAction label="Delete comment" danger onClick={() => onDeleteUpdate(risk, u)}>
+                          <DeleteAction size={13} />
+                        </CommentAction>
+                      )}
+                    </div>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{u.comment}</p>
                   {u.change && (
@@ -841,13 +853,15 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
 /* ── Issue detail drawer ──────────────────────────────────────────────────── */
 
 function IssueDetailDrawer({
-  issue, riskTitle, showProjectName = true, onClose, onUpdateStatus,
+  issue, riskTitle, showProjectName = true, onClose, onUpdateStatus, onEditUpdate, onDeleteUpdate,
 }: {
   issue: IssueRecord | null;
   riskTitle: (id?: string) => string;
   showProjectName?: boolean;
   onClose: () => void;
   onUpdateStatus: (issue: IssueRecord, preset?: IssueStatus) => void;
+  onEditUpdate?: (issue: IssueRecord, u: IssueUpdate) => void;
+  onDeleteUpdate?: (issue: IssueRecord, u: IssueUpdate) => void;
 }) {
   if (!issue) return null;
   return (
@@ -905,7 +919,19 @@ function IssueDetailDrawer({
                 <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium text-foreground">{u.by}</span>
-                    <span className="num-mono text-[10px] text-muted-foreground">{formatDateWithYear(u.at)}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="num-mono text-[10px] text-muted-foreground">{formatDateWithYear(u.at)}</span>
+                      {onEditUpdate && (
+                        <CommentAction label="Edit comment" onClick={() => onEditUpdate(issue, u)}>
+                          <EditAction size={13} />
+                        </CommentAction>
+                      )}
+                      {onDeleteUpdate && (
+                        <CommentAction label="Delete comment" danger onClick={() => onDeleteUpdate(issue, u)}>
+                          <DeleteAction size={13} />
+                        </CommentAction>
+                      )}
+                    </div>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{u.comment}</p>
                   {u.statusChange && (

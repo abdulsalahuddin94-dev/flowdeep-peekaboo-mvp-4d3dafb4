@@ -1,3 +1,8 @@
+## 2026-09-28 — Risk & Issues KPI: Low Risks
+
+- Replaced the Open Risks KPI with Low Risks in the Risk & Issues summary strip.
+- The value now counts risks whose score falls below the configured Medium threshold, so all four severity bands are represented.
+
 ## 2026-09-28 — Rules & Thresholds: confirmation popup on Restore defaults
 
 - Clicking Restore defaults now opens a warning confirmation popup ("Restore default rules?") explaining that restoring will override the current rule and threshold values, with Cancel to keep the current settings.

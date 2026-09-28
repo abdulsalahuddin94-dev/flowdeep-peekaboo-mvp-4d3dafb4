@@ -1,7 +1,7 @@
 # DS02 Design System — Enterprise PMO (Nexus)
 
-**Version:** DS02.v3.9  
-**Last Updated:** 2026-09-27  
+**Version:** DS02.v3.10  
+**Last Updated:** 2026-09-28  
 **Status:** Active in production (Complete & Production-Ready)  
 **Structure:** Primitives (110: 85 colors + 25 dimensions) → Semantic (77: Light & Dark modes)  
 **Total Tokens:** 187 Figma variables, zero broken references, 100% WCAG 2.1 AA/AAA accessible  
@@ -147,6 +147,12 @@ Theme controlled via `data-theme` attribute on `<html>`:
 
 ## 8. Changelog
 
+### DS02.v3.10 (2026-09-28)
+**Interaction and Status Improvements**
+- Revenue Breakdown derives Overdue from expected dates and collection progress; its final Status cell swaps the pill for row actions on hover.
+- Risk and Issue detail drawers support editing comments through the existing status-update popup and deleting comments through a confirmation popup.
+- Risk & Issues KPI summaries present the complete severity distribution: Critical, High, Medium, and Low.
+
 ### DS02.v3.9 (2026-09-27)
 **Module Alignment — Approvals**
 - Approvals now follows the standard module anatomy: shared page header, search and filter drawer, semantic data table, fully rounded pills, status-to-actions hover behavior, pagination, and row-opened detail drawer.
@@ -185,4 +191,4 @@ Theme controlled via `data-theme` attribute on `<html>`:
 
 ---
 
-**End of DS02 Design System Documentation (v3.9) — MVP Edition**
+**End of DS02 Design System Documentation (v3.10) — MVP Edition**

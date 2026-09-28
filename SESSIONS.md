@@ -1,3 +1,9 @@
+## 2026-09-28 — Portfolio: KPI strip reworked
+
+- Removed the Active and Budget Used cards from the Portfolio KPI strip.
+- Cards are now, left to right: Not Started, On Track, At Risk, Off Track, Closed.
+- Closed counts projects whose progress reached 100% or whose stage is Closure; the Pending Approvals card was retired (the pending-approvals banner and Approvals module still cover it).
+
 ## 2026-09-28 — Risk & Issues KPI: Low Risks
 
 - Replaced the Open Risks KPI with Low Risks in the Risk & Issues summary strip.

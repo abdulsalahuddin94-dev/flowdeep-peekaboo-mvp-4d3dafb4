@@ -3044,9 +3044,11 @@ function RevenuePlanTable({
                   )}
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">{formatDateForDisplay(dateOf(r))}</TableCell>
-                <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
-                  {/* Logging an actual stays available after baseline lock; re-planning does not. */}
+                <TableCell className="text-center" onClick={(ev) => ev.stopPropagation()}>
+                  {/* Status pill at rest; row actions replace it on hover (DS02). */}
                   <TableRowActions
+                    showStatus
+                    statusNode={<RagBadge rag={status.s as any} label={status.sl} />}
                     onEdit={canEdit ? () => setEditingIdx(idx) : undefined}
                     onDelete={canEdit ? () => setPendingDeleteIdx(idx) : undefined}
                     extraActions={

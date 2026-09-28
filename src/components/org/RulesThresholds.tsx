@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RagBadge } from "@/components/RagBadge";
 import { DEFAULT_ORG_RULES, loadOrgRules, saveOrgRules, type OrgRules } from "@/lib/org-rules";
 import { toast } from "@/lib/toast";

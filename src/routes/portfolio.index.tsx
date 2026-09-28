@@ -160,9 +160,11 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
     <>
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-5">
         {[
-          { l: "Active", v: projectList.length, bar: "bg-border" },
+          { l: "Not Started", v: projectList.filter((p) => p.rag === "blue").length, bar: "bg-rag-blue" },
           { l: "On Track", v: projectList.filter((p) => p.rag === "green").length, bar: "bg-rag-green" },
-          { l: "Off - Track", v: projectList.filter((p) => p.rag === "red").length, bar: "bg-rag-red" },
+          { l: "At Risk", v: projectList.filter((p) => p.rag === "amber").length, bar: "bg-rag-amber" },
+          { l: "Off Track", v: projectList.filter((p) => p.rag === "red").length, bar: "bg-rag-red" },
+          { l: "Closed", v: projectList.filter((p) => p.progress >= 100 || p.stage === "Closure").length, bar: "bg-rag-grey" },
         ].map((m) => (
           <div key={m.l} className="glass-card relative overflow-hidden p-4 pl-5">
             <span className={cn("absolute inset-y-0 left-0 w-[3px]", m.bar)} />
@@ -170,25 +172,6 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
             <div className="mt-1 text-xl font-medium num-mono text-foreground">{m.v}</div>
           </div>
         ))}
-        <button
-          onClick={() => setOnlyPending((v) => !v)}
-          className={cn(
-            "glass-card relative overflow-hidden p-4 pl-5 text-left transition hover:ring-2 hover:ring-accent/40",
-            onlyPending && "ring-2 ring-accent",
-          )}
-          title="Show only projects with pending approvals"
-        >
-          <span className="absolute inset-y-0 left-0 w-[3px] bg-rag-amber" />
-          <div className="text-xs text-muted-foreground">Pending Approvals</div>
-          <div className="mt-1 text-xl font-medium num-mono text-foreground">{pendingTotal}</div>
-        </button>
-        <div className="glass-card relative overflow-hidden p-4 pl-5">
-          <span className="absolute inset-y-0 left-0 w-[3px] bg-border" />
-          <div className="text-xs text-muted-foreground">Budget Used</div>
-          <div className="mt-1 text-xl font-medium num-mono text-foreground">
-            {`$${projectList.reduce((s, p) => s + p.budgetUsed, 0).toFixed(1)}M / $${projectList.reduce((s, p) => s + p.budgetTotal, 0).toFixed(0)}M`}
-          </div>
-        </div>
       </div>
 
 

@@ -19,3 +19,5 @@
 - [x] Keep the Status column unchanged when Schedule health highlighting is enabled.
 - [x] Align the Approvals module with DS02 toolbar, table, pills, pagination, details drawer, and form dialog patterns.
 - [x] Replace the Risk & Issues KPI for Open Risks with the Low Risks severity count.
+- [x] Give the WBS burger menu its own narrow hover-only actions column and make the Financial Link chip clickable.
+- [x] Show Planned % next to Actual % on Portfolio project cards with a planned marker on the progress bar.

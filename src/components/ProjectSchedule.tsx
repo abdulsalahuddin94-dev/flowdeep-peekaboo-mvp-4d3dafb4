@@ -271,6 +271,9 @@ type ColKey = typeof COLUMNS[number]["key"];
 type WidthKey = ColKey | "name";
 
 const ROW_H = 66;
+// Dedicated hover-only column for the row burger menu — sits beside the last
+// data column so overlays never block clicks (e.g. Financial Link chips).
+const ROW_ACTIONS_W = 52;
 const HEADER_H = 44;
 const DEFAULT_NAME_W = 280;
 const MIN_COL_W = 56;
@@ -844,10 +847,8 @@ export function ProjectSchedule({
 
   // Stretch the Item Name column so the table always fills the viewport width
   const colsW = COLUMNS.filter(c => colVisible(c.key)).reduce((s, c) => s + widths[c.key], 0);
-  const nameW = Math.max(widths.name, viewportW ? viewportW - colsW : widths.name);
-  const tableW = nameW + colsW;
-  const lastVisibleColumn = [...COLUMNS].reverse().find(c => colVisible(c.key));
-  const rowActionsWidth = lastVisibleColumn ? widths[lastVisibleColumn.key] : nameW;
+  const nameW = Math.max(widths.name, viewportW ? viewportW - colsW - ROW_ACTIONS_W : widths.name);
+  const tableW = nameW + colsW + ROW_ACTIONS_W;
 
 
   // Schedule structure is edited only through the row action popups.
@@ -1124,6 +1125,7 @@ export function ProjectSchedule({
                 {COLUMNS.filter(c => colVisible(c.key)).map(c => (
                   <ColHeader key={c.key} label={c.label} width={widths[c.key]} onResize={(e) => startColResize(c.key, e)} onAutoFit={() => autoFitCol(c.key)} />
                 ))}
+                <div className="shrink-0" style={{ width: ROW_ACTIONS_W }} />
               </div>
               {visibleRows.map(({ item, depth, hasChildren }, rowIdx) => {
                 const isOpen = expanded.has(item.name);

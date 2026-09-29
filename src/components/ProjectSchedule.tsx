@@ -1405,14 +1405,23 @@ export function ProjectSchedule({
                             <span className={restricted || isGate ? "text-muted-foreground" : "text-xs text-accent hover:underline"}>
                               —
                             </span>
-                          ) : item.payment.kind === "Client Revenue" ? (
-                            <Badge variant="outline" className="border-rag-green/40 bg-rag-green/10 text-rag-green text-[10px] truncate">
-                              Revenue · {item.payment.amount || "—"}
-                            </Badge>
                           ) : (
-                            <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px] truncate">
-                              {item.payment.packageId || "Pkg"} · {item.payment.amount || "—"}
-                            </Badge>
+                            <button
+                              type="button"
+                              title={restricted || isGate ? item.payment.kind : "Open financial link"}
+                              onClick={restricted || isGate ? undefined : () => onFinancialLinkClick?.(item.name)}
+                              className={`max-w-full cursor-pointer transition-opacity hover:opacity-80 ${restricted || isGate ? "cursor-default" : ""}`}
+                            >
+                              {item.payment.kind === "Client Revenue" ? (
+                                <Badge variant="outline" className="border-rag-green/40 bg-rag-green/10 text-rag-green text-[10px]">
+                                  Revenue · {item.payment.amount || "—"}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
+                                  {item.payment.packageId || "Pkg"} · {item.payment.amount || "—"}
+                                </Badge>
+                              )}
+                            </button>
                           )}
                         </div>
                       </div>

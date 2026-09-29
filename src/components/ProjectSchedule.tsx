@@ -1417,46 +1417,46 @@ export function ProjectSchedule({
                         </div>
                       </div>
                     )}
-                    <div
-                      className="pointer-events-none absolute inset-y-0 right-0 z-10 flex items-center justify-center bg-table-row-hover opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
-                      style={{ width: rowActionsWidth }}
-                    >
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" aria-label={`Actions for ${item.name}`}>
-                                <PanelLeft className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-52">
-                              {isGate ? (
-                                <DropdownMenuItem disabled>Approval gate — managed by approvers</DropdownMenuItem>
-                              ) : (
-                                <>
-                                  <DropdownMenuItem onSelect={() => onAddSubtask?.(item.name)}>
-                                    <Plus className="h-4 w-4" /> Add subtask
+                    {/* Dedicated hover-only burger column — never covers data cells */}
+                    <div className="flex items-center justify-center" style={{ width: ROW_ACTIONS_W }}>
+                      <div className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" aria-label={`Actions for ${item.name}`}>
+                              <PanelLeft className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-52">
+                            {isGate ? (
+                              <DropdownMenuItem disabled>Approval gate — managed by approvers</DropdownMenuItem>
+                            ) : (
+                              <>
+                                <DropdownMenuItem onSelect={() => onAddSubtask?.(item.name)}>
+                                  <Plus className="h-4 w-4" /> Add subtask
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onEditItem?.(item.name)}>
+                                  <Pencil className="h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onAddDependencyClick?.(item.name)}>
+                                  <Link2 className="h-4 w-4" /> Add dependency
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onFinancialLinkClick?.(item.name)}>
+                                  <Link2 className="h-4 w-4" /> Add financial link
+                                </DropdownMenuItem>
+                                {item.kind === "Task" && !hasChildren && (
+                                  <DropdownMenuItem onSelect={() => onProgressClick?.(item.name, item.kind)}>
+                                    <TrendingUp className="h-4 w-4" /> Progress update
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onSelect={() => onEditItem?.(item.name)}>
-                                    <Pencil className="h-4 w-4" /> Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onSelect={() => onAddDependencyClick?.(item.name)}>
-                                    <Link2 className="h-4 w-4" /> Add dependency
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onSelect={() => onFinancialLinkClick?.(item.name)}>
-                                    <Link2 className="h-4 w-4" /> Add financial link
-                                  </DropdownMenuItem>
-                                  {item.kind === "Task" && !hasChildren && (
-                                    <DropdownMenuItem onSelect={() => onProgressClick?.(item.name, item.kind)}>
-                                      <TrendingUp className="h-4 w-4" /> Progress update
-                                    </DropdownMenuItem>
-                                  )}
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem onSelect={() => onDeleteItem && setPendingDelete(item.name)} disabled={!onDeleteItem} className="text-rag-red focus:text-rag-red">
-                                    <Trash2 className="h-4 w-4" /> Delete
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={() => onDeleteItem && setPendingDelete(item.name)} disabled={!onDeleteItem} className="text-rag-red focus:text-rag-red">
+                                  <Trash2 className="h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </div>
                 );

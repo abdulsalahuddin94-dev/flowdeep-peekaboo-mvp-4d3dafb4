@@ -217,7 +217,9 @@ export type ScheduleItem = {
  * independent of the manually-reported actual `progress`.
  */
 export function computePlannedProgress(startDate: string, endDate: string, now: Date = new Date()): number {
-  const s = parseISO(startDate), e = parseISO(endDate);
+  // Tolerant parse: schedule items use ISO dates, projects may carry display labels.
+  const s = parseISO(startDate) ?? parseLabelDate(startDate);
+  const e = parseISO(endDate) ?? parseLabelDate(endDate);
   if (!s || !e) return 0;
   const today = new Date(now); today.setHours(0, 0, 0, 0);
   const total = Math.max(1, diffDays(e, s) + 1);

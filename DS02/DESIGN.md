@@ -1,7 +1,7 @@
 # DS02 Design System — Enterprise PMO (Nexus)
 
-**Version:** DS02.v3.10  
-**Last Updated:** 2026-09-28  
+**Version:** DS02.v3.11  
+**Last Updated:** 2026-09-29  
 **Status:** Active in production (Complete & Production-Ready)  
 **Structure:** Primitives (110: 85 colors + 25 dimensions) → Semantic (77: Light & Dark modes)  
 **Total Tokens:** 187 Figma variables, zero broken references, 100% WCAG 2.1 AA/AAA accessible  
@@ -146,6 +146,10 @@ Theme controlled via `data-theme` attribute on `<html>`:
 ---
 
 ## 8. Changelog
+
+### DS02.v3.11 (2026-09-29)
+- **Schedule tables:** row actions (burger menu) live in a dedicated narrow actions column that appears only on hover — overlays must never cover data cells; the Financial Link chip itself is clickable and opens its link dialog.
+- **Portfolio cards:** progress shows `Actual % / Planned %` with a planned marker on the bar (planned is time-derived, never stored).
 
 ### DS02.v3.10 (2026-09-28)
 **Interaction and Status Improvements**

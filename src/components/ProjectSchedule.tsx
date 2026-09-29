@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, useEffect } from "react";
+import { parseLabelDate } from "@/lib/mock-data";
 import { EmptyRegion, useEmptyPreview } from "@/lib/empty-preview";
 
 import * as XLSX from "xlsx";
@@ -217,7 +218,9 @@ export type ScheduleItem = {
  * independent of the manually-reported actual `progress`.
  */
 export function computePlannedProgress(startDate: string, endDate: string, now: Date = new Date()): number {
-  const s = parseISO(startDate), e = parseISO(endDate);
+  // Tolerant parse: schedule items use ISO dates, projects may carry display labels.
+  const s = parseISO(startDate) ?? parseLabelDate(startDate);
+  const e = parseISO(endDate) ?? parseLabelDate(endDate);
   if (!s || !e) return 0;
   const today = new Date(now); today.setHours(0, 0, 0, 0);
   const total = Math.max(1, diffDays(e, s) + 1);
@@ -271,6 +274,9 @@ type ColKey = typeof COLUMNS[number]["key"];
 type WidthKey = ColKey | "name";
 
 const ROW_H = 66;
+// Dedicated hover-only column for the row burger menu — sits beside the last
+// data column so overlays never block clicks (e.g. Financial Link chips).
+const ROW_ACTIONS_W = 52;
 const HEADER_H = 44;
 const DEFAULT_NAME_W = 280;
 const MIN_COL_W = 56;
@@ -844,10 +850,8 @@ export function ProjectSchedule({
 
   // Stretch the Item Name column so the table always fills the viewport width
   const colsW = COLUMNS.filter(c => colVisible(c.key)).reduce((s, c) => s + widths[c.key], 0);
-  const nameW = Math.max(widths.name, viewportW ? viewportW - colsW : widths.name);
-  const tableW = nameW + colsW;
-  const lastVisibleColumn = [...COLUMNS].reverse().find(c => colVisible(c.key));
-  const rowActionsWidth = lastVisibleColumn ? widths[lastVisibleColumn.key] : nameW;
+  const nameW = Math.max(widths.name, viewportW ? viewportW - colsW - ROW_ACTIONS_W : widths.name);
+  const tableW = nameW + colsW + ROW_ACTIONS_W;
 
 
   // Schedule structure is edited only through the row action popups.
@@ -1124,6 +1128,7 @@ export function ProjectSchedule({
                 {COLUMNS.filter(c => colVisible(c.key)).map(c => (
                   <ColHeader key={c.key} label={c.label} width={widths[c.key]} onResize={(e) => startColResize(c.key, e)} onAutoFit={() => autoFitCol(c.key)} />
                 ))}
+                <div className="shrink-0" style={{ width: ROW_ACTIONS_W }} />
               </div>
               {visibleRows.map(({ item, depth, hasChildren }, rowIdx) => {
                 const isOpen = expanded.has(item.name);
@@ -1403,58 +1408,67 @@ export function ProjectSchedule({
                             <span className={restricted || isGate ? "text-muted-foreground" : "text-xs text-accent hover:underline"}>
                               —
                             </span>
-                          ) : item.payment.kind === "Client Revenue" ? (
-                            <Badge variant="outline" className="border-rag-green/40 bg-rag-green/10 text-rag-green text-[10px] truncate">
-                              Revenue · {item.payment.amount || "—"}
-                            </Badge>
                           ) : (
-                            <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px] truncate">
-                              {item.payment.packageId || "Pkg"} · {item.payment.amount || "—"}
-                            </Badge>
+                            <button
+                              type="button"
+                              title={restricted || isGate ? item.payment.kind : "Open financial link"}
+                              onClick={restricted || isGate ? undefined : () => onFinancialLinkClick?.(item.name)}
+                              className={`max-w-full cursor-pointer transition-opacity hover:opacity-80 ${restricted || isGate ? "cursor-default" : ""}`}
+                            >
+                              {item.payment.kind === "Client Revenue" ? (
+                                <Badge variant="outline" className="border-rag-green/40 bg-rag-green/10 text-rag-green text-[10px]">
+                                  Revenue · {item.payment.amount || "—"}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
+                                  {item.payment.packageId || "Pkg"} · {item.payment.amount || "—"}
+                                </Badge>
+                              )}
+                            </button>
                           )}
                         </div>
                       </div>
                     )}
-                    <div
-                      className="pointer-events-none absolute inset-y-0 right-0 z-10 flex items-center justify-center bg-table-row-hover opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
-                      style={{ width: rowActionsWidth }}
-                    >
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" aria-label={`Actions for ${item.name}`}>
-                                <PanelLeft className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-52">
-                              {isGate ? (
-                                <DropdownMenuItem disabled>Approval gate — managed by approvers</DropdownMenuItem>
-                              ) : (
-                                <>
-                                  <DropdownMenuItem onSelect={() => onAddSubtask?.(item.name)}>
-                                    <Plus className="h-4 w-4" /> Add subtask
+                    {/* Dedicated hover-only burger column — never covers data cells */}
+                    <div className="flex items-center justify-center" style={{ width: ROW_ACTIONS_W }}>
+                      <div className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" aria-label={`Actions for ${item.name}`}>
+                              <PanelLeft className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-52">
+                            {isGate ? (
+                              <DropdownMenuItem disabled>Approval gate — managed by approvers</DropdownMenuItem>
+                            ) : (
+                              <>
+                                <DropdownMenuItem onSelect={() => onAddSubtask?.(item.name)}>
+                                  <Plus className="h-4 w-4" /> Add subtask
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onEditItem?.(item.name)}>
+                                  <Pencil className="h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onAddDependencyClick?.(item.name)}>
+                                  <Link2 className="h-4 w-4" /> Add dependency
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => onFinancialLinkClick?.(item.name)}>
+                                  <Link2 className="h-4 w-4" /> Add financial link
+                                </DropdownMenuItem>
+                                {item.kind === "Task" && !hasChildren && (
+                                  <DropdownMenuItem onSelect={() => onProgressClick?.(item.name, item.kind)}>
+                                    <TrendingUp className="h-4 w-4" /> Progress update
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem onSelect={() => onEditItem?.(item.name)}>
-                                    <Pencil className="h-4 w-4" /> Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onSelect={() => onAddDependencyClick?.(item.name)}>
-                                    <Link2 className="h-4 w-4" /> Add dependency
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onSelect={() => onFinancialLinkClick?.(item.name)}>
-                                    <Link2 className="h-4 w-4" /> Add financial link
-                                  </DropdownMenuItem>
-                                  {item.kind === "Task" && !hasChildren && (
-                                    <DropdownMenuItem onSelect={() => onProgressClick?.(item.name, item.kind)}>
-                                      <TrendingUp className="h-4 w-4" /> Progress update
-                                    </DropdownMenuItem>
-                                  )}
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem onSelect={() => onDeleteItem && setPendingDelete(item.name)} disabled={!onDeleteItem} className="text-rag-red focus:text-rag-red">
-                                    <Trash2 className="h-4 w-4" /> Delete
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onSelect={() => onDeleteItem && setPendingDelete(item.name)} disabled={!onDeleteItem} className="text-rag-red focus:text-rag-red">
+                                  <Trash2 className="h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </div>
                 );

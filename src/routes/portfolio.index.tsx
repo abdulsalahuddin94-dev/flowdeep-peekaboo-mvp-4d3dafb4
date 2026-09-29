@@ -15,6 +15,7 @@ import { TableRowActions } from "@/components/TableRowActions";
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { EmptyRegion } from "@/lib/empty-preview";
 import { projects, pipelineItems, projectDurationDays, type Project, type Rag } from "@/lib/mock-data";
+import { computePlannedProgress } from "@/components/ProjectSchedule";
 import { useProjects, useCalendars, useApprovals, useTags } from "@/lib/projects-store";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -384,8 +385,27 @@ function ProjectGrid({
             <span className="truncate">{p.client && p.client !== "Internal" ? p.client : "Internal"}</span>
           </div>
           <div className="mt-3">
-            <div className="mb-1 flex justify-between text-xs"><span className="text-muted-foreground">Progress</span><span className="num-mono text-foreground">{p.progress}%</span></div>
-            <Progress value={p.progress} className="h-1.5" />
+            {(() => {
+              const plannedPct = Math.round(computePlannedProgress(p.startDate, p.endDate));
+              return (
+                <>
+                  <div className="mb-1 flex justify-between text-xs">
+                    <span className="text-muted-foreground">Progress</span>
+                    <span className="num-mono text-foreground" title={`Actual ${p.progress}% · Planned ${plannedPct}%`}>
+                      {p.progress}% <span className="text-muted-foreground">/ {plannedPct}%</span>
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <Progress value={p.progress} className="h-1.5" />
+                    <span
+                      className="absolute top-1/2 h-3 w-0.5 -translate-y-1/2 rounded-full bg-foreground/60"
+                      style={{ insetInlineStart: `calc(${Math.min(100, plannedPct)}% - 1px)` }}
+                      title={`Planned ${plannedPct}%`}
+                    />
+                  </div>
+                </>
+              );
+            })()}
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
             <div><div className="label-eyebrow">Start</div><div className="text-foreground">{formatDateWithYear(p.startDate)}</div></div>

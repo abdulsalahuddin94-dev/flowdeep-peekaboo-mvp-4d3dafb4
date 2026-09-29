@@ -1,3 +1,9 @@
+## 2026-09-29 — WBS burger column + chip click; Portfolio card planned %
+
+- **Financial Link column (`src/components/ProjectSchedule.tsx`):** the hover burger menu now lives in its own dedicated 52px actions column (appears only on row hover) instead of an absolute overlay that covered the last data column. The Financial Link chip is now itself clickable — it opens the same Financial Link dialog (disabled/toast in view-only or approval-gate rows, unchanged behavior). Table width math updated (`nameW + colsW + ROW_ACTIONS_W`).
+- **Portfolio card (`src/routes/portfolio.index.tsx`):** the Progress row now shows **Actual % / Planned %** (e.g. "61% / 100%"), with a thin planned marker on the progress bar matching the approved reference. Planned is time-derived via `computePlannedProgress`, which now tolerates display-label dates (`parseLabelDate` fallback) — not manually stored.
+- **Verify:** `tsgo --noEmit` clean, build OK; Playwright confirmed burger opacity 0→1 on hover in its own column, chip click opens "Financial Link — Discovery & Requirements", card shows 61% / 100%.
+
 ## 2026-09-28 — Cost tab: toolbar above KPI cards, cards reflect filters
 
 - **What:** On the project Cost Breakdown tab, the Search + Filter toolbar now sits **above** the Total Budget / Planned Cost / Actual Spent / Utilization cards, and the cards compute from the filtered rows (search by cost line name, category multi-select, CapEx/OpEx) instead of the full cost list. Total Budget stays project-level.

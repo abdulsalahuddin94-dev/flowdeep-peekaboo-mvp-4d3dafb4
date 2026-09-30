@@ -247,7 +247,6 @@ export function ActionTrackerTab({ project }: { project: string }) {
         title="Delete this action?"
         description="The action and its comments will be permanently removed."
         confirmLabel="Delete"
-        variant="destructive"
         onConfirm={() => { if (pendingDelete) removeAction(pendingDelete.id); setPendingDelete(null); toast.success("Action deleted"); }}
       />
       <ConfirmDialog
@@ -256,7 +255,6 @@ export function ActionTrackerTab({ project }: { project: string }) {
         title="Delete this comment?"
         description="This comment will be permanently removed from the action history."
         confirmLabel="Delete"
-        variant="destructive"
         onConfirm={() => { if (pendingDeleteUpdate) removeActionUpdate(pendingDeleteUpdate.a.id, pendingDeleteUpdate.u.id); setPendingDeleteUpdate(null); }}
       />
     </>
@@ -290,7 +288,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
 
   return (
     <FormDialog open={open} onOpenChange={onOpenChange} title={initial ? "Edit action" : "Add action"} size="lg" submitDisabled={!valid} submitLabel={initial ? "Save" : "Add action"}
-      onSubmit={() => valid && onSave({ ...d, title: d.title.trim().slice(0, 150), description: d.description?.trim().slice(0, 500) })}>
+      onSubmit={() => { if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), description: d.description?.trim().slice(0, 500) })}>
       <Field label="Action" htmlFor="act-title"><Input id="act-title" maxLength={150} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder="e.g. Share updated cutover plan" /></Field>
       <Field label="Description" htmlFor="act-desc" optional><Textarea id="act-desc" maxLength={500} value={d.description ?? ""} onChange={(e) => up({ description: e.target.value })} /></Field>
       {!fixedSource && (
@@ -347,7 +345,7 @@ function MeetingActionsDialog({ open, onOpenChange, onSave }: { open: boolean; o
 
   return (
     <FormDialog open={open} onOpenChange={onOpenChange} title="Log meeting actions" size="xl" submitDisabled={!valid} submitLabel={`Add ${filled.length || ""} actions`}
-      onSubmit={() => valid && onSave(name.trim(), date, filled.map((r) => ({ ...r, title: r.title.trim().slice(0, 150), owner: r.owner.trim() })))}>
+      onSubmit={() => { if (valid) onSave(name.trim(), date, filled.map((r) => ({ ...r, title: r.title.trim().slice(0, 150), owner: r.owner.trim() })))}>
       <div className="grid grid-cols-2 gap-4">
         <Field label="Meeting name" htmlFor="mt-name"><Input id="mt-name" maxLength={100} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Weekly progress meeting" /></Field>
         <Field label="Meeting date"><DatePicker value={date} onChange={setDate} /></Field>
@@ -383,7 +381,7 @@ function ActionStatusDialog({ action, editing, onClose, onSave }: { action: Acti
   const valid = comment.trim().length > 0;
   return (
     <FormDialog open={!!action} onOpenChange={(o) => { if (!o) onClose(); }} title={editing ? "Edit comment" : t.updateStatus} description={action?.title} submitDisabled={!valid} submitLabel="Save update"
-      onSubmit={() => valid && onSave(comment.trim().slice(0, COMMENT_MAX), st)}>
+      onSubmit={() => { if (valid) onSave(comment.trim().slice(0, COMMENT_MAX), st)}>
       <Field label="Status">
         <Select value={st} onValueChange={(v) => setSt(v as ActionStatus)}>
           <SelectTrigger><SelectValue /></SelectTrigger>

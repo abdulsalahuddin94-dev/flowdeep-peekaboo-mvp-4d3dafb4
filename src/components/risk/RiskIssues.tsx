@@ -28,6 +28,7 @@ import { useOrgRules, severityForScore, type RiskSeverity } from "@/lib/org-rule
 import { useOrgActive } from "@/lib/org-active";
 import { useCurrentUser } from "@/lib/projects-store";
 import { formatDateWithYear } from "@/lib/date-format";
+import { LinkedActions } from "@/components/actions/ActionTracker";
 
 /* ── Tone helpers ─────────────────────────────────────────────────────────── */
 
@@ -536,9 +537,10 @@ function RiskSheet({
             <div className="label-eyebrow mb-1">Mitigation plan</div>
             <p className="text-sm text-muted-foreground">{risk.mitigation || "No mitigation plan recorded yet."}</p>
           </div>
+          <LinkedActions project={risk.project} source="Risk" sourceRef={risk.id} title="Mitigation actions" />
           <Separator />
           <div>
-            <div className="label-eyebrow mb-2">Status updates</div>
+            <div className="label-eyebrow mb-2">Comments &amp; Updates</div>
             {risk.updates.length === 0 && (
               <p className="text-sm text-muted-foreground">No updates recorded yet.</p>
             )}
@@ -967,9 +969,10 @@ function IssueDetailDrawer({
             <div className="label-eyebrow mb-1">Action plan</div>
             <p className="text-sm text-muted-foreground">{issue.action || "No action plan recorded yet."}</p>
           </div>
+          <LinkedActions project={issue.project} source="Issue" sourceRef={issue.id} title="Action plan actions" />
           <Separator />
           <div>
-            <div className="label-eyebrow mb-2">Comments</div>
+            <div className="label-eyebrow mb-2">Comments &amp; Updates</div>
             {issue.updates.length === 0 && <p className="text-sm text-muted-foreground">No comments recorded yet.</p>}
             <div className="space-y-3">
               {issue.updates.map((u) => (

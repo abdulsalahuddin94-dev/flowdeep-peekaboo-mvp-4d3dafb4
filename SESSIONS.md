@@ -1,3 +1,9 @@
+## 2026-09-30 — Action Tracker
+- New project tab **Action Tracker** (after Status Reports): KPIs Open / Overdue / Due this week / Done / My actions; search + filter drawer (Status incl. derived Overdue, Responsibility Internal/Client/Vendor, Source, Owner); My actions toggle; table with Status as last column swapping to hover actions; row → drawer with Comments & Updates (edit/delete); Add Action and Log meeting actions (batch) dialogs.
+- Shared store `src/lib/action-store.tsx`; Overdue derived from due date + status, never stored. ERP demo: 10 actions across risks, issues, meetings.
+- Risk drawer: **Mitigation actions** section; Issue drawer: **Action plan actions** section — both add actions linked to the record.
+- Renamed "Status updates" / "Comments" in the drawers to **Comments & Updates**.
+
 ## 2026-09-30 — Financial Link: view-only dialog when locked; chips grouped under Cost / Revenue headings
 
 ## 2026-09-29 — WBS burger column + chip click; Portfolio card planned %

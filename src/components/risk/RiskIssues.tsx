@@ -28,7 +28,8 @@ import { useOrgRules, severityForScore, type RiskSeverity } from "@/lib/org-rule
 import { useOrgActive } from "@/lib/org-active";
 import { useCurrentUser } from "@/lib/projects-store";
 import { formatDateWithYear } from "@/lib/date-format";
-import { LinkedActions } from "@/components/actions/ActionTracker";
+import { LinkedActions, ActionsCount, ActionRowsEditor, emptyActionRow, actionRowsValid, cleanActionRows, type ActionRow } from "@/components/actions/ActionTracker";
+import { useActions } from "@/lib/action-store";
 
 /* ── Tone helpers ─────────────────────────────────────────────────────────── */
 
@@ -81,6 +82,7 @@ export function useSeverity() {
 /* ── Risk register ────────────────────────────────────────────────────────── */
 
 export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues }: { project?: string; milestoneOptions?: string[]; onViewLinkedIssues?: (riskId: string) => void }) {
+  const { addActions } = useActions();
   const { risks, issues, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, editRiskUpdate, removeRiskUpdate, convertRiskToIssue } = useRiskRegister();
   const hasLinkedIssue = (riskId: string) => issues.some((i) => i.riskId === riskId);
   const { severityOf, rules } = useSeverity();
@@ -159,9 +161,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues 
                 <StyledTableCell className="text-center">
                   <Pill label={severityOf(r.score)} tone={SEVERITY_TONE[severityOf(r.score)]} />
                 </StyledTableCell>
-                <StyledTableCell className="max-w-[220px] truncate text-muted-foreground" title={r.mitigation || undefined}>
-                  {r.mitigation || "—"}
-                </StyledTableCell>
+                <StyledTableCell><ActionsCount source="Risk" sourceRef={r.id} /></StyledTableCell>
                 <StyledTableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
                     showStatus
@@ -196,9 +196,10 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues 
         categoryOptions={activeCategories.length > 0 ? activeCategories : categories.map((c) => c.name)}
         milestoneOptions={milestoneList}
 
-        onSave={(risk) => {
+        onSave={(risk, actionRows) => {
           if (editing) updateRisk(editing.id, risk);
-          else addRisk({ ...risk, owner: risk.owner || currentUser.name });
+          const rid = editing ? editing.id : addRisk({ ...risk, owner: risk.owner || currentUser.name });
+          if (actionRows.length) addActions(actionRows.map((a) => ({ ...a, project: risk.project, source: "Risk" as const, sourceRef: rid, status: "Open" as const })));
           toast.done("Risk", editing ? "updated" : "logged");
           setFormOpen(false);
           setEditing(null);
@@ -285,7 +286,7 @@ function RiskFormDialog({
   categoryOptions: string[];
   milestoneOptions: string[];
   lockedProject?: string;
-  onSave: (risk: Omit<RiskRecord, "id" | "updates">) => void;
+  onSave: (risk: Omit<RiskRecord, "id" | "updates">, actions: ActionRow[]) => void;
 }) {
   const { severityOf, rules } = useSeverity();
   const [title, setTitle] = useState(risk?.title ?? "");
@@ -296,7 +297,7 @@ function RiskFormDialog({
   const [impact, setImpact] = useState(String(risk?.impact ?? 3));
   const [status, setStatus] = useState<RiskStatus>(risk?.status ?? "Open");
   const statusOptions = RISK_STATUSES.includes(status) ? RISK_STATUSES : [...RISK_STATUSES, status];
-  const [mitigation, setMitigation] = useState(risk?.mitigation ?? "");
+  const [actionRows, setActionRows] = useState<ActionRow[]>([emptyActionRow()]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const score = Number(prob) * Number(impact);
@@ -321,6 +322,7 @@ function RiskFormDialog({
     if (!title.trim()) next.title = "Risk title is required";
     if (!project) next.project = "Select the project this risk belongs to";
     if (!category) next.category = "Select a category";
+    if (!actionRowsValid(actionRows)) next.actions = "Each action needs an owner and a due date";
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -328,9 +330,9 @@ function RiskFormDialog({
       project, title: title.trim(), category,
       owner: risk?.owner ?? "",
       prob: Number(prob), impact: Number(impact), score, status,
-      mitigation: mitigation.trim(),
+      mitigation: risk?.mitigation ?? "",
       milestone: milestone === "none" ? undefined : milestone,
-    });
+    }, cleanActionRows(actionRows));
   }
 
 
@@ -340,7 +342,7 @@ function RiskFormDialog({
       onOpenChange={onOpenChange}
       title={risk ? (lockedProject ? `Edit risk for ${lockedProject}` : "Edit risk") : (lockedProject ? `Log a new risk for ${lockedProject}` : "Log a new risk")}
       description={risk ? "Update this risk's classification, scoring and mitigation plan." : "Record a potential event, assess its likelihood and impact, and define an optional mitigation plan."}
-      size="lg"
+      size="xl"
       submitLabel={risk ? "Save Changes" : "Log Risk"}
       submitDisabled={scoreLoading}
       onSubmit={submit}
@@ -432,9 +434,8 @@ function RiskFormDialog({
         </Field>
       </div>
 
-      <Field label="Mitigation plan" htmlFor="risk-mitigation" optional>
-        <Textarea id="risk-mitigation" value={mitigation} onChange={(e) => setMitigation(e.target.value)} placeholder="Actions that reduce probability or impact" rows={3} />
-      </Field>
+      <ActionRowsEditor rows={actionRows} onChange={setActionRows} label={risk ? "Add mitigation actions" : "Mitigation plan"}
+        hint={errors.actions ?? (risk ? "Existing actions are tracked from the risk details and the Action Tracker." : "Optional — each action is tracked in the Action Tracker.")} />
     </FormDialog>
   );
 }
@@ -533,11 +534,7 @@ function RiskSheet({
             </div>
           )}
           <Separator />
-          <div>
-            <div className="label-eyebrow mb-1">Mitigation plan</div>
-            <p className="text-sm text-muted-foreground">{risk.mitigation || "No mitigation plan recorded yet."}</p>
-          </div>
-          <LinkedActions project={risk.project} source="Risk" sourceRef={risk.id} title="Mitigation actions" />
+          <LinkedActions project={risk.project} source="Risk" sourceRef={risk.id} title="Mitigation plan" />
           <Separator />
           <div>
             <div className="label-eyebrow mb-2">Comments &amp; Updates</div>
@@ -716,6 +713,7 @@ const normTitle = (v: string) => v.trim().replace(/\s+/g, " ").toLowerCase();
 const fmtDate = (v?: string) => formatDateWithYear(v);
 
 export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilterProp, onRiskFilterChange }: { project?: string; milestoneOptions?: string[]; riskFilter?: string[]; onRiskFilterChange?: (v: string[]) => void }) {
+  const { addActions } = useActions();
   const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate, editIssueUpdate, removeIssueUpdate } = useRiskRegister();
   const rules = useOrgRules();
   const { currentUser } = useCurrentUser();
@@ -832,13 +830,14 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
         risks={risks}
         milestoneOptions={milestoneList}
         impactLabels={rules.risk.impactLabels}
-        onSave={(issue) => {
+        onSave={(issue, actionRows) => {
           if (isDuplicateTitle(issue.title, editing?.id)) {
             toast.error(`Issue "${issue.title.trim()}" already exists`, { description: "Issue titles must be unique." });
             return;
           }
           if (editing) updateIssue(editing.id, issue);
-          else addIssue(issue);
+          const iid = editing ? editing.id : addIssue(issue);
+          if (actionRows.length) addActions(actionRows.map((a) => ({ ...a, project: issue.project, source: "Issue" as const, sourceRef: iid, status: "Open" as const })));
           toast.done("Issue", editing ? "updated" : "logged");
           setFormOpen(false);
           setEditing(null);
@@ -965,11 +964,7 @@ function IssueDetailDrawer({
             <p className="text-sm text-foreground">{issue.milestone || "—"}</p>
           </div>
           <Separator />
-          <div>
-            <div className="label-eyebrow mb-1">Action plan</div>
-            <p className="text-sm text-muted-foreground">{issue.action || "No action plan recorded yet."}</p>
-          </div>
-          <LinkedActions project={issue.project} source="Issue" sourceRef={issue.id} title="Actions" />
+          <LinkedActions project={issue.project} source="Issue" sourceRef={issue.id} title="Action plan" />
           <Separator />
           <div>
             <div className="label-eyebrow mb-2">Comments &amp; Updates</div>
@@ -1025,7 +1020,7 @@ function IssueFormDialog({
   milestoneOptions: string[];
   impactLabels: string[];
   lockedProject?: string;
-  onSave: (issue: Omit<IssueItem, "id">) => void;
+  onSave: (issue: Omit<IssueItem, "id">, actions: ActionRow[]) => void;
 }) {
   const [title, setTitle] = useState(issue?.title ?? "");
   const [project, setProject] = useState(issue?.project ?? lockedProject ?? "");
@@ -1034,7 +1029,7 @@ function IssueFormDialog({
   const [impact, setImpact] = useState(String(issue?.impact ?? 3));
   const [openDate, setOpenDate] = useState(issue?.openDate ?? todayISO());
   const [targetDate, setTargetDate] = useState(issue?.targetDate ?? "");
-  const [action, setAction] = useState(issue?.action ?? "");
+  const [actionRows, setActionRows] = useState<ActionRow[]>([emptyActionRow()]);
   const [riskId, setRiskId] = useState(issue?.riskId ?? "none");
   const [milestone, setMilestone] = useState(issue?.milestone ?? "none");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -1044,6 +1039,7 @@ function IssueFormDialog({
     if (!title.trim()) next.title = "Issue title is required";
     if (!project) next.project = "Select the project this issue belongs to";
     if (!openDate) next.openDate = "Open date is required";
+    if (!actionRowsValid(actionRows)) next.actions = "Each action needs an owner and a due date";
     if (targetDate && openDate && targetDate < openDate) next.targetDate = "Target date cannot be before the open date";
     setErrors(next);
     if (Object.keys(next).length > 0) return;
@@ -1056,12 +1052,12 @@ function IssueFormDialog({
       openDate,
       targetDate: targetDate || undefined,
       closureDate: status === "Resolved" ? (issue?.closureDate ?? todayISO()) : undefined,
-      action: action.trim(),
+      action: issue?.action ?? "",
       riskId: riskId === "none" ? undefined : riskId,
       milestone: milestone === "none" ? undefined : milestone,
       resolution: issue?.resolution,
       attachment: issue?.attachment,
-    });
+    }, cleanActionRows(actionRows));
   }
 
   return (
@@ -1070,7 +1066,7 @@ function IssueFormDialog({
       onOpenChange={onOpenChange}
       title={issue ? (lockedProject ? `Edit issue for ${lockedProject}` : "Edit issue") : (lockedProject ? `Log a new issue for ${lockedProject}` : "Log a new issue")}
       description={issue ? "Update this issue's details and action plan." : "Record a realized event that requires immediate corrective action."}
-      size="lg"
+      size="xl"
       submitLabel={issue ? "Save Changes" : "Log Issue"}
       onSubmit={submit}
     >
@@ -1145,9 +1141,8 @@ function IssueFormDialog({
         </Select>
       </Field>
 
-      <Field label="Action plan" htmlFor="issue-action" optional>
-        <Textarea id="issue-action" value={action} onChange={(e) => setAction(e.target.value)} placeholder="Planned corrective action" rows={3} />
-      </Field>
+      <ActionRowsEditor rows={actionRows} onChange={setActionRows} label={issue ? "Add actions" : "Action plan"}
+        hint={errors.actions ?? (issue ? "Existing actions are tracked from the issue details and the Action Tracker." : "Optional — each action is tracked in the Action Tracker.")} />
     </FormDialog>
   );
 }

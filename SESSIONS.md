@@ -1,3 +1,7 @@
+## 2026-09-30 — Risk/Issue forms: action-by-row plans
+- Mitigation plan (risk) and Action plan (issue) free text replaced by the shared `ActionRowsEditor` (Action · Owner · Responsibility · Due date · remove, Add row) used by Log meeting actions.
+- Rows create linked Action Tracker actions on save; drawers show the linked actions under Mitigation plan / Action plan; Risk Register column shows the action count.
+
 ## 2026-09-30 — Restore project Budget summary card
 - Restored the Budget card in the project overview summary grid between Timeline and Stage Gate, showing actual spend / total budget and the capped utilization percentage.
 

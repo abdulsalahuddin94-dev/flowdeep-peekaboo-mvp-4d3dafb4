@@ -969,7 +969,7 @@ function IssueDetailDrawer({
             <div className="label-eyebrow mb-1">Action plan</div>
             <p className="text-sm text-muted-foreground">{issue.action || "No action plan recorded yet."}</p>
           </div>
-          <LinkedActions project={issue.project} source="Issue" sourceRef={issue.id} title="Action plan actions" />
+          <LinkedActions project={issue.project} source="Issue" sourceRef={issue.id} title="Actions" />
           <Separator />
           <div>
             <div className="label-eyebrow mb-2">Comments &amp; Updates</div>

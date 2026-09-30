@@ -21,3 +21,5 @@
 - [x] Replace the Risk & Issues KPI for Open Risks with the Low Risks severity count.
 - [x] Give the WBS burger menu its own narrow hover-only actions column and make the Financial Link chip clickable.
 - [x] Show Planned % next to Actual % on Portfolio project cards with a planned marker on the progress bar.
+- [x] Add a project Action Tracker tab (Risk / Issue / Meeting / General actions, owner, responsibility, due date, derived Overdue, filters, My actions, comments & updates).
+- [x] Show linked actions in Risk and Issue drawers and rename their history to Comments & Updates.

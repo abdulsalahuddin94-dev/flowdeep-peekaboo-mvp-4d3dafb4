@@ -1,3 +1,6 @@
+## 2026-09-30 — Restore project Budget summary card
+- Restored the Budget card in the project overview summary grid between Timeline and Stage Gate, showing actual spend / total budget and the capped utilization percentage.
+
 ## 2026-09-30 — Financial Link: multi-link cell layout
 - The Financial Link column now handles multiple links per WBS item: the first link renders as its colored chip (Revenue green / cost amber) plus a compact "+N" chip counting the remaining links; both chips open the same view dialog. Cell stays single-line.
 - Schedule CSV export now lists every linked item (`Revenue $0.96M; Labour — core delivery team $1.20M; …`) instead of only the primary link.

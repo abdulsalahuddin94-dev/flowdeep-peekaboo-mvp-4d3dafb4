@@ -1,3 +1,6 @@
+## 2026-09-30 — Linked actions: icon-only add control
+- Replaced the “Add action” text button in Risk and Issue drawers with a compact outlined + icon button; its accessible label and hover title remain “Add action”.
+
 ## 2026-09-30 — Issue drawer: section rename
 - Issue drawer's actions section renamed from "Action plan actions" to **Actions** — it followed the "Action plan" strategy text and read as a stutter.
 

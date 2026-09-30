@@ -22,6 +22,7 @@ type Props = {
   /** ids already attached to another WBS item anywhere in the system */
   linkedElsewhere: Set<string>;
   hint?: string;
+  readOnly?: boolean;
 };
 
 function parseAmount(a: string) {
@@ -33,26 +34,28 @@ function fmtTotal(ids: string[]) {
   return `$${sum.toFixed(2)}M`;
 }
 
-function Chip({ id, onRemove }: { id: string; onRemove: () => void }) {
+function Chip({ id, onRemove }: { id: string; onRemove?: () => void }) {
   const item = findFinancialItem(id);
   if (!item) return null;
   return (
     <span className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-md bg-muted px-2 text-xs text-foreground">
       <span className="truncate">{item.label}</span>
       <span className="num-mono shrink-0 text-muted-foreground">{item.amount}</span>
-      <button
-        type="button"
-        aria-label={`Unlink ${item.label}`}
-        onClick={onRemove}
-        className="shrink-0 rounded p-0.5 text-muted-foreground hover:text-foreground"
-      >
-        <X className="h-3 w-3" />
-      </button>
+      {onRemove && (
+        <button
+          type="button"
+          aria-label={`Unlink ${item.label}`}
+          onClick={onRemove}
+          className="shrink-0 rounded p-0.5 text-muted-foreground hover:text-foreground"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
     </span>
   );
 }
 
-export function FinancialLinkField({ costIds, revenueIds, onChange, linkedElsewhere, hint }: Props) {
+export function FinancialLinkField({ costIds, revenueIds, onChange, linkedElsewhere, hint, readOnly = false }: Props) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"cost" | "revenue">("cost");
   const [query, setQuery] = useState("");
@@ -100,20 +103,36 @@ export function FinancialLinkField({ costIds, revenueIds, onChange, linkedElsewh
             {totalCount > 0 ? summary : "Nothing linked yet — amounts come from the Financials tab."}
           </p>
         </div>
-        <Button variant="outline" size="sm" className="shrink-0" onClick={() => openPicker("cost")}>
-          <Plus className="mr-1 h-3.5 w-3.5" />
-          {totalCount > 0 ? "Manage" : "Link items"}
-        </Button>
+        {!readOnly && (
+          <Button variant="outline" size="sm" className="shrink-0" onClick={() => openPicker("cost")}>
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            {totalCount > 0 ? "Manage" : "Link items"}
+          </Button>
+        )}
       </div>
 
       {totalCount > 0 && (
-        <div className="mt-3 flex max-h-24 flex-wrap gap-1.5 overflow-y-auto">
-          {costIds.map((id) => (
-            <Chip key={id} id={id} onRemove={() => onChange({ cost: costIds.filter((x) => x !== id), revenue: revenueIds })} />
-          ))}
-          {revenueIds.map((id) => (
-            <Chip key={id} id={id} onRemove={() => onChange({ cost: costIds, revenue: revenueIds.filter((x) => x !== id) })} />
-          ))}
+        <div className="mt-3 max-h-48 space-y-3 overflow-y-auto">
+          {costIds.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-rag-amber">Cost · {costIds.length}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {costIds.map((id) => (
+                  <Chip key={id} id={id} onRemove={readOnly ? undefined : () => onChange({ cost: costIds.filter((x) => x !== id), revenue: revenueIds })} />
+                ))}
+              </div>
+            </div>
+          )}
+          {revenueIds.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-rag-green">Revenue · {revenueIds.length}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {revenueIds.map((id) => (
+                  <Chip key={id} id={id} onRemove={readOnly ? undefined : () => onChange({ cost: costIds, revenue: revenueIds.filter((x) => x !== id) })} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

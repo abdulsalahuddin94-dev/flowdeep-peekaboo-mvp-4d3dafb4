@@ -992,10 +992,6 @@ function ProjectDetail() {
               setCreateDependencyOpen(true);
             }}
             onFinancialLinkClick={(name) => {
-              if (!isEditingAllowed) {
-                toast.error("📖 View Only — Click 'Change Plan' to edit");
-                return;
-              }
               setFinLinkItem(name);
             }}
             AddItemSlot={
@@ -1403,6 +1399,7 @@ function ProjectDetail() {
         item={finLinkItem ? milestones.find((m) => m.name === finLinkItem) : undefined}
         items={milestones}
         projectName={project.name}
+        readOnly={!isEditingAllowed || !!milestones.find((m) => m.name === finLinkItem)?.isApprovalTask}
         onSave={(name, payment, extras) =>
           setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, payment, extraPayments: extras } : m)))
         }
@@ -6945,8 +6942,9 @@ function ProjectRiskIssuesTab({ projectName, milestoneOptions }: { projectName: 
 
 // ── Financial Link dialog (opened from the WBS "Financial Link" cell) ─────────
 function ScheduleFinancialLinkDialog({
-  open, onOpenChange, item, items, projectName, onSave,
+  open, onOpenChange, item, items, projectName, onSave, readOnly = false,
 }: {
+  readOnly?: boolean;
   open: boolean;
   onOpenChange: (v: boolean) => void;
   item?: Milestone;
@@ -6996,7 +6994,9 @@ function ScheduleFinancialLinkDialog({
         <DialogHeader>
           <DialogTitle>Financial Link — {item?.name}</DialogTitle>
           <DialogDescription>
-            Amounts are defined in the Financials tab; here you only attach items to this {item?.kind === "Milestone" ? "milestone" : "task"}.
+            {readOnly
+              ? "View only — click 'Change Plan' to edit the linked items."
+              : <>Amounts are defined in the Financials tab; here you only attach items to this {item?.kind === "Milestone" ? "milestone" : "task"}.</>}
           </DialogDescription>
         </DialogHeader>
         <FinancialLinkField
@@ -7004,11 +7004,14 @@ function ScheduleFinancialLinkDialog({
           revenueIds={revenueIds}
           onChange={({ cost, revenue }) => { setCostIds(cost); setRevenueIds(revenue); }}
           linkedElsewhere={linkedElsewhere}
+          readOnly={readOnly}
         />
-        <DialogFooter>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button variant="primary" onClick={save}>Save links</Button>
-        </DialogFooter>
+        {!readOnly && (
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button variant="primary" onClick={save}>Save links</Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

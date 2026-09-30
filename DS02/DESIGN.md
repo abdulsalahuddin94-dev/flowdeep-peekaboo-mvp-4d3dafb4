@@ -147,6 +147,9 @@ Theme controlled via `data-theme` attribute on `<html>`:
 
 ## 8. Changelog
 
+### DS02.v3.13 (2026-09-30)
+- **Financial Link cell:** when an item carries multiple links, the cell shows the first link as its colored chip (Revenue green / cost amber) plus a muted "+N" chip for the remainder; both open the same link dialog. Cell remains single-line and never wraps.
+
 ### DS02.v3.11 (2026-09-29)
 - **Schedule tables:** row actions (burger menu) live in a dedicated narrow actions column that appears only on hover — overlays must never cover data cells; the Financial Link chip itself is clickable and opens its link dialog.
 - **Portfolio cards:** progress shows `Actual % / Planned %` with a planned marker on the bar (planned is time-derived, never stored).

@@ -1411,9 +1411,9 @@ export function ProjectSchedule({
                           ) : (
                             <button
                               type="button"
-                              title={restricted || isGate ? item.payment.kind : "Open financial link"}
-                              onClick={restricted || isGate ? undefined : () => onFinancialLinkClick?.(item.name)}
-                              className={`max-w-full cursor-pointer transition-opacity hover:opacity-80 ${restricted || isGate ? "cursor-default" : ""}`}
+                              title="Open financial link"
+                              onClick={() => onFinancialLinkClick?.(item.name)}
+                              className="max-w-full cursor-pointer transition-opacity hover:opacity-80"
                             >
                               {item.payment.kind === "Client Revenue" ? (
                                 <Badge variant="outline" className="border-rag-green/40 bg-rag-green/10 text-rag-green text-[10px]">

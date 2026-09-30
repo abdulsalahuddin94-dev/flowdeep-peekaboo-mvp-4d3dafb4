@@ -1,3 +1,5 @@
+## 2026-09-30 — Financial Link: view-only dialog when locked; chips grouped under Cost / Revenue headings
+
 ## 2026-09-29 — WBS burger column + chip click; Portfolio card planned %
 
 - **Financial Link column (`src/components/ProjectSchedule.tsx`):** the hover burger menu now lives in its own dedicated 52px actions column (appears only on row hover) instead of an absolute overlay that covered the last data column. The Financial Link chip is now itself clickable — it opens the same Financial Link dialog (disabled/toast in view-only or approval-gate rows, unchanged behavior). Table width math updated (`nameW + colsW + ROW_ACTIONS_W`).

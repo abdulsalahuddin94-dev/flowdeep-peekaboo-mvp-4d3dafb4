@@ -1,3 +1,6 @@
+## 2026-09-30 — Issue drawer: section rename
+- Issue drawer's actions section renamed from "Action plan actions" to **Actions** — it followed the "Action plan" strategy text and read as a stutter.
+
 ## 2026-09-30 — Action Tracker: remove ID column
 - Removed the ID column from the Action Tracker table (header, cells, EmptyRow colSpan 7→6). IDs remain internal; the drawer still shows record context.
 

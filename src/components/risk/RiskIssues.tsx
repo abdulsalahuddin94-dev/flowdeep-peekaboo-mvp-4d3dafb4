@@ -161,9 +161,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues 
                 <StyledTableCell className="text-center">
                   <Pill label={severityOf(r.score)} tone={SEVERITY_TONE[severityOf(r.score)]} />
                 </StyledTableCell>
-                <StyledTableCell className="max-w-[220px] truncate text-muted-foreground" title={r.mitigation || undefined}>
-                  {r.mitigation || "—"}
-                </StyledTableCell>
+                <StyledTableCell><ActionsCount source="Risk" sourceRef={r.id} /></StyledTableCell>
                 <StyledTableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
                     showStatus
@@ -344,7 +342,7 @@ function RiskFormDialog({
       onOpenChange={onOpenChange}
       title={risk ? (lockedProject ? `Edit risk for ${lockedProject}` : "Edit risk") : (lockedProject ? `Log a new risk for ${lockedProject}` : "Log a new risk")}
       description={risk ? "Update this risk's classification, scoring and mitigation plan." : "Record a potential event, assess its likelihood and impact, and define an optional mitigation plan."}
-      size="lg"
+      size="xl"
       submitLabel={risk ? "Save Changes" : "Log Risk"}
       submitDisabled={scoreLoading}
       onSubmit={submit}
@@ -536,11 +534,7 @@ function RiskSheet({
             </div>
           )}
           <Separator />
-          <div>
-            <div className="label-eyebrow mb-1">Mitigation plan</div>
-            <p className="text-sm text-muted-foreground">{risk.mitigation || "No mitigation plan recorded yet."}</p>
-          </div>
-          <LinkedActions project={risk.project} source="Risk" sourceRef={risk.id} title="Mitigation actions" />
+          <LinkedActions project={risk.project} source="Risk" sourceRef={risk.id} title="Mitigation plan" />
           <Separator />
           <div>
             <div className="label-eyebrow mb-2">Comments &amp; Updates</div>
@@ -970,11 +964,7 @@ function IssueDetailDrawer({
             <p className="text-sm text-foreground">{issue.milestone || "—"}</p>
           </div>
           <Separator />
-          <div>
-            <div className="label-eyebrow mb-1">Action plan</div>
-            <p className="text-sm text-muted-foreground">{issue.action || "No action plan recorded yet."}</p>
-          </div>
-          <LinkedActions project={issue.project} source="Issue" sourceRef={issue.id} title="Actions" />
+          <LinkedActions project={issue.project} source="Issue" sourceRef={issue.id} title="Action plan" />
           <Separator />
           <div>
             <div className="label-eyebrow mb-2">Comments &amp; Updates</div>
@@ -1076,7 +1066,7 @@ function IssueFormDialog({
       onOpenChange={onOpenChange}
       title={issue ? (lockedProject ? `Edit issue for ${lockedProject}` : "Edit issue") : (lockedProject ? `Log a new issue for ${lockedProject}` : "Log a new issue")}
       description={issue ? "Update this issue's details and action plan." : "Record a realized event that requires immediate corrective action."}
-      size="lg"
+      size="xl"
       submitLabel={issue ? "Save Changes" : "Log Issue"}
       onSubmit={submit}
     >

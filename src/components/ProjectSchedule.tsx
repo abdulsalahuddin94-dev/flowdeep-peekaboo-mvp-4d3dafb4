@@ -189,6 +189,8 @@ export type ScheduleItem = {
   dep: string;
   roles: RoleReq[];
   payment?: PaymentLink;
+  /** Additional linked financial items (cost/revenue) beyond the primary link. */
+  extraPayments?: PaymentLink[];
   progress?: number;
   parent?: string;
   assignee?: string;
@@ -884,9 +886,10 @@ export function ProjectSchedule({
       const dur = s && e ? diffDays(e, s) + 1 : "";
       const h = healthMap.get(it.name);
       const roles = it.roles.map((r) => `${r.role} (${r.skill}, ${r.fte})`).join("; ");
-      const pay = !it.payment || it.payment.kind === "None" ? "" :
-        it.payment.kind === "Client Revenue" ? `Revenue ${it.payment.amount}` :
-        `${it.payment.packageId ?? "Pkg"} ${it.payment.amount}`;
+      const payLinks = [it.payment, ...(it.extraPayments ?? [])].filter(Boolean) as PaymentLink[];
+      const pay = payLinks.length === 0 ? "" : payLinks
+        .map((p) => (p.kind === "Client Revenue" ? `Revenue ${p.amount}` : `${p.packageId ?? "Pkg"} ${p.amount}`))
+        .join("; ");
       rows.push([
         it.name, it.kind, it.parent ?? "", it.startDate, it.endDate, dur as any,
         it.owner, it.assignee ?? "", it.rag, it.progress ?? 0,
@@ -1401,34 +1404,51 @@ export function ProjectSchedule({
                         ) : <span className="text-xs">—</span>}
                       </div>
                     )}
-                    {colVisible("payment") && (
+                    {colVisible("payment") && (() => {
+                      const payLinks = [item.payment, ...(item.extraPayments ?? [])].filter(Boolean) as PaymentLink[];
+                      return (
                       <div className="flex items-center overflow-hidden px-3" style={{ width: widths.payment }}>
-                        <div className="flex max-w-full items-center overflow-hidden text-left">
-                          {!item.payment || item.payment.kind === "None" ? (
+                        <div className="flex max-w-full items-center gap-1 overflow-hidden text-left">
+                          {payLinks.length === 0 ? (
                             <span className={restricted || isGate ? "text-muted-foreground" : "text-xs text-accent hover:underline"}>
                               —
                             </span>
                           ) : (
-                            <button
-                              type="button"
-                              title="Open financial link"
-                              onClick={() => onFinancialLinkClick?.(item.name)}
-                              className="max-w-full cursor-pointer transition-opacity hover:opacity-80"
-                            >
-                              {item.payment.kind === "Client Revenue" ? (
-                                <Badge variant="outline" className="border-rag-green/40 bg-rag-green/10 text-rag-green text-[10px]">
-                                  Revenue · {item.payment.amount || "—"}
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
-                                  {item.payment.packageId || "Pkg"} · {item.payment.amount || "—"}
-                                </Badge>
+                            <>
+                              <button
+                                type="button"
+                                title="Open financial link"
+                                onClick={() => onFinancialLinkClick?.(item.name)}
+                                className="min-w-0 max-w-full cursor-pointer transition-opacity hover:opacity-80"
+                              >
+                                {payLinks[0].kind === "Client Revenue" ? (
+                                  <Badge variant="outline" className="max-w-full truncate border-rag-green/40 bg-rag-green/10 text-rag-green text-[10px]">
+                                    Revenue · {payLinks[0].amount || "—"}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="max-w-full truncate border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
+                                    {payLinks[0].packageId || "Pkg"} · {payLinks[0].amount || "—"}
+                                  </Badge>
+                                )}
+                              </button>
+                              {payLinks.length > 1 && (
+                                <button
+                                  type="button"
+                                  title={`${payLinks.length} financial links — click to view all`}
+                                  onClick={() => onFinancialLinkClick?.(item.name)}
+                                  className="shrink-0 cursor-pointer transition-opacity hover:opacity-80"
+                                >
+                                  <Badge variant="outline" className="border-border bg-muted/60 text-muted-foreground text-[10px]">
+                                    +{payLinks.length - 1}
+                                  </Badge>
+                                </button>
                               )}
-                            </button>
+                            </>
                           )}
                         </div>
                       </div>
-                    )}
+                      );
+                    })()}
                     {/* Dedicated hover-only burger column — never covers data cells */}
                     <div className="flex items-center justify-center" style={{ width: ROW_ACTIONS_W }}>
                       <div className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">

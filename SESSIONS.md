@@ -1,3 +1,8 @@
+## 2026-09-30 — Financial Link: multi-link cell layout
+- The Financial Link column now handles multiple links per WBS item: the first link renders as its colored chip (Revenue green / cost amber) plus a compact "+N" chip counting the remaining links; both chips open the same view dialog. Cell stays single-line.
+- Schedule CSV export now lists every linked item (`Revenue $0.96M; Labour — core delivery team $1.20M; …`) instead of only the primary link.
+- Demo: Discovery Sign-off (ERP System Upgrade) carries 3 catalog links (FIN-R-ADV, FIN-C-LAB, FIN-R-P1) to exercise the layout.
+
 ## 2026-09-30 — Linked actions: icon-only add control
 - Replaced the “Add action” text button in Risk and Issue drawers with a compact outlined + icon button; its accessible label and hover title remain “Add action”.
 

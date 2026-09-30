@@ -19,7 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { EditAction, DeleteAction, ClipboardCheck } from "@/lib/icons";
+import { EditAction, DeleteAction, ClipboardCheck, Plus } from "@/lib/icons";
 import { formatDateWithYear } from "@/lib/date-format";
 import { useCurrentUser } from "@/lib/projects-store";
 import { useRiskRegister } from "@/lib/risk-store";
@@ -467,7 +467,15 @@ export function LinkedActions({ project, source, sourceRef, title }: { project: 
     <div>
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="label-eyebrow">{title} <span className="num-mono normal-case text-muted-foreground">· {done}/{linked.length} done{overdue ? ` · ${overdue} overdue` : ""}</span></div>
-        <Button variant="outline" size="sm" onClick={() => setOpen(true)}>Add action</Button>
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="Add action"
+          title="Add action"
+          onClick={() => setOpen(true)}
+        >
+          <Plus className="h-5 w-5" />
+        </Button>
       </div>
       {linked.length === 0 && <p className="text-sm text-muted-foreground">No actions yet. Tracked in the project's Action Tracker.</p>}
       <div className="space-y-2">

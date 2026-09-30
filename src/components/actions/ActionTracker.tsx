@@ -331,41 +331,55 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
 
 /* ── Meeting batch ───────────────────────────────────────────────────────── */
 
-type Row = { title: string; owner: string; responsibility: ActionResponsibility; dueDate: string };
+export type ActionRow = { title: string; owner: string; responsibility: ActionResponsibility; dueDate: string };
+type Row = ActionRow;
+export const emptyActionRow = (): ActionRow => ({ title: "", owner: "", responsibility: "Internal", dueDate: "" });
+/** Rows with a title; all of them must have owner + due date to be valid. */
+export function filledActionRows(rows: ActionRow[]) { return rows.filter((r) => r.title.trim()); }
+export function actionRowsValid(rows: ActionRow[]) { return filledActionRows(rows).every((r) => r.owner.trim() && r.dueDate); }
+export function cleanActionRows(rows: ActionRow[]) { return filledActionRows(rows).map((r) => ({ ...r, title: r.title.trim().slice(0, 150), owner: r.owner.trim() })); }
+
+/** Shared action-by-row editor (meeting batch, risk mitigation, issue action plan). */
+export function ActionRowsEditor({ rows, onChange, label = "Actions", hint }: { rows: ActionRow[]; onChange: (rows: ActionRow[]) => void; label?: string; hint?: string }) {
+  const up = (i: number, p: Partial<Row>) => onChange(rows.map((r, j) => (j === i ? { ...r, ...p } : r)));
+  return (
+    <div className="space-y-2">
+      <div className="label-eyebrow">{label}</div>
+      {rows.map((r, i) => (
+        <div key={i} className="grid grid-cols-[1fr_140px_120px_150px_36px] gap-2">
+          <Input aria-label="Action" maxLength={150} value={r.title} onChange={(e) => up(i, { title: e.target.value })} placeholder="Action" />
+          <Input aria-label="Owner" maxLength={80} value={r.owner} onChange={(e) => up(i, { owner: e.target.value })} placeholder="Owner" />
+          <Select value={r.responsibility} onValueChange={(v) => up(i, { responsibility: v as ActionResponsibility })}>
+            <SelectTrigger aria-label="Responsibility"><SelectValue /></SelectTrigger>
+            <SelectContent>{ACTION_RESPONSIBILITIES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+          </Select>
+          <DatePicker value={r.dueDate} onChange={(v) => up(i, { dueDate: v })} placeholder="Due date" />
+          <Button type="button" variant="ghost" size="icon" aria-label="Remove row" disabled={rows.length === 1} onClick={() => onChange(rows.filter((_, j) => j !== i))}><DeleteAction size={14} /></Button>
+        </div>
+      ))}
+      <Button type="button" variant="outline" onClick={() => onChange([...rows, emptyActionRow()])}>Add row</Button>
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
 function MeetingActionsDialog({ open, onOpenChange, onSave }: { open: boolean; onOpenChange: (o: boolean) => void; onSave: (name: string, date: string, rows: Row[]) => void }) {
-  const empty = (): Row => ({ title: "", owner: "", responsibility: "Internal", dueDate: "" });
   const [name, setName] = useState("");
   const [date, setDate] = useState(todayIso());
-  const [rows, setRows] = useState<Row[]>([empty(), empty()]);
+  const [rows, setRows] = useState<Row[]>([emptyActionRow(), emptyActionRow()]);
   const [was, setWas] = useState(false);
-  if (open !== was) { setWas(open); if (open) { setName(""); setDate(todayIso()); setRows([empty(), empty()]); } }
-  const filled = rows.filter((r) => r.title.trim());
-  const valid = name.trim() && date && filled.length > 0 && filled.every((r) => r.owner.trim() && r.dueDate);
-  const up = (i: number, p: Partial<Row>) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...p } : r)));
+  if (open !== was) { setWas(open); if (open) { setName(""); setDate(todayIso()); setRows([emptyActionRow(), emptyActionRow()]); } }
+  const filled = filledActionRows(rows);
+  const valid = name.trim() && date && filled.length > 0 && actionRowsValid(rows);
 
   return (
     <FormDialog open={open} onOpenChange={onOpenChange} title="Log meeting actions" size="xl" submitDisabled={!valid} submitLabel={`Add ${filled.length || ""} actions`}
-      onSubmit={() => { if (valid) onSave(name.trim(), date, filled.map((r) => ({ ...r, title: r.title.trim().slice(0, 150), owner: r.owner.trim() }))); }}>
+      onSubmit={() => { if (valid) onSave(name.trim(), date, cleanActionRows(rows)); }}>
       <div className="grid grid-cols-2 gap-4">
         <Field label="Meeting name" htmlFor="mt-name"><Input id="mt-name" maxLength={100} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Weekly progress meeting" /></Field>
         <Field label="Meeting date"><DatePicker value={date} onChange={setDate} /></Field>
       </div>
-      <div className="space-y-2">
-        <div className="label-eyebrow">Actions</div>
-        {rows.map((r, i) => (
-          <div key={i} className="grid grid-cols-[1fr_160px_130px_150px_36px] gap-2">
-            <Input aria-label="Action" maxLength={150} value={r.title} onChange={(e) => up(i, { title: e.target.value })} placeholder="Action" />
-            <Input aria-label="Owner" maxLength={80} value={r.owner} onChange={(e) => up(i, { owner: e.target.value })} placeholder="Owner" />
-            <Select value={r.responsibility} onValueChange={(v) => up(i, { responsibility: v as ActionResponsibility })}>
-              <SelectTrigger aria-label="Responsibility"><SelectValue /></SelectTrigger>
-              <SelectContent>{ACTION_RESPONSIBILITIES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-            </Select>
-            <DatePicker value={r.dueDate} onChange={(v) => up(i, { dueDate: v })} placeholder="Due date" />
-            <Button type="button" variant="ghost" size="icon" aria-label="Remove row" disabled={rows.length === 1} onClick={() => setRows((rs) => rs.filter((_, j) => j !== i))}><DeleteAction size={14} /></Button>
-          </div>
-        ))}
-        <Button type="button" variant="outline" onClick={() => setRows((rs) => [...rs, empty()])}>Add row</Button>
-      </div>
+      <ActionRowsEditor rows={rows} onChange={setRows} />
     </FormDialog>
   );
 }

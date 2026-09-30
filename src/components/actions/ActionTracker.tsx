@@ -163,7 +163,6 @@ export function ActionTrackerTab({ project }: { project: string }) {
       <StyledTable>
         <StyledTableHeader>
           <StyledTableHeaderRow>
-            <StyledTableHead className="w-20">ID</StyledTableHead>
             <StyledTableHead>Action</StyledTableHead>
             <StyledTableHead>Source</StyledTableHead>
             <StyledTableHead>Owner</StyledTableHead>
@@ -173,10 +172,9 @@ export function ActionTrackerTab({ project }: { project: string }) {
           </StyledTableHeaderRow>
         </StyledTableHeader>
         <StyledTableBody>
-          {pagination.pageItems.length === 0 && <EmptyRow colSpan={7} />}
+          {pagination.pageItems.length === 0 && <EmptyRow colSpan={6} />}
           {pagination.pageItems.map((a) => (
             <StyledTableRow key={a.id} className="group cursor-pointer" onClick={() => setViewId(a.id)}>
-              <StyledTableCell className="num-mono text-xs text-muted-foreground">{a.id}</StyledTableCell>
               <StyledTableCell className="font-medium text-foreground">{a.title}</StyledTableCell>
               <StyledTableCell><Badge variant="outline">{sourceLabel(a)}</Badge></StyledTableCell>
               <StyledTableCell className="text-sm">{a.owner}</StyledTableCell>

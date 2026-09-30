@@ -1,3 +1,6 @@
+## 2026-09-30 — Action Tracker: remove ID column
+- Removed the ID column from the Action Tracker table (header, cells, EmptyRow colSpan 7→6). IDs remain internal; the drawer still shows record context.
+
 ## 2026-09-30 — Action Tracker
 - New project tab **Action Tracker** (after Status Reports): KPIs Open / Overdue / Due this week / Done / My actions; search + filter drawer (Status incl. derived Overdue, Responsibility Internal/Client/Vendor, Source, Owner); My actions toggle; table with Status as last column swapping to hover actions; row → drawer with Comments & Updates (edit/delete); Add Action and Log meeting actions (batch) dialogs.
 - Shared store `src/lib/action-store.tsx`; Overdue derived from due date + status, never stored. ERP demo: 10 actions across risks, issues, meetings.

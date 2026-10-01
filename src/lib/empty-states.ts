@@ -30,6 +30,12 @@ export const EMPTY_STATES: EmptyStateEntry[] = [
   { id: "portfolio-schedule", module: "Portfolio", page: "Project Schedule", path: "/portfolio/", art: "clock", title: "No Milestones added yet", description: "Start by adding the first milestone", ctaLabel: "Add Milestone" },
   { id: "project-cost", module: "Portfolio", page: "Project Cost", path: "/portfolio/", art: "coins", title: "No Cost Items added yet", description: "Start by adding the first cost item", ctaLabel: "Add Cost" },
   { id: "project-revenue", module: "Portfolio", page: "Project Revenue", path: "/portfolio/", art: "coins", title: "No Revenue Events added yet", description: "Start by adding the first revenue event", ctaLabel: "Add Revenue Event" },
+  { id: "project-overview-risks", module: "Portfolio", page: "Overview — Risks Summary", path: "/portfolio/", art: "shield", title: "No risks logged yet", description: "Risks linked to this project will appear here." },
+  { id: "project-overview-gates", module: "Portfolio", page: "Overview — Stage Gates", path: "/portfolio/", art: "clock", title: "No stage gates yet", description: "Stage progress will appear once the project plan is set." },
+  { id: "project-overview-health", module: "Portfolio", page: "Overview — Project Health", path: "/portfolio/", art: "shield", title: "No health update yet", description: "Submit a status update to establish project health." },
+  { id: "project-overview-milestones", module: "Portfolio", page: "Overview — Next Milestones", path: "/portfolio/", art: "calendar", title: "No upcoming milestones", description: "The next scheduled milestones will appear here." },
+  { id: "project-overview-budget", module: "Portfolio", page: "Overview — Budget Status", path: "/portfolio/", art: "coins", title: "No budget data yet", description: "Add planned costs to start tracking the budget." },
+  { id: "project-overview-activity", module: "Portfolio", page: "Overview — Recent Activity", path: "/portfolio/", art: "bell", title: "No activity yet", description: "Project updates and changes will appear here." },
 
 
   // Resources

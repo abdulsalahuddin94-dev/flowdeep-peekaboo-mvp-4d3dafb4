@@ -48,6 +48,7 @@ export function EmptyState({
   onCta,
   actions,
   className,
+  variant = "default",
 }: {
   art?: EmptyArt;
   title: string;
@@ -56,13 +57,18 @@ export function EmptyState({
   onCta?: () => void;
   actions?: ReactNode;
   className?: string;
+  variant?: "default" | "card";
 }) {
+  const isCard = variant === "card";
   return (
     <div
-      className={`flex flex-col items-center gap-8 rounded-2xl border border-border bg-surface px-8 py-14 sm:flex-row sm:justify-center sm:gap-16 ${className ?? ""}`}
+      className={`${isCard
+        ? "flex min-h-32 items-center justify-center gap-5 py-2"
+        : "flex flex-col items-center gap-8 rounded-2xl border border-border bg-surface px-8 py-14 sm:flex-row sm:justify-center sm:gap-16"
+      } ${className ?? ""}`}
     >
-      <div className="max-w-sm text-center sm:text-left">
-        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+      <div className={isCard ? "max-w-64" : "max-w-sm text-center sm:text-left"}>
+        <h2 className={isCard ? "text-sm font-semibold text-foreground" : "text-xl font-semibold text-foreground"}>{title}</h2>
         {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
         {(ctaLabel || actions) && (
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
@@ -83,7 +89,7 @@ export function EmptyState({
         loading="lazy"
         width={200}
         height={200}
-        className="h-40 w-40 shrink-0 object-contain sm:h-48 sm:w-48"
+        className={isCard ? "h-20 w-20 shrink-0 object-contain sm:h-24 sm:w-24" : "h-40 w-40 shrink-0 object-contain sm:h-48 sm:w-48"}
       />
     </div>
   );

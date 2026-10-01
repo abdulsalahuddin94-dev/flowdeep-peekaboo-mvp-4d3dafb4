@@ -27,9 +27,21 @@ export function useEmptyPreview() {
  * Swaps just this region for its catalog empty state while preview mode is on.
  * `id` refers to an entry in `EMPTY_STATES`.
  */
-export function EmptyRegion({ id, children }: { id: string; children: ReactNode }) {
+export function EmptyRegion({
+  id,
+  children,
+  variant = "default",
+  force = false,
+  className,
+}: {
+  id: string;
+  children: ReactNode;
+  variant?: "default" | "card";
+  force?: boolean;
+  className?: string;
+}) {
   const { enabled } = useEmptyPreview();
-  if (!enabled) return <>{children}</>;
+  if (!enabled && !force) return <>{children}</>;
   const entry = EMPTY_STATES.find((e) => e.id === id);
   if (!entry) return <>{children}</>;
   return (
@@ -38,6 +50,8 @@ export function EmptyRegion({ id, children }: { id: string; children: ReactNode 
       title={entry.title}
       description={entry.description}
       ctaLabel={entry.ctaLabel}
+      variant={variant}
+      className={className}
     />
   );
 }

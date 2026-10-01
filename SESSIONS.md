@@ -1,3 +1,8 @@
+## 2026-10-01 — Project Overview card-level empty states
+- Kept all six Overview cards in their original two-column layout during empty preview and for newly created projects, replacing only each card's content with a compact tailored empty state.
+- Added reusable unframed card empty states for Risks Summary, Stage Gates, Project Health, Next Milestones, Budget Status, and Recent Activity using the existing DS02 illustration set.
+- Files: src/routes/portfolio.$projectId.tsx, src/lib/empty-preview.tsx, src/lib/empty-states.ts, src/components/ds/EmptyState.tsx.
+
 ## 2026-10-01 — Financials compact summary strip
 - Replaced the four tall Cost Recognition summary cards with one responsive integrated strip, using a smaller CapEx/OpEx chart, internal dividers, tighter metric hierarchy, and the standard DS02 percentage pill.
 - Files: src/routes/financials.tsx.

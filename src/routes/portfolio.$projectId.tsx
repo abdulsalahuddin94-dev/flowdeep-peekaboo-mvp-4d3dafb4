@@ -2887,7 +2887,9 @@ function FinancialsTab({
               </div>
             ))}
           </div>
-              <RevenuePlanTable
+
+          <div>
+            <RevenuePlanTable
                 entries={revRows}
                 canEdit={canEdit}
                 milestoneNames={milestoneNames}

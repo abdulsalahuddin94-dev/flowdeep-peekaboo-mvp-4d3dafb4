@@ -482,6 +482,11 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
 
   function addProject(p: Project) { setProjects((prev) => [p, ...prev]); }
   function updateProject(id: string, patch: Partial<Project>) {
+    const proj = projects.find((p) => p.id === id);
+    const fields = Object.keys(patch).filter((k) => !["ragNote", "baselineLocked", "rag"].includes(k));
+    if (proj && fields.length) {
+      logActivity({ project: proj.name, kind: "Project", title: "Project details", text: "Project details edited", by: currentUser.name, change: fields.slice(0, 4).join(", ") });
+    }
     setProjects((prev) => prev.map((p) => p.id === id ? { ...p, ...patch } : p));
   }
 

@@ -1,3 +1,7 @@
+## 2026-10-01 — Overview Recent Activity card removed
+- Removed the Recent Activity card from the project Overview tab (its demo list and its empty-state catalog entry are gone); the Project Health / Next Milestones / Budget Status column now closes with Budget Status.
+- Files: src/routes/portfolio.$projectId.tsx, src/lib/empty-states.ts.
+
 ## 2026-10-01 — Project Overview card-level empty states
 - Kept all six Overview cards in their original two-column layout during empty preview and for newly created projects, replacing only each card's content with a compact tailored empty state.
 - Added reusable unframed card empty states for Risks Summary, Stage Gates, Project Health, Next Milestones, Budget Status, and Recent Activity using the existing DS02 illustration set.

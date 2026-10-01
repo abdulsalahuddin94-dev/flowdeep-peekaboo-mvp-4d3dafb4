@@ -1630,11 +1630,6 @@ function OverviewTab({
     { name: "UAT Completion", date: "2026-06-01", rag: "amber" as const },
   ];
 
-  const activity = [
-    { title: "Status updated to At Risk", who: project.pm, when: "2h ago" },
-    { title: "Milestone completed", who: "Sara Mohamed", when: "5h ago" },
-    { title: "Budget revised", who: "Finance Team", when: "1d ago" },
-  ];
 
   return (
     <div className="grid items-start gap-4 md:grid-cols-2">
@@ -1742,23 +1737,6 @@ function OverviewTab({
               <div className="h-full rounded-full bg-rag-green" style={{ width: `${spentPct}%` }} />
             </div>
             <div className="mt-3 text-xs text-muted-foreground">Remaining: ${remaining}M</div>
-          </EmptyRegion>
-        </div>
-
-        <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Recent Activity</div>
-          <EmptyRegion id="project-overview-activity" variant="card" force={isNew} className="min-h-[112px]">
-            <ul className="space-y-3">
-              {activity.map((a) => (
-                <li key={a.title} className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-foreground">{a.title}</div>
-                    <div className="text-xs text-accent">{a.who}</div>
-                  </div>
-                  <span className="shrink-0 text-xs text-muted-foreground">{a.when}</span>
-                </li>
-              ))}
-            </ul>
           </EmptyRegion>
         </div>
       </div>

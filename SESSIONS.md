@@ -1,3 +1,6 @@
+## 2026-10-01 — Recent Activity tracks all project changes
+- Schedule, change requests, cost and revenue lines now logged automatically on any add/edit/delete; Risk/Issue/Action create, edit and delete also logged.
+
 ## 2026-10-01 — Recent Activity covers whole project
 - Added shared activity log; Recent Activity now includes Schedule, Financials, Status Reports, Project details, Lessons and Baseline alongside Risks/Issues/Actions, with demo entries and type filter.
 

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  * Risk, Issue and Action activity is still derived from their own histories.
  */
 
-export type LoggedKind = "Schedule" | "Financials" | "Status Report" | "Project" | "Lessons" | "Baseline";
+export type LoggedKind = "Risk" | "Issue" | "Action" | "Schedule" | "Financials" | "Status Report" | "Project" | "Lessons" | "Baseline";
 
 export type LoggedActivity = {
   id: string;
@@ -48,4 +48,42 @@ export function useActivityLog() {
     return () => { listeners.delete(l); };
   }, []);
   return state;
+}
+
+/**
+ * Logs adds, removals and edits by diffing a list between renders, so every
+ * code path that mutates it is covered without per-call logging.
+ */
+export function useLogListChanges<T>(
+  list: T[],
+  opts: { project: string; kind: LoggedKind; by: string; ref?: string; key: (t: T) => string; label: (t: T) => string; noun: string; ignore?: string[] },
+) {
+  const [prev, setPrev] = useState(list);
+  if (prev !== list) {
+    setPrev(list);
+    const before = new Map(prev.map((t) => [opts.key(t), t]));
+    const after = new Map(list.map((t) => [opts.key(t), t]));
+    const base = { project: opts.project, kind: opts.kind, by: opts.by, ref: opts.ref };
+    const out: Omit<LoggedActivity, "id" | "at">[] = [];
+    {
+      after.forEach((t, k) => { if (!before.has(k)) out.push({ ...base, title: opts.label(t), text: `${opts.noun} added` }); });
+      before.forEach((t, k) => { if (!after.has(k)) out.push({ ...base, title: opts.label(t), text: `${opts.noun} deleted` }); });
+      after.forEach((t, k) => {
+        const b = before.get(k);
+        if (!b || b === t) return;
+        const bo = b as Record<string, unknown>, to = t as Record<string, unknown>;
+        const fields = Array.from(new Set([...Object.keys(bo), ...Object.keys(to)]))
+          .filter((f) => !(opts.ignore ?? []).includes(f) && JSON.stringify(bo[f]) !== JSON.stringify(to[f]));
+        if (!fields.length) return;
+        const fmt = (v: unknown) => (v === undefined || v === null || v === "" ? "—" : typeof v === "object" ? "updated" : String(v));
+        out.push({
+          ...base, title: opts.label(t),
+          text: fields.length === 1 ? `${fields[0]} changed` : `${fields.slice(0, 3).join(", ")}${fields.length > 3 ? "…" : ""} changed`,
+          change: fields.length === 1 && typeof to[fields[0]] !== "object" ? `${fmt(bo[fields[0]])} → ${fmt(to[fields[0]])}` : undefined,
+        });
+      });
+    }
+    // Defer so we never notify other components during this render.
+    if (out.length) queueMicrotask(() => out.forEach(logActivity));
+  }
 }

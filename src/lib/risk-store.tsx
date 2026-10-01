@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { logActivity } from "@/lib/activity-store";
 import {
   risks as seedRisks,
   issues as seedIssues,
@@ -131,15 +132,20 @@ export function useRiskRegister() {
 
   const addRisk = useCallback((risk: Omit<RiskRecord, "id" | "updates"> & { id?: string }) => {
     const id = risk.id ?? nextRiskId();
+    logActivity({ project: risk.project, kind: "Risk", ref: id, title: risk.title, text: "Risk logged", by: risk.owner });
     set({ risks: [{ ...risk, id, updates: [] }, ...state.risks] });
     return id;
   }, []);
 
   const updateRisk = useCallback((id: string, patch: Partial<RiskRecord>) => {
+    const r = state.risks.find((x) => x.id === id);
+    if (r) logActivity({ project: r.project, kind: "Risk", ref: id, title: patch.title ?? r.title, text: "Risk details edited", by: r.owner });
     set({ risks: state.risks.map((r) => (r.id === id ? { ...r, ...patch } : r)) });
   }, []);
 
   const removeRisk = useCallback((id: string) => {
+    const r = state.risks.find((x) => x.id === id);
+    if (r) logActivity({ project: r.project, kind: "Risk", ref: id, title: r.title, text: "Risk deleted", by: r.owner });
     set({ risks: state.risks.filter((r) => r.id !== id) });
   }, []);
 
@@ -214,6 +220,7 @@ export function useRiskRegister() {
 
   const addIssue = useCallback((issue: Omit<IssueItem, "id"> & { id?: string }) => {
     const id = issue.id ?? nextIssueId();
+    logActivity({ project: issue.project, kind: "Issue", ref: id, title: issue.title, text: "Issue logged", by: issue.owner });
     set({ issues: [{ ...issue, id, updates: [] }, ...state.issues] });
     return id;
   }, []);
@@ -249,10 +256,14 @@ export function useRiskRegister() {
   );
 
   const updateIssue = useCallback((id: string, patch: Partial<IssueItem>) => {
+    const i = state.issues.find((x) => x.id === id);
+    if (i) logActivity({ project: i.project, kind: "Issue", ref: id, title: patch.title ?? i.title, text: "Issue details edited", by: i.owner });
     set({ issues: state.issues.map((i) => (i.id === id ? { ...i, ...patch } : i)) });
   }, []);
 
   const removeIssue = useCallback((id: string) => {
+    const i = state.issues.find((x) => x.id === id);
+    if (i) logActivity({ project: i.project, kind: "Issue", ref: id, title: i.title, text: "Issue deleted", by: i.owner });
     set({ issues: state.issues.filter((i) => i.id !== id) });
   }, []);
 

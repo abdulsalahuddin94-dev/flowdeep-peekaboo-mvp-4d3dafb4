@@ -1,3 +1,9 @@
+## 2026-10-01 — Overview risks and Financial Recognition filters
+- Renamed the project summary cards to Issues and Risks and removed the ambiguous “active” wording.
+- Moved Risks Summary to the left column, moved Project Health to the right, and made each risk row open that risk in the project Risk Register.
+- Added DS02 search and filter drawers to Cost Recognition (category, type, status) and Revenue Recognition (payment status, recognition progress), including empty-result states.
+- Files: src/routes/portfolio.$projectId.tsx, src/components/risk/RiskIssues.tsx, src/routes/financials.tsx.
+
 ## 2026-10-01 — Edit Project: type locked after creation
 - Removed the Capital/Internal vs Commercial/External switch from the Edit Project form; project type is chosen only at creation and shown as a passive badge in edit mode. New Project keeps the type picker and switch.
 - Files: src/components/project/ProjectFormPage.tsx.

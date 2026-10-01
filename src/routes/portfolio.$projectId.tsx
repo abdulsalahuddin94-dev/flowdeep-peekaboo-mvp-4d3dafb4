@@ -47,6 +47,7 @@ import { RecentActivityTab } from "@/components/project/RecentActivityTab";
 import { ProjectSchedule, computePlannedProgress, depLag, depLabel } from "@/components/ProjectSchedule";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatDateForDisplay, formatDateWithYear } from "@/lib/date-format";
+import { logActivity } from "@/lib/activity-store";
 import {
   useTabBaseline,
   BaselineHeader,
@@ -528,6 +529,7 @@ function ProjectDetail() {
     setSelectedBaselineVersion("latest");
     setPlanEditMode("view");
     updateProject(project.id, { baselineLocked: true, ragNote: undefined });
+    logActivity({ project: project.name, kind: "Baseline", title: "Project baseline", text: "Baseline saved and plan locked", by: project.pm });
     toast.success("Project baseline saved — Schedule and Financials are now locked");
   }
 
@@ -953,6 +955,13 @@ function ProjectDetail() {
               if (!isEditingAllowed && !isAssigneeOnly && !isProgressOnly) {
                 toast.error("Locked — click 'Change Plan' to edit");
                 return;
+              }
+              const before = milestones.find((m) => m.name === name) as Record<string, unknown> | undefined;
+              const changed = Object.keys(patch).filter((k) => k !== "approvalStatus" && before?.[k] !== (patch as Record<string, unknown>)[k]);
+              if (changed.length) {
+                const k = changed[0];
+                const fmt = (v: unknown) => (v === undefined || v === null || v === "" ? "—" : k === "progress" ? `${v}%` : String(v));
+                logActivity({ project: project.name, kind: "Schedule", ref: "WBS", title: name, text: k === "progress" ? "Progress updated" : `${changed.join(", ")} changed`, by: project.pm, change: changed.length === 1 ? `${fmt(before?.[k])} → ${fmt((patch as Record<string, unknown>)[k])}` : undefined });
               }
               setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, ...patch } as Milestone : m)));
             }}
@@ -2739,8 +2748,8 @@ function FinancialsTab({
       defaultType={kind}
       lockKind
       label={kind === "cost" ? "Add cost line" : "Add revenue line"}
-      onAddCost={(e) => { setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
-      onAddRevenue={(e) => { setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
+      onAddCost={(e) => { logActivity({ project: project.name, kind: "Financials", by: project.pm, ref: "Cost", title: e.c, text: "Cost line added" }); setCostEntries((prev) => [...prev, e]); onDataAdded(); }}
+      onAddRevenue={(e) => { logActivity({ project: project.name, kind: "Financials", by: project.pm, ref: "Revenue", title: e.evt, text: "Revenue line added" }); setRevEntries((prev) => [...prev, e]); onDataAdded(); }}
     />
   );
 
@@ -2809,10 +2818,11 @@ function FinancialsTab({
               dateOf={costDate}
               totals={costTotals}
               onMilestoneClick={onMilestoneClick}
-              onSave={(rowIdx, patch) => { const idx = costIdxMap[rowIdx]; setCostEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e))); }}
-              onDelete={(rowIdx) => { const idx = costIdxMap[rowIdx]; setCostEntries((prev) => prev.filter((_, i) => i !== idx)); }}
+              onSave={(rowIdx, patch) => { const idx = costIdxMap[rowIdx]; logActivity({ project: project.name, kind: "Financials", by: project.pm, ref: "Cost", title: costEntries[idx]?.c ?? "Cost line", text: "Cost line edited" }); setCostEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, ...patch } : e))); }}
+              onDelete={(rowIdx) => { const idx = costIdxMap[rowIdx]; logActivity({ project: project.name, kind: "Financials", by: project.pm, ref: "Cost", title: costEntries[idx]?.c ?? "Cost line", text: "Cost line deleted" }); setCostEntries((prev) => prev.filter((_, i) => i !== idx)); }}
               onAddActual={(rowIdx, actual) => {
                 const idx = costIdxMap[rowIdx];
+                logActivity({ project: project.name, kind: "Financials", by: project.pm, ref: "Cost", title: costEntries[idx]?.c ?? "Cost line", text: "Actual cost recorded", change: `+${actual.amount}M` });
                 setCostEntries((prev) =>
                   prev.map((e, i) => {
                     if (i !== idx) return e;
@@ -2909,8 +2919,8 @@ function FinancialsTab({
                 dateOf={revDate}
                 totals={revTotals}
                 onMilestoneClick={onMilestoneClick}
-                onSave={(rowIdx, patch) => { const idx = revIdxMap[rowIdx]; setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e)); }}
-                onDelete={(rowIdx) => { const idx = revIdxMap[rowIdx]; setRevEntries((prev) => prev.filter((_, i) => i !== idx)); }}
+                onSave={(rowIdx, patch) => { const idx = revIdxMap[rowIdx]; logActivity({ project: project.name, kind: "Financials", by: project.pm, ref: "Revenue", title: revEntries[idx]?.evt ?? "Revenue line", text: "Revenue line edited" }); setRevEntries((prev) => prev.map((e, i) => i === idx ? { ...e, ...patch } : e)); }}
+                onDelete={(rowIdx) => { const idx = revIdxMap[rowIdx]; logActivity({ project: project.name, kind: "Financials", by: project.pm, ref: "Revenue", title: revEntries[idx]?.evt ?? "Revenue line", text: "Revenue line deleted" }); setRevEntries((prev) => prev.filter((_, i) => i !== idx)); }}
                 onAddActual={(rowIdx, actual) => {
                   const idx = revIdxMap[rowIdx];
                   setRevEntries((prev) =>
@@ -4773,6 +4783,7 @@ function StatusReportsTab({
   function submit() {
     if (!text.trim()) { toast.error("Status narrative is required"); return; }
     setReports((prev) => [{ week: nextWeek, by: project.pm, when: "Just now", rag, text: text.trim() }, ...prev]);
+    logActivity({ project: project.name, kind: "Status Report", ref: `Week ${nextWeek}`, title: "Weekly status report", text: text.trim(), by: project.pm, change: rag === "red" ? "Off-Track" : rag === "amber" ? "At Risk" : "On Track" });
     onRagChange(rag);
     toast.success(`Week ${nextWeek} status report submitted`);
     onExternalOpenChange(false); setRag("green"); setText("");
@@ -5862,6 +5873,7 @@ function LessonsTab({ project }: { project: typeof projects[number] }) {
   function submit() {
     if (!text.trim()) { toast.error("Lesson text is required"); return; }
     setItems((prev) => [{ tag, text: text.trim(), by: project.pm, when: "Just now" }, ...prev]);
+    logActivity({ project: project.name, kind: "Lessons", title: tag, text: text.trim(), by: project.pm });
     toast.success("Lesson recorded");
     setOpen(false); setText(""); setTag("What Went Well");
   }

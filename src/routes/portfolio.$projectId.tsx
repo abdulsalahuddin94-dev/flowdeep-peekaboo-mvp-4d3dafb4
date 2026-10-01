@@ -270,8 +270,8 @@ function ProjectDetail() {
   // Cross-tab navigation: clicking a milestone-linked cost/revenue row jumps to
   // the Project Schedule tab and flashes that milestone row in the WBS.
   const [scheduleHighlight, setScheduleHighlight] = useState<string | null>(null);
-  useLogListChanges(milestones, { project: project.name, kind: "Schedule", by: currentUser.name, ref: "WBS", key: (m) => m.name, label: (m) => m.name, noun: "Schedule item" });
-  useLogListChanges(changeRequests, { project: project.name, kind: "Schedule", by: currentUser.name, ref: "Change", key: (c) => String((c as { id?: string }).id ?? JSON.stringify(c)), label: (c) => String((c as { title?: string }).title ?? "Change request"), noun: "Change request" });
+  useLogListChanges(milestones, { project: project.name, kind: "Schedule", by: approvalUser.name, ref: "WBS", key: (m) => m.name, label: (m) => m.name, noun: "Schedule item" });
+  useLogListChanges(changeRequests, { project: project.name, kind: "Schedule", by: approvalUser.name, ref: "Change", key: (c) => String((c as { id?: string }).id ?? JSON.stringify(c)), label: (c) => String((c as { title?: string }).title ?? "Change request"), noun: "Change request" });
   const goToMilestone = useCallback(
     (name: string) => {
       if (!milestones.some((m) => m.kind === "Milestone" && m.name === name)) return;

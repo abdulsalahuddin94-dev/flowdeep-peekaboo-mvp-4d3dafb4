@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { logActivity } from "@/lib/activity-store";
 
 /**
  * Shared Action Tracker register. Single source of truth for every project
@@ -86,19 +87,27 @@ export function useActions() {
     let list = state;
     for (const it of items) {
       const id = (() => { const n = Math.max(0, ...list.map((a) => Number(a.id.replace(/\D/g, "")) || 0)); return `A-${String(n + 1).padStart(3, "0")}`; })();
+      logActivity({ project: it.project, kind: "Action", ref: id, title: it.title, text: "Action added", by: it.owner });
       list = [{ ...it, id, updates: [], closedDate: it.status === "Done" ? todayIso() : undefined }, ...list];
     }
     set(list);
   }, []);
   const addAction = useCallback((it: Omit<ActionItem, "id" | "updates">) => {
     const id = nextId();
+    logActivity({ project: it.project, kind: "Action", ref: id, title: it.title, text: "Action added", by: it.owner });
     set([{ ...it, id, updates: [], closedDate: it.status === "Done" ? todayIso() : undefined }, ...state]);
     return id;
   }, []);
   const updateAction = useCallback((id: string, patch: Partial<ActionItem>) => {
+    const a = state.find((x) => x.id === id);
+    if (a) logActivity({ project: a.project, kind: "Action", ref: id, title: patch.title ?? a.title, text: "Action details edited", by: a.owner });
     set(state.map((a) => (a.id === id ? { ...a, ...patch } : a)));
   }, []);
-  const removeAction = useCallback((id: string) => set(state.filter((a) => a.id !== id)), []);
+  const removeAction = useCallback((id: string) => {
+    const a = state.find((x) => x.id === id);
+    if (a) logActivity({ project: a.project, kind: "Action", ref: id, title: a.title, text: "Action deleted", by: a.owner });
+    set(state.filter((a) => a.id !== id));
+  }, []);
   const logActionUpdate = useCallback((id: string, input: { comment: string; by: string; status: ActionStatus }) => {
     set(state.map((a) => {
       if (a.id !== id) return a;

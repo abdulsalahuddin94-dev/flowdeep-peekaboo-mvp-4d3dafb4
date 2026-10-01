@@ -1,3 +1,6 @@
+## 2026-10-01 — Recent Activity covers whole project
+- Added shared activity log; Recent Activity now includes Schedule, Financials, Status Reports, Project details, Lessons and Baseline alongside Risks/Issues/Actions, with demo entries and type filter.
+
 ## 2026-10-01 — Project Recent Activity tab
 - Added a Recent Activity tab after Action Tracker on project details: a dated feed derived from Risk, Issue and Action updates (status changes, comments, closures), with search and type filter. Type shown as DS02 pills.
 

@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { logActivity } from "@/lib/activity-store";
 import { projects as initialProjects, rfps as initialRfps, orgTags as initialTags, workCalendars as initialCalendars, type Project, type WorkCalendar } from "./mock-data";
 
 export type OrgTag = { name: string; color: string };
@@ -482,6 +483,11 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
 
   function addProject(p: Project) { setProjects((prev) => [p, ...prev]); }
   function updateProject(id: string, patch: Partial<Project>) {
+    const proj = projects.find((p) => p.id === id);
+    const fields = Object.keys(patch).filter((k) => !["ragNote", "baselineLocked", "rag"].includes(k));
+    if (proj && fields.length) {
+      logActivity({ project: proj.name, kind: "Project", title: "Project details", text: "Project details edited", by: currentUser.name, change: fields.slice(0, 4).join(", ") });
+    }
     setProjects((prev) => prev.map((p) => p.id === id ? { ...p, ...patch } : p));
   }
 

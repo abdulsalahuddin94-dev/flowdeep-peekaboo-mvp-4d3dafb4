@@ -201,3 +201,4 @@ Theme controlled via `data-theme` attribute on `<html>`:
 **End of DS02 Design System Documentation (v3.10) — MVP Edition**
 
 - v3.12 (2026-09-30): Action Tracker pattern — derived Overdue pill, Responsibility pills (Internal/Client/Vendor), linked-actions block inside Risk/Issue drawers, history label "Comments & Updates".
+- v3.14 (2026-10-01): Linked actions inside Risk/Issue drawers are interactive — clicking an action opens the full action drawer (Update status, Comments & Updates with edit/delete), same as the Action Tracker tab.

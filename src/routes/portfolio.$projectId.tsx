@@ -43,6 +43,7 @@ import { PageToolbar } from "@/components/ds/PageToolbar";
 import { capexOpexGroup } from "@/components/ds/filters";
 import { ProjectGantt } from "@/components/ProjectGantt";
 import { ActionTrackerTab } from "@/components/actions/ActionTracker";
+import { RecentActivityTab } from "@/components/project/RecentActivityTab";
 import { ProjectSchedule, computePlannedProgress, depLag, depLabel } from "@/components/ProjectSchedule";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatDateForDisplay, formatDateWithYear } from "@/lib/date-format";
@@ -86,7 +87,7 @@ export const Route = createFileRoute("/portfolio/$projectId")({
 });
 
 const TABS = [
-  "Overview", "Project Schedule", "Cost Breakdown", "Revenue Breakdown", "Risk & Issues", "Status Reports", "Action Tracker",
+  "Overview", "Project Schedule", "Cost Breakdown", "Revenue Breakdown", "Risk & Issues", "Status Reports", "Action Tracker", "Recent Activity",
 ];
 
 const PLANNING_STAGES = [
@@ -1285,6 +1286,10 @@ function ProjectDetail() {
 
         <TabsContent value="Action Tracker" className="mt-5">
           <ActionTrackerTab project={project.name} />
+        </TabsContent>
+
+        <TabsContent value="Recent Activity" className="mt-5">
+          <RecentActivityTab project={project.name} />
         </TabsContent>
 
         <TabsContent value="Status Reports" className="mt-5">

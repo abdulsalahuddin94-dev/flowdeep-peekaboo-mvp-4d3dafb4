@@ -65,9 +65,7 @@ export function useLogListChanges<T>(
     const after = new Map(list.map((t) => [opts.key(t), t]));
     const base = { project: opts.project, kind: opts.kind, by: opts.by, ref: opts.ref };
     const out: Omit<LoggedActivity, "id" | "at">[] = [];
-    if (list.length && !prev.length) {
-      out.push({ ...base, title: opts.noun, text: `${list.length} ${opts.noun.toLowerCase()} items loaded` });
-    } else {
+    {
       after.forEach((t, k) => { if (!before.has(k)) out.push({ ...base, title: opts.label(t), text: `${opts.noun} added` }); });
       before.forEach((t, k) => { if (!after.has(k)) out.push({ ...base, title: opts.label(t), text: `${opts.noun} deleted` }); });
       after.forEach((t, k) => {

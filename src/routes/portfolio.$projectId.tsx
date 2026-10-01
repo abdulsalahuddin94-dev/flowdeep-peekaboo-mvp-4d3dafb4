@@ -270,6 +270,8 @@ function ProjectDetail() {
   // Cross-tab navigation: clicking a milestone-linked cost/revenue row jumps to
   // the Project Schedule tab and flashes that milestone row in the WBS.
   const [scheduleHighlight, setScheduleHighlight] = useState<string | null>(null);
+  useLogListChanges(milestones, { project: project.name, kind: "Schedule", by: currentUser.name, ref: "WBS", key: (m) => m.name, label: (m) => m.name, noun: "Schedule item" });
+  useLogListChanges(changeRequests, { project: project.name, kind: "Schedule", by: currentUser.name, ref: "Change", key: (c) => String((c as { id?: string }).id ?? JSON.stringify(c)), label: (c) => String((c as { title?: string }).title ?? "Change request"), noun: "Change request" });
   const goToMilestone = useCallback(
     (name: string) => {
       if (!milestones.some((m) => m.kind === "Milestone" && m.name === name)) return;
@@ -2617,6 +2619,8 @@ function FinancialsTab({
     { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "14 Dec",        s: "blue",  sl: "Planned",  act: null, linkKind: "fixed" },
   ]);
   // Editing is governed by the single project-level baseline (see the project header).
+  useLogListChanges(costEntries, { project: project.name, kind: "Financials", by: project.pm, ref: "Cost", key: (e) => e.c, label: (e) => e.c, noun: "Cost line" });
+  useLogListChanges(revEntries, { project: project.name, kind: "Financials", by: project.pm, ref: "Revenue", key: (e) => `${e.ms}|${e.evt}`, label: (e) => e.evt, noun: "Revenue line" });
   const displayCost = costEntries;
   const displayRev = revEntries;
 

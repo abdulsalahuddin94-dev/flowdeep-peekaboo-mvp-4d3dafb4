@@ -1,3 +1,7 @@
+## 2026-10-01 — Financials compact summary strip
+- Replaced the four tall Cost Recognition summary cards with one responsive integrated strip, using a smaller CapEx/OpEx chart, internal dividers, tighter metric hierarchy, and the standard DS02 percentage pill.
+- Files: src/routes/financials.tsx.
+
 ## 2026-10-01 — Recent Activity tracks all project changes
 - Schedule, change requests, cost and revenue lines now logged automatically on any add/edit/delete; Risk/Issue/Action create, edit and delete also logged.
 

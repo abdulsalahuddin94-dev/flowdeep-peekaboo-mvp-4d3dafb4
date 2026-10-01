@@ -386,25 +386,39 @@ function FinancialsPage() {
 
         <TabsContent value="cost" className="mt-5">
           <EmptyRegion id="financials-costs">
-          <div className="mb-5 grid gap-4 md:grid-cols-4">
-
-            <div className="glass-card p-5">
-              <div className="label-eyebrow">CapEx / OpEx split</div>
-              <div className="mt-3 flex items-center justify-center">
-                <svg viewBox="0 0 42 42" className="h-32 w-32 -rotate-90">
-                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="rgba(255,255,255,0.06)" strokeWidth="6" />
-                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#51CAAD" strokeWidth="6" strokeDasharray="64 36" />
-                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#0EA5E9" strokeWidth="6" strokeDasharray="36 64" strokeDashoffset="-64" />
-                </svg>
-              </div>
-              <div className="mt-3 flex justify-center gap-4 text-xs">
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-accent" />CapEx 64%</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-role-director" />OpEx 36%</span>
+          <div className="glass-card mb-5 grid items-stretch p-0 sm:grid-cols-2 lg:grid-cols-[1.35fr_1fr_1fr_1.1fr]">
+            <div className="flex items-center gap-4 border-b border-border px-5 py-4 sm:border-r lg:border-b-0">
+              <svg viewBox="0 0 42 42" className="h-16 w-16 shrink-0 -rotate-90" aria-label="CapEx 64%, OpEx 36%">
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="currentColor" className="text-border" strokeWidth="5" />
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="currentColor" className="text-accent" strokeWidth="5" strokeDasharray="64 36" />
+                <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="currentColor" className="text-role-director" strokeWidth="5" strokeDasharray="36 64" strokeDashoffset="-64" />
+              </svg>
+              <div className="min-w-0">
+                <div className="label-eyebrow">Split summary</div>
+                <div className="mt-2 space-y-1 text-xs">
+                  <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-accent" /><span className="font-semibold text-foreground">64%</span><span className="text-muted-foreground">CapEx</span></div>
+                  <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-role-director" /><span className="font-semibold text-foreground">36%</span><span className="text-muted-foreground">OpEx</span></div>
+                </div>
               </div>
             </div>
-            <div className="glass-card p-4"><div className="label-eyebrow">Total CapEx</div><div className="mt-1 text-2xl font-medium num-mono text-accent">$33.7M</div><div className="text-xs text-muted-foreground mt-1">Across 12 projects</div></div>
-            <div className="glass-card p-4"><div className="label-eyebrow">Total OpEx</div><div className="mt-1 text-2xl font-medium num-mono">$19.9M</div><div className="text-xs text-muted-foreground mt-1">Across 12 projects</div></div>
-            <div className="glass-card p-4"><div className="label-eyebrow">Recognised YTD</div><div className="mt-1 text-2xl font-medium num-mono">$21.4M</div><div className="text-xs text-muted-foreground mt-1">40% of total</div></div>
+            <div className="flex flex-col justify-center border-b border-border px-5 py-4 lg:border-b-0 lg:border-r">
+              <div className="label-eyebrow">Total CapEx</div>
+              <div className="mt-1 text-2xl font-semibold num-mono text-foreground">$33.7M</div>
+              <div className="mt-1 text-xs text-muted-foreground">Across 12 projects</div>
+            </div>
+            <div className="flex flex-col justify-center border-b border-border px-5 py-4 sm:border-r lg:border-b-0">
+              <div className="label-eyebrow">Total OpEx</div>
+              <div className="mt-1 text-2xl font-semibold num-mono text-foreground">$19.9M</div>
+              <div className="mt-1 text-xs text-muted-foreground">Across 12 projects</div>
+            </div>
+            <div className="flex flex-col justify-center px-5 py-4">
+              <div className="label-eyebrow">Recognised YTD</div>
+              <div className="mt-1 flex items-center gap-2">
+                <span className="text-2xl font-semibold num-mono text-foreground">$21.4M</span>
+                <span className="inline-flex h-7 items-center rounded-full border border-rag-green/60 bg-rag-green/10 px-3 text-xs font-medium text-rag-green">40%</span>
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">of total budget</div>
+            </div>
           </div>
 
           <div className="label-eyebrow mb-3">Cost items — recognition schedule</div>

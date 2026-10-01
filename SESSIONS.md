@@ -1,3 +1,7 @@
+## 2026-10-01 — Edit Project: type locked after creation
+- Removed the Capital/Internal vs Commercial/External switch from the Edit Project form; project type is chosen only at creation and shown as a passive badge in edit mode. New Project keeps the type picker and switch.
+- Files: src/components/project/ProjectFormPage.tsx.
+
 ## 2026-10-01 — Action status comment visibility hint
 - Added a small hint below the Update action status comment field clarifying that comments are saved with the action and remain available in the Action Tracker; added EN and AR copy.
 

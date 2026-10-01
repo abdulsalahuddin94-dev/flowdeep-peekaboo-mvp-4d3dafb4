@@ -1,15 +1,16 @@
 import { useMemo, useState } from "react";
 import { useRiskRegister } from "@/lib/risk-store";
 import { useActions } from "@/lib/action-store";
+import { useActivityLog, type LoggedKind } from "@/lib/activity-store";
 import { PageToolbar } from "@/components/ds/PageToolbar";
 import { formatDateWithYear } from "@/lib/date-format";
 
 /*
- * Project activity feed — derived on read from Risk, Issue and Action histories,
- * so it never drifts from the source records.
+ * Project activity feed — Risk, Issue and Action entries are derived from their
+ * own histories; everything else comes from the shared activity log.
  */
 
-type Kind = "Risk" | "Issue" | "Action";
+type Kind = "Risk" | "Issue" | "Action" | LoggedKind;
 type Activity = { id: string; kind: Kind; ref: string; title: string; text: string; by: string; at: string; change?: string };
 
 const T = {
@@ -21,12 +22,20 @@ const KIND_STYLE: Record<Kind, string> = {
   Risk: "border-rag-red/40 text-rag-red bg-rag-red/10",
   Issue: "border-rag-amber/40 text-rag-amber bg-rag-amber/10",
   Action: "border-accent/40 text-accent bg-accent/10",
+  Schedule: "border-rag-green/40 text-rag-green bg-rag-green/10",
+  Financials: "border-role-director/40 text-role-director bg-role-director/10",
+  "Status Report": "border-primary/40 text-primary bg-primary/10",
+  Project: "border-border text-foreground bg-secondary/40",
+  Lessons: "border-border text-muted-foreground bg-secondary/40",
+  Baseline: "border-accent/40 text-accent bg-accent/10",
 };
+const KINDS: Kind[] = ["Risk", "Issue", "Action", "Schedule", "Financials", "Status Report", "Project", "Lessons", "Baseline"];
 
 export function RecentActivityTab({ project, lang = "en" }: { project: string; lang?: "en" | "ar" }) {
   const t = T[lang];
   const { risks, issues } = useRiskRegister();
   const { actions } = useActions();
+  const logged = useActivityLog();
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState("all");
 
@@ -51,8 +60,9 @@ export function RecentActivityTab({ project, lang = "en" }: { project: string; l
         out.push({ id: `${a.id}-closed`, kind: "Action", ref: a.id, title: a.title, text: "Action closed", by: a.owner, at: a.closedDate, change: `→ ${a.status}` });
       }
     });
+    logged.filter((l) => l.project === project).forEach((l) => out.push({ ...l, ref: l.ref ?? "" }));
     return out.sort((x, y) => y.at.localeCompare(x.at));
-  }, [risks, issues, actions, project]);
+  }, [risks, issues, actions, logged, project]);
 
   const filtered = items.filter((a) => {
     if (kind !== "all" && a.kind !== kind) return false;
@@ -68,7 +78,7 @@ export function RecentActivityTab({ project, lang = "en" }: { project: string; l
         placeholder={t.search}
         filterGroups={[{
           key: "kind", label: t.type, value: kind, onChange: setKind,
-          options: [{ value: "all", label: t.all }, { value: "Risk", label: "Risk" }, { value: "Issue", label: "Issue" }, { value: "Action", label: "Action" }],
+          options: [{ value: "all", label: t.all }, ...KINDS.map((k) => ({ value: k, label: k }))],
         }]}
       />
       <div className="glass-card p-5">
@@ -79,10 +89,10 @@ export function RecentActivityTab({ project, lang = "en" }: { project: string; l
           <ul className="divide-y divide-border">
             {filtered.map((a) => (
               <li key={a.id} className="flex items-start gap-3 py-3">
-                <span className={`inline-flex h-7 shrink-0 items-center rounded-full border px-3 text-xs font-medium ${KIND_STYLE[a.kind]}`}>{a.kind}</span>
+                <span className={`inline-flex h-7 shrink-0 whitespace-nowrap items-center rounded-full border px-3 text-xs font-medium ${KIND_STYLE[a.kind]}`}>{a.kind}</span>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium text-foreground">
-                    <span className="num-mono me-2 text-xs text-muted-foreground">{a.ref}</span>{a.title}
+                    {a.ref && <span className="num-mono me-2 text-xs text-muted-foreground">{a.ref}</span>}{a.title}
                   </div>
                   <div className="mt-0.5 text-sm text-muted-foreground">{a.text}</div>
                   <div className="mt-1 text-xs text-accent">

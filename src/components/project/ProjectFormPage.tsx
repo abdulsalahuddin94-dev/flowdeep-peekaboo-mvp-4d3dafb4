@@ -325,7 +325,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* ---------- Form column ---------- */}
           <div className="min-w-0 space-y-5">
-            <TypeSwitch value={form.projectType} onChange={pickType} />
+            {!isEdit && <TypeSwitch value={form.projectType} onChange={pickType} />}
 
             <Section id="identity" title="Identity" subtitle="What this project is called and how it's referenced.">
               <Field className="sm:col-span-2" label="Project name *" htmlFor="project-name" error={errors.name}>

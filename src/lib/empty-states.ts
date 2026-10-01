@@ -35,7 +35,6 @@ export const EMPTY_STATES: EmptyStateEntry[] = [
   { id: "project-overview-health", module: "Portfolio", page: "Overview — Project Health", path: "/portfolio/", art: "shield", title: "No health update yet", description: "Submit a status update to establish project health." },
   { id: "project-overview-milestones", module: "Portfolio", page: "Overview — Next Milestones", path: "/portfolio/", art: "calendar", title: "No upcoming milestones", description: "The next scheduled milestones will appear here." },
   { id: "project-overview-budget", module: "Portfolio", page: "Overview — Budget Status", path: "/portfolio/", art: "coins", title: "No budget data yet", description: "Add planned costs to start tracking the budget." },
-  { id: "project-overview-activity", module: "Portfolio", page: "Overview — Recent Activity", path: "/portfolio/", art: "bell", title: "No activity yet", description: "Project updates and changes will appear here." },
 
 
   // Resources

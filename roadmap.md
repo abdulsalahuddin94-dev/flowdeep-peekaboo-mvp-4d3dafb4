@@ -23,3 +23,5 @@
 - [x] Show Planned % next to Actual % on Portfolio project cards with a planned marker on the progress bar.
 - [x] Add a project Action Tracker tab (Risk / Issue / Meeting / General actions, owner, responsibility, due date, derived Overdue, filters, My actions, comments & updates).
 - [x] Show linked actions in Risk and Issue drawers and rename their history to Comments & Updates.
+- [x] Simplify project Issue/Risk summary labels, move Risks Summary left, and open selected risks from Overview.
+- [x] Add search and filters to Cost Recognition and Revenue Recognition tables.

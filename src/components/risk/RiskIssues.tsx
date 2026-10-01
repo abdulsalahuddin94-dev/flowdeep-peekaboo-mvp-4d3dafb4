@@ -81,7 +81,7 @@ export function useSeverity() {
 
 /* ── Risk register ────────────────────────────────────────────────────────── */
 
-export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues }: { project?: string; milestoneOptions?: string[]; onViewLinkedIssues?: (riskId: string) => void }) {
+export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues, initialViewId }: { project?: string; milestoneOptions?: string[]; onViewLinkedIssues?: (riskId: string) => void; initialViewId?: string | null }) {
   const { addActions } = useActions();
   const { risks, issues, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, editRiskUpdate, removeRiskUpdate, convertRiskToIssue } = useRiskRegister();
   const hasLinkedIssue = (riskId: string) => issues.some((i) => i.riskId === riskId);
@@ -101,6 +101,10 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues 
   const [statusFor, setStatusFor] = useState<RiskRecord | null>(null);
   const [editingUpdate, setEditingUpdate] = useState<RiskUpdate | null>(null);
   const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ risk: RiskRecord; update: RiskUpdate } | null>(null);
+
+  useEffect(() => {
+    if (initialViewId) setViewId(initialViewId);
+  }, [initialViewId]);
 
   const scoped = project ? risks.filter((r) => r.project === project) : risks;
   const q = query.trim().toLowerCase();

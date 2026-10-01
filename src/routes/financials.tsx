@@ -36,6 +36,13 @@ const COST_ITEMS = [
   { project: "Smart Grid Pilot", item: "Field engineers travel", cat: "Business Trips", type: "OpEx", amount: "$0.3M", milestone: "Fixed date", due: "05 Aug", status: "Pending" },
 ];
 
+const REVENUE_ITEMS = [
+  { project: "ERP Upgrade", milestone: "UAT Sign-off", due: "15 Jun", contract: "$10.0M", recognised: "$0.4M", pending: "$0.8M", pct: 33, payment: "Invoiced", days: "+5d" },
+  { project: "Customer Portal v3", milestone: "Production cutover", due: "30 Aug", contract: "$6.0M", recognised: "$0.6M", pending: "$0.2M", pct: 75, payment: "Paid", days: "25d" },
+  { project: "Refinery Expansion", milestone: "Civil phase complete", due: "22 Sep", contract: "$22.0M", recognised: "$8.0M", pending: "$4.2M", pct: 65, payment: "Partial", days: "75d" },
+  { project: "Salesforce Migration", milestone: "Hypercare exit", due: "22 Jul", contract: "$2.0M", recognised: "$0.9M", pending: "$0.1M", pct: 90, payment: "Paid", days: "0d" },
+];
+
 const FIN_TAB_LABELS: Record<string, string> = {
   overview: "Overview (P&L)", cost: "Cost Recognition", rev: "Revenue Recognition",
 };
@@ -62,6 +69,13 @@ function FinancialsPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const [selectedYear, setSelectedYear] = useState("all");
   const [pnlQuery, setPnlQuery] = useState("");
+  const [costQuery, setCostQuery] = useState("");
+  const [costCategory, setCostCategory] = useState<string[]>([]);
+  const [costType, setCostType] = useState("all");
+  const [costStatus, setCostStatus] = useState("all");
+  const [revenueQuery, setRevenueQuery] = useState("");
+  const [revenuePayment, setRevenuePayment] = useState("all");
+  const [revenueProgress, setRevenueProgress] = useState("all");
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 3 }, (_, i) => (currentYear - 2 + i).toString());
 
@@ -114,6 +128,21 @@ function FinancialsPage() {
   const overBudgetCount = pnlRows.filter((r) => r.burnPct > 100).length;
   const totalRemaining = portfolioSummary.budgetTotal - portfolioSummary.budgetUsed;
   const utilization = (portfolioSummary.budgetUsed / portfolioSummary.budgetTotal) * 100;
+  const costCategories = Array.from(new Set(COST_ITEMS.map((item) => item.cat)));
+  const filteredCostItems = COST_ITEMS.filter((item) => {
+    const query = costQuery.trim().toLowerCase();
+    return (!query || [item.project, item.item, item.milestone].some((value) => value.toLowerCase().includes(query)))
+      && (costCategory.length === 0 || costCategory.includes(item.cat))
+      && (costType === "all" || item.type === costType)
+      && (costStatus === "all" || item.status === costStatus);
+  });
+  const filteredRevenueItems = REVENUE_ITEMS.filter((item) => {
+    const query = revenueQuery.trim().toLowerCase();
+    const recognition = item.pct >= 100 ? "complete" : item.pct > 0 ? "partial" : "not-started";
+    return (!query || [item.project, item.milestone].some((value) => value.toLowerCase().includes(query)))
+      && (revenuePayment === "all" || item.payment === revenuePayment)
+      && (revenueProgress === "all" || recognition === revenueProgress);
+  });
 
   const kpis = [
     {
@@ -379,13 +408,25 @@ function FinancialsPage() {
           </div>
 
           <div className="label-eyebrow mb-3">Cost items — recognition schedule</div>
+          <PageToolbar
+            query={costQuery}
+            onQueryChange={setCostQuery}
+            placeholder="Search project, cost item, or milestone…"
+            filterGroups={[
+              { key: "category", label: "Cost Category", mode: "multi", value: costCategory, onChange: setCostCategory, options: [{ value: "all", label: "All categories" }, ...costCategories.map((value) => ({ value, label: value }))] },
+              { key: "type", label: "Cost Type", value: costType, onChange: setCostType, options: [{ value: "all", label: "All types" }, { value: "CapEx", label: "CapEx" }, { value: "OpEx", label: "OpEx" }] },
+              { key: "status", label: "Recognition Status", value: costStatus, onChange: setCostStatus, options: [{ value: "all", label: "All statuses" }, ...Array.from(new Set(COST_ITEMS.map((item) => item.status))).map((value) => ({ value, label: value }))] },
+            ]}
+          />
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Cost Item</TableHead><TableHead>Category</TableHead>
               <TableHead>Cost Type</TableHead><TableHead>Amount</TableHead>
               <TableHead>Linked Milestone</TableHead><TableHead>Due</TableHead><TableHead>Status</TableHead>
             </TableRow></TableHeader>
-            <TableBody>{COST_ITEMS.map((c) => (
+            <TableBody>
+              {filteredCostItems.length === 0 && <EmptyRow colSpan={8} />}
+              {filteredCostItems.map((c) => (
               <TableRow key={`${c.project}-${c.item}`} className="bg-table-row-bg hover:bg-table-row-hover border-0">
                 <TableCell className="font-medium">{c.project}</TableCell>
                 <TableCell className="text-sm">{c.item}</TableCell>
@@ -405,7 +446,8 @@ function FinancialsPage() {
                   }`}>{c.status}</span>
                 </TableCell>
               </TableRow>
-            ))}</TableBody>
+              ))}
+            </TableBody>
           </Table>
           </EmptyRegion>
         </TabsContent>
@@ -414,14 +456,21 @@ function FinancialsPage() {
           <EmptyRegion id="financials-revenue">
           <div className="label-eyebrow mb-4">Milestone-linked revenue آ· FY2026</div>
 
+          <PageToolbar
+            query={revenueQuery}
+            onQueryChange={setRevenueQuery}
+            placeholder="Search project or milestone…"
+            filterGroups={[
+              { key: "payment", label: "Payment Status", value: revenuePayment, onChange: setRevenuePayment, options: [{ value: "all", label: "All payment statuses" }, ...Array.from(new Set(REVENUE_ITEMS.map((item) => item.payment))).map((value) => ({ value, label: value }))] },
+              { key: "recognition", label: "Recognition Progress", value: revenueProgress, onChange: setRevenueProgress, options: [{ value: "all", label: "All progress" }, { value: "complete", label: "Fully recognised" }, { value: "partial", label: "Partially recognised" }, { value: "not-started", label: "Not recognised" }] },
+            ]}
+          />
+
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0"><TableHead>Project</TableHead><TableHead>Milestone</TableHead><TableHead>Due</TableHead><TableHead>Total Contract</TableHead><TableHead>Recognised</TableHead><TableHead>Pending</TableHead><TableHead>% Realized</TableHead><TableHead>Payment</TableHead><TableHead>Days</TableHead></TableRow></TableHeader>
-            <TableBody>{([
-              { project: "ERP Upgrade", milestone: "UAT Sign-off", due: "15 Jun", contract: "$10.0M", recognised: "$0.4M", pending: "$0.8M", pct: 33, payment: "Invoiced", days: "+5d" },
-              { project: "Customer Portal v3", milestone: "Production cutover", due: "30 Aug", contract: "$6.0M", recognised: "$0.6M", pending: "$0.2M", pct: 75, payment: "Paid", days: "25d" },
-              { project: "Refinery Expansion", milestone: "Civil phase complete", due: "22 Sep", contract: "$22.0M", recognised: "$8.0M", pending: "$4.2M", pct: 65, payment: "Partial", days: "75d" },
-              { project: "Salesforce Migration", milestone: "Hypercare exit", due: "22 Jul", contract: "$2.0M", recognised: "$0.9M", pending: "$0.1M", pct: 90, payment: "Paid", days: "0d" },
-            ]).map((r) => {
+            <TableBody>
+            {filteredRevenueItems.length === 0 && <EmptyRow colSpan={9} />}
+            {filteredRevenueItems.map((r) => {
               const daysNum = parseInt(String(r.days ?? "").replace(/[^\d-]/g, ''), 10);
               const daysStatus = daysNum < 0 ? "text-rag-red" : daysNum < 7 ? "text-rag-amber" : "text-rag-green";
               const payment = r.payment ?? "";

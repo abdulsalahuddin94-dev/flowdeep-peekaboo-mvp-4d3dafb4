@@ -161,6 +161,7 @@ function ProjectDetail() {
     if (project.ragNote === "New") updateProject(project.id, { ragNote: undefined });
   }
   const [activeTab, setActiveTab] = useState<string>(TABS[0]);
+  const [overviewRiskId, setOverviewRiskId] = useState<string | null>(null);
   
   const [addFirstMilestoneOpen, setAddFirstMilestoneOpen] = useState(false);
   const [teamMembers, setTeamMembers] = useState([
@@ -807,10 +808,10 @@ function ProjectDetail() {
               <AlertTriangle size={18} />
             </span>
             <div className="min-w-0">
-              <div className="text-xs text-muted-foreground">Open Issues</div>
+              <div className="text-xs text-muted-foreground">Issues</div>
               <div className="flex items-baseline gap-2">
                 <span className="num-mono text-lg font-semibold text-rag-red">{String(project.issues).padStart(2, "0")}</span>
-                <span className="text-xs text-muted-foreground">active · 2 critical</span>
+                <span className="text-xs text-muted-foreground">2 critical</span>
               </div>
             </div>
           </div>
@@ -820,10 +821,10 @@ function ProjectDetail() {
               <ShieldAlert size={18} />
             </span>
             <div className="min-w-0">
-              <div className="text-xs text-muted-foreground">Open Risks</div>
+              <div className="text-xs text-muted-foreground">Risks</div>
               <div className="flex items-baseline gap-2">
                 <span className="num-mono text-lg font-semibold text-rag-amber">{String(project.risks).padStart(2, "0")}</span>
-                <span className="text-xs text-muted-foreground">active · 1 escalated</span>
+                <span className="text-xs text-muted-foreground">1 escalated</span>
               </div>
             </div>
           </div>
@@ -876,7 +877,15 @@ function ProjectDetail() {
         </div>
 
         <TabsContent value="Overview" className="mt-5">
-          <OverviewTab project={project} isNew={isNewProject} gateData={gateData} />
+          <OverviewTab
+            project={project}
+            isNew={isNewProject}
+            gateData={gateData}
+            onRiskSelect={(riskId) => {
+              setOverviewRiskId(riskId);
+              setActiveTab("Risk & Issues");
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="Project Schedule" className="mt-5">
@@ -1270,6 +1279,7 @@ function ProjectDetail() {
           <ProjectRiskIssuesTab
             projectName={project.name}
             milestoneOptions={milestones.filter((m) => m.kind === "Milestone").map((m) => m.name)}
+            initialRiskId={overviewRiskId}
           />
         </TabsContent>
 
@@ -1576,9 +1586,9 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
 }
 
 function OverviewTab({
-  project, isNew, gateData,
+  project, isNew, gateData, onRiskSelect,
 }: {
-  project: typeof projects[number]; isNew: boolean; gateData: GateStage[];
+  project: typeof projects[number]; isNew: boolean; gateData: GateStage[]; onRiskSelect: (riskId: string) => void;
 }) {
   const { risks } = useRiskRegister();
   const projectRisks = useMemo(
@@ -1629,30 +1639,29 @@ function OverviewTab({
     <div className="grid items-start gap-4 md:grid-cols-2">
       <div className="space-y-4">
         <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Project Health</div>
-          <div className="flex items-start gap-3">
-            <div className={`flex h-10 w-10 items-center justify-center rounded-full ${r.bg} ring-2 ${r.ring}`}>
-              <span className={`text-lg ${r.text}`}>✓</span>
-            </div>
-            <div>
-              <div className={`text-base font-medium ${r.text}`}>{r.label}</div>
-              <div className="text-xs text-muted-foreground">Last updated: 2 hours ago</div>
-            </div>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="label-eyebrow">Risks Summary</div>
+            <span className="num-mono text-xs text-muted-foreground">{projectRisks.length} risks</span>
           </div>
-          <div className="mt-5 space-y-3 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Progress:</span>
-              <span className="num-mono font-medium text-foreground">{project.progress}%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Start Date:</span>
-              <span className="num-mono font-medium text-foreground">{formatDateWithYear(project.startDate)}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">End Date:</span>
-              <span className="num-mono font-medium text-foreground">{formatDateWithYear(project.endDate)}</span>
-            </div>
-          </div>
+          {projectRisks.length > 0 ? (
+            <ul className="max-h-[220px] space-y-1 overflow-y-auto pr-2 [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]">
+              {projectRisks.map((risk) => {
+                const scoreTone = risk.score >= 15 ? "bg-rag-red/15 text-rag-red" : risk.score >= 9 ? "bg-rag-amber/15 text-rag-amber" : "bg-rag-green/15 text-rag-green";
+                return (
+                  <li key={risk.id}>
+                    <button type="button" onClick={() => onRiskSelect(risk.id)} className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left hover:bg-table-row-hover">
+                      <span className={cn("num-mono flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium", scoreTone)}>{risk.score}</span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-foreground">{risk.title}</span>
+                        <span className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground"><span>{risk.category}</span><span aria-hidden="true">·</span><span>{risk.status}</span></span>
+                      </span>
+                      <span className="num-mono shrink-0 text-xs text-muted-foreground">P{risk.prob} × I{risk.impact}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : <p className="text-sm text-muted-foreground">No risks logged for this project.</p>}
         </div>
 
         <div className="glass-card p-5">
@@ -1684,39 +1693,21 @@ function OverviewTab({
 
       <div className="space-y-4">
         <div className="glass-card p-5">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div className="label-eyebrow">Risks Summary</div>
-            <span className="num-mono text-xs text-muted-foreground">{projectRisks.length} risks</span>
+          <div className="label-eyebrow mb-4">Project Health</div>
+          <div className="flex items-start gap-3">
+            <div className={`flex h-10 w-10 items-center justify-center rounded-full ${r.bg} ring-2 ${r.ring}`}>
+              <span className={`text-lg ${r.text}`}>✓</span>
+            </div>
+            <div>
+              <div className={`text-base font-medium ${r.text}`}>{r.label}</div>
+              <div className="text-xs text-muted-foreground">Last updated: 2 hours ago</div>
+            </div>
           </div>
-          {projectRisks.length > 0 ? (
-            <ul className="max-h-[220px] space-y-1 overflow-y-auto pr-2 [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]">
-              {projectRisks.map((risk) => {
-                const scoreTone = risk.score >= 15
-                  ? "bg-rag-red/15 text-rag-red"
-                  : risk.score >= 9
-                    ? "bg-rag-amber/15 text-rag-amber"
-                    : "bg-rag-green/15 text-rag-green";
-                return (
-                  <li key={risk.id} className="flex items-center gap-3 rounded-lg px-2 py-2.5 hover:bg-table-row-hover">
-                    <span className={cn("num-mono flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium", scoreTone)}>
-                      {risk.score}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium text-foreground">{risk.title}</div>
-                      <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{risk.category}</span>
-                        <span aria-hidden="true">·</span>
-                        <span>{risk.status}</span>
-                      </div>
-                    </div>
-                    <span className="num-mono shrink-0 text-xs text-muted-foreground">P{risk.prob} × I{risk.impact}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">No risks logged for this project.</p>
-          )}
+          <div className="mt-5 space-y-3 text-sm">
+            <div className="flex items-center justify-between"><span className="text-muted-foreground">Progress:</span><span className="num-mono font-medium text-foreground">{project.progress}%</span></div>
+            <div className="flex items-center justify-between"><span className="text-muted-foreground">Start Date:</span><span className="num-mono font-medium text-foreground">{formatDateWithYear(project.startDate)}</span></div>
+            <div className="flex items-center justify-between"><span className="text-muted-foreground">End Date:</span><span className="num-mono font-medium text-foreground">{formatDateWithYear(project.endDate)}</span></div>
+          </div>
         </div>
 
         <div className="glass-card p-5">
@@ -6921,7 +6912,7 @@ function TeamAllocationTab({
 
 // ── Risk & Issues tab ─────────────────────────────────────────────────────────
 
-function ProjectRiskIssuesTab({ projectName, milestoneOptions }: { projectName: string; milestoneOptions: string[] }) {
+function ProjectRiskIssuesTab({ projectName, milestoneOptions, initialRiskId }: { projectName: string; milestoneOptions: string[]; initialRiskId?: string | null }) {
   const [view, setView] = useState<"register" | "issues">("register");
   const [issueRiskFilter, setIssueRiskFilter] = useState<string[]>([]);
 
@@ -6940,6 +6931,7 @@ function ProjectRiskIssuesTab({ projectName, milestoneOptions }: { projectName: 
           <RiskRegisterTab
             project={projectName}
             milestoneOptions={milestoneOptions}
+            initialViewId={initialRiskId}
             onViewLinkedIssues={(riskId) => { setIssueRiskFilter([riskId]); setView("issues"); }}
           />
         </TabsContent>

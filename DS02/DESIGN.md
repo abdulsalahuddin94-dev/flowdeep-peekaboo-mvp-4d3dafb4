@@ -1,7 +1,7 @@
 # DS02 Design System — Enterprise PMO (Nexus)
 
-**Version:** DS02.v3.13  
-**Last Updated:** 2026-09-30  
+**Version:** DS02.v3.14  
+**Last Updated:** 2026-10-01  
 **Status:** Active in production (Complete & Production-Ready)  
 **Structure:** Primitives (110: 85 colors + 25 dimensions) → Semantic (77: Light & Dark modes)  
 **Total Tokens:** 187 Figma variables, zero broken references, 100% WCAG 2.1 AA/AAA accessible  
@@ -147,6 +147,10 @@ Theme controlled via `data-theme` attribute on `<html>`:
 
 ## 8. Changelog
 
+### DS02.v3.14 (2026-10-01)
+- **Linked action interaction:** inside an open Risk or Issue drawer, clicking an action opens the focused **Update action status** popup directly; it must not stack a second drawer over the parent drawer.
+- **Linked action controls:** the resting status pill swaps on hover/focus to compact Edit and Delete icon controls. Edit opens the action form and Delete requires confirmation.
+
 ### DS02.v3.13 (2026-09-30)
 - **Financial Link cell:** when an item carries multiple links, the cell shows the first link as its colored chip (Revenue green / cost amber) plus a muted "+N" chip for the remainder; both open the same link dialog. Cell remains single-line and never wraps.
 
@@ -201,4 +205,3 @@ Theme controlled via `data-theme` attribute on `<html>`:
 **End of DS02 Design System Documentation (v3.10) — MVP Edition**
 
 - v3.12 (2026-09-30): Action Tracker pattern — derived Overdue pill, Responsibility pills (Internal/Client/Vendor), linked-actions block inside Risk/Issue drawers, history label "Comments & Updates".
-- v3.14 (2026-10-01): Linked actions inside Risk/Issue drawers are interactive — clicking an action opens the full action drawer (Update status, Comments & Updates with edit/delete), same as the Action Tracker tab.

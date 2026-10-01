@@ -1630,11 +1630,6 @@ function OverviewTab({
     { name: "UAT Completion", date: "2026-06-01", rag: "amber" as const },
   ];
 
-  const activity = [
-    { title: "Status updated to At Risk", who: project.pm, when: "2h ago" },
-    { title: "Milestone completed", who: "Sara Mohamed", when: "5h ago" },
-    { title: "Budget revised", who: "Finance Team", when: "1d ago" },
-  ];
 
   return (
     <div className="grid items-start gap-4 md:grid-cols-2">

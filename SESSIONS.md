@@ -1,3 +1,6 @@
+## 2026-10-01 — Action status comment visibility hint
+- Added a small hint below the Update action status comment field clarifying that comments are saved with the action and remain available in the Action Tracker; added EN and AR copy.
+
 ## 2026-10-01 — Risk/Issue linked actions: direct status popup and hover controls
 - Clicking a linked action inside a Risk or Issue drawer now opens the Update action status popup directly instead of stacking a second action drawer.
 - The resting status pill swaps on row hover/focus to compact Edit and Delete icons; Edit opens the prefilled action form and Delete uses a confirmation popup.

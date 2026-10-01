@@ -33,11 +33,13 @@ export const T = {
     title: "Action Tracker", add: "Add Action", meeting: "Log meeting actions", search: "Search action…",
     open: "Open", overdue: "Overdue", dueWeek: "Due this week", done: "Done", mine: "My actions",
     commentsUpdates: "Comments & Updates", updateStatus: "Update action status",
+    commentTrackerHint: "Comments are saved with this action and can be viewed in the Action Tracker.",
   },
   ar: {
     title: "متابعة الإجراءات", add: "إضافة إجراء", meeting: "تسجيل إجراءات الاجتماع", search: "ابحث عن إجراء…",
     open: "مفتوح", overdue: "متأخر", dueWeek: "مستحق هذا الأسبوع", done: "منجز", mine: "إجراءاتي",
     commentsUpdates: "التعليقات والتحديثات", updateStatus: "تحديث حالة الإجراء",
+    commentTrackerHint: "يُحفظ التعليق مع هذا الإجراء ويمكن الرجوع إليه من متابعة الإجراءات.",
   },
 };
 const t = T.en;
@@ -404,6 +406,7 @@ function ActionStatusDialog({ action, editing, onClose, onSave }: { action: Acti
       </Field>
       <Field label="Comment" htmlFor="act-comment">
         <Textarea id="act-comment" maxLength={COMMENT_MAX} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="What progressed on this action?" />
+        <p className="mt-1 text-xs text-muted-foreground">{t.commentTrackerHint}</p>
         <div className="mt-1 text-end text-[11px] text-muted-foreground num-mono">{comment.length}/{COMMENT_MAX}</div>
       </Field>
     </FormDialog>

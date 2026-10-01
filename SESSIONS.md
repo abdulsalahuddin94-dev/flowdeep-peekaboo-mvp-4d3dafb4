@@ -1,3 +1,7 @@
+## 2026-10-01 — Financials table badges: DS02 pill alignment
+- Restyled the badges in the Financials tables (P&L burn %, Cost Recognition type and status, Revenue Recognition payment status) to the standard DS02 pill: fully rounded, h-7, px-3, text-xs, 1px tinted border — matching the badges used across the other modules' tables.
+- Files: src/routes/financials.tsx.
+
 ## 2026-10-01 — Overview risks and Financial Recognition filters
 - Renamed the project summary cards to Issues and Risks and removed the ambiguous “active” wording.
 - Moved Risks Summary to the left column, moved Project Health to the right, and made each risk row open that risk in the project Risk Register.

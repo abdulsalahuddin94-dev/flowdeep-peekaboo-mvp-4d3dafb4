@@ -376,7 +376,7 @@ function FinancialsPage() {
                   <TableCell className={`num-mono text-xs ${expectedProfit > 0 ? "text-rag-green" : "text-rag-red"}`}>${expectedProfit.toFixed(2)}M</TableCell>
                   <TableCell className={`num-mono text-xs ${expectedProfitPct > 15 ? "text-rag-green" : expectedProfitPct > 5 ? "text-rag-amber" : "text-rag-red"}`}>{Math.round(expectedProfitPct)}%</TableCell>
                   <TableCell className={`num-mono text-xs ${margin > 20 ? "text-rag-green" : margin > 10 ? "text-rag-amber" : "text-rag-red"}`}>{Math.round(margin)}%</TableCell>
-                  <TableCell><span className={`px-2 py-1 rounded-full text-[11px] font-medium ${burnPct > 90 ? "bg-rag-red/20 text-rag-red" : burnPct > 70 ? "bg-rag-amber/20 text-rag-amber" : "bg-rag-green/20 text-rag-green"}`}>{Math.round(burnPct)}%</span></TableCell>
+                  <TableCell><span className={`inline-flex h-7 items-center whitespace-nowrap rounded-full border px-3 text-xs font-medium ${burnPct > 90 ? "border-rag-red/60 bg-rag-red/10 text-rag-red" : burnPct > 70 ? "border-rag-amber/60 bg-rag-amber/10 text-rag-amber" : "border-rag-green/60 bg-rag-green/10 text-rag-green"}`}>{Math.round(burnPct)}%</span></TableCell>
                 </TableRow>
               );
             })}</TableBody>
@@ -432,17 +432,17 @@ function FinancialsPage() {
                 <TableCell className="text-sm">{c.item}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{c.cat}</TableCell>
                 <TableCell>
-                  <span className={`px-2 py-0.5 rounded text-[11px] font-medium ${c.type === "CapEx" ? "bg-accent/20 text-accent" : "bg-role-director/20 text-role-director"}`}>{c.type}</span>
+                  <span className={`inline-flex h-7 items-center whitespace-nowrap rounded-full border px-3 text-xs font-medium ${c.type === "CapEx" ? "border-accent/60 bg-accent/10 text-accent" : "border-role-director/60 bg-role-director/10 text-role-director"}`}>{c.type}</span>
                 </TableCell>
                 <TableCell className="num-mono font-medium">{c.amount}</TableCell>
                 <TableCell className="text-xs">{c.milestone}</TableCell>
                 <TableCell className="text-xs num-mono">{c.due}</TableCell>
                 <TableCell>
-                  <span className={`px-2 py-1 rounded text-[11px] font-medium ${
-                    c.status === "Recognised" ? "bg-rag-green/20 text-rag-green" :
-                    c.status === "In progress" ? "bg-rag-amber/20 text-rag-amber" :
-                    c.status === "Recurring" ? "bg-role-director/20 text-role-director" :
-                    "bg-secondary/40 text-muted-foreground"
+                  <span className={`inline-flex h-7 items-center whitespace-nowrap rounded-full border px-3 text-xs font-medium ${
+                    c.status === "Recognised" ? "border-rag-green/60 bg-rag-green/10 text-rag-green" :
+                    c.status === "In progress" ? "border-rag-amber/60 bg-rag-amber/10 text-rag-amber" :
+                    c.status === "Recurring" ? "border-role-director/60 bg-role-director/10 text-role-director" :
+                    "border-border/60 bg-secondary/40 text-muted-foreground"
                   }`}>{c.status}</span>
                 </TableCell>
               </TableRow>
@@ -490,11 +490,11 @@ function FinancialsPage() {
                       <span className="num-mono text-xs">{r.pct}%</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-xs">
-                    <span className={`inline-block px-2 py-1 rounded text-[11px] font-medium ${
-                      payment.includes("Paid") ? "bg-rag-green/20 text-rag-green" :
-                      payment.includes("Invoiced") ? "bg-rag-amber/20 text-rag-amber" :
-                      "bg-secondary/40 text-muted-foreground"
+                  <TableCell>
+                    <span className={`inline-flex h-7 items-center whitespace-nowrap rounded-full border px-3 text-xs font-medium ${
+                      payment.includes("Paid") ? "border-rag-green/60 bg-rag-green/10 text-rag-green" :
+                      payment.includes("Invoiced") ? "border-rag-amber/60 bg-rag-amber/10 text-rag-amber" :
+                      "border-border/60 bg-secondary/40 text-muted-foreground"
                     }`}>
                       {payment}
                     </span>

@@ -1,3 +1,6 @@
+## 2026-10-01 — Project Recent Activity tab
+- Added a Recent Activity tab after Action Tracker on project details: a dated feed derived from Risk, Issue and Action updates (status changes, comments, closures), with search and type filter. Type shown as DS02 pills.
+
 ## 2026-10-01 — Financials table badges: DS02 pill alignment
 - Restyled the badges in the Financials tables (P&L burn %, Cost Recognition type and status, Revenue Recognition payment status) to the standard DS02 pill: fully rounded, h-7, px-3, text-xs, 1px tinted border — matching the badges used across the other modules' tables.
 - Files: src/routes/financials.tsx.

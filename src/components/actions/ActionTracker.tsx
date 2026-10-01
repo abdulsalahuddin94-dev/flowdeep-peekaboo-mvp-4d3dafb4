@@ -472,15 +472,13 @@ function ActionDrawer({ action: a, onClose, onUpdate, onEdit, onEditUpdate, onDe
 /* ── Linked actions (Risk / Issue drawers) ──────────────────────────────── */
 
 export function LinkedActions({ project, source, sourceRef, title }: { project: string; source: "Risk" | "Issue"; sourceRef: string; title: string }) {
-  const { actions, addAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
+  const { actions, addAction, updateAction, removeAction, logActionUpdate } = useActions();
   const { currentUser } = useCurrentUser();
   const [open, setOpen] = useState(false);
-  const [viewId, setViewId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<ActionItem | null>(null);
   const [statusFor, setStatusFor] = useState<ActionItem | null>(null);
-  const [editingUpdate, setEditingUpdate] = useState<ActionUpdate | null>(null);
-  const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ a: ActionItem; u: ActionUpdate } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ActionItem | null>(null);
   const linked = actions.filter((a) => a.source === source && a.sourceRef === sourceRef);
-  const view = viewId ? (actions.find((a) => a.id === viewId) ?? null) : null;
   const done = linked.filter((a) => a.status === "Done").length;
   const overdue = linked.filter((a) => isActionOverdue(a)).length;
   return (
@@ -500,52 +498,97 @@ export function LinkedActions({ project, source, sourceRef, title }: { project: 
       {linked.length === 0 && <p className="text-sm text-muted-foreground">No actions yet. Tracked in the project's Action Tracker.</p>}
       <div className="space-y-2">
         {linked.map((a) => (
-          <button
+          <div
             key={a.id}
-            type="button"
-            onClick={() => setViewId(a.id)}
-            className="flex w-full items-center justify-between gap-3 rounded-lg border border-border bg-[var(--field-bg-filled)] px-3 py-2 text-start transition-colors hover:border-accent/50"
+            role="button"
+            tabIndex={0}
+            aria-label={`Update ${a.title}`}
+            onClick={() => setStatusFor(a)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setStatusFor(a);
+              }
+            }}
+            className="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-[var(--field-bg-filled)] px-3 py-2 text-start transition-colors hover:border-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <div className="min-w-0">
               <div className="truncate text-sm text-foreground">{a.title}</div>
               <div className="text-[11px] text-muted-foreground">{a.owner} · <span className={cn("num-mono", isActionOverdue(a) && "text-rag-red")}>{formatDateWithYear(a.dueDate)}</span></div>
             </div>
-            <StatusCell a={a} />
-          </button>
+            <div className="relative flex min-h-7 min-w-[72px] shrink-0 items-center justify-end">
+              <div className="transition-opacity group-hover:opacity-0 group-focus-within:opacity-0"><StatusCell a={a} /></div>
+              <div className="absolute end-0 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 rounded-full"
+                  aria-label={`Edit ${a.title}`}
+                  title="Edit action"
+                  onClick={(event) => { event.stopPropagation(); setEditing(a); }}
+                >
+                  <EditAction size={14} />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  aria-label={`Delete ${a.title}`}
+                  title="Delete action"
+                  onClick={(event) => { event.stopPropagation(); setPendingDelete(a); }}
+                >
+                  <DeleteAction size={14} />
+                </Button>
+              </div>
+            </div>
+          </div>
         ))}
       </div>
-      <ActionFormDialog open={open} onOpenChange={setOpen} project={project} fixedSource={{ source, sourceRef }}
-        onSave={(v) => { addAction(v); setOpen(false); toast.success("Action added to Action Tracker"); }} />
-      <ActionDrawer
-        action={view}
-        onClose={() => setViewId(null)}
-        onUpdate={(a) => { setEditingUpdate(null); setStatusFor(a); }}
-        onEdit={() => setViewId(null)}
-        onEditUpdate={(a, u) => { setEditingUpdate(u); setStatusFor(a); }}
-        onDeleteUpdate={(a, u) => setPendingDeleteUpdate({ a, u })}
+      <ActionFormDialog
+        open={open || !!editing}
+        onOpenChange={(nextOpen) => { if (!nextOpen) { setOpen(false); setEditing(null); } }}
+        project={project}
+        initial={editing}
+        fixedSource={{ source, sourceRef }}
+        onSave={(values) => {
+          if (editing) {
+            updateAction(editing.id, values);
+            toast.success("Action updated");
+          } else {
+            addAction(values);
+            toast.success("Action added to Action Tracker");
+          }
+          setOpen(false);
+          setEditing(null);
+        }}
       />
       <ActionStatusDialog
         action={statusFor}
-        editing={editingUpdate}
-        onClose={() => { setStatusFor(null); setEditingUpdate(null); }}
+        editing={null}
+        onClose={() => setStatusFor(null)}
         onSave={(comment, st) => {
           if (!statusFor) return;
-          if (editingUpdate) {
-            editActionUpdate(statusFor.id, editingUpdate.id, comment);
-            if (st !== statusFor.status) logActionUpdate(statusFor.id, { comment, by: currentUser.name, status: st });
-          } else logActionUpdate(statusFor.id, { comment, by: currentUser.name, status: st });
+          logActionUpdate(statusFor.id, { comment, by: currentUser.name, status: st });
           toast.success("Action updated");
-          setStatusFor(null); setEditingUpdate(null);
+          setStatusFor(null);
         }}
       />
       <ConfirmDialog
-        open={!!pendingDeleteUpdate}
-        onOpenChange={(o) => { if (!o) setPendingDeleteUpdate(null); }}
-        title="Delete this comment?"
-        description="This comment will be permanently removed from the action history."
+        open={!!pendingDelete}
+        onOpenChange={(nextOpen) => { if (!nextOpen) setPendingDelete(null); }}
+        title="Delete this action?"
+        description="This action and its update history will be permanently removed from the Action Tracker."
         confirmLabel="Delete"
         tone="danger"
-        onConfirm={() => { if (pendingDeleteUpdate) removeActionUpdate(pendingDeleteUpdate.a.id, pendingDeleteUpdate.u.id); setPendingDeleteUpdate(null); }}
+        onConfirm={() => {
+          if (pendingDelete) {
+            removeAction(pendingDelete.id);
+            toast.success("Action deleted");
+          }
+          setPendingDelete(null);
+        }}
       />
     </div>
   );

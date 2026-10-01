@@ -1,3 +1,7 @@
+## 2026-10-01 — Revenue Breakdown: toolbar above KPI cards
+- Moved the Revenue Breakdown search/filter toolbar above the KPI cards, matching the Cost Breakdown layout; card values unchanged.
+- Files: src/routes/portfolio.$projectId.tsx.
+
 ## 2026-10-01 — Overview Recent Activity card removed
 - Removed the Recent Activity card from the project Overview tab (its demo list and its empty-state catalog entry are gone); the Project Health / Next Milestones / Budget Status column now closes with Budget Status.
 - Files: src/routes/portfolio.$projectId.tsx, src/lib/empty-states.ts.

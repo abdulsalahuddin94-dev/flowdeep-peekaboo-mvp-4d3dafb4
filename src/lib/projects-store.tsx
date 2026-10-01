@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { logActivity } from "@/lib/activity-store";
 import { projects as initialProjects, rfps as initialRfps, orgTags as initialTags, workCalendars as initialCalendars, type Project, type WorkCalendar } from "./mock-data";
 
 export type OrgTag = { name: string; color: string };

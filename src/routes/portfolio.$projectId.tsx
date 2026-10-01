@@ -2834,59 +2834,59 @@ function FinancialsTab({
 
       ) : (
           <div className="space-y-4">
-            <div className={`grid gap-3 ${expectedRevenue != null ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
-              {[
-                ...(expectedRevenue != null
-                  ? [{ l: "Expected revenue", v: `$${expectedRevenue.toFixed(2)}M`, n: "Entered at project setup" }]
-                  : []),
+          <div>
+            <PageToolbar
+              query={revQuery}
+              onQueryChange={setRevQuery}
+              placeholder="Search by event name…"
+              filterGroups={[
                 {
-                  l: "Planned in revenue plan",
-                  v: `$${revTotals.planned.toFixed(2)}M`,
-                  c: revMismatch ? "text-rag-amber" : undefined,
-                  n: revMismatch
-                    ? `${revVariance > 0 ? "Over" : "Under"} expected revenue by $${Math.abs(revVariance).toFixed(2)}M`
-                    : expectedRevenue != null
-                      ? "Matches expected revenue"
-                      : undefined,
+                  key: "status",
+                  label: "Status",
+                  value: revStatusFilter,
+                  onChange: setRevStatusFilter,
+                  options: [
+                    { value: "all", label: "All statuses" },
+                    ...REV_STATUSES.map((s) => ({ value: s.sl, label: s.sl })),
+                  ],
                 },
-                { l: "Received", v: `$${revTotals.actual.toFixed(2)}M` },
-                { l: "Collected", v: `${revTotals.util}%`, c: revTotals.util >= 100 ? "text-rag-green" : "text-rag-amber" },
-              ].map((k) => (
-                <div key={k.l} className="glass-card p-4">
-                  <div className="label-eyebrow">{k.l}</div>
-                  <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
-                  {k.n && <div className={`mt-1 text-[11px] ${revMismatch && k.l === "Planned in revenue plan" ? "text-rag-amber" : "text-muted-foreground"}`}>{k.n}</div>}
-                </div>
-              ))}
-            </div>
+                {
+                  key: "date",
+                  label: "Actual date",
+                  mode: "daterange",
+                  value: revDateFilter,
+                  onChange: setRevDateFilter,
+                },
+              ]}
+              trailing={canEdit ? addLinkDialog("revenue") : undefined}
+            />
+          </div>
 
-
-            <div>
-              <PageToolbar
-                query={revQuery}
-                onQueryChange={setRevQuery}
-                placeholder="Search by event name…"
-                filterGroups={[
-                  {
-                    key: "status",
-                    label: "Status",
-                    value: revStatusFilter,
-                    onChange: setRevStatusFilter,
-                    options: [
-                      { value: "all", label: "All statuses" },
-                      ...REV_STATUSES.map((s) => ({ value: s.sl, label: s.sl })),
-                    ],
-                  },
-                  {
-                    key: "date",
-                    label: "Actual date",
-                    mode: "daterange",
-                    value: revDateFilter,
-                    onChange: setRevDateFilter,
-                  },
-                ]}
-                trailing={canEdit ? addLinkDialog("revenue") : undefined}
-              />
+          <div className={`grid gap-3 ${expectedRevenue != null ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
+            {[
+              ...(expectedRevenue != null
+                ? [{ l: "Expected revenue", v: `$${expectedRevenue.toFixed(2)}M`, n: "Entered at project setup" }]
+                : []),
+              {
+                l: "Planned in revenue plan",
+                v: `$${revTotals.planned.toFixed(2)}M`,
+                c: revMismatch ? "text-rag-amber" : undefined,
+                n: revMismatch
+                  ? `${revVariance > 0 ? "Over" : "Under"} expected revenue by $${Math.abs(revVariance).toFixed(2)}M`
+                  : expectedRevenue != null
+                    ? "Matches expected revenue"
+                    : undefined,
+              },
+              { l: "Received", v: `$${revTotals.actual.toFixed(2)}M` },
+              { l: "Collected", v: `${revTotals.util}%`, c: revTotals.util >= 100 ? "text-rag-green" : "text-rag-amber" },
+            ].map((k) => (
+              <div key={k.l} className="glass-card p-4">
+                <div className="label-eyebrow">{k.l}</div>
+                <div className={`mt-1 text-lg font-medium num-mono ${k.c ?? "text-foreground"}`}>{k.v}</div>
+                {k.n && <div className={`mt-1 text-[11px] ${revMismatch && k.l === "Planned in revenue plan" ? "text-rag-amber" : "text-muted-foreground"}`}>{k.n}</div>}
+              </div>
+            ))}
+          </div>
               <RevenuePlanTable
                 entries={revRows}
                 canEdit={canEdit}

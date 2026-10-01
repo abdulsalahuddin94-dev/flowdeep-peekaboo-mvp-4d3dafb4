@@ -472,9 +472,15 @@ function ActionDrawer({ action: a, onClose, onUpdate, onEdit, onEditUpdate, onDe
 /* ── Linked actions (Risk / Issue drawers) ──────────────────────────────── */
 
 export function LinkedActions({ project, source, sourceRef, title }: { project: string; source: "Risk" | "Issue"; sourceRef: string; title: string }) {
-  const { actions, addAction } = useActions();
+  const { actions, addAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
+  const { currentUser } = useCurrentUser();
   const [open, setOpen] = useState(false);
+  const [viewId, setViewId] = useState<string | null>(null);
+  const [statusFor, setStatusFor] = useState<ActionItem | null>(null);
+  const [editingUpdate, setEditingUpdate] = useState<ActionUpdate | null>(null);
+  const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ a: ActionItem; u: ActionUpdate } | null>(null);
   const linked = actions.filter((a) => a.source === source && a.sourceRef === sourceRef);
+  const view = viewId ? (actions.find((a) => a.id === viewId) ?? null) : null;
   const done = linked.filter((a) => a.status === "Done").length;
   const overdue = linked.filter((a) => isActionOverdue(a)).length;
   return (
@@ -494,17 +500,53 @@ export function LinkedActions({ project, source, sourceRef, title }: { project: 
       {linked.length === 0 && <p className="text-sm text-muted-foreground">No actions yet. Tracked in the project's Action Tracker.</p>}
       <div className="space-y-2">
         {linked.map((a) => (
-          <div key={a.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-[var(--field-bg-filled)] px-3 py-2">
+          <button
+            key={a.id}
+            type="button"
+            onClick={() => setViewId(a.id)}
+            className="flex w-full items-center justify-between gap-3 rounded-lg border border-border bg-[var(--field-bg-filled)] px-3 py-2 text-start transition-colors hover:border-accent/50"
+          >
             <div className="min-w-0">
               <div className="truncate text-sm text-foreground">{a.title}</div>
               <div className="text-[11px] text-muted-foreground">{a.owner} · <span className={cn("num-mono", isActionOverdue(a) && "text-rag-red")}>{formatDateWithYear(a.dueDate)}</span></div>
             </div>
             <StatusCell a={a} />
-          </div>
+          </button>
         ))}
       </div>
       <ActionFormDialog open={open} onOpenChange={setOpen} project={project} fixedSource={{ source, sourceRef }}
         onSave={(v) => { addAction(v); setOpen(false); toast.success("Action added to Action Tracker"); }} />
+      <ActionDrawer
+        action={view}
+        onClose={() => setViewId(null)}
+        onUpdate={(a) => { setEditingUpdate(null); setStatusFor(a); }}
+        onEdit={() => setViewId(null)}
+        onEditUpdate={(a, u) => { setEditingUpdate(u); setStatusFor(a); }}
+        onDeleteUpdate={(a, u) => setPendingDeleteUpdate({ a, u })}
+      />
+      <ActionStatusDialog
+        action={statusFor}
+        editing={editingUpdate}
+        onClose={() => { setStatusFor(null); setEditingUpdate(null); }}
+        onSave={(comment, st) => {
+          if (!statusFor) return;
+          if (editingUpdate) {
+            editActionUpdate(statusFor.id, editingUpdate.id, comment);
+            if (st !== statusFor.status) logActionUpdate(statusFor.id, { comment, by: currentUser.name, status: st });
+          } else logActionUpdate(statusFor.id, { comment, by: currentUser.name, status: st });
+          toast.success("Action updated");
+          setStatusFor(null); setEditingUpdate(null);
+        }}
+      />
+      <ConfirmDialog
+        open={!!pendingDeleteUpdate}
+        onOpenChange={(o) => { if (!o) setPendingDeleteUpdate(null); }}
+        title="Delete this comment?"
+        description="This comment will be permanently removed from the action history."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={() => { if (pendingDeleteUpdate) removeActionUpdate(pendingDeleteUpdate.a.id, pendingDeleteUpdate.u.id); setPendingDeleteUpdate(null); }}
+      />
     </div>
   );
 }

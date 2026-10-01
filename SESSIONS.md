@@ -1,3 +1,8 @@
+## 2026-10-01 — Action Tracker: status updates from Risk/Issue drawers
+- Linked actions in the Risk/Issue drawers (Mitigation plan / Action plan sections) are now clickable rows that open the full action drawer: Update action status, Comments & Updates with edit/delete, owner/due/closed details — identical to the Action Tracker tab.
+- Fixes the gap where actions added via the new risk/issue action-rows forms could not be updated from the drawer.
+- Files: src/components/actions/ActionTracker.tsx (LinkedActions wired to ActionDrawer + ActionStatusDialog + comment delete ConfirmDialog). Typecheck clean; Playwright-verified end-to-end (open risk → click linked action → update status to Done with comment → comment persisted, no console errors).
+
 ## 2026-09-30 — Risk/Issue forms: action-by-row plans
 - Mitigation plan (risk) and Action plan (issue) free text replaced by the shared `ActionRowsEditor` (Action · Owner · Responsibility · Due date · remove, Add row) used by Log meeting actions.
 - Rows create linked Action Tracker actions on save; drawers show the linked actions under Mitigation plan / Action plan; Risk Register column shows the action count.

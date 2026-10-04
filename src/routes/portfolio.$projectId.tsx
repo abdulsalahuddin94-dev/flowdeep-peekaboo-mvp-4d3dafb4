@@ -264,6 +264,8 @@ function ProjectDetail() {
   const [selectedCrForApproval, setSelectedCrForApproval] = useState<string | undefined>(undefined);
   const [selectedBaselineVersion, setSelectedBaselineVersion] = useState<string>("latest");
   const [planEditMode, setPlanEditMode] = useState<"view" | "editing" | "pending">("view");
+  /** Approved change request awaiting the "Save a new baseline?" confirmation before activation. */
+  const [baselineSaveConfirm, setBaselineSaveConfirm] = useState<{ snapshot: Milestone[] } | null>(null);
   const isViewingCurrent = selectedBaselineVersion === "latest";
   const isBaselineLocked = project.baselineLocked === true;
   const isEditingAllowed = isViewingCurrent && (!isBaselineLocked || planEditMode === "editing");
@@ -442,13 +444,9 @@ function ProjectDetail() {
               : c,
           ),
         );
-        setProjectBaselineVersions((prev) => {
-          const version = prev.length + 1;
-          toast.success(`✅ Change Request ${cr.id} approved — Project Schedule baseline v${version} created`);
-          return [...prev, { version, createdAt: new Date().toISOString().split("T")[0], snapshot: milestones.map((m) => ({ ...m })) }];
-        });
-        setSelectedBaselineVersion("latest");
-        setPlanEditMode("view");
+        // The user confirms the new baseline before it becomes active —
+        // the previous version stays available for view either way.
+        setBaselineSaveConfirm({ snapshot: milestones.map((m) => ({ ...m })) });
       } else {
         setChangeRequests((prev) =>
           prev.map((c) =>
@@ -521,6 +519,25 @@ function ProjectDetail() {
       });
     }
   }, [isBaselineLocked, milestones, projectBaselineVersions.length]);
+
+  function confirmBaselineSave() {
+    if (!baselineSaveConfirm) return;
+    const snapshot = baselineSaveConfirm.snapshot;
+    const createdAt = new Date().toISOString().split("T")[0];
+    const version = projectBaselineVersions.length + 1;
+    setProjectBaselineVersions((prev) => [...prev, { version, createdAt, snapshot }]);
+    setProjectBaseline((prev) => (prev ? { version, createdAt, isLocked: true, snapshot } : prev));
+    setSelectedBaselineVersion("latest");
+    setPlanEditMode("view");
+    setBaselineSaveConfirm(null);
+    toast.success(`✅ Baseline v${version} saved & locked — V${version - 1} stays available for view`);
+  }
+
+  function cancelBaselineSave() {
+    setBaselineSaveConfirm(null);
+    setPlanEditMode("view");
+    toast.info("New baseline not saved — the project stays on its current version");
+  }
 
   function saveProjectBaseline() {
     const snapshot = computeDerivedSchedule(milestones, resourceRequests).map((item) => ({ ...item }));
@@ -632,7 +649,7 @@ function ProjectDetail() {
                     className="h-8 text-xs"
                     disabled={planChangeCount === 0}
                   >
-                    Send Change Request
+                    Save baseline
                   </Button>
                   <Button
                     variant="ghost"
@@ -719,8 +736,11 @@ function ProjectDetail() {
                 )}
                 {isBaselineLocked && isViewingCurrent && planEditMode === "editing" && (
                   <>
+                    <DropdownMenuItem onClick={() => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } })}>
+                      <Pencil size={14} className="mr-2" />Edit project
+                    </DropdownMenuItem>
                     <DropdownMenuItem disabled={planChangeCount === 0} onClick={() => setCrDialogOpen(true)}>
-                      <Pencil size={14} className="mr-2" />Send Change Request{planChangeCount > 0 ? ` (${planChangeCount})` : ""}
+                      <Lock size={14} className="mr-2" />Save baseline
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={requestExitEditMode}>
                       <Pencil size={14} className="mr-2" />Exit Change Plan
@@ -1240,13 +1260,7 @@ function ProjectDetail() {
                     : cr
                 )
               );
-              setProjectBaselineVersions((prev) => {
-                const version = prev.length + 1;
-                toast.success(`✅ Change Request approved — Project Schedule baseline v${version} created`);
-                return [...prev, { version, createdAt: new Date().toISOString().split("T")[0], snapshot: milestones.map((m) => ({ ...m })) }];
-              });
-              setSelectedBaselineVersion("latest");
-              setPlanEditMode("view");
+              setBaselineSaveConfirm({ snapshot: milestones.map((m) => ({ ...m })) });
               setCrApprovalDialogOpen(false);
             }}
             onReject={(reason) => {
@@ -1260,6 +1274,18 @@ function ProjectDetail() {
               setCrApprovalDialogOpen(false);
               toast.error("Change Request rejected");
             }}
+          />
+
+          {/* Baseline save confirmation — shown once a plan change request is approved */}
+          <ConfirmDialog
+            open={!!baselineSaveConfirm}
+            onOpenChange={(o) => { if (!o && baselineSaveConfirm) cancelBaselineSave(); }}
+            tone="info"
+            title="Save a new baseline?"
+            description={`This will be the active baseline. V${projectBaselineVersions.length} stays available for view.`}
+            confirmLabel="Save"
+            cancelLabel="Cancel"
+            onConfirm={confirmBaselineSave}
           />
 
         </TabsContent>
@@ -6193,7 +6219,7 @@ function ChangeRequestDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            Review Change Request (v{baselineVersion + 1})
+            Save new baseline (v{baselineVersion + 1})
             {changes.length > 0 && (
               <Badge variant="outline" className="ml-2 border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
                 {changes.length} change{changes.length === 1 ? "" : "s"} · {grouped.length} item{grouped.length === 1 ? "" : "s"}
@@ -6223,7 +6249,7 @@ function ChangeRequestDialog({
             onClick={handleSubmit}
             disabled={changes.length === 0}
           >
-            Submit Change Request
+            Send for approval
           </Button>
         </DialogFooter>
       </DialogContent>

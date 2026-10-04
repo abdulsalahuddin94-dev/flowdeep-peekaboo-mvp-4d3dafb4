@@ -442,13 +442,9 @@ function ProjectDetail() {
               : c,
           ),
         );
-        setProjectBaselineVersions((prev) => {
-          const version = prev.length + 1;
-          toast.success(`✅ Change Request ${cr.id} approved — Project Schedule baseline v${version} created`);
-          return [...prev, { version, createdAt: new Date().toISOString().split("T")[0], snapshot: milestones.map((m) => ({ ...m })) }];
-        });
-        setSelectedBaselineVersion("latest");
-        setPlanEditMode("view");
+        // The user confirms the new baseline before it becomes active —
+        // the previous version stays available for view either way.
+        setBaselineSaveConfirm({ snapshot: milestones.map((m) => ({ ...m })) });
       } else {
         setChangeRequests((prev) =>
           prev.map((c) =>
@@ -632,7 +628,7 @@ function ProjectDetail() {
                     className="h-8 text-xs"
                     disabled={planChangeCount === 0}
                   >
-                    Send Change Request
+                    Save baseline
                   </Button>
                   <Button
                     variant="ghost"
@@ -719,8 +715,11 @@ function ProjectDetail() {
                 )}
                 {isBaselineLocked && isViewingCurrent && planEditMode === "editing" && (
                   <>
+                    <DropdownMenuItem onClick={() => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } })}>
+                      <Pencil size={14} className="mr-2" />Edit project
+                    </DropdownMenuItem>
                     <DropdownMenuItem disabled={planChangeCount === 0} onClick={() => setCrDialogOpen(true)}>
-                      <Pencil size={14} className="mr-2" />Send Change Request{planChangeCount > 0 ? ` (${planChangeCount})` : ""}
+                      <Lock size={14} className="mr-2" />Save baseline
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={requestExitEditMode}>
                       <Pencil size={14} className="mr-2" />Exit Change Plan
@@ -1240,13 +1239,7 @@ function ProjectDetail() {
                     : cr
                 )
               );
-              setProjectBaselineVersions((prev) => {
-                const version = prev.length + 1;
-                toast.success(`✅ Change Request approved — Project Schedule baseline v${version} created`);
-                return [...prev, { version, createdAt: new Date().toISOString().split("T")[0], snapshot: milestones.map((m) => ({ ...m })) }];
-              });
-              setSelectedBaselineVersion("latest");
-              setPlanEditMode("view");
+              setBaselineSaveConfirm({ snapshot: milestones.map((m) => ({ ...m })) });
               setCrApprovalDialogOpen(false);
             }}
             onReject={(reason) => {

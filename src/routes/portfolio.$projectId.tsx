@@ -6219,7 +6219,7 @@ function ChangeRequestDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            Review Change Request (v{baselineVersion + 1})
+            Save new baseline (v{baselineVersion + 1})
             {changes.length > 0 && (
               <Badge variant="outline" className="ml-2 border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
                 {changes.length} change{changes.length === 1 ? "" : "s"} · {grouped.length} item{grouped.length === 1 ? "" : "s"}
@@ -6249,7 +6249,7 @@ function ChangeRequestDialog({
             onClick={handleSubmit}
             disabled={changes.length === 0}
           >
-            Submit Change Request
+            Send for approval
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,3 +1,9 @@
+## 2026-10-01 — Change Plan: Save baseline via approval + confirmation
+- During Change Plan editing, the three-dot menu now shows `Edit project`, `Save baseline`, and `Exit Change Plan`; `Edit project` opens the existing basic-info edit form.
+- `Save baseline` opens the review dialog retitled "Save new baseline (v{n+1})" whose submit button reads "Send for approval"; the request flows through the existing Change Request approval path.
+- After approval (central approvals effect and in-page review dialog), a confirmation popup asks "Save a new baseline? This will be the active baseline. V{n-1} stays available for view."; Save creates the new active version, Cancel keeps the current baseline with an info toast.
+- Files: src/routes/portfolio.$projectId.tsx.
+
 ## 2026-10-01 — Revenue Breakdown: toolbar above KPI cards
 - Moved the Revenue Breakdown search/filter toolbar above the KPI cards, matching the Cost Breakdown layout; card values unchanged.
 - Files: src/routes/portfolio.$projectId.tsx.

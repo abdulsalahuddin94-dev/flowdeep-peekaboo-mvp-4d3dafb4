@@ -264,6 +264,8 @@ function ProjectDetail() {
   const [selectedCrForApproval, setSelectedCrForApproval] = useState<string | undefined>(undefined);
   const [selectedBaselineVersion, setSelectedBaselineVersion] = useState<string>("latest");
   const [planEditMode, setPlanEditMode] = useState<"view" | "editing" | "pending">("view");
+  /** Approved change request awaiting the "Save a new baseline?" confirmation before activation. */
+  const [baselineSaveConfirm, setBaselineSaveConfirm] = useState<{ snapshot: Milestone[] } | null>(null);
   const isViewingCurrent = selectedBaselineVersion === "latest";
   const isBaselineLocked = project.baselineLocked === true;
   const isEditingAllowed = isViewingCurrent && (!isBaselineLocked || planEditMode === "editing");
@@ -517,6 +519,25 @@ function ProjectDetail() {
       });
     }
   }, [isBaselineLocked, milestones, projectBaselineVersions.length]);
+
+  function confirmBaselineSave() {
+    if (!baselineSaveConfirm) return;
+    const snapshot = baselineSaveConfirm.snapshot;
+    const createdAt = new Date().toISOString().split("T")[0];
+    const version = projectBaselineVersions.length + 1;
+    setProjectBaselineVersions((prev) => [...prev, { version, createdAt, snapshot }]);
+    setProjectBaseline((prev) => (prev ? { version, createdAt, isLocked: true, snapshot } : prev));
+    setSelectedBaselineVersion("latest");
+    setPlanEditMode("view");
+    setBaselineSaveConfirm(null);
+    toast.success(`✅ Baseline v${version} saved & locked — V${version - 1} stays available for view`);
+  }
+
+  function cancelBaselineSave() {
+    setBaselineSaveConfirm(null);
+    setPlanEditMode("view");
+    toast.info("New baseline not saved — the project stays on its current version");
+  }
 
   function saveProjectBaseline() {
     const snapshot = computeDerivedSchedule(milestones, resourceRequests).map((item) => ({ ...item }));
@@ -1253,6 +1274,18 @@ function ProjectDetail() {
               setCrApprovalDialogOpen(false);
               toast.error("Change Request rejected");
             }}
+          />
+
+          {/* Baseline save confirmation — shown once a plan change request is approved */}
+          <ConfirmDialog
+            open={!!baselineSaveConfirm}
+            onOpenChange={(o) => { if (!o && baselineSaveConfirm) cancelBaselineSave(); }}
+            tone="info"
+            title="Save a new baseline?"
+            description={`This will be the active baseline. V${projectBaselineVersions.length} stays available for view.`}
+            confirmLabel="Save"
+            cancelLabel="Cancel"
+            onConfirm={confirmBaselineSave}
           />
 
         </TabsContent>

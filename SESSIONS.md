@@ -1,3 +1,8 @@
+## 2026-10-05 — Meetings tab
+- Removed "Log meeting actions" from Action Tracker; added a Meetings tab right after Action Tracker (table, search, filters by status/type/attendee party).
+- Create/edit meeting: name, type, date, optional time/location/notes, attendees (Internal employees picked from users; Client/Vendor/Stakeholder typed with organization). Status derived (Scheduled/Held) plus Cancelled flag.
+- Add actions per meeting (row editor, owners suggested from attendees, responsibility follows party); actions go to Action Tracker linked by meetingId. Drawer on row click; meeting changes logged in Recent Activity.
+
 ## 2026-10-05 — Project tab order: Status Reports last
 - Moved the Status Reports tab to the end of the project tab strip, after Recent Activity.
 - Files: src/routes/portfolio.$projectId.tsx.

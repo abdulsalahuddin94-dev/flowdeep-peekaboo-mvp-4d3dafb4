@@ -350,7 +350,7 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint }: { 
         <div className="label-eyebrow">{label}</div>
         <Button type="button" variant="secondary" size="icon" aria-label={`Add ${label.toLowerCase()} row`} title={`Add ${label.toLowerCase()} row`} data-ds-size="auto" onClick={() => onChange([...rows, emptyActionRow()])} className="h-7 w-7 shrink-0 rounded-full border border-border/60 text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"><Plus size={14} /></Button>
       </div>
-      <div className="max-h-64 space-y-2 overflow-y-auto pr-1 ds-scroll">
+      <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
         {rows.map((r, i) => (
           <div key={i} className="grid grid-cols-[1fr_140px_120px_150px_36px] gap-2">
             <Input aria-label="Action" maxLength={150} value={r.title} onChange={(e) => up(i, { title: e.target.value })} placeholder="Action" />

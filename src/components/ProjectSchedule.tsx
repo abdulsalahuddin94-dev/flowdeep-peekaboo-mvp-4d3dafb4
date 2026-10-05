@@ -1758,11 +1758,19 @@ export function ProjectSchedule({
               <span className="flex items-center gap-1.5"><span className="flex h-3 w-5 items-center rounded-sm border border-foreground/60 bg-secondary p-0.5"><span className="h-full w-2/3 rounded-[2px] bg-foreground/50" /></span> Planned progress</span>
               <span className="flex items-center gap-1.5"><span className="relative h-3 w-5 rounded-sm border border-border bg-secondary"><span className="absolute inset-y-[-2px] left-2.5 w-0.5 bg-foreground" /></span> Planned position</span>
               <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm border border-foreground bg-foreground/80" /> Summary from subtasks</span>
-              {healthHighlight && (
+              {healthHighlight ? (
                 <>
                   <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-green" /> On Track <span className="text-muted-foreground">below {orgRules.rag.progressAmberPct}%</span></span>
                   <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-amber" /> At Risk <span className="text-muted-foreground">at/above {orgRules.rag.progressAmberPct}%</span></span>
                   <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Off-Track <span className="text-muted-foreground">at/above {orgRules.rag.progressRedPct}%</span></span>
+                </>
+              ) : (
+                <>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-blue" /> Not Started</span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-amber" /> In Progress</span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-green" /> Completed</span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-red" /> Overdue</span>
+                  <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-grey" /> On Hold</span>
                 </>
               )}
             </div>

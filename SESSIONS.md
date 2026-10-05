@@ -1,3 +1,8 @@
+## 2026-10-05 — Gantt legend: RAG status colors
+- When Schedule health is off, the Gantt legend now shows the bar status colors it actually uses: Not Started (blue), In Progress (amber), Completed (green), Overdue (red), On Hold (grey).
+- When Schedule health is on, the legend keeps showing the three health states (On Track / At Risk / Off-Track) with their thresholds.
+- Files: src/components/ProjectSchedule.tsx.
+
 ## 2026-10-05 — Baseline confirmation copy simplified
 - "Save a new baseline?" description now reads "This will be the active baseline once it's approved by the responsible. V{n} stays available for view." (no Approvals-module mention).
 

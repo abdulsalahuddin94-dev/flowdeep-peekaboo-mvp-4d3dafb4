@@ -1934,3 +1934,6 @@ Created `product-spec.md` â€” the master product design specification for N
 - A risk that has been converted to / linked with an issue can no longer be deleted.
 - RiskRegisterTab (src/components/risk/RiskIssues.tsx) now derives `hasLinkedIssue` from the issues list and, when deleting a linked risk, shows a warning toast ("Cannot delete risk / This risk has a linked issue. Resolve or delete the issue first.") instead of opening the delete confirm dialog.
 - Verified on /portfolio/p-001 Risk & Issues tab (risk R-091 linked to issue I-044).
+
+## 2026-10-05 — Actions scroll at 4 rows
+- ActionRowsEditor scroll container capped at exactly 4 visible rows (168px); 5+ actions scroll. Applies to Log meeting actions, Risk mitigation plan, Issue action plan.

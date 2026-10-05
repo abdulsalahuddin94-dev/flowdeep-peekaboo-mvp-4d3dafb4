@@ -1,3 +1,8 @@
+## 2026-10-05 — Mitigation/Action plan rows: scrollable + inline add
+- The shared ActionRowsEditor (Log meeting actions, Log new risk Mitigation plan, Log new issue Action plan) now caps rows at a scrollable height (~4.5 rows) instead of growing the dialog.
+- Removed the "Add row" outline button; adding a row is now an icon-only circular "+" button placed on the same line as the section title.
+- Files: src/components/actions/ActionTracker.tsx.
+
 ## 2026-10-05 — Gantt legend: RAG status colors
 - When Schedule health is off, the Gantt legend now shows the bar status colors it actually uses: Not Started (blue), In Progress (amber), Completed (green), Overdue (red), On Hold (grey).
 - When Schedule health is on, the legend keeps showing the three health states (On Track / At Risk / Off-Track) with their thresholds.

@@ -1,3 +1,6 @@
+## 2026-10-05 — Baseline confirmation copy simplified
+- "Save a new baseline?" description now reads "This will be the active baseline once it's approved by the responsible. V{n} stays available for view." (no Approvals-module mention).
+
 ## 2026-10-05 — Baseline save: single review step
 - Send for approval now opens "Save a new baseline?" confirmation, noting activation happens after approval in the Approvals module; confirming submits the request.
 - Removed the Change Requests section and Review step under WBS/Gantt; approval in the Approvals module activates the new version automatically.

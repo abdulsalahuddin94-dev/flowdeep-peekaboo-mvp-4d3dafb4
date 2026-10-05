@@ -1,3 +1,7 @@
+## 2026-10-05 — Project header card order swapped
+- Overview header KPI grid now shows Timeline / Budget / Stage Gate on the first row and Progress / Issues / Risks on the second row.
+- Files: src/routes/portfolio.$projectId.tsx.
+
 ## 2026-10-05 — Financials sub-nav rename
 - Sidebar and Financials tab labels renamed: "Cost Recognition" → "Cost Milestone", "Revenue Recognition" → "Revenue Milestone". Tab keys (cost/rev) unchanged.
 

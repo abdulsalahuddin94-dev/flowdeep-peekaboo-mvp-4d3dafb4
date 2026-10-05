@@ -1196,7 +1196,7 @@ function ProjectDetail() {
             onOpenChange={(o) => { if (!o) setPendingCrConfirm(null); }}
             tone="info"
             title="Save a new baseline?"
-            description={`This will be the active baseline once it's approved by the responsible approver in the Approvals module. V${projectBaselineVersions.length} stays available for view.`}
+            description={`This will be the active baseline once it's approved by the responsible. V${projectBaselineVersions.length} stays available for view.`}
             confirmLabel="Save"
             cancelLabel="Cancel"
             onConfirm={() => { if (pendingCrConfirm) submitBaselineChange(pendingCrConfirm); }}

@@ -264,8 +264,8 @@ function ProjectDetail() {
   const [selectedCrForApproval, setSelectedCrForApproval] = useState<string | undefined>(undefined);
   const [selectedBaselineVersion, setSelectedBaselineVersion] = useState<string>("latest");
   const [planEditMode, setPlanEditMode] = useState<"view" | "editing" | "pending">("view");
-  /** Approved change request awaiting the "Save a new baseline?" confirmation before activation. */
-  const [baselineSaveConfirm, setBaselineSaveConfirm] = useState<{ snapshot: Milestone[] } | null>(null);
+  /** Reviewed change request awaiting the "Save a new baseline?" confirmation before it is sent for approval. */
+  const [pendingCrConfirm, setPendingCrConfirm] = useState<ChangeRequest | null>(null);
   const isViewingCurrent = selectedBaselineVersion === "latest";
   const isBaselineLocked = project.baselineLocked === true;
   const isEditingAllowed = isViewingCurrent && (!isBaselineLocked || planEditMode === "editing");
@@ -444,9 +444,8 @@ function ProjectDetail() {
               : c,
           ),
         );
-        // The user confirms the new baseline before it becomes active —
-        // the previous version stays available for view either way.
-        setBaselineSaveConfirm({ snapshot: milestones.map((m) => ({ ...m })) });
+        // The user already confirmed when sending — approval activates the new baseline.
+        activateBaseline(milestones.map((m) => ({ ...m })));
       } else {
         setChangeRequests((prev) =>
           prev.map((c) =>
@@ -520,23 +519,38 @@ function ProjectDetail() {
     }
   }, [isBaselineLocked, milestones, projectBaselineVersions.length]);
 
-  function confirmBaselineSave() {
-    if (!baselineSaveConfirm) return;
-    const snapshot = baselineSaveConfirm.snapshot;
+  function activateBaseline(snapshot: Milestone[]) {
     const createdAt = new Date().toISOString().split("T")[0];
     const version = projectBaselineVersions.length + 1;
     setProjectBaselineVersions((prev) => [...prev, { version, createdAt, snapshot }]);
     setProjectBaseline((prev) => (prev ? { version, createdAt, isLocked: true, snapshot } : prev));
     setSelectedBaselineVersion("latest");
     setPlanEditMode("view");
-    setBaselineSaveConfirm(null);
-    toast.success(`✅ Baseline v${version} saved & locked — V${version - 1} stays available for view`);
+    toast.success(`✅ Baseline v${version} approved & active — V${version - 1} stays available for view`);
   }
 
-  function cancelBaselineSave() {
-    setBaselineSaveConfirm(null);
-    setPlanEditMode("view");
-    toast.info("New baseline not saved — the project stays on its current version");
+  function submitBaselineChange(cr: ChangeRequest) {
+    setPendingCrConfirm(null);
+    setPlanEditMode("pending");
+    setEditBaselineSnapshot(null);
+    setMilestones((prev) => prev.map((m) => (m.depDateShift ? { ...m, depDateShift: undefined } : m)));
+    const approvalId = addProjectApproval({
+      type: "change-request",
+      projectId: project.id,
+      projectName: project.name,
+      ref: cr.id,
+      title: `Baseline change request ${cr.id} — Project Schedule`,
+      requestedBy: approvalUser.name,
+      summary: cr.changes.map((c) => ({ label: c.field, before: c.oldValue, after: c.newValue })),
+      approvers: DEFAULT_PROJECT_APPROVERS.map((a) => ({
+        id: a.id.startsWith("u-") ? a.id : `u-${a.id}`,
+        name: a.name,
+        role: a.role ?? "Approver",
+        decision: "pending" as const,
+      })),
+    });
+    setChangeRequests((prev) => [...prev, { ...cr, approvalId }]);
+    toast.success(`New baseline sent for approval — track it in the Approvals module`);
   }
 
   function saveProjectBaseline() {

@@ -1,3 +1,7 @@
+## 2026-10-05 — Attendee party: Other
+- Added an "Other" attendee party to Meetings (type union, picker, filters, attendee summary pills). Other counts as external (Client-side responsibility for its actions); name is typed, organization optional.
+- Files: src/lib/meeting-store.tsx, src/components/actions/Meetings.tsx.
+
 ## 2026-10-05 — Meetings tab
 - Removed "Log meeting actions" from Action Tracker; added a Meetings tab right after Action Tracker (table, search, filters by status/type/attendee party).
 - Create/edit meeting: name, type, date, optional time/location/notes, attendees (Internal employees picked from users; Client/Vendor/Stakeholder typed with organization). Status derived (Scheduled/Held) plus Cancelled flag.

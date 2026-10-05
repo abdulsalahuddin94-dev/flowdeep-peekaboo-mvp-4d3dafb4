@@ -52,9 +52,10 @@ const PARTY_TONE: Record<AttendeeParty, string> = {
   Client: "border-rag-teal/40 bg-rag-teal/10 text-rag-teal",
   Vendor: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
   Stakeholder: "border-border bg-muted text-muted-foreground",
+  Other: "border-border bg-muted text-muted-foreground",
 };
-/** Action responsibility follows the owner's party; external stakeholders count as Client side. */
-const PARTY_RESP: Record<AttendeeParty, ActionResponsibility> = { Internal: "Internal", Client: "Client", Vendor: "Vendor", Stakeholder: "Client" };
+/** Action responsibility follows the owner's party; external attendees count as Client side. */
+const PARTY_RESP: Record<AttendeeParty, ActionResponsibility> = { Internal: "Internal", Client: "Client", Vendor: "Vendor", Stakeholder: "Client", Other: "Client" };
 
 export function MeetingsTab({ project }: { project: string }) {
   const { meetings, addMeeting, updateMeeting, removeMeeting } = useMeetings();
@@ -252,7 +253,7 @@ function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
             onClick={() => up({ attendees: [...d.attendees, { id: uid(), name: "", party: "Internal" }] })}
             className="h-7 w-7 shrink-0 rounded-full border border-border/60 text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"><Plus size={14} /></Button>
         </div>
-        {d.attendees.length === 0 && <p className="text-sm text-muted-foreground">Add at least one attendee — employees, client, vendor, or external stakeholders.</p>}
+        {d.attendees.length === 0 && <p className="text-sm text-muted-foreground">Add at least one attendee — employees, client, vendor, external stakeholders, or anyone else.</p>}
         <div className="max-h-[168px] space-y-2 overflow-y-auto pr-1">
           {d.attendees.map((a) => (
             <div key={a.id} className="grid grid-cols-[140px_1fr_1fr_36px] gap-2">

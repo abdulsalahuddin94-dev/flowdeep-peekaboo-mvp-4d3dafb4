@@ -84,7 +84,7 @@ function DueCell({ a }: { a: ActionItem }) {
 /* ── Tab ─────────────────────────────────────────────────────────────────── */
 
 export function ActionTrackerTab({ project }: { project: string }) {
-  const { actions, addAction, addActions, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
+  const { actions, addAction, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
   const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("all");
@@ -94,7 +94,6 @@ export function ActionTrackerTab({ project }: { project: string }) {
   const [onlyMine, setOnlyMine] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ActionItem | null>(null);
-  const [meetingOpen, setMeetingOpen] = useState(false);
   const [viewId, setViewId] = useState<string | null>(null);
   const [statusFor, setStatusFor] = useState<ActionItem | null>(null);
   const [editingUpdate, setEditingUpdate] = useState<ActionUpdate | null>(null);
@@ -156,7 +155,6 @@ export function ActionTrackerTab({ project }: { project: string }) {
         trailing={
           <div className="flex items-center gap-2">
             <Button variant={onlyMine ? "primary" : "outline"} onClick={() => setOnlyMine((v) => !v)}>{t.mine}</Button>
-            <Button variant="outline" onClick={() => setMeetingOpen(true)}>{t.meeting}</Button>
             <Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>{t.add}</Button>
           </div>
         }
@@ -208,15 +206,6 @@ export function ActionTrackerTab({ project }: { project: string }) {
           if (editing) { updateAction(editing.id, v); toast.success("Action updated"); }
           else { addAction(v); toast.success("Action added"); }
           setFormOpen(false);
-        }}
-      />
-      <MeetingActionsDialog
-        open={meetingOpen}
-        onOpenChange={setMeetingOpen}
-        onSave={(meetingName, meetingDate, items) => {
-          addActions(items.map((i) => ({ ...i, project, source: "Meeting" as ActionSource, meetingName, meetingDate, status: "Open" as ActionStatus })));
-          toast.success(`${items.length} meeting ${items.length === 1 ? "action" : "actions"} added`);
-          setMeetingOpen(false);
         }}
       />
       <ActionDrawer
@@ -367,27 +356,6 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint }: { 
       </div>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
-  );
-}
-
-function MeetingActionsDialog({ open, onOpenChange, onSave }: { open: boolean; onOpenChange: (o: boolean) => void; onSave: (name: string, date: string, rows: Row[]) => void }) {
-  const [name, setName] = useState("");
-  const [date, setDate] = useState(todayIso());
-  const [rows, setRows] = useState<Row[]>([emptyActionRow(), emptyActionRow()]);
-  const [was, setWas] = useState(false);
-  if (open !== was) { setWas(open); if (open) { setName(""); setDate(todayIso()); setRows([emptyActionRow(), emptyActionRow()]); } }
-  const filled = filledActionRows(rows);
-  const valid = name.trim() && date && filled.length > 0 && actionRowsValid(rows);
-
-  return (
-    <FormDialog open={open} onOpenChange={onOpenChange} title="Log meeting actions" size="xl" submitDisabled={!valid} submitLabel={`Add ${filled.length || ""} actions`}
-      onSubmit={() => { if (valid) onSave(name.trim(), date, cleanActionRows(rows)); }}>
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="Meeting name" htmlFor="mt-name"><Input id="mt-name" maxLength={100} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Weekly progress meeting" /></Field>
-        <Field label="Meeting date"><DatePicker value={date} onChange={setDate} /></Field>
-      </div>
-      <ActionRowsEditor rows={rows} onChange={setRows} />
-    </FormDialog>
   );
 }
 

@@ -25,4 +25,4 @@
 - [x] Show linked actions in Risk and Issue drawers and rename their history to Comments & Updates.
 - [x] Simplify project Issue/Risk summary labels, move Risks Summary left, and open selected risks from Overview.
 - [x] Add search and filters to Cost Recognition and Revenue Recognition tables.
-- [x] Dim plan-changing WBS row actions in view-only mode, explain them after a short hover delay, and keep them inert while Progress Update remains available.
+- [x] Dim plan-changing WBS row actions in view-only mode with the plain arrow cursor, show the hint tooltip only after a steady ~1s hover, and keep them inert while Progress Update remains available.

@@ -44,7 +44,7 @@ const REVENUE_ITEMS = [
 ];
 
 const FIN_TAB_LABELS: Record<string, string> = {
-  overview: "Overview (P&L)", cost: "Cost Recognition", rev: "Revenue Recognition",
+  overview: "Overview (P&L)", cost: "Cost Milestone", rev: "Revenue Milestone",
 };
 
 export const Route = createFileRoute("/financials")({

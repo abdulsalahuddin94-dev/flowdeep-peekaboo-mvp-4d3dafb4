@@ -28,8 +28,9 @@ const KIND_STYLE: Record<Kind, string> = {
   Project: "border-border text-foreground bg-secondary/40",
   Lessons: "border-border text-muted-foreground bg-secondary/40",
   Baseline: "border-accent/40 text-accent bg-accent/10",
+  Meeting: "border-rag-blue/40 text-rag-blue bg-rag-blue/10",
 };
-const KINDS: Kind[] = ["Risk", "Issue", "Action", "Schedule", "Financials", "Status Report", "Project", "Lessons", "Baseline"];
+const KINDS: Kind[] = ["Risk", "Issue", "Action", "Schedule", "Financials", "Status Report", "Project", "Lessons", "Baseline", "Meeting"];
 
 export function RecentActivityTab({ project, lang = "en" }: { project: string; lang?: "en" | "ar" }) {
   const t = T[lang];

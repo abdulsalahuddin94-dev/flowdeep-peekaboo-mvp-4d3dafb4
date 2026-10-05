@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  * Risk, Issue and Action activity is still derived from their own histories.
  */
 
-export type LoggedKind = "Risk" | "Issue" | "Action" | "Schedule" | "Financials" | "Status Report" | "Project" | "Lessons" | "Baseline";
+export type LoggedKind = "Risk" | "Issue" | "Action" | "Schedule" | "Financials" | "Status Report" | "Project" | "Lessons" | "Baseline" | "Meeting";
 
 export type LoggedActivity = {
   id: string;

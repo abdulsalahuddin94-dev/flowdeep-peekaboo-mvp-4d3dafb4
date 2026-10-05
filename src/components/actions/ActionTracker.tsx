@@ -84,7 +84,7 @@ function DueCell({ a }: { a: ActionItem }) {
 /* ── Tab ─────────────────────────────────────────────────────────────────── */
 
 export function ActionTrackerTab({ project }: { project: string }) {
-  const { actions, addAction, addActions, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
+  const { actions, addAction, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
   const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("all");
@@ -94,7 +94,6 @@ export function ActionTrackerTab({ project }: { project: string }) {
   const [onlyMine, setOnlyMine] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ActionItem | null>(null);
-  const [meetingOpen, setMeetingOpen] = useState(false);
   const [viewId, setViewId] = useState<string | null>(null);
   const [statusFor, setStatusFor] = useState<ActionItem | null>(null);
   const [editingUpdate, setEditingUpdate] = useState<ActionUpdate | null>(null);
@@ -156,7 +155,6 @@ export function ActionTrackerTab({ project }: { project: string }) {
         trailing={
           <div className="flex items-center gap-2">
             <Button variant={onlyMine ? "primary" : "outline"} onClick={() => setOnlyMine((v) => !v)}>{t.mine}</Button>
-            <Button variant="outline" onClick={() => setMeetingOpen(true)}>{t.meeting}</Button>
             <Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>{t.add}</Button>
           </div>
         }
@@ -208,15 +206,6 @@ export function ActionTrackerTab({ project }: { project: string }) {
           if (editing) { updateAction(editing.id, v); toast.success("Action updated"); }
           else { addAction(v); toast.success("Action added"); }
           setFormOpen(false);
-        }}
-      />
-      <MeetingActionsDialog
-        open={meetingOpen}
-        onOpenChange={setMeetingOpen}
-        onSave={(meetingName, meetingDate, items) => {
-          addActions(items.map((i) => ({ ...i, project, source: "Meeting" as ActionSource, meetingName, meetingDate, status: "Open" as ActionStatus })));
-          toast.success(`${items.length} meeting ${items.length === 1 ? "action" : "actions"} added`);
-          setMeetingOpen(false);
         }}
       />
       <ActionDrawer
@@ -342,7 +331,8 @@ export function actionRowsValid(rows: ActionRow[]) { return filledActionRows(row
 export function cleanActionRows(rows: ActionRow[]) { return filledActionRows(rows).map((r) => ({ ...r, title: r.title.trim().slice(0, 150), owner: r.owner.trim() })); }
 
 /** Shared action-by-row editor (meeting batch, risk mitigation, issue action plan). */
-export function ActionRowsEditor({ rows, onChange, label = "Actions", hint }: { rows: ActionRow[]; onChange: (rows: ActionRow[]) => void; label?: string; hint?: string }) {
+export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, ownerOptions }: { rows: ActionRow[]; onChange: (rows: ActionRow[]) => void; label?: string; hint?: string; ownerOptions?: string[] }) {
+  const listId = ownerOptions?.length ? `owners-${label.replace(/\W/g, "")}` : undefined;
   const up = (i: number, p: Partial<Row>) => onChange(rows.map((r, j) => (j === i ? { ...r, ...p } : r)));
   return (
     <div className="space-y-2">
@@ -355,7 +345,7 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint }: { 
         {rows.map((r, i) => (
           <div key={i} className="grid grid-cols-[1fr_140px_120px_150px_36px] gap-2">
             <Input aria-label="Action" maxLength={150} value={r.title} onChange={(e) => up(i, { title: e.target.value })} placeholder="Action" />
-            <Input aria-label="Owner" maxLength={80} value={r.owner} onChange={(e) => up(i, { owner: e.target.value })} placeholder="Owner" />
+            <Input aria-label="Owner" list={listId} maxLength={80} value={r.owner} onChange={(e) => up(i, { owner: e.target.value })} placeholder="Owner" />
             <Select value={r.responsibility} onValueChange={(v) => up(i, { responsibility: v as ActionResponsibility })}>
               <SelectTrigger aria-label="Responsibility"><SelectValue /></SelectTrigger>
               <SelectContent>{ACTION_RESPONSIBILITIES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
@@ -365,29 +355,9 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint }: { 
           </div>
         ))}
       </div>
+      {listId && <datalist id={listId}>{ownerOptions!.map((o) => <option key={o} value={o} />)}</datalist>}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
-  );
-}
-
-function MeetingActionsDialog({ open, onOpenChange, onSave }: { open: boolean; onOpenChange: (o: boolean) => void; onSave: (name: string, date: string, rows: Row[]) => void }) {
-  const [name, setName] = useState("");
-  const [date, setDate] = useState(todayIso());
-  const [rows, setRows] = useState<Row[]>([emptyActionRow(), emptyActionRow()]);
-  const [was, setWas] = useState(false);
-  if (open !== was) { setWas(open); if (open) { setName(""); setDate(todayIso()); setRows([emptyActionRow(), emptyActionRow()]); } }
-  const filled = filledActionRows(rows);
-  const valid = name.trim() && date && filled.length > 0 && actionRowsValid(rows);
-
-  return (
-    <FormDialog open={open} onOpenChange={onOpenChange} title="Log meeting actions" size="xl" submitDisabled={!valid} submitLabel={`Add ${filled.length || ""} actions`}
-      onSubmit={() => { if (valid) onSave(name.trim(), date, cleanActionRows(rows)); }}>
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="Meeting name" htmlFor="mt-name"><Input id="mt-name" maxLength={100} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Weekly progress meeting" /></Field>
-        <Field label="Meeting date"><DatePicker value={date} onChange={setDate} /></Field>
-      </div>
-      <ActionRowsEditor rows={rows} onChange={setRows} />
-    </FormDialog>
   );
 }
 

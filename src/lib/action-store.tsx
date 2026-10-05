@@ -30,6 +30,8 @@ export type ActionItem = {
   source: ActionSource;
   /** Risk ID / Issue ID for linked sources. */
   sourceRef?: string;
+  /** Meeting record this action came from (Meetings tab). */
+  meetingId?: string;
   meetingName?: string;
   meetingDate?: string;
   owner: string;
@@ -60,9 +62,9 @@ const SEED: ActionItem[] = [
   { id: "A-004", project: P, title: "Approve finance blackout exception", source: "Risk", sourceRef: "R-097", owner: "Client Finance Lead", responsibility: "Client", dueDate: "2026-09-25", status: "Open", updates: [] },
   { id: "A-005", project: P, title: "Restore QA environment and share RCA", source: "Issue", sourceRef: "I-044", owner: "Omar Haddad", responsibility: "Vendor", dueDate: "2026-09-22", status: "In Progress", updates: [] },
   { id: "A-006", project: P, title: "Run daily reconciliation stand-up", source: "Issue", sourceRef: "I-052", owner: "John Smith", responsibility: "Internal", dueDate: "2026-10-05", status: "In Progress", updates: [] },
-  { id: "A-007", project: P, title: "Provide UAT test users and access", source: "Meeting", meetingName: "Weekly progress meeting", meetingDate: "2026-09-24", owner: "Client IT Manager", responsibility: "Client", dueDate: "2026-09-28", status: "Open", updates: [] },
-  { id: "A-008", project: P, title: "Share updated cutover plan", source: "Meeting", meetingName: "Weekly progress meeting", meetingDate: "2026-09-24", owner: "Aisha Khoury", responsibility: "Internal", dueDate: "2026-10-02", status: "Open", updates: [] },
-  { id: "A-009", project: P, title: "Confirm training room bookings", source: "Meeting", meetingName: "Steering committee", meetingDate: "2026-09-10", owner: "Aisha Khoury", responsibility: "Internal", dueDate: "2026-09-20", status: "Done", closedDate: "2026-09-19", updates: [] },
+  { id: "A-007", project: P, title: "Provide UAT test users and access", source: "Meeting", meetingId: "M-002", meetingName: "Weekly progress meeting", meetingDate: "2026-09-24", owner: "Client IT Manager", responsibility: "Client", dueDate: "2026-09-28", status: "Open", updates: [] },
+  { id: "A-008", project: P, title: "Share updated cutover plan", source: "Meeting", meetingId: "M-002", meetingName: "Weekly progress meeting", meetingDate: "2026-09-24", owner: "Aisha Khoury", responsibility: "Internal", dueDate: "2026-10-02", status: "Open", updates: [] },
+  { id: "A-009", project: P, title: "Confirm training room bookings", source: "Meeting", meetingId: "M-001", meetingName: "Steering committee", meetingDate: "2026-09-10", owner: "Aisha Khoury", responsibility: "Internal", dueDate: "2026-09-20", status: "Done", closedDate: "2026-09-19", updates: [] },
   { id: "A-010", project: P, title: "Update project RACI after org change", source: "General", owner: "Aisha Khoury", responsibility: "Internal", dueDate: "2026-10-12", status: "Open", updates: [] },
 ];
 

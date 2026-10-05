@@ -1,3 +1,6 @@
+## 2026-10-05 — Financials sub-nav rename
+- Sidebar and Financials tab labels renamed: "Cost Recognition" → "Cost Milestone", "Revenue Recognition" → "Revenue Milestone". Tab keys (cost/rev) unchanged.
+
 ## 2026-10-05 — Mitigation/Action plan rows: scrollable + inline add
 - The shared ActionRowsEditor (Log meeting actions, Log new risk Mitigation plan, Log new issue Action plan) now caps rows at a scrollable height (~4.5 rows) instead of growing the dialog.
 - Removed the "Add row" outline button; adding a row is now an icon-only circular "+" button placed on the same line as the section title.

@@ -59,8 +59,8 @@ const allItems: NavItem[] = [
     title: "Financials", url: "/financials", icon: NavFinancials, defaultTab: "overview",
     children: [
       { title: "Overview (P&L)", tab: "overview" },
-      { title: "Cost Recognition", tab: "cost" },
-      { title: "Revenue Recognition", tab: "rev" },
+      { title: "Cost Milestone", tab: "cost" },
+      { title: "Revenue Milestone", tab: "rev" },
     ],
   },
   {

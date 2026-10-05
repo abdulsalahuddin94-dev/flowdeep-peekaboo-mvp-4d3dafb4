@@ -312,7 +312,6 @@ export function ProjectSchedule({
   onDependencyClick,
   onAddDependencyClick,
   onFinancialLinkClick,
-  onRequestChangePlan,
   resourceList = [],
   headerSlot,
   restricted = false,
@@ -332,7 +331,6 @@ export function ProjectSchedule({
   onDependencyClick?: (name: string) => void;
   onAddDependencyClick?: (name: string) => void;
   onFinancialLinkClick?: (name: string) => void;
-  onRequestChangePlan?: () => void;
   resourceList?: Array<{ name: string; role?: string; dept?: string }>;
   headerSlot?: React.ReactNode;
   /**
@@ -1466,16 +1464,16 @@ export function ProjectSchedule({
                               <DropdownMenuItem disabled>Approval gate — managed by approvers</DropdownMenuItem>
                             ) : (
                               <>
-                                <PlanActionMenuItem restricted={restricted} onSelect={() => onAddSubtask?.(item.name)} onRequestChangePlan={onRequestChangePlan}>
+                                <PlanActionMenuItem restricted={restricted} onSelect={() => onAddSubtask?.(item.name)}>
                                   <Plus className="h-4 w-4" /> Add subtask
                                 </PlanActionMenuItem>
-                                <PlanActionMenuItem restricted={restricted} onSelect={() => onEditItem?.(item.name)} onRequestChangePlan={onRequestChangePlan}>
+                                <PlanActionMenuItem restricted={restricted} onSelect={() => onEditItem?.(item.name)}>
                                   <Pencil className="h-4 w-4" /> Edit
                                 </PlanActionMenuItem>
-                                <PlanActionMenuItem restricted={restricted} onSelect={() => onAddDependencyClick?.(item.name)} onRequestChangePlan={onRequestChangePlan}>
+                                <PlanActionMenuItem restricted={restricted} onSelect={() => onAddDependencyClick?.(item.name)}>
                                   <Link2 className="h-4 w-4" /> Add dependency
                                 </PlanActionMenuItem>
-                                <PlanActionMenuItem restricted={restricted} onSelect={() => onFinancialLinkClick?.(item.name)} onRequestChangePlan={onRequestChangePlan}>
+                                <PlanActionMenuItem restricted={restricted} onSelect={() => onFinancialLinkClick?.(item.name)}>
                                   <Link2 className="h-4 w-4" /> Add financial link
                                 </PlanActionMenuItem>
                                 {item.kind === "Task" && !hasChildren && (
@@ -1487,7 +1485,6 @@ export function ProjectSchedule({
                                 <PlanActionMenuItem
                                   restricted={restricted}
                                   onSelect={() => onDeleteItem && setPendingDelete(item.name)}
-                                  onRequestChangePlan={onRequestChangePlan}
                                   disabled={!onDeleteItem}
                                   destructive
                                 >
@@ -1899,14 +1896,12 @@ export function ProjectSchedule({
 function PlanActionMenuItem({
   restricted,
   onSelect,
-  onRequestChangePlan,
   disabled,
   destructive,
   children,
 }: {
   restricted: boolean;
   onSelect: () => void;
-  onRequestChangePlan?: () => void;
   disabled?: boolean;
   destructive?: boolean;
   children: React.ReactNode;
@@ -1914,9 +1909,16 @@ function PlanActionMenuItem({
   const item = (
     <DropdownMenuItem
       disabled={disabled}
-      onSelect={() => restricted ? onRequestChangePlan?.() : onSelect()}
+      aria-disabled={restricted || disabled}
+      onSelect={(event) => {
+        if (restricted) {
+          event.preventDefault();
+          return;
+        }
+        onSelect();
+      }}
       className={cn(
-        restricted && "text-muted-foreground/50 focus:text-muted-foreground",
+        restricted && "cursor-not-allowed text-muted-foreground/50 focus:bg-transparent focus:text-muted-foreground/50 data-[highlighted]:bg-transparent data-[highlighted]:text-muted-foreground/50",
         destructive && !restricted && "text-rag-red focus:text-rag-red",
       )}
     >
@@ -1927,10 +1929,13 @@ function PlanActionMenuItem({
   if (!restricted || disabled) return item;
 
   return (
-    <Tooltip>
+    <Tooltip delayDuration={500}>
       <TooltipTrigger asChild>{item}</TooltipTrigger>
-      <TooltipContent side="left" className="max-w-64 text-center">
-        View only mode. Select to start Change Plan and enable editing.
+      <TooltipContent
+        side="left"
+        className="max-w-64 border border-border bg-popover px-3 py-2 text-center text-popover-foreground shadow-md"
+      >
+        View only mode. Start Change Plan to enable editing.
       </TooltipContent>
     </Tooltip>
   );

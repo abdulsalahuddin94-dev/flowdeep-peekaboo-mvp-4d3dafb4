@@ -1,5 +1,6 @@
 ## 2026-10-05 — WBS view-only action guidance
-- Plan-changing row actions are dimmed while the baseline is locked; a DS02-styled tooltip appears after a short hover delay and explains that Change Plan enables editing.
+- Plan-changing row actions are dimmed while the baseline is locked; the cursor stays the plain arrow (no forbidden/not-allowed shape) and a DS02-styled tooltip explains that Change Plan enables editing.
+- The hint shows only after a steady ~1s hover (or keyboard focus) and clears when the pointer leaves the row — it is driven by a local timer because Radix ignores `delayDuration` for every tooltip after the first one in a session.
 - Selecting a dimmed action does nothing and keeps the menu open. Progress update remains fully available for lowest-level tasks without Change Plan.
 - Files: src/components/ProjectSchedule.tsx, src/routes/portfolio.$projectId.tsx.
 

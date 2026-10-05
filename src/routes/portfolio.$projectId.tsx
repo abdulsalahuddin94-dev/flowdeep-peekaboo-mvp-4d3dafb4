@@ -88,7 +88,7 @@ export const Route = createFileRoute("/portfolio/$projectId")({
 });
 
 const TABS = [
-  "Overview", "Project Schedule", "Cost Breakdown", "Revenue Breakdown", "Risk & Issues", "Status Reports", "Action Tracker", "Recent Activity",
+  "Overview", "Project Schedule", "Cost Breakdown", "Revenue Breakdown", "Risk & Issues", "Action Tracker", "Recent Activity", "Status Reports",
 ];
 
 const PLANNING_STAGES = [

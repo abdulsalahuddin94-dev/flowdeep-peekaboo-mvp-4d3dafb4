@@ -6,8 +6,8 @@ import { logActivity } from "@/lib/activity-store";
  * Tracker and point back here via `meetingId`.
  */
 
-export type AttendeeParty = "Internal" | "Client" | "Vendor" | "Stakeholder";
-export const ATTENDEE_PARTIES: AttendeeParty[] = ["Internal", "Client", "Vendor", "Stakeholder"];
+export type AttendeeParty = "Internal" | "Client" | "Vendor" | "Stakeholder" | "Other";
+export const ATTENDEE_PARTIES: AttendeeParty[] = ["Internal", "Client", "Vendor", "Stakeholder", "Other"];
 
 export type MeetingType = "Progress meeting" | "Steering committee" | "Workshop" | "Client review" | "Other";
 export const MEETING_TYPES: MeetingType[] = ["Progress meeting", "Steering committee", "Workshop", "Client review", "Other"];

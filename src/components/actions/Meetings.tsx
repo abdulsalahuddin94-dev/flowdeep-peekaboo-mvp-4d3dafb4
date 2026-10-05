@@ -52,9 +52,10 @@ const PARTY_TONE: Record<AttendeeParty, string> = {
   Client: "border-rag-teal/40 bg-rag-teal/10 text-rag-teal",
   Vendor: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
   Stakeholder: "border-border bg-muted text-muted-foreground",
+  Other: "border-border bg-muted text-muted-foreground",
 };
-/** Action responsibility follows the owner's party; external stakeholders count as Client side. */
-const PARTY_RESP: Record<AttendeeParty, ActionResponsibility> = { Internal: "Internal", Client: "Client", Vendor: "Vendor", Stakeholder: "Client" };
+/** Action responsibility follows the owner's party; external attendees count as Client side. */
+const PARTY_RESP: Record<AttendeeParty, ActionResponsibility> = { Internal: "Internal", Client: "Client", Vendor: "Vendor", Stakeholder: "Client", Other: "Client" };
 
 export function MeetingsTab({ project }: { project: string }) {
   const { meetings, addMeeting, updateMeeting, removeMeeting } = useMeetings();

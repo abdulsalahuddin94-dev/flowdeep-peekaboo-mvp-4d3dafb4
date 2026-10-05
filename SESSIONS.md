@@ -1,3 +1,7 @@
+## 2026-10-05 — Project tab order: Status Reports last
+- Moved the Status Reports tab to the end of the project tab strip, after Recent Activity.
+- Files: src/routes/portfolio.$projectId.tsx.
+
 ## 2026-10-05 — Project header card order swapped
 - Overview header KPI grid now shows Timeline / Budget / Stage Gate on the first row and Progress / Issues / Risks on the second row.
 - Files: src/routes/portfolio.$projectId.tsx.

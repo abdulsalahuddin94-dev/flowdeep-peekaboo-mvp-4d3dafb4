@@ -829,6 +829,42 @@ function ProjectDetail() {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
+            <div className="text-xs text-muted-foreground">Timeline</div>
+            <div className="flex flex-wrap items-baseline gap-2">
+              <span className="num-mono text-sm font-medium text-accent">{durationDays != null ? `${durationDays}d` : "—"}</span>
+              <span className="num-mono text-[10px] text-muted-foreground">({formatDateWithYear(project.startDate)} → {formatDateWithYear(project.endDate)})</span>
+            </div>
+          </div>
+
+          <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
+            <div className="text-xs text-muted-foreground">Budget</div>
+            <div className="flex flex-wrap items-baseline gap-2">
+              <span className="num-mono text-sm font-medium text-foreground">${project.budgetUsed.toFixed(2)}M / ${project.budgetTotal.toFixed(1)}M</span>
+              <span className="text-[10px] text-muted-foreground">{budgetUsedPct}% used</span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="ghost"
+            data-ds-size="auto"
+            onClick={() => setStageGateOpen(true)}
+            className="group h-16 justify-center rounded-lg bg-[var(--field-bg-filled)] px-4 text-left hover:bg-[var(--field-bg-filled)]/80"
+          >
+            <div className="flex w-full min-w-0 flex-col gap-1.5">
+              <div className="text-xs font-normal text-muted-foreground">Stage Gate</div>
+              <div className="flex items-center gap-3">
+                <span className="shrink-0 text-sm font-semibold text-foreground">{currentStage.name}</span>
+                <div className="flex min-w-0 flex-1 items-center gap-1" aria-label={`Stage ${currentStage.n} of ${PLANNING_STAGES.length}`}>
+                  {PLANNING_STAGES.map((stage) => (
+                    <span key={stage.n} className={cn("h-1 flex-1 rounded-full", stage.state === "done" ? "bg-accent" : stage.state === "active" ? "bg-accent/60" : "bg-secondary")} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Button>
+
+          <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
             <div className="flex items-center justify-between">
               <div className="text-xs text-muted-foreground">Progress</div>
               <span className={cn("rounded-md px-1.5 py-0.5 text-[10px] font-medium", scheduleSummary.actual >= scheduleSummary.planned ? "bg-rag-green/15 text-rag-green" : "bg-rag-amber/15 text-rag-amber")}>
@@ -867,42 +903,6 @@ function ProjectDetail() {
               </div>
             </div>
           </div>
-
-          <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
-            <div className="text-xs text-muted-foreground">Timeline</div>
-            <div className="flex flex-wrap items-baseline gap-2">
-              <span className="num-mono text-sm font-medium text-accent">{durationDays != null ? `${durationDays}d` : "—"}</span>
-              <span className="num-mono text-[10px] text-muted-foreground">({formatDateWithYear(project.startDate)} → {formatDateWithYear(project.endDate)})</span>
-            </div>
-          </div>
-
-          <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
-            <div className="text-xs text-muted-foreground">Budget</div>
-            <div className="flex flex-wrap items-baseline gap-2">
-              <span className="num-mono text-sm font-medium text-foreground">${project.budgetUsed.toFixed(2)}M / ${project.budgetTotal.toFixed(1)}M</span>
-              <span className="text-[10px] text-muted-foreground">{budgetUsedPct}% used</span>
-            </div>
-          </div>
-
-          <Button
-            type="button"
-            variant="ghost"
-            data-ds-size="auto"
-            onClick={() => setStageGateOpen(true)}
-            className="group h-16 justify-center rounded-lg bg-[var(--field-bg-filled)] px-4 text-left hover:bg-[var(--field-bg-filled)]/80"
-          >
-            <div className="flex w-full min-w-0 flex-col gap-1.5">
-              <div className="text-xs font-normal text-muted-foreground">Stage Gate</div>
-              <div className="flex items-center gap-3">
-                <span className="shrink-0 text-sm font-semibold text-foreground">{currentStage.name}</span>
-                <div className="flex min-w-0 flex-1 items-center gap-1" aria-label={`Stage ${currentStage.n} of ${PLANNING_STAGES.length}`}>
-                  {PLANNING_STAGES.map((stage) => (
-                    <span key={stage.n} className={cn("h-1 flex-1 rounded-full", stage.state === "done" ? "bg-accent" : stage.state === "active" ? "bg-accent/60" : "bg-secondary")} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Button>
         </div>
       </section>
 

@@ -1,3 +1,8 @@
+## 2026-10-05 — WBS view-only action guidance
+- Plan-changing row actions are now dimmed while the baseline is locked; hover explains that the schedule is in View only mode and selecting the action starts Change Plan.
+- The dimmed actions remain clickable and enter Change Plan directly. Progress update remains fully available for lowest-level tasks without Change Plan.
+- Files: src/components/ProjectSchedule.tsx, src/routes/portfolio.$projectId.tsx.
+
 ## 2026-10-01 — Change Plan: Save baseline via approval + confirmation
 - During Change Plan editing, the three-dot menu now shows `Edit project`, `Save baseline`, and `Exit Change Plan`; `Edit project` opens the existing basic-info edit form.
 - `Save baseline` opens the review dialog retitled "Save new baseline (v{n+1})" whose submit button reads "Send for approval"; the request flows through the existing Change Request approval path.

@@ -1,3 +1,7 @@
+## 2026-10-05 — Baseline save: single review step
+- Send for approval now opens "Save a new baseline?" confirmation, noting activation happens after approval in the Approvals module; confirming submits the request.
+- Removed the Change Requests section and Review step under WBS/Gantt; approval in the Approvals module activates the new version automatically.
+
 ## 2026-10-05 — WBS view-only action guidance
 - Plan-changing row actions are dimmed while the baseline is locked; the cursor stays the plain arrow (no forbidden/not-allowed shape) and a DS02-styled tooltip explains that Change Plan enables editing.
 - The hint shows only after a steady ~1s hover (or keyboard focus) and clears when the pointer leaves the row — it is driven by a local timer because Radix ignores `delayDuration` for every tooltip after the first one in a session.
@@ -469,6 +473,11 @@
 - Removed the colored background container behind search and filter controls across all shared page toolbars and the Portfolio toolbar.
 
 # PMO Project â€” Session Log
+
+## 2026-10-05 — Baseline save: single review step
+- Send for approval now opens "Save a new baseline?" confirmation (notes activation happens after approval in the Approvals module); confirming submits the request.
+- Removed the Change Requests section and Review step under WBS/Gantt; approval in the Approvals module activates the new version automatically.
+
 
 > Every session that touches this project is logged here. Newest session at the top.
 

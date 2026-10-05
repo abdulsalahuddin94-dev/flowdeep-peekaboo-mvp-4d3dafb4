@@ -264,8 +264,8 @@ function ProjectDetail() {
   const [selectedCrForApproval, setSelectedCrForApproval] = useState<string | undefined>(undefined);
   const [selectedBaselineVersion, setSelectedBaselineVersion] = useState<string>("latest");
   const [planEditMode, setPlanEditMode] = useState<"view" | "editing" | "pending">("view");
-  /** Approved change request awaiting the "Save a new baseline?" confirmation before activation. */
-  const [baselineSaveConfirm, setBaselineSaveConfirm] = useState<{ snapshot: Milestone[] } | null>(null);
+  /** Reviewed change request awaiting the "Save a new baseline?" confirmation before it is sent for approval. */
+  const [pendingCrConfirm, setPendingCrConfirm] = useState<ChangeRequest | null>(null);
   const isViewingCurrent = selectedBaselineVersion === "latest";
   const isBaselineLocked = project.baselineLocked === true;
   const isEditingAllowed = isViewingCurrent && (!isBaselineLocked || planEditMode === "editing");
@@ -444,9 +444,8 @@ function ProjectDetail() {
               : c,
           ),
         );
-        // The user confirms the new baseline before it becomes active —
-        // the previous version stays available for view either way.
-        setBaselineSaveConfirm({ snapshot: milestones.map((m) => ({ ...m })) });
+        // The user already confirmed when sending — approval activates the new baseline.
+        activateBaseline(milestones.map((m) => ({ ...m })));
       } else {
         setChangeRequests((prev) =>
           prev.map((c) =>
@@ -520,23 +519,38 @@ function ProjectDetail() {
     }
   }, [isBaselineLocked, milestones, projectBaselineVersions.length]);
 
-  function confirmBaselineSave() {
-    if (!baselineSaveConfirm) return;
-    const snapshot = baselineSaveConfirm.snapshot;
+  function activateBaseline(snapshot: Milestone[]) {
     const createdAt = new Date().toISOString().split("T")[0];
     const version = projectBaselineVersions.length + 1;
     setProjectBaselineVersions((prev) => [...prev, { version, createdAt, snapshot }]);
     setProjectBaseline((prev) => (prev ? { version, createdAt, isLocked: true, snapshot } : prev));
     setSelectedBaselineVersion("latest");
     setPlanEditMode("view");
-    setBaselineSaveConfirm(null);
-    toast.success(`✅ Baseline v${version} saved & locked — V${version - 1} stays available for view`);
+    toast.success(`✅ Baseline v${version} approved & active — V${version - 1} stays available for view`);
   }
 
-  function cancelBaselineSave() {
-    setBaselineSaveConfirm(null);
-    setPlanEditMode("view");
-    toast.info("New baseline not saved — the project stays on its current version");
+  function submitBaselineChange(cr: ChangeRequest) {
+    setPendingCrConfirm(null);
+    setPlanEditMode("pending");
+    setEditBaselineSnapshot(null);
+    setMilestones((prev) => prev.map((m) => (m.depDateShift ? { ...m, depDateShift: undefined } : m)));
+    const approvalId = addProjectApproval({
+      type: "change-request",
+      projectId: project.id,
+      projectName: project.name,
+      ref: cr.id,
+      title: `Baseline change request ${cr.id} — Project Schedule`,
+      requestedBy: approvalUser.name,
+      summary: cr.changes.map((c) => ({ label: c.field, before: c.oldValue, after: c.newValue })),
+      approvers: DEFAULT_PROJECT_APPROVERS.map((a) => ({
+        id: a.id.startsWith("u-") ? a.id : `u-${a.id}`,
+        name: a.name,
+        role: a.role ?? "Approver",
+        decision: "pending" as const,
+      })),
+    });
+    setChangeRequests((prev) => [...prev, { ...cr, approvalId }]);
+    toast.success(`New baseline sent for approval — track it in the Approvals module`);
   }
 
   function saveProjectBaseline() {
@@ -1129,58 +1143,7 @@ function ProjectDetail() {
             onOpenChange={setAddFirstMilestoneOpen}
           />
 
-          {/* Change Requests Section */}
-          <div className="mt-8 space-y-4 border-t border-border pt-6">
-            <div className="label-eyebrow">{changeRequests.length} Change Requests</div>
-            {changeRequests.length === 0 ? (
-              <div className="glass-card p-6 text-center text-sm text-muted-foreground">
-                No change requests yet. Create a baseline to enable change request workflow.
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {changeRequests.map((cr) => (
-                  <div key={cr.id} className="flex items-center justify-between rounded-lg border border-border bg-secondary/30 p-4">
-                    <div className="flex-1">
-                      <div className="font-medium text-foreground">{cr.id} · {cr.summary}</div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        Submitted by {cr.submittedBy} · {formatDateWithYear(cr.createdAt)}
-                      </div>
-                      {cr.changes && cr.changes.length > 0 && (
-                        <div className="mt-2 text-xs">
-                          <div className="text-muted-foreground">Changes:</div>
-                          {cr.changes.map((c, i) => (
-                            <div key={i} className="ml-2 text-muted-foreground">
-                              • {c.field}: {c.oldValue} → {c.newValue}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="ml-4 flex flex-col items-end gap-2">
-                      <Badge variant="outline" className={
-                        cr.status === "pending" ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber" :
-                        cr.status === "approved" ? "border-rag-green/40 bg-rag-green/10 text-rag-green" :
-                        cr.status === "rejected" ? "border-rag-red/40 bg-rag-red/10 text-rag-red" :
-                        "border-border bg-secondary text-muted-foreground"
-                      }>{cr.status}</Badge>
-                      {cr.status === "pending" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-accent text-accent hover:bg-accent-dim"
-                          onClick={() => { setSelectedCrForApproval(cr.id); setCrApprovalDialogOpen(true); }}
-                        >
-                          Review
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* CR Dialog */}
+          {/* CR Dialog — reviewing changes here is the only review step; decisions happen in the Approvals module. */}
           <ChangeRequestDialog
             open={crDialogOpen}
             onOpenChange={setCrDialogOpen}
@@ -1189,27 +1152,7 @@ function ProjectDetail() {
             baselineVersion={projectBaselineVersions.length}
             onSubmit={(cr) => {
               setCrDialogOpen(false);
-              setPlanEditMode("pending");
-              setEditBaselineSnapshot(null);
-              // The dependency-shift markers have served their purpose once submitted.
-              setMilestones((prev) => prev.map((m) => (m.depDateShift ? { ...m, depDateShift: undefined } : m)));
-              const approvalId = addProjectApproval({
-                type: "change-request",
-                projectId: project.id,
-                projectName: project.name,
-                ref: cr.id,
-                title: `Baseline change request ${cr.id} — Project Schedule`,
-                requestedBy: approvalUser.name,
-                summary: cr.changes.map((c) => ({ label: c.field, before: c.oldValue, after: c.newValue })),
-                approvers: DEFAULT_PROJECT_APPROVERS.map((a) => ({
-                  id: a.id.startsWith("u-") ? a.id : `u-${a.id}`,
-                  name: a.name,
-                  role: a.role ?? "Approver",
-                  decision: "pending" as const,
-                })),
-              });
-              setChangeRequests((prev) => [...prev, { ...cr, approvalId }]);
-              toast.success(`Change Request ${cr.id} submitted for approval`);
+              setPendingCrConfirm(cr);
             }}
           />
 
@@ -1247,45 +1190,16 @@ function ProjectDetail() {
             </AlertDialogContent>
           </AlertDialog>
 
-          {/* CR Approval Dialog */}
-          <ChangeRequestApprovalDialog
-            open={crApprovalDialogOpen}
-            onOpenChange={setCrApprovalDialogOpen}
-            changeRequest={changeRequests.find((cr) => cr.id === selectedCrForApproval)}
-            onApprove={(reason) => {
-              setChangeRequests((prev) =>
-                prev.map((cr) =>
-                  cr.id === selectedCrForApproval
-                    ? { ...cr, status: "approved" as const, approvedAt: new Date().toISOString().split('T')[0], approvedBy: "Current User", approvalReason: reason }
-                    : cr
-                )
-              );
-              setBaselineSaveConfirm({ snapshot: milestones.map((m) => ({ ...m })) });
-              setCrApprovalDialogOpen(false);
-            }}
-            onReject={(reason) => {
-              setChangeRequests((prev) =>
-                prev.map((cr) =>
-                  cr.id === selectedCrForApproval
-                    ? { ...cr, status: "rejected" as const, rejectedAt: new Date().toISOString().split('T')[0], rejectionReason: reason }
-                    : cr
-                )
-              );
-              setCrApprovalDialogOpen(false);
-              toast.error("Change Request rejected");
-            }}
-          />
-
-          {/* Baseline save confirmation — shown once a plan change request is approved */}
+          {/* Baseline save confirmation — shown right after Send for approval */}
           <ConfirmDialog
-            open={!!baselineSaveConfirm}
-            onOpenChange={(o) => { if (!o && baselineSaveConfirm) cancelBaselineSave(); }}
+            open={!!pendingCrConfirm}
+            onOpenChange={(o) => { if (!o) setPendingCrConfirm(null); }}
             tone="info"
             title="Save a new baseline?"
-            description={`This will be the active baseline. V${projectBaselineVersions.length} stays available for view.`}
+            description={`This will be the active baseline once it's approved by the responsible approver in the Approvals module. V${projectBaselineVersions.length} stays available for view.`}
             confirmLabel="Save"
             cancelLabel="Cancel"
-            onConfirm={confirmBaselineSave}
+            onConfirm={() => { if (pendingCrConfirm) submitBaselineChange(pendingCrConfirm); }}
           />
 
         </TabsContent>

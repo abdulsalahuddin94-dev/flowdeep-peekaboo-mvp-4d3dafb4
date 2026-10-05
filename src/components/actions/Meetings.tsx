@@ -253,7 +253,7 @@ function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
             onClick={() => up({ attendees: [...d.attendees, { id: uid(), name: "", party: "Internal" }] })}
             className="h-7 w-7 shrink-0 rounded-full border border-border/60 text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"><Plus size={14} /></Button>
         </div>
-        {d.attendees.length === 0 && <p className="text-sm text-muted-foreground">Add at least one attendee — employees, client, vendor, or external stakeholders.</p>}
+        {d.attendees.length === 0 && <p className="text-sm text-muted-foreground">Add at least one attendee — employees, client, vendor, external stakeholders, or anyone else.</p>}
         <div className="max-h-[168px] space-y-2 overflow-y-auto pr-1">
           {d.attendees.map((a) => (
             <div key={a.id} className="grid grid-cols-[140px_1fr_1fr_36px] gap-2">

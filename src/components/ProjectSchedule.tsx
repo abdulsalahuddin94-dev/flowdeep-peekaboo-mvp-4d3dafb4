@@ -1918,7 +1918,7 @@ function PlanActionMenuItem({
         onSelect();
       }}
       className={cn(
-        restricted && "cursor-not-allowed text-muted-foreground/50 focus:bg-transparent focus:text-muted-foreground/50 data-[highlighted]:bg-transparent data-[highlighted]:text-muted-foreground/50",
+        restricted && "cursor-default text-muted-foreground/50 focus:bg-transparent focus:text-muted-foreground/50 data-[highlighted]:bg-transparent data-[highlighted]:text-muted-foreground/50",
         destructive && !restricted && "text-rag-red focus:text-rag-red",
       )}
     >
@@ -1929,7 +1929,7 @@ function PlanActionMenuItem({
   if (!restricted || disabled) return item;
 
   return (
-    <Tooltip delayDuration={500}>
+    <Tooltip delayDuration={900}>
       <TooltipTrigger asChild>{item}</TooltipTrigger>
       <TooltipContent
         side="left"

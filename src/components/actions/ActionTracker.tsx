@@ -346,20 +346,24 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint }: { 
   const up = (i: number, p: Partial<Row>) => onChange(rows.map((r, j) => (j === i ? { ...r, ...p } : r)));
   return (
     <div className="space-y-2">
-      <div className="label-eyebrow">{label}</div>
-      {rows.map((r, i) => (
-        <div key={i} className="grid grid-cols-[1fr_140px_120px_150px_36px] gap-2">
-          <Input aria-label="Action" maxLength={150} value={r.title} onChange={(e) => up(i, { title: e.target.value })} placeholder="Action" />
-          <Input aria-label="Owner" maxLength={80} value={r.owner} onChange={(e) => up(i, { owner: e.target.value })} placeholder="Owner" />
-          <Select value={r.responsibility} onValueChange={(v) => up(i, { responsibility: v as ActionResponsibility })}>
-            <SelectTrigger aria-label="Responsibility"><SelectValue /></SelectTrigger>
-            <SelectContent>{ACTION_RESPONSIBILITIES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-          </Select>
-          <DatePicker value={r.dueDate} onChange={(v) => up(i, { dueDate: v })} placeholder="Due date" />
-          <Button type="button" variant="ghost" size="icon" aria-label="Remove row" disabled={rows.length === 1} onClick={() => onChange(rows.filter((_, j) => j !== i))}><DeleteAction size={14} /></Button>
-        </div>
-      ))}
-      <Button type="button" variant="outline" onClick={() => onChange([...rows, emptyActionRow()])}>Add row</Button>
+      <div className="flex items-center justify-between gap-2">
+        <div className="label-eyebrow">{label}</div>
+        <Button type="button" variant="secondary" size="icon" aria-label={`Add ${label.toLowerCase()} row`} title={`Add ${label.toLowerCase()} row`} data-ds-size="auto" onClick={() => onChange([...rows, emptyActionRow()])} className="h-7 w-7 shrink-0 rounded-full border border-border/60 text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"><Plus size={14} /></Button>
+      </div>
+      <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+        {rows.map((r, i) => (
+          <div key={i} className="grid grid-cols-[1fr_140px_120px_150px_36px] gap-2">
+            <Input aria-label="Action" maxLength={150} value={r.title} onChange={(e) => up(i, { title: e.target.value })} placeholder="Action" />
+            <Input aria-label="Owner" maxLength={80} value={r.owner} onChange={(e) => up(i, { owner: e.target.value })} placeholder="Owner" />
+            <Select value={r.responsibility} onValueChange={(v) => up(i, { responsibility: v as ActionResponsibility })}>
+              <SelectTrigger aria-label="Responsibility"><SelectValue /></SelectTrigger>
+              <SelectContent>{ACTION_RESPONSIBILITIES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+            </Select>
+            <DatePicker value={r.dueDate} onChange={(v) => up(i, { dueDate: v })} placeholder="Due date" />
+            <Button type="button" variant="ghost" size="icon" aria-label="Remove row" disabled={rows.length === 1} onClick={() => onChange(rows.filter((_, j) => j !== i))}><DeleteAction size={14} /></Button>
+          </div>
+        ))}
+      </div>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
   );

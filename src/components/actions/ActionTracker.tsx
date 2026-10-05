@@ -331,7 +331,8 @@ export function actionRowsValid(rows: ActionRow[]) { return filledActionRows(row
 export function cleanActionRows(rows: ActionRow[]) { return filledActionRows(rows).map((r) => ({ ...r, title: r.title.trim().slice(0, 150), owner: r.owner.trim() })); }
 
 /** Shared action-by-row editor (meeting batch, risk mitigation, issue action plan). */
-export function ActionRowsEditor({ rows, onChange, label = "Actions", hint }: { rows: ActionRow[]; onChange: (rows: ActionRow[]) => void; label?: string; hint?: string }) {
+export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, ownerOptions }: { rows: ActionRow[]; onChange: (rows: ActionRow[]) => void; label?: string; hint?: string; ownerOptions?: string[] }) {
+  const listId = ownerOptions?.length ? `owners-${label.replace(/\W/g, "")}` : undefined;
   const up = (i: number, p: Partial<Row>) => onChange(rows.map((r, j) => (j === i ? { ...r, ...p } : r)));
   return (
     <div className="space-y-2">
@@ -344,7 +345,7 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint }: { 
         {rows.map((r, i) => (
           <div key={i} className="grid grid-cols-[1fr_140px_120px_150px_36px] gap-2">
             <Input aria-label="Action" maxLength={150} value={r.title} onChange={(e) => up(i, { title: e.target.value })} placeholder="Action" />
-            <Input aria-label="Owner" maxLength={80} value={r.owner} onChange={(e) => up(i, { owner: e.target.value })} placeholder="Owner" />
+            <Input aria-label="Owner" list={listId} maxLength={80} value={r.owner} onChange={(e) => up(i, { owner: e.target.value })} placeholder="Owner" />
             <Select value={r.responsibility} onValueChange={(v) => up(i, { responsibility: v as ActionResponsibility })}>
               <SelectTrigger aria-label="Responsibility"><SelectValue /></SelectTrigger>
               <SelectContent>{ACTION_RESPONSIBILITIES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
@@ -354,6 +355,7 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint }: { 
           </div>
         ))}
       </div>
+      {listId && <datalist id={listId}>{ownerOptions!.map((o) => <option key={o} value={o} />)}</datalist>}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
   );

@@ -1893,6 +1893,9 @@ export function ProjectSchedule({
   );
 }
 
+/** Delay before the view-only hint shows, so it reads as a tooltip and not a flash. */
+const VIEW_ONLY_HINT_DELAY = 1000;
+
 function PlanActionMenuItem({
   restricted,
   onSelect,
@@ -1906,6 +1909,22 @@ function PlanActionMenuItem({
   destructive?: boolean;
   children: React.ReactNode;
 }) {
+  // The hint is driven by our own timer: Radix drops `delayDuration` for every
+  // tooltip opened after the first one in a session, so the delay would be lost.
+  const [hintOpen, setHintOpen] = useState(false);
+  const hintTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(hintTimer.current), []);
+
+  const showHint = () => {
+    window.clearTimeout(hintTimer.current);
+    hintTimer.current = window.setTimeout(() => setHintOpen(true), VIEW_ONLY_HINT_DELAY);
+  };
+  const hideHint = () => {
+    window.clearTimeout(hintTimer.current);
+    setHintOpen(false);
+  };
+
   const item = (
     <DropdownMenuItem
       disabled={disabled}
@@ -1918,6 +1937,8 @@ function PlanActionMenuItem({
         onSelect();
       }}
       className={cn(
+        // DS02: restricted items keep the plain arrow cursor — only the dimmed
+        // colour and the delayed hint signal that they are inactive.
         restricted && "cursor-default text-muted-foreground/50 focus:bg-transparent focus:text-muted-foreground/50 data-[highlighted]:bg-transparent data-[highlighted]:text-muted-foreground/50",
         destructive && !restricted && "text-rag-red focus:text-rag-red",
       )}
@@ -1929,11 +1950,19 @@ function PlanActionMenuItem({
   if (!restricted || disabled) return item;
 
   return (
-    <Tooltip delayDuration={900}>
-      <TooltipTrigger asChild>{item}</TooltipTrigger>
+    <Tooltip open={hintOpen}>
+      <TooltipTrigger
+        asChild
+        onPointerMove={showHint}
+        onPointerLeave={hideHint}
+        onFocus={showHint}
+        onBlur={hideHint}
+      >
+        {item}
+      </TooltipTrigger>
       <TooltipContent
         side="left"
-        className="max-w-64 border border-border bg-popover px-3 py-2 text-center text-popover-foreground shadow-md"
+        className="pointer-events-none max-w-64 border border-border bg-popover px-3 py-2 text-center text-popover-foreground shadow-md"
       >
         View only mode. Start Change Plan to enable editing.
       </TooltipContent>

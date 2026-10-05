@@ -27,6 +27,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, GanttChartSquare, Link2, PanelLeft, PanelLeftClose, Pencil, Plus, Trash2, TrendingUp, Upload, UserPlus, X } from "@/lib/icons";
 import { RagBadge } from "@/components/RagBadge";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -311,6 +312,7 @@ export function ProjectSchedule({
   onDependencyClick,
   onAddDependencyClick,
   onFinancialLinkClick,
+  onRequestChangePlan,
   resourceList = [],
   headerSlot,
   restricted = false,
@@ -330,6 +332,7 @@ export function ProjectSchedule({
   onDependencyClick?: (name: string) => void;
   onAddDependencyClick?: (name: string) => void;
   onFinancialLinkClick?: (name: string) => void;
+  onRequestChangePlan?: () => void;
   resourceList?: Array<{ name: string; role?: string; dept?: string }>;
   headerSlot?: React.ReactNode;
   /**
@@ -1463,27 +1466,33 @@ export function ProjectSchedule({
                               <DropdownMenuItem disabled>Approval gate — managed by approvers</DropdownMenuItem>
                             ) : (
                               <>
-                                <DropdownMenuItem onSelect={() => onAddSubtask?.(item.name)}>
+                                <PlanActionMenuItem restricted={restricted} onSelect={() => onAddSubtask?.(item.name)} onRequestChangePlan={onRequestChangePlan}>
                                   <Plus className="h-4 w-4" /> Add subtask
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => onEditItem?.(item.name)}>
+                                </PlanActionMenuItem>
+                                <PlanActionMenuItem restricted={restricted} onSelect={() => onEditItem?.(item.name)} onRequestChangePlan={onRequestChangePlan}>
                                   <Pencil className="h-4 w-4" /> Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => onAddDependencyClick?.(item.name)}>
+                                </PlanActionMenuItem>
+                                <PlanActionMenuItem restricted={restricted} onSelect={() => onAddDependencyClick?.(item.name)} onRequestChangePlan={onRequestChangePlan}>
                                   <Link2 className="h-4 w-4" /> Add dependency
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => onFinancialLinkClick?.(item.name)}>
+                                </PlanActionMenuItem>
+                                <PlanActionMenuItem restricted={restricted} onSelect={() => onFinancialLinkClick?.(item.name)} onRequestChangePlan={onRequestChangePlan}>
                                   <Link2 className="h-4 w-4" /> Add financial link
-                                </DropdownMenuItem>
+                                </PlanActionMenuItem>
                                 {item.kind === "Task" && !hasChildren && (
                                   <DropdownMenuItem onSelect={() => onProgressClick?.(item.name, item.kind)}>
                                     <TrendingUp className="h-4 w-4" /> Progress update
                                   </DropdownMenuItem>
                                 )}
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onSelect={() => onDeleteItem && setPendingDelete(item.name)} disabled={!onDeleteItem} className="text-rag-red focus:text-rag-red">
+                                <PlanActionMenuItem
+                                  restricted={restricted}
+                                  onSelect={() => onDeleteItem && setPendingDelete(item.name)}
+                                  onRequestChangePlan={onRequestChangePlan}
+                                  disabled={!onDeleteItem}
+                                  destructive
+                                >
                                   <Trash2 className="h-4 w-4" /> Delete
-                                </DropdownMenuItem>
+                                </PlanActionMenuItem>
                               </>
                             )}
                           </DropdownMenuContent>
@@ -1884,6 +1893,46 @@ export function ProjectSchedule({
         }}
       />
     </div>
+  );
+}
+
+function PlanActionMenuItem({
+  restricted,
+  onSelect,
+  onRequestChangePlan,
+  disabled,
+  destructive,
+  children,
+}: {
+  restricted: boolean;
+  onSelect: () => void;
+  onRequestChangePlan?: () => void;
+  disabled?: boolean;
+  destructive?: boolean;
+  children: React.ReactNode;
+}) {
+  const item = (
+    <DropdownMenuItem
+      disabled={disabled}
+      onSelect={() => restricted ? onRequestChangePlan?.() : onSelect()}
+      className={cn(
+        restricted && "text-muted-foreground/50 focus:text-muted-foreground",
+        destructive && !restricted && "text-rag-red focus:text-rag-red",
+      )}
+    >
+      {children}
+    </DropdownMenuItem>
+  );
+
+  if (!restricted || disabled) return item;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{item}</TooltipTrigger>
+      <TooltipContent side="left" className="max-w-64 text-center">
+        View only mode. Select to start Change Plan and enable editing.
+      </TooltipContent>
+    </Tooltip>
   );
 }
 

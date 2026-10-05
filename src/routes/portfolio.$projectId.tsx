@@ -1040,6 +1040,13 @@ function ProjectDetail() {
             onFinancialLinkClick={(name) => {
               setFinLinkItem(name);
             }}
+            onRequestChangePlan={() => {
+              if (!isViewingCurrent) {
+                toast.error("Return to the latest baseline to start Change Plan");
+                return;
+              }
+              enterEditMode();
+            }}
             AddItemSlot={
               <AddMilestoneDialog
                 defaultOwner={project.pm}

@@ -470,6 +470,11 @@
 
 # PMO Project â€” Session Log
 
+## 2026-10-05 — Baseline save: single review step
+- Send for approval now opens "Save a new baseline?" confirmation (notes activation happens after approval in the Approvals module); confirming submits the request.
+- Removed the Change Requests section and Review step under WBS/Gantt; approval in the Approvals module activates the new version automatically.
+
+
 > Every session that touches this project is logged here. Newest session at the top.
 
 ---

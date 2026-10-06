@@ -1,3 +1,7 @@
+## 2026-10-06 — Responsibility Types: Party as plain text
+
+- Party column in Organization → Responsibility Types renders as plain text (muted) instead of a pill/badge, per review; removed the now-unused PARTY_TONE map and Pill import. Browser-verified (no pill spans in the cell).
+
 ## 2026-10-06 — Removed Meeting attendee mapping
 
 - Removed the **Meeting attendee mapping** card from Organization → Responsibility Types (user: unnecessary). Meeting actions now use a fixed party→responsibility mapping again (Internal→Internal, Client→Client, Vendor→Vendor, Stakeholder/Other→Client).

@@ -11,7 +11,6 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { TableRowActions, StatusPill } from "@/components/TableRowActions";
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { EmptyRegion } from "@/lib/empty-preview";
-import { Pill } from "@/components/Pill";
 import { cn } from "@/lib/utils";
 import { Plus, ToggleActive } from "@/lib/icons";
 import { toast } from "@/lib/toast";
@@ -26,10 +25,6 @@ import { useOrgActive } from "@/lib/org-active";
 /** Master-data names are unique per list — compared ignoring case and extra spaces. */
 const normName = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
 
-const PARTY_TONE: Record<RespParty, string> = {
-  Internal: "border-accent/40 bg-accent/10 text-accent",
-  External: "border-border bg-muted text-muted-foreground",
-};
 
 /** Shared form fields for add / edit. */
 function RespTypeFields({ name, party, onName, onParty }: {
@@ -175,7 +170,7 @@ export function ResponsibilityTypesTab() {
                 className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(t.name) && "opacity-60")}
               >
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{t.name}</TableCell>
-                <TableCell><Pill label={t.party} tone={PARTY_TONE[t.party]} /></TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground">{t.party}</TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
                     onEdit={() => openEdit(t)}

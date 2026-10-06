@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
-  RiskRegisterTab, RiskHeatmapTab, IssuesLogTab, RiskKpiStrip,
+  RiskRegisterTab, RiskHeatmapTab, IssuesLogTab,
 } from "@/components/risk/RiskIssues";
 
 export const Route = createFileRoute("/risks")({

@@ -26,22 +26,53 @@ import {
   Area,
 } from "recharts";
 
-const COST_ITEMS = [
-  { project: "ERP Upgrade", item: "SAP licensing (Y1)", cat: "Software", type: "CapEx", amount: "$1.2M", milestone: "Kickoff", due: "10 Feb", status: "Recognised" },
-  { project: "ERP Upgrade", item: "Integration labour", cat: "Staff", type: "OpEx", amount: "$0.8M", milestone: "UAT Sign-off", due: "15 Jun", status: "Pending" },
-  { project: "Refinery Expansion", item: "Civil works — Phase 1", cat: "Contracts", type: "CapEx", amount: "$8.4M", milestone: "Civil phase complete", due: "22 Sep", status: "In progress" },
-  { project: "Refinery Expansion", item: "Site supervision", cat: "Services", type: "OpEx", amount: "$1.1M", milestone: "Fixed monthly", due: "Monthly", status: "Recurring" },
-  { project: "Customer Portal v3", item: "Dev sprint capacity", cat: "Staff", type: "OpEx", amount: "$0.6M", milestone: "Production cutover", due: "30 Aug", status: "Pending" },
-  { project: "Salesforce Migration", item: "SF platform fees", cat: "Software", type: "CapEx", amount: "$0.9M", milestone: "Hypercare exit", due: "22 Jul", status: "Recognised" },
-  { project: "Smart Grid Pilot", item: "Field engineers travel", cat: "Business Trips", type: "OpEx", amount: "$0.3M", milestone: "Fixed date", due: "05 Aug", status: "Pending" },
-];
+const FIN_YEAR = 2026;
+const COST_TEMPLATES = [
+  { item: "Licences & subscriptions", cat: "Software", type: "CapEx", share: 0.3 },
+  { item: "Delivery labour", cat: "Staff", type: "OpEx", share: 0.4 },
+  { item: "Subcontracted works", cat: "Contracts", type: "CapEx", share: 0.2 },
+  { item: "Field travel", cat: "Business Trips", type: "OpEx", share: 0.1 },
+] as const;
+const REV_TEMPLATES = [
+  { milestone: "Mobilisation payment", share: 0.3 },
+  { milestone: "Mid-delivery acceptance", share: 0.4 },
+  { milestone: "Final acceptance", share: 0.3 },
+] as const;
+const iso = (y: number, m: number, d: number) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+const TODAY = new Date().toISOString().slice(0, 10);
 
-const REVENUE_ITEMS = [
-  { project: "ERP Upgrade", milestone: "UAT Sign-off", due: "15 Jun", contract: "$10.0M", recognised: "$0.4M", pending: "$0.8M", pct: 33, payment: "Invoiced", days: "+5d" },
-  { project: "Customer Portal v3", milestone: "Production cutover", due: "30 Aug", contract: "$6.0M", recognised: "$0.6M", pending: "$0.2M", pct: 75, payment: "Paid", days: "25d" },
-  { project: "Refinery Expansion", milestone: "Civil phase complete", due: "22 Sep", contract: "$22.0M", recognised: "$8.0M", pending: "$4.2M", pct: 65, payment: "Partial", days: "75d" },
-  { project: "Salesforce Migration", milestone: "Hypercare exit", due: "22 Jul", contract: "$2.0M", recognised: "$0.9M", pending: "$0.1M", pct: 90, payment: "Paid", days: "0d" },
-];
+type CostItem = { id: string; projectId: string; project: string; businessLine: string; item: string; cat: string; type: string; planned: number; actual: number; due: string };
+type RevenueItem = { id: string; projectId: string; project: string; businessLine: string; milestone: string; due: string; planned: number; collected: number };
+
+const COST_ITEMS: CostItem[] = projects.slice(0, 12).flatMap((p, pi) =>
+  COST_TEMPLATES.map((t, ti) => {
+    const planned = +(p.budgetTotal * t.share).toFixed(2);
+    const month = ((pi * 2 + ti * 3) % 18) + 1; // spread over FY2026 → mid-2027
+    const due = iso(FIN_YEAR + (month > 12 ? 1 : 0), ((month - 1) % 12) + 1, 5 + ((pi + ti) % 20));
+    const ratio = due < TODAY ? [1, 0.6, 0.85, 1][(pi + ti) % 4] : [0, 0.25, 0, 0][(pi + ti) % 4];
+    return { id: `${p.id}-c${ti}`, projectId: p.id, project: p.name, businessLine: p.businessLine, item: t.item, cat: t.cat, type: t.type, planned, actual: +(planned * ratio).toFixed(2), due };
+  }),
+);
+const REVENUE_ITEMS: RevenueItem[] = projects.slice(0, 12).flatMap((p, pi) =>
+  REV_TEMPLATES.map((t, ti) => {
+    const planned = +(p.budgetTotal * 1.15 * t.share).toFixed(2);
+    const month = ((pi * 2 + ti * 5 + 1) % 18) + 1;
+    const due = iso(FIN_YEAR + (month > 12 ? 1 : 0), ((month - 1) % 12) + 1, 10 + ((pi + ti) % 15));
+    const ratio = due < TODAY ? [1, 0.5, 0, 1][(pi + ti) % 4] : [0, 0.2, 0][(pi + ti) % 3];
+    return { id: `${p.id}-r${ti}`, projectId: p.id, project: p.name, businessLine: p.businessLine, milestone: t.milestone, due, planned, collected: +(planned * ratio).toFixed(2) };
+  }),
+);
+const costStatusOf = (c: CostItem) => (c.actual >= c.planned ? "Paid" : c.actual > 0 ? "Partially paid" : c.due < TODAY ? "Overdue" : "Planned");
+const revStatusOf = (r: RevenueItem) => (r.collected >= r.planned ? "Collected" : r.collected > 0 ? "Partially collected" : r.due < TODAY ? "Overdue" : "Planned");
+const statusPill = (st: string) =>
+  st === "Paid" || st === "Collected" ? "border-rag-green/60 bg-rag-green/10 text-rag-green"
+  : st.startsWith("Partially") ? "border-rag-amber/60 bg-rag-amber/10 text-rag-amber"
+  : st === "Overdue" ? "border-rag-red/60 bg-rag-red/10 text-rag-red"
+  : "border-border/60 bg-secondary/40 text-muted-foreground";
+const money = (v: number) => `$${v.toFixed(2)}M`;
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const monthOptions = Array.from(new Set([...COST_ITEMS, ...REVENUE_ITEMS].map((x) => x.due.slice(0, 7)))).sort()
+  .map((v) => ({ value: v, label: `${MONTHS[+v.slice(5, 7) - 1]}, ${v.slice(0, 4)}` }));
 
 const FIN_TAB_LABELS: Record<string, string> = {
   overview: "Overview (P&L)", cost: "Cost Milestone", rev: "Revenue Milestone",

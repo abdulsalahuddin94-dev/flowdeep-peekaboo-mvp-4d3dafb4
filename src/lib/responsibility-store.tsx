@@ -16,8 +16,6 @@ export type ResponsibilityType = {
   /** English-only display name, stored as text on actions. */
   name: string;
   party: RespParty;
-  /** Tone key into RESP_TONE_CLASS — semantic pill styling, never raw hex. */
-  tone: string;
 };
 
 /** Preset pill tones for the lookup (DS02 pill variants). */
@@ -41,16 +39,15 @@ export const RESP_TONE_CLASS: Record<string, string> = {
   muted: "border-border bg-muted text-muted-foreground",
 };
 
-/** Pill tone for any stored responsibility value, falling back to muted. */
-export function respTone(name: string, types: ResponsibilityType[]) {
-  const t = types.find((x) => x.name === name);
-  return RESP_TONE_CLASS[t?.tone ?? "muted"];
+/** Responsibility pills stay neutral — no per-type colors (removed by design decision). */
+export function respTone(_name: string, _types: ResponsibilityType[]) {
+  return RESP_TONE_CLASS.muted;
 }
 
 const DEFAULTS: ResponsibilityType[] = [
-  { id: "RT-001", name: "Internal", party: "Internal", tone: "accent" },
-  { id: "RT-002", name: "Client", party: "External", tone: "teal" },
-  { id: "RT-003", name: "Vendor", party: "External", tone: "amber" },
+  { id: "RT-001", name: "Internal", party: "Internal" },
+  { id: "RT-002", name: "Client", party: "External" },
+  { id: "RT-003", name: "Vendor", party: "External" },
 ];
 
 const STORAGE_KEY = "pmo.org.responsibility-types";

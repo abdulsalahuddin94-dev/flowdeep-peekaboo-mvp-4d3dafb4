@@ -130,22 +130,6 @@ export function ActionTrackerTab({ project }: { project: string }) {
 
   return (
     <>
-      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-5">
-        {[
-          { l: t.open, v: kpis.open, bar: "bg-rag-blue" },
-          { l: t.overdue, v: kpis.overdue, bar: "bg-rag-red", onClick: () => setStatus("Overdue") },
-          { l: t.dueWeek, v: kpis.week, bar: "bg-rag-amber" },
-          { l: t.done, v: kpis.done, bar: "bg-rag-green" },
-          { l: t.mine, v: kpis.mine, bar: "bg-accent", onClick: () => setOnlyMine(true) },
-        ].map((m) => (
-          <button key={m.l} type="button" onClick={m.onClick} disabled={!m.onClick} className="glass-card relative overflow-hidden p-4 pl-5 text-start disabled:cursor-default">
-            <span className={cn("absolute inset-y-0 start-0 w-[3px]", m.bar)} />
-            <div className="text-xs text-muted-foreground">{m.l}</div>
-            <div className="mt-1 text-xl font-medium num-mono text-foreground">{m.v}</div>
-          </button>
-        ))}
-      </div>
-
       <PageToolbar
         query={query}
         onQueryChange={setQuery}
@@ -163,6 +147,22 @@ export function ActionTrackerTab({ project }: { project: string }) {
           </div>
         }
       />
+
+      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-5">
+        {[
+          { l: t.open, v: kpis.open, bar: "bg-rag-blue" },
+          { l: t.overdue, v: kpis.overdue, bar: "bg-rag-red", onClick: () => setStatus("Overdue") },
+          { l: t.dueWeek, v: kpis.week, bar: "bg-rag-amber" },
+          { l: t.done, v: kpis.done, bar: "bg-rag-green" },
+          { l: t.mine, v: kpis.mine, bar: "bg-accent", onClick: () => setOnlyMine(true) },
+        ].map((m) => (
+          <button key={m.l} type="button" onClick={m.onClick} disabled={!m.onClick} className="glass-card relative overflow-hidden p-4 pl-5 text-start disabled:cursor-default">
+            <span className={cn("absolute inset-y-0 start-0 w-[3px]", m.bar)} />
+            <div className="text-xs text-muted-foreground">{m.l}</div>
+            <div className="mt-1 text-xl font-medium num-mono text-foreground">{m.v}</div>
+          </button>
+        ))}
+      </div>
 
       <StyledTable>
         <StyledTableHeader>

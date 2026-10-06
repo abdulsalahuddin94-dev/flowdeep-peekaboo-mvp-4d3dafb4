@@ -1,3 +1,8 @@
+## 2026-10-06 — Action Tracker layout + baseline scope audit
+
+- Moved the Action Tracker KPI cards (Open / Overdue / Due this week / Done / My actions) below the search and Filter toolbar, matching the Cost Breakdown ordering.
+- Audited the baseline scope: Project Schedule, Cost Breakdown, and Revenue Breakdown follow the Change Plan flow (plan edits locked; actual-recording stays available as bookkeeping); Risk & Issues, Action Tracker, Meetings, Recent Activity, and Status Reports have no baseline gating and stay editable at any time. Verified in the browser on p-001 with a locked baseline.
+
 ## 2026-10-06 — Risk & Issue popups: compact field layout
 
 - Reorganized the Log/Edit Risk and Log/Edit Issue dialogs to reduce height: Issue pairs Impact / Severity / Status on one row and Originating risk / Linked milestone side by side; Risk pairs Linked milestone / Status on one row.

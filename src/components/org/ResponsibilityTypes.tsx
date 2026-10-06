@@ -18,7 +18,7 @@ import { Plus, ToggleActive } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 import { matchStatus, statusGroup } from "@/components/ds/filters";
 import {
-  useResponsibilities, useMeetingPartyResp, RESP_TONES, RESP_TONE_CLASS, defaultResponsibility,
+  useResponsibilities, useMeetingPartyResp, defaultResponsibility,
   type ResponsibilityType, type RespParty,
 } from "@/lib/responsibility-store";
 import { useActions } from "@/lib/action-store";
@@ -34,9 +34,9 @@ const PARTY_TONE: Record<RespParty, string> = {
 };
 
 /** Shared form fields for add / edit. */
-function RespTypeFields({ name, party, tone, onName, onParty, onTone }: {
-  name: string; party: RespParty; tone: string;
-  onName: (v: string) => void; onParty: (v: RespParty) => void; onTone: (v: string) => void;
+function RespTypeFields({ name, party, onName, onParty }: {
+  name: string; party: RespParty;
+  onName: (v: string) => void; onParty: (v: RespParty) => void;
 }) {
   return (
     <div className="space-y-3">
@@ -55,20 +55,6 @@ function RespTypeFields({ name, party, tone, onName, onParty, onTone }: {
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <Label>Color</Label>
-          <Select value={tone} onValueChange={onTone}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {RESP_TONES.map((c) => (
-                <SelectItem key={c.value} value={c.value}>
-                  <span className={cn("mr-2 inline-flex rounded-full border px-2 py-0.5 text-[11px]", RESP_TONE_CLASS[c.value])}>{c.label}</span>
-                  {c.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
       </div>
     </div>
   );
@@ -77,12 +63,11 @@ function RespTypeFields({ name, party, tone, onName, onParty, onTone }: {
 /** Toolbar CTA — owns its own dialog so it works from the portaled actions slot. */
 function AddResponsibilityDialog({ existing, onAdd }: {
   existing: string[];
-  onAdd: (v: { name: string; party: RespParty; tone: string }) => void;
+  onAdd: (v: { name: string; party: RespParty }) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [party, setParty] = useState<RespParty>("Internal");
-  const [tone, setTone] = useState("accent");
 
   const save = () => {
     const trimmed = name.trim();
@@ -91,10 +76,10 @@ function AddResponsibilityDialog({ existing, onAdd }: {
       toast.error(`Responsibility type "${trimmed}" already exists. Use a different name.`);
       return;
     }
-    onAdd({ name: trimmed, party, tone });
+    onAdd({ name: trimmed, party });
     toast.done("Responsibility type", "added");
     setOpen(false);
-    setName(""); setParty("Internal"); setTone("accent");
+    setName(""); setParty("Internal");
   };
 
   return (
@@ -107,7 +92,7 @@ function AddResponsibilityDialog({ existing, onAdd }: {
           <DialogTitle>Add Responsibility Type</DialogTitle>
           <DialogDescription>Used for the Responsibility field on actions. Names are English only.</DialogDescription>
         </DialogHeader>
-        <RespTypeFields name={name} party={party} tone={tone} onName={setName} onParty={setParty} onTone={setTone} />
+        <RespTypeFields name={name} party={party} onName={setName} onParty={setParty} />
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={save}>Add responsibility type</Button>
@@ -127,7 +112,6 @@ export function ResponsibilityTypesTab() {
   const [editing, setEditing] = useState<ResponsibilityType | null>(null);
   const [editName, setEditName] = useState("");
   const [editParty, setEditParty] = useState<RespParty>("Internal");
-  const [editTone, setEditTone] = useState("accent");
   const [pendingDelete, setPendingDelete] = useState<ResponsibilityType | null>(null);
   const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
 
@@ -140,7 +124,7 @@ export function ResponsibilityTypesTab() {
 
   const pager = usePagination(visible);
 
-  const openEdit = (t: ResponsibilityType) => { setEditing(t); setEditName(t.name); setEditParty(t.party); setEditTone(t.tone); };
+  const openEdit = (t: ResponsibilityType) => { setEditing(t); setEditName(t.name); setEditParty(t.party); };
 
   const saveEdit = () => {
     if (!editing) return;
@@ -154,7 +138,7 @@ export function ResponsibilityTypesTab() {
       renameResponsibility(editing.name, name);
       ATTENDEE_PARTIES.forEach((p) => { if (mapping[p] === editing.name) setPartyResp(p, name); });
     }
-    updateRespType(editing.id, { name, party: editParty, tone: editTone });
+    updateRespType(editing.id, { name, party: editParty });
     toast.done("Responsibility type", "updated");
     setEditing(null);
   };
@@ -188,11 +172,10 @@ export function ResponsibilityTypesTab() {
           <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
             <TableHead className="w-64">Name</TableHead>
             <TableHead className="w-40">Party</TableHead>
-            <TableHead className="w-40">Color</TableHead>
             <TableHead className="w-32 text-center">Status</TableHead>
           </TableRow></TableHeader>
           <TableBody>
-            {visible.length === 0 && <EmptyRow colSpan={4} />}
+            {visible.length === 0 && <EmptyRow colSpan={3} />}
             {pager.pageItems.map((t) => (
               <TableRow
                 key={t.id}
@@ -200,7 +183,6 @@ export function ResponsibilityTypesTab() {
               >
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{t.name}</TableCell>
                 <TableCell><Pill label={t.party} tone={PARTY_TONE[t.party]} /></TableCell>
-                <TableCell><Pill label={t.name} tone={RESP_TONE_CLASS[t.tone] ?? RESP_TONE_CLASS.muted} /></TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
                     onEdit={() => openEdit(t)}
@@ -250,7 +232,7 @@ export function ResponsibilityTypesTab() {
               Renaming updates this type on every action already using it.
             </DialogDescription>
           </DialogHeader>
-          <RespTypeFields name={editName} party={editParty} tone={editTone} onName={setEditName} onParty={setEditParty} onTone={setEditTone} />
+          <RespTypeFields name={editName} party={editParty} onName={setEditName} onParty={setEditParty} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
             <Button variant="primary" onClick={saveEdit}>Save</Button>

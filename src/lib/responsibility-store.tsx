@@ -45,11 +45,17 @@ export function respTone(_name: string, _types: ResponsibilityType[]) {
 
 const DEFAULTS: ResponsibilityType[] = [
   { id: "RT-001", name: "Internal", party: "Internal" },
-  { id: "RT-002", name: "Client", party: "External" },
-  { id: "RT-003", name: "Vendor", party: "External" },
+  { id: "RT-002", name: "Shared Services", party: "Internal" },
+  { id: "RT-003", name: "Client", party: "External" },
+  { id: "RT-004", name: "Vendor", party: "External" },
+  { id: "RT-005", name: "Subcontractor", party: "External" },
+  { id: "RT-006", name: "Consultant", party: "External" },
+  { id: "RT-007", name: "Supplier", party: "External" },
+  { id: "RT-008", name: "Partner", party: "External" },
+  { id: "RT-009", name: "Regulator", party: "External" },
 ];
 
-const STORAGE_KEY = "pmo.org.responsibility-types";
+const STORAGE_KEY = "pmo.org.responsibility-types.v2";
 
 function read(): ResponsibilityType[] {
   if (typeof window === "undefined") return DEFAULTS;

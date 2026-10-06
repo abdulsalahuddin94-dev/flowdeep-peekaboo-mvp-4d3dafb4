@@ -32,3 +32,4 @@
 - [x] Replace action-row entry with the Official Holidays-style composer: add via +, then edit/delete from the scrollable list below.
 - [x] Move the Action Tracker KPI cards below the search and filter toolbar (matching Cost Breakdown).
 - [x] Confirm the baseline scope: Schedule/Cost/Revenue follow the Change Plan flow; Risk & Issues, Action Tracker, Meetings, Recent Activity, and Status Reports stay editable without a Change Plan.
+- [x] (2026-10-06) Risk Register & Issues Log: move KPI cards below search/filter; cards react to filters. Also: action-composer commit button becomes a check icon while editing a row. (done)

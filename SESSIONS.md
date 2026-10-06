@@ -1,3 +1,8 @@
+## 2026-10-06 — Financials: P&L, cash flow, filtered milestone roll-ups
+
+- Overview (P&L): income-statement KPIs (Total Budget, Spent, Revenue, Expected/Actual Profit + margin); Profitability & Margin by Project Type replaces budget donut; new Cash Flow Forecast (monthly/yearly inflow, outflow, cumulative net; * = forecast). P&L table adds actual revenue/profit/margin.
+- Cost/Revenue Milestone: portfolio-wide read-only roll-ups tied to real projects; filters for due month, project type, CapEx/OpEx, category, status; summary strip recalculates from filtered rows; row click opens the project on its Cost/Revenue Breakdown tab (?tab= deep link) where partial actuals are logged.
+
 ## 2026-10-06 — Responsibility Types: Party as plain text
 
 - Party column in Organization → Responsibility Types renders as plain text (muted) instead of a pill/badge, per review; removed the now-unused PARTY_TONE map and Pill import. Browser-verified (no pill spans in the cell).

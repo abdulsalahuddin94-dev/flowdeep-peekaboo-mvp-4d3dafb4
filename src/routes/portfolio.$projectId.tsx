@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useBlocker } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { EmptyRegion, useEmptyPreview } from "@/lib/empty-preview";
@@ -94,6 +94,10 @@ export const Route = createFileRoute("/portfolio/$projectId")({
 const TABS = [
   "Overview", "Project Schedule", "Cost Breakdown", "Revenue Breakdown", "Risk & Issues", "Action Tracker", "Meetings", "Recent Activity", "Status Reports",
 ];
+/** Tabs covered by the baseline — the only ones shown while in Change Plan. */
+const FOCUS_TABS = ["Project Schedule", "Cost Breakdown", "Revenue Breakdown"];
+/** In-memory plan state per project, so it survives visits to Approvals / Edit project. */
+const PLAN_CACHE = new Map<string, unknown>();
 
 const PLANNING_STAGES = [
   { n: 1, name: "Initiation", state: "done" as const },
@@ -169,6 +173,8 @@ function ProjectDetail() {
   const { tab: initialTab } = Route.useSearch();
   const [activeTab, setActiveTab] = useState<string>(() => (initialTab && TABS.includes(initialTab) ? initialTab : TABS[0]));
   const [overviewRiskId, setOverviewRiskId] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cached = PLAN_CACHE.get(loaderProject.id) as any;
   
   const [addFirstMilestoneOpen, setAddFirstMilestoneOpen] = useState(false);
   const [teamMembers, setTeamMembers] = useState([
@@ -189,7 +195,7 @@ function ProjectDetail() {
     createdAt: string;
     isLocked: boolean;
     snapshot: Milestone[];
-  } | null>(null);
+  } | null>(cached?.baseline ?? null);
 
   // Initialize with sample baseline versions for demo
   const initializeBaselineVersions = (): Array<{
@@ -213,12 +219,12 @@ function ProjectDetail() {
     createdAt: string;
     snapshot: Milestone[];
     financials?: FinancialPlan;
-  }>>([]);
+  }>>(cached?.versions ?? []);
   // Cost & revenue plans are part of the project baseline, alongside the schedule.
-  const [costEntries, setCostEntries] = useState<CostEntry[]>(() => initialCostEntries(isNewProject));
-  const [revEntries, setRevEntries] = useState<RevEntry[]>(() => initialRevEntries(project, isNewProject));
-  const [editFinSnapshot, setEditFinSnapshot] = useState<FinancialPlan | null>(null);
-  const [milestones, setMilestones] = useState<Milestone[]>(isNewProject ? [] : [
+  const [costEntries, setCostEntries] = useState<CostEntry[]>(() => cached?.costEntries ?? initialCostEntries(isNewProject));
+  const [revEntries, setRevEntries] = useState<RevEntry[]>(() => cached?.revEntries ?? initialRevEntries(project, isNewProject));
+  const [editFinSnapshot, setEditFinSnapshot] = useState<FinancialPlan | null>(cached?.editFinSnapshot ?? null);
+  const [milestones, setMilestones] = useState<Milestone[]>(() => cached?.milestones ?? (isNewProject ? [] : [
     // ── Phase 1: Discovery — completed, all green, all assigned ──────────────
     { name: "Discovery & Requirements", kind: "Task", startDate: "2025-04-15", endDate: "2025-05-16", owner: "Sara Al-Rashid", rag: "amber", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "Package Cost", packageId: "PKG-DSC", amount: "$80K" }, progress: 20, parent: "Discovery Sign-off", weightScore: 8 },
     { name: "Stakeholder workshops", kind: "Task", startDate: "2025-04-15", endDate: "2025-04-25", owner: "Sara Al-Rashid", rag: "amber", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 40, parent: "Discovery & Requirements", assignee: "Sara Al-Rashid", weightScore: 5 },
@@ -253,7 +259,7 @@ function ProjectDetail() {
     { name: "Hypercare support", kind: "Task", startDate: "2026-10-07", endDate: "2026-10-17", owner: project.pm, rag: "green", dep: "Production cutover", dependencies: [{ predecessor: "Production cutover", relation: "FS" }], roles: [{ role: "Support Lead", skill: "Mid", fte: 2 }], payment: { kind: "None", amount: "" }, progress: 0, parent: "Deployment & Hypercare", weightScore: 3 },
     { name: "Knowledge transfer", kind: "Task", startDate: "2026-10-06", endDate: "2026-10-17", owner: project.pm, rag: "green", dep: "Production cutover", dependencies: [{ predecessor: "Production cutover", relation: "SS" }], roles: [{ role: "Trainer", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 0, parent: "Deployment & Hypercare", weightScore: 2 },
     { name: "Go-Live", kind: "Milestone", startDate: project.endDate, endDate: project.endDate, owner: project.pm, rag: "blue", dep: "Deployment & Hypercare", roles: [], payment: { kind: "Client Revenue", amount: "$500K" }, progress: 0, milestoneType: "finish" },
-  ]);
+  ]));
   const [reports, setReports] = useState<StatusReport[]>(() => isNewProject ? [] : [
     { week: 18, by: project.pm, when: "3 days ago", rag: project.rag, text: "Integration layer testing delayed by 1 week. Fallback plan in review with IT Director. No impact on go-live yet." },
     { week: 17, by: project.pm, when: "10 days ago", rag: "amber", text: "Vendor SOW reviewed. Two open RAID items remain; mitigations scheduled this sprint." },
@@ -268,12 +274,12 @@ function ProjectDetail() {
   const [selectedItemForDep, setSelectedItemForDep] = useState<string | undefined>(undefined);
   const [finLinkItem, setFinLinkItem] = useState<string | undefined>(undefined);
   const [gateData, setGateData] = useState<GateStage[]>(INITIAL_GATE_DATA);
-  const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>([]);
+  const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>(cached?.changeRequests ?? []);
   const [crDialogOpen, setCrDialogOpen] = useState(false);
   const [crApprovalDialogOpen, setCrApprovalDialogOpen] = useState(false);
   const [selectedCrForApproval, setSelectedCrForApproval] = useState<string | undefined>(undefined);
   const [selectedBaselineVersion, setSelectedBaselineVersion] = useState<string>("latest");
-  const [planEditMode, setPlanEditMode] = useState<"view" | "editing" | "pending">("view");
+  const [planEditMode, setPlanEditMode] = useState<"view" | "editing" | "pending">(cached?.planEditMode ?? "view");
   /** Reviewed change request awaiting the "Save a new baseline?" confirmation before it is sent for approval. */
   const [pendingCrConfirm, setPendingCrConfirm] = useState<ChangeRequest | null>(null);
   const isViewingCurrent = selectedBaselineVersion === "latest";
@@ -295,7 +301,7 @@ function ProjectDetail() {
     [milestones],
   );
   const [cancelEditDialogOpen, setCancelEditDialogOpen] = useState(false);
-  const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(null);
+  const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(cached?.editBaselineSnapshot ?? null);
   const [compareVersionOpen, setCompareVersionOpen] = useState(false);
 
   // Demo version authors (in a real app, comes from CR history)
@@ -359,7 +365,22 @@ function ProjectDetail() {
     setEditBaselineSnapshot(milestones.map((m) => ({ ...m })));
     setEditFinSnapshot({ cost: costEntries.map((e) => ({ ...e })), rev: revEntries.map((e) => ({ ...e })) });
     setPlanEditMode("editing");
+    if (!FOCUS_TABS.includes(activeTab)) setActiveTab("Project Schedule");
   }
+
+  /** Change Plan focus mode: only the baselined tabs stay visible. */
+  const focusMode = isBaselineLocked && isViewingCurrent && planEditMode === "editing";
+  // Leaving the page mid-edit asks first; the basic-info edit page is part of the flow.
+  const blocker = useBlocker({
+    shouldBlockFn: ({ next }) => focusMode && !next.pathname.endsWith("/edit"),
+    withResolver: true,
+    enableBeforeUnload: false,
+  });
+
+  // Keep the plan state alive while the PM visits Approvals or Edit project.
+  useEffect(() => {
+    PLAN_CACHE.set(project.id, { milestones, costEntries, revEntries, versions: projectBaselineVersions, baseline: projectBaseline, changeRequests, planEditMode, editBaselineSnapshot, editFinSnapshot });
+  }, [project.id, milestones, costEntries, revEntries, projectBaselineVersions, projectBaseline, changeRequests, planEditMode, editBaselineSnapshot, editFinSnapshot]);
 
   function requestExitEditMode() {
     if (hasPlanChanges) {
@@ -555,7 +576,7 @@ function ProjectDetail() {
     setProjectBaseline((prev) => (prev ? { version, createdAt, isLocked: true, snapshot } : prev));
     setSelectedBaselineVersion("latest");
     setPlanEditMode("view");
-    toast.success(`✅ Baseline v${version} approved & active — V${version - 1} stays available for view`);
+    toast.success(`The changes you requested were approved. You are now on Version ${version}.`, { title: "Change Plan approved" });
   }
 
   function submitBaselineChange(cr: ChangeRequest) {
@@ -725,13 +746,23 @@ function ProjectDetail() {
   return (
     <div>
       <div className="mb-2">
-        <Link to="/portfolio" className="inline-flex items-center text-sm text-breadcrumb-current transition-colors hover:text-breadcrumb-hover">
-          <ChevronLeft className="mr-1 h-3 w-3" />Back to Portfolio
-        </Link>
+        {focusMode ? (
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-breadcrumb-muted">
+            <Link to="/portfolio" className="transition-colors hover:text-breadcrumb-hover">Portfolio</Link>
+            <ChevronRight className="h-3.5 w-3.5 opacity-60 rtl:rotate-180" aria-hidden />
+            <button type="button" onClick={requestExitEditMode} className="transition-colors hover:text-breadcrumb-hover">{project.name}</button>
+            <ChevronRight className="h-3.5 w-3.5 opacity-60 rtl:rotate-180" aria-hidden />
+            <span className="text-breadcrumb-current">Change Plan</span>
+          </nav>
+        ) : (
+          <Link to="/portfolio" className="inline-flex items-center text-sm text-breadcrumb-current transition-colors hover:text-breadcrumb-hover">
+            <ChevronLeft className="mr-1 h-3 w-3" />Back to Portfolio
+          </Link>
+        )}
       </div>
       <PageHeader
         title="Project Details"
-        current="Project Details"
+        current={focusMode ? "Change Plan" : "Project Details"}
         actions={(() => {
           /**
            * Deletion rules: only administrative roles may delete, and never once
@@ -829,7 +860,7 @@ function ProjectDetail() {
 
       />
 
-      <section className="mb-5 rounded-lg bg-card p-5" aria-label="Project overview information">
+      {!focusMode && <section className="mb-5 rounded-lg bg-card p-5" aria-label="Project overview information">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <h2 className="truncate text-xl font-semibold text-foreground">{project.name}</h2>
@@ -936,12 +967,27 @@ function ProjectDetail() {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
+      {focusMode && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-rag-amber/40 bg-rag-amber/10 px-4 py-3">
+          <Pencil size={16} className="shrink-0 text-rag-amber" />
+          <div className="min-w-0 flex-1 text-xs">
+            <div className="font-medium text-rag-amber">Change Plan · Draft V{projectBaselineVersions.length + 1}</div>
+            <div className="mt-0.5 text-muted-foreground">
+              Edit the schedule, cost and revenue plan, then press Save baseline to send the changes for approval.
+              <span className="ml-2 opacity-70">Esc = exit · ⌘/Ctrl+S = save</span>
+            </div>
+          </div>
+          <Badge variant="outline" className="h-7 rounded-full border-rag-amber/40 bg-rag-amber/10 px-3 text-rag-amber">
+            {planChangeCount} change{planChangeCount === 1 ? "" : "s"}
+          </Badge>
+        </div>
+      )}
       <Tabs value={activeTab} onValueChange={(t) => setActiveTab(t)}>
         <div>
         <TabsList className="overflow-x-auto whitespace-nowrap">
-          {TABS.filter((t) => t !== "Revenue Breakdown" || !isInternalProject).map((t) => (
+          {TABS.filter((t) => t !== "Revenue Breakdown" || !isInternalProject).filter((t) => !focusMode || FOCUS_TABS.includes(t)).map((t) => (
             <TabsTrigger key={t} value={t}>{t}</TabsTrigger>
           ))}
         </TabsList>
@@ -969,23 +1015,6 @@ function ProjectDetail() {
               onCta={() => setAddFirstMilestoneOpen(true)}
               className="mb-5"
             />
-          )}
-          {isBaselineLocked && planEditMode === "editing" && isViewingCurrent && (
-            <div className="mb-3 flex items-start gap-3 rounded-lg border border-rag-amber/40 bg-rag-amber/10 px-4 py-3">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rag-amber" />
-              <div className="flex-1 text-xs">
-                <div className="font-medium text-rag-amber">You're editing the plan</div>
-                <div className="mt-0.5 text-muted-foreground">
-                  Locked fields are now editable. Changes will be reviewed as a Change Request.
-                  <span className="ml-2 opacity-70">Shortcuts: Esc = cancel · ⌘/Ctrl+S = submit</span>
-                </div>
-              </div>
-              {planChangeCount > 0 && (
-                <Badge variant="outline" className="border-rag-amber/40 bg-rag-amber/10 text-rag-amber">
-                  {planChangeCount} change{planChangeCount === 1 ? "" : "s"} pending
-                </Badge>
-              )}
-            </div>
           )}
           {isBaselineLocked && planEditMode === "view" && isViewingCurrent && (
             <div className="mb-2 text-[11px] text-muted-foreground/70">
@@ -1188,26 +1217,6 @@ function ProjectDetail() {
             toSnapshot={milestones}
           />
 
-          {/* Cancel Edit Confirmation */}
-          <AlertDialog open={cancelEditDialogOpen} onOpenChange={setCancelEditDialogOpen}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Discard changes?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  You'll lose {planChangeCount} unsaved change{planChangeCount === 1 ? "" : "s"} to the schedule. This cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel autoFocus>Keep Editing</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={discardAndExit}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  Discard Changes
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
 
         </TabsContent>
 
@@ -1284,6 +1293,33 @@ function ProjectDetail() {
             cancelLabel="Cancel"
             onConfirm={() => { if (pendingCrConfirm) submitBaselineChange(pendingCrConfirm); }}
           />
+
+          {/* Exit Change Plan — from Cancel, Esc, the breadcrumb, or any navigation away while editing. */}
+          <AlertDialog
+            open={cancelEditDialogOpen || blocker.status === "blocked"}
+            onOpenChange={(o) => { if (!o) { setCancelEditDialogOpen(false); if (blocker.status === "blocked") blocker.reset?.(); } }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Exit Change Plan?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {hasPlanChanges
+                    ? `You'll lose ${planChangeCount} unsaved change${planChangeCount === 1 ? "" : "s"} to the plan. This cannot be undone.`
+                    : "You'll leave Change Plan mode and return to the normal project view."}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel autoFocus>Keep Editing</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => { const b = blocker; discardAndExit(); if (b.status === "blocked") b.proceed?.(); }}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {hasPlanChanges ? "Discard & Exit" : "Exit"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
 
 
       <ProgressUpdateDialog

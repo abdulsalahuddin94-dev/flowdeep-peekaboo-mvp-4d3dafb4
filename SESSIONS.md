@@ -1,3 +1,8 @@
+## 2026-10-06 — Check icon in edit mode + Risk/Issues cards below toolbar
+- ActionRowsEditor (Mitigation plan / Action plan / meeting actions): the commit button now shows a check (TickCircle) instead of + while a row is being edited, so pressing it clearly applies the update; back to + when adding new rows.
+- Risk & Issues module: the Critical/High/Medium/Low/Open Issues KPI cards moved below the search & Filter toolbar in both Risk Register and Issues Log (Heat Map keeps none), and each tab's cards now react to its own search/filters (Open Issues follows issue filters; risk cards follow register filters).
+- Verified in browser: edit-mode check icon renders and commits back to +; cards reorder and update live with search.
+
 - 2026-10-06: Save baseline summary popup split into 3 tabs (Project Schedule / Cost Breakdown / Revenue Breakdown) with per-tab change counts.
 ## 2026-10-06 — Exit Change Plan popup aligned with DS02
 - The Exit Change Plan confirmation now uses the shared ConfirmDialog (warning tone, centered icon, Iconsax close, side-by-side buttons) instead of a raw AlertDialog; labels and discard-count message unchanged. "Keep Editing" is the safe action, "Discard & Exit" / "Exit" is the warning action.

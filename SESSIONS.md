@@ -1,3 +1,8 @@
+## 2026-10-06 — Cost & Revenue Breakdown joined the project baseline
+- Cost and Revenue plans now live at project level and are snapshotted with each baseline version.
+- Editing cost/revenue lines during Change Plan counts as pending changes, appears in the Save baseline review, goes through approval, and Cancel restores the plan (logged actuals kept).
+- Selecting an older version shows that version's cost/revenue data read-only (no actual logging); demo v1–v3 carry earlier planned amounts.
+
 ## 2026-10-06 — Action Tracker layout + baseline scope audit
 
 - Moved the Action Tracker KPI cards (Open / Overdue / Due this week / Done / My actions) below the search and Filter toolbar, matching the Cost Breakdown ordering.

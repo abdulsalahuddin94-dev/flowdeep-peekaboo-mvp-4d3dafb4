@@ -15,7 +15,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TableRowActions } from "@/components/TableRowActions";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Label } from "@/components/ui/label";
 import { Field } from "@/components/ui/field";
@@ -1295,30 +1294,26 @@ function ProjectDetail() {
           />
 
           {/* Exit Change Plan — from Cancel, Esc, the breadcrumb, or any navigation away while editing. */}
-          <AlertDialog
+          <ConfirmDialog
             open={cancelEditDialogOpen || blocker.status === "blocked"}
-            onOpenChange={(o) => { if (!o) { setCancelEditDialogOpen(false); if (blocker.status === "blocked") blocker.reset?.(); } }}
-          >
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Exit Change Plan?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {hasPlanChanges
-                    ? `You'll lose ${planChangeCount} unsaved change${planChangeCount === 1 ? "" : "s"} to the plan. This cannot be undone.`
-                    : "You'll leave Change Plan mode and return to the normal project view."}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel autoFocus>Keep Editing</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => { const b = blocker; discardAndExit(); if (b.status === "blocked") b.proceed?.(); }}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  {hasPlanChanges ? "Discard & Exit" : "Exit"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+            onOpenChange={(o) => {
+              if (!o) {
+                setCancelEditDialogOpen(false);
+                if (blocker.status === "blocked") blocker.reset?.();
+              }
+            }}
+            tone="warning"
+            title="Exit Change Plan?"
+            description={
+              hasPlanChanges
+                ? `You'll lose ${planChangeCount} unsaved change${planChangeCount === 1 ? "" : "s"} to the plan. This cannot be undone.`
+                : "You'll leave Change Plan mode and return to the normal project view."
+            }
+            confirmLabel={hasPlanChanges ? "Discard & Exit" : "Exit"}
+            cancelLabel="Keep Editing"
+            onConfirm={() => { const b = blocker; discardAndExit(); if (b.status === "blocked") b.proceed?.(); }}
+          />
+
 
 
 

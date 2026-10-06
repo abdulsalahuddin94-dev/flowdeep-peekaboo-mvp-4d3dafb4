@@ -24,9 +24,10 @@ import { formatDateWithYear } from "@/lib/date-format";
 import { useCurrentUser } from "@/lib/projects-store";
 import { useRiskRegister } from "@/lib/risk-store";
 import {
-  useActions, isActionOverdue, daysOverdue, ACTION_SOURCES, ACTION_RESPONSIBILITIES, ACTION_STATUSES,
+  useActions, isActionOverdue, daysOverdue, ACTION_SOURCES, ACTION_STATUSES,
   type ActionItem, type ActionSource, type ActionResponsibility, type ActionStatus, type ActionUpdate,
 } from "@/lib/action-store";
+import { useResponsibilities, respTone, defaultResponsibility } from "@/lib/responsibility-store";
 
 export const T = {
   en: {
@@ -50,11 +51,6 @@ const STATUS_TONE: Record<ActionStatus | "Overdue", string> = {
   Done: "border-rag-green/40 bg-rag-green/10 text-rag-green",
   Cancelled: "border-border bg-muted text-muted-foreground",
   Overdue: "border-rag-red/40 bg-rag-red/10 text-rag-red",
-};
-const RESP_TONE: Record<ActionResponsibility, string> = {
-  Internal: "border-accent/40 bg-accent/10 text-accent",
-  Client: "border-rag-teal/40 bg-rag-teal/10 text-rag-teal",
-  Vendor: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
 };
 const COMMENT_MAX = 500;
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -86,6 +82,7 @@ function DueCell({ a }: { a: ActionItem }) {
 export function ActionTrackerTab({ project }: { project: string }) {
   const { actions, addAction, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
   const { currentUser } = useCurrentUser();
+  const { respTypes } = useResponsibilities();
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("all");
   const [resp, setResp] = useState("all");
@@ -148,7 +145,7 @@ export function ActionTrackerTab({ project }: { project: string }) {
         placeholder={t.search}
         filterGroups={[
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, { value: "Overdue", label: "Overdue" }, ...ACTION_STATUSES.map((v) => ({ value: v, label: v }))] },
-          { key: "resp", label: "Responsibility", value: resp, onChange: setResp, options: [{ value: "all", label: "All parties" }, ...ACTION_RESPONSIBILITIES.map((v) => ({ value: v, label: v }))] },
+          { key: "resp", label: "Responsibility", value: resp, onChange: setResp, options: [{ value: "all", label: "All parties" }, ...respTypes.map((v) => ({ value: v.name, label: v.name }))] },
           { key: "source", label: "Source", value: source, onChange: setSource, options: [{ value: "all", label: "All sources" }, ...ACTION_SOURCES.map((v) => ({ value: v, label: v }))] },
           { key: "owner", label: "Owner", value: owner, onChange: setOwner, options: [{ value: "all", label: "All owners" }, ...owners.map((v) => ({ value: v, label: v }))] },
         ]}
@@ -178,7 +175,7 @@ export function ActionTrackerTab({ project }: { project: string }) {
               <StyledTableCell className="font-medium text-foreground">{a.title}</StyledTableCell>
               <StyledTableCell><Badge variant="outline">{sourceLabel(a)}</Badge></StyledTableCell>
               <StyledTableCell className="text-sm">{a.owner}</StyledTableCell>
-              <StyledTableCell><Pill label={a.responsibility} tone={RESP_TONE[a.responsibility]} /></StyledTableCell>
+              <StyledTableCell><Pill label={a.responsibility} tone={respTone(a.responsibility, respTypes)} /></StyledTableCell>
               <StyledTableCell><DueCell a={a} /></StyledTableCell>
               <StyledTableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                 <TableRowActions

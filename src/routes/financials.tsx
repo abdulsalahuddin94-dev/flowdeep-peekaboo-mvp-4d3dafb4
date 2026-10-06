@@ -363,6 +363,11 @@ function FinancialsPage() {
             </div>
           </div>
 
+          </>
+          )}
+
+          {overviewView === "table" && (
+          <>
           <div className="label-eyebrow mb-3">P&L — by project</div>
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">

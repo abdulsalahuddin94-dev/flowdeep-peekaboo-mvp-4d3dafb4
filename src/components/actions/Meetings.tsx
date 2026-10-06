@@ -23,6 +23,7 @@ import { formatDateWithYear } from "@/lib/date-format";
 import { useCurrentUser } from "@/lib/projects-store";
 import { useActions, isActionOverdue } from "@/lib/action-store";
 import { useResponsibilities, useMeetingPartyResp, defaultResponsibility } from "@/lib/responsibility-store";
+import { useOrgActive } from "@/lib/org-active";
 import {
   useMeetings, meetingStatus, ATTENDEE_PARTIES, MEETING_TYPES,
   type Meeting, type Attendee, type AttendeeParty, type MeetingType, type MeetingStatus,
@@ -300,7 +301,8 @@ function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
 function MeetingActionsDialog({ meeting, onClose, onSave }: { meeting: Meeting | null; onClose: () => void; onSave: (m: Meeting, rows: ActionRow[]) => void }) {
   const { respTypes } = useResponsibilities();
   const { mapping } = useMeetingPartyResp();
-  const def = defaultResponsibility(respTypes);
+  const { isActive } = useOrgActive("responsibility-type");
+  const def = defaultResponsibility(respTypes, isActive);
   const [rows, setRows] = useState<ActionRow[]>([emptyActionRow(def)]);
   const [key, setKey] = useState("");
   if ((meeting?.id ?? "") !== key) { setKey(meeting?.id ?? ""); setRows([emptyActionRow(def), emptyActionRow(def)]); }

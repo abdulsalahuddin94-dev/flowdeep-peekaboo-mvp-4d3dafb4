@@ -783,7 +783,7 @@ function ProjectDetail() {
           return (
           <div className="flex items-center gap-2">
             {planVersionControls}
-            <Button size="sm" variant="primary" onClick={() => setReportOpen(true)}>Submit status</Button>
+            {!focusMode && <Button size="sm" variant="primary" onClick={() => setReportOpen(true)}>Submit status</Button>}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

@@ -1,3 +1,12 @@
+## 2026-10-06 — Responsibility Types lookup (Organization)
+
+- Added the **Responsibility Types** section in Organization: searchable table, add/edit dialogs, Internal/External party, activate/deactivate with confirmation, and delete with confirmation (actions already carrying the value keep it in a neutral pill).
+- Renaming a type propagates to existing actions and the meeting attendee mapping.
+- New **Meeting attendee mapping** card: each attendee party (Internal, Client, Vendor, Stakeholder, Other) maps to a responsibility type used when picking owners from meetings.
+- **Responsibility is no longer free text or a fixed trio** — Action Tracker filters/forms/rows, Risk Mitigation plan, Issue Action plan, and meeting actions all read the central lookup; names are English-only by decision.
+- **Color removed entirely** per review: no Color column, no color picker, and responsibility pills stay neutral everywhere.
+- Teal RAG token added to the theme; debug logs removed; browser-verified add/edit/deactivate/delete.
+
 ## 2026-10-05 — Attendee party: Other
 - Added an "Other" attendee party to Meetings (type union, picker, filters, attendee summary pills). Other counts as external (Client-side responsibility for its actions); name is typed, organization optional.
 - Files: src/lib/meeting-store.tsx, src/components/actions/Meetings.tsx.

@@ -779,6 +779,8 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Issue</Button>}
       />
 
+      <RiskKpiStrip issues={list} />
+
       <EmptyRegion id="risks-issues">
         <StyledTable>
           <StyledTableHeader>

@@ -54,8 +54,8 @@ const PARTY_TONE: Record<AttendeeParty, string> = {
   Stakeholder: "border-border bg-muted text-muted-foreground",
   Other: "border-border bg-muted text-muted-foreground",
 };
-/** Action responsibility follows the owner's party; external attendees count as Client side. */
-const PARTY_RESP: Record<AttendeeParty, ActionResponsibility> = { Internal: "Internal", Client: "Client", Vendor: "Vendor", Stakeholder: "Client", Other: "Client" };
+/** Action responsibility follows the owner's party, mapped via Organization → Responsibility Types. */
+
 
 export function MeetingsTab({ project }: { project: string }) {
   const { meetings, addMeeting, updateMeeting, removeMeeting } = useMeetings();
@@ -297,15 +297,19 @@ function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
 /* ── Add actions ─────────────────────────────────────────────────────────── */
 
 function MeetingActionsDialog({ meeting, onClose, onSave }: { meeting: Meeting | null; onClose: () => void; onSave: (m: Meeting, rows: ActionRow[]) => void }) {
-  const [rows, setRows] = useState<ActionRow[]>([emptyActionRow()]);
+  const { respTypes } = useResponsibilities();
+  const { mapping } = useMeetingPartyResp();
+  const def = defaultResponsibility(respTypes);
+  const [rows, setRows] = useState<ActionRow[]>([emptyActionRow(def)]);
   const [key, setKey] = useState("");
-  if ((meeting?.id ?? "") !== key) { setKey(meeting?.id ?? ""); setRows([emptyActionRow(), emptyActionRow()]); }
+  if ((meeting?.id ?? "") !== key) { setKey(meeting?.id ?? ""); setRows([emptyActionRow(def), emptyActionRow(def)]); }
   const owners = meeting?.attendees.map((a) => a.name) ?? [];
   // Pick responsibility from the attendee's party when the owner is an attendee.
   const handle = (next: ActionRow[]) => setRows(next.map((r, i) => {
     const prev = rows[i];
     const att = meeting?.attendees.find((a) => a.name === r.owner);
-    return att && prev?.owner !== r.owner ? { ...r, responsibility: PARTY_RESP[att.party] } : r;
+    const mapped = att ? mapping[att.party] : undefined;
+    return att && mapped && prev?.owner !== r.owner ? { ...r, responsibility: mapped } : r;
   }));
   const filled = filledActionRows(rows);
   const valid = filled.length > 0 && actionRowsValid(rows);

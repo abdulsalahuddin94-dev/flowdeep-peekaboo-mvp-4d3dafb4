@@ -19,7 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { EditAction, DeleteAction, ClipboardCheck, Plus } from "@/lib/icons";
+import { EditAction, DeleteAction, ClipboardCheck, Plus, Check } from "@/lib/icons";
 import { formatDateWithYear } from "@/lib/date-format";
 import { useCurrentUser } from "@/lib/projects-store";
 import { useRiskRegister } from "@/lib/risk-store";

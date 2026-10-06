@@ -260,9 +260,10 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
 }) {
   const { risks, issues } = useRiskRegister();
   const { users } = useCurrentUser();
+  const { respTypes } = useResponsibilities();
   const blank = (): ActionDraft => ({
     project, title: "", description: "", source: fixedSource?.source ?? "General", sourceRef: fixedSource?.sourceRef,
-    owner: "", responsibility: "Internal", dueDate: "", status: "Open",
+    owner: "", responsibility: defaultResponsibility(respTypes), dueDate: "", status: "Open",
   });
   const [d, setD] = useState<ActionDraft>(blank);
   const [key, setKey] = useState("");
@@ -308,7 +309,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
         <Field label="Responsibility">
           <Select value={d.responsibility} onValueChange={(v) => up({ responsibility: v as ActionResponsibility })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{ACTION_RESPONSIBILITIES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+            <SelectContent>{respTypes.map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
           </Select>
         </Field>
         <Field label="Due date"><DatePicker value={d.dueDate} onChange={(v) => up({ dueDate: v })} /></Field>
@@ -321,7 +322,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
 
 export type ActionRow = { title: string; owner: string; responsibility: ActionResponsibility; dueDate: string };
 type Row = ActionRow;
-export const emptyActionRow = (): ActionRow => ({ title: "", owner: "", responsibility: "Internal", dueDate: "" });
+export const emptyActionRow = (responsibility: ActionResponsibility = "Internal"): ActionRow => ({ title: "", owner: "", responsibility, dueDate: "" });
 /** Rows with a title; all of them must have owner + due date to be valid. */
 export function filledActionRows(rows: ActionRow[]) { return rows.filter((r) => r.title.trim()); }
 export function actionRowsValid(rows: ActionRow[]) { return filledActionRows(rows).every((r) => r.owner.trim() && r.dueDate); }
@@ -329,13 +330,14 @@ export function cleanActionRows(rows: ActionRow[]) { return filledActionRows(row
 
 /** Shared action-by-row editor (meeting batch, risk mitigation, issue action plan). */
 export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, ownerOptions }: { rows: ActionRow[]; onChange: (rows: ActionRow[]) => void; label?: string; hint?: string; ownerOptions?: string[] }) {
+  const { respTypes } = useResponsibilities();
   const listId = ownerOptions?.length ? `owners-${label.replace(/\W/g, "")}` : undefined;
   const up = (i: number, p: Partial<Row>) => onChange(rows.map((r, j) => (j === i ? { ...r, ...p } : r)));
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="label-eyebrow">{label}</div>
-        <Button type="button" variant="secondary" size="icon" aria-label={`Add ${label.toLowerCase()} row`} title={`Add ${label.toLowerCase()} row`} data-ds-size="auto" onClick={() => onChange([...rows, emptyActionRow()])} className="h-7 w-7 shrink-0 rounded-full border border-border/60 text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"><Plus size={14} /></Button>
+        <Button type="button" variant="secondary" size="icon" aria-label={`Add ${label.toLowerCase()} row`} title={`Add ${label.toLowerCase()} row`} data-ds-size="auto" onClick={() => onChange([...rows, emptyActionRow(defaultResponsibility(respTypes))])} className="h-7 w-7 shrink-0 rounded-full border border-border/60 text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"><Plus size={14} /></Button>
       </div>
       {/* 4 rows visible (4×36px + 3×8px gaps = 168px); scrolls beyond that */}
       <div className="max-h-[168px] space-y-2 overflow-y-auto pr-1">
@@ -345,7 +347,7 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, owne
             <Input aria-label="Owner" list={listId} maxLength={80} value={r.owner} onChange={(e) => up(i, { owner: e.target.value })} placeholder="Owner" />
             <Select value={r.responsibility} onValueChange={(v) => up(i, { responsibility: v as ActionResponsibility })}>
               <SelectTrigger aria-label="Responsibility"><SelectValue /></SelectTrigger>
-              <SelectContent>{ACTION_RESPONSIBILITIES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              <SelectContent>{respTypes.map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
             </Select>
             <DatePicker value={r.dueDate} onChange={(v) => up(i, { dueDate: v })} placeholder="Due date" />
             <Button type="button" variant="ghost" size="icon" aria-label="Remove row" disabled={rows.length === 1} onClick={() => onChange(rows.filter((_, j) => j !== i))}><DeleteAction size={14} /></Button>
@@ -391,12 +393,13 @@ function ActionDrawer({ action: a, onClose, onUpdate, onEdit, onEditUpdate, onDe
   action: ActionItem | null; onClose: () => void; onUpdate: (a: ActionItem) => void; onEdit: (a: ActionItem) => void;
   onEditUpdate: (a: ActionItem, u: ActionUpdate) => void; onDeleteUpdate: (a: ActionItem, u: ActionUpdate) => void;
 }) {
+  const { respTypes } = useResponsibilities();
   if (!a) return <Sheet open={false} />;
   return (
     <Sheet open onOpenChange={(o) => { if (!o) onClose(); }}>
       <SheetContent side="right" className="flex w-[480px] max-w-full flex-col rounded-l-lg border-l border-border bg-drawer p-0 sm:max-w-[480px]">
         <SheetHeader className="border-b border-border px-6 pb-4 pt-6">
-          <div className="flex items-center gap-2"><StatusCell a={a} /><Pill label={a.responsibility} tone={RESP_TONE[a.responsibility]} /></div>
+          <div className="flex items-center gap-2"><StatusCell a={a} /><Pill label={a.responsibility} tone={respTone(a.responsibility, respTypes)} /></div>
           <SheetTitle className="mt-2 text-lg">{a.title}</SheetTitle>
           <SheetDescription className="text-xs">{a.id} · {sourceLabel(a)}</SheetDescription>
         </SheetHeader>

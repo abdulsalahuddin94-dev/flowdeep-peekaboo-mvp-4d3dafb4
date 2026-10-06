@@ -1,3 +1,8 @@
+## 2026-10-06 — Calendar-style action entry
+
+- Reworked the shared Risk, Issue, and Meeting action entry into the Official Holidays pattern: one Action / Owner / Responsibility / Due date composer with a + button, followed by a scrollable list of added actions.
+- Added hover Edit and Delete controls to each added action; Edit loads the action back into the composer and + saves the update.
+
 ## 2026-10-06 — Cash Flow Forecast: Dual Area Chart
 
 - Replaced the monthly/yearly inflow and outflow bars with two softly filled area series; retained the cumulative net line and zero reference for direct cash-position comparison.

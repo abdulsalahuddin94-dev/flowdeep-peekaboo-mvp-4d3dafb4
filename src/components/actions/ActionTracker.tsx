@@ -36,12 +36,18 @@ export const T = {
     open: "Open", overdue: "Overdue", dueWeek: "Due this week", done: "Done", mine: "My actions",
     commentsUpdates: "Comments & Updates", updateStatus: "Update action status",
     commentTrackerHint: "Comments are saved with this action and can be viewed in the Action Tracker.",
+    actionPlaceholder: "Action", ownerPlaceholder: "Owner", responsibility: "Responsibility", dueDate: "Due date",
+    addActionRow: "Add action", updateActionRow: "Update action", editActionRow: "Edit action", deleteActionRow: "Delete action",
+    actionRowRequired: "Complete the action, owner, responsibility, and due date first.", noDraftActions: "No actions added yet.",
   },
   ar: {
     title: "متابعة الإجراءات", add: "إضافة إجراء", meeting: "تسجيل إجراءات الاجتماع", search: "ابحث عن إجراء…",
     open: "مفتوح", overdue: "متأخر", dueWeek: "مستحق هذا الأسبوع", done: "منجز", mine: "إجراءاتي",
     commentsUpdates: "التعليقات والتحديثات", updateStatus: "تحديث حالة الإجراء",
     commentTrackerHint: "يُحفظ التعليق مع هذا الإجراء ويمكن الرجوع إليه من متابعة الإجراءات.",
+    actionPlaceholder: "الإجراء", ownerPlaceholder: "المسؤول", responsibility: "المسؤولية", dueDate: "تاريخ الاستحقاق",
+    addActionRow: "إضافة إجراء", updateActionRow: "تحديث الإجراء", editActionRow: "تعديل الإجراء", deleteActionRow: "حذف الإجراء",
+    actionRowRequired: "أكمل الإجراء والمسؤول ونوع المسؤولية وتاريخ الاستحقاق أولاً.", noDraftActions: "لم تتم إضافة إجراءات بعد.",
   },
 };
 const t = T.en;
@@ -330,34 +336,84 @@ export function filledActionRows(rows: ActionRow[]) { return rows.filter((r) => 
 export function actionRowsValid(rows: ActionRow[]) { return filledActionRows(rows).every((r) => r.owner.trim() && r.dueDate); }
 export function cleanActionRows(rows: ActionRow[]) { return filledActionRows(rows).map((r) => ({ ...r, title: r.title.trim().slice(0, 150), owner: r.owner.trim() })); }
 
-/** Shared action-by-row editor (meeting batch, risk mitigation, issue action plan). */
+/** Shared calendar-style action composer (meeting batch, risk mitigation, issue action plan). */
 export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, ownerOptions }: { rows: ActionRow[]; onChange: (rows: ActionRow[]) => void; label?: string; hint?: string; ownerOptions?: string[] }) {
   const { respTypes } = useResponsibilities();
   const { isActive } = useOrgActive("responsibility-type");
   const listId = ownerOptions?.length ? `owners-${label.replace(/\W/g, "")}` : undefined;
-  const up = (i: number, p: Partial<Row>) => onChange(rows.map((r, j) => (j === i ? { ...r, ...p } : r)));
+  const committed = filledActionRows(rows);
+  const freshDraft = () => emptyActionRow(defaultResponsibility(respTypes, isActive));
+  const [draft, setDraft] = useState<Row>(freshDraft);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const upDraft = (patch: Partial<Row>) => setDraft((current) => ({ ...current, ...patch }));
+
+  function resetDraft() {
+    setDraft(freshDraft());
+    setEditingIndex(null);
+  }
+
+  function commitDraft() {
+    if (!draft.title.trim() || !draft.owner.trim() || !draft.responsibility || !draft.dueDate) {
+      toast.error(t.actionRowRequired);
+      return;
+    }
+    const clean = { ...draft, title: draft.title.trim().slice(0, 150), owner: draft.owner.trim() };
+    if (editingIndex === null) onChange([...committed, clean]);
+    else onChange(committed.map((row, index) => index === editingIndex ? clean : row));
+    resetDraft();
+  }
+
+  function editRow(index: number) {
+    const row = committed[index];
+    if (!row) return;
+    setDraft({ ...row });
+    setEditingIndex(index);
+  }
+
+  function deleteRow(index: number) {
+    onChange(committed.filter((_, rowIndex) => rowIndex !== index));
+    if (editingIndex === index) resetDraft();
+    else if (editingIndex !== null && editingIndex > index) setEditingIndex(editingIndex - 1);
+  }
+
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between gap-2">
-        <div className="label-eyebrow">{label}</div>
-        <Button type="button" variant="secondary" size="icon" aria-label={`Add ${label.toLowerCase()} row`} title={`Add ${label.toLowerCase()} row`} data-ds-size="auto" onClick={() => onChange([...rows, emptyActionRow(defaultResponsibility(respTypes, isActive))])} className="h-7 w-7 shrink-0 rounded-full border border-border/60 text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"><Plus size={14} /></Button>
+      <div className="label-eyebrow">{label}</div>
+      <div className="grid gap-2 rounded-lg border border-border bg-secondary/30 p-3 lg:grid-cols-[minmax(180px,1fr)_140px_120px_150px_36px]">
+        <Input aria-label={t.actionPlaceholder} maxLength={150} value={draft.title} onChange={(e) => upDraft({ title: e.target.value })} placeholder={t.actionPlaceholder} />
+        <Input aria-label={t.ownerPlaceholder} list={listId} maxLength={80} value={draft.owner} onChange={(e) => upDraft({ owner: e.target.value })} placeholder={t.ownerPlaceholder} />
+        <Select value={draft.responsibility} onValueChange={(v) => upDraft({ responsibility: v as ActionResponsibility })}>
+          <SelectTrigger aria-label={t.responsibility}><SelectValue placeholder={t.responsibility} /></SelectTrigger>
+          <SelectContent>{respTypes.filter((s) => isActive(s.name) || s.name === draft.responsibility).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+        </Select>
+        <DatePicker value={draft.dueDate} onChange={(v) => upDraft({ dueDate: v })} placeholder={t.dueDate} />
+        <Button type="button" variant="primary" size="icon" aria-label={editingIndex === null ? t.addActionRow : t.updateActionRow} title={editingIndex === null ? t.addActionRow : t.updateActionRow} onClick={commitDraft} className="h-9 w-9 shrink-0">
+          <Plus size={16} />
+        </Button>
       </div>
-      {/* 4 rows visible (4×36px + 3×8px gaps = 168px); scrolls beyond that */}
-      <div className="max-h-[168px] space-y-2 overflow-y-auto pr-1">
-        {rows.map((r, i) => (
-          <div key={i} className="grid grid-cols-[1fr_140px_120px_150px_36px] gap-2">
-            <Input aria-label="Action" maxLength={150} value={r.title} onChange={(e) => up(i, { title: e.target.value })} placeholder="Action" />
-            <Input aria-label="Owner" list={listId} maxLength={80} value={r.owner} onChange={(e) => up(i, { owner: e.target.value })} placeholder="Owner" />
-            <Select value={r.responsibility} onValueChange={(v) => up(i, { responsibility: v as ActionResponsibility })}>
-              <SelectTrigger aria-label="Responsibility"><SelectValue /></SelectTrigger>
-              <SelectContent>{respTypes.filter((s) => isActive(s.name) || rows.some((r) => r.responsibility === s.name)).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
-            </Select>
-            <DatePicker value={r.dueDate} onChange={(v) => up(i, { dueDate: v })} placeholder="Due date" />
-            <Button type="button" variant="ghost" size="icon" aria-label="Remove row" disabled={rows.length === 1} onClick={() => onChange(rows.filter((_, j) => j !== i))}><DeleteAction size={14} /></Button>
+      <div className="max-h-56 overflow-y-auto rounded-lg border border-border bg-card">
+        {committed.length === 0 ? (
+          <div className="px-3 py-6 text-center text-xs text-muted-foreground">{t.noDraftActions}</div>
+        ) : (
+          <div className="divide-y divide-border/60">
+            {committed.map((row, index) => (
+              <div key={`${row.title}-${row.owner}-${index}`} className={cn("group flex min-h-14 items-center gap-3 px-3 py-2 transition hover:bg-accent/5", editingIndex === index && "bg-accent/5")}>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium text-foreground">{row.title}</div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
+                    <span>{row.owner}</span><span aria-hidden="true">·</span><span>{row.responsibility}</span><span aria-hidden="true">·</span><span className="num-mono">{formatDateWithYear(row.dueDate)}</span>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                  <Button type="button" variant="ghost" size="icon" aria-label={t.editActionRow} title={t.editActionRow} onClick={() => editRow(index)} className="h-7 w-7 text-accent-secondary"><EditAction size={14} /></Button>
+                  <Button type="button" variant="ghost" size="icon" aria-label={t.deleteActionRow} title={t.deleteActionRow} onClick={() => deleteRow(index)} className="h-7 w-7 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><DeleteAction size={14} /></Button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
-      {listId && <datalist id={listId}>{ownerOptions!.map((o) => <option key={o} value={o} />)}</datalist>}
+      {listId && <datalist id={listId}>{ownerOptions?.map((o) => <option key={o} value={o} />)}</datalist>}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
   );

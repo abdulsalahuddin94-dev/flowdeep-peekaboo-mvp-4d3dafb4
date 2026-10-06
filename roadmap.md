@@ -29,3 +29,4 @@
 - [x] Central Responsibility Types lookup in Organization (English-only names, Internal/External, deactivate, delete guard) consumed by Action Tracker, Risk/Issue plans, and Meetings.
 - [x] Remove the Color field and Color column from Responsibility Types entirely.
 - [ ] Verify the Responsibility dropdowns list lookup values in Action Tracker / Mitigation plan / Meetings, then log in SESSIONS.md.
+- [x] Replace action-row entry with the Official Holidays-style composer: add via +, then edit/delete from the scrollable list below.

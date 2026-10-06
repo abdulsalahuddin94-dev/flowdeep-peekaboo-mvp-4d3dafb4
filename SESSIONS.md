@@ -1975,3 +1975,8 @@ Created `product-spec.md` â€” the master product design specification for N
 
 ## 2026-10-05 — Actions scroll at 4 rows
 - ActionRowsEditor scroll container capped at exactly 4 visible rows (168px); 5+ actions scroll. Applies to Log meeting actions, Risk mitigation plan, Issue action plan.
+
+## 2026-10-06 — Responsibility Types sample rows
+- Expanded DEFAULTS in src/lib/responsibility-store.tsx from 3 to 9 examples: Internal, Shared Services (Internal); Client, Vendor, Subcontractor, Consultant, Supplier, Partner, Regulator (External).
+- Bumped storage key to pmo.org.responsibility-types.v2 so existing previews load the fuller default set.
+- Verified in browser: 9 rows render with Name/Party/Status.

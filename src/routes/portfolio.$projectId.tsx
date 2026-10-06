@@ -62,6 +62,9 @@ void ProjectGantt;
 
 export const Route = createFileRoute("/portfolio/$projectId")({
   component: ProjectDetail,
+  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+    tab: typeof search.tab === "string" ? search.tab : undefined,
+  }),
   loader: ({ params }) => {
     const p = projects.find((x) => x.id === params.projectId);
     // The static seed only covers demo projects — anything created at runtime (via the New Project
@@ -163,7 +166,7 @@ function ProjectDetail() {
   function clearNewFlag() {
     if (project.ragNote === "New") updateProject(project.id, { ragNote: undefined });
   }
-  const [activeTab, setActiveTab] = useState<string>(TABS[0]);
+  const [activeTab, setActiveTab] = useState<string>(() => { const t = Route.useSearch().tab; return t && TABS.includes(t) ? t : TABS[0]; });
   const [overviewRiskId, setOverviewRiskId] = useState<string | null>(null);
   
   const [addFirstMilestoneOpen, setAddFirstMilestoneOpen] = useState(false);

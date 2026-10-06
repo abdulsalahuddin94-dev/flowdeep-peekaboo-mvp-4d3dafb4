@@ -1326,13 +1326,13 @@ export function RiskKpiStrip({ project, risks: risksOverride, issues: issuesOver
   const allIssues = issuesOverride ?? (project ? store.issues.filter((i) => i.project === project) : store.issues);
 
   const stats = useMemo(() => ({
-    critical: scopedRisks.filter((r) => severityOf(r.score) === "Critical").length,
-    high: scopedRisks.filter((r) => severityOf(r.score) === "High").length,
-    medium: scopedRisks.filter((r) => severityOf(r.score) === "Medium").length,
-    low: scopedRisks.filter((r) => severityOf(r.score) === "Low").length,
-    issues: scopedIssues.filter((i) => i.status !== "Resolved").length,
+    critical: allRisks.filter((r) => severityOf(r.score) === "Critical").length,
+    high: allRisks.filter((r) => severityOf(r.score) === "High").length,
+    medium: allRisks.filter((r) => severityOf(r.score) === "Medium").length,
+    low: allRisks.filter((r) => severityOf(r.score) === "Low").length,
+    issues: allIssues.filter((i) => i.status !== "Resolved").length,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [scopedRisks, scopedIssues, rules]);
+  }), [allRisks, allIssues, rules]);
 
   return (
     <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-5">

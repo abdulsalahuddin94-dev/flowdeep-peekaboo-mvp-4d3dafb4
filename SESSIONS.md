@@ -1,7 +1,11 @@
+## 2026-10-06 — Exit Change Plan popup aligned with DS02
+- The Exit Change Plan confirmation now uses the shared ConfirmDialog (warning tone, centered icon, Iconsax close, side-by-side buttons) instead of a raw AlertDialog; labels and discard-count message unchanged. "Keep Editing" is the safe action, "Discard & Exit" / "Exit" is the warning action.
+
 ## 2026-10-06 — Change Plan focus mode
 - Change Plan now hides the project overview and all tabs except Project Schedule, Cost Breakdown, Revenue Breakdown; shows a Draft V{n} banner.
 - Breadcrumb (Portfolio > Project > Change Plan) replaces Back to Portfolio; leaving via breadcrumb/sidebar asks Exit Change Plan? (discard confirmation).
 - Plan state kept in memory per project across Approvals / Edit project visits; approval toast: "The changes you requested were approved. You are now on Version N."
+
 
 ## 2026-10-06 — Fix: Save baseline did nothing outside Project Schedule
 - The Save baseline review and confirmation popups were only mounted inside the Schedule tab; moved them to page level so they open from Cost/Revenue Breakdown too.

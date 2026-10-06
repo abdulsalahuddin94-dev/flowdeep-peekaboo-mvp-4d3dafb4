@@ -1,3 +1,6 @@
+## 2026-10-06 — Fix: Save baseline did nothing outside Project Schedule
+- The Save baseline review and confirmation popups were only mounted inside the Schedule tab; moved them to page level so they open from Cost/Revenue Breakdown too.
+
 ## 2026-10-06 — Cost & Revenue Breakdown joined the project baseline
 - Cost and Revenue plans now live at project level and are snapshotted with each baseline version.
 - Editing cost/revenue lines during Change Plan counts as pending changes, appears in the Save baseline review, goes through approval, and Cancel restores the plan (logged actuals kept).

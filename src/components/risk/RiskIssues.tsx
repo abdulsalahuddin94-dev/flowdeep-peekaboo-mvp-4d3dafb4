@@ -29,6 +29,7 @@ import { useOrgActive } from "@/lib/org-active";
 import { useCurrentUser } from "@/lib/projects-store";
 import { formatDateWithYear } from "@/lib/date-format";
 import { LinkedActions, ActionsCount, ActionRowsEditor, emptyActionRow, actionRowsValid, cleanActionRows, type ActionRow } from "@/components/actions/ActionTracker";
+import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
 import { useActions } from "@/lib/action-store";
 
 /* ── Tone helpers ─────────────────────────────────────────────────────────── */
@@ -293,6 +294,7 @@ function RiskFormDialog({
   onSave: (risk: Omit<RiskRecord, "id" | "updates">, actions: ActionRow[]) => void;
 }) {
   const { severityOf, rules } = useSeverity();
+  const { respTypes } = useResponsibilities();
   const [title, setTitle] = useState(risk?.title ?? "");
   const [project, setProject] = useState(risk?.project ?? lockedProject ?? "");
   const [category, setCategory] = useState(risk?.category ?? "");
@@ -301,7 +303,7 @@ function RiskFormDialog({
   const [impact, setImpact] = useState(String(risk?.impact ?? 3));
   const [status, setStatus] = useState<RiskStatus>(risk?.status ?? "Open");
   const statusOptions = RISK_STATUSES.includes(status) ? RISK_STATUSES : [...RISK_STATUSES, status];
-  const [actionRows, setActionRows] = useState<ActionRow[]>([emptyActionRow()]);
+  const [actionRows, setActionRows] = useState<ActionRow[]>([emptyActionRow(defaultResponsibility(respTypes))]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const score = Number(prob) * Number(impact);
@@ -1033,7 +1035,7 @@ function IssueFormDialog({
   const [impact, setImpact] = useState(String(issue?.impact ?? 3));
   const [openDate, setOpenDate] = useState(issue?.openDate ?? todayISO());
   const [targetDate, setTargetDate] = useState(issue?.targetDate ?? "");
-  const [actionRows, setActionRows] = useState<ActionRow[]>([emptyActionRow()]);
+  const [actionRows, setActionRows] = useState<ActionRow[]>([emptyActionRow(defaultResponsibility(respTypes))]);
   const [riskId, setRiskId] = useState(issue?.riskId ?? "none");
   const [milestone, setMilestone] = useState(issue?.milestone ?? "none");
   const [errors, setErrors] = useState<Record<string, string>>({});

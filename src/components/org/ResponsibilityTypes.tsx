@@ -99,7 +99,7 @@ export function ResponsibilityTypesTab() {
         resultCount={visible.length}
         totalCount={respTypes.length}
         onReset={() => { setQuery(""); setStatus("all"); }}
-        cta={<Button variant="primary" onClick={() => { console.log("ADD-CLICK"); setDraft({ name: "", party: "Internal", tone: "accent" }); }}Add responsibility type</Button>}
+        cta={<Button variant="primary" onClick={() => { console.log("ADD-CLICK"); setDraft({ name: "", party: "Internal", tone: "accent" }); }}>Add responsibility type</Button>}
         filterGroups={[statusGroup(status, setStatus)]}
       />
       <EmptyRegion id="org-responsibility-types">

@@ -31,4 +31,4 @@
 - [ ] Verify the Responsibility dropdowns list lookup values in Action Tracker / Mitigation plan / Meetings, then log in SESSIONS.md.
 - [x] Replace action-row entry with the Official Holidays-style composer: add via +, then edit/delete from the scrollable list below.
 - [x] Move the Action Tracker KPI cards below the search and filter toolbar (matching Cost Breakdown).
-- [ ] Confirm the baseline scope: Schedule/Cost/Revenue follow the Change Plan flow; Risk & Issues, Action Tracker, Meetings, Recent Activity, and Status Reports stay editable without a Change Plan.
+- [x] Confirm the baseline scope: Schedule/Cost/Revenue follow the Change Plan flow; Risk & Issues, Action Tracker, Meetings, Recent Activity, and Status Reports stay editable without a Change Plan.

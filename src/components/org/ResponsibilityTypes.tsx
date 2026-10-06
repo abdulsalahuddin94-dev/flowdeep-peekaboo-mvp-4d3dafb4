@@ -45,6 +45,7 @@ export function ResponsibilityTypesTab() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [pendingDelete, setPendingDelete] = useState<ResponsibilityType | null>(null);
   const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
+  console.log("RESP-TAB RENDER draft:", draft);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();

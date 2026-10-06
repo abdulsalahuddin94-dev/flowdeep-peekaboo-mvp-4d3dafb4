@@ -81,6 +81,7 @@ const allItems: NavItem[] = [
       { title: "Departments", tab: "departments" },
       { title: "Roles & Skills", tab: "job-roles" },
       { title: "Calendars", tab: "calendars" },
+      { title: "Responsibility Types", tab: "responsibility-types" },
       { title: "Rules & Thresholds", tab: "rules" },
     ],
   },

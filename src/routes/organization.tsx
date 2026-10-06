@@ -27,6 +27,7 @@ import { TablePagination, usePagination } from "@/components/TablePagination";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { businessLines, departments, projects as mockProjects, type WorkCalendar } from "@/lib/mock-data";
 import { RulesThresholdsTab } from "@/components/org/RulesThresholds";
+import { ResponsibilityTypesTab } from "@/components/org/ResponsibilityTypes";
 import { useRiskRegister, type RiskCategory } from "@/lib/risk-store";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests, useSkills } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
@@ -55,6 +56,7 @@ const ORG_TAB_LABELS: Record<string, string> = {
   "cost-categories": "Cost Categories", "risk-categories": "Risk Categories",
   departments: "Departments",
   "job-roles": "Roles & Skills", calendars: "Calendars",
+  "responsibility-types": "Responsibility Types",
   "rules": "Rules & Thresholds",
 };
 
@@ -112,6 +114,10 @@ function OrganizationPage() {
 
         <TabsContent value="calendars">
           <CalendarsTab />
+        </TabsContent>
+
+        <TabsContent value="responsibility-types">
+          <ResponsibilityTypesTab />
         </TabsContent>
 
         <TabsContent value="rules">

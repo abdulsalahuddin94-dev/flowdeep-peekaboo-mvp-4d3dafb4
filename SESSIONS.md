@@ -1,3 +1,7 @@
+## 2026-10-06 — Financials Overview: Charts/Table view switcher
+- Overview (P&L) tab: added a segmented Charts / Table switcher next to the search & Filter toolbar. Charts view shows the profitability, margin and cash-flow charts; Table view shows the P&L-by-project table. Search and filters apply to both.
+- Verified in browser: both views render and toggle correctly.
+
 ## 2026-10-06 — Check icon in edit mode + Risk/Issues cards below toolbar
 - ActionRowsEditor (Mitigation plan / Action plan / meeting actions): the commit button now shows a check (TickCircle) instead of + while a row is being edited, so pressing it clearly applies the update; back to + when adding new rows.
 - Risk & Issues module: the Critical/High/Medium/Low/Open Issues KPI cards moved below the search & Filter toolbar in both Risk Register and Issues Log (Heat Map keeps none), and each tab's cards now react to its own search/filters (Open Issues follows issue filters; risk cards follow register filters).

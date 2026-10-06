@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import type { AttendeeParty } from "@/lib/meeting-store";
 
 /**
  * Central Responsibility Types lookup (Organization Settings → Responsibility Types).
@@ -112,50 +111,3 @@ export function defaultResponsibility(types: ResponsibilityType[], isActive?: (n
   return all.find((t) => t.name === "Internal")?.name ?? all[0]?.name ?? "Internal";
 }
 
-/* ── Meeting attendee → responsibility mapping ──────────────────────────── */
-
-const PARTY_DEFAULTS: Record<AttendeeParty, string> = {
-  Internal: "Internal",
-  Client: "Client",
-  Vendor: "Vendor",
-  Stakeholder: "Client",
-  Other: "Client",
-};
-
-const PARTY_STORAGE_KEY = "pmo.org.meeting-party-resp";
-
-function readMapping(): Record<AttendeeParty, string> {
-  if (typeof window === "undefined") return PARTY_DEFAULTS;
-  try {
-    const raw = window.localStorage.getItem(PARTY_STORAGE_KEY);
-    if (!raw) return PARTY_DEFAULTS;
-    return { ...PARTY_DEFAULTS, ...(JSON.parse(raw) as Partial<Record<AttendeeParty, string>>) };
-  } catch {
-    return PARTY_DEFAULTS;
-  }
-}
-
-let mappingState: Record<AttendeeParty, string> | null = null;
-const mappingListeners = new Set<() => void>();
-
-export function useMeetingPartyResp() {
-  const [, force] = useState(0);
-  useEffect(() => {
-    const l = () => force((n) => n + 1);
-    mappingListeners.add(l);
-    return () => { mappingListeners.delete(l); };
-  }, []);
-
-  const mapping = mappingState ?? readMapping();
-  const setPartyResp = useCallback((party: AttendeeParty, name: string) => {
-    mappingState = { ...(mappingState ?? readMapping()), [party]: name };
-    try {
-      window.localStorage.setItem(PARTY_STORAGE_KEY, JSON.stringify(mappingState));
-    } catch {
-      /* storage unavailable — keep in-memory only */
-    }
-    mappingListeners.forEach((l) => l());
-  }, []);
-
-  return { mapping, setPartyResp };
-}

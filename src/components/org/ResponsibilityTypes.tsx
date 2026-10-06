@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { TableRowActions, StatusPill } from "@/components/TableRowActions";
@@ -18,12 +17,11 @@ import { Plus, ToggleActive } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 import { matchStatus, statusGroup } from "@/components/ds/filters";
 import {
-  useResponsibilities, useMeetingPartyResp, defaultResponsibility,
+  useResponsibilities,
   type ResponsibilityType, type RespParty,
 } from "@/lib/responsibility-store";
 import { useActions } from "@/lib/action-store";
 import { useOrgActive } from "@/lib/org-active";
-import { ATTENDEE_PARTIES } from "@/lib/meeting-store";
 
 /** Master-data names are unique per list — compared ignoring case and extra spaces. */
 const normName = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
@@ -104,7 +102,6 @@ function AddResponsibilityDialog({ existing, onAdd }: {
 
 export function ResponsibilityTypesTab() {
   const { respTypes, addRespType, updateRespType, removeRespType } = useResponsibilities();
-  const { mapping, setPartyResp } = useMeetingPartyResp();
   const { renameResponsibility } = useActions();
   const { isActive, setActive } = useOrgActive("responsibility-type");
   const [query, setQuery] = useState("");
@@ -136,7 +133,6 @@ export function ResponsibilityTypesTab() {
     }
     if (editing.name !== name) {
       renameResponsibility(editing.name, name);
-      ATTENDEE_PARTIES.forEach((p) => { if (mapping[p] === editing.name) setPartyResp(p, name); });
     }
     updateRespType(editing.id, { name, party: editParty });
     toast.done("Responsibility type", "updated");
@@ -146,9 +142,6 @@ export function ResponsibilityTypesTab() {
   const confirmDelete = () => {
     if (!pendingDelete) return;
     removeRespType(pendingDelete.id);
-    const rest = respTypes.filter((t) => t.id !== pendingDelete.id);
-    const fallback = defaultResponsibility(rest);
-    ATTENDEE_PARTIES.forEach((p) => { if (mapping[p] === pendingDelete.name) setPartyResp(p, fallback); });
     toast.done("Responsibility type", "deleted");
     setPendingDelete(null);
   };
@@ -198,31 +191,6 @@ export function ResponsibilityTypesTab() {
         <TablePagination {...pager} itemLabel="responsibility types" />
       </EmptyRegion>
 
-      <Card className="mt-4 border-border bg-surface">
-        <CardHeader className="p-5 pb-3">
-          <CardTitle className="text-base font-medium">Meeting attendee mapping</CardTitle>
-          <CardDescription>
-            When an action owner is picked from a meeting's attendees, the responsibility is taken from that attendee's party.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 p-5 pt-0 sm:grid-cols-2 lg:grid-cols-5">
-          {ATTENDEE_PARTIES.map((p) => {
-            const value = mapping[p];
-            const options = respTypes.filter((t) => isActive(t.name) || t.name === value);
-            return (
-              <div key={p} className="space-y-1.5">
-                <Label className="text-xs font-medium text-foreground">{p}</Label>
-                <Select value={value} onValueChange={(v) => { setPartyResp(p, v); toast.done("Meeting attendee mapping", "updated"); }}>
-                  <SelectTrigger aria-label={`Responsibility for ${p}`}><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {options.map((t) => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            );
-          })}
-        </CardContent>
-      </Card>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>

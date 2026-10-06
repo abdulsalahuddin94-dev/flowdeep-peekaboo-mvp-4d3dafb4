@@ -1,3 +1,8 @@
+## 2026-10-06 — Removed Meeting attendee mapping
+
+- Removed the **Meeting attendee mapping** card from Organization → Responsibility Types (user: unnecessary). Meeting actions now use a fixed party→responsibility mapping again (Internal→Internal, Client→Client, Vendor→Vendor, Stakeholder/Other→Client).
+- Dropped `useMeetingPartyResp` and its localStorage mapping from responsibility-store.
+
 ## 2026-10-06 — Responsibility Types lookup (Organization)
 
 - Added the **Responsibility Types** section in Organization: searchable table, add/edit dialogs, Internal/External party, activate/deactivate with confirmation, and delete with confirmation (actions already carrying the value keep it in a neutral pill).

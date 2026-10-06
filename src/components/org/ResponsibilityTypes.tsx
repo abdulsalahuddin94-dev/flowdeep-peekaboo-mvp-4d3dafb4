@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,7 @@ import { TablePagination, usePagination } from "@/components/TablePagination";
 import { EmptyRegion } from "@/lib/empty-preview";
 import { Pill } from "@/components/Pill";
 import { cn } from "@/lib/utils";
-import { ToggleActive } from "@/lib/icons";
+import { Plus, ToggleActive } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 import { matchStatus, statusGroup } from "@/components/ds/filters";
 import {
@@ -33,7 +33,89 @@ const PARTY_TONE: Record<RespParty, string> = {
   External: "border-border bg-muted text-muted-foreground",
 };
 
-type Draft = { id?: string; name: string; party: RespParty; tone: string };
+/** Shared form fields for add / edit. */
+function RespTypeFields({ name, party, tone, onName, onParty, onTone }: {
+  name: string; party: RespParty; tone: string;
+  onName: (v: string) => void; onParty: (v: RespParty) => void; onTone: (v: string) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <Label>Name</Label>
+        <Input value={name} maxLength={60} onChange={(e) => onName(e.target.value)} placeholder="e.g. Internal, Client, Vendor" />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>Party</Label>
+          <Select value={party} onValueChange={(v) => onParty(v as RespParty)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Internal">Internal</SelectItem>
+              <SelectItem value="External">External</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Color</Label>
+          <Select value={tone} onValueChange={onTone}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {RESP_TONES.map((c) => (
+                <SelectItem key={c.value} value={c.value}>
+                  <span className={cn("mr-2 inline-flex rounded-full border px-2 py-0.5 text-[11px]", RESP_TONE_CLASS[c.value])}>{c.label}</span>
+                  {c.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Toolbar CTA — owns its own dialog so it works from the portaled actions slot. */
+function AddResponsibilityDialog({ existing, onAdd }: {
+  existing: string[];
+  onAdd: (v: { name: string; party: RespParty; tone: string }) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [party, setParty] = useState<RespParty>("Internal");
+  const [tone, setTone] = useState("accent");
+
+  const save = () => {
+    const trimmed = name.trim();
+    if (!trimmed) { toast.error("Name is required"); return; }
+    if (existing.some((e) => normName(e) === normName(trimmed))) {
+      toast.error(`Responsibility type "${trimmed}" already exists. Use a different name.`);
+      return;
+    }
+    onAdd({ name: trimmed, party, tone });
+    toast.done("Responsibility type", "added");
+    setOpen(false);
+    setName(""); setParty("Internal"); setTone("accent");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="primary"><Plus className="mr-1 h-4 w-4" />Add responsibility type</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add Responsibility Type</DialogTitle>
+          <DialogDescription>Used for the Responsibility field on actions. Names are English only.</DialogDescription>
+        </DialogHeader>
+        <RespTypeFields name={name} party={party} tone={tone} onName={setName} onParty={setParty} onTone={setTone} />
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="primary" onClick={save}>Add responsibility type</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export function ResponsibilityTypesTab() {
   const { respTypes, addRespType, updateRespType, removeRespType } = useResponsibilities();
@@ -42,10 +124,12 @@ export function ResponsibilityTypesTab() {
   const { isActive, setActive } = useOrgActive("responsibility-type");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
-  const [draft, setDraft] = useState<Draft | null>(null);
+  const [editing, setEditing] = useState<ResponsibilityType | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editParty, setEditParty] = useState<RespParty>("Internal");
+  const [editTone, setEditTone] = useState("accent");
   const [pendingDelete, setPendingDelete] = useState<ResponsibilityType | null>(null);
   const [pendingToggle, setPendingToggle] = useState<{ name: string; active: boolean } | null>(null);
-  console.log("RESP-TAB RENDER draft:", draft);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -56,27 +140,23 @@ export function ResponsibilityTypesTab() {
 
   const pager = usePagination(visible);
 
-  const submit = () => {
-    if (!draft) return;
-    const name = draft.name.trim();
+  const openEdit = (t: ResponsibilityType) => { setEditing(t); setEditName(t.name); setEditParty(t.party); setEditTone(t.tone); };
+
+  const saveEdit = () => {
+    if (!editing) return;
+    const name = editName.trim();
     if (!name) { toast.error("Name is required"); return; }
-    if (respTypes.some((t) => normName(t.name) === normName(name) && t.id !== draft.id)) {
+    if (respTypes.some((t) => normName(t.name) === normName(name) && t.id !== editing.id)) {
       toast.error(`Responsibility type "${name}" already exists. Use a different name.`);
       return;
     }
-    if (draft.id) {
-      const original = respTypes.find((t) => t.id === draft.id);
-      if (original && original.name !== name) {
-        renameResponsibility(original.name, name);
-        ATTENDEE_PARTIES.forEach((p) => { if (mapping[p] === original.name) setPartyResp(p, name); });
-      }
-      updateRespType(draft.id, { name, party: draft.party, tone: draft.tone });
-      toast.done("Responsibility type", "updated");
-    } else {
-      addRespType({ name, party: draft.party, tone: draft.tone });
-      toast.done("Responsibility type", "added");
+    if (editing.name !== name) {
+      renameResponsibility(editing.name, name);
+      ATTENDEE_PARTIES.forEach((p) => { if (mapping[p] === editing.name) setPartyResp(p, name); });
     }
-    setDraft(null);
+    updateRespType(editing.id, { name, party: editParty, tone: editTone });
+    toast.done("Responsibility type", "updated");
+    setEditing(null);
   };
 
   const confirmDelete = () => {
@@ -100,7 +180,7 @@ export function ResponsibilityTypesTab() {
         resultCount={visible.length}
         totalCount={respTypes.length}
         onReset={() => { setQuery(""); setStatus("all"); }}
-        cta={<Button variant="primary" onClick={() => { console.log("ADD-CLICK"); setDraft({ name: "", party: "Internal", tone: "accent" }); }}>Add responsibility type</Button>}
+        cta={<AddResponsibilityDialog existing={respTypes.map((t) => t.name)} onAdd={addRespType} />}
         filterGroups={[statusGroup(status, setStatus)]}
       />
       <EmptyRegion id="org-responsibility-types">
@@ -123,7 +203,7 @@ export function ResponsibilityTypesTab() {
                 <TableCell><Pill label={t.name} tone={RESP_TONE_CLASS[t.tone] ?? RESP_TONE_CLASS.muted} /></TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
-                    onEdit={() => setDraft({ id: t.id, name: t.name, party: t.party, tone: t.tone })}
+                    onEdit={() => openEdit(t)}
                     isActive={isActive(t.name)}
                     onToggleActive={() => setPendingToggle({ name: t.name, active: isActive(t.name) })}
                     onDelete={() => setPendingDelete(t)}
@@ -162,50 +242,18 @@ export function ResponsibilityTypesTab() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!draft} onOpenChange={(o) => !o && setDraft(null)}>
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{draft?.id ? "Edit Responsibility Type" : "Add Responsibility Type"}</DialogTitle>
+            <DialogTitle>Edit Responsibility Type</DialogTitle>
             <DialogDescription>
-              Used for the Responsibility field on actions. Names are English only.
+              Renaming updates this type on every action already using it.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <Label>Name</Label>
-              <Input value={draft?.name ?? ""} maxLength={60} onChange={(e) => setDraft((p) => (p ? { ...p, name: e.target.value } : p))} placeholder="e.g. Internal, Client, Vendor" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Party</Label>
-                <Select value={draft?.party ?? "Internal"} onValueChange={(v) => setDraft((p) => (p ? { ...p, party: v as RespParty } : p))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Internal">Internal</SelectItem>
-                    <SelectItem value="External">External</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Color</Label>
-                <Select value={draft?.tone ?? "accent"} onValueChange={(v) => setDraft((p) => (p ? { ...p, tone: v } : p))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {RESP_TONES.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>
-                        <span className="inline-flex items-center">
-                          <span className={cn("mr-2 inline-flex rounded-full border px-2 py-0.5 text-[11px]", RESP_TONE_CLASS[c.value])}>{c.label}</span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
+          <RespTypeFields name={editName} party={editParty} tone={editTone} onName={setEditName} onParty={setEditParty} onTone={setEditTone} />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDraft(null)}>Cancel</Button>
-            <Button variant="primary" onClick={submit}>{draft?.id ? "Save" : "Add responsibility type"}</Button>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button variant="primary" onClick={saveEdit}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

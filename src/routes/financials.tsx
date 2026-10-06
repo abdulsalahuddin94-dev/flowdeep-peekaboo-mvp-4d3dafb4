@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { projects } from "@/lib/mock-data";
-import { Download, FileSpreadsheet, TrendingUp, TrendingDown, Wallet, PiggyBank } from "@/lib/icons";
+import { Download, FileSpreadsheet, TrendingUp, TrendingDown, Wallet, PiggyBank, GanttChartSquare, List } from "@/lib/icons";
 import { useState, useMemo } from "react";
 import {
   ResponsiveContainer,
@@ -101,6 +101,7 @@ function FinancialsPage() {
   const goProject = useNavigate();
   const [selectedYear, setSelectedYear] = useState("all");
   const [pnlQuery, setPnlQuery] = useState("");
+  const [overviewView, setOverviewView] = useState<"charts" | "table">("charts");
   const [cashMode, setCashMode] = useState<"monthly" | "yearly">("monthly");
   const [costQuery, setCostQuery] = useState("");
   const [costMonth, setCostMonth] = useState("all");

@@ -1028,6 +1028,7 @@ function IssueFormDialog({
   lockedProject?: string;
   onSave: (issue: Omit<IssueItem, "id">, actions: ActionRow[]) => void;
 }) {
+  const { respTypes } = useResponsibilities();
   const [title, setTitle] = useState(issue?.title ?? "");
   const [project, setProject] = useState(issue?.project ?? lockedProject ?? "");
   const [priority, setPriority] = useState<IssuePriority>(issue?.priority ?? "Medium");

@@ -7,11 +7,11 @@ import { logActivity } from "@/lib/activity-store";
  */
 
 export type ActionSource = "Risk" | "Issue" | "Meeting" | "General";
-export type ActionResponsibility = "Internal" | "Client" | "Vendor";
+/** Responsibility is free text matching the Organization "Responsibility Types" lookup. */
+export type ActionResponsibility = string;
 export type ActionStatus = "Open" | "In Progress" | "Done" | "Cancelled";
 
 export const ACTION_SOURCES: ActionSource[] = ["Risk", "Issue", "Meeting", "General"];
-export const ACTION_RESPONSIBILITIES: ActionResponsibility[] = ["Internal", "Client", "Vendor"];
 export const ACTION_STATUSES: ActionStatus[] = ["Open", "In Progress", "Done", "Cancelled"];
 
 export type ActionUpdate = {

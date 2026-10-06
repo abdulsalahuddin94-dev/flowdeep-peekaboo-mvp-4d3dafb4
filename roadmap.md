@@ -26,3 +26,6 @@
 - [x] Simplify project Issue/Risk summary labels, move Risks Summary left, and open selected risks from Overview.
 - [x] Add search and filters to Cost Recognition and Revenue Recognition tables.
 - [x] Dim plan-changing WBS row actions in view-only mode with the plain arrow cursor, show the hint tooltip only after a steady ~1s hover, and keep them inert while Progress Update remains available.
+- [ ] Central Responsibility Types lookup in Organization (English-only names, Internal/External, deactivate, delete guard) consumed by Action Tracker, Risk/Issue plans, and Meetings.
+- [ ] Remove the Color field and Color column from Responsibility Types entirely.
+- [ ] Verify the Responsibility dropdowns list lookup values in Action Tracker / Mitigation plan / Meetings, then log in SESSIONS.md.

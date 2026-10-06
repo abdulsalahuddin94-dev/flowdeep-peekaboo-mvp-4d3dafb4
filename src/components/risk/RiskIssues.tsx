@@ -378,15 +378,25 @@ function RiskFormDialog({
         </Field>
       </div>
 
-      <Field label="Linked milestone" htmlFor="risk-milestone" optional hint="Link the risk to the schedule milestone it threatens.">
-        <Select value={milestone} onValueChange={setMilestone}>
-          <SelectTrigger id="risk-milestone"><SelectValue placeholder="No linked milestone" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No linked milestone</SelectItem>
-            {milestoneOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </Field>
+      <div className="grid items-start gap-4 sm:grid-cols-2">
+        <Field label="Linked milestone" htmlFor="risk-milestone" optional hint="Link the risk to the schedule milestone it threatens." className="min-w-0">
+          <Select value={milestone} onValueChange={setMilestone}>
+            <SelectTrigger id="risk-milestone"><SelectValue placeholder="No linked milestone" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No linked milestone</SelectItem>
+              {milestoneOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Status" htmlFor="risk-status" className="min-w-0">
+          <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
+            <SelectTrigger id="risk-status"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+      </div>
 
 
 
@@ -429,14 +439,6 @@ function RiskFormDialog({
               </>
             )}
           </div>
-        </Field>
-        <Field label="Status" htmlFor="risk-status" className="lg:col-span-3">
-          <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
-            <SelectTrigger id="risk-status"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
-            </SelectContent>
-          </Select>
         </Field>
       </div>
 

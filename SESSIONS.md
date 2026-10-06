@@ -1,3 +1,7 @@
+## 2026-10-06 — Risk & Issue popups: compact field layout
+
+- Reorganized the Log/Edit Risk and Log/Edit Issue dialogs to reduce height: Issue pairs Impact / Severity / Status on one row and Originating risk / Linked milestone side by side; Risk pairs Linked milestone / Status on one row.
+
 ## 2026-10-06 — Calendar-style action entry
 
 - Reworked the shared Risk, Issue, and Meeting action entry into the Official Holidays pattern: one Action / Owner / Responsibility / Due date composer with a + button, followed by a scrollable list of added actions.

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { TableRowActions, StatusPill } from "@/components/TableRowActions";
@@ -103,7 +102,6 @@ function AddResponsibilityDialog({ existing, onAdd }: {
 
 export function ResponsibilityTypesTab() {
   const { respTypes, addRespType, updateRespType, removeRespType } = useResponsibilities();
-  const { mapping, setPartyResp } = useMeetingPartyResp();
   const { renameResponsibility } = useActions();
   const { isActive, setActive } = useOrgActive("responsibility-type");
   const [query, setQuery] = useState("");
@@ -135,7 +133,6 @@ export function ResponsibilityTypesTab() {
     }
     if (editing.name !== name) {
       renameResponsibility(editing.name, name);
-      ATTENDEE_PARTIES.forEach((p) => { if (mapping[p] === editing.name) setPartyResp(p, name); });
     }
     updateRespType(editing.id, { name, party: editParty });
     toast.done("Responsibility type", "updated");
@@ -145,9 +142,6 @@ export function ResponsibilityTypesTab() {
   const confirmDelete = () => {
     if (!pendingDelete) return;
     removeRespType(pendingDelete.id);
-    const rest = respTypes.filter((t) => t.id !== pendingDelete.id);
-    const fallback = defaultResponsibility(rest);
-    ATTENDEE_PARTIES.forEach((p) => { if (mapping[p] === pendingDelete.name) setPartyResp(p, fallback); });
     toast.done("Responsibility type", "deleted");
     setPendingDelete(null);
   };

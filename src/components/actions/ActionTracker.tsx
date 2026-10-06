@@ -28,6 +28,7 @@ import {
   type ActionItem, type ActionSource, type ActionResponsibility, type ActionStatus, type ActionUpdate,
 } from "@/lib/action-store";
 import { useResponsibilities, respTone, defaultResponsibility } from "@/lib/responsibility-store";
+import { useOrgActive } from "@/lib/org-active";
 
 export const T = {
   en: {
@@ -261,9 +262,10 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
   const { risks, issues } = useRiskRegister();
   const { users } = useCurrentUser();
   const { respTypes } = useResponsibilities();
+  const { isActive } = useOrgActive("responsibility-type");
   const blank = (): ActionDraft => ({
     project, title: "", description: "", source: fixedSource?.source ?? "General", sourceRef: fixedSource?.sourceRef,
-    owner: "", responsibility: defaultResponsibility(respTypes), dueDate: "", status: "Open",
+    owner: "", responsibility: defaultResponsibility(respTypes, isActive), dueDate: "", status: "Open",
   });
   const [d, setD] = useState<ActionDraft>(blank);
   const [key, setKey] = useState("");
@@ -309,7 +311,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
         <Field label="Responsibility">
           <Select value={d.responsibility} onValueChange={(v) => up({ responsibility: v as ActionResponsibility })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{respTypes.map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+            <SelectContent>{respTypes.filter((s) => isActive(s.name) || s.name === d.responsibility).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
           </Select>
         </Field>
         <Field label="Due date"><DatePicker value={d.dueDate} onChange={(v) => up({ dueDate: v })} /></Field>
@@ -331,13 +333,14 @@ export function cleanActionRows(rows: ActionRow[]) { return filledActionRows(row
 /** Shared action-by-row editor (meeting batch, risk mitigation, issue action plan). */
 export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, ownerOptions }: { rows: ActionRow[]; onChange: (rows: ActionRow[]) => void; label?: string; hint?: string; ownerOptions?: string[] }) {
   const { respTypes } = useResponsibilities();
+  const { isActive } = useOrgActive("responsibility-type");
   const listId = ownerOptions?.length ? `owners-${label.replace(/\W/g, "")}` : undefined;
   const up = (i: number, p: Partial<Row>) => onChange(rows.map((r, j) => (j === i ? { ...r, ...p } : r)));
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="label-eyebrow">{label}</div>
-        <Button type="button" variant="secondary" size="icon" aria-label={`Add ${label.toLowerCase()} row`} title={`Add ${label.toLowerCase()} row`} data-ds-size="auto" onClick={() => onChange([...rows, emptyActionRow(defaultResponsibility(respTypes))])} className="h-7 w-7 shrink-0 rounded-full border border-border/60 text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"><Plus size={14} /></Button>
+        <Button type="button" variant="secondary" size="icon" aria-label={`Add ${label.toLowerCase()} row`} title={`Add ${label.toLowerCase()} row`} data-ds-size="auto" onClick={() => onChange([...rows, emptyActionRow(defaultResponsibility(respTypes, isActive))])} className="h-7 w-7 shrink-0 rounded-full border border-border/60 text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"><Plus size={14} /></Button>
       </div>
       {/* 4 rows visible (4×36px + 3×8px gaps = 168px); scrolls beyond that */}
       <div className="max-h-[168px] space-y-2 overflow-y-auto pr-1">
@@ -347,7 +350,7 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, owne
             <Input aria-label="Owner" list={listId} maxLength={80} value={r.owner} onChange={(e) => up(i, { owner: e.target.value })} placeholder="Owner" />
             <Select value={r.responsibility} onValueChange={(v) => up(i, { responsibility: v as ActionResponsibility })}>
               <SelectTrigger aria-label="Responsibility"><SelectValue /></SelectTrigger>
-              <SelectContent>{respTypes.map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+              <SelectContent>{respTypes.filter((s) => isActive(s.name) || rows.some((r) => r.responsibility === s.name)).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
             </Select>
             <DatePicker value={r.dueDate} onChange={(v) => up(i, { dueDate: v })} placeholder="Due date" />
             <Button type="button" variant="ghost" size="icon" aria-label="Remove row" disabled={rows.length === 1} onClick={() => onChange(rows.filter((_, j) => j !== i))}><DeleteAction size={14} /></Button>

@@ -1175,20 +1175,6 @@ function ProjectDetail() {
             onOpenChange={setAddFirstMilestoneOpen}
           />
 
-          {/* CR Dialog — reviewing changes here is the only review step; decisions happen in the Approvals module. */}
-          <ChangeRequestDialog
-            open={crDialogOpen}
-            onOpenChange={setCrDialogOpen}
-            baselineSnapshot={projectBaselineVersions[projectBaselineVersions.length - 1]?.snapshot as Milestone[] | undefined}
-            currentMilestones={milestones}
-            baselineVersion={projectBaselineVersions.length}
-            extraChanges={editFinSnapshot ? diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }) : []}
-            onSubmit={(cr) => {
-              setCrDialogOpen(false);
-              setPendingCrConfirm(cr);
-            }}
-          />
-
           {/* Compare versions Dialog */}
           <VersionCompareDialog
             open={compareVersionOpen}
@@ -1222,18 +1208,6 @@ function ProjectDetail() {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-
-          {/* Baseline save confirmation — shown right after Send for approval */}
-          <ConfirmDialog
-            open={!!pendingCrConfirm}
-            onOpenChange={(o) => { if (!o) setPendingCrConfirm(null); }}
-            tone="info"
-            title="Save a new baseline?"
-            description={`This will be the active baseline once it's approved by the responsible. V${projectBaselineVersions.length} stays available for view.`}
-            confirmLabel="Save"
-            cancelLabel="Cancel"
-            onConfirm={() => { if (pendingCrConfirm) submitBaselineChange(pendingCrConfirm); }}
-          />
 
         </TabsContent>
 
@@ -1284,6 +1258,33 @@ function ProjectDetail() {
         </TabsContent>
 
       </Tabs>
+      {/* Mounted outside the tabs so Save baseline works from any baselined tab (Schedule, Cost, Revenue). */}
+          {/* CR Dialog — reviewing changes here is the only review step; decisions happen in the Approvals module. */}
+          <ChangeRequestDialog
+            open={crDialogOpen}
+            onOpenChange={setCrDialogOpen}
+            baselineSnapshot={projectBaselineVersions[projectBaselineVersions.length - 1]?.snapshot as Milestone[] | undefined}
+            currentMilestones={milestones}
+            baselineVersion={projectBaselineVersions.length}
+            extraChanges={editFinSnapshot ? diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }) : []}
+            onSubmit={(cr) => {
+              setCrDialogOpen(false);
+              setPendingCrConfirm(cr);
+            }}
+          />
+
+          {/* Baseline save confirmation — shown right after Send for approval */}
+          <ConfirmDialog
+            open={!!pendingCrConfirm}
+            onOpenChange={(o) => { if (!o) setPendingCrConfirm(null); }}
+            tone="info"
+            title="Save a new baseline?"
+            description={`This will be the active baseline once it's approved by the responsible. V${projectBaselineVersions.length} stays available for view.`}
+            confirmLabel="Save"
+            cancelLabel="Cancel"
+            onConfirm={() => { if (pendingCrConfirm) submitBaselineChange(pendingCrConfirm); }}
+          />
+
 
       <ProgressUpdateDialog
         open={planningProgressOpen}

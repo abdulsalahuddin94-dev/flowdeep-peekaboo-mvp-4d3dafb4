@@ -1090,7 +1090,7 @@ function IssueFormDialog({
         <Input id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="What is blocking or going wrong?" />
       </Field>
 
-      <div className="grid items-start gap-4 sm:grid-cols-2">
+      <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Impact" htmlFor="issue-impact" hint="1 (lowest) – 5 (highest)" className="min-w-0">
           <Select value={impact} onValueChange={setImpact}>
             <SelectTrigger id="issue-impact"><SelectValue /></SelectTrigger>
@@ -1108,16 +1108,15 @@ function IssueFormDialog({
             </SelectContent>
           </Select>
         </Field>
+        <Field label="Status" htmlFor="issue-status" className="min-w-0">
+          <Select value={status} onValueChange={(v) => setStatus(v as IssueStatus)}>
+            <SelectTrigger id="issue-status"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {ISSUE_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
       </div>
-
-      <Field label="Status" htmlFor="issue-status">
-        <Select value={status} onValueChange={(v) => setStatus(v as IssueStatus)}>
-          <SelectTrigger id="issue-status"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {ISSUE_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </Field>
 
       <div className="grid items-start gap-4 sm:grid-cols-2">
         <Field label="Open date" htmlFor="issue-open-date" error={errors.openDate} className="min-w-0">
@@ -1128,25 +1127,26 @@ function IssueFormDialog({
         </Field>
       </div>
 
-      <Field label="Originating risk" htmlFor="issue-risk" optional hint="Leave empty when the issue was not foreseen as a risk.">
-        <Select value={riskId} onValueChange={setRiskId}>
-          <SelectTrigger id="issue-risk"><SelectValue placeholder="No originating risk" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No originating risk</SelectItem>
-            {risks.map((r) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </Field>
-
-      <Field label="Linked milestone" htmlFor="issue-milestone" optional hint="Link the issue to the schedule milestone it affects.">
-        <Select value={milestone} onValueChange={setMilestone}>
-          <SelectTrigger id="issue-milestone"><SelectValue placeholder="No linked milestone" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No linked milestone</SelectItem>
-            {milestoneOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </Field>
+      <div className="grid items-start gap-4 sm:grid-cols-2">
+        <Field label="Originating risk" htmlFor="issue-risk" optional hint="Leave empty when the issue was not foreseen as a risk." className="min-w-0">
+          <Select value={riskId} onValueChange={setRiskId}>
+            <SelectTrigger id="issue-risk"><SelectValue placeholder="No originating risk" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No originating risk</SelectItem>
+              {risks.map((r) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Linked milestone" htmlFor="issue-milestone" optional hint="Link the issue to the schedule milestone it affects." className="min-w-0">
+          <Select value={milestone} onValueChange={setMilestone}>
+            <SelectTrigger id="issue-milestone"><SelectValue placeholder="No linked milestone" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No linked milestone</SelectItem>
+              {milestoneOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
+      </div>
 
       <ActionRowsEditor rows={actionRows} onChange={setActionRows} label={issue ? "Add actions" : "Action plan"}
         hint={errors.actions ?? (issue ? "Existing actions are tracked from the issue details and the Action Tracker." : "Optional — each action is tracked in the Action Tracker.")} />

@@ -38,8 +38,6 @@ function RisksPage() {
     <div>
       <PageHeader title="Risk & Issues" current={TAB_LABEL[tab] ?? "Risk Register"} />
 
-      <RiskKpiStrip />
-
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
         <TabsContent value="register" className="mt-0">
           <RiskRegisterTab

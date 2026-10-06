@@ -426,6 +426,7 @@
   --rag-red:   var(--p-red-600);
   --rag-blue:  var(--p-blue-600);
   --rag-grey:  var(--p-slate-500);
+  --rag-teal:  var(--p-teal-600);
 
   /* Chart palette (shared across recharts / SVG visualisations) */
   --chart-1: var(--p-amber-500);
@@ -543,6 +544,7 @@
   --rag-red:   var(--p-red-600);
   --rag-blue:  var(--p-blue-600);
   --rag-grey:  var(--p-slate-500);
+  --rag-teal:  var(--p-teal-600);
 
   /* Chart palette — dark */
   --chart-1: var(--p-amber-500);
@@ -652,6 +654,7 @@
   --color-rag-red:   var(--rag-red);
   --color-rag-blue:  var(--rag-blue);
   --color-rag-grey:  var(--rag-grey);
+  --color-rag-teal:  var(--rag-teal);
 
   --color-role-exec:     var(--p-lavender-200);
   --color-role-director: var(--p-blue-500);

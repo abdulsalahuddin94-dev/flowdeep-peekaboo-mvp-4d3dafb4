@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
-  RiskRegisterTab, RiskHeatmapTab, IssuesLogTab, RiskKpiStrip,
+  RiskRegisterTab, RiskHeatmapTab, IssuesLogTab,
 } from "@/components/risk/RiskIssues";
 
 export const Route = createFileRoute("/risks")({
@@ -37,8 +37,6 @@ function RisksPage() {
   return (
     <div>
       <PageHeader title="Risk & Issues" current={TAB_LABEL[tab] ?? "Risk Register"} />
-
-      <RiskKpiStrip />
 
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
         <TabsContent value="register" className="mt-0">

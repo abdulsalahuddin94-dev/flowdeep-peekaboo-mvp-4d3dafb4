@@ -138,6 +138,8 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Risk</Button>}
       />
 
+      <RiskKpiStrip risks={list} />
+
       <EmptyRegion id="risks-register">
         <StyledTable>
           <StyledTableHeader>
@@ -777,6 +779,8 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Issue</Button>}
       />
 
+      <RiskKpiStrip issues={list} />
+
       <EmptyRegion id="risks-issues">
         <StyledTable>
           <StyledTableHeader>
@@ -1318,20 +1322,21 @@ function IssueStatusDialog({
 
 /* ── KPI strip ────────────────────────────────────────────────────────────── */
 
-export function RiskKpiStrip({ project }: { project?: string }) {
-  const { risks, issues } = useRiskRegister();
+/** KPI cards; optional filtered lists let each tab scope the numbers to its own search & filters. */
+export function RiskKpiStrip({ project, risks: risksOverride, issues: issuesOverride }: { project?: string; risks?: RiskRecord[]; issues?: IssueRecord[] }) {
+  const store = useRiskRegister();
   const { severityOf, rules } = useSeverity();
-  const scopedRisks = project ? risks.filter((r) => r.project === project) : risks;
-  const scopedIssues = project ? issues.filter((i) => i.project === project) : issues;
+  const allRisks = risksOverride ?? (project ? store.risks.filter((r) => r.project === project) : store.risks);
+  const allIssues = issuesOverride ?? (project ? store.issues.filter((i) => i.project === project) : store.issues);
 
   const stats = useMemo(() => ({
-    critical: scopedRisks.filter((r) => severityOf(r.score) === "Critical").length,
-    high: scopedRisks.filter((r) => severityOf(r.score) === "High").length,
-    medium: scopedRisks.filter((r) => severityOf(r.score) === "Medium").length,
-    low: scopedRisks.filter((r) => severityOf(r.score) === "Low").length,
-    issues: scopedIssues.filter((i) => i.status !== "Resolved").length,
+    critical: allRisks.filter((r) => severityOf(r.score) === "Critical").length,
+    high: allRisks.filter((r) => severityOf(r.score) === "High").length,
+    medium: allRisks.filter((r) => severityOf(r.score) === "Medium").length,
+    low: allRisks.filter((r) => severityOf(r.score) === "Low").length,
+    issues: allIssues.filter((i) => i.status !== "Resolved").length,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [scopedRisks, scopedIssues, rules]);
+  }), [allRisks, allIssues, rules]);
 
   return (
     <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-5">

@@ -19,7 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { EditAction, DeleteAction, ClipboardCheck, Plus } from "@/lib/icons";
+import { EditAction, DeleteAction, ClipboardCheck, Plus, Check } from "@/lib/icons";
 import { formatDateWithYear } from "@/lib/date-format";
 import { useCurrentUser } from "@/lib/projects-store";
 import { useRiskRegister } from "@/lib/risk-store";
@@ -388,7 +388,7 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, owne
         </Select>
         <DatePicker value={draft.dueDate} onChange={(v) => upDraft({ dueDate: v })} placeholder={t.dueDate} />
         <Button type="button" variant="primary" size="icon" aria-label={editingIndex === null ? t.addActionRow : t.updateActionRow} title={editingIndex === null ? t.addActionRow : t.updateActionRow} onClick={commitDraft} className="h-9 w-9 shrink-0">
-          <Plus size={16} />
+          {editingIndex === null ? <Plus size={16} /> : <Check size={16} />}
         </Button>
       </div>
       <div className="max-h-56 overflow-y-auto rounded-lg border border-border bg-card">

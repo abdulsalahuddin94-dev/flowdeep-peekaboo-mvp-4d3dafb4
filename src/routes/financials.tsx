@@ -392,6 +392,8 @@ function FinancialsPage() {
               </TableRow>
             ))}</TableBody>
           </Table>
+          </>
+          )}
           </EmptyRegion>
         </TabsContent>
 

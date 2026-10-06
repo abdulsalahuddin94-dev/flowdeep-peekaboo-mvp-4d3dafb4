@@ -11,7 +11,6 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { TableRowActions, StatusPill } from "@/components/TableRowActions";
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { EmptyRegion } from "@/lib/empty-preview";
-import { Pill } from "@/components/Pill";
 import { cn } from "@/lib/utils";
 import { Plus, ToggleActive } from "@/lib/icons";
 import { toast } from "@/lib/toast";

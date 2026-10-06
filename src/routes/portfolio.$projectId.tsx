@@ -166,7 +166,8 @@ function ProjectDetail() {
   function clearNewFlag() {
     if (project.ragNote === "New") updateProject(project.id, { ragNote: undefined });
   }
-  const [activeTab, setActiveTab] = useState<string>(() => { const t = Route.useSearch().tab; return t && TABS.includes(t) ? t : TABS[0]; });
+  const { tab: initialTab } = Route.useSearch();
+  const [activeTab, setActiveTab] = useState<string>(() => (initialTab && TABS.includes(initialTab) ? initialTab : TABS[0]));
   const [overviewRiskId, setOverviewRiskId] = useState<string | null>(null);
   
   const [addFirstMilestoneOpen, setAddFirstMilestoneOpen] = useState(false);

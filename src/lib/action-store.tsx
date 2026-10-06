@@ -123,6 +123,11 @@ export function useActions() {
   const removeActionUpdate = useCallback((id: string, updateId: string) => {
     set(state.map((a) => (a.id === id ? { ...a, updates: a.updates.filter((u) => u.id !== updateId) } : a)));
   }, []);
+  /** Master-data rename from Organization → Responsibility Types; updates every stored action silently. */
+  const renameResponsibility = useCallback((from: string, to: string) => {
+    if (!from || from === to) return;
+    set(state.map((a) => (a.responsibility === from ? { ...a, responsibility: to } : a)));
+  }, []);
 
-  return { actions: state, addAction, addActions, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate };
+  return { actions: state, addAction, addActions, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate, renameResponsibility };
 }

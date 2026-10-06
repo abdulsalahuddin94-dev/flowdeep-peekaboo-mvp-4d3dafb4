@@ -108,9 +108,11 @@ export function useResponsibilities() {
   return { respTypes, addRespType, updateRespType, removeRespType };
 }
 
-/** Default responsibility for new action rows — first defined type, or Internal. */
-export function defaultResponsibility(types: ResponsibilityType[]) {
-  return types.find((t) => t.name === "Internal")?.name ?? types[0]?.name ?? "Internal";
+/** Default responsibility for new action rows — first active type, or Internal. */
+export function defaultResponsibility(types: ResponsibilityType[], isActive?: (n: string) => boolean) {
+  const active = isActive ? types.filter((t) => isActive(t.name)) : types;
+  const all = active.length ? active : types;
+  return all.find((t) => t.name === "Internal")?.name ?? all[0]?.name ?? "Internal";
 }
 
 /* ── Meeting attendee → responsibility mapping ──────────────────────────── */

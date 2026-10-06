@@ -24,6 +24,8 @@ import {
 import { formatDateWithYear } from "@/lib/date-format";
 
 const FIN_YEAR = 2026;
+// Demo contract markup per project type so profitability differs by line.
+const MARKUP: Record<string, number> = { "Software Solutions": 1.32, EPC: 1.12, Maintenance: 1.22, Consultation: 1.45 };
 const COST_TEMPLATES = [
   { item: "Licences & subscriptions", cat: "Software", type: "CapEx", share: 0.3 },
   { item: "Delivery labour", cat: "Staff", type: "OpEx", share: 0.4 },
@@ -52,7 +54,7 @@ const COST_ITEMS: CostItem[] = projects.slice(0, 12).flatMap((p, pi) =>
 );
 const REVENUE_ITEMS: RevenueItem[] = projects.slice(0, 12).flatMap((p, pi) =>
   REV_TEMPLATES.map((t, ti) => {
-    const planned = +(p.budgetTotal * 1.15 * t.share).toFixed(2);
+    const planned = +(p.budgetTotal * (MARKUP[p.businessLine] ?? 1.15) * t.share).toFixed(2);
     const month = ((pi * 2 + ti * 5 + 1) % 18) + 1;
     const due = iso(FIN_YEAR + (month > 12 ? 1 : 0), ((month - 1) % 12) + 1, 10 + ((pi + ti) % 15));
     const ratio = due < TODAY ? [1, 0.5, 0, 1][(pi + ti) % 4] : [0, 0.2, 0][(pi + ti) % 3];
@@ -116,7 +118,7 @@ function FinancialsPage() {
   const pnlRows = useMemo(
     () =>
       projects.slice(0, 12).map((p) => {
-        const revenue = p.budgetTotal * 1.15;
+        const revenue = p.budgetTotal * (MARKUP[p.businessLine] ?? 1.15);
         const burnPct = (p.budgetUsed / p.budgetTotal) * 100;
         // Revenue earned so far tracks delivery burn, slightly lagging invoicing.
         const actualRevenue = revenue * Math.min(1, burnPct / 100) * 0.97;

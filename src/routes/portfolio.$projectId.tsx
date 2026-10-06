@@ -6275,17 +6275,45 @@ function ChangeRequestDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="max-h-[420px] space-y-2 overflow-y-auto rounded-md border border-border/50 bg-secondary/20 p-3">
-          {changes.length === 0 ? (
-            <div className="py-6 text-center text-sm text-muted-foreground">
-              No changes detected. Edit the schedule first.
-            </div>
-          ) : (
-            grouped.map(([item, list]) => (
-              <GroupedChangeItem key={item} item={item} changes={list} />
-            ))
-          )}
-        </div>
+        {(() => {
+          const sections = [
+            { key: "schedule", label: "Project Schedule", match: (i: string) => !i.startsWith("Cost · ") && !i.startsWith("Revenue · "), strip: "" },
+            { key: "cost", label: "Cost Breakdown", match: (i: string) => i.startsWith("Cost · "), strip: "Cost · " },
+            { key: "revenue", label: "Revenue Breakdown", match: (i: string) => i.startsWith("Revenue · "), strip: "Revenue · " },
+          ];
+          const firstWith = sections.find((s) => grouped.some(([i]) => s.match(i)))?.key ?? "schedule";
+          return (
+            <Tabs defaultValue={firstWith} className="w-full">
+              <TabsList className="w-full">
+                {sections.map((s) => {
+                  const n = changes.filter((c) => s.match(c.item)).length;
+                  return (
+                    <TabsTrigger key={s.key} value={s.key} className="flex-1 gap-2">
+                      {s.label}
+                      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-[10px] text-muted-foreground">{n}</span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+              {sections.map((s) => {
+                const list = grouped.filter(([i]) => s.match(i));
+                return (
+                  <TabsContent key={s.key} value={s.key}>
+                    <div className="max-h-[380px] space-y-2 overflow-y-auto rounded-md border border-border/50 bg-secondary/20 p-3">
+                      {list.length === 0 ? (
+                        <div className="py-6 text-center text-sm text-muted-foreground">No changes in {s.label}.</div>
+                      ) : (
+                        list.map(([item, l]) => (
+                          <GroupedChangeItem key={item} item={s.strip ? item.slice(s.strip.length) : item} changes={l} />
+                        ))
+                      )}
+                    </div>
+                  </TabsContent>
+                );
+              })}
+            </Tabs>
+          );
+        })()}
 
         <DialogFooter>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>

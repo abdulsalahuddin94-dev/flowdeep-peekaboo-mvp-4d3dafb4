@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { projects } from "@/lib/mock-data";
-import { Download, FileSpreadsheet, TrendingUp, TrendingDown, Wallet, PiggyBank } from "@/lib/icons";
+import { Download, FileSpreadsheet, TrendingUp, TrendingDown, Wallet, PiggyBank, GanttChartSquare, List } from "@/lib/icons";
 import { useState, useMemo } from "react";
 import {
   ResponsiveContainer,
@@ -101,6 +101,7 @@ function FinancialsPage() {
   const goProject = useNavigate();
   const [selectedYear, setSelectedYear] = useState("all");
   const [pnlQuery, setPnlQuery] = useState("");
+  const [overviewView, setOverviewView] = useState<"charts" | "table">("charts");
   const [cashMode, setCashMode] = useState<"monthly" | "yearly">("monthly");
   const [costQuery, setCostQuery] = useState("");
   const [costMonth, setCostMonth] = useState("all");
@@ -253,15 +254,29 @@ function FinancialsPage() {
             })}
           </div>
 
-          <PageToolbar
-            query={pnlQuery}
-            onQueryChange={setPnlQuery}
-            placeholder="Search project or project type…"
-            filterGroups={[
-              { key: "year", label: "Fiscal Year", value: selectedYear, onChange: setSelectedYear, options: [{ value: "all", label: "All years" }, ...years.map((y) => ({ value: y, label: `FY${y}` }))] },
-            ]}
-          />
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1">
+              <PageToolbar
+                query={pnlQuery}
+                onQueryChange={setPnlQuery}
+                placeholder="Search project or project type…"
+                filterGroups={[
+                  { key: "year", label: "Fiscal Year", value: selectedYear, onChange: setSelectedYear, options: [{ value: "all", label: "All years" }, ...years.map((y) => ({ value: y, label: `FY${y}` }))] },
+                ]}
+              />
+            </div>
+            <div className="inline-flex h-9 shrink-0 items-center rounded-lg border border-border p-0.5" role="group" aria-label="Overview view">
+              {([["charts", "Charts", GanttChartSquare], ["table", "Table", List]] as const).map(([v, label, Icon]) => (
+                <button key={v} type="button" onClick={() => setOverviewView(v)} aria-pressed={overviewView === v}
+                  className={`flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium ${overviewView === v ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
+                  <Icon className="h-3.5 w-3.5" />{label}
+                </button>
+              ))}
+            </div>
+          </div>
 
+          {overviewView === "charts" && (
+          <>
           <div className="mb-5 grid gap-4 lg:grid-cols-5">
             <div className="glass-card p-4 lg:col-span-3">
               <div className="mb-2 flex items-center justify-between gap-3">
@@ -348,6 +363,11 @@ function FinancialsPage() {
             </div>
           </div>
 
+          </>
+          )}
+
+          {overviewView === "table" && (
+          <>
           <div className="label-eyebrow mb-3">P&L — by project</div>
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
@@ -372,6 +392,8 @@ function FinancialsPage() {
               </TableRow>
             ))}</TableBody>
           </Table>
+          </>
+          )}
           </EmptyRegion>
         </TabsContent>
 

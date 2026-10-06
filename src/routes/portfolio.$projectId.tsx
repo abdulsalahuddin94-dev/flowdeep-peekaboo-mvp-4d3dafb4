@@ -212,7 +212,12 @@ function ProjectDetail() {
     version: number;
     createdAt: string;
     snapshot: Milestone[];
+    financials?: FinancialPlan;
   }>>([]);
+  // Cost & revenue plans are part of the project baseline, alongside the schedule.
+  const [costEntries, setCostEntries] = useState<CostEntry[]>(() => initialCostEntries(isNewProject));
+  const [revEntries, setRevEntries] = useState<RevEntry[]>(() => initialRevEntries(project, isNewProject));
+  const [editFinSnapshot, setEditFinSnapshot] = useState<FinancialPlan | null>(null);
   const [milestones, setMilestones] = useState<Milestone[]>(isNewProject ? [] : [
     // ── Phase 1: Discovery — completed, all green, all assigned ──────────────
     { name: "Discovery & Requirements", kind: "Task", startDate: "2025-04-15", endDate: "2025-05-16", owner: "Sara Al-Rashid", rag: "amber", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "Package Cost", packageId: "PKG-DSC", amount: "$80K" }, progress: 20, parent: "Discovery Sign-off", weightScore: 8 },
@@ -274,6 +279,8 @@ function ProjectDetail() {
   const isViewingCurrent = selectedBaselineVersion === "latest";
   const isBaselineLocked = project.baselineLocked === true;
   const isEditingAllowed = isViewingCurrent && (!isBaselineLocked || planEditMode === "editing");
+  /** Financial plan of the version picked in the header; null = live plan. */
+  const viewedFin = isViewingCurrent ? null : (projectBaselineVersions.find((v) => `v${v.version}` === selectedBaselineVersion)?.financials ?? null);
   // Cross-tab navigation: clicking a milestone-linked cost/revenue row jumps to
   // the Project Schedule tab and flashes that milestone row in the WBS.
   const [scheduleHighlight, setScheduleHighlight] = useState<string | null>(null);
@@ -320,8 +327,9 @@ function ProjectDetail() {
       }
     }
     for (const b of editBaselineSnapshot) if (!curByName.has(b.name)) count++;
+    if (editFinSnapshot) count += diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }).length;
     return count;
-  }, [editBaselineSnapshot, milestones]);
+  }, [editBaselineSnapshot, milestones, editFinSnapshot, costEntries, revEntries]);
 
   const hasPlanChanges = useMemo(() => {
     if (!editBaselineSnapshot) return false;
@@ -343,11 +351,13 @@ function ProjectDetail() {
       }
     }
     for (const b of editBaselineSnapshot) if (!curByName.has(b.name)) return true;
+    if (editFinSnapshot && diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }).length > 0) return true;
     return false;
-  }, [editBaselineSnapshot, milestones]);
+  }, [editBaselineSnapshot, milestones, editFinSnapshot, costEntries, revEntries]);
 
   function enterEditMode() {
     setEditBaselineSnapshot(milestones.map((m) => ({ ...m })));
+    setEditFinSnapshot({ cost: costEntries.map((e) => ({ ...e })), rev: revEntries.map((e) => ({ ...e })) });
     setPlanEditMode("editing");
   }
 
@@ -356,6 +366,7 @@ function ProjectDetail() {
       setCancelEditDialogOpen(true);
     } else {
       setEditBaselineSnapshot(null);
+      setEditFinSnapshot(null);
       setPlanEditMode("view");
     }
   }
@@ -364,6 +375,14 @@ function ProjectDetail() {
     if (editBaselineSnapshot) {
       setMilestones(editBaselineSnapshot.map((m) => ({ ...m })));
     }
+    if (editFinSnapshot) {
+      // Restore planned fields only; actuals logged meanwhile are kept.
+      const actualsByCost = new Map(costEntries.map((e) => [`${e.c}|${e.desc ?? ""}`, e]));
+      const actualsByRev = new Map(revEntries.map((e) => [`${e.ms}|${e.evt}`, e]));
+      setCostEntries(editFinSnapshot.cost.map((e) => { const cur = actualsByCost.get(`${e.c}|${e.desc ?? ""}`); return cur ? { ...e, a: cur.a, actuals: cur.actuals } : e; }));
+      setRevEntries(editFinSnapshot.rev.map((e) => { const cur = actualsByRev.get(`${e.ms}|${e.evt}`); return cur ? { ...e, act: cur.act, actuals: cur.actuals, s: cur.s, sl: cur.sl } : e; }));
+    }
+    setEditFinSnapshot(null);
     setEditBaselineSnapshot(null);
     setCancelEditDialogOpen(false);
     setPlanEditMode("view");
@@ -450,7 +469,7 @@ function ProjectDetail() {
           ),
         );
         // The user already confirmed when sending — approval activates the new baseline.
-        activateBaseline(milestones.map((m) => ({ ...m })));
+        activateBaseline(milestones.map((m) => ({ ...m })), { cost: costEntries.map((e) => ({ ...e })), rev: revEntries.map((e) => ({ ...e })) });
       } else {
         setChangeRequests((prev) =>
           prev.map((c) =>
@@ -463,7 +482,7 @@ function ProjectDetail() {
         toast.error(`Change Request ${cr.id} rejected${reason ? ` — ${reason}` : ""}`);
       }
     }
-  }, [centralApprovals, changeRequests, milestones]);
+  }, [centralApprovals, changeRequests, milestones, costEntries, revEntries]);
 
   // Initialize sample baseline versions on component mount
   useEffect(() => {
@@ -514,7 +533,12 @@ function ProjectDetail() {
           })),
         },
       ];
-      setProjectBaselineVersions(versions);
+      const curFin: FinancialPlan = { cost: costEntries, rev: revEntries };
+      const factors = [0.8, 0.88, 0.94, 1];
+      setProjectBaselineVersions(versions.map((v, i) => ({
+        ...v,
+        financials: i === 3 ? { cost: curFin.cost.map((e) => ({ ...e })), rev: curFin.rev.map((e) => ({ ...e })) } : demoFinancialVersion(curFin, factors[i], i < 2),
+      })));
       setProjectBaseline({
         version: 4,
         createdAt: "2025-06-10",
@@ -524,10 +548,10 @@ function ProjectDetail() {
     }
   }, [isBaselineLocked, milestones, projectBaselineVersions.length]);
 
-  function activateBaseline(snapshot: Milestone[]) {
+  function activateBaseline(snapshot: Milestone[], financials: FinancialPlan) {
     const createdAt = new Date().toISOString().split("T")[0];
     const version = projectBaselineVersions.length + 1;
-    setProjectBaselineVersions((prev) => [...prev, { version, createdAt, snapshot }]);
+    setProjectBaselineVersions((prev) => [...prev, { version, createdAt, snapshot, financials }]);
     setProjectBaseline((prev) => (prev ? { version, createdAt, isLocked: true, snapshot } : prev));
     setSelectedBaselineVersion("latest");
     setPlanEditMode("view");
@@ -538,13 +562,14 @@ function ProjectDetail() {
     setPendingCrConfirm(null);
     setPlanEditMode("pending");
     setEditBaselineSnapshot(null);
+    setEditFinSnapshot(null);
     setMilestones((prev) => prev.map((m) => (m.depDateShift ? { ...m, depDateShift: undefined } : m)));
     const approvalId = addProjectApproval({
       type: "change-request",
       projectId: project.id,
       projectName: project.name,
       ref: cr.id,
-      title: `Baseline change request ${cr.id} — Project Schedule`,
+      title: `Baseline change request ${cr.id} — Project plan`,
       requestedBy: approvalUser.name,
       summary: cr.changes.map((c) => ({ label: c.field, before: c.oldValue, after: c.newValue })),
       approvers: DEFAULT_PROJECT_APPROVERS.map((a) => ({
@@ -561,7 +586,8 @@ function ProjectDetail() {
   function saveProjectBaseline() {
     const snapshot = computeDerivedSchedule(milestones, resourceRequests).map((item) => ({ ...item }));
     const createdAt = new Date().toISOString().split("T")[0];
-    const firstVersion = { version: 1, createdAt, snapshot };
+    const financials: FinancialPlan = { cost: costEntries.map((e) => ({ ...e })), rev: revEntries.map((e) => ({ ...e })) };
+    const firstVersion = { version: 1, createdAt, snapshot, financials };
     setProjectBaseline({ ...firstVersion, isLocked: true });
     setProjectBaselineVersions([firstVersion]);
     setSelectedBaselineVersion("latest");
@@ -628,6 +654,7 @@ function ProjectDetail() {
                 setSelectedBaselineVersion(v);
                 setPlanEditMode("view");
                 setEditBaselineSnapshot(null);
+                setEditFinSnapshot(null);
               }}>
                 <SelectTrigger className="h-9 w-56 text-xs">
                   <span className="truncate">
@@ -1155,6 +1182,7 @@ function ProjectDetail() {
             baselineSnapshot={projectBaselineVersions[projectBaselineVersions.length - 1]?.snapshot as Milestone[] | undefined}
             currentMilestones={milestones}
             baselineVersion={projectBaselineVersions.length}
+            extraChanges={editFinSnapshot ? diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }) : []}
             onSubmit={(cr) => {
               setCrDialogOpen(false);
               setPendingCrConfirm(cr);
@@ -1212,14 +1240,14 @@ function ProjectDetail() {
 
         <TabsContent value="Cost Breakdown" className="mt-5">
           <EmptyRegion id="project-cost">
-            <FinancialsTab mode="cost" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} onMilestoneClick={goToMilestone} />
+            <FinancialsTab mode="cost" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} onMilestoneClick={goToMilestone} cost={viewedFin?.cost ?? costEntries} setCost={setCostEntries} rev={viewedFin?.rev ?? revEntries} setRev={setRevEntries} allowActuals={isViewingCurrent} />
           </EmptyRegion>
         </TabsContent>
 
         {!isInternalProject && (
           <TabsContent value="Revenue Breakdown" className="mt-5">
             <EmptyRegion id="project-revenue">
-              <FinancialsTab mode="revenue" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} onMilestoneClick={goToMilestone} />
+              <FinancialsTab mode="revenue" project={project} milestones={milestones} isNew={isNewProject} onDataAdded={clearNewFlag} canEdit={isEditingAllowed} onMilestoneClick={goToMilestone} cost={viewedFin?.cost ?? costEntries} setCost={setCostEntries} rev={viewedFin?.rev ?? revEntries} setRev={setRevEntries} allowActuals={isViewingCurrent} />
             </EmptyRegion>
           </TabsContent>
         )}
@@ -2518,15 +2546,10 @@ function EditCostRowDialog({
   );
 }
 
-// ── Financials tab — Cost / Revenue split ────────────────────────────────────
-function FinancialsTab({
-  mode, project, milestones, isNew, onDataAdded, canEdit = true, onMilestoneClick,
-}: { mode: "cost" | "revenue"; project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void; canEdit?: boolean; onMilestoneClick?: (name: string) => void }) {
-  const milestoneNames = useMemo(
-    () => milestones.filter((m) => m.kind === "Milestone").map((m) => m.name),
-    [milestones],
-  );
-  const [costEntries, setCostEntries] = useState<CostEntry[]>(isNew ? [] : [
+// ── Financial plan baseline helpers ─────────────────────────────────────────
+function initialCostEntries(isNew: boolean): CostEntry[] {
+  if (isNew) return [];
+  return [
     { c: "Labour", cat: "Staff", b: 1.20, a: 0.84, color: "bg-rag-green", desc: "Core delivery team", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Build Complete", breakdown: [
       { name: "Backend engineers (3)", amount: 0.55, note: "6-month allocation" },
       { name: "Frontend engineers (2)", amount: 0.35 },
@@ -2536,15 +2559,76 @@ function FinancialsTab({
     { c: "Software licenses", cat: "Services", b: 0.40, a: 0.31, color: "bg-accent", desc: "Annual licenses", ctype: "third-party", classification: "opex", linkKind: "fixed", linkRef: "2025-05-01" },
     { c: "Business trips", cat: "Business Trips", b: 0.10, a: 0.07, color: "bg-rag-amber", desc: "Travel & accommodation", ctype: "internal", classification: "opex", linkKind: "milestone", linkRef: "Design Approved" },
     { c: "Contingency", cat: "Services", b: 0.60, a: 0.26, color: "bg-muted-foreground", desc: "Reserve", ctype: "internal", classification: "opex", linkKind: "fixed", linkRef: "" },
-  ]);
-  const [revEntries, setRevEntries] = useState<RevEntry[]>(isNew ? [] : [
+  ];
+}
+function initialRevEntries(project: { endDate: string }, isNew: boolean): RevEntry[] {
+  if (isNew) return [];
+  return [
     { ms: "Discovery complete", evt: "Advance payment (30%)",  plan: 0.96, date: "02 May",        s: "green", sl: "Received", act: 0.96, linkKind: "fixed",
       actuals: [{ amount: 0.60, date: "02 May", note: "Invoice INV-0012" }, { amount: 0.36, date: "21 May", note: "Invoice INV-0018" }] },
     { ms: "Build phase 1",      evt: "Progress invoice (20%)", plan: 0.64, date: "30 Nov",        s: "amber", sl: "Pending",  act: 0.20, linkKind: "fixed",
       actuals: [{ amount: 0.20, date: "04 Jul", note: "Partial settlement" }] },
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
     { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "14 Dec",        s: "blue",  sl: "Planned",  act: null, linkKind: "fixed" },
-  ]);
+  ];
+}
+type FinancialPlan = { cost: CostEntry[]; rev: RevEntry[] };
+/** Planned (baselined) fields only — logged actuals are bookkeeping and never need a Change Plan. */
+const COST_PLAN_FIELDS: Array<{ key: keyof CostEntry; label: string }> = [
+  { key: "c", label: "Cost item" }, { key: "cat", label: "Category" }, { key: "desc", label: "Description" },
+  { key: "b", label: "Planned amount ($M)" }, { key: "classification", label: "CapEx/OpEx" }, { key: "ctype", label: "Type" },
+  { key: "linkKind", label: "Date link" }, { key: "linkRef", label: "Date / milestone" }, { key: "breakdown", label: "Breakdown" },
+];
+const REV_PLAN_FIELDS: Array<{ key: keyof RevEntry; label: string }> = [
+  { key: "ms", label: "Milestone" }, { key: "evt", label: "Event" }, { key: "plan", label: "Planned amount ($M)" },
+  { key: "date", label: "Date" }, { key: "linkKind", label: "Date link" },
+];
+function fmtPlanValue(v: unknown): string {
+  if (v == null || v === "") return "—";
+  if (Array.isArray(v)) return v.length ? `${v.length} line${v.length === 1 ? "" : "s"}` : "—";
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+function diffFinancialPlan(base: FinancialPlan, cur: FinancialPlan) {
+  const out: Array<{ item: string; field: string; oldValue: string; newValue: string }> = [];
+  const run = <T,>(baseList: T[], curList: T[], keyOf: (e: T, i: number) => string, labelOf: (e: T) => string, fields: Array<{ key: keyof T; label: string }>, prefix: string) => {
+    const baseBy = new Map(baseList.map((e, i) => [keyOf(e, i), e]));
+    const curKeys = new Set(curList.map((e, i) => keyOf(e, i)));
+    curList.forEach((e, i) => {
+      const b = baseBy.get(keyOf(e, i));
+      const item = `${prefix} · ${labelOf(e)}`;
+      if (!b) { out.push({ item, field: "Item", oldValue: "—", newValue: "Added" }); return; }
+      for (const f of fields) {
+        const o = (b as any)[f.key]; const n = (e as any)[f.key];
+        if (JSON.stringify(o ?? null) !== JSON.stringify(n ?? null)) out.push({ item, field: f.label, oldValue: fmtPlanValue(o), newValue: fmtPlanValue(n) });
+      }
+    });
+    baseList.forEach((e, i) => { if (!curKeys.has(keyOf(e, i))) out.push({ item: `${prefix} · ${labelOf(e)}`, field: "Item", oldValue: "Existed", newValue: "Removed" }); });
+  };
+  run(base.cost, cur.cost, (e) => `${e.c}|${e.desc ?? ""}`, (e) => e.desc || e.c, COST_PLAN_FIELDS, "Cost");
+  run(base.rev, cur.rev, (e) => `${e.ms}|${e.evt}`, (e) => e.evt, REV_PLAN_FIELDS, "Revenue");
+  return out;
+}
+/** Demo history: older baselines carried smaller planned amounts so version switching shows real differences. */
+function demoFinancialVersion(plan: FinancialPlan, factor: number, dropLast: boolean): FinancialPlan {
+  const round = (n: number) => Math.round(n * factor * 100) / 100;
+  const cost = plan.cost.map((e) => ({ ...e, b: round(e.b), a: Math.min(e.a, round(e.b)) }));
+  const rev = plan.rev.map((e) => ({ ...e, plan: round(e.plan) }));
+  return { cost: dropLast ? cost.slice(0, -1) : cost, rev };
+}
+
+// ── Financials tab — Cost / Revenue split ────────────────────────────────────
+function FinancialsTab({
+  mode, project, milestones, isNew, onDataAdded, canEdit = true, onMilestoneClick, cost, setCost, rev, setRev, allowActuals = true,
+}: { mode: "cost" | "revenue"; project: typeof projects[number]; milestones: Milestone[]; isNew: boolean; onDataAdded: () => void; canEdit?: boolean; onMilestoneClick?: (name: string) => void; cost: CostEntry[]; setCost: React.Dispatch<React.SetStateAction<CostEntry[]>>; rev: RevEntry[]; setRev: React.Dispatch<React.SetStateAction<RevEntry[]>>; allowActuals?: boolean }) {
+  const milestoneNames = useMemo(
+    () => milestones.filter((m) => m.kind === "Milestone").map((m) => m.name),
+    [milestones],
+  );
+  const costEntries = cost;
+  const setCostEntries = setCost;
+  const revEntries = rev;
+  const setRevEntries = setRev;
   // Editing is governed by the single project-level baseline (see the project header).
   useLogListChanges(costEntries, { project: project.name, kind: "Financials", by: project.pm, ref: "Cost", key: (e) => e.c, label: (e) => e.c, noun: "Cost line" });
   useLogListChanges(revEntries, { project: project.name, kind: "Financials", by: project.pm, ref: "Revenue", key: (e) => `${e.ms}|${e.evt}`, label: (e) => e.evt, noun: "Revenue line" });
@@ -2737,6 +2821,7 @@ function FinancialsTab({
             <CostBreakdownTable
               entries={costRows}
               canEdit={canEdit}
+              allowActuals={allowActuals}
               categories={costCategoryNames}
               milestoneNames={milestoneNames}
               dateOf={costDate}
@@ -2840,6 +2925,7 @@ function FinancialsTab({
             <RevenuePlanTable
                 entries={revRows}
                 canEdit={canEdit}
+                allowActuals={allowActuals}
                 milestoneNames={milestoneNames}
                 dateOf={revDate}
                 totals={revTotals}
@@ -2897,10 +2983,11 @@ function FinancialsTab({
 
 /** Revenue plan with one row per planned event; expanding a row reveals its logged actuals. */
 function RevenuePlanTable({
-  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual, onMilestoneClick,
+  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual, onMilestoneClick, allowActuals = true,
 }: {
   entries: RevEntry[];
   canEdit: boolean;
+  allowActuals?: boolean;
   milestoneNames: string[];
   dateOf: (e: RevEntry) => string;
   totals: { planned: number; actual: number; util: number };
@@ -2999,7 +3086,7 @@ function RevenuePlanTable({
                     statusNode={<RagBadge rag={status.s as any} label={status.sl} />}
                     onEdit={canEdit ? () => setEditingIdx(idx) : undefined}
                     onDelete={canEdit ? () => setPendingDeleteIdx(idx) : undefined}
-                    extraActions={
+                    extraActions={allowActuals &&
                       <AddActualDialog
                         title="Add revenue recognition"
                         validateAmount={(amt) => overPlanMessage(amt, remaining)}
@@ -3113,10 +3200,11 @@ function RevenuePlanTable({
 
 /** Cost breakdown with one row per planned item; expanding a row reveals its logged actual expenses. */
 function CostBreakdownTable({
-  entries, canEdit, categories, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual, onMilestoneClick,
+  entries, canEdit, categories, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual, onMilestoneClick, allowActuals = true,
 }: {
   entries: CostEntry[];
   canEdit: boolean;
+  allowActuals?: boolean;
   categories: string[];
   milestoneNames: string[];
   dateOf: (e: CostEntry) => string;
@@ -3239,7 +3327,7 @@ function CostBreakdownTable({
                   <TableRowActions
                     onEdit={canEdit ? () => setEditingIdx(idx) : undefined}
                     onDelete={requestDelete}
-                    extraActions={
+                    extraActions={allowActuals &&
                       <AddActualDialog
                         title="Add actual spend"
                         validateAmount={(amt) => overPlanMessage(amt, remaining)}
@@ -6038,17 +6126,19 @@ function ChangeRequestDialog({
   currentMilestones,
   baselineVersion,
   onSubmit,
+  extraChanges = [],
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   baselineSnapshot?: Milestone[];
   currentMilestones: Milestone[];
   baselineVersion: number;
+  extraChanges?: Array<{ item: string; field: string; oldValue: string; newValue: string }>;
   onSubmit: (cr: ChangeRequest) => void;
 }) {
   const changes = useMemo(() => {
     const out: Array<{ item: string; field: string; oldValue: string; newValue: string }> = [];
-    if (!baselineSnapshot) return out;
+    if (!baselineSnapshot) return extraChanges;
     const baseByName = new Map(baselineSnapshot.map((m) => [m.name, m]));
     const curByName = new Map(currentMilestones.map((m) => [m.name, m]));
     const fmt = (key: keyof Milestone, v: any): string => {
@@ -6106,8 +6196,8 @@ function ChangeRequestDialog({
         out.push({ item: base.name, field: "Item", oldValue: "Existed", newValue: "Removed" });
       }
     }
-    return out;
-  }, [baselineSnapshot, currentMilestones]);
+    return [...out, ...extraChanges];
+  }, [baselineSnapshot, currentMilestones, extraChanges]);
 
   function handleSubmit() {
     if (changes.length === 0) {
@@ -6117,7 +6207,7 @@ function ChangeRequestDialog({
     const crId = `CR-${String(Date.now()).slice(-6)}`;
     const cr: ChangeRequest = {
       id: crId,
-      summary: `${changes.length} change${changes.length === 1 ? "" : "s"} to schedule`,
+      summary: `${changes.length} change${changes.length === 1 ? "" : "s"} to the project plan`,
       changes: changes.map((c) => ({ field: `${c.item} · ${c.field}`, oldValue: c.oldValue, newValue: c.newValue })),
       reason: "—",
       submittedBy: "Current User",

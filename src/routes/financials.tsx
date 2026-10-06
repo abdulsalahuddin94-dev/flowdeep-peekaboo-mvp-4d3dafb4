@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -324,14 +325,24 @@ function FinancialsPage() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={cashFlow} stackOffset="sign" margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="cashInflowArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--rag-green)" stopOpacity={0.42} />
+                      <stop offset="100%" stopColor="var(--rag-green)" stopOpacity={0.04} />
+                    </linearGradient>
+                    <linearGradient id="cashOutflowArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--rag-red)" stopOpacity={0.04} />
+                      <stop offset="100%" stopColor="var(--rag-red)" stopOpacity={0.42} />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="label" {...axis} />
                   <YAxis {...axis} />
                   <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
                   <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
-                  <Bar dataKey="Inflow" stackId="cf" fill="#51CAAD" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="Outflow" stackId="cf" fill="#F87171" radius={[0, 0, 3, 3]} />
-                  <Line type="monotone" dataKey="Cumulative" stroke="#D4A574" strokeWidth={2} dot={false} />
+                  <Area type="monotone" dataKey="Inflow" stroke="var(--rag-green)" strokeWidth={2} fill="url(#cashInflowArea)" />
+                  <Area type="monotone" dataKey="Outflow" stroke="var(--rag-red)" strokeWidth={2} fill="url(#cashOutflowArea)" />
+                  <Line type="monotone" dataKey="Cumulative" stroke="var(--accent)" strokeWidth={2.5} dot={false} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

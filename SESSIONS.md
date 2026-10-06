@@ -1,3 +1,7 @@
+## 2026-10-06 — Cash Flow Forecast: Dual Area Chart
+
+- Replaced the monthly/yearly inflow and outflow bars with two softly filled area series; retained the cumulative net line and zero reference for direct cash-position comparison.
+
 ## 2026-10-06 — Financials: P&L, cash flow, filtered milestone roll-ups
 
 - Overview (P&L): income-statement KPIs (Total Budget, Spent, Revenue, Expected/Actual Profit + margin); Profitability & Margin by Project Type replaces budget donut; new Cash Flow Forecast (monthly/yearly inflow, outflow, cumulative net; * = forecast). P&L table adds actual revenue/profit/margin.

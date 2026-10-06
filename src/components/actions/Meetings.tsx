@@ -49,6 +49,15 @@ const STATUS_TONE: Record<MeetingStatus, string> = {
   Held: "border-rag-green/40 bg-rag-green/10 text-rag-green",
   Cancelled: "border-border bg-muted text-muted-foreground",
 };
+/** Fixed mapping: attendee party → responsibility on meeting actions. */
+const PARTY_RESP: Record<AttendeeParty, string> = {
+  Internal: "Internal",
+  Client: "Client",
+  Vendor: "Vendor",
+  Stakeholder: "Client",
+  Other: "Client",
+};
+
 const PARTY_TONE: Record<AttendeeParty, string> = {
   Internal: "border-accent/40 bg-accent/10 text-accent",
   Client: "border-rag-teal/40 bg-rag-teal/10 text-rag-teal",

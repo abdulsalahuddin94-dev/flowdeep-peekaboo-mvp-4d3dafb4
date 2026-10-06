@@ -1318,11 +1318,12 @@ function IssueStatusDialog({
 
 /* ── KPI strip ────────────────────────────────────────────────────────────── */
 
-export function RiskKpiStrip({ project }: { project?: string }) {
-  const { risks, issues } = useRiskRegister();
+/** KPI cards; optional filtered lists let each tab scope the numbers to its own search & filters. */
+export function RiskKpiStrip({ project, risks: risksOverride, issues: issuesOverride }: { project?: string; risks?: RiskRecord[]; issues?: IssueRecord[] }) {
+  const store = useRiskRegister();
   const { severityOf, rules } = useSeverity();
-  const scopedRisks = project ? risks.filter((r) => r.project === project) : risks;
-  const scopedIssues = project ? issues.filter((i) => i.project === project) : issues;
+  const allRisks = risksOverride ?? (project ? store.risks.filter((r) => r.project === project) : store.risks);
+  const allIssues = issuesOverride ?? (project ? store.issues.filter((i) => i.project === project) : store.issues);
 
   const stats = useMemo(() => ({
     critical: scopedRisks.filter((r) => severityOf(r.score) === "Critical").length,

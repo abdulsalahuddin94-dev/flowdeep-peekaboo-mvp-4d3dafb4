@@ -138,6 +138,8 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Risk</Button>}
       />
 
+      <RiskKpiStrip risks={list} />
+
       <EmptyRegion id="risks-register">
         <StyledTable>
           <StyledTableHeader>

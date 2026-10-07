@@ -177,8 +177,8 @@ function FinancialsPage() {
     const prof = rest.reduce((a, x) => a + x.Profit, 0);
     return [...top, { name: `Other · ${rest.length}`, Revenue: rev, Cost: 0, Profit: +prof.toFixed(2), margin: rev ? (prof / rev) * 100 : 0, color: "#94A3B8" }];
   }, [profitability]);
-  // Horizontal profitability bars read best with many types; longest bar first.
-  const profBars = useMemo(() => [...profitability].sort((a, b) => b.Revenue - a.Revenue), [profitability]);
+  // With many project types the vertical bars keep their width and the card scrolls sideways.
+  const profMinWidth = Math.max(0, profitability.length) * 130;
   // Actual figures per project type: paid costs, collected revenue and realised profit.
   const actuals = useMemo(() => {
     const map = new Map<string, { name: string; Collected: number; Spent: number; Profit: number }>();

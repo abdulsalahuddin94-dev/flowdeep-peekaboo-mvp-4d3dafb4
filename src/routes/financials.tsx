@@ -413,7 +413,8 @@ function FinancialsPage() {
               </div>
               <Legendish items={[["Collected revenue", "#51CAAD"], ["Actual payments", "#94A3B8"], ["Actual profit", "#D4A574"]]} />
             </div>
-            <div className="space-y-4">
+            {/* Lanes scroll after 4 rows so the card keeps a stable height with many project types. */}
+            <div className="max-h-[272px] space-y-4 overflow-y-auto pr-1">
               {(() => {
                 const rows = [...actuals].sort((a, b) => b.Profit - a.Profit);
                 const maxCollected = Math.max(0.01, ...rows.map((r) => r.Collected));

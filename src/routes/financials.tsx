@@ -167,7 +167,18 @@ function FinancialsPage() {
     }
     return Array.from(map.values()).map((x) => ({ name: x.name, Revenue: +x.Revenue.toFixed(2), Cost: +x.Cost.toFixed(2), Profit: +x.Profit.toFixed(2), margin: (x.Profit / x.Revenue) * 100 }));
   }, [filteredPnlRows]);
-  const marginPie = useMemo(() => [...profitability].sort((a, b) => b.Profit - a.Profit), [profitability]);
+  // Margin donut — with many project types the smallest ones collapse into "Other" so colours stay unique.
+  const marginPie = useMemo(() => {
+    const sorted = [...profitability].sort((a, b) => b.Profit - a.Profit);
+    if (sorted.length <= 4) return sorted.map((x, i) => ({ ...x, color: PIE_COLORS[i % PIE_COLORS.length] }));
+    const top = sorted.slice(0, 4).map((x, i) => ({ ...x, color: PIE_COLORS[i] }));
+    const rest = sorted.slice(4);
+    const rev = rest.reduce((a, x) => a + x.Revenue, 0);
+    const prof = rest.reduce((a, x) => a + x.Profit, 0);
+    return [...top, { name: `Other · ${rest.length}`, Revenue: rev, Cost: 0, Profit: +prof.toFixed(2), margin: rev ? (prof / rev) * 100 : 0, color: "#94A3B8" }];
+  }, [profitability]);
+  // Horizontal profitability bars read best with many types; longest bar first.
+  const profBars = useMemo(() => [...profitability].sort((a, b) => b.Revenue - a.Revenue), [profitability]);
   // Actual figures per project type: paid costs, collected revenue and realised profit.
   const actuals = useMemo(() => {
     const map = new Map<string, { name: string; Collected: number; Spent: number; Profit: number }>();

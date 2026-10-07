@@ -371,7 +371,7 @@ function FinancialsPage() {
                   <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
                   <Bar dataKey="Collected" name="Collected revenue" fill="#51CAAD" radius={[3, 3, 0, 0]} barSize={26} />
                   <Bar dataKey="Spent" name="Actual payments" fill="#94A3B8" radius={[3, 3, 0, 0]} barSize={26} />
-                  <Line yAxisId="profit" type="monotone" dataKey="Profit" name="Actual profit" stroke="var(--accent)" strokeWidth={2.5} dot={{ r: 4, fill: "var(--accent)" }} />
+                  <Line yAxisId="profit" type="monotone" dataKey="Profit" name="Actual profit" stroke="#D4A574" strokeWidth={2.5} dot={{ r: 4, fill: "#D4A574" }} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

@@ -1,3 +1,6 @@
+## 2026-10-07 — Issues Log: Action Plan counts
+- Renamed Actions taken to Action Plan and replaced legacy truncated text with the shared linked-action count used by Risk Register, in both project details and the module.
+
 ## 2026-10-07 — Financials Overview: Profitability back to vertical bars with sideways scroll
 - Profitability by Project Type reverted to the original vertical grouped bars (Revenue/Cost/Profit, insertion order); the plot now fills the full card height and the card scrolls horizontally when project types exceed the visible width (fixed per-type width keeps bar sizes stable).
 - Verified with a temporary 6-type dataset (reverted): chart fills the card, sideways scroll engages, no empty space below the scrollbar. Typecheck clean, build OK.

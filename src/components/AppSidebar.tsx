@@ -60,7 +60,7 @@ const allItems: NavItem[] = [
     children: [
       { title: "Overview (P&L)", tab: "overview" },
       { title: "Cost Milestone", tab: "cost" },
-      { title: "Revenue Event", tab: "rev" },
+      { title: "Revenue Milestone", tab: "rev" },
     ],
   },
   {

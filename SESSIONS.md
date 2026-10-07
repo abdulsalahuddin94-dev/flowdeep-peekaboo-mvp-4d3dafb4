@@ -1,3 +1,8 @@
+## 2026-10-07 — Financials Overview: Project Type filter added
+- Added a "Project Type" filter (single-select, options from project business lines + "All project types") next to Fiscal Year in the Overview (P&L) toolbar.
+- The filter drives the 5 KPI cards, Profitability, Margin donut, Actuals lanes, the P&L table, and the Cash Flow Forecast (cost/revenue items filtered by type as well).
+- Typecheck clean, build OK.
+
 ## 2026-10-07 — Cost Milestone: CapEx / OpEx card now pie-only with badge colors
 - Removed the "50% / 50%" text from the CapEx / OpEx strip card; the card is now a larger donut (56px) beside a legend of the two badge colors — CapEx segment and dot use the CapEx badge color (var(--accent), lavender/indigo) and OpEx uses the OpEx badge color (var(--color-role-director), blue) — each legend row shows the amount + label.
 - Strip pie cells no longer require value/hint; the donut + legend fill the card height. Colors follow the table badges (no hard-coded hex) so dark/light themes stay in sync.

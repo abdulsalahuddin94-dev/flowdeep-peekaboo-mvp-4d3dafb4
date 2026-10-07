@@ -106,6 +106,7 @@ function FinancialsPage() {
   const goProject = useNavigate();
   const [selectedYear, setSelectedYear] = useState("all");
   const [pnlQuery, setPnlQuery] = useState("");
+  const [pnlLine, setPnlLine] = useState("all");
   const [overviewView, setOverviewView] = useState<"charts" | "table">("charts");
   const [cashMode, setCashMode] = useState<"monthly" | "yearly">("monthly");
   const [costQuery, setCostQuery] = useState("");
@@ -141,9 +142,10 @@ function FinancialsPage() {
   const filteredPnlRows = useMemo(() => pnlRows.filter(({ p }) => {
     const q = pnlQuery.trim().toLowerCase();
     if (q && !p.name.toLowerCase().includes(q) && !p.businessLine.toLowerCase().includes(q)) return false;
+    if (pnlLine !== "all" && p.businessLine !== pnlLine) return false;
     if (selectedYear !== "all" && ![...COST_ITEMS, ...REVENUE_ITEMS].some((x) => x.projectId === p.id && x.due.startsWith(selectedYear))) return false;
     return true;
-  }), [pnlRows, pnlQuery, selectedYear]);
+  }), [pnlRows, pnlQuery, pnlLine, selectedYear]);
   const pnlMatch = (project: string, line: string) => {
     const q = pnlQuery.trim().toLowerCase();
     return !q || project.toLowerCase().includes(q) || line.toLowerCase().includes(q);
@@ -181,8 +183,8 @@ function FinancialsPage() {
     const keyOf = (d: string) => (cashMode === "monthly" ? d.slice(0, 7) : d.slice(0, 4));
     const map = new Map<string, { key: string; Inflow: number; Outflow: number }>();
     if (cashMode === "monthly") for (let m = 1; m <= 12; m++) { const k = `${FIN_YEAR}-${String(m).padStart(2, "0")}`; map.set(k, { key: k, Inflow: 0, Outflow: 0 }); }
-    for (const r of REVENUE_ITEMS) { if (selectedYear !== "all" && !r.due.startsWith(selectedYear)) continue; if (!pnlMatch(r.project, r.businessLine)) continue; const k = keyOf(r.due); if (cashMode === "monthly" && !map.has(k)) continue; const c = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; c.Inflow += r.planned; map.set(k, c); }
-    for (const c of COST_ITEMS) { if (selectedYear !== "all" && !c.due.startsWith(selectedYear)) continue; if (!pnlMatch(c.project, c.businessLine)) continue; const k = keyOf(c.due); if (cashMode === "monthly" && !map.has(k)) continue; const e = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; e.Outflow += c.planned; map.set(k, e); }
+    for (const r of REVENUE_ITEMS) { if (selectedYear !== "all" && !r.due.startsWith(selectedYear)) continue; if (pnlLine !== "all" && r.businessLine !== pnlLine) continue; if (!pnlMatch(r.project, r.businessLine)) continue; const k = keyOf(r.due); if (cashMode === "monthly" && !map.has(k)) continue; const c = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; c.Inflow += r.planned; map.set(k, c); }
+    for (const c of COST_ITEMS) { if (selectedYear !== "all" && !c.due.startsWith(selectedYear)) continue; if (pnlLine !== "all" && c.businessLine !== pnlLine) continue; if (!pnlMatch(c.project, c.businessLine)) continue; const k = keyOf(c.due); if (cashMode === "monthly" && !map.has(k)) continue; const e = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; e.Outflow += c.planned; map.set(k, e); }
     let cum = 0;
     return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key)).map((x) => {
       const net = x.Inflow - x.Outflow; cum += net;
@@ -190,7 +192,7 @@ function FinancialsPage() {
       const forecast = cashMode === "monthly" ? x.key > TODAY.slice(0, 7) : x.key > TODAY.slice(0, 4);
       return { label: forecast ? `${label}*` : label, Inflow: +x.Inflow.toFixed(2), Outflow: +(-x.Outflow).toFixed(2), Net: +net.toFixed(2), Cumulative: +cum.toFixed(2) };
     });
-  }, [cashMode, pnlQuery, selectedYear]);
+  }, [cashMode, pnlQuery, pnlLine, selectedYear]);
 
   const costCategories = Array.from(new Set(COST_ITEMS.map((item) => item.cat)));
   const filteredCostItems = COST_ITEMS.filter((item) => {
@@ -311,6 +313,7 @@ function FinancialsPage() {
                 onQueryChange={setPnlQuery}
                 placeholder="Search project or project type…"
                 filterGroups={[
+                  { key: "line", label: "Project Type", value: pnlLine, onChange: setPnlLine, options: lineOptions },
                   { key: "year", label: "Fiscal Year", value: selectedYear, onChange: setSelectedYear, options: [{ value: "all", label: "All years" }, ...years.map((y) => ({ value: y, label: `FY${y}` }))] },
                 ]}
               />

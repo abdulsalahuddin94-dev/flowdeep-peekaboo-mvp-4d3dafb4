@@ -235,13 +235,44 @@ function FinancialsPage() {
       {items.map(([l, c]) => <span key={l} className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm" style={{ background: c }} />{l}</span>)}
     </div>
   );
-  const Strip = ({ cells }: { cells: { label: string; value: string; hint: string; tint?: string }[] }) => (
+  const MiniDonut = ({ segs, size = 46 }: { segs: { color: string; pct: number }[]; size?: number }) => {
+    const r = (size - 8) / 2;
+    const c = 2 * Math.PI * r;
+    let acc = 0;
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0" role="img" aria-label={segs.map((s) => `${Math.round(s.pct)}%`).join(" / ")}>
+        <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={6} />
+          {segs.map((s, i) => {
+            const pct = Math.min(100, Math.max(0, s.pct));
+            const len = (pct / 100) * c;
+            const off = -(acc * c) / 100;
+            acc += pct;
+            return <circle key={i} cx={size / 2} cy={size / 2} r={r} fill="none" stroke={s.color} strokeWidth={6} strokeDasharray={`${len} ${c - len}`} strokeDashoffset={off} />;
+          })}
+        </g>
+      </svg>
+    );
+  };
+  const Strip = ({ cells }: { cells: { label: string; value: string; hint: string; tint?: string; pie?: { color: string; pct: number }[] }[] }) => (
     <div className={`glass-card mb-5 grid items-stretch p-0 sm:grid-cols-2 ${cells.length > 4 ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
       {cells.map((c, i) => (
         <div key={c.label} className={`flex flex-col justify-center border-border px-5 py-4 ${i < cells.length - 1 ? "border-b lg:border-b-0 lg:border-r" : ""}`}>
           <div className="label-eyebrow">{c.label}</div>
-          <div className={`mt-1 text-2xl font-semibold num-mono ${c.tint ?? "text-foreground"}`}>{c.value}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{c.hint}</div>
+          {c.pie ? (
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className={`text-2xl font-semibold num-mono ${c.tint ?? "text-foreground"}`}>{c.value}</div>
+                <div className="mt-1 text-xs text-muted-foreground">{c.hint}</div>
+              </div>
+              <MiniDonut segs={c.pie} />
+            </div>
+          ) : (
+            <>
+              <div className={`mt-1 text-2xl font-semibold num-mono ${c.tint ?? "text-foreground"}`}>{c.value}</div>
+              <div className="mt-1 text-xs text-muted-foreground">{c.hint}</div>
+            </>
+          )}
         </div>
       ))}
     </div>
@@ -488,7 +519,7 @@ function FinancialsPage() {
             { label: "Spent", value: money(costTot.actual), hint: `${costTot.planned ? Math.round((costTot.actual / costTot.planned) * 100) : 0}% of planned`, tint: "text-accent" },
             { label: "To be paid", value: money(costTot.planned - costTot.actual), hint: `${money(costTot.overdue)} overdue`, tint: costTot.overdue > 0 ? "text-rag-amber" : undefined },
             { label: "Due this month", value: money(costDueMonth.amt), hint: `${costDueMonth.n} ${costDueMonth.n === 1 ? "line" : "lines"} due this month` },
-            { label: "CapEx / OpEx", value: `${capexPct}% / ${100 - capexPct}%`, hint: `${money(costTot.capex)} CapEx · ${money(costTot.opex)} OpEx` },
+            { label: "CapEx / OpEx", value: `${capexPct}% / ${100 - capexPct}%`, hint: `${money(costTot.capex)} CapEx · ${money(costTot.opex)} OpEx`, pie: [{ color: "#D4A574", pct: capexPct }, { color: "#94A3B8", pct: 100 - capexPct }] },
           ]} />
 
           <div className="mb-3 text-xs text-muted-foreground">Read-only roll-up from all projects. Select a line to open its project and log actuals.</div>

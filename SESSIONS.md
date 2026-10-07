@@ -1,3 +1,8 @@
+## 2026-10-07 — Cost Milestone: small pie chart back in the CapEx / OpEx card
+- The CapEx / OpEx strip card now shows a small donut on the right (gold #D4A574 CapEx segment, slate #94A3B8 OpEx segment) beside the "50% / 50%" value and the amounts hint; the ring reflects the filtered cost lines like the rest of the strip.
+- Implemented via an optional `pie` field on the shared Strip cells with a lightweight inline SVG MiniDonut (no extra chart dependency); other cells unchanged.
+- Verified in browser on /financials?tab=cost: donut renders inside the card; typecheck clean.
+
 ## 2026-10-07 — Financials: "Revenue Milestone" renamed to "Revenue Event"
 - Financials revenue tab renamed to "Revenue Event" everywhere: sidebar entry, page/tab title, the first card's hint ("36 revenue events · 12 projects"), "To be collected" hint ("Outstanding on these revenue events"), roll-up note, table header column, search placeholder ("Search project or revenue event…"), the Cash Flow Forecast description, and the page meta description.
 - Verified in browser on /financials?tab=rev: title, card hint and table header all read "Revenue Event"; typecheck clean.

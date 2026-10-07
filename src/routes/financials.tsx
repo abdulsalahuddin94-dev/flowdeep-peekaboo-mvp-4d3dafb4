@@ -519,7 +519,7 @@ function FinancialsPage() {
             { label: "Spent", value: money(costTot.actual), hint: `${costTot.planned ? Math.round((costTot.actual / costTot.planned) * 100) : 0}% of planned`, tint: "text-accent" },
             { label: "To be paid", value: money(costTot.planned - costTot.actual), hint: `${money(costTot.overdue)} overdue`, tint: costTot.overdue > 0 ? "text-rag-amber" : undefined },
             { label: "Due this month", value: money(costDueMonth.amt), hint: `${costDueMonth.n} ${costDueMonth.n === 1 ? "line" : "lines"} due this month` },
-            { label: "CapEx / OpEx", value: `${capexPct}% / ${100 - capexPct}%`, hint: `${money(costTot.capex)} CapEx · ${money(costTot.opex)} OpEx` },
+            { label: "CapEx / OpEx", value: `${capexPct}% / ${100 - capexPct}%`, hint: `${money(costTot.capex)} CapEx · ${money(costTot.opex)} OpEx`, pie: [{ color: "#D4A574", pct: capexPct }, { color: "#94A3B8", pct: 100 - capexPct }] },
           ]} />
 
           <div className="mb-3 text-xs text-muted-foreground">Read-only roll-up from all projects. Select a line to open its project and log actuals.</div>

@@ -1,6 +1,6 @@
 ## 2026-10-07 — Financials Overview: Actuals by Project Type chart
-- Overview (P&L) Charts view: added a third chart "Actuals by Project Type" — grouped bars per project type for Collected revenue, Actual payments and Actual profit realised to date ($M); it sits between the expected-profitability/margin row and the Cash Flow Forecast, which stays last.
-- The chart uses the same search/Fiscal Year filter as the other overview charts and reuses the profitability palette (Revenue/Cost/Profit colours kept consistent between expected and actual views).
+- Overview (P&L) Charts view: added a third chart "Actuals by Project Type" — bars for Collected revenue and Actual payments with a gold Actual-profit line on a secondary right-hand axis ($M); it sits between the expected-profitability/margin row and the Cash Flow Forecast, which stays last.
+- The chart uses the same search/Fiscal Year filter as the other overview charts and keeps the profitability palette so profit stays gold in both expected and actual views.
 - Verified in browser: card order is Profitability → Margin → Actuals → Cash Flow Forecast; typecheck clean.
 
 ## 2026-10-07 — Cost Milestone: Due this month card + project-level Risk/Issues cards hidden

@@ -144,6 +144,10 @@ function FinancialsPage() {
     if (selectedYear !== "all" && ![...COST_ITEMS, ...REVENUE_ITEMS].some((x) => x.projectId === p.id && x.due.startsWith(selectedYear))) return false;
     return true;
   }), [pnlRows, pnlQuery, selectedYear]);
+  const pnlMatch = (project: string, line: string) => {
+    const q = pnlQuery.trim().toLowerCase();
+    return !q || project.toLowerCase().includes(q) || line.toLowerCase().includes(q);
+  };
   const tot = filteredPnlRows.reduce((a, r) => ({
     budget: a.budget + r.p.budgetTotal, spent: a.spent + r.p.budgetUsed, revenue: a.revenue + r.revenue, actualRevenue: a.actualRevenue + r.actualRevenue,
   }), { budget: 0, spent: 0, revenue: 0, actualRevenue: 0 });
@@ -154,21 +158,21 @@ function FinancialsPage() {
 
   const profitability = useMemo(() => {
     const map = new Map<string, { name: string; Revenue: number; Cost: number; Profit: number }>();
-    for (const r of pnlRows) {
+    for (const r of filteredPnlRows) {
       const cur = map.get(r.p.businessLine) ?? { name: r.p.businessLine, Revenue: 0, Cost: 0, Profit: 0 };
       cur.Revenue += r.revenue; cur.Cost += r.p.budgetTotal; cur.Profit += r.expectedProfit;
       map.set(r.p.businessLine, cur);
     }
     return Array.from(map.values()).map((x) => ({ name: x.name, Revenue: +x.Revenue.toFixed(2), Cost: +x.Cost.toFixed(2), Profit: +x.Profit.toFixed(2), margin: (x.Profit / x.Revenue) * 100 }));
-  }, [pnlRows]);
+  }, [filteredPnlRows]);
   const marginPie = useMemo(() => [...profitability].sort((a, b) => b.Profit - a.Profit), [profitability]);
 
   const cashFlow = useMemo(() => {
     const keyOf = (d: string) => (cashMode === "monthly" ? d.slice(0, 7) : d.slice(0, 4));
     const map = new Map<string, { key: string; Inflow: number; Outflow: number }>();
     if (cashMode === "monthly") for (let m = 1; m <= 12; m++) { const k = `${FIN_YEAR}-${String(m).padStart(2, "0")}`; map.set(k, { key: k, Inflow: 0, Outflow: 0 }); }
-    for (const r of REVENUE_ITEMS) { const k = keyOf(r.due); if (cashMode === "monthly" && !map.has(k)) continue; const c = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; c.Inflow += r.planned; map.set(k, c); }
-    for (const c of COST_ITEMS) { const k = keyOf(c.due); if (cashMode === "monthly" && !map.has(k)) continue; const e = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; e.Outflow += c.planned; map.set(k, e); }
+    for (const r of REVENUE_ITEMS) { if (selectedYear !== "all" && !r.due.startsWith(selectedYear)) continue; if (!pnlMatch(r.project, r.businessLine)) continue; const k = keyOf(r.due); if (cashMode === "monthly" && !map.has(k)) continue; const c = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; c.Inflow += r.planned; map.set(k, c); }
+    for (const c of COST_ITEMS) { if (selectedYear !== "all" && !c.due.startsWith(selectedYear)) continue; if (!pnlMatch(c.project, c.businessLine)) continue; const k = keyOf(c.due); if (cashMode === "monthly" && !map.has(k)) continue; const e = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; e.Outflow += c.planned; map.set(k, e); }
     let cum = 0;
     return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key)).map((x) => {
       const net = x.Inflow - x.Outflow; cum += net;

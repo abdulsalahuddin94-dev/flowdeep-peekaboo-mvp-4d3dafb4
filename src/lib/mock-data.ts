@@ -78,7 +78,7 @@ const pms = [
   ["Hana Tanaka", "HT"], ["Diego Ortiz", "DO"],
 ];
 
-const lines = ["Software Solutions", "EPC", "Consultation", "Maintenance"];
+const lines = ["Software Solutions", "EPC", "Consultation", "Maintenance"]; // demo business lines
 const depts = ["Engineering", "IT", "Operations", "R&D", "Finance"];
 const tags = ["Strategic", "Compliance", "Innovation", "Cost-Saving", "Customer-Facing"];
 
@@ -385,3 +385,4 @@ export const milestones = [
   { project: "Coastal Refinery Expansion", name: "Civil phase complete", due: "22 Sep, 2026", in: 117, status: "amber" },
   { project: "Smart Grid Pilot", name: "Pilot kick-off", due: "02 Jun, 2026", in: 5, status: "green" },
 ];
+

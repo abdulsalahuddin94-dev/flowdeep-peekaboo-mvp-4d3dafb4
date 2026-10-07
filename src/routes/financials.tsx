@@ -177,8 +177,8 @@ function FinancialsPage() {
     const prof = rest.reduce((a, x) => a + x.Profit, 0);
     return [...top, { name: `Other · ${rest.length}`, Revenue: rev, Cost: 0, Profit: +prof.toFixed(2), margin: rev ? (prof / rev) * 100 : 0, color: "#94A3B8" }];
   }, [profitability]);
-  // Horizontal profitability bars read best with many types; longest bar first.
-  const profBars = useMemo(() => [...profitability].sort((a, b) => b.Revenue - a.Revenue), [profitability]);
+  // With many project types the vertical bars keep their width and the card scrolls sideways.
+  const profMinWidth = Math.max(0, profitability.length) * 130;
   // Actual figures per project type: paid costs, collected revenue and realised profit.
   const actuals = useMemo(() => {
     const map = new Map<string, { name: string; Collected: number; Spent: number; Profit: number }>();
@@ -359,7 +359,7 @@ function FinancialsPage() {
           {overviewView === "charts" && (
           <>
           <div className="mb-5 grid gap-4 lg:grid-cols-5">
-            <div className="glass-card p-4 lg:col-span-3">
+            <div className="flex flex-col p-4 glass-card lg:col-span-3">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
                   <div className="label-eyebrow">Profitability by Project Type</div>
@@ -367,18 +367,21 @@ function FinancialsPage() {
                 </div>
                 <Legendish items={[["Revenue", "#51CAAD"], ["Cost", "#94A3B8"], ["Profit", "#D4A574"]]} />
               </div>
-              <div className={profBars.length > 5 ? "max-h-64 overflow-y-auto pr-1" : "h-64"}>
-                <ResponsiveContainer width="100%" height={Math.max(248, profBars.length * 58 + 16)}>
-                  <BarChart data={profBars} layout="vertical" margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis type="number" {...axis} />
-                    <YAxis type="category" dataKey="name" width={124} {...axis} />
-                    <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
-                    <Bar dataKey="Revenue" fill="#51CAAD" radius={[0, 3, 3, 0]} barSize={11} />
-                    <Bar dataKey="Cost" fill="#94A3B8" radius={[0, 3, 3, 0]} barSize={11} />
-                    <Bar dataKey="Profit" fill="#D4A574" radius={[0, 3, 3, 0]} barSize={11} />
-                  </BarChart>
-                </ResponsiveContainer>
+              {/* Fills the card height and scrolls sideways when project types exceed the visible width. */}
+              <div className="min-h-64 flex-1 overflow-x-auto">
+                <div style={{ width: profMinWidth, minWidth: "100%", height: "100%" }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={profitability} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis dataKey="name" {...axis} />
+                      <YAxis {...axis} />
+                      <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
+                      <Bar dataKey="Revenue" fill="#51CAAD" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="Cost" fill="#94A3B8" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="Profit" fill="#D4A574" radius={[3, 3, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
             <div className="glass-card p-4 lg:col-span-2">

@@ -1,3 +1,7 @@
+## 2026-10-07 — Financials: "Revenue Milestone" renamed to "Revenue Event"
+- Financials revenue tab renamed to "Revenue Event" everywhere: sidebar entry, page/tab title, the first card's hint ("36 revenue events · 12 projects"), "To be collected" hint ("Outstanding on these revenue events"), roll-up note, table header column, search placeholder ("Search project or revenue event…"), the Cash Flow Forecast description, and the page meta description.
+- Verified in browser on /financials?tab=rev: title, card hint and table header all read "Revenue Event"; typecheck clean.
+
 ## 2026-10-07 — Financials Overview: Actuals by Project Type → horizontal growth lanes
 - Overview (P&L) Charts view: the Actuals by Project Type card was converted from the grouped bars + gold profit line to horizontal growth lanes — one row per project type, ranked by actual profit, each with a solid payments segment (slate) over a collected-revenue segment (teal) on a faint full-width track, a gold rounded "+N% Profit" badge on the right, and a "$X Rev / $Y Pay" caption under the bar.
 - Rows sort by actual profit (highest first); same search/Fiscal Year filter as the rest of the Overview still drives the card.

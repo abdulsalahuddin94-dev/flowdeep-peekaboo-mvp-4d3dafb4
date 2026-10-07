@@ -1,3 +1,10 @@
+## 2026-10-07 — Financials Overview: toolbar above KPI cards + margin pie
+- Overview (P&L): the search & Filter toolbar (with the Charts/Table switcher) moved above the five headline cards (Total Budget / Spent / Revenue / Expected Profit / Actual Profit); search and Fiscal Year filter now recalculate the cards live.
+- The filter also drives the Charts view: Profitability by Project Type, Cash Flow Forecast and the new Margin by Project Type donut all react to the same search/fiscal-year filter.
+- Margin by Project Type converted from horizontal bars to a donut (pie) chart of expected profit share, with a legend showing each type's profit and margin % (green ≥15 / amber >5 / red otherwise); single-type result renders as a full ring.
+- Fixed NaN% "of budget" hint when the filtered result is empty.
+- Verified in browser: toolbar sits above the cards, filtering by project name updates cards (1 project), the bar chart, the pie and cash flow together; typecheck clean.
+
 ## 2026-10-06 — Financials Overview: Charts/Table view switcher
 - Overview (P&L) tab: added a segmented Charts / Table switcher next to the search & Filter toolbar. Charts view shows the profitability, margin and cash-flow charts; Table view shows the P&L-by-project table. Search and filters apply to both.
 - Verified in browser: both views render and toggle correctly.

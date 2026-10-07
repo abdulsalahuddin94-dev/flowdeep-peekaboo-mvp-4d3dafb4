@@ -25,7 +25,7 @@ import {
   Line,
   ReferenceLine,
 } from "recharts";
-import { formatDateWithYear } from "@/lib/date-format";
+import { formatDateWithYear, formatDateWithoutYear } from "@/lib/date-format";
 
 const FIN_YEAR = 2026;
 // Demo contract markup per project type so profitability differs by line.

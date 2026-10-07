@@ -1,3 +1,7 @@
+## 2026-10-07 — Financials Overview: Profitability back to vertical bars with sideways scroll
+- Profitability by Project Type reverted to the original vertical grouped bars (Revenue/Cost/Profit, insertion order); the plot now fills the full card height and the card scrolls horizontally when project types exceed the visible width (fixed per-type width keeps bar sizes stable).
+- Verified with a temporary 6-type dataset (reverted): chart fills the card, sideways scroll engages, no empty space below the scrollbar. Typecheck clean, build OK.
+
 ## 2026-10-07 — Financials Overview: many project types handled (scroll + grouping)
 - Profitability by Project Type converted to horizontal bars (Revenue/Cost/Profit, longest revenue first); the card keeps a stable height and scrolls internally once there are more than 5 project types.
 - Actuals by Project Type lanes scroll internally after 4 rows (same stable-height pattern as the Actions composer).

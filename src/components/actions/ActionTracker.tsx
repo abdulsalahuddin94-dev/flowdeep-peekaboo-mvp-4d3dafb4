@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { TableRowActions } from "@/components/TableRowActions";
 import { Pill } from "@/components/Pill";
@@ -21,7 +22,7 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { EditAction, DeleteAction, ClipboardCheck, Plus, Check } from "@/lib/icons";
 import { formatDateWithYear } from "@/lib/date-format";
-import { useCurrentUser } from "@/lib/projects-store";
+import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import { useRiskRegister } from "@/lib/risk-store";
 import {
   useActions, isActionOverdue, daysOverdue, ACTION_SOURCES, ACTION_STATUSES,
@@ -39,6 +40,7 @@ export const T = {
     actionPlaceholder: "Action", ownerPlaceholder: "Owner", responsibility: "Responsibility", dueDate: "Due date",
     addActionRow: "Add action", updateActionRow: "Update action", editActionRow: "Edit action", deleteActionRow: "Delete action",
     actionRowRequired: "Complete the action, owner, responsibility, and due date first.", noDraftActions: "No actions added yet.",
+    viewLinkedActions: "View linked actions in Action Tracker", linkedPlan: "Linked plan", allPlans: "All plans",
   },
   ar: {
     title: "متابعة الإجراءات", add: "إضافة إجراء", meeting: "تسجيل إجراءات الاجتماع", search: "ابحث عن إجراء…",
@@ -48,6 +50,7 @@ export const T = {
     actionPlaceholder: "الإجراء", ownerPlaceholder: "المسؤول", responsibility: "المسؤولية", dueDate: "تاريخ الاستحقاق",
     addActionRow: "إضافة إجراء", updateActionRow: "تحديث الإجراء", editActionRow: "تعديل الإجراء", deleteActionRow: "حذف الإجراء",
     actionRowRequired: "أكمل الإجراء والمسؤول ونوع المسؤولية وتاريخ الاستحقاق أولاً.", noDraftActions: "لم تتم إضافة إجراءات بعد.",
+    viewLinkedActions: "عرض الإجراءات المرتبطة في متابعة الإجراءات", linkedPlan: "الخطة المرتبطة", allPlans: "كل الخطط",
   },
 };
 const t = T.en;
@@ -86,12 +89,13 @@ function DueCell({ a }: { a: ActionItem }) {
 
 /* ── Tab ─────────────────────────────────────────────────────────────────── */
 
-export function ActionTrackerTab({ project }: { project: string }) {
+export function ActionTrackerTab({ project, initialSourceRef }: { project: string; initialSourceRef?: string }) {
   const { actions, addAction, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
   const { currentUser } = useCurrentUser();
   const { respTypes } = useResponsibilities();
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("all");
+  const [sourceRef, setSourceRef] = useState(initialSourceRef ?? "all");
   const [resp, setResp] = useState("all");
   const [owner, setOwner] = useState("all");
   const [status, setStatus] = useState("all");
@@ -119,6 +123,7 @@ export function ActionTrackerTab({ project }: { project: string }) {
   const list = scoped
     .filter((a) => !q || a.title.toLowerCase().includes(q))
     .filter((a) => source === "all" || a.source === source)
+    .filter((a) => sourceRef === "all" || a.sourceRef === sourceRef)
     .filter((a) => resp === "all" || a.responsibility === resp)
     .filter((a) => owner === "all" || a.owner === owner)
     .filter((a) => status === "all" || (status === "Overdue" ? isActionOverdue(a) : a.status === status))
@@ -138,6 +143,7 @@ export function ActionTrackerTab({ project }: { project: string }) {
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, { value: "Overdue", label: "Overdue" }, ...ACTION_STATUSES.map((v) => ({ value: v, label: v }))] },
           { key: "resp", label: "Responsibility", value: resp, onChange: setResp, options: [{ value: "all", label: "All parties" }, ...respTypes.map((v) => ({ value: v.name, label: v.name }))] },
           { key: "source", label: "Source", value: source, onChange: setSource, options: [{ value: "all", label: "All sources" }, ...ACTION_SOURCES.map((v) => ({ value: v, label: v }))] },
+          { key: "sourceRef", label: t.linkedPlan, value: sourceRef, onChange: setSourceRef, options: [{ value: "all", label: t.allPlans }, ...Array.from(new Set(scoped.flatMap((a) => a.sourceRef ? [a.sourceRef] : []))).map((ref) => ({ value: ref, label: ref }))] },
           { key: "owner", label: "Owner", value: owner, onChange: setOwner, options: [{ value: "all", label: "All owners" }, ...owners.map((v) => ({ value: v, label: v }))] },
         ]}
         trailing={
@@ -634,9 +640,22 @@ export function LinkedActions({ project, source, sourceRef, title }: { project: 
 /** Compact "done/total" indicator for register tables. */
 export function ActionsCount({ source, sourceRef }: { source: "Risk" | "Issue"; sourceRef: string }) {
   const { actions } = useActions();
+  const { projects } = useProjects();
+  const navigate = useNavigate();
   const linked = actions.filter((a) => a.source === source && a.sourceRef === sourceRef);
   if (!linked.length) return <span className="text-muted-foreground">—</span>;
   const done = linked.filter((a) => a.status === "Done").length;
   const over = linked.some((a) => isActionOverdue(a));
-  return <span className={cn("num-mono text-sm", over ? "text-rag-red" : "text-foreground")}>{done}/{linked.length}</span>;
+  const project = projects.find((p) => p.name === linked[0]?.project);
+  if (!project) return <span className={cn("num-mono text-sm", over ? "text-rag-red" : "text-foreground")}>{done}/{linked.length}</span>;
+  return (
+    <Button variant="link" className={cn("h-7 px-0 num-mono text-sm", over ? "text-rag-red" : "text-foreground")}
+      title={t.viewLinkedActions} aria-label={`${t.viewLinkedActions} · ${sourceRef} · ${done}/${linked.length}`}
+      onClick={(event) => {
+        event.stopPropagation();
+        navigate({ to: "/portfolio/$projectId", params: { projectId: project.id }, search: { tab: "Action Tracker", actionRef: sourceRef } });
+      }}>
+      {done}/{linked.length}
+    </Button>
+  );
 }

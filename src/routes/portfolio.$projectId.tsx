@@ -61,8 +61,9 @@ void ProjectGantt;
 
 export const Route = createFileRoute("/portfolio/$projectId")({
   component: ProjectDetail,
-  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { tab?: string; actionRef?: string } => ({
     tab: typeof search.tab === "string" ? search.tab : undefined,
+    actionRef: typeof search.actionRef === "string" ? search.actionRef : undefined,
   }),
   loader: ({ params }) => {
     const p = projects.find((x) => x.id === params.projectId);
@@ -169,8 +170,11 @@ function ProjectDetail() {
   function clearNewFlag() {
     if (project.ragNote === "New") updateProject(project.id, { ragNote: undefined });
   }
-  const { tab: initialTab } = Route.useSearch();
+  const { tab: initialTab, actionRef } = Route.useSearch();
   const [activeTab, setActiveTab] = useState<string>(() => (initialTab && TABS.includes(initialTab) ? initialTab : TABS[0]));
+  useEffect(() => {
+    if (initialTab && TABS.includes(initialTab)) setActiveTab(initialTab);
+  }, [initialTab, actionRef]);
   const [overviewRiskId, setOverviewRiskId] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const cached = PLAN_CACHE.get(loaderProject.id) as any;
@@ -1244,7 +1248,7 @@ function ProjectDetail() {
         </TabsContent>
 
         <TabsContent value="Action Tracker" className="mt-5">
-          <ActionTrackerTab project={project.name} />
+          <ActionTrackerTab key={actionRef ?? "all"} project={project.name} initialSourceRef={actionRef} />
         </TabsContent>
 
         <TabsContent value="Meetings" className="mt-5">

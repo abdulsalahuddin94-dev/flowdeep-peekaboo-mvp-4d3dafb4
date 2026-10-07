@@ -1,3 +1,6 @@
+## 2026-10-07 — Linked plans navigate to Action Tracker
+- Risk Mitigation plan and Issue Action Plan counts open their project Action Tracker filtered to the linked record, without opening the row drawer. The linked-plan filter can be cleared to show all actions.
+
 ## 2026-10-07 — Issues Log: Action Plan counts
 - Renamed Actions taken to Action Plan and replaced legacy truncated text with the shared linked-action count used by Risk Register, in both project details and the module.
 

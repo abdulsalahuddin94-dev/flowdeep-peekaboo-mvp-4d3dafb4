@@ -138,7 +138,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Risk</Button>}
       />
 
-      <RiskKpiStrip risks={list} />
+      {!project && <RiskKpiStrip risks={list} />}
 
       <EmptyRegion id="risks-register">
         <StyledTable>
@@ -779,7 +779,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Issue</Button>}
       />
 
-      <RiskKpiStrip issues={list} />
+      {!project && <RiskKpiStrip issues={list} />}
 
       <EmptyRegion id="risks-issues">
         <StyledTable>

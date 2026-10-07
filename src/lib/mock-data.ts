@@ -78,7 +78,7 @@ const pms = [
   ["Hana Tanaka", "HT"], ["Diego Ortiz", "DO"],
 ];
 
-const lines = ["Software Solutions", "EPC", "Consultation", "Maintenance"];
+const lines = ["Software Solutions", "EPC", "Consultation", "Maintenance"]; // demo business lines
 const depts = ["Engineering", "IT", "Operations", "R&D", "Finance"];
 const tags = ["Strategic", "Compliance", "Innovation", "Cost-Saving", "Customer-Facing"];
 

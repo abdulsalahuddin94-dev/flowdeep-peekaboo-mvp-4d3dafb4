@@ -30,6 +30,8 @@ import { formatDateWithYear } from "@/lib/date-format";
 const FIN_YEAR = 2026;
 // Demo contract markup per project type so profitability differs by line.
 const MARKUP: Record<string, number> = { "Software Solutions": 1.32, EPC: 1.12, Maintenance: 1.22, Consultation: 1.45 };
+// Pie slice colors for the Margin by Project Type donut.
+const PIE_COLORS = ["#51CAAD", "#94A3B8", "#D4A574", "#A78BFA", "#F87171"];
 const COST_TEMPLATES = [
   { item: "Licences & subscriptions", cat: "Software", type: "CapEx", share: 0.3 },
   { item: "Delivery labour", cat: "Staff", type: "OpEx", share: 0.4 },

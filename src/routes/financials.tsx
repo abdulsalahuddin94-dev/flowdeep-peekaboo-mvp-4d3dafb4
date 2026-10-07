@@ -80,7 +80,7 @@ const monthOptions = Array.from(new Set([...COST_ITEMS, ...REVENUE_ITEMS].map((x
   .map((v) => ({ value: v, label: `${MONTHS[+v.slice(5, 7) - 1]}, ${v.slice(0, 4)}` }));
 
 const FIN_TAB_LABELS: Record<string, string> = {
-  overview: "Overview (P&L)", cost: "Cost Milestone", rev: "Revenue Milestone",
+  overview: "Overview (P&L)", cost: "Cost Milestone", rev: "Revenue Event",
 };
 
 export const Route = createFileRoute("/financials")({

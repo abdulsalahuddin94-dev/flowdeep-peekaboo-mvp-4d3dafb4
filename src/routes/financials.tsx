@@ -205,7 +205,7 @@ function FinancialsPage() {
   const projCount = (rows: { projectId: string }[]) => new Set(rows.map((r) => r.projectId)).size;
 
   const kpis = [
-    { label: "Total Budget", value: money(tot.budget), icon: Wallet, tint: "text-foreground", hint: `${filteredPnlRows.length} projects` },
+    { label: "Total Budget", value: money(tot.budget), icon: Wallet, tint: "text-foreground", hint: `${filteredPnlRows.length} ${filteredPnlRows.length === 1 ? "project" : "projects"}` },
     { label: "Total Spent", value: money(tot.spent), icon: TrendingDown, tint: "text-accent", hint: `${tot.budget ? Math.round((tot.spent / tot.budget) * 100) : 0}% of budget` },
     { label: "Total Revenue", value: money(tot.revenue), icon: TrendingUp, tint: "text-foreground", hint: `${money(tot.actualRevenue)} earned to date` },
     { label: "Expected Profit", value: money(expProfit), icon: PiggyBank, tint: expProfit >= 0 ? "text-rag-green" : "text-rag-red", hint: `Margin ${expMargin.toFixed(1)}%` },

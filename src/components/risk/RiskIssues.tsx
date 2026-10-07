@@ -793,7 +793,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
               <StyledTableHead className="text-center whitespace-nowrap">Open date</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Target date</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Closure date</StyledTableHead>
-              <StyledTableHead className="whitespace-nowrap">Actions taken</StyledTableHead>
+              <StyledTableHead className="whitespace-nowrap">Action Plan</StyledTableHead>
                <StyledTableHead className="w-40 text-center">Status</StyledTableHead>
             </StyledTableHeaderRow>
           </StyledTableHeader>
@@ -811,9 +811,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.openDate)}</StyledTableCell>
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.targetDate)}</StyledTableCell>
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.closureDate)}</StyledTableCell>
-                <StyledTableCell className="max-w-[160px] truncate text-muted-foreground" title={i.action || undefined}>
-                  {i.action || "—"}
-                </StyledTableCell>
+                <StyledTableCell><ActionsCount source="Issue" sourceRef={i.id} /></StyledTableCell>
                 <StyledTableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
                     showStatus

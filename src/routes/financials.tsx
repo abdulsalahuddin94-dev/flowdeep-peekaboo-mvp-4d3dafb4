@@ -200,6 +200,8 @@ function FinancialsPage() {
       && (revStatus === "all" || revStatusOf(item) === revStatus);
   });
   const costTot = filteredCostItems.reduce((a, c) => ({ planned: a.planned + c.planned, actual: a.actual + c.actual, capex: a.capex + (c.type === "CapEx" ? c.planned : 0), opex: a.opex + (c.type === "OpEx" ? c.planned : 0), overdue: a.overdue + (costStatusOf(c) === "Overdue" ? c.planned - c.actual : 0) }), { planned: 0, actual: 0, capex: 0, opex: 0, overdue: 0 });
+  const costDueMonth = filteredCostItems.reduce((a, c) => (c.due.startsWith(TODAY.slice(0, 7)) ? { amt: a.amt + Math.max(0, c.planned - c.actual), n: a.n + 1 } : a), { amt: 0, n: 0 });
+
   const revTot = filteredRevenueItems.reduce((a, r) => ({ planned: a.planned + r.planned, collected: a.collected + r.collected, overdue: a.overdue + (revStatusOf(r) === "Overdue" ? r.planned - r.collected : 0) }), { planned: 0, collected: 0, overdue: 0 });
   const capexPct = costTot.planned ? Math.round((costTot.capex / costTot.planned) * 100) : 0;
   const projCount = (rows: { projectId: string }[]) => new Set(rows.map((r) => r.projectId)).size;
@@ -224,7 +226,7 @@ function FinancialsPage() {
     </div>
   );
   const Strip = ({ cells }: { cells: { label: string; value: string; hint: string; tint?: string }[] }) => (
-    <div className="glass-card mb-5 grid items-stretch p-0 sm:grid-cols-2 lg:grid-cols-4">
+    <div className={`glass-card mb-5 grid items-stretch p-0 sm:grid-cols-2 ${cells.length > 4 ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
       {cells.map((c, i) => (
         <div key={c.label} className={`flex flex-col justify-center border-border px-5 py-4 ${i < cells.length - 1 ? "border-b lg:border-b-0 lg:border-r" : ""}`}>
           <div className="label-eyebrow">{c.label}</div>
@@ -436,8 +438,10 @@ function FinancialsPage() {
             { label: "Planned cost", value: money(costTot.planned), hint: `${filteredCostItems.length} lines · ${projCount(filteredCostItems)} projects` },
             { label: "Spent", value: money(costTot.actual), hint: `${costTot.planned ? Math.round((costTot.actual / costTot.planned) * 100) : 0}% of planned`, tint: "text-accent" },
             { label: "To be paid", value: money(costTot.planned - costTot.actual), hint: `${money(costTot.overdue)} overdue`, tint: costTot.overdue > 0 ? "text-rag-amber" : undefined },
+            { label: "Due this month", value: money(costDueMonth.amt), hint: `${costDueMonth.n} ${costDueMonth.n === 1 ? "line" : "lines"} due this month` },
             { label: "CapEx / OpEx", value: `${capexPct}% / ${100 - capexPct}%`, hint: `${money(costTot.capex)} CapEx · ${money(costTot.opex)} OpEx` },
           ]} />
+
           <div className="mb-3 text-xs text-muted-foreground">Read-only roll-up from all projects. Select a line to open its project and log actuals.</div>
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">

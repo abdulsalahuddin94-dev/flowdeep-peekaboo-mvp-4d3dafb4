@@ -367,18 +367,21 @@ function FinancialsPage() {
                 </div>
                 <Legendish items={[["Revenue", "#51CAAD"], ["Cost", "#94A3B8"], ["Profit", "#D4A574"]]} />
               </div>
-              <div className={profBars.length > 5 ? "max-h-64 overflow-y-auto pr-1" : "h-64"}>
-                <ResponsiveContainer width="100%" height={Math.max(248, profBars.length * 58 + 16)}>
-                  <BarChart data={profBars} layout="vertical" margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis type="number" {...axis} />
-                    <YAxis type="category" dataKey="name" width={124} {...axis} />
-                    <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
-                    <Bar dataKey="Revenue" fill="#51CAAD" radius={[0, 3, 3, 0]} barSize={11} />
-                    <Bar dataKey="Cost" fill="#94A3B8" radius={[0, 3, 3, 0]} barSize={11} />
-                    <Bar dataKey="Profit" fill="#D4A574" radius={[0, 3, 3, 0]} barSize={11} />
-                  </BarChart>
-                </ResponsiveContainer>
+              {/* Fixed per-type width inside a sideways scroll so bars never squeeze when types grow. */}
+              <div className="h-64 overflow-x-auto">
+                <div style={{ width: profMinWidth, minWidth: "100%", height: "100%" }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={profitability} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                      <XAxis dataKey="name" {...axis} />
+                      <YAxis {...axis} />
+                      <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
+                      <Bar dataKey="Revenue" fill="#51CAAD" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="Cost" fill="#94A3B8" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="Profit" fill="#D4A574" radius={[3, 3, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
             <div className="glass-card p-4 lg:col-span-2">

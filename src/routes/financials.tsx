@@ -438,7 +438,7 @@ function FinancialsPage() {
             { label: "Planned cost", value: money(costTot.planned), hint: `${filteredCostItems.length} lines · ${projCount(filteredCostItems)} projects` },
             { label: "Spent", value: money(costTot.actual), hint: `${costTot.planned ? Math.round((costTot.actual / costTot.planned) * 100) : 0}% of planned`, tint: "text-accent" },
             { label: "To be paid", value: money(costTot.planned - costTot.actual), hint: `${money(costTot.overdue)} overdue`, tint: costTot.overdue > 0 ? "text-rag-amber" : undefined },
-            { label: "Due this month", value: money(costDueMonth.amt), hint: `${costDueMonth.n} ${costDueMonth.n === 1 ? "line" : "lines"} due ${formatDateWithoutYear(TODAY).split(" ")[1]}` },
+            { label: "Due this month", value: money(costDueMonth.amt), hint: `${costDueMonth.n} ${costDueMonth.n === 1 ? "line" : "lines"} due this month` },
             { label: "CapEx / OpEx", value: `${capexPct}% / ${100 - capexPct}%`, hint: `${money(costTot.capex)} CapEx · ${money(costTot.opex)} OpEx` },
           ]} />
 

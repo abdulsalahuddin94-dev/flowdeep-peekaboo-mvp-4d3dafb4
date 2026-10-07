@@ -19,6 +19,9 @@ import {
   CartesianGrid,
   Tooltip,
   ComposedChart,
+  PieChart,
+  Pie,
+  Cell,
   Line,
   ReferenceLine,
 } from "recharts";
@@ -27,6 +30,8 @@ import { formatDateWithYear } from "@/lib/date-format";
 const FIN_YEAR = 2026;
 // Demo contract markup per project type so profitability differs by line.
 const MARKUP: Record<string, number> = { "Software Solutions": 1.32, EPC: 1.12, Maintenance: 1.22, Consultation: 1.45 };
+// Pie slice colors for the Margin by Project Type donut.
+const PIE_COLORS = ["#51CAAD", "#94A3B8", "#D4A574", "#A78BFA", "#F87171"];
 const COST_TEMPLATES = [
   { item: "Licences & subscriptions", cat: "Software", type: "CapEx", share: 0.3 },
   { item: "Delivery labour", cat: "Staff", type: "OpEx", share: 0.4 },
@@ -132,30 +137,42 @@ function FinancialsPage() {
       }),
     [],
   );
-  const tot = pnlRows.reduce((a, r) => ({
+  // Search + fiscal-year filter drive the headline cards (and the table view).
+  const filteredPnlRows = useMemo(() => pnlRows.filter(({ p }) => {
+    const q = pnlQuery.trim().toLowerCase();
+    if (q && !p.name.toLowerCase().includes(q) && !p.businessLine.toLowerCase().includes(q)) return false;
+    if (selectedYear !== "all" && ![...COST_ITEMS, ...REVENUE_ITEMS].some((x) => x.projectId === p.id && x.due.startsWith(selectedYear))) return false;
+    return true;
+  }), [pnlRows, pnlQuery, selectedYear]);
+  const pnlMatch = (project: string, line: string) => {
+    const q = pnlQuery.trim().toLowerCase();
+    return !q || project.toLowerCase().includes(q) || line.toLowerCase().includes(q);
+  };
+  const tot = filteredPnlRows.reduce((a, r) => ({
     budget: a.budget + r.p.budgetTotal, spent: a.spent + r.p.budgetUsed, revenue: a.revenue + r.revenue, actualRevenue: a.actualRevenue + r.actualRevenue,
   }), { budget: 0, spent: 0, revenue: 0, actualRevenue: 0 });
   const expProfit = tot.revenue - tot.budget;
   const actProfit = tot.actualRevenue - tot.spent;
-  const expMargin = (expProfit / tot.revenue) * 100;
+  const expMargin = tot.revenue ? (expProfit / tot.revenue) * 100 : 0;
   const actMargin = tot.actualRevenue ? (actProfit / tot.actualRevenue) * 100 : 0;
 
   const profitability = useMemo(() => {
     const map = new Map<string, { name: string; Revenue: number; Cost: number; Profit: number }>();
-    for (const r of pnlRows) {
+    for (const r of filteredPnlRows) {
       const cur = map.get(r.p.businessLine) ?? { name: r.p.businessLine, Revenue: 0, Cost: 0, Profit: 0 };
       cur.Revenue += r.revenue; cur.Cost += r.p.budgetTotal; cur.Profit += r.expectedProfit;
       map.set(r.p.businessLine, cur);
     }
     return Array.from(map.values()).map((x) => ({ name: x.name, Revenue: +x.Revenue.toFixed(2), Cost: +x.Cost.toFixed(2), Profit: +x.Profit.toFixed(2), margin: (x.Profit / x.Revenue) * 100 }));
-  }, [pnlRows]);
+  }, [filteredPnlRows]);
+  const marginPie = useMemo(() => [...profitability].sort((a, b) => b.Profit - a.Profit), [profitability]);
 
   const cashFlow = useMemo(() => {
     const keyOf = (d: string) => (cashMode === "monthly" ? d.slice(0, 7) : d.slice(0, 4));
     const map = new Map<string, { key: string; Inflow: number; Outflow: number }>();
     if (cashMode === "monthly") for (let m = 1; m <= 12; m++) { const k = `${FIN_YEAR}-${String(m).padStart(2, "0")}`; map.set(k, { key: k, Inflow: 0, Outflow: 0 }); }
-    for (const r of REVENUE_ITEMS) { const k = keyOf(r.due); if (cashMode === "monthly" && !map.has(k)) continue; const c = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; c.Inflow += r.planned; map.set(k, c); }
-    for (const c of COST_ITEMS) { const k = keyOf(c.due); if (cashMode === "monthly" && !map.has(k)) continue; const e = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; e.Outflow += c.planned; map.set(k, e); }
+    for (const r of REVENUE_ITEMS) { if (selectedYear !== "all" && !r.due.startsWith(selectedYear)) continue; if (!pnlMatch(r.project, r.businessLine)) continue; const k = keyOf(r.due); if (cashMode === "monthly" && !map.has(k)) continue; const c = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; c.Inflow += r.planned; map.set(k, c); }
+    for (const c of COST_ITEMS) { if (selectedYear !== "all" && !c.due.startsWith(selectedYear)) continue; if (!pnlMatch(c.project, c.businessLine)) continue; const k = keyOf(c.due); if (cashMode === "monthly" && !map.has(k)) continue; const e = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; e.Outflow += c.planned; map.set(k, e); }
     let cum = 0;
     return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key)).map((x) => {
       const net = x.Inflow - x.Outflow; cum += net;
@@ -163,7 +180,7 @@ function FinancialsPage() {
       const forecast = cashMode === "monthly" ? x.key > TODAY.slice(0, 7) : x.key > TODAY.slice(0, 4);
       return { label: forecast ? `${label}*` : label, Inflow: +x.Inflow.toFixed(2), Outflow: +(-x.Outflow).toFixed(2), Net: +net.toFixed(2), Cumulative: +cum.toFixed(2) };
     });
-  }, [cashMode]);
+  }, [cashMode, pnlQuery, selectedYear]);
 
   const costCategories = Array.from(new Set(COST_ITEMS.map((item) => item.cat)));
   const filteredCostItems = COST_ITEMS.filter((item) => {
@@ -188,8 +205,8 @@ function FinancialsPage() {
   const projCount = (rows: { projectId: string }[]) => new Set(rows.map((r) => r.projectId)).size;
 
   const kpis = [
-    { label: "Total Budget", value: money(tot.budget), icon: Wallet, tint: "text-foreground", hint: `${pnlRows.length} projects` },
-    { label: "Total Spent", value: money(tot.spent), icon: TrendingDown, tint: "text-accent", hint: `${Math.round((tot.spent / tot.budget) * 100)}% of budget` },
+    { label: "Total Budget", value: money(tot.budget), icon: Wallet, tint: "text-foreground", hint: `${filteredPnlRows.length} ${filteredPnlRows.length === 1 ? "project" : "projects"}` },
+    { label: "Total Spent", value: money(tot.spent), icon: TrendingDown, tint: "text-accent", hint: `${tot.budget ? Math.round((tot.spent / tot.budget) * 100) : 0}% of budget` },
     { label: "Total Revenue", value: money(tot.revenue), icon: TrendingUp, tint: "text-foreground", hint: `${money(tot.actualRevenue)} earned to date` },
     { label: "Expected Profit", value: money(expProfit), icon: PiggyBank, tint: expProfit >= 0 ? "text-rag-green" : "text-rag-red", hint: `Margin ${expMargin.toFixed(1)}%` },
     { label: "Actual Profit", value: money(actProfit), icon: PiggyBank, tint: actProfit >= 0 ? "text-rag-green" : "text-rag-red", hint: `Margin ${actMargin.toFixed(1)}% · ${(actMargin - expMargin >= 0 ? "+" : "")}${(actMargin - expMargin).toFixed(1)} pts vs plan` },
@@ -237,23 +254,6 @@ function FinancialsPage() {
 
         <TabsContent value="overview" className="mt-5">
           <EmptyRegion id="financials-overview">
-          {/* Income-statement headline */}
-          <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-5">
-            {kpis.map((k) => {
-              const Icon = k.icon;
-              return (
-                <div key={k.label} className="glass-card p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="label-eyebrow">{k.label}</div>
-                    <Icon className={`h-4 w-4 ${k.tint}`} />
-                  </div>
-                  <div className={`mt-1 text-2xl font-medium num-mono ${k.tint}`}>{k.value}</div>
-                  <div className="mt-1 text-[11px] text-muted-foreground">{k.hint}</div>
-                </div>
-              );
-            })}
-          </div>
-
           <div className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
               <PageToolbar
@@ -273,6 +273,23 @@ function FinancialsPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Income-statement headline */}
+          <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-5">
+            {kpis.map((k) => {
+              const Icon = k.icon;
+              return (
+                <div key={k.label} className="glass-card p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="label-eyebrow">{k.label}</div>
+                    <Icon className={`h-4 w-4 ${k.tint}`} />
+                  </div>
+                  <div className={`mt-1 text-2xl font-medium num-mono ${k.tint}`}>{k.value}</div>
+                  <div className="mt-1 text-[11px] text-muted-foreground">{k.hint}</div>
+                </div>
+              );
+            })}
           </div>
 
           {overviewView === "charts" && (
@@ -302,15 +319,22 @@ function FinancialsPage() {
             </div>
             <div className="glass-card p-4 lg:col-span-2">
               <div className="label-eyebrow">Margin by Project Type</div>
-              <div className="mb-3 text-xs text-muted-foreground">Expected profit ÷ expected revenue</div>
-              <div className="space-y-3">
-                {[...profitability].sort((a, b) => b.margin - a.margin).map((x) => (
-                  <div key={x.name}>
-                    <div className="mb-1 flex items-center justify-between text-xs">
-                      <span className="text-foreground">{x.name}</span>
-                      <span className="num-mono text-muted-foreground">{money(x.Profit)} · <span className={x.margin > 15 ? "text-rag-green" : x.margin > 5 ? "text-rag-amber" : "text-rag-red"}>{x.margin.toFixed(1)}%</span></span>
-                    </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-secondary/40"><div className="h-full bg-accent" style={{ width: `${Math.min(100, Math.max(0, x.margin) * 4)}%` }} /></div>
+              <div className="mb-2 text-xs text-muted-foreground">Expected profit share by project type · margin %</div>
+              <div className="h-52">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={marginPie} dataKey="Profit" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={3} stroke="none">
+                      {marginPie.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip {...chartTooltip} formatter={(v: number) => money(v)} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-3 space-y-1.5">
+                {marginPie.map((x, i) => (
+                  <div key={x.name} className="flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-2 text-foreground"><span className="h-2 w-2 shrink-0 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />{x.name}</span>
+                    <span className="num-mono text-muted-foreground">{money(x.Profit)} · <span className={x.margin > 15 ? "text-rag-green" : x.margin > 5 ? "text-rag-amber" : "text-rag-red"}>{x.margin.toFixed(1)}%</span></span>
                   </div>
                 ))}
               </div>
@@ -374,10 +398,7 @@ function FinancialsPage() {
               <TableHead>Project</TableHead><TableHead>Project Type</TableHead><TableHead>Total Budget</TableHead><TableHead>Spent</TableHead>
               <TableHead>Expected Revenue</TableHead><TableHead>Actual Revenue</TableHead><TableHead>Expected Profit</TableHead><TableHead>Expected Margin</TableHead><TableHead>Actual Profit</TableHead><TableHead>Actual Margin</TableHead>
             </TableRow></TableHeader>
-            <TableBody>{pnlRows.filter(({ p }) => {
-              const q = pnlQuery.trim().toLowerCase();
-              return !q || p.name.toLowerCase().includes(q) || p.businessLine.toLowerCase().includes(q);
-            }).map(({ p, revenue, actualRevenue, expectedProfit, expectedProfitPct, actualProfit, margin }) => (
+            <TableBody>{filteredPnlRows.map(({ p, revenue, actualRevenue, expectedProfit, expectedProfitPct, actualProfit, margin }) => (
               <TableRow key={p.id} className="cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0" onClick={() => openProject(p.id, "Overview")}>
                 <TableCell className="font-medium text-foreground">{p.name}</TableCell>
                 <TableCell className="text-muted-foreground">{p.businessLine}</TableCell>

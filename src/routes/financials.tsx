@@ -354,26 +354,41 @@ function FinancialsPage() {
           </div>
 
           <div className="glass-card mb-5 p-4">
-            <div className="mb-2 flex items-center justify-between gap-3">
+            <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <div className="label-eyebrow">Actuals by Project Type</div>
                 <div className="text-xs text-muted-foreground">Payments made, revenue collected and profit realised to date · $M</div>
               </div>
               <Legendish items={[["Collected revenue", "#51CAAD"], ["Actual payments", "#94A3B8"], ["Actual profit", "#D4A574"]]} />
             </div>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={actuals} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="name" {...axis} />
-                  <YAxis {...axis} />
-                  <YAxis yAxisId="profit" orientation="right" {...axis} />
-                  <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
-                  <Bar dataKey="Collected" name="Collected revenue" fill="#51CAAD" radius={[3, 3, 0, 0]} barSize={26} />
-                  <Bar dataKey="Spent" name="Actual payments" fill="#94A3B8" radius={[3, 3, 0, 0]} barSize={26} />
-                  <Line yAxisId="profit" type="monotone" dataKey="Profit" name="Actual profit" stroke="#D4A574" strokeWidth={2.5} dot={{ r: 4, fill: "#D4A574" }} />
-                </ComposedChart>
-              </ResponsiveContainer>
+            <div className="space-y-4">
+              {(() => {
+                const rows = [...actuals].sort((a, b) => b.Profit - a.Profit);
+                const maxCollected = Math.max(0.01, ...rows.map((r) => r.Collected));
+                return rows.map((x) => {
+                  const margin = x.Collected > 0 ? (x.Profit / x.Collected) * 100 : 0;
+                  const width = (v: number) => `${Math.min(100, (v / maxCollected) * 100).toFixed(1)}%`;
+                  return (
+                    <div key={x.name} className="group">
+                      <div className="mb-1.5 flex items-center justify-between gap-3">
+                        <span className="text-xs font-medium text-foreground">{x.name}</span>
+                        <span className="rounded-full px-2 py-0.5 num-mono text-[10px] font-medium text-[#D4A574]"
+                          style={{ border: "1px solid rgba(212,165,116,0.25)", background: "rgba(212,165,116,0.1)" }}>
+                          +{margin.toFixed(1)}% Profit
+                        </span>
+                      </div>
+                      <div className="relative h-3 w-full overflow-hidden rounded-full" style={{ background: "rgba(148,163,184,0.12)" }}>
+                        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: width(x.Collected), background: "#51CAAD" }} />
+                        <div className="absolute inset-y-0 left-0 rounded-full opacity-90" style={{ width: width(x.Spent), background: "#94A3B8", borderRight: "2px solid rgba(11,17,32,0.9)" }} />
+                      </div>
+                      <div className="mt-1 flex justify-between text-[10px] num-mono text-muted-foreground">
+                        <span>$0.0M</span>
+                        <span>{money(x.Collected)} Rev / {money(x.Spent)} Pay</span>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
 

@@ -166,6 +166,16 @@ function FinancialsPage() {
     return Array.from(map.values()).map((x) => ({ name: x.name, Revenue: +x.Revenue.toFixed(2), Cost: +x.Cost.toFixed(2), Profit: +x.Profit.toFixed(2), margin: (x.Profit / x.Revenue) * 100 }));
   }, [filteredPnlRows]);
   const marginPie = useMemo(() => [...profitability].sort((a, b) => b.Profit - a.Profit), [profitability]);
+  // Actual figures per project type: paid costs, collected revenue and realised profit.
+  const actuals = useMemo(() => {
+    const map = new Map<string, { name: string; Collected: number; Spent: number; Profit: number }>();
+    for (const r of filteredPnlRows) {
+      const cur = map.get(r.p.businessLine) ?? { name: r.p.businessLine, Collected: 0, Spent: 0, Profit: 0 };
+      cur.Collected += r.actualRevenue; cur.Spent += r.p.budgetUsed; cur.Profit += r.actualProfit;
+      map.set(r.p.businessLine, cur);
+    }
+    return Array.from(map.values()).map((x) => ({ name: x.name, Collected: +x.Collected.toFixed(2), Spent: +x.Spent.toFixed(2), Profit: +x.Profit.toFixed(2) }));
+  }, [filteredPnlRows]);
 
   const cashFlow = useMemo(() => {
     const keyOf = (d: string) => (cashMode === "monthly" ? d.slice(0, 7) : d.slice(0, 4));
@@ -340,6 +350,29 @@ function FinancialsPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <div className="glass-card mb-5 p-4">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <div>
+                <div className="label-eyebrow">Actuals by Project Type</div>
+                <div className="text-xs text-muted-foreground">Payments made, revenue collected and profit realised to date · $M</div>
+              </div>
+              <Legendish items={[["Collected revenue", "#51CAAD"], ["Actual payments", "#94A3B8"], ["Actual profit", "#D4A574"]]} />
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={actuals} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="name" {...axis} />
+                  <YAxis {...axis} />
+                  <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
+                  <Bar dataKey="Collected" name="Collected revenue" fill="#51CAAD" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Spent" name="Actual payments" fill="#94A3B8" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Profit" name="Actual profit" fill="#D4A574" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
 

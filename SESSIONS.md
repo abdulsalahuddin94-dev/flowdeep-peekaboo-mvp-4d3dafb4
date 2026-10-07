@@ -1,3 +1,8 @@
+## 2026-10-07 — Financials Overview: Actuals by Project Type chart
+- Overview (P&L) Charts view: added a third chart "Actuals by Project Type" — grouped bars per project type for Collected revenue, Actual payments and Actual profit realised to date ($M); it sits between the expected-profitability/margin row and the Cash Flow Forecast, which stays last.
+- The chart uses the same search/Fiscal Year filter as the other overview charts and reuses the profitability palette (Revenue/Cost/Profit colours kept consistent between expected and actual views).
+- Verified in browser: card order is Profitability → Margin → Actuals → Cash Flow Forecast; typecheck clean.
+
 ## 2026-10-07 — Cost Milestone: Due this month card + project-level Risk/Issues cards hidden
 - Cost Milestone (Financials): added a fifth strip card "Due this month" — remaining amount (planned − actual) on filtered cost lines due in the current month, with a "N lines due this month" hint; strip now lays out 5 cells when present (Revenue Milestone keeps 4).
 - Risk & Issues inside Project Details: the severity KPI cards (Critical ≥15 / High 9–14 / Medium 4–8 / Low Risks / Open Issues) are now hidden in both Risk Register and Issues Log tabs; they remain on the portfolio-wide /risks module.

@@ -91,7 +91,7 @@ export const Route = createFileRoute("/financials")({
   head: () => ({
     meta: [
       { title: "Financials — Nexus PMO" },
-      { name: "description", content: "Portfolio-wide budgets, CAPEX/OPEX split, change requests and milestone-linked revenue recognition." },
+      { name: "description", content: "Portfolio-wide budgets, CAPEX/OPEX split, change requests and revenue-event collections." },
       { property: "og:title", content: "Financials — Nexus PMO" },
       { property: "og:description", content: "Review portfolio budgets, CapEx and OpEx split, profit, and recognition status." },
       { property: "og:type", content: "website" },

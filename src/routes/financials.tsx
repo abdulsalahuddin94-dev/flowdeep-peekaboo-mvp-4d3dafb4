@@ -80,7 +80,7 @@ const monthOptions = Array.from(new Set([...COST_ITEMS, ...REVENUE_ITEMS].map((x
   .map((v) => ({ value: v, label: `${MONTHS[+v.slice(5, 7) - 1]}, ${v.slice(0, 4)}` }));
 
 const FIN_TAB_LABELS: Record<string, string> = {
-  overview: "Overview (P&L)", cost: "Cost Milestone", rev: "Revenue Milestone",
+  overview: "Overview (P&L)", cost: "Cost Milestone", rev: "Revenue Event",
 };
 
 export const Route = createFileRoute("/financials")({
@@ -397,7 +397,7 @@ function FinancialsPage() {
               <div>
                 <div className="label-eyebrow">Cash Flow Forecast</div>
                 <div className="text-xs text-muted-foreground">
-                  Expected collections vs payments from cost and revenue milestones · $M · {cashMode === "monthly" ? `FY${FIN_YEAR}` : "by fiscal year"} · * forecast
+                  Expected collections vs payments from cost and revenue events · $M · {cashMode === "monthly" ? `FY${FIN_YEAR}` : "by fiscal year"} · * forecast
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -527,7 +527,7 @@ function FinancialsPage() {
           <PageToolbar
             query={revenueQuery}
             onQueryChange={setRevenueQuery}
-            placeholder="Search project or milestone…"
+            placeholder="Search project or revenue event…"
             filterGroups={[
               { key: "month", label: "Due month", value: revMonth, onChange: setRevMonth, options: [{ value: "all", label: "All months" }, ...monthOptions] },
               { key: "line", label: "Project Type", value: revLine, onChange: setRevLine, options: lineOptions },
@@ -535,15 +535,15 @@ function FinancialsPage() {
             ]}
           />
           <Strip cells={[
-            { label: "Planned revenue", value: money(revTot.planned), hint: `${filteredRevenueItems.length} milestones · ${projCount(filteredRevenueItems)} projects` },
+            { label: "Planned revenue", value: money(revTot.planned), hint: `${filteredRevenueItems.length} revenue events · ${projCount(filteredRevenueItems)} projects` },
             { label: "Collected", value: money(revTot.collected), hint: `${revTot.planned ? Math.round((revTot.collected / revTot.planned) * 100) : 0}% of planned`, tint: "text-rag-green" },
-            { label: "To be collected", value: money(revTot.planned - revTot.collected), hint: "Outstanding on these milestones" },
+            { label: "To be collected", value: money(revTot.planned - revTot.collected), hint: "Outstanding on these revenue events" },
             { label: "Overdue", value: money(revTot.overdue), hint: "Past due, not collected", tint: revTot.overdue > 0 ? "text-rag-red" : undefined },
           ]} />
-          <div className="mb-3 text-xs text-muted-foreground">Read-only roll-up from all projects. Select a milestone to open its project and log collections.</div>
+          <div className="mb-3 text-xs text-muted-foreground">Read-only roll-up from all projects. Select a revenue event to open its project and log collections.</div>
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
-              <TableHead>Project</TableHead><TableHead>Project Type</TableHead><TableHead>Milestone</TableHead><TableHead>Due</TableHead>
+              <TableHead>Project</TableHead><TableHead>Project Type</TableHead><TableHead>Revenue Event</TableHead><TableHead>Due</TableHead>
               <TableHead>Planned</TableHead><TableHead>Collected</TableHead><TableHead>Outstanding</TableHead><TableHead>% Collected</TableHead><TableHead>Status</TableHead>
             </TableRow></TableHeader>
             <TableBody>

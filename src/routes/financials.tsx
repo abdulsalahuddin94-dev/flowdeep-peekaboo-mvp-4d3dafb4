@@ -106,6 +106,7 @@ function FinancialsPage() {
   const goProject = useNavigate();
   const [selectedYear, setSelectedYear] = useState("all");
   const [pnlQuery, setPnlQuery] = useState("");
+  const [pnlLine, setPnlLine] = useState("all");
   const [overviewView, setOverviewView] = useState<"charts" | "table">("charts");
   const [cashMode, setCashMode] = useState<"monthly" | "yearly">("monthly");
   const [costQuery, setCostQuery] = useState("");
@@ -141,9 +142,10 @@ function FinancialsPage() {
   const filteredPnlRows = useMemo(() => pnlRows.filter(({ p }) => {
     const q = pnlQuery.trim().toLowerCase();
     if (q && !p.name.toLowerCase().includes(q) && !p.businessLine.toLowerCase().includes(q)) return false;
+    if (pnlLine !== "all" && p.businessLine !== pnlLine) return false;
     if (selectedYear !== "all" && ![...COST_ITEMS, ...REVENUE_ITEMS].some((x) => x.projectId === p.id && x.due.startsWith(selectedYear))) return false;
     return true;
-  }), [pnlRows, pnlQuery, selectedYear]);
+  }), [pnlRows, pnlQuery, pnlLine, selectedYear]);
   const pnlMatch = (project: string, line: string) => {
     const q = pnlQuery.trim().toLowerCase();
     return !q || project.toLowerCase().includes(q) || line.toLowerCase().includes(q);
@@ -311,6 +313,7 @@ function FinancialsPage() {
                 onQueryChange={setPnlQuery}
                 placeholder="Search project or project type…"
                 filterGroups={[
+                  { key: "line", label: "Project Type", value: pnlLine, onChange: setPnlLine, options: lineOptions },
                   { key: "year", label: "Fiscal Year", value: selectedYear, onChange: setSelectedYear, options: [{ value: "all", label: "All years" }, ...years.map((y) => ({ value: y, label: `FY${y}` }))] },
                 ]}
               />

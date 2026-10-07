@@ -1,3 +1,6 @@
+## 2026-10-07 — Financials: Revenue Event label
+- Renamed the revenue subpage to Revenue Event in the Financials sidebar and page heading; filters, data, and tab key remain unchanged.
+
 ## 2026-10-07 — Financials Overview: Actuals by Project Type → horizontal growth lanes
 - Overview (P&L) Charts view: the Actuals by Project Type card was converted from the grouped bars + gold profit line to horizontal growth lanes — one row per project type, ranked by actual profit, each with a solid payments segment (slate) over a collected-revenue segment (teal) on a faint full-width track, a gold rounded "+N% Profit" badge on the right, and a "$X Rev / $Y Pay" caption under the bar.
 - Rows sort by actual profit (highest first); same search/Fiscal Year filter as the rest of the Overview still drives the card.

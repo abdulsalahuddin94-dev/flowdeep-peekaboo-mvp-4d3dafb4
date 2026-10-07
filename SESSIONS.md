@@ -1,4 +1,10 @@
+## 2026-10-07 — Cost Milestone: Due this month card + project-level Risk/Issues cards hidden
+- Cost Milestone (Financials): added a fifth strip card "Due this month" — remaining amount (planned − actual) on filtered cost lines due in the current month, with a "N lines due this month" hint; strip now lays out 5 cells when present (Revenue Milestone keeps 4).
+- Risk & Issues inside Project Details: the severity KPI cards (Critical ≥15 / High 9–14 / Medium 4–8 / Low Risks / Open Issues) are now hidden in both Risk Register and Issues Log tabs; they remain on the portfolio-wide /risks module.
+- Verified in browser: /financials?tab=cost shows the new card ($1.50M, 3 lines); project Risk & Issues tab shows no cards; /risks still shows them; typecheck clean, build OK.
+
 ## 2026-10-07 — Financials Overview: toolbar above KPI cards + margin pie
+
 - Overview (P&L): the search & Filter toolbar (with the Charts/Table switcher) moved above the five headline cards (Total Budget / Spent / Revenue / Expected Profit / Actual Profit); search and Fiscal Year filter now recalculate the cards live.
 - The filter also drives the Charts view: Profitability by Project Type, Cash Flow Forecast and the new Margin by Project Type donut all react to the same search/fiscal-year filter.
 - Margin by Project Type converted from horizontal bars to a donut (pie) chart of expected profit share, with a legend showing each type's profit and margin % (green ≥15 / amber >5 / red otherwise); single-type result renders as a full ring.

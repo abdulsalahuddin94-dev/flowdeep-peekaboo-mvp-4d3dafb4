@@ -1,3 +1,9 @@
+## 2026-10-07 — Financials Overview: many project types handled (scroll + grouping)
+- Profitability by Project Type converted to horizontal bars (Revenue/Cost/Profit, longest revenue first); the card keeps a stable height and scrolls internally once there are more than 5 project types.
+- Actuals by Project Type lanes scroll internally after 4 rows (same stable-height pattern as the Actions composer).
+- Margin by Project Type donut collapses the smallest types into "Other · N" (slate) when there are more than 4; the legend scrolls after 4 rows and colors stay unique.
+- Verified in browser with a temporary 6-type dataset (reverted): horizontal bars scroll, Actuals shows 4 lanes then scrolls, donut shows top 4 + Other and the legend scrolls. Typecheck clean, build OK.
+
 ## 2026-10-07 — Financials Overview: Project Type filter added
 - Added a "Project Type" filter (single-select, options from project business lines + "All project types") next to Fiscal Year in the Overview (P&L) toolbar.
 - The filter drives the 5 KPI cards, Profitability, Margin donut, Actuals lanes, the P&L table, and the Cash Flow Forecast (cost/revenue items filtered by type as well).

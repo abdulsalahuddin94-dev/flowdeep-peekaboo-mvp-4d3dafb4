@@ -167,7 +167,18 @@ function FinancialsPage() {
     }
     return Array.from(map.values()).map((x) => ({ name: x.name, Revenue: +x.Revenue.toFixed(2), Cost: +x.Cost.toFixed(2), Profit: +x.Profit.toFixed(2), margin: (x.Profit / x.Revenue) * 100 }));
   }, [filteredPnlRows]);
-  const marginPie = useMemo(() => [...profitability].sort((a, b) => b.Profit - a.Profit), [profitability]);
+  // Margin donut — with many project types the smallest ones collapse into "Other" so colours stay unique.
+  const marginPie = useMemo(() => {
+    const sorted = [...profitability].sort((a, b) => b.Profit - a.Profit);
+    if (sorted.length <= 4) return sorted.map((x, i) => ({ ...x, color: PIE_COLORS[i % PIE_COLORS.length] }));
+    const top = sorted.slice(0, 4).map((x, i) => ({ ...x, color: PIE_COLORS[i] }));
+    const rest = sorted.slice(4);
+    const rev = rest.reduce((a, x) => a + x.Revenue, 0);
+    const prof = rest.reduce((a, x) => a + x.Profit, 0);
+    return [...top, { name: `Other · ${rest.length}`, Revenue: rev, Cost: 0, Profit: +prof.toFixed(2), margin: rev ? (prof / rev) * 100 : 0, color: "#94A3B8" }];
+  }, [profitability]);
+  // Horizontal profitability bars read best with many types; longest bar first.
+  const profBars = useMemo(() => [...profitability].sort((a, b) => b.Revenue - a.Revenue), [profitability]);
   // Actual figures per project type: paid costs, collected revenue and realised profit.
   const actuals = useMemo(() => {
     const map = new Map<string, { name: string; Collected: number; Spent: number; Profit: number }>();
@@ -356,16 +367,16 @@ function FinancialsPage() {
                 </div>
                 <Legendish items={[["Revenue", "#51CAAD"], ["Cost", "#94A3B8"], ["Profit", "#D4A574"]]} />
               </div>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={profitability} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+              <div className={profBars.length > 5 ? "max-h-64 overflow-y-auto pr-1" : "h-64"}>
+                <ResponsiveContainer width="100%" height={Math.max(248, profBars.length * 58 + 16)}>
+                  <BarChart data={profBars} layout="vertical" margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                    <XAxis dataKey="name" {...axis} />
-                    <YAxis {...axis} />
+                    <XAxis type="number" {...axis} />
+                    <YAxis type="category" dataKey="name" width={124} {...axis} />
                     <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
-                    <Bar dataKey="Revenue" fill="#51CAAD" radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="Cost" fill="#94A3B8" radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="Profit" fill="#D4A574" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="Revenue" fill="#51CAAD" radius={[0, 3, 3, 0]} barSize={11} />
+                    <Bar dataKey="Cost" fill="#94A3B8" radius={[0, 3, 3, 0]} barSize={11} />
+                    <Bar dataKey="Profit" fill="#D4A574" radius={[0, 3, 3, 0]} barSize={11} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -377,16 +388,16 @@ function FinancialsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={marginPie} dataKey="Profit" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={3} stroke="none">
-                      {marginPie.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                      {marginPie.map((x, i) => <Cell key={i} fill={x.color} />)}
                     </Pie>
                     <Tooltip {...chartTooltip} formatter={(v: number) => money(v)} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-3 space-y-1.5">
-                {marginPie.map((x, i) => (
+              <div className="mt-3 max-h-24 space-y-1.5 overflow-y-auto pr-1">
+                {marginPie.map((x) => (
                   <div key={x.name} className="flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-2 text-foreground"><span className="h-2 w-2 shrink-0 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />{x.name}</span>
+                    <span className="flex items-center gap-2 text-foreground"><span className="h-2 w-2 shrink-0 rounded-full" style={{ background: x.color }} />{x.name}</span>
                     <span className="num-mono text-muted-foreground">{money(x.Profit)} · <span className={x.margin > 15 ? "text-rag-green" : x.margin > 5 ? "text-rag-amber" : "text-rag-red"}>{x.margin.toFixed(1)}%</span></span>
                   </div>
                 ))}
@@ -402,7 +413,8 @@ function FinancialsPage() {
               </div>
               <Legendish items={[["Collected revenue", "#51CAAD"], ["Actual payments", "#94A3B8"], ["Actual profit", "#D4A574"]]} />
             </div>
-            <div className="space-y-4">
+            {/* Lanes scroll after 4 rows so the card keeps a stable height with many project types. */}
+            <div className="max-h-[296px] space-y-4 overflow-y-auto pr-1">
               {(() => {
                 const rows = [...actuals].sort((a, b) => b.Profit - a.Profit);
                 const maxCollected = Math.max(0.01, ...rows.map((r) => r.Collected));

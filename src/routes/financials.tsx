@@ -180,7 +180,7 @@ function FinancialsPage() {
       const forecast = cashMode === "monthly" ? x.key > TODAY.slice(0, 7) : x.key > TODAY.slice(0, 4);
       return { label: forecast ? `${label}*` : label, Inflow: +x.Inflow.toFixed(2), Outflow: +(-x.Outflow).toFixed(2), Net: +net.toFixed(2), Cumulative: +cum.toFixed(2) };
     });
-  }, [cashMode]);
+  }, [cashMode, pnlQuery, selectedYear]);
 
   const costCategories = Array.from(new Set(COST_ITEMS.map((item) => item.cat)));
   const filteredCostItems = COST_ITEMS.filter((item) => {
@@ -206,7 +206,7 @@ function FinancialsPage() {
 
   const kpis = [
     { label: "Total Budget", value: money(tot.budget), icon: Wallet, tint: "text-foreground", hint: `${filteredPnlRows.length} projects` },
-    { label: "Total Spent", value: money(tot.spent), icon: TrendingDown, tint: "text-accent", hint: `${Math.round((tot.spent / tot.budget) * 100)}% of budget` },
+    { label: "Total Spent", value: money(tot.spent), icon: TrendingDown, tint: "text-accent", hint: `${tot.budget ? Math.round((tot.spent / tot.budget) * 100) : 0}% of budget` },
     { label: "Total Revenue", value: money(tot.revenue), icon: TrendingUp, tint: "text-foreground", hint: `${money(tot.actualRevenue)} earned to date` },
     { label: "Expected Profit", value: money(expProfit), icon: PiggyBank, tint: expProfit >= 0 ? "text-rag-green" : "text-rag-red", hint: `Margin ${expMargin.toFixed(1)}%` },
     { label: "Actual Profit", value: money(actProfit), icon: PiggyBank, tint: actProfit >= 0 ? "text-rag-green" : "text-rag-red", hint: `Margin ${actMargin.toFixed(1)}% · ${(actMargin - expMargin >= 0 ? "+" : "")}${(actMargin - expMargin).toFixed(1)} pts vs plan` },

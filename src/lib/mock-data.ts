@@ -386,4 +386,3 @@ export const milestones = [
   { project: "Smart Grid Pilot", name: "Pilot kick-off", due: "02 Jun, 2026", in: 5, status: "green" },
 ];
 
-// touch

@@ -359,7 +359,7 @@ function FinancialsPage() {
           {overviewView === "charts" && (
           <>
           <div className="mb-5 grid gap-4 lg:grid-cols-5">
-            <div className="glass-card p-4 lg:col-span-3">
+            <div className="flex flex-col p-4 glass-card lg:col-span-3">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
                   <div className="label-eyebrow">Profitability by Project Type</div>
@@ -367,8 +367,8 @@ function FinancialsPage() {
                 </div>
                 <Legendish items={[["Revenue", "#51CAAD"], ["Cost", "#94A3B8"], ["Profit", "#D4A574"]]} />
               </div>
-              {/* Fixed per-type width inside a sideways scroll so bars never squeeze when types grow. */}
-              <div className="h-64 overflow-x-auto">
+              {/* Fills the card height and scrolls sideways when project types exceed the visible width. */}
+              <div className="min-h-64 flex-1 overflow-x-auto">
                 <div style={{ width: profMinWidth, minWidth: "100%", height: "100%" }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={profitability} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>

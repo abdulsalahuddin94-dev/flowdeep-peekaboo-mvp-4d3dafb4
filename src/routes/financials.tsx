@@ -166,6 +166,16 @@ function FinancialsPage() {
     return Array.from(map.values()).map((x) => ({ name: x.name, Revenue: +x.Revenue.toFixed(2), Cost: +x.Cost.toFixed(2), Profit: +x.Profit.toFixed(2), margin: (x.Profit / x.Revenue) * 100 }));
   }, [filteredPnlRows]);
   const marginPie = useMemo(() => [...profitability].sort((a, b) => b.Profit - a.Profit), [profitability]);
+  // Actual figures per project type: paid costs, collected revenue and realised profit.
+  const actuals = useMemo(() => {
+    const map = new Map<string, { name: string; Collected: number; Spent: number; Profit: number }>();
+    for (const r of filteredPnlRows) {
+      const cur = map.get(r.p.businessLine) ?? { name: r.p.businessLine, Collected: 0, Spent: 0, Profit: 0 };
+      cur.Collected += r.actualRevenue; cur.Spent += r.p.budgetUsed; cur.Profit += r.actualProfit;
+      map.set(r.p.businessLine, cur);
+    }
+    return Array.from(map.values()).map((x) => ({ name: x.name, Collected: +x.Collected.toFixed(2), Spent: +x.Spent.toFixed(2), Profit: +x.Profit.toFixed(2) }));
+  }, [filteredPnlRows]);
 
   const cashFlow = useMemo(() => {
     const keyOf = (d: string) => (cashMode === "monthly" ? d.slice(0, 7) : d.slice(0, 4));

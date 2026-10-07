@@ -363,15 +363,16 @@ function FinancialsPage() {
             </div>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={actuals} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                <ComposedChart data={actuals} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="name" {...axis} />
                   <YAxis {...axis} />
+                  <YAxis yAxisId="profit" orientation="right" {...axis} />
                   <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
-                  <Bar dataKey="Collected" name="Collected revenue" fill="#51CAAD" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="Spent" name="Actual payments" fill="#94A3B8" radius={[3, 3, 0, 0]} />
-                  <Bar dataKey="Profit" name="Actual profit" fill="#D4A574" radius={[3, 3, 0, 0]} />
-                </BarChart>
+                  <Bar dataKey="Collected" name="Collected revenue" fill="#51CAAD" radius={[3, 3, 0, 0]} barSize={26} />
+                  <Bar dataKey="Spent" name="Actual payments" fill="#94A3B8" radius={[3, 3, 0, 0]} barSize={26} />
+                  <Line yAxisId="profit" type="monotone" dataKey="Profit" name="Actual profit" stroke="var(--accent)" strokeWidth={2.5} dot={{ r: 4, fill: "var(--accent)" }} />
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </div>

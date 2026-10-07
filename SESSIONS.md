@@ -1,3 +1,8 @@
+## 2026-10-07 — Cost Milestone: CapEx / OpEx card now pie-only with badge colors
+- Removed the "50% / 50%" text from the CapEx / OpEx strip card; the card is now a larger donut (56px) beside a legend of the two badge colors — CapEx segment and dot use the CapEx badge color (var(--accent), lavender/indigo) and OpEx uses the OpEx badge color (var(--color-role-director), blue) — each legend row shows the amount + label.
+- Strip pie cells no longer require value/hint; the donut + legend fill the card height. Colors follow the table badges (no hard-coded hex) so dark/light themes stay in sync.
+- Verified in browser on /financials?tab=cost: donut and legend render with badge colors; typecheck clean.
+
 ## 2026-10-07 — Cost Milestone: small pie chart back in the CapEx / OpEx card
 - The CapEx / OpEx strip card now shows a small donut on the right (gold #D4A574 CapEx segment, slate #94A3B8 OpEx segment) beside the "50% / 50%" value and the amounts hint; the ring reflects the filtered cost lines like the rest of the strip.
 - Implemented via an optional `pie` field on the shared Strip cells with a lightweight inline SVG MiniDonut (no extra chart dependency); other cells unchanged.

@@ -1,8 +1,11 @@
-## 2026-10-07 — Financials Overview: Actuals by Project Type chart
+## 2026-10-07 — Financials Overview: Actuals by Project Type → horizontal growth lanes
+- Overview (P&L) Charts view: the Actuals by Project Type card was converted from the grouped bars + gold profit line to horizontal growth lanes — one row per project type, ranked by actual profit, each with a solid payments segment (slate) over a collected-revenue segment (teal) on a faint full-width track, a gold rounded "+N% Profit" badge on the right, and a "$X Rev / $Y Pay" caption under the bar.
+- Rows sort by actual profit (highest first); same search/Fiscal Year filter as the rest of the Overview still drives the card.
+- Verified in browser: lanes render with 4 project types, filter narrows to the matching row; typecheck clean, build OK.
+
+## 2026-10-07 — Financials Overview: Actuals by Project Type chart (previous iteration)
 - Overview (P&L) Charts view: added a third chart "Actuals by Project Type" — bars for Collected revenue and Actual payments with a gold Actual-profit line on a secondary right-hand axis ($M); it sits between the expected-profitability/margin row and the Cash Flow Forecast, which stays last.
 - The chart uses the same search/Fiscal Year filter as the other overview charts and keeps the profitability palette so profit stays gold in both expected and actual views.
-- Verified in browser: card order is Profitability → Margin → Actuals → Cash Flow Forecast; profit line matches the gold legend chip; typecheck clean.
-- Verified in browser: card order is Profitability → Margin → Actuals → Cash Flow Forecast; typecheck clean.
 
 ## 2026-10-07 — Cost Milestone: Due this month card + project-level Risk/Issues cards hidden
 - Cost Milestone (Financials): added a fifth strip card "Due this month" — remaining amount (planned − actual) on filtered cost lines due in the current month, with a "N lines due this month" hint; strip now lays out 5 cells when present (Revenue Milestone keeps 4).

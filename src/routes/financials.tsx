@@ -354,6 +354,29 @@ function FinancialsPage() {
           </div>
 
           <div className="glass-card mb-5 p-4">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <div>
+                <div className="label-eyebrow">Actuals by Project Type</div>
+                <div className="text-xs text-muted-foreground">Payments made, revenue collected and profit realised to date · $M</div>
+              </div>
+              <Legendish items={[["Collected revenue", "#51CAAD"], ["Actual payments", "#94A3B8"], ["Actual profit", "#D4A574"]]} />
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={actuals} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="name" {...axis} />
+                  <YAxis {...axis} />
+                  <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
+                  <Bar dataKey="Collected" name="Collected revenue" fill="#51CAAD" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Spent" name="Actual payments" fill="#94A3B8" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="Profit" name="Actual profit" fill="#D4A574" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="glass-card mb-5 p-4">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <div className="label-eyebrow">Cash Flow Forecast</div>

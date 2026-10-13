@@ -227,6 +227,38 @@ function ProjectDetail() {
   const [costEntries, setCostEntries] = useState<CostEntry[]>(() => cached?.costEntries ?? initialCostEntries(isNewProject));
   const [revEntries, setRevEntries] = useState<RevEntry[]>(() => cached?.revEntries ?? initialRevEntries(project, isNewProject));
   const [editFinSnapshot, setEditFinSnapshot] = useState<FinancialPlan | null>(cached?.editFinSnapshot ?? null);
+  /* Save-baseline reconciliations: Project budget ↔ planned cost total and
+   * Project revenue ↔ planned revenue total are both validated in the same
+   * step, so every mismatch is surfaced together instead of one at a time. */
+  const [baselineValidationOpen, setBaselineValidationOpen] = useState(false);
+  const baselineIssues = useMemo(() => {
+    const issues: Array<{ key: "budget" | "revenue"; title: string; project: number; plan: number; diff: number }> = [];
+    const EPS = 0.0001;
+    const planCostTotal = costEntries.reduce((s, e) => s + e.b, 0);
+    if (Math.abs(project.budgetTotal - planCostTotal) > EPS) {
+      issues.push({
+        key: "budget",
+        title: "Project budget doesn't equal the planned cost total",
+        project: project.budgetTotal,
+        plan: planCostTotal,
+        diff: Math.abs(project.budgetTotal - planCostTotal),
+      });
+    }
+    if (!isInternalProject) {
+      const expected = project.expectedRevenue ?? 0;
+      const planRevTotal = revEntries.reduce((s, e) => s + e.plan, 0);
+      if (Math.abs(expected - planRevTotal) > EPS) {
+        issues.push({
+          key: "revenue",
+          title: "Project revenue doesn't equal the planned revenue total",
+          project: expected,
+          plan: planRevTotal,
+          diff: Math.abs(expected - planRevTotal),
+        });
+      }
+    }
+    return issues;
+  }, [costEntries, revEntries, isInternalProject, project.budgetTotal, project.expectedRevenue]);
   const [milestones, setMilestones] = useState<Milestone[]>(() => cached?.milestones ?? (isNewProject ? [] : [
     // ── Phase 1: Discovery — completed, all green, all assigned ──────────────
     { name: "Discovery & Requirements", kind: "Task", startDate: "2025-04-15", endDate: "2025-05-16", owner: "Sara Al-Rashid", rag: "amber", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "Package Cost", packageId: "PKG-DSC", amount: "$80K" }, progress: 20, parent: "Discovery Sign-off", weightScore: 8 },
@@ -423,7 +455,7 @@ function ProjectDetail() {
       if ((e.metaKey || e.ctrlKey) && (e.key === "s" || e.key === "S")) {
         if (planEditMode === "editing" && hasPlanChanges) {
           e.preventDefault();
-          setCrDialogOpen(true);
+          requestSaveBaselineChange();
         }
         return;
       }
@@ -621,6 +653,18 @@ function ProjectDetail() {
     toast.success("Project baseline saved — Schedule and Financials are now locked");
   }
 
+  /** Gated Save baseline (unlocked projects): reconciles both totals first. */
+  function requestSaveBaseline() {
+    if (baselineIssues.length > 0) { setBaselineValidationOpen(true); return; }
+    saveProjectBaseline();
+  }
+
+  /** Gated Save baseline (Change Plan): reconciles both totals before the CR review. */
+  function requestSaveBaselineChange() {
+    if (baselineIssues.length > 0) { setBaselineValidationOpen(true); return; }
+    setCrDialogOpen(true);
+  }
+
   // Publish this project's financial links so a linked item is excluded from
   // every other dropdown in the system (one item = one WBS element).
   const { setProjectLinks } = useFinanceLinks();
@@ -715,7 +759,7 @@ function ProjectDetail() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCrDialogOpen(true)}
+                    onClick={requestSaveBaselineChange}
                     className="h-8 text-xs"
                     disabled={planChangeCount === 0}
                   >
@@ -804,7 +848,7 @@ function ProjectDetail() {
                     <DropdownMenuItem onClick={() => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } })}>
                       <Pencil size={14} className="mr-2" />Edit Basic Info
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={saveProjectBaseline}>
+                    <DropdownMenuItem onClick={requestSaveBaseline}>
                       <Lock size={14} className="mr-2" />Save Baseline
                     </DropdownMenuItem>
                   </>
@@ -819,7 +863,7 @@ function ProjectDetail() {
                     <DropdownMenuItem onClick={() => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } })}>
                       <Pencil size={14} className="mr-2" />Edit project
                     </DropdownMenuItem>
-                    <DropdownMenuItem disabled={planChangeCount === 0} onClick={() => setCrDialogOpen(true)}>
+                    <DropdownMenuItem disabled={planChangeCount === 0} onClick={requestSaveBaselineChange}>
                       <Lock size={14} className="mr-2" />Save baseline
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={requestExitEditMode}>
@@ -1284,6 +1328,48 @@ function ProjectDetail() {
               setPendingCrConfirm(cr);
             }}
           />
+
+          {/* Save-baseline reconciliations — both totals are checked together so the user sees every mismatch in one step. */}
+          <Dialog open={baselineValidationOpen} onOpenChange={setBaselineValidationOpen}>
+            <DialogContent className="max-w-xl">
+              <DialogHeader>
+                <DialogTitle>Fix before saving the baseline</DialogTitle>
+                <DialogDescription>
+                  These totals must reconcile before the baseline can be saved — all checks are shown together.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2">
+                {baselineIssues.map((issue) => (
+                  <div key={issue.key} className="rounded-lg border border-rag-red/30 bg-rag-red/10 p-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-rag-red">
+                      <AlertTriangle size={14} className="shrink-0" />
+                      {issue.title}
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
+                      <span>Project {issue.key === "budget" ? "budget" : "revenue"}: <span className="num-mono text-foreground">${issue.project.toFixed(2)}M</span></span>
+                      <span>Planned total: <span className="num-mono text-foreground">${issue.plan.toFixed(2)}M</span></span>
+                      <span>Difference: <span className="num-mono text-foreground">${issue.diff.toFixed(2)}M</span></span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Fix the project values in Basic Info, or adjust the plan lines on the Cost and Revenue tabs.
+              </p>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setBaselineValidationOpen(false)}>Review the plan</Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setBaselineValidationOpen(false);
+                    navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } });
+                  }}
+                >
+                  Edit Project Info
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Baseline save confirmation — shown right after Send for approval */}
           <ConfirmDialog

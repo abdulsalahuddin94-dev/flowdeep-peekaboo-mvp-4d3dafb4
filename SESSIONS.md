@@ -1,3 +1,9 @@
+## 2026-10-13 — Save baseline: budget & revenue validation combined in one popup
+- New page-level validation in `portfolio.$projectId.tsx`: `baselineIssues` memo + `baselineValidationOpen` state gate every Save baseline entry point (⌘/Ctrl+S, Change Plan header button, unlocked dropdown Save Baseline, locked-editing dropdown Save baseline). Budget mismatch (always) and revenue mismatch (skipped for Internal projects) are checked together (EPS 0.0001) so the user sees both errors in a single popup instead of one per attempt.
+- New "Fix before saving the baseline" dialog lists per-issue rows (project value, planned total, difference) with "Review the plan" (closes back) and "Edit Project Info" (navigates to /portfolio/$id/edit).
+- Verified with Playwright: commercial test project (budget 2.5 / revenue 3.0, zero plans) shows BOTH errors in one popup; ERP p-001 with a cost-line edit shows the single budget-mismatch popup ($3.20M vs $3.50M); ERP with a schedule-only change (Add subtask, reconciled totals) passes through to the "Save new baseline (v5)" change-request review with the 1-change row. No console errors. Build OK.
+- Note: demo projects other than ERP share the same cost/revenue entry totals, so they intentionally show amber mismatch hints — reconciling demo data is a separate ask.
+
 ## 2026-10-13 — Poppins locked as the only project font
 - `--p-font-mono` now resolves to Poppins (was Courier New), so `.num-mono` (tabular numerals kept) and any `font-mono` usage render Poppins like everything else.
 - Schedule auto-fit canvas measurement fonts (`measureText`, `MONO_FONT`, header measurement in `ProjectSchedule.tsx`) switched from system/monospace stacks to Poppins so column auto-fit matches the actually rendered face.

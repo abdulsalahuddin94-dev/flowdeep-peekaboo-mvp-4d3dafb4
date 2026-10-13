@@ -223,6 +223,10 @@
   --p-red-a-40: rgba(255,104,103,0.40);
   --p-red-a-50: rgba(255,104,103,0.50);
 
+  /* Gold (#D4A574) · profit accent */
+  --p-gold-a-10: rgba(212,165,116,0.10);
+  --p-gold-a-25: rgba(212,165,116,0.25);
+
   /* Custom tinted backgrounds (dark surfaces) */
   --p-bg-red:    var(--p-red-900);
   --p-bg-blue:   var(--p-blue-900);
@@ -448,6 +452,7 @@
   --chart-revenue:       var(--p-emerald-500);
   --chart-payments:      var(--p-violet-400);
   --chart-profit:        #D4A574;
+  --chart-loss:          var(--p-red-500);
   --chart-capex:         var(--p-emerald-500);
   --chart-opex:          var(--p-blue-500);
   --chart-pie-stroke:    var(--p-white-a-60);
@@ -568,6 +573,7 @@
   --chart-revenue:       var(--p-emerald-500);
   --chart-payments:      var(--p-violet-400);
   --chart-profit:        #D4A574;
+  --chart-loss:          var(--p-red-500);
   --chart-capex:         var(--p-emerald-500);
   --chart-opex:          var(--p-blue-500);
   --chart-pie-stroke:    var(--p-black-a-40);
@@ -995,6 +1001,7 @@
   --color-chart-revenue:       var(--chart-revenue);
   --color-chart-payments:      var(--chart-payments);
   --color-chart-profit:        var(--chart-profit);
+  --color-chart-loss:          var(--chart-loss);
   --color-chart-capex:         var(--chart-capex);
   --color-chart-opex:          var(--chart-opex);
   --color-chart-pie-stroke:    var(--chart-pie-stroke);

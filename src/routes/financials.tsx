@@ -414,7 +414,7 @@ function FinancialsPage() {
                 <div className="label-eyebrow">Actuals by Project Type</div>
                 <div className="text-xs text-muted-foreground">Payments made, revenue collected and profit realised to date · $M</div>
               </div>
-              <Legendish items={[["Collected revenue", "#51CAAD"], ["Actual payments", "#94A3B8"], ["Actual profit", "#D4A574"]]} />
+              <Legendish items={[["Collected revenue", "var(--p-teal-400)"], ["Actual payments", "var(--chart-payments)"], ["Actual profit", "var(--chart-profit)"]]} />
             </div>
             {/* Lanes scroll after 4 rows so the card keeps a stable height with many project types. */}
             <div className="max-h-[296px] space-y-4 overflow-y-auto pr-1">
@@ -423,7 +423,9 @@ function FinancialsPage() {
                 const maxCollected = Math.max(0.01, ...rows.map((r) => r.Collected));
                 return rows.map((x) => {
                   const margin = x.Collected > 0 ? (x.Profit / x.Collected) * 100 : 0;
-                  const width = (v: number) => `${Math.min(100, (v / maxCollected) * 100).toFixed(1)}%`;
+                  const pct = (v: number) => Math.min(100, (v / maxCollected) * 100);
+                  const profitStart = x.Collected > 0 && x.Spent < x.Collected ? pct(x.Spent) : null;
+                  const profitWidth = profitStart !== null ? Math.min(100, pct(x.Collected)) - profitStart : 0;
                   return (
                     <div key={x.name} className="group">
                       <div className="mb-1.5 flex items-center justify-between gap-3">
@@ -433,9 +435,15 @@ function FinancialsPage() {
                           +{margin.toFixed(1)}% Profit
                         </span>
                       </div>
-                      <div className="relative h-3 w-full overflow-hidden rounded-full" style={{ background: "rgba(148,163,184,0.12)" }}>
-                        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: width(x.Collected), background: "#51CAAD" }} />
-                        <div className="absolute inset-y-0 left-0 rounded-full opacity-90" style={{ width: width(x.Spent), background: "#94A3B8", borderRight: "2px solid rgba(11,17,32,0.9)" }} />
+                      {/* Collected revenue lane; the gold tail marks the profit portion of the collected revenue. */}
+                      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-chart-track">
+                        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${pct(x.Collected)}%`, background: "var(--p-teal-400)" }} />
+                        {profitStart !== null && (
+                          <div className="absolute inset-y-0 rounded-full" style={{ left: `${profitStart}%`, width: `${profitWidth}%`, background: "var(--chart-profit)" }} />
+                        )}
+                      </div>
+                      <div className="relative mt-1 h-1.5 w-full overflow-hidden rounded-full bg-chart-track">
+                        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${pct(x.Spent)}%`, background: "var(--chart-payments)" }} />
                       </div>
                       <div className="mt-1 flex justify-between text-[10px] num-mono text-muted-foreground">
                         <span>$0.0M</span>

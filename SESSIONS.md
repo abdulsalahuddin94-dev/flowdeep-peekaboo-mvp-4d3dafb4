@@ -1,3 +1,9 @@
+## 2026-10-13 — Financials Overview: Actuals lanes redesigned
+- Actuals by Project Type switched from one overlapping bar to two thin lanes per project type: collected revenue (teal) and actual payments (lavender, token `--chart-payments`).
+- Profit is now visible in the lane itself: a gold segment (`--chart-profit`, #D4A574) marks the profit portion at the end of the collected-revenue lane, matching the legend; shown only when payments are below collected revenue (no profit marker on a loss).
+- Legend updated to the same token colors; rows keep the same height budget (two 6px lanes) so the scroll-after-4-rows behavior is unchanged.
+- Verified in browser: both lanes render, gold profit tail appears (e.g. Software Solutions, Maintenance, Consultation), absent when payments exceed collected (EPC). Build OK.
+
 ## 2026-10-07 — Linked plans navigate to Action Tracker
 - Risk Mitigation plan and Issue Action Plan counts open their project Action Tracker filtered to the linked record, without opening the row drawer. The linked-plan filter can be cleared to show all actions.
 

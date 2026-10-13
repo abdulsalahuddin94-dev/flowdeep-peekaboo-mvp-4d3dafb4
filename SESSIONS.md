@@ -2112,3 +2112,5 @@ Created `product-spec.md` â€” the master product design specification for N
 - Verified in browser: 9 rows render with Name/Party/Status.
 
 ## 2026-10-13 — Baseline validation popup uses DS02 ConfirmDialog (warning) with per-issue "How to fix" hints
+
+## 2026-10-13 — Baseline validation guides to Cost/Revenue Breakdown tabs only; CTA opens the first failing tab

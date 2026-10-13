@@ -1336,11 +1336,11 @@ function ProjectDetail() {
             tone="warning"
             title="Fix before saving the baseline"
             description="These totals must match before the baseline can be saved."
-            cancelLabel="Review the plan"
-            confirmLabel="Edit Project Info"
+            cancelLabel="Cancel"
+            confirmLabel={`Go to ${baselineIssues[0]?.key === "revenue" ? "Revenue" : "Cost"} Breakdown`}
             onConfirm={() => {
               setBaselineValidationOpen(false);
-              navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } });
+              setActiveTab(baselineIssues[0]?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown");
             }}
           >
             <div className="space-y-2">
@@ -1358,8 +1358,7 @@ function ProjectDetail() {
                       <span>Difference: <span className="num-mono text-foreground">${issue.diff.toFixed(2)}M</span></span>
                     </div>
                     <p className="mt-2 text-xs text-muted-foreground">
-                      How to fix: change{" "}
-                      <span className="text-foreground">{isBudget ? "Budget" : "Expected revenue"}</span> in Edit Project Info, or adjust the planned amounts on the{" "}
+                      How to fix: adjust the planned amounts on the{" "}
                       <span className="text-foreground">{isBudget ? "Cost Breakdown" : "Revenue Breakdown"}</span> tab.
                     </p>
                   </div>

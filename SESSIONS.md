@@ -1,3 +1,8 @@
+## 2026-10-13 — Poppins locked as the only project font
+- `--p-font-mono` now resolves to Poppins (was Courier New), so `.num-mono` (tabular numerals kept) and any `font-mono` usage render Poppins like everything else.
+- Schedule auto-fit canvas measurement fonts (`measureText`, `MONO_FONT`, header measurement in `ProjectSchedule.tsx`) switched from system/monospace stacks to Poppins so column auto-fit matches the actually rendered face.
+- Verified no other typeface remains referenced anywhere in `src` (only Poppins stacks). Build check follows.
+
 ## 2026-10-13 — Financials Overview: losses made visible in Actuals lanes
 - Actuals by Project Type now shows a loss: when payments made exceed revenue collected, the payments lane continues past the revenue lane in red (`--chart-loss` = danger red 500) and the row badge flips to "−X.X% Loss" in red (or "$X.XXM Loss" when nothing has been collected yet).
 - The shared axis spans both lanes (max of collected vs payments) so an overrun is never clipped, and the legend gains a "Loss" entry only while some project type is actually losing money.

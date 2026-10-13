@@ -288,7 +288,7 @@ const COL_PAD = 28; // px of horizontal padding for autofit (px-3 on both sides 
 
 // Shared canvas for text measurement (Excel-like auto-fit)
 let _measureCtx: CanvasRenderingContext2D | null = null;
-function measureText(text: string, font = "14px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto") {
+function measureText(text: string, font = "14px Poppins, ui-sans-serif, system-ui, sans-serif") {
   if (typeof document === "undefined") return text.length * 7;
   if (!_measureCtx) {
     const c = document.createElement("canvas");
@@ -607,10 +607,10 @@ export function ProjectSchedule({
   }
 
   function computeFitWidth(key: WidthKey): number {
-    const MONO_FONT = "12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+    const MONO_FONT = "12px Poppins, ui-sans-serif, system-ui, sans-serif";
     const headerLabel =
       key === "name" ? "Item Name" : (COLUMNS.find(c => c.key === key)?.label ?? "");
-    let max = measureText(headerLabel, "600 12px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto");
+    let max = measureText(headerLabel, "600 12px Poppins, ui-sans-serif, system-ui, sans-serif");
     for (const { item, depth, hasChildren } of visibleRows) {
       let txt = "";
       let extra = 0;

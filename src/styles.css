@@ -316,7 +316,7 @@
 
   /* Typography · families */
   --p-font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
-  --p-font-mono: "Courier New", ui-monospace, monospace;
+  --p-font-mono: "Poppins", ui-sans-serif, system-ui, sans-serif;
 
   /* Typography · sizes */
   --p-text-2xs: 10px;

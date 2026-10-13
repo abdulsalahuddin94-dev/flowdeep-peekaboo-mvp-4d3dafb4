@@ -1,3 +1,9 @@
+## 2026-10-13 — Financials Overview: losses made visible in Actuals lanes
+- Actuals by Project Type now shows a loss: when payments made exceed revenue collected, the payments lane continues past the revenue lane in red (`--chart-loss` = danger red 500) and the row badge flips to "−X.X% Loss" in red (or "$X.XXM Loss" when nothing has been collected yet).
+- The shared axis spans both lanes (max of collected vs payments) so an overrun is never clipped, and the legend gains a "Loss" entry only while some project type is actually losing money.
+- Profit/Loss badge colors moved off hard-coded rgba values onto new tokens (`--p-gold-a-10/-25`, `--p-red-a-10/-20`); the footer line appends the uncovered amount (e.g. "$16.56M Rev / $19.76M Pay · $3.20M loss").
+- Verified in browser with a temporary loss row (reverted): red overhang past the revenue lane, red badge, Loss legend entry, other rows keep their gold profit tails. Build OK.
+
 ## 2026-10-13 — Financials Overview: Actuals lanes redesigned
 - Actuals by Project Type switched from one overlapping bar to two thin lanes per project type: collected revenue (teal) and actual payments (lavender, token `--chart-payments`).
 - Profit is now visible in the lane itself: a gold segment (`--chart-profit`, #D4A574) marks the profit portion at the end of the collected-revenue lane, matching the legend; shown only when payments are below collected revenue (no profit marker on a loss).

@@ -189,6 +189,9 @@ function FinancialsPage() {
     }
     return Array.from(map.values()).map((x) => ({ name: x.name, Collected: +x.Collected.toFixed(2), Spent: +x.Spent.toFixed(2), Profit: +x.Profit.toFixed(2) }));
   }, [filteredPnlRows]);
+  // The loss marker only enters the legend when some project type pays out more than it has collected.
+  const actualsLegend: [string, string][] = [["Collected revenue", "var(--p-teal-400)"], ["Actual payments", "var(--chart-payments)"], ["Actual profit", "var(--chart-profit)"]];
+  if (actuals.some((r) => r.Profit < 0)) actualsLegend.push(["Loss", "var(--chart-loss)"]);
 
   const cashFlow = useMemo(() => {
     const keyOf = (d: string) => (cashMode === "monthly" ? d.slice(0, 7) : d.slice(0, 4));
@@ -414,25 +417,33 @@ function FinancialsPage() {
                 <div className="label-eyebrow">Actuals by Project Type</div>
                 <div className="text-xs text-muted-foreground">Payments made, revenue collected and profit realised to date · $M</div>
               </div>
-              <Legendish items={[["Collected revenue", "var(--p-teal-400)"], ["Actual payments", "var(--chart-payments)"], ["Actual profit", "var(--chart-profit)"]]} />
+              <Legendish items={actualsLegend} />
             </div>
             {/* Lanes scroll after 4 rows so the card keeps a stable height with many project types. */}
             <div className="max-h-[296px] space-y-4 overflow-y-auto pr-1">
               {(() => {
                 const rows = [...actuals].sort((a, b) => b.Profit - a.Profit);
-                const maxCollected = Math.max(0.01, ...rows.map((r) => r.Collected));
+                // The shared axis spans both lanes so a payments overrun (a loss) stays visible.
+                const maxVal = Math.max(0.01, ...rows.map((r) => Math.max(r.Collected, r.Spent)));
                 return rows.map((x) => {
+                  const loss = x.Profit < 0;
                   const margin = x.Collected > 0 ? (x.Profit / x.Collected) * 100 : 0;
-                  const pct = (v: number) => Math.min(100, (v / maxCollected) * 100);
-                  const profitStart = x.Collected > 0 && x.Spent < x.Collected ? pct(x.Spent) : null;
-                  const profitWidth = profitStart !== null ? Math.min(100, pct(x.Collected)) - profitStart : 0;
+                  const pct = (v: number) => Math.min(100, (v / maxVal) * 100);
+                  const profitStart = !loss && x.Spent < x.Collected ? pct(x.Spent) : null;
+                  const profitWidth = profitStart !== null ? pct(x.Collected) - profitStart : 0;
+                  const paidCovered = loss ? pct(x.Collected) : pct(x.Spent);
+                  const lossWidth = loss ? pct(x.Spent) - paidCovered : 0;
                   return (
                     <div key={x.name} className="group">
                       <div className="mb-1.5 flex items-center justify-between gap-3">
                         <span className="text-xs font-medium text-foreground">{x.name}</span>
-                        <span className="rounded-full px-2 py-0.5 num-mono text-[10px] font-medium text-[#D4A574]"
-                          style={{ border: "1px solid rgba(212,165,116,0.25)", background: "rgba(212,165,116,0.1)" }}>
-                          +{margin.toFixed(1)}% Profit
+                        <span className="rounded-full px-2 py-0.5 num-mono text-[10px] font-medium"
+                          style={loss
+                            ? { color: "var(--chart-loss)", border: "1px solid var(--p-red-a-20)", background: "var(--p-red-a-10)" }
+                            : { color: "var(--chart-profit)", border: "1px solid var(--p-gold-a-25)", background: "var(--p-gold-a-10)" }}>
+                          {x.Collected > 0
+                            ? `${loss ? "−" : "+"}${Math.abs(margin).toFixed(1)}% ${loss ? "Loss" : "Profit"}`
+                            : loss ? `${money(Math.abs(x.Profit))} Loss` : "No revenue yet"}
                         </span>
                       </div>
                       {/* Collected revenue lane; the gold tail marks the profit portion of the collected revenue. */}
@@ -442,12 +453,16 @@ function FinancialsPage() {
                           <div className="absolute inset-y-0 rounded-full" style={{ left: `${profitStart}%`, width: `${profitWidth}%`, background: "var(--chart-profit)" }} />
                         )}
                       </div>
+                      {/* Payments lane; the red tail is the part of payments revenue has not covered yet. */}
                       <div className="relative mt-1 h-1.5 w-full overflow-hidden rounded-full bg-chart-track">
-                        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${pct(x.Spent)}%`, background: "var(--chart-payments)" }} />
+                        <div className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${paidCovered}%`, background: "var(--chart-payments)" }} />
+                        {loss && (
+                          <div className="absolute inset-y-0 rounded-full" style={{ left: `${paidCovered}%`, width: `${lossWidth}%`, background: "var(--chart-loss)" }} />
+                        )}
                       </div>
                       <div className="mt-1 flex justify-between text-[10px] num-mono text-muted-foreground">
                         <span>$0.0M</span>
-                        <span>{money(x.Collected)} Rev / {money(x.Spent)} Pay</span>
+                        <span>{money(x.Collected)} Rev / {money(x.Spent)} Pay{loss ? ` · ${money(Math.abs(x.Profit))} loss` : ""}</span>
                       </div>
                     </div>
                   );

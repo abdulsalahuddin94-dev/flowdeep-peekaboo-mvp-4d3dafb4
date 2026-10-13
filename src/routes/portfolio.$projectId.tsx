@@ -1330,46 +1330,43 @@ function ProjectDetail() {
           />
 
           {/* Save-baseline reconciliations — both totals are checked together so the user sees every mismatch in one step. */}
-          <Dialog open={baselineValidationOpen} onOpenChange={setBaselineValidationOpen}>
-            <DialogContent className="max-w-xl">
-              <DialogHeader>
-                <DialogTitle>Fix before saving the baseline</DialogTitle>
-                <DialogDescription>
-                  These totals must reconcile before the baseline can be saved — all checks are shown together.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-2">
-                {baselineIssues.map((issue) => (
-                  <div key={issue.key} className="rounded-lg border border-rag-red/30 bg-rag-red/10 p-3">
-                    <div className="flex items-center gap-2 text-sm font-medium text-rag-red">
-                      <AlertTriangle size={14} className="shrink-0" />
+          <ConfirmDialog
+            open={baselineValidationOpen}
+            onOpenChange={setBaselineValidationOpen}
+            tone="warning"
+            title="Fix before saving the baseline"
+            description="These totals must match before the baseline can be saved."
+            cancelLabel="Review the plan"
+            confirmLabel="Edit Project Info"
+            onConfirm={() => {
+              setBaselineValidationOpen(false);
+              navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } });
+            }}
+          >
+            <div className="space-y-2">
+              {baselineIssues.map((issue) => {
+                const isBudget = issue.key === "budget";
+                return (
+                  <div key={issue.key} className="rounded-lg border border-border bg-muted/40 p-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <AlertTriangle size={14} className="shrink-0 text-rag-amber" />
                       {issue.title}
                     </div>
                     <div className="mt-1.5 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
-                      <span>Project {issue.key === "budget" ? "budget" : "revenue"}: <span className="num-mono text-foreground">${issue.project.toFixed(2)}M</span></span>
+                      <span>Project {isBudget ? "budget" : "revenue"}: <span className="num-mono text-foreground">${issue.project.toFixed(2)}M</span></span>
                       <span>Planned total: <span className="num-mono text-foreground">${issue.plan.toFixed(2)}M</span></span>
                       <span>Difference: <span className="num-mono text-foreground">${issue.diff.toFixed(2)}M</span></span>
                     </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      How to fix: change{" "}
+                      <span className="text-foreground">{isBudget ? "Budget" : "Expected revenue"}</span> in Edit Project Info, or adjust the planned amounts on the{" "}
+                      <span className="text-foreground">{isBudget ? "Cost Breakdown" : "Revenue Breakdown"}</span> tab.
+                    </p>
                   </div>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Fix the project values in Basic Info, or adjust the plan lines on the Cost and Revenue tabs.
-              </p>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setBaselineValidationOpen(false)}>Review the plan</Button>
-                <Button
-                  variant="primary"
-                  onClick={() => {
-                    setBaselineValidationOpen(false);
-                    navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } });
-                  }}
-                >
-                  Edit Project Info
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                );
+              })}
+            </div>
+          </ConfirmDialog>
 
           {/* Baseline save confirmation — shown right after Send for approval */}
           <ConfirmDialog

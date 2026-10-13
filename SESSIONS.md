@@ -2110,3 +2110,5 @@ Created `product-spec.md` â€” the master product design specification for N
 - Expanded DEFAULTS in src/lib/responsibility-store.tsx from 3 to 9 examples: Internal, Shared Services (Internal); Client, Vendor, Subcontractor, Consultant, Supplier, Partner, Regulator (External).
 - Bumped storage key to pmo.org.responsibility-types.v2 so existing previews load the fuller default set.
 - Verified in browser: 9 rows render with Name/Party/Status.
+
+## 2026-10-13 — Baseline validation popup uses DS02 ConfirmDialog (warning) with per-issue "How to fix" hints

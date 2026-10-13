@@ -452,6 +452,7 @@
   --chart-revenue:       var(--p-emerald-500);
   --chart-payments:      var(--p-violet-400);
   --chart-profit:        #D4A574;
+  --chart-loss:          var(--p-red-500);
   --chart-capex:         var(--p-emerald-500);
   --chart-opex:          var(--p-blue-500);
   --chart-pie-stroke:    var(--p-white-a-60);

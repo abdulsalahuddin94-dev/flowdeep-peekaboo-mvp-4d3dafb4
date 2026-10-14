@@ -1358,7 +1358,7 @@ function ProjectDetail() {
                     {issue.key === "schedule" ? (
                     <p className="mt-2 text-xs text-muted-foreground">
                       How to fix: create at least one milestone or task with{" "}
-                      <span className="text-foreground">Add item</span> on the{" "}
+                      <span className="text-foreground">Add Item</span> on the{" "}
                       <span className="text-foreground">Project Schedule</span> tab.
                     </p>
                     ) : (<>

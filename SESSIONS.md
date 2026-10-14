@@ -2114,3 +2114,6 @@ Created `product-spec.md` â€” the master product design specification for N
 ## 2026-10-13 — Baseline validation popup uses DS02 ConfirmDialog (warning) with per-issue "How to fix" hints
 
 ## 2026-10-13 — Baseline validation guides to Cost/Revenue Breakdown tabs only; CTA opens the first failing tab
+
+## 2026-10-14 — Save baseline requires a schedule item
+- Validation popup now also blocks Save baseline when the schedule has no milestone/task; CTA "Go to Project Schedule".

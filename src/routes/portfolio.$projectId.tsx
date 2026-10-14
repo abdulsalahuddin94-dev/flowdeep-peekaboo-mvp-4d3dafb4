@@ -231,34 +231,6 @@ function ProjectDetail() {
    * Project revenue ↔ planned revenue total are both validated in the same
    * step, so every mismatch is surfaced together instead of one at a time. */
   const [baselineValidationOpen, setBaselineValidationOpen] = useState(false);
-  const baselineIssues = useMemo(() => {
-    const issues: Array<{ key: "budget" | "revenue"; title: string; project: number; plan: number; diff: number }> = [];
-    const EPS = 0.0001;
-    const planCostTotal = costEntries.reduce((s, e) => s + e.b, 0);
-    if (Math.abs(project.budgetTotal - planCostTotal) > EPS) {
-      issues.push({
-        key: "budget",
-        title: "Project budget doesn't equal the planned cost total",
-        project: project.budgetTotal,
-        plan: planCostTotal,
-        diff: Math.abs(project.budgetTotal - planCostTotal),
-      });
-    }
-    if (!isInternalProject) {
-      const expected = project.expectedRevenue ?? 0;
-      const planRevTotal = revEntries.reduce((s, e) => s + e.plan, 0);
-      if (Math.abs(expected - planRevTotal) > EPS) {
-        issues.push({
-          key: "revenue",
-          title: "Project revenue doesn't equal the planned revenue total",
-          project: expected,
-          plan: planRevTotal,
-          diff: Math.abs(expected - planRevTotal),
-        });
-      }
-    }
-    return issues;
-  }, [costEntries, revEntries, isInternalProject, project.budgetTotal, project.expectedRevenue]);
   const [milestones, setMilestones] = useState<Milestone[]>(() => cached?.milestones ?? (isNewProject ? [] : [
     // ── Phase 1: Discovery — completed, all green, all assigned ──────────────
     { name: "Discovery & Requirements", kind: "Task", startDate: "2025-04-15", endDate: "2025-05-16", owner: "Sara Al-Rashid", rag: "amber", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "Package Cost", packageId: "PKG-DSC", amount: "$80K" }, progress: 20, parent: "Discovery Sign-off", weightScore: 8 },
@@ -295,6 +267,37 @@ function ProjectDetail() {
     { name: "Knowledge transfer", kind: "Task", startDate: "2026-10-06", endDate: "2026-10-17", owner: project.pm, rag: "green", dep: "Production cutover", dependencies: [{ predecessor: "Production cutover", relation: "SS" }], roles: [{ role: "Trainer", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 0, parent: "Deployment & Hypercare", weightScore: 2 },
     { name: "Go-Live", kind: "Milestone", startDate: project.endDate, endDate: project.endDate, owner: project.pm, rag: "blue", dep: "Deployment & Hypercare", roles: [], payment: { kind: "Client Revenue", amount: "$500K" }, progress: 0, milestoneType: "finish" },
   ]));
+  const baselineIssues = useMemo(() => {
+    const issues: Array<{ key: "schedule" | "budget" | "revenue"; title: string; project: number; plan: number; diff: number }> = [];
+    const EPS = 0.0001;
+    if (milestones.length === 0) {
+      issues.push({ key: "schedule", title: "The project schedule has no items yet", project: 0, plan: 0, diff: 0 });
+    }
+    const planCostTotal = costEntries.reduce((s, e) => s + e.b, 0);
+    if (Math.abs(project.budgetTotal - planCostTotal) > EPS) {
+      issues.push({
+        key: "budget",
+        title: "Project budget doesn't equal the planned cost total",
+        project: project.budgetTotal,
+        plan: planCostTotal,
+        diff: Math.abs(project.budgetTotal - planCostTotal),
+      });
+    }
+    if (!isInternalProject) {
+      const expected = project.expectedRevenue ?? 0;
+      const planRevTotal = revEntries.reduce((s, e) => s + e.plan, 0);
+      if (Math.abs(expected - planRevTotal) > EPS) {
+        issues.push({
+          key: "revenue",
+          title: "Project revenue doesn't equal the planned revenue total",
+          project: expected,
+          plan: planRevTotal,
+          diff: Math.abs(expected - planRevTotal),
+        });
+      }
+    }
+    return issues;
+  }, [milestones, costEntries, revEntries, isInternalProject, project.budgetTotal, project.expectedRevenue]);
   const [reports, setReports] = useState<StatusReport[]>(() => isNewProject ? [] : [
     { week: 18, by: project.pm, when: "3 days ago", rag: project.rag, text: "Integration layer testing delayed by 1 week. Fallback plan in review with IT Director. No impact on go-live yet." },
     { week: 17, by: project.pm, when: "10 days ago", rag: "amber", text: "Vendor SOW reviewed. Two open RAID items remain; mitigations scheduled this sprint." },
@@ -1335,12 +1338,12 @@ function ProjectDetail() {
             onOpenChange={setBaselineValidationOpen}
             tone="warning"
             title="Fix before saving the baseline"
-            description="These totals must match before the baseline can be saved."
+            description="Resolve these items before the baseline can be saved."
             cancelLabel="Cancel"
-            confirmLabel={`Go to ${baselineIssues[0]?.key === "revenue" ? "Revenue" : "Cost"} Breakdown`}
+            confirmLabel={`Go to ${baselineIssues[0]?.key === "schedule" ? "Project Schedule" : baselineIssues[0]?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown"}`}
             onConfirm={() => {
               setBaselineValidationOpen(false);
-              setActiveTab(baselineIssues[0]?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown");
+              setActiveTab(baselineIssues[0]?.key === "schedule" ? "Project Schedule" : baselineIssues[0]?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown");
             }}
           >
             <div className="space-y-2">
@@ -1352,6 +1355,13 @@ function ProjectDetail() {
                       <AlertTriangle size={14} className="shrink-0 text-rag-amber" />
                       {issue.title}
                     </div>
+                    {issue.key === "schedule" ? (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      How to fix: create at least one milestone or task with{" "}
+                      <span className="text-foreground">Add item</span> on the{" "}
+                      <span className="text-foreground">Project Schedule</span> tab.
+                    </p>
+                    ) : (<>
                     <div className="mt-1.5 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
                       <span>Project {isBudget ? "budget" : "revenue"}: <span className="num-mono text-foreground">${issue.project.toFixed(2)}M</span></span>
                       <span>Planned total: <span className="num-mono text-foreground">${issue.plan.toFixed(2)}M</span></span>
@@ -1361,6 +1371,7 @@ function ProjectDetail() {
                       How to fix: adjust the planned amounts on the{" "}
                       <span className="text-foreground">{isBudget ? "Cost Breakdown" : "Revenue Breakdown"}</span> tab.
                     </p>
+                    </>)}
                   </div>
                 );
               })}

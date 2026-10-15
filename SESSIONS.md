@@ -1,3 +1,8 @@
+## 2026-10-15 — Compact linked-action popup for Risks and Issues
+- Linked Risk/Issue Add action (and Edit action) now uses the shared DS02 FormDialog with an Action plan inline row: Action, Owner, central Responsibility dropdown, and Due date; Cancel + Add action footer. Other Action Tracker forms remain unchanged.
+- Added bilingual source-specific hints; preserved source links, action status/history, and detail drawers.
+- Browser verified: created a risk action, read it back in the linked drawer and filtered Action Tracker (R-091); created an issue action and read it back in its drawer. Both popup screenshots inspected. Preview build OK.
+
 ## 2026-10-13 — Save baseline: budget & revenue validation combined in one popup
 - New page-level validation in `portfolio.$projectId.tsx`: `baselineIssues` memo + `baselineValidationOpen` state gate every Save baseline entry point (⌘/Ctrl+S, Change Plan header button, unlocked dropdown Save Baseline, locked-editing dropdown Save baseline). Budget mismatch (always) and revenue mismatch (skipped for Internal projects) are checked together (EPS 0.0001) so the user sees both errors in a single popup instead of one per attempt.
 - New "Fix before saving the baseline" dialog lists per-issue rows (project value, planned total, difference) with "Review the plan" (closes back) and "Edit Project Info" (navigates to /portfolio/$id/edit).

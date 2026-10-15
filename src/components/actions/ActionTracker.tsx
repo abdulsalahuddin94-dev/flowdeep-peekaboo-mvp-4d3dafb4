@@ -41,6 +41,9 @@ export const T = {
     addActionRow: "Add action", updateActionRow: "Update action", editActionRow: "Edit action", deleteActionRow: "Delete action",
     actionRowRequired: "Complete the action, owner, responsibility, and due date first.", noDraftActions: "No actions added yet.",
     viewLinkedActions: "View linked actions in Action Tracker", linkedPlan: "Linked plan", allPlans: "All plans",
+    linkedActionPlan: "Action plan",
+    linkedRiskHint: "Actions are added to the project's Action Tracker and stay linked to this risk.",
+    linkedIssueHint: "Actions are added to the project's Action Tracker and stay linked to this issue.",
   },
   ar: {
     title: "متابعة الإجراءات", add: "إضافة إجراء", meeting: "تسجيل إجراءات الاجتماع", search: "ابحث عن إجراء…",
@@ -51,6 +54,9 @@ export const T = {
     addActionRow: "إضافة إجراء", updateActionRow: "تحديث الإجراء", editActionRow: "تعديل الإجراء", deleteActionRow: "حذف الإجراء",
     actionRowRequired: "أكمل الإجراء والمسؤول ونوع المسؤولية وتاريخ الاستحقاق أولاً.", noDraftActions: "لم تتم إضافة إجراءات بعد.",
     viewLinkedActions: "عرض الإجراءات المرتبطة في متابعة الإجراءات", linkedPlan: "الخطة المرتبطة", allPlans: "كل الخطط",
+    linkedActionPlan: "خطة الإجراءات",
+    linkedRiskHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذا الخطر.",
+    linkedIssueHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذه المشكلة.",
   },
 };
 const t = T.en;
@@ -288,6 +294,38 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
     : d.source === "Issue" ? issues.filter((i) => i.project === project).map((i) => ({ v: i.id, l: `${i.id} · ${i.title}` })) : [];
   const valid = d.title.trim() && d.owner.trim() && d.dueDate && (d.source !== "Risk" && d.source !== "Issue" || d.sourceRef);
   const up = (p: Partial<ActionDraft>) => setD((x) => ({ ...x, ...p }));
+
+  if (fixedSource?.source === "Risk" || fixedSource?.source === "Issue") {
+    return (
+      <FormDialog
+        open={open}
+        onOpenChange={onOpenChange}
+        title={initial ? t.editActionRow : t.addActionRow}
+        size="xl"
+        className="w-[calc(100%-2rem)]"
+        submitDisabled={!valid}
+        submitLabel={initial ? "Save" : t.addActionRow}
+        onSubmit={() => {
+          if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), owner: d.owner.trim() });
+        }}
+      >
+        <div className="space-y-3">
+          <div className="label-eyebrow">{t.linkedActionPlan}</div>
+          <div className="grid min-w-0 grid-cols-1 gap-2 rounded-lg border border-border bg-secondary/30 p-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+            <Input aria-label={t.actionPlaceholder} maxLength={150} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder={t.actionPlaceholder} className="min-w-0" />
+            <Input aria-label={t.ownerPlaceholder} list="linked-action-owner-list" maxLength={80} value={d.owner} onChange={(e) => up({ owner: e.target.value })} placeholder={t.ownerPlaceholder} className="min-w-0" />
+            <Select value={d.responsibility} onValueChange={(v) => up({ responsibility: v as ActionResponsibility })}>
+              <SelectTrigger aria-label={t.responsibility} className="min-w-0"><SelectValue /></SelectTrigger>
+              <SelectContent>{respTypes.filter((s) => isActive(s.name) || s.name === d.responsibility).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+            </Select>
+            <DatePicker value={d.dueDate} onChange={(v) => up({ dueDate: v })} placeholder={t.dueDate} className="min-w-0" />
+          </div>
+          <datalist id="linked-action-owner-list">{users.map((u) => <option key={u.id} value={u.name} />)}</datalist>
+          <p className="text-xs text-muted-foreground">{fixedSource.source === "Risk" ? t.linkedRiskHint : t.linkedIssueHint}</p>
+        </div>
+      </FormDialog>
+    );
+  }
 
   return (
     <FormDialog open={open} onOpenChange={onOpenChange} title={initial ? "Edit action" : "Add action"} size="lg" submitDisabled={!valid} submitLabel={initial ? "Save" : "Add action"}

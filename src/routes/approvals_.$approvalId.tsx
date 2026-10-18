@@ -27,7 +27,7 @@ import type { CostEntry, Milestone, RevEntry } from "@/routes/portfolio.$project
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
 
-export const Route = createFileRoute("/approvals/$approvalId")({
+export const Route = createFileRoute("/approvals_/$approvalId")({
   component: ChangeRequestReviewPage,
   head: () => ({
     meta: [

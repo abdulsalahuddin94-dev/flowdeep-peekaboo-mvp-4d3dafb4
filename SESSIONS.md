@@ -1,3 +1,8 @@
+## 2026-10-18 — Update Status: status and comment independent
+- Risks, Issues, Actions Update Status pop-ups: comment optional; Save update disabled until status (or Risk probability/impact) changes or a comment is entered; status-only saves add no comment entry (logged to Recent Activity instead).
+- Comments show date + time; all delta/status-transition badges removed.
+- Edit comment: comment field only, "Save Changes", "Comment is required."; never changes status. Delete confirmation text unified; delete never reverts status.
+
 ## 2026-10-15 — Compact linked-action popup for Risks and Issues
 - Linked Risk/Issue Add action (and Edit action) now uses the shared DS02 FormDialog with an Action plan inline row: Action, Owner, central Responsibility dropdown, and Due date; Cancel + Add action footer. Other Action Tracker forms remain unchanged.
 - Added bilingual source-specific hints; preserved source links, action status/history, and detail drawers.

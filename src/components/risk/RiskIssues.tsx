@@ -147,26 +147,34 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
               {!project && <StyledTableHead>Project</StyledTableHead>}
               <StyledTableHead>Risk</StyledTableHead>
               <StyledTableHead>Category</StyledTableHead>
-              <StyledTableHead className="text-center">Probability</StyledTableHead>
-              <StyledTableHead className="text-center">Impact</StyledTableHead>
               <StyledTableHead className="text-center">Score</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Severity</StyledTableHead>
-              <StyledTableHead>Mitigation plan</StyledTableHead>
+              <StyledTableHead>Mitigation action</StyledTableHead>
               <StyledTableHead className="w-40 text-center">Status</StyledTableHead>
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {list.length === 0 && <EmptyRow colSpan={project ? 8 : 9} />}
+            {list.length === 0 && <EmptyRow colSpan={project ? 6 : 7} />}
             {pagination.pageItems.map((r) => (
               <StyledTableRow key={r.id} onClick={() => setViewId(r.id)} className="cursor-pointer">
                 {!project && <StyledTableCell className="text-muted-foreground">{r.project}</StyledTableCell>}
                 <StyledTableCell className="font-medium text-foreground">{r.title}</StyledTableCell>
                 <StyledTableCell className="text-muted-foreground">{r.category}</StyledTableCell>
-                <StyledTableCell className="text-center text-xs text-muted-foreground whitespace-nowrap">{rules.risk.probabilityLabels[r.prob - 1] ?? r.prob}</StyledTableCell>
-                <StyledTableCell className="text-center text-xs text-muted-foreground whitespace-nowrap">{rules.risk.impactLabels[r.impact - 1] ?? r.impact}</StyledTableCell>
-                <StyledTableCell className="text-center num-mono text-foreground">{r.score}</StyledTableCell>
                 <StyledTableCell className="text-center">
-                  <Pill label={severityOf(r.score)} tone={SEVERITY_TONE[severityOf(r.score)]} />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="num-mono cursor-default text-foreground">{r.score}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>{scoreTip(r)}</TooltipContent>
+                  </Tooltip>
+                </StyledTableCell>
+                <StyledTableCell className="text-center">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-block cursor-default"><Pill label={severityOf(r.score)} tone={SEVERITY_TONE[severityOf(r.score)]} /></span>
+                    </TooltipTrigger>
+                    <TooltipContent>{scoreTip(r)}</TooltipContent>
+                  </Tooltip>
                 </StyledTableCell>
                 <StyledTableCell><ActionsCount source="Risk" sourceRef={r.id} /></StyledTableCell>
                 <StyledTableCell onClick={(e) => e.stopPropagation()}>

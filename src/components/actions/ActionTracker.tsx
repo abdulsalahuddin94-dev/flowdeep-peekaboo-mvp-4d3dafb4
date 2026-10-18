@@ -40,7 +40,7 @@ export const T = {
     actionPlaceholder: "Action", responsibility: "Responsibility", dueDate: "Due date",
     addActionRow: "Add action", updateActionRow: "Update action", editActionRow: "Edit action", deleteActionRow: "Delete action",
     actionRowRequired: "Complete the action, responsibility, and due date first.", noDraftActions: "No actions added yet.",
-    viewLinkedActions: "View linked actions in Action Tracker", linkedPlan: "Linked plan", allPlans: "All plans",
+    viewLinkedActions: "View linked actions in Action Tracker", linkedPlan: "Linked plan", allPlans: "All plans", doneWord: "done",
     linkedActionPlan: "Action plan",
     linkedRiskHint: "Actions are added to the project's Action Tracker and stay linked to this risk.",
     linkedIssueHint: "Actions are added to the project's Action Tracker and stay linked to this issue.",
@@ -53,7 +53,7 @@ export const T = {
     actionPlaceholder: "الإجراء", responsibility: "المسؤولية", dueDate: "تاريخ الاستحقاق",
     addActionRow: "إضافة إجراء", updateActionRow: "تحديث الإجراء", editActionRow: "تعديل الإجراء", deleteActionRow: "حذف الإجراء",
     actionRowRequired: "أكمل الإجراء ونوع المسؤولية وتاريخ الاستحقاق أولاً.", noDraftActions: "لم تتم إضافة إجراءات بعد.",
-    viewLinkedActions: "عرض الإجراءات المرتبطة في متابعة الإجراءات", linkedPlan: "الخطة المرتبطة", allPlans: "كل الخطط",
+    viewLinkedActions: "عرض الإجراءات المرتبطة في متابعة الإجراءات", linkedPlan: "الخطة المرتبطة", allPlans: "كل الخطط", doneWord: "منجز",
     linkedActionPlan: "خطة الإجراءات",
     linkedRiskHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذا الخطر.",
     linkedIssueHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذه المشكلة.",
@@ -690,12 +690,12 @@ export function ActionsCount({ source, sourceRef }: { source: "Risk" | "Issue"; 
   if (!project) return <span className={cn("num-mono text-sm", over ? "text-rag-red" : "text-foreground")}>{done}/{linked.length}</span>;
   return (
     <Button variant="link" className={cn("h-7 px-0 num-mono text-sm", over ? "text-rag-red" : "text-foreground")}
-      title={t.viewLinkedActions} aria-label={`${t.viewLinkedActions} · ${sourceRef} · ${done}/${linked.length}`}
+      title={`${done} ${t.doneWord} · ${linked.length}`} aria-label={`${t.viewLinkedActions} · ${sourceRef} · ${done} of ${linked.length}`}
       onClick={(event) => {
         event.stopPropagation();
         navigate({ to: "/portfolio/$projectId", params: { projectId: project.id }, search: { tab: "Action Tracker", actionRef: sourceRef } });
       }}>
-      {done}/{linked.length}
+      {linked.length}
     </Button>
   );
 }

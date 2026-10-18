@@ -1,3 +1,7 @@
+## 2026-10-18 — Milestone approvals also open the independent review page
+- Reproduced the reported drawer: the screenshot's request is a milestone gate, while change requests already navigate correctly.
+- Both milestone gates and change requests now open the independent approval review page with Project Schedule, Cost Breakdown and Revenue Breakdown; calendar changes retain their drawer. The page preserves request type and decision controls.
+
 ## 2026-10-18 — Change Request review as a full page with plan tabs
 - Clicking a Change request row in the Approvals inbox now opens a full page (`/approvals/$approvalId`, route `approvals_.$approvalId.tsx` un-nested so it renders outside the inbox) instead of the side drawer; milestone gates and calendar changes keep the drawer.
 - The page carries the request header (type/status badges, Remind/Reject/Approve with the same comment-required-on-reject dialog), a meta strip, the Change summary (before/after), the Approvers list, and three read-only tabs: Project Schedule, Cost Breakdown, Revenue Breakdown.

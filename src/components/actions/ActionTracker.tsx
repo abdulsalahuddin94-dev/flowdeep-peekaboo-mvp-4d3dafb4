@@ -303,9 +303,9 @@ export function ActionFormDialog({ open, onOpenChange, project, projects, initia
   const k = `${open}-${initial?.id ?? "new"}`;
   if (k !== key) { setKey(k); if (open) setD(initial ? { ...initial } : blank()); }
 
-  const refs = d.source === "Risk" ? risks.filter((r) => r.project === project).map((r) => ({ v: r.id, l: `${r.id} · ${r.title}` }))
-    : d.source === "Issue" ? issues.filter((i) => i.project === project).map((i) => ({ v: i.id, l: `${i.id} · ${i.title}` })) : [];
-  const valid = d.title.trim() && d.dueDate && (d.source !== "Risk" && d.source !== "Issue" || d.sourceRef);
+  const refs = d.source === "Risk" ? risks.filter((r) => r.project === d.project).map((r) => ({ v: r.id, l: `${r.id} · ${r.title}` }))
+    : d.source === "Issue" ? issues.filter((i) => i.project === d.project).map((i) => ({ v: i.id, l: `${i.id} · ${i.title}` })) : [];
+  const valid = d.title.trim() && d.dueDate && d.project && (d.source !== "Risk" && d.source !== "Issue" || d.sourceRef);
   const up = (p: Partial<ActionDraft>) => setD((x) => ({ ...x, ...p }));
 
   if (fixedSource?.source === "Risk" || fixedSource?.source === "Issue" || fixedSource?.source === "Meeting") {
@@ -343,6 +343,14 @@ export function ActionFormDialog({ open, onOpenChange, project, projects, initia
   return (
     <FormDialog open={open} onOpenChange={onOpenChange} title={initial ? "Edit action" : "Add action"} size="lg" submitDisabled={!valid} submitLabel={initial ? "Save" : "Add action"}
       onSubmit={() => { if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), owner: d.owner.trim() || currentUser.name }); }}>
+      {projects && !fixedSource && (
+        <Field label="Project" htmlFor="act-project">
+          <Select value={d.project} onValueChange={(v) => up({ project: v, sourceRef: undefined })}>
+            <SelectTrigger id="act-project"><SelectValue placeholder="Select project" /></SelectTrigger>
+            <SelectContent>{projects.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+          </Select>
+        </Field>
+      )}
       <Field label="Action" htmlFor="act-title"><Input id="act-title" maxLength={150} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder="e.g. Share updated cutover plan" /></Field>
       {!fixedSource && (
         <div className="grid grid-cols-2 gap-4">

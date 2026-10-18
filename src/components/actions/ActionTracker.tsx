@@ -22,7 +22,7 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { EditAction, DeleteAction, ClipboardCheck, Plus, Check } from "@/lib/icons";
 import { formatDateWithYear, formatDateTime } from "@/lib/date-format";
-import { useProjects } from "@/lib/projects-store";
+import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import { useRiskRegister } from "@/lib/risk-store";
 import {
   useActions, isActionOverdue, daysOverdue, ACTION_SOURCES, ACTION_STATUSES,

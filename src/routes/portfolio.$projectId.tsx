@@ -3806,7 +3806,7 @@ type Trip = { id: string; purpose: string; dest: string; dates: string; traveler
 type CostBreakdownItem = { name: string; amount: number; note?: string };
 /** One logged actual (payment received, or expense incurred) under a planned item. */
 type ActualEntry = { name?: string; amount: number; date: string; note?: string };
-type CostEntry = {
+export type CostEntry = {
   c: string; b: number; a: number; color: string;
   /** Cost category from Organization master data. */
   cat?: string;
@@ -3819,7 +3819,7 @@ type CostEntry = {
   /** Individual actual expenses logged against this planned cost item. */
   actuals?: ActualEntry[];
 };
-type RevEntry = {
+export type RevEntry = {
   ms: string; evt: string; plan: number; date: string; s: string; sl: string; act: number | null;
   linkKind?: "fixed" | "milestone";
   /** Individual actual payments logged against this planned event. */

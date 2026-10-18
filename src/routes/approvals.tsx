@@ -236,7 +236,13 @@ function ApprovalsInbox() {
               const canAct = approval.status === "pending" && me?.decision === "pending";
               const approvedCount = approval.approvers.filter((approver) => approver.decision === "approved").length;
               return (
-                <StyledTableRow key={approval.id} className="group cursor-pointer" onClick={() => setDetailsId(approval.id)}>
+                <StyledTableRow
+                  key={approval.id}
+                  className="group cursor-pointer"
+                  onClick={() => approval.type === "change-request"
+                    ? navigate({ to: "/approvals/$approvalId", params: { approvalId: approval.id } })
+                    : setDetailsId(approval.id)}
+                >
                   <StyledTableCell>
                     <div className="max-w-sm font-medium text-foreground">{approval.title}</div>
                     <div className="mt-0.5 text-xs text-muted-foreground">{approval.ref}</div>

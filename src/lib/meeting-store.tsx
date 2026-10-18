@@ -9,8 +9,7 @@ import { logActivity } from "@/lib/activity-store";
 export type AttendeeParty = "Internal" | "Client" | "Vendor" | "Stakeholder" | "Other";
 export const ATTENDEE_PARTIES: AttendeeParty[] = ["Internal", "Client", "Vendor", "Stakeholder", "Other"];
 
-export type MeetingType = "Progress meeting" | "Steering committee" | "Workshop" | "Client review" | "Other";
-export const MEETING_TYPES: MeetingType[] = ["Progress meeting", "Steering committee", "Workshop", "Client review", "Other"];
+export type MeetingType = string;
 
 export type Attendee = { id: string; name: string; party: AttendeeParty; organization?: string; email?: string };
 
@@ -97,5 +96,9 @@ export function useMeetings() {
     set(state.filter((x) => x.id !== id));
   }, []);
 
-  return { meetings: state, addMeeting, updateMeeting, removeMeeting };
+  const renameMeetingType = useCallback((oldName: string, newName: string) => {
+    set(state.map((m) => m.type === oldName ? { ...m, type: newName } : m));
+  }, []);
+
+  return { meetings: state, addMeeting, updateMeeting, removeMeeting, renameMeetingType };
 }

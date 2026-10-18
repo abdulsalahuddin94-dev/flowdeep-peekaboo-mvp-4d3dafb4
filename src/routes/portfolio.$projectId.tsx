@@ -3769,7 +3769,7 @@ type MilestoneType = "start" | "finish";
 type RoleReq = { role: string; skill: "Junior" | "Mid" | "Senior" | "Lead"; fte: number };
 type PaymentLinkKind = "None" | "Client Revenue" | "Package Cost";
 type PaymentLink = { kind: PaymentLinkKind; amount: string; packageId?: string };
-type Milestone = {
+export type Milestone = {
   name: string; kind: ItemKind; startDate: string; endDate: string;
   owner: string; rag: Rag; dep: string; roles: RoleReq[];
   payment?: PaymentLink; progress?: number; parent?: string;

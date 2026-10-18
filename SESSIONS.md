@@ -1,3 +1,9 @@
+## 2026-10-18 — Risk Register table: hover-only Probability/Impact, Mitigation action count
+- Risk Register table (project-level and /risks module): removed the Probability and Impact columns; the details now appear on hover as a tooltip on both the Score number and the Severity badge — "Probability: {label} ({n}) · Impact: {label} ({n})" using org-defined labels.
+- Renamed the "Mitigation plan" column header to "Mitigation action".
+- Linked-action count now shows only the total number (e.g. "2", red when any linked action is overdue) instead of "0/2"; hovering shows "X done · Y" and clicking still opens Action Tracker filtered to the risk.
+- Typecheck clean, build OK; browser verified on /risks?tab=register and /portfolio/p-001 → Risk & Issues → Risk Register (headers, counts, severity tooltip). Empty-row colSpan adjusted.
+
 ## 2026-10-18 — Update Status: status and comment independent
 - Risks, Issues, Actions Update Status pop-ups: comment optional; Save update disabled until status (or Risk probability/impact) changes or a comment is entered; status-only saves add no comment entry (logged to Recent Activity instead).
 - Comments show date + time; all delta/status-transition badges removed.

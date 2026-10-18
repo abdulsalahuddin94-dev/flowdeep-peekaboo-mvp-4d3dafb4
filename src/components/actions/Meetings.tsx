@@ -29,7 +29,7 @@ import {
   useMeetings, meetingStatus, ATTENDEE_PARTIES,
   type Meeting, type Attendee, type AttendeeParty, type MeetingStatus,
 } from "@/lib/meeting-store";
-import { ActionRowsEditor, emptyActionRow, filledActionRows, actionRowsValid, cleanActionRows, type ActionRow } from "@/components/actions/ActionTracker";
+import { ActionRowsEditor, emptyActionRow, filledActionRows, actionRowsValid, cleanActionRows, LinkedActions, type ActionRow } from "@/components/actions/ActionTracker";
 
 export const T = {
   en: {
@@ -175,7 +175,6 @@ export function MeetingsTab({ project }: { project: string }) {
       />
       <MeetingDrawer
         meeting={view}
-        actions={view ? actionsOf(view.id) : []}
         onClose={() => setViewId(null)}
         onAddActions={(m) => setActionsFor(m)}
         onEdit={(m) => { setViewId(null); setEditing(m); setFormOpen(true); }}
@@ -329,8 +328,8 @@ function MeetingActionsDialog({ meeting, onClose, onSave }: { meeting: Meeting |
 
 /* ── Drawer ──────────────────────────────────────────────────────────────── */
 
-function MeetingDrawer({ meeting: m, actions, onClose, onAddActions, onEdit }: {
-  meeting: Meeting | null; actions: ReturnType<typeof useActions>["actions"]; onClose: () => void; onAddActions: (m: Meeting) => void; onEdit: (m: Meeting) => void;
+function MeetingDrawer({ meeting: m, onClose, onAddActions, onEdit }: {
+  meeting: Meeting | null; onClose: () => void; onAddActions: (m: Meeting) => void; onEdit: (m: Meeting) => void;
 }) {
   if (!m) return <Sheet open={false} />;
   const st = meetingStatus(m);

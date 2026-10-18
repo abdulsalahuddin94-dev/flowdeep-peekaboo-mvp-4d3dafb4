@@ -44,6 +44,7 @@ export const T = {
     linkedActionPlan: "Action plan",
     linkedRiskHint: "Actions are added to the project's Action Tracker and stay linked to this risk.",
     linkedIssueHint: "Actions are added to the project's Action Tracker and stay linked to this issue.",
+    linkedMeetingHint: "Actions are added to the project's Action Tracker and stay linked to this meeting.",
   },
   ar: {
     title: "متابعة الإجراءات", add: "إضافة إجراء", meeting: "تسجيل إجراءات الاجتماع", search: "ابحث عن إجراء…",
@@ -57,6 +58,7 @@ export const T = {
     linkedActionPlan: "خطة الإجراءات",
     linkedRiskHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذا الخطر.",
     linkedIssueHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذه المشكلة.",
+    linkedMeetingHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذا الاجتماع.",
   },
 };
 const t = T.en;
@@ -297,7 +299,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
   const valid = d.title.trim() && d.dueDate && (d.source !== "Risk" && d.source !== "Issue" || d.sourceRef);
   const up = (p: Partial<ActionDraft>) => setD((x) => ({ ...x, ...p }));
 
-  if (fixedSource?.source === "Risk" || fixedSource?.source === "Issue") {
+  if (fixedSource?.source === "Risk" || fixedSource?.source === "Issue" || fixedSource?.source === "Meeting") {
     return (
       <FormDialog
         open={open}
@@ -323,7 +325,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
               <DatePicker value={d.dueDate} onChange={(v) => up({ dueDate: v })} placeholder={t.dueDate} className="min-w-0" />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">{fixedSource.source === "Risk" ? t.linkedRiskHint : t.linkedIssueHint}</p>
+          <p className="text-xs text-muted-foreground">{fixedSource.source === "Risk" ? t.linkedRiskHint : fixedSource.source === "Issue" ? t.linkedIssueHint : t.linkedMeetingHint}</p>
         </div>
       </FormDialog>
     );

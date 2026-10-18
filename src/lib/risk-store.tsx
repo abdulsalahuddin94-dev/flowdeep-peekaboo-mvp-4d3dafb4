@@ -164,14 +164,10 @@ export function useRiskRegister() {
           if (impact !== r.impact) change.impact = [r.impact, impact];
           if (score !== r.score) change.score = [r.score, score];
           if (status !== r.status) change.status = [r.status, status];
-          const update: RiskUpdate = {
-            id: `u-${Date.now()}`,
-            at: today(),
-            by: input.by,
-            comment: input.comment,
-            change: Object.keys(change).length ? change : undefined,
-          };
-          return { ...r, prob, impact, score, status, updates: [update, ...r.updates] };
+          if (Object.keys(change).length) logActivity({ project: r.project, kind: "Risk", ref: id, title: r.title, text: change.status ? `Status ${r.status} → ${status}` : "Severity updated", by: input.by });
+          const comment = input.comment.trim();
+          const updates = comment ? [{ id: `u-${Date.now()}`, at: new Date().toISOString(), by: input.by, comment }, ...r.updates] : r.updates;
+          return { ...r, prob, impact, score, status, updates };
         }),
       });
     },
@@ -234,20 +230,16 @@ export function useRiskRegister() {
       set({
         issues: state.issues.map((i) => {
           if (i.id !== id) return i;
-          const update: IssueUpdate = {
-            id: `iu-${Date.now()}`,
-            at: today(),
-            by: input.by,
-            comment: input.comment,
-            statusChange: input.status !== i.status ? [i.status, input.status] : undefined,
-          };
+          const comment = input.comment.trim();
+          if (input.status !== i.status) logActivity({ project: i.project, kind: "Issue", ref: id, title: i.title, text: `Status ${i.status} → ${input.status}`, by: input.by });
+          const updates = comment ? [{ id: `iu-${Date.now()}`, at: new Date().toISOString(), by: input.by, comment }, ...i.updates] : i.updates;
           return {
             ...i,
             status: input.status,
             closureDate: input.status === "Resolved"
               ? (input.closureDate || i.closureDate || today())
               : undefined,
-            updates: [update, ...i.updates],
+            updates,
           };
         }),
       });

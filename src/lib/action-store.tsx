@@ -110,11 +110,14 @@ export function useActions() {
     if (a) logActivity({ project: a.project, kind: "Action", ref: id, title: a.title, text: "Action deleted", by: a.owner });
     set(state.filter((a) => a.id !== id));
   }, []);
+  /** Status and comment are independent: a status-only save adds no comment entry. */
   const logActionUpdate = useCallback((id: string, input: { comment: string; by: string; status: ActionStatus }) => {
     set(state.map((a) => {
       if (a.id !== id) return a;
-      const u: ActionUpdate = { id: `au-${Date.now()}`, at: todayIso(), by: input.by, comment: input.comment, statusChange: input.status !== a.status ? [a.status, input.status] : undefined };
-      return { ...a, status: input.status, closedDate: input.status === "Done" ? (a.closedDate ?? todayIso()) : undefined, updates: [u, ...a.updates] };
+      const comment = input.comment.trim();
+      if (input.status !== a.status) logActivity({ project: a.project, kind: "Action", ref: id, title: a.title, text: `Status ${a.status} → ${input.status}`, by: input.by });
+      const updates = comment ? [{ id: `au-${Date.now()}`, at: new Date().toISOString(), by: input.by, comment }, ...a.updates] : a.updates;
+      return { ...a, status: input.status, closedDate: input.status === "Done" ? (a.closedDate ?? todayIso()) : undefined, updates };
     }));
   }, []);
   const editActionUpdate = useCallback((id: string, updateId: string, comment: string) => {

@@ -227,6 +227,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
         open={formOpen}
         onOpenChange={setFormOpen}
         project={project}
+        projects={pmo ? projectNames : undefined}
         initial={editing}
         onSave={(v) => {
           if (editing) { updateAction(editing.id, v); toast.success("Action updated"); }
@@ -284,8 +285,8 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
 
 type ActionDraft = Omit<ActionItem, "id" | "updates">;
 
-export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSource, onSave }: {
-  open: boolean; onOpenChange: (o: boolean) => void; project: string; initial?: ActionItem | null;
+export function ActionFormDialog({ open, onOpenChange, project, projects, initial, fixedSource, onSave }: {
+  open: boolean; onOpenChange: (o: boolean) => void; project?: string; projects?: string[]; initial?: ActionItem | null;
   fixedSource?: { source: ActionSource; sourceRef: string };
   onSave: (v: ActionDraft) => void;
 }) {
@@ -294,7 +295,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
   const { respTypes } = useResponsibilities();
   const { isActive } = useOrgActive("responsibility-type");
   const blank = (): ActionDraft => ({
-    project, title: "", description: "", source: fixedSource?.source ?? "General", sourceRef: fixedSource?.source === "Meeting" ? undefined : fixedSource?.sourceRef,
+    project: project ?? projects?.[0] ?? "", title: "", description: "", source: fixedSource?.source ?? "General", sourceRef: fixedSource?.source === "Meeting" ? undefined : fixedSource?.sourceRef,
     owner: "", responsibility: defaultResponsibility(respTypes, isActive), dueDate: "", status: "Open",
   });
   const [d, setD] = useState<ActionDraft>(blank);

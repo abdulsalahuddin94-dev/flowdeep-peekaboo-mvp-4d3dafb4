@@ -44,6 +44,7 @@ export const T = {
     linkedActionPlan: "Action plan",
     linkedRiskHint: "Actions are added to the project's Action Tracker and stay linked to this risk.",
     linkedIssueHint: "Actions are added to the project's Action Tracker and stay linked to this issue.",
+    linkedMeetingHint: "Actions are added to the project's Action Tracker and stay linked to this meeting.",
   },
   ar: {
     title: "متابعة الإجراءات", add: "إضافة إجراء", meeting: "تسجيل إجراءات الاجتماع", search: "ابحث عن إجراء…",
@@ -57,6 +58,7 @@ export const T = {
     linkedActionPlan: "خطة الإجراءات",
     linkedRiskHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذا الخطر.",
     linkedIssueHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذه المشكلة.",
+    linkedMeetingHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذا الاجتماع.",
   },
 };
 const t = T.en;
@@ -95,11 +97,15 @@ function DueCell({ a }: { a: ActionItem }) {
 
 /* ── Tab ─────────────────────────────────────────────────────────────────── */
 
-export function ActionTrackerTab({ project, initialSourceRef }: { project: string; initialSourceRef?: string }) {
+export function ActionTrackerTab({ project, initialSourceRef }: { project?: string; initialSourceRef?: string }) {
   const { actions, addAction, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
   const { currentUser } = useCurrentUser();
+  const { projects } = useProjects();
   const { respTypes } = useResponsibilities();
+  const pmo = !project;
+  const projectNames = useMemo(() => projects.map((p) => p.name), [projects]);
   const [query, setQuery] = useState("");
+  const [proj, setProj] = useState("all");
   const [source, setSource] = useState("all");
   const [sourceRef, setSourceRef] = useState(initialSourceRef ?? "all");
   const [resp, setResp] = useState("all");
@@ -114,7 +120,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project: strin
   const [pendingDelete, setPendingDelete] = useState<ActionItem | null>(null);
   const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ a: ActionItem; u: ActionUpdate } | null>(null);
 
-  const scoped = actions.filter((a) => a.project === project);
+  const scoped = project ? actions.filter((a) => a.project === project) : actions;
   const today = todayIso();
   const weekEnd = addDays(today, 7);
   const kpis = useMemo(() => ({
@@ -128,6 +134,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project: strin
   const q = query.trim().toLowerCase();
   const list = scoped
     .filter((a) => !q || a.title.toLowerCase().includes(q))
+    .filter((a) => proj === "all" || a.project === proj)
     .filter((a) => source === "all" || a.source === source)
     .filter((a) => sourceRef === "all" || a.sourceRef === sourceRef)
     .filter((a) => resp === "all" || a.responsibility === resp)
@@ -146,6 +153,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project: strin
         onQueryChange={setQuery}
         placeholder={t.search}
         filterGroups={[
+          ...(pmo ? [{ key: "project", label: "Project", value: proj, onChange: setProj, options: [{ value: "all", label: "All projects" }, ...projectNames.map((v) => ({ value: v, label: v }))] }] : []),
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, { value: "Overdue", label: "Overdue" }, ...ACTION_STATUSES.map((v) => ({ value: v, label: v }))] },
           { key: "resp", label: "Responsibility", value: resp, onChange: setResp, options: [{ value: "all", label: "All parties" }, ...respTypes.map((v) => ({ value: v.name, label: v.name }))] },
           { key: "source", label: "Source", value: source, onChange: setSource, options: [{ value: "all", label: "All sources" }, ...ACTION_SOURCES.map((v) => ({ value: v, label: v }))] },
@@ -180,6 +188,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project: strin
         <StyledTableHeader>
           <StyledTableHeaderRow>
             <StyledTableHead>Action</StyledTableHead>
+            {pmo && <StyledTableHead>Project</StyledTableHead>}
             <StyledTableHead>Source</StyledTableHead>
             <StyledTableHead>Owner</StyledTableHead>
             <StyledTableHead>Responsibility</StyledTableHead>
@@ -188,10 +197,11 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project: strin
           </StyledTableHeaderRow>
         </StyledTableHeader>
         <StyledTableBody>
-          {pagination.pageItems.length === 0 && <EmptyRow colSpan={6} />}
+          {pagination.pageItems.length === 0 && <EmptyRow colSpan={pmo ? 7 : 6} />}
           {pagination.pageItems.map((a) => (
             <StyledTableRow key={a.id} className="group cursor-pointer" onClick={() => setViewId(a.id)}>
               <StyledTableCell className="font-medium text-foreground">{a.title}</StyledTableCell>
+              {pmo && <StyledTableCell className="text-sm text-muted-foreground">{a.project}</StyledTableCell>}
               <StyledTableCell><Badge variant="outline">{sourceLabel(a)}</Badge></StyledTableCell>
               <StyledTableCell className="text-sm">{a.owner}</StyledTableCell>
               <StyledTableCell><Pill label={a.responsibility} tone={respTone(a.responsibility, respTypes)} /></StyledTableCell>
@@ -217,6 +227,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project: strin
         open={formOpen}
         onOpenChange={setFormOpen}
         project={project}
+        projects={pmo ? projectNames : undefined}
         initial={editing}
         onSave={(v) => {
           if (editing) { updateAction(editing.id, v); toast.success("Action updated"); }
@@ -274,8 +285,8 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project: strin
 
 type ActionDraft = Omit<ActionItem, "id" | "updates">;
 
-export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSource, onSave }: {
-  open: boolean; onOpenChange: (o: boolean) => void; project: string; initial?: ActionItem | null;
+export function ActionFormDialog({ open, onOpenChange, project, projects, initial, fixedSource, onSave }: {
+  open: boolean; onOpenChange: (o: boolean) => void; project?: string; projects?: string[]; initial?: ActionItem | null;
   fixedSource?: { source: ActionSource; sourceRef: string };
   onSave: (v: ActionDraft) => void;
 }) {
@@ -284,7 +295,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
   const { respTypes } = useResponsibilities();
   const { isActive } = useOrgActive("responsibility-type");
   const blank = (): ActionDraft => ({
-    project, title: "", description: "", source: fixedSource?.source ?? "General", sourceRef: fixedSource?.sourceRef,
+    project: project ?? projects?.[0] ?? "", title: "", description: "", source: fixedSource?.source ?? "General", sourceRef: fixedSource?.source === "Meeting" ? undefined : fixedSource?.sourceRef,
     owner: "", responsibility: defaultResponsibility(respTypes, isActive), dueDate: "", status: "Open",
   });
   const [d, setD] = useState<ActionDraft>(blank);
@@ -292,12 +303,12 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
   const k = `${open}-${initial?.id ?? "new"}`;
   if (k !== key) { setKey(k); if (open) setD(initial ? { ...initial } : blank()); }
 
-  const refs = d.source === "Risk" ? risks.filter((r) => r.project === project).map((r) => ({ v: r.id, l: `${r.id} · ${r.title}` }))
-    : d.source === "Issue" ? issues.filter((i) => i.project === project).map((i) => ({ v: i.id, l: `${i.id} · ${i.title}` })) : [];
-  const valid = d.title.trim() && d.dueDate && (d.source !== "Risk" && d.source !== "Issue" || d.sourceRef);
+  const refs = d.source === "Risk" ? risks.filter((r) => r.project === d.project).map((r) => ({ v: r.id, l: `${r.id} · ${r.title}` }))
+    : d.source === "Issue" ? issues.filter((i) => i.project === d.project).map((i) => ({ v: i.id, l: `${i.id} · ${i.title}` })) : [];
+  const valid = d.title.trim() && d.dueDate && d.project && (d.source !== "Risk" && d.source !== "Issue" || d.sourceRef);
   const up = (p: Partial<ActionDraft>) => setD((x) => ({ ...x, ...p }));
 
-  if (fixedSource?.source === "Risk" || fixedSource?.source === "Issue") {
+  if (fixedSource?.source === "Risk" || fixedSource?.source === "Issue" || fixedSource?.source === "Meeting") {
     return (
       <FormDialog
         open={open}
@@ -323,7 +334,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
               <DatePicker value={d.dueDate} onChange={(v) => up({ dueDate: v })} placeholder={t.dueDate} className="min-w-0" />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">{fixedSource.source === "Risk" ? t.linkedRiskHint : t.linkedIssueHint}</p>
+          <p className="text-xs text-muted-foreground">{fixedSource.source === "Risk" ? t.linkedRiskHint : fixedSource.source === "Issue" ? t.linkedIssueHint : t.linkedMeetingHint}</p>
         </div>
       </FormDialog>
     );
@@ -332,6 +343,14 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
   return (
     <FormDialog open={open} onOpenChange={onOpenChange} title={initial ? "Edit action" : "Add action"} size="lg" submitDisabled={!valid} submitLabel={initial ? "Save" : "Add action"}
       onSubmit={() => { if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), owner: d.owner.trim() || currentUser.name }); }}>
+      {projects && !fixedSource && (
+        <Field label="Project" htmlFor="act-project">
+          <Select value={d.project} onValueChange={(v) => up({ project: v, sourceRef: undefined })}>
+            <SelectTrigger id="act-project"><SelectValue placeholder="Select project" /></SelectTrigger>
+            <SelectContent>{projects.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+          </Select>
+        </Field>
+      )}
       <Field label="Action" htmlFor="act-title"><Input id="act-title" maxLength={150} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder="e.g. Share updated cutover plan" /></Field>
       {!fixedSource && (
         <div className="grid grid-cols-2 gap-4">
@@ -554,14 +573,15 @@ function ActionDrawer({ action: a, onClose, onUpdate, onEdit, onEditUpdate, onDe
 
 /* ── Linked actions (Risk / Issue drawers) ──────────────────────────────── */
 
-export function LinkedActions({ project, source, sourceRef, title }: { project: string; source: "Risk" | "Issue"; sourceRef: string; title: string }) {
+export function LinkedActions({ project, source, sourceRef, title, meetingMeta, onAdd }: { project: string; source: "Risk" | "Issue" | "Meeting"; sourceRef: string; title: string; meetingMeta?: { meetingName?: string; meetingDate?: string }; onAdd?: () => void }) {
   const { actions, addAction, updateAction, removeAction, logActionUpdate } = useActions();
   const { currentUser } = useCurrentUser();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ActionItem | null>(null);
   const [statusFor, setStatusFor] = useState<ActionItem | null>(null);
   const [pendingDelete, setPendingDelete] = useState<ActionItem | null>(null);
-  const linked = actions.filter((a) => a.source === source && a.sourceRef === sourceRef);
+  const isMeeting = source === "Meeting";
+  const linked = isMeeting ? actions.filter((a) => a.meetingId === sourceRef) : actions.filter((a) => a.source === source && a.sourceRef === sourceRef);
   const done = linked.filter((a) => a.status === "Done").length;
   const overdue = linked.filter((a) => isActionOverdue(a)).length;
   return (
@@ -573,7 +593,7 @@ export function LinkedActions({ project, source, sourceRef, title }: { project: 
           size="icon"
           aria-label="Add action"
           title="Add action"
-          onClick={() => setOpen(true)}
+          onClick={() => { if (onAdd) onAdd(); else setOpen(true); }}
         >
           <Plus className="h-5 w-5" />
         </Button>
@@ -636,12 +656,15 @@ export function LinkedActions({ project, source, sourceRef, title }: { project: 
         initial={editing}
         fixedSource={{ source, sourceRef }}
         onSave={(values) => {
+          const merged = isMeeting
+            ? { ...values, sourceRef: undefined, meetingId: sourceRef, meetingName: meetingMeta?.meetingName, meetingDate: meetingMeta?.meetingDate }
+            : values;
           if (editing) {
-            updateAction(editing.id, values);
+            updateAction(editing.id, merged);
             toast.success("Action updated");
           } else {
-            addAction(values);
-            toast.success("Action added to Action Tracker");
+            addAction(merged);
+            toast.success(isMeeting ? "Action added to the Action Tracker" : "Action added to Action Tracker");
           }
           setOpen(false);
           setEditing(null);

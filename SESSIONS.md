@@ -1,3 +1,16 @@
+## 2026-10-18 — PMO-level Action Tracker and Meetings modules
+- Added two global modules covering every project, placed in the sidebar between Organization and Approvals: Action Tracker (`/action-tracker`) and Meetings (`/meetings`), each with a PageHeader and bilingual-safe metadata.
+- `ActionTrackerTab` and `MeetingsTab` now accept an optional `project`; when omitted they run in PMO scope across all actions/meetings, with a new Project filter group and a Project column (empty-state colSpan adjusts).
+- PMO Add/Edit: both forms gained a Project selector (fed from all projects); action Risk/Issue reference options now follow the selected project. Meeting-linked action rows use the meeting's project. Validation requires a project in PMO mode.
+- Project-level pages are unchanged (project is fixed, no selector, no Project column).
+- Typecheck clean, build OK; browser verified: sidebar order, all-projects tables with Project column, project filter options in both Filter drawers, PMO meeting created via the form with the project selector (row appears with its project), and no console errors.
+
+## 2026-10-18 — Meetings drawer: edit/delete for meeting actions
+- The Actions section in the meeting side drawer now reuses the shared `LinkedActions` section (as in Risk/Issue drawers): each action row shows its status pill, reveals hover Edit/Delete, and opens Update action status on click; deleting shows the "Delete this action?" confirmation and removes the action from the Action Tracker.
+- The section + button keeps the existing batch "Add actions" dialog; the compact add/edit action popup now also supports meeting-linked actions (keeps meeting name/date and meetingId on save).
+- Bilingual hint added for meeting-linked actions ("Actions are added to the project's Action Tracker and stay linked to this meeting.").
+- Typecheck clean, build OK; browser verified edit (title saved), delete with confirmation and toast, count refresh, and Update action status popup from the row.
+
 ## 2026-10-18 — Meetings: Action status filter
 - Added an "Action status" filter group to the Meetings filter drawer (after Attendee party) with options All actions, Open, In Progress, Done, Cancelled. A meeting matches when it has at least one linked action in the selected status.
 - Typecheck clean; browser verified the drawer shows the group and selecting Done leaves only meetings with done actions (Steering committee 1/1 done).

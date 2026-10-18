@@ -10,10 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ActionTrackerRouteImport } from './routes/action-tracker'
 import { Route as ApprovalsRouteImport } from './routes/approvals'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ClientsVendorsRouteImport } from './routes/clients-vendors'
 import { Route as FinancialsRouteImport } from './routes/financials'
+import { Route as MeetingsRouteImport } from './routes/meetings'
 import { Route as OrganizationRouteImport } from './routes/organization'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as RisksRouteImport } from './routes/risks'
@@ -25,6 +27,11 @@ import { Route as PortfolioProjectIdEditRouteImport } from './routes/portfolio.$
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ActionTrackerRoute = ActionTrackerRouteImport.update({
+  id: '/action-tracker',
+  path: '/action-tracker',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApprovalsRoute = ApprovalsRouteImport.update({
@@ -45,6 +52,11 @@ const ClientsVendorsRoute = ClientsVendorsRouteImport.update({
 const FinancialsRoute = FinancialsRouteImport.update({
   id: '/financials',
   path: '/financials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeetingsRoute = MeetingsRouteImport.update({
+  id: '/meetings',
+  path: '/meetings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrganizationRoute = OrganizationRouteImport.update({
@@ -85,10 +97,12 @@ const PortfolioProjectIdEditRoute = PortfolioProjectIdEditRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/action-tracker': typeof ActionTrackerRoute
   '/approvals': typeof ApprovalsRoute
   '/auth': typeof AuthRoute
   '/clients-vendors': typeof ClientsVendorsRoute
   '/financials': typeof FinancialsRoute
+  '/meetings': typeof MeetingsRoute
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
   '/risks': typeof RisksRoute
@@ -99,10 +113,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/action-tracker': typeof ActionTrackerRoute
   '/approvals': typeof ApprovalsRoute
   '/auth': typeof AuthRoute
   '/clients-vendors': typeof ClientsVendorsRoute
   '/financials': typeof FinancialsRoute
+  '/meetings': typeof MeetingsRoute
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
   '/risks': typeof RisksRoute
@@ -114,10 +130,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/action-tracker': typeof ActionTrackerRoute
   '/approvals': typeof ApprovalsRoute
   '/auth': typeof AuthRoute
   '/clients-vendors': typeof ClientsVendorsRoute
   '/financials': typeof FinancialsRoute
+  '/meetings': typeof MeetingsRoute
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
   '/risks': typeof RisksRoute
@@ -130,10 +148,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/action-tracker'
     | '/approvals'
     | '/auth'
     | '/clients-vendors'
     | '/financials'
+    | '/meetings'
     | '/organization'
     | '/resources'
     | '/risks'
@@ -144,10 +164,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/action-tracker'
     | '/approvals'
     | '/auth'
     | '/clients-vendors'
     | '/financials'
+    | '/meetings'
     | '/organization'
     | '/resources'
     | '/risks'
@@ -158,10 +180,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/action-tracker'
     | '/approvals'
     | '/auth'
     | '/clients-vendors'
     | '/financials'
+    | '/meetings'
     | '/organization'
     | '/resources'
     | '/risks'
@@ -173,10 +197,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActionTrackerRoute: typeof ActionTrackerRoute
   ApprovalsRoute: typeof ApprovalsRoute
   AuthRoute: typeof AuthRoute
   ClientsVendorsRoute: typeof ClientsVendorsRoute
   FinancialsRoute: typeof FinancialsRoute
+  MeetingsRoute: typeof MeetingsRoute
   OrganizationRoute: typeof OrganizationRoute
   ResourcesRoute: typeof ResourcesRoute
   RisksRoute: typeof RisksRoute
@@ -193,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/action-tracker': {
+      id: '/action-tracker'
+      path: '/action-tracker'
+      fullPath: '/action-tracker'
+      preLoaderRoute: typeof ActionTrackerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/approvals': {
@@ -221,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/financials'
       fullPath: '/financials'
       preLoaderRoute: typeof FinancialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/meetings': {
+      id: '/meetings'
+      path: '/meetings'
+      fullPath: '/meetings'
+      preLoaderRoute: typeof MeetingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/organization': {
@@ -277,10 +317,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActionTrackerRoute: ActionTrackerRoute,
   ApprovalsRoute: ApprovalsRoute,
   AuthRoute: AuthRoute,
   ClientsVendorsRoute: ClientsVendorsRoute,
   FinancialsRoute: FinancialsRoute,
+  MeetingsRoute: MeetingsRoute,
   OrganizationRoute: OrganizationRoute,
   ResourcesRoute: ResourcesRoute,
   RisksRoute: RisksRoute,

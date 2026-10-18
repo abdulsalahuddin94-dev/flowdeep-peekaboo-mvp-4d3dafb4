@@ -20,7 +20,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/lib/toast";
 import { DeleteAction, Plus } from "@/lib/icons";
 import { formatDateWithYear } from "@/lib/date-format";
-import { useCurrentUser } from "@/lib/projects-store";
+import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import { useActions, isActionOverdue, ACTION_STATUSES } from "@/lib/action-store";
 import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
 import { useOrgActive } from "@/lib/org-active";
@@ -29,18 +29,20 @@ import {
   useMeetings, meetingStatus, ATTENDEE_PARTIES,
   type Meeting, type Attendee, type AttendeeParty, type MeetingStatus,
 } from "@/lib/meeting-store";
-import { ActionRowsEditor, emptyActionRow, filledActionRows, actionRowsValid, cleanActionRows, type ActionRow } from "@/components/actions/ActionTracker";
+import { ActionRowsEditor, emptyActionRow, filledActionRows, actionRowsValid, cleanActionRows, LinkedActions, type ActionRow } from "@/components/actions/ActionTracker";
 
 export const T = {
   en: {
     add: "New meeting", search: "Search meeting…", addActions: "Add actions", edit: "Edit meeting",
     attendees: "Attendees", actions: "Actions", noActions: "No actions yet. Add the actions agreed in this meeting.",
     actionsHint: "Actions are added to the project's Action Tracker and stay linked to this meeting.",
+    project: "Project",
   },
   ar: {
     add: "اجتماع جديد", search: "ابحث عن اجتماع…", addActions: "إضافة إجراءات", edit: "تعديل الاجتماع",
     attendees: "الحضور", actions: "الإجراءات", noActions: "لا توجد إجراءات بعد. أضف الإجراءات المتفق عليها في هذا الاجتماع.",
     actionsHint: "تُضاف الإجراءات إلى متابعة الإجراءات الخاصة بالمشروع وتبقى مرتبطة بهذا الاجتماع.",
+    project: "المشروع",
   },
 };
 const t = T.en;
@@ -60,27 +62,32 @@ const PARTY_TONE: Record<AttendeeParty, string> = {
 /** Action responsibility follows the owner's party, mapped via Organization → Responsibility Types. */
 
 
-export function MeetingsTab({ project }: { project: string }) {
+export function MeetingsTab({ project }: { project?: string }) {
   const { meetings, addMeeting, updateMeeting, removeMeeting } = useMeetings();
   const { meetingTypes } = useMeetingTypes();
   const { actions, addActions } = useActions();
   const { currentUser } = useCurrentUser();
+  const { projects } = useProjects();
+  const pmo = !project;
+  const projectNames = projects.map((p) => p.name);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [type, setType] = useState("all");
   const [party, setParty] = useState("all");
   const [actionStatus, setActionStatus] = useState("all");
+  const [proj, setProj] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Meeting | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);
   const [actionsFor, setActionsFor] = useState<Meeting | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Meeting | null>(null);
 
-  const scoped = meetings.filter((m) => m.project === project);
+  const scoped = project ? meetings.filter((m) => m.project === project) : meetings;
   const q = query.trim().toLowerCase();
   const list = scoped
     .filter((m) => !q || m.title.toLowerCase().includes(q))
     .filter((m) => status === "all" || meetingStatus(m) === status)
+    .filter((m) => proj === "all" || m.project === proj)
     .filter((m) => type === "all" || m.type === type)
     .filter((m) => party === "all" || m.attendees.some((a) => a.party === party))
     .filter((m) => actionStatus === "all" || actions.some((a) => a.meetingId === m.id && a.status === actionStatus))
@@ -96,6 +103,7 @@ export function MeetingsTab({ project }: { project: string }) {
         onQueryChange={setQuery}
         placeholder={t.search}
         filterGroups={[
+          ...(pmo ? [{ key: "project", label: "Project", value: proj, onChange: setProj, options: [{ value: "all", label: "All projects" }, ...projectNames.map((v) => ({ value: v, label: v }))] }] : []),
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...(["Scheduled", "Held", "Cancelled"] as const).map((v) => ({ value: v, label: v }))] },
           { key: "type", label: "Meeting type", value: type, onChange: setType, options: [{ value: "all", label: "All types" }, ...Array.from(new Set([...meetingTypes.map((v) => v.name), ...scoped.map((m) => m.type)])).map((v) => ({ value: v, label: v }))] },
           { key: "party", label: "Attendee party", value: party, onChange: setParty, options: [{ value: "all", label: "All parties" }, ...ATTENDEE_PARTIES.map((v) => ({ value: v, label: v }))] },
@@ -108,6 +116,7 @@ export function MeetingsTab({ project }: { project: string }) {
         <StyledTableHeader>
           <StyledTableHeaderRow>
             <StyledTableHead>Meeting</StyledTableHead>
+            {pmo && <StyledTableHead>{t.project}</StyledTableHead>}
             <StyledTableHead>Type</StyledTableHead>
             <StyledTableHead>Date</StyledTableHead>
             <StyledTableHead>Attendees</StyledTableHead>
@@ -116,7 +125,7 @@ export function MeetingsTab({ project }: { project: string }) {
           </StyledTableHeaderRow>
         </StyledTableHeader>
         <StyledTableBody>
-          {pagination.pageItems.length === 0 && <EmptyRow colSpan={6} />}
+          {pagination.pageItems.length === 0 && <EmptyRow colSpan={pmo ? 7 : 6} />}
           {pagination.pageItems.map((m) => {
             const acts = actionsOf(m.id);
             const done = acts.filter((a) => a.status === "Done").length;
@@ -125,6 +134,7 @@ export function MeetingsTab({ project }: { project: string }) {
             return (
               <StyledTableRow key={m.id} className="group cursor-pointer" onClick={() => setViewId(m.id)}>
                 <StyledTableCell className="font-medium text-foreground">{m.title}</StyledTableCell>
+                {pmo && <StyledTableCell className="text-sm text-muted-foreground">{m.project}</StyledTableCell>}
                 <StyledTableCell className="text-sm text-muted-foreground">{m.type}</StyledTableCell>
                 <StyledTableCell className="num-mono text-sm">{formatDateWithYear(m.date)}{m.time ? ` · ${m.time}` : ""}</StyledTableCell>
                 <StyledTableCell><AttendeeSummary attendees={m.attendees} /></StyledTableCell>
@@ -155,6 +165,7 @@ export function MeetingsTab({ project }: { project: string }) {
         open={formOpen}
         onOpenChange={setFormOpen}
         project={project}
+        projectOptions={pmo ? projectNames : undefined}
         initial={editing}
         onSave={(v, thenAddActions) => {
           if (editing) { updateMeeting(editing.id, v, currentUser.name); toast.success("Meeting updated"); setFormOpen(false); return; }
@@ -168,14 +179,13 @@ export function MeetingsTab({ project }: { project: string }) {
         meeting={actionsFor}
         onClose={() => setActionsFor(null)}
         onSave={(m, rows) => {
-          addActions(rows.map((r) => ({ ...r, owner: currentUser.name, project, source: "Meeting" as const, meetingId: m.id, meetingName: m.title, meetingDate: m.date, status: "Open" as const })));
+          addActions(rows.map((r) => ({ ...r, owner: currentUser.name, project: m.project, source: "Meeting" as const, meetingId: m.id, meetingName: m.title, meetingDate: m.date, status: "Open" as const })));
           toast.success(`${rows.length} ${rows.length === 1 ? "action" : "actions"} added to the Action Tracker`);
           setActionsFor(null);
         }}
       />
       <MeetingDrawer
         meeting={view}
-        actions={view ? actionsOf(view.id) : []}
         onClose={() => setViewId(null)}
         onAddActions={(m) => setActionsFor(m)}
         onEdit={(m) => { setViewId(null); setEditing(m); setFormOpen(true); }}
@@ -208,14 +218,14 @@ function AttendeeSummary({ attendees }: { attendees: Attendee[] }) {
 type MeetingDraft = Omit<Meeting, "id">;
 const uid = () => `at-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
-function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
-  open: boolean; onOpenChange: (o: boolean) => void; project: string; initial: Meeting | null;
+function MeetingFormDialog({ open, onOpenChange, project, projectOptions, initial, onSave }: {
+  open: boolean; onOpenChange: (o: boolean) => void; project?: string; projectOptions?: string[]; initial: Meeting | null;
   onSave: (v: MeetingDraft, thenAddActions: boolean) => void;
 }) {
   const { users } = useCurrentUser();
   const { meetingTypes } = useMeetingTypes();
   const activeTypes = meetingTypes.filter((v) => v.active);
-  const blank = (): MeetingDraft => ({ project, title: "", type: activeTypes[0]?.name ?? "", date: new Date().toISOString().slice(0, 10), time: "", location: "", notes: "", attendees: [] });
+  const blank = (): MeetingDraft => ({ project: initial?.project ?? project ?? projectOptions?.[0] ?? "", title: "", type: activeTypes[0]?.name ?? "", date: new Date().toISOString().slice(0, 10), time: "", location: "", notes: "", attendees: [] });
   const [d, setD] = useState<MeetingDraft>(blank);
   const [addAfter, setAddAfter] = useState(true);
   const [was, setWas] = useState(false);
@@ -227,7 +237,7 @@ function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
   const upA = (id: string, p: Partial<Attendee>) => up({ attendees: d.attendees.map((a) => (a.id === id ? { ...a, ...p } : a)) });
   const names = d.attendees.map((a) => a.name.trim().toLowerCase()).filter(Boolean);
   const dupes = names.length !== new Set(names).size;
-  const valid = d.title.trim() && d.type && (activeTypes.some((v) => v.name === d.type) || initial?.type === d.type) && d.date && d.attendees.length > 0 && d.attendees.every((a) => a.name.trim()) && !dupes;
+  const valid = d.project && d.title.trim() && d.type && (activeTypes.some((v) => v.name === d.type) || initial?.type === d.type) && d.date && d.attendees.length > 0 && d.attendees.every((a) => a.name.trim()) && !dupes;
 
   return (
     <FormDialog
@@ -242,6 +252,14 @@ function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
         onSave({ ...d, title: d.title.trim().slice(0, 100), location: d.location?.trim(), notes: d.notes?.trim().slice(0, 1000), attendees: d.attendees.map((a) => ({ ...a, name: a.name.trim(), organization: a.organization?.trim() })) }, addAfter);
       }}
     >
+      {projectOptions && (
+        <Field label="Project" htmlFor="mt-project">
+          <Select value={d.project} onValueChange={(v) => up({ project: v })}>
+            <SelectTrigger id="mt-project" aria-label="Project"><SelectValue placeholder="Select project" /></SelectTrigger>
+            <SelectContent>{projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+          </Select>
+        </Field>
+      )}
       <div className="grid grid-cols-2 gap-4">
         <Field label="Meeting name" htmlFor="mt-title"><Input id="mt-title" maxLength={100} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder="e.g. Weekly progress meeting" /></Field>
         <Field label="Meeting type">
@@ -329,8 +347,8 @@ function MeetingActionsDialog({ meeting, onClose, onSave }: { meeting: Meeting |
 
 /* ── Drawer ──────────────────────────────────────────────────────────────── */
 
-function MeetingDrawer({ meeting: m, actions, onClose, onAddActions, onEdit }: {
-  meeting: Meeting | null; actions: ReturnType<typeof useActions>["actions"]; onClose: () => void; onAddActions: (m: Meeting) => void; onEdit: (m: Meeting) => void;
+function MeetingDrawer({ meeting: m, onClose, onAddActions, onEdit }: {
+  meeting: Meeting | null; onClose: () => void; onAddActions: (m: Meeting) => void; onEdit: (m: Meeting) => void;
 }) {
   if (!m) return <Sheet open={false} />;
   const st = meetingStatus(m);
@@ -367,29 +385,14 @@ function MeetingDrawer({ meeting: m, actions, onClose, onAddActions, onEdit }: {
           </div>
           {m.notes && <div><div className="label-eyebrow mb-1">Agenda / notes</div><p className="whitespace-pre-line text-sm text-muted-foreground">{m.notes}</p></div>}
           <Separator />
-          <div>
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="label-eyebrow">{t.actions} <span className="num-mono normal-case text-muted-foreground">· {actions.filter((a) => a.status === "Done").length}/{actions.length} done</span></div>
-              <Button type="button" variant="secondary" size="icon" aria-label={t.addActions} title={t.addActions} data-ds-size="auto" onClick={() => onAddActions(m)}
-                className="h-7 w-7 shrink-0 rounded-full border border-border/60 text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"><Plus size={14} /></Button>
-            </div>
-            {actions.length === 0 && <p className="text-sm text-muted-foreground">{t.noActions}</p>}
-            <div className="space-y-2">
-              {actions.map((a) => {
-                const od = isActionOverdue(a);
-                return (
-                  <div key={a.id} className="rounded-lg border border-border p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-sm text-foreground">{a.title}</span>
-                      <Pill label={od ? "Overdue" : a.status} tone={od ? "border-rag-red/40 bg-rag-red/10 text-rag-red" : a.status === "Done" ? "border-rag-green/40 bg-rag-green/10 text-rag-green" : a.status === "In Progress" ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber" : a.status === "Cancelled" ? "border-border bg-muted text-muted-foreground" : "border-rag-blue/40 bg-rag-blue/10 text-rag-blue"} className="shrink-0" />
-                    </div>
-                    <div className="mt-1 text-xs text-muted-foreground">{a.owner} · Due <span className="num-mono">{formatDateWithYear(a.dueDate)}</span></div>
-                  </div>
-                );
-              })}
-            </div>
-            {actions.length > 0 && <p className="mt-2 text-xs text-muted-foreground">Update progress on these actions from the Action Tracker.</p>}
-          </div>
+          <LinkedActions
+            project={m.project}
+            source="Meeting"
+            sourceRef={m.id}
+            title={t.actions}
+            meetingMeta={{ meetingName: m.title, meetingDate: m.date }}
+            onAdd={() => onAddActions(m)}
+          />
         </div>
         <div className="flex gap-2 border-t border-border px-6 py-4">
           <Button variant="primary" className="flex-1" onClick={() => onAddActions(m)}>{t.addActions}</Button>

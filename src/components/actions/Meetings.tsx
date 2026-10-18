@@ -218,14 +218,14 @@ function AttendeeSummary({ attendees }: { attendees: Attendee[] }) {
 type MeetingDraft = Omit<Meeting, "id">;
 const uid = () => `at-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
-function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
-  open: boolean; onOpenChange: (o: boolean) => void; project: string; initial: Meeting | null;
+function MeetingFormDialog({ open, onOpenChange, project, projectOptions, initial, onSave }: {
+  open: boolean; onOpenChange: (o: boolean) => void; project?: string; projectOptions?: string[]; initial: Meeting | null;
   onSave: (v: MeetingDraft, thenAddActions: boolean) => void;
 }) {
   const { users } = useCurrentUser();
   const { meetingTypes } = useMeetingTypes();
   const activeTypes = meetingTypes.filter((v) => v.active);
-  const blank = (): MeetingDraft => ({ project, title: "", type: activeTypes[0]?.name ?? "", date: new Date().toISOString().slice(0, 10), time: "", location: "", notes: "", attendees: [] });
+  const blank = (): MeetingDraft => ({ project: initial?.project ?? project ?? projectOptions?.[0] ?? "", title: "", type: activeTypes[0]?.name ?? "", date: new Date().toISOString().slice(0, 10), time: "", location: "", notes: "", attendees: [] });
   const [d, setD] = useState<MeetingDraft>(blank);
   const [addAfter, setAddAfter] = useState(true);
   const [was, setWas] = useState(false);
@@ -237,7 +237,7 @@ function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
   const upA = (id: string, p: Partial<Attendee>) => up({ attendees: d.attendees.map((a) => (a.id === id ? { ...a, ...p } : a)) });
   const names = d.attendees.map((a) => a.name.trim().toLowerCase()).filter(Boolean);
   const dupes = names.length !== new Set(names).size;
-  const valid = d.title.trim() && d.type && (activeTypes.some((v) => v.name === d.type) || initial?.type === d.type) && d.date && d.attendees.length > 0 && d.attendees.every((a) => a.name.trim()) && !dupes;
+  const valid = d.project && d.title.trim() && d.type && (activeTypes.some((v) => v.name === d.type) || initial?.type === d.type) && d.date && d.attendees.length > 0 && d.attendees.every((a) => a.name.trim()) && !dupes;
 
   return (
     <FormDialog
@@ -252,6 +252,14 @@ function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
         onSave({ ...d, title: d.title.trim().slice(0, 100), location: d.location?.trim(), notes: d.notes?.trim().slice(0, 1000), attendees: d.attendees.map((a) => ({ ...a, name: a.name.trim(), organization: a.organization?.trim() })) }, addAfter);
       }}
     >
+      {projectOptions && (
+        <Field label="Project" htmlFor="mt-project">
+          <Select value={d.project} onValueChange={(v) => up({ project: v })}>
+            <SelectTrigger id="mt-project" aria-label="Project"><SelectValue placeholder="Select project" /></SelectTrigger>
+            <SelectContent>{projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+          </Select>
+        </Field>
+      )}
       <div className="grid grid-cols-2 gap-4">
         <Field label="Meeting name" htmlFor="mt-title"><Input id="mt-title" maxLength={100} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder="e.g. Weekly progress meeting" /></Field>
         <Field label="Meeting type">

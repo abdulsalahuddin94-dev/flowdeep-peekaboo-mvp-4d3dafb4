@@ -21,7 +21,7 @@ import { toast } from "@/lib/toast";
 import { DeleteAction, Plus } from "@/lib/icons";
 import { formatDateWithYear } from "@/lib/date-format";
 import { useCurrentUser } from "@/lib/projects-store";
-import { useActions, isActionOverdue } from "@/lib/action-store";
+import { useActions, isActionOverdue, ACTION_STATUSES } from "@/lib/action-store";
 import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
 import { useOrgActive } from "@/lib/org-active";
 import { useMeetingTypes } from "@/lib/meeting-types-store";
@@ -69,6 +69,7 @@ export function MeetingsTab({ project }: { project: string }) {
   const [status, setStatus] = useState("all");
   const [type, setType] = useState("all");
   const [party, setParty] = useState("all");
+  const [actionStatus, setActionStatus] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Meeting | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);

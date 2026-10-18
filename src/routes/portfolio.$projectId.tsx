@@ -97,7 +97,8 @@ const TABS = [
 /** Tabs covered by the baseline — the only ones shown while in Change Plan. */
 const FOCUS_TABS = ["Project Schedule", "Cost Breakdown", "Revenue Breakdown"];
 /** In-memory plan state per project, so it survives visits to Approvals / Edit project. */
-const PLAN_CACHE = new Map<string, unknown>();
+import { PLAN_CACHE } from "@/lib/plan-cache";
+import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/plan-seeds";
 
 const PLANNING_STAGES = [
   { n: 1, name: "Initiation", state: "done" as const },

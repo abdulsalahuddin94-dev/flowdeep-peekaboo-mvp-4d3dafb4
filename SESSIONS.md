@@ -1,3 +1,7 @@
+## 2026-10-18 — Change Request review as a full page with plan tabs
+- Clicking a Change request row in the Approvals inbox now opens a full page (`/approvals/$approvalId`, route `approvals_.$approvalId.tsx` un-nested so it renders outside the inbox) instead of the side drawer; milestone gates and calendar changes keep the drawer.
+- The page carries the request header (type/status badges, Remind/Reject/Approve with the same comment-required-on-reject dialog), a meta strip, the Change summary (before/after), the Approvers list, and three read-only tabs: Project Schedule, Cost Breakdown, Revenue Breakdown.
+- Tab data comes from the project's working plan: extracted the schedule/cost/revenue demo seeds into `src/lib/plan-seeds.ts` and the per-project plan cache into `src/lib/plan-cache.ts` (both now shared between the project route and the review page); `Milestone`/`CostEntry`/`RevEntry` types are exported from the project route.
 ## 2026-10-18 — PMO-level Action Tracker and Meetings modules
 - Added two global modules covering every project, placed in the sidebar between Organization and Approvals: Action Tracker (`/action-tracker`) and Meetings (`/meetings`), each with a PageHeader and bilingual-safe metadata.
 - `ActionTrackerTab` and `MeetingsTab` now accept an optional `project`; when omitted they run in PMO scope across all actions/meetings, with a new Project filter group and a Project column (empty-state colSpan adjusts).

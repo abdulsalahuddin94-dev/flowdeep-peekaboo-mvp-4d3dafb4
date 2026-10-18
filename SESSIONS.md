@@ -1,3 +1,9 @@
+## 2026-10-18 — Meetings drawer: edit/delete for meeting actions
+- The Actions section in the meeting side drawer now reuses the shared `LinkedActions` section (as in Risk/Issue drawers): each action row shows its status pill, reveals hover Edit/Delete, and opens Update action status on click; deleting shows the "Delete this action?" confirmation and removes the action from the Action Tracker.
+- The section + button keeps the existing batch "Add actions" dialog; the compact add/edit action popup now also supports meeting-linked actions (keeps meeting name/date and meetingId on save).
+- Bilingual hint added for meeting-linked actions ("Actions are added to the project's Action Tracker and stay linked to this meeting.").
+- Typecheck clean, build OK; browser verified edit (title saved), delete with confirmation and toast, count refresh, and Update action status popup from the row.
+
 ## 2026-10-18 — Meetings: Action status filter
 - Added an "Action status" filter group to the Meetings filter drawer (after Attendee party) with options All actions, Open, In Progress, Done, Cancelled. A meeting matches when it has at least one linked action in the selected status.
 - Typecheck clean; browser verified the drawer shows the group and selecting Done leaves only meetings with done actions (Steering committee 1/1 done).

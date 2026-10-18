@@ -97,11 +97,15 @@ function DueCell({ a }: { a: ActionItem }) {
 
 /* ── Tab ─────────────────────────────────────────────────────────────────── */
 
-export function ActionTrackerTab({ project, initialSourceRef }: { project: string; initialSourceRef?: string }) {
+export function ActionTrackerTab({ project, initialSourceRef }: { project?: string; initialSourceRef?: string }) {
   const { actions, addAction, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
   const { currentUser } = useCurrentUser();
+  const { projects } = useProjects();
   const { respTypes } = useResponsibilities();
+  const pmo = !project;
+  const projectNames = useMemo(() => projects.map((p) => p.name), [projects]);
   const [query, setQuery] = useState("");
+  const [proj, setProj] = useState("all");
   const [source, setSource] = useState("all");
   const [sourceRef, setSourceRef] = useState(initialSourceRef ?? "all");
   const [resp, setResp] = useState("all");
@@ -116,7 +120,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project: strin
   const [pendingDelete, setPendingDelete] = useState<ActionItem | null>(null);
   const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ a: ActionItem; u: ActionUpdate } | null>(null);
 
-  const scoped = actions.filter((a) => a.project === project);
+  const scoped = project ? actions.filter((a) => a.project === project) : actions;
   const today = todayIso();
   const weekEnd = addDays(today, 7);
   const kpis = useMemo(() => ({
@@ -130,6 +134,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project: strin
   const q = query.trim().toLowerCase();
   const list = scoped
     .filter((a) => !q || a.title.toLowerCase().includes(q))
+    .filter((a) => proj === "all" || a.project === proj)
     .filter((a) => source === "all" || a.source === source)
     .filter((a) => sourceRef === "all" || a.sourceRef === sourceRef)
     .filter((a) => resp === "all" || a.responsibility === resp)

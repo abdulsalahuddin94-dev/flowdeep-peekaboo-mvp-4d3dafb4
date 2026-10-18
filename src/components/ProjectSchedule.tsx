@@ -421,19 +421,22 @@ export function ProjectSchedule({
 
   // Fit the default view to smaller laptop widths without squeezing dates or status pills.
   const widths = { ...preferredWidths };
+  const compactColumns = viewportW > 0 && viewportW < 1100;
+  const minimumNameWidth = compactColumns ? 130 : 200;
   const minimumWidths: Partial<Record<ColKey, number>> = {
-    type: 82, duration: 166, weight: 66, status: 136,
-    actual: 90, planned: 90, dep: 104, payment: 110,
+    type: compactColumns ? 70 : 82, duration: 158, weight: compactColumns ? 52 : 66, status: 128,
+    actual: compactColumns ? 64 : 90, planned: compactColumns ? 64 : 90,
+    dep: compactColumns ? 64 : 104, payment: compactColumns ? 70 : 110,
   };
   const shownColumns = COLUMNS.filter(c => visibleCols.has(c.key));
   const preferredTotal = shownColumns.reduce((sum, c) => sum + widths[c.key], 0);
   const minimumTotal = shownColumns.reduce((sum, c) => sum + (minimumWidths[c.key] ?? widths[c.key]), 0);
-  const availableColumns = viewportW - 200 - ROW_ACTIONS_W;
+  const availableColumns = viewportW - minimumNameWidth - ROW_ACTIONS_W;
   if (viewportW > 0 && availableColumns < preferredTotal) {
     const ratio = Math.max(0, Math.min(1, (availableColumns - minimumTotal) / Math.max(1, preferredTotal - minimumTotal)));
     for (const c of shownColumns) {
       const minimum = minimumWidths[c.key] ?? widths[c.key];
-      widths[c.key] = Math.round(minimum + (widths[c.key] - minimum) * ratio);
+      widths[c.key] = Math.floor(minimum + (widths[c.key] - minimum) * ratio);
     }
   }
 
@@ -872,7 +875,7 @@ export function ProjectSchedule({
 
   // Stretch the Item Name column so the table always fills the viewport width
   const colsW = COLUMNS.filter(c => colVisible(c.key)).reduce((s, c) => s + widths[c.key], 0);
-  const nameW = viewportW ? Math.max(200, viewportW - colsW - ROW_ACTIONS_W) : widths.name;
+  const nameW = viewportW ? Math.max(minimumNameWidth, viewportW - colsW - ROW_ACTIONS_W) : widths.name;
   const tableW = nameW + colsW + ROW_ACTIONS_W;
 
 
@@ -1179,7 +1182,7 @@ export function ProjectSchedule({
                       : "Locked until all tasks reach 100%";
                 const isFlashing = flashRow === item.name;
                 return (
-                  <div key={item.name} data-row-name={item.name} className={`group relative flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 hover:bg-table-row-hover ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
+                  <div key={item.name} data-row-name={item.name} className={`group relative flex [&>div]:shrink-0 border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 hover:bg-table-row-hover ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
                     <div className="flex items-center gap-1 overflow-hidden px-3" style={{ width: nameW, paddingLeft: 12 + depth * 14 }}>
                       {hasChildren ? (
                         <button
@@ -1212,7 +1215,7 @@ export function ProjectSchedule({
                           {gateApproved ? "✓" : "!"}
                         </span>
                       )}
-                      <span className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOverdue ? "text-rag-red" : isOffTrack ? "text-rag-amber" : isOnTrack ? "text-rag-green" : ""}`}>{item.name}</span>
+                      <span title={item.name} className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOverdue ? "text-rag-red" : isOffTrack ? "text-rag-amber" : isOnTrack ? "text-rag-green" : ""}`}>{item.name}</span>
                     </div>
                     {colVisible("type") && (
                       <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.type }}>
@@ -1971,10 +1974,10 @@ function ColHeader({
 }) {
   return (
     <div
-      className="relative flex items-center px-3"
+      className="relative flex shrink-0 items-center px-2 text-xs"
       style={{ width }}
     >
-      <span className="truncate">{label}</span>
+      <span className="whitespace-normal leading-tight">{label}</span>
       <div
         onPointerDown={onResize}
         onDoubleClick={onAutoFit}

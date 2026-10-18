@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Compact Project Schedule: stacked Duration dates, plain dependency/financial counts, and verify detail navigation at smaller laptop widths.
 
 - [x] Add PMO-level Action Tracker module (all projects) in the sidebar before Approvals.
 - [x] Add PMO-level Meetings module (all projects) in the sidebar before Approvals.

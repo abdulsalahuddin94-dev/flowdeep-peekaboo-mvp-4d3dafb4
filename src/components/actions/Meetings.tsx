@@ -366,29 +366,14 @@ function MeetingDrawer({ meeting: m, onClose, onAddActions, onEdit }: {
           </div>
           {m.notes && <div><div className="label-eyebrow mb-1">Agenda / notes</div><p className="whitespace-pre-line text-sm text-muted-foreground">{m.notes}</p></div>}
           <Separator />
-          <div>
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="label-eyebrow">{t.actions} <span className="num-mono normal-case text-muted-foreground">· {actions.filter((a) => a.status === "Done").length}/{actions.length} done</span></div>
-              <Button type="button" variant="secondary" size="icon" aria-label={t.addActions} title={t.addActions} data-ds-size="auto" onClick={() => onAddActions(m)}
-                className="h-7 w-7 shrink-0 rounded-full border border-border/60 text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"><Plus size={14} /></Button>
-            </div>
-            {actions.length === 0 && <p className="text-sm text-muted-foreground">{t.noActions}</p>}
-            <div className="space-y-2">
-              {actions.map((a) => {
-                const od = isActionOverdue(a);
-                return (
-                  <div key={a.id} className="rounded-lg border border-border p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-sm text-foreground">{a.title}</span>
-                      <Pill label={od ? "Overdue" : a.status} tone={od ? "border-rag-red/40 bg-rag-red/10 text-rag-red" : a.status === "Done" ? "border-rag-green/40 bg-rag-green/10 text-rag-green" : a.status === "In Progress" ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber" : a.status === "Cancelled" ? "border-border bg-muted text-muted-foreground" : "border-rag-blue/40 bg-rag-blue/10 text-rag-blue"} className="shrink-0" />
-                    </div>
-                    <div className="mt-1 text-xs text-muted-foreground">{a.owner} · Due <span className="num-mono">{formatDateWithYear(a.dueDate)}</span></div>
-                  </div>
-                );
-              })}
-            </div>
-            {actions.length > 0 && <p className="mt-2 text-xs text-muted-foreground">Update progress on these actions from the Action Tracker.</p>}
-          </div>
+          <LinkedActions
+            project={m.project}
+            source="Meeting"
+            sourceRef={m.id}
+            title={t.actions}
+            meetingMeta={{ meetingName: m.title, meetingDate: m.date }}
+            onAdd={() => onAddActions(m)}
+          />
         </div>
         <div className="flex gap-2 border-t border-border px-6 py-4">
           <Button variant="primary" className="flex-1" onClick={() => onAddActions(m)}>{t.addActions}</Button>

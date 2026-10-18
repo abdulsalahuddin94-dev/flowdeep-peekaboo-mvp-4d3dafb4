@@ -87,6 +87,7 @@ export function MeetingsTab({ project }: { project?: string }) {
   const list = scoped
     .filter((m) => !q || m.title.toLowerCase().includes(q))
     .filter((m) => status === "all" || meetingStatus(m) === status)
+    .filter((m) => proj === "all" || m.project === proj)
     .filter((m) => type === "all" || m.type === type)
     .filter((m) => party === "all" || m.attendees.some((a) => a.party === party))
     .filter((m) => actionStatus === "all" || actions.some((a) => a.meetingId === m.id && a.status === actionStatus))

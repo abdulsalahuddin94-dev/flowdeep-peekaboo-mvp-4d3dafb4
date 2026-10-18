@@ -27,7 +27,7 @@ import { useRiskRegister, type RiskRecord, type RiskUpdate, type IssueRecord, ty
 import { useOrgRules, severityForScore, type RiskSeverity } from "@/lib/org-rules";
 import { useOrgActive } from "@/lib/org-active";
 import { useCurrentUser } from "@/lib/projects-store";
-import { formatDateWithYear } from "@/lib/date-format";
+import { formatDateWithYear, formatDateTime } from "@/lib/date-format";
 import { LinkedActions, ActionsCount, ActionRowsEditor, emptyActionRow, actionRowsValid, cleanActionRows, type ActionRow } from "@/components/actions/ActionTracker";
 import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
 import { useActions } from "@/lib/action-store";

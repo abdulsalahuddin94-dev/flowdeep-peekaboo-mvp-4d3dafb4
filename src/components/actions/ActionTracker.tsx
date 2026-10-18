@@ -21,7 +21,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { EditAction, DeleteAction, ClipboardCheck, Plus, Check } from "@/lib/icons";
-import { formatDateWithYear } from "@/lib/date-format";
+import { formatDateWithYear, formatDateTime } from "@/lib/date-format";
 import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import { useRiskRegister } from "@/lib/risk-store";
 import {

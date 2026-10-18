@@ -1,3 +1,10 @@
+## 2026-10-18 — PMO-level Action Tracker and Meetings modules
+- Added two global modules covering every project, placed in the sidebar between Organization and Approvals: Action Tracker (`/action-tracker`) and Meetings (`/meetings`), each with a PageHeader and bilingual-safe metadata.
+- `ActionTrackerTab` and `MeetingsTab` now accept an optional `project`; when omitted they run in PMO scope across all actions/meetings, with a new Project filter group and a Project column (empty-state colSpan adjusts).
+- PMO Add/Edit: both forms gained a Project selector (fed from all projects); action Risk/Issue reference options now follow the selected project. Meeting-linked action rows use the meeting's project. Validation requires a project in PMO mode.
+- Project-level pages are unchanged (project is fixed, no selector, no Project column).
+- Typecheck clean, build OK; browser verified: sidebar order, all-projects tables with Project column, project filter options in both Filter drawers, PMO meeting created via the form with the project selector (row appears with its project), and no console errors.
+
 ## 2026-10-18 — Meetings drawer: edit/delete for meeting actions
 - The Actions section in the meeting side drawer now reuses the shared `LinkedActions` section (as in Risk/Issue drawers): each action row shows its status pill, reveals hover Edit/Delete, and opens Update action status on click; deleting shows the "Delete this action?" confirmation and removes the action from the Action Tracker.
 - The section + button keeps the existing batch "Add actions" dialog; the compact add/edit action popup now also supports meeting-linked actions (keeps meeting name/date and meetingId on save).

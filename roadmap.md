@@ -1,8 +1,8 @@
 # Roadmap
 
-- [ ] Add PMO-level Action Tracker module (all projects) in the sidebar before Approvals.
-- [ ] Add PMO-level Meetings module (all projects) in the sidebar before Approvals.
-- [ ] Log both modules in SESSIONS.md and verify with the browser.
+- [x] Add PMO-level Action Tracker module (all projects) in the sidebar before Approvals.
+- [x] Add PMO-level Meetings module (all projects) in the sidebar before Approvals.
+- [x] Log both modules in SESSIONS.md and verify with the browser.
 
 - [x] Meeting side drawer reuses LinkedActions with hover Edit/Delete, update status, and delete confirmation.
 

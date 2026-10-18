@@ -206,7 +206,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
         onSave={(risk, actionRows) => {
           if (editing) updateRisk(editing.id, risk);
           const rid = editing ? editing.id : addRisk({ ...risk, owner: risk.owner || currentUser.name });
-          if (actionRows.length) addActions(actionRows.map((a) => ({ ...a, project: risk.project, source: "Risk" as const, sourceRef: rid, status: "Open" as const })));
+          if (actionRows.length) addActions(actionRows.map((a) => ({ ...a, owner: currentUser.name, project: risk.project, source: "Risk" as const, sourceRef: rid, status: "Open" as const })));
           toast.done("Risk", editing ? "updated" : "logged");
           setFormOpen(false);
           setEditing(null);
@@ -327,7 +327,7 @@ function RiskFormDialog({
     if (!title.trim()) next.title = "Risk title is required";
     if (!project) next.project = "Select the project this risk belongs to";
     if (!category) next.category = "Select a category";
-    if (!actionRowsValid(actionRows)) next.actions = "Each action needs an owner and a due date";
+    if (!actionRowsValid(actionRows)) next.actions = "Each action needs a due date";
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -828,7 +828,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
           }
           if (editing) updateIssue(editing.id, issue);
           const iid = editing ? editing.id : addIssue(issue);
-          if (actionRows.length) addActions(actionRows.map((a) => ({ ...a, project: issue.project, source: "Issue" as const, sourceRef: iid, status: "Open" as const })));
+          if (actionRows.length) addActions(actionRows.map((a) => ({ ...a, owner: currentUser.name, project: issue.project, source: "Issue" as const, sourceRef: iid, status: "Open" as const })));
           toast.done("Issue", editing ? "updated" : "logged");
           setFormOpen(false);
           setEditing(null);
@@ -1023,7 +1023,7 @@ function IssueFormDialog({
     if (!title.trim()) next.title = "Issue title is required";
     if (!project) next.project = "Select the project this issue belongs to";
     if (!openDate) next.openDate = "Open date is required";
-    if (!actionRowsValid(actionRows)) next.actions = "Each action needs an owner and a due date";
+    if (!actionRowsValid(actionRows)) next.actions = "Each action needs a due date";
     if (targetDate && openDate && targetDate < openDate) next.targetDate = "Target date cannot be before the open date";
     setErrors(next);
     if (Object.keys(next).length > 0) return;

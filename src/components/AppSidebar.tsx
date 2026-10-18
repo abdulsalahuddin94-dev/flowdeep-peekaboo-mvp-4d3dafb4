@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   NavDashboard, NavOrganization, NavClientsVendors, NavPortfolio, NavResources,
-  NavFinancials, NavApprovals, NavRisks, ChevronDown,
+  NavFinancials, NavApprovals, NavRisks, NavActionTracker, NavMeetings, ChevronDown,
 } from "@/lib/icons";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -86,6 +86,8 @@ const allItems: NavItem[] = [
       { title: "Rules & Thresholds", tab: "rules" },
     ],
   },
+  { title: "Action Tracker", url: "/action-tracker", icon: NavActionTracker },
+  { title: "Meetings", url: "/meetings", icon: NavMeetings },
 ];
 
 const iconSize = "h-6 w-6";

@@ -260,18 +260,16 @@ const LEVEL_COLORS = [
 // ── Column config ────────────────────────────────────────────────────────────
 const COLUMNS = [
   { key: "type",     label: "Type",        w: 90 },
-  { key: "start",    label: "Start",       w: 100 },
-  { key: "end",      label: "End",         w: 100 },
-  { key: "duration", label: "Duration",    w: 90 },
+  { key: "duration", label: "Duration",    w: 166 },
   { key: "owner",    label: "Owner",       w: 150 },
   { key: "assignee", label: "Assignee",    w: 130 },
   { key: "roles",    label: "Roles",       w: 180 },
-  { key: "weight",   label: "Weight",      w: 90 },
+  { key: "weight",   label: "Weight",      w: 66 },
   { key: "status",   label: "Status",      w: 110 },
   { key: "actual",   label: "% Actual",    w: 130 },
   { key: "planned",  label: "% Plan",      w: 130 },
   { key: "dep",      label: "Depends on",  w: 110 },
-  { key: "payment",  label: "Financial Link",w: 160 },
+  { key: "payment",  label: "Financial Link",w: 110 },
 ] as const;
 type ColKey = typeof COLUMNS[number]["key"];
 type WidthKey = ColKey | "name";
@@ -352,7 +350,7 @@ export function ProjectSchedule({
   const [healthHighlight, setHealthHighlight] = useState(false);
   const [visibleCols] = useState<Set<ColKey>>(
     // Owner + Assignee + Roles columns hidden for the MVP demo view
-    () => new Set<ColKey>(["type", "start", "end", "duration", "weight", "status", "actual", "planned", "dep", "payment"]),
+    () => new Set<ColKey>(["type", "duration", "weight", "status", "actual", "planned", "dep", "payment"]),
   );
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(items.map(i => i.name)));
   const [leftPct, setLeftPct] = useState(48);
@@ -370,7 +368,7 @@ export function ProjectSchedule({
   const [dragPreview, setDragPreview] = useState<Record<string, { startDate: string; endDate: string }>>({});
   // Undo history: each entry is the list of patches needed to restore the prior state
   const historyRef = useRef<Array<Array<{ name: string; before: Partial<ScheduleItem> }>>>([]);
-  const [widths, setWidths] = useState<Record<WidthKey, number>>(() => {
+  const [preferredWidths, setWidths] = useState<Record<WidthKey, number>>(() => {
     const w: Record<string, number> = { name: DEFAULT_NAME_W };
     for (const c of COLUMNS) w[c.key] = c.w;
     return w as Record<WidthKey, number>;
@@ -420,6 +418,27 @@ export function ProjectSchedule({
     return () => ro.disconnect();
   }, []);
 
+
+  // Fit the default view to smaller laptop widths without squeezing dates or status pills.
+  const widths = { ...preferredWidths };
+  const compactColumns = viewportW > 0 && viewportW < 1100;
+  const minimumNameWidth = compactColumns ? 130 : 200;
+  const minimumWidths: Partial<Record<ColKey, number>> = {
+    type: compactColumns ? 70 : 82, duration: 158, weight: compactColumns ? 52 : 66, status: 128,
+    actual: compactColumns ? 64 : 90, planned: compactColumns ? 64 : 90,
+    dep: compactColumns ? 64 : 104, payment: compactColumns ? 70 : 110,
+  };
+  const shownColumns = COLUMNS.filter(c => visibleCols.has(c.key));
+  const preferredTotal = shownColumns.reduce((sum, c) => sum + widths[c.key], 0);
+  const minimumTotal = shownColumns.reduce((sum, c) => sum + (minimumWidths[c.key] ?? widths[c.key]), 0);
+  const availableColumns = viewportW - minimumNameWidth - ROW_ACTIONS_W;
+  if (viewportW > 0 && availableColumns < preferredTotal) {
+    const ratio = Math.max(0, Math.min(1, (availableColumns - minimumTotal) / Math.max(1, preferredTotal - minimumTotal)));
+    for (const c of shownColumns) {
+      const minimum = minimumWidths[c.key] ?? widths[c.key];
+      widths[c.key] = Math.floor(minimum + (widths[c.key] - minimum) * ratio);
+    }
+  }
 
   // Auto-collapse app sidebar while viewing the schedule for more horizontal room
   const { open: sidebarOpen, setOpen: setSidebarOpen } = useSidebar();
@@ -621,8 +640,14 @@ export function ProjectSchedule({
           extra = depth * 14 + 16 + (hasChildren ? 4 : 0) + (item.kind === "Milestone" ? 16 : 0);
           break;
         case "type": txt = item.kind; extra = 20; break;
-        case "start": txt = item.startDate || "—"; font = MONO_FONT; break;
-        case "end": txt = item.endDate || "—"; font = MONO_FONT; break;
+        case "duration": {
+          const start = parseISO(item.startDate);
+          const end = parseISO(item.endDate);
+          const days = start && end ? ` (${Math.max(1, diffDays(end, start) + 1)}d)` : "";
+          txt = `${formatDateWithYear(item.endDate)}${days}`;
+          font = MONO_FONT;
+          break;
+        }
         case "owner": txt = item.owner; break;
         case "assignee": {
           const a = item.assignee?.trim();
@@ -634,7 +659,7 @@ export function ProjectSchedule({
         case "status": txt = statusText[item.rag]; extra = 6 + 6 + 16 + 2; break; // dot + gap + px-2*2 + border
         case "actual": txt = `${item.progress ?? 0}%`; extra = 60; break;
         case "planned": txt = `${computePlannedProgress(item.startDate, item.endDate)}%`; extra = 60; break;
-        case "dep": txt = item.dep || "—"; break;
+        case "dep": txt = String(item.dependencies?.length ?? 0); break;
         case "roles":
           txt = item.roles.length ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ") : "—";
           extra = 24;
@@ -644,10 +669,7 @@ export function ProjectSchedule({
           extra = 24;
           break;
         case "payment":
-          if (!item.payment || item.payment.kind === "None") txt = "—";
-          else if (item.payment.kind === "Client Revenue") txt = `Revenue · ${item.payment.amount || "—"}`;
-          else txt = `${item.payment.packageId || "Pkg"} · ${item.payment.amount || "—"}`;
-          extra = 20;
+          txt = String([item.payment, ...(item.extraPayments ?? [])].filter(link => link && link.kind !== "None").length);
           break;
       }
       const w = measureText(txt, font) + extra;
@@ -853,7 +875,7 @@ export function ProjectSchedule({
 
   // Stretch the Item Name column so the table always fills the viewport width
   const colsW = COLUMNS.filter(c => colVisible(c.key)).reduce((s, c) => s + widths[c.key], 0);
-  const nameW = Math.max(widths.name, viewportW ? viewportW - colsW - ROW_ACTIONS_W : widths.name);
+  const nameW = viewportW ? Math.max(minimumNameWidth, viewportW - colsW - ROW_ACTIONS_W) : widths.name;
   const tableW = nameW + colsW + ROW_ACTIONS_W;
 
 
@@ -1160,7 +1182,7 @@ export function ProjectSchedule({
                       : "Locked until all tasks reach 100%";
                 const isFlashing = flashRow === item.name;
                 return (
-                  <div key={item.name} data-row-name={item.name} className={`group relative flex border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 hover:bg-table-row-hover ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
+                  <div key={item.name} data-row-name={item.name} className={`group relative flex [&>div]:shrink-0 border-y-[3px] border-transparent bg-clip-padding text-sm transition-colors duration-500 hover:bg-table-row-hover ${isFlashing ? "bg-accent/20" : rowSurface} ${rowIdx === visibleRows.length - 1 ? "rounded-b-[20px]" : ""}`} style={{ height: ROW_H }}>
                     <div className="flex items-center gap-1 overflow-hidden px-3" style={{ width: nameW, paddingLeft: 12 + depth * 14 }}>
                       {hasChildren ? (
                         <button
@@ -1193,45 +1215,27 @@ export function ProjectSchedule({
                           {gateApproved ? "✓" : "!"}
                         </span>
                       )}
-                      <span className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOverdue ? "text-rag-red" : isOffTrack ? "text-rag-amber" : isOnTrack ? "text-rag-green" : ""}`}>{item.name}</span>
+                      <span title={item.name} className={`truncate font-medium ${hasChildren ? "text-foreground" : "text-foreground/90"} ${isOverdue ? "text-rag-red" : isOffTrack ? "text-rag-amber" : isOnTrack ? "text-rag-green" : ""}`}>{item.name}</span>
                     </div>
                     {colVisible("type") && (
                       <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.type }}>
                         <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground truncate">{item.kind}</span>
                       </div>
                     )}
-                    {colVisible("start") && (
-                      <div className="flex items-center px-3 num-mono overflow-hidden" style={{ width: widths.start }}>
-                        {/* Amber dot = this date moved because a dependency changed. */}
-                        {item.depDateShift && (
-                          <span
-                            className="mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rag-amber"
-                            title="Rescheduled by a dependency change"
-                          />
-                        )}
-                        <span className="truncate">{formatDateWithYear(item.startDate)}</span>
-                      </div>
-                    )}
-                    {colVisible("end") && (
-                      <div className="flex items-center px-3 num-mono overflow-hidden" style={{ width: widths.end }}>
-                        {item.depDateShift && (
-                          <span
-                            className="mr-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rag-amber"
-                            title="Rescheduled by a dependency change"
-                          />
-                        )}
-                        <span className="truncate">{formatDateWithYear(item.endDate)}</span>
-                      </div>
-                    )}
                     {colVisible("duration") && (
-                      <div className="flex items-center px-3 num-mono overflow-hidden text-muted-foreground" style={{ width: widths.duration }}>
-                        {(() => {
-                          const s = parseISO(item.startDate);
-                          const e = parseISO(item.endDate);
-                          if (!s || !e) return <span>—</span>;
-                          const d = Math.max(1, diffDays(e, s) + 1);
-                          return <span className="truncate">{d}d</span>;
-                        })()}
+                      <div className="flex shrink-0 flex-col justify-center gap-0.5 px-3 text-xs num-mono" style={{ width: widths.duration }}>
+                        <span className="flex items-center gap-1 whitespace-nowrap" title={`Start: ${formatDateWithYear(item.startDate)}`}>
+                          {item.depDateShift && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-rag-amber" title="Rescheduled by a dependency change" />}
+                          {formatDateWithYear(item.startDate)}
+                        </span>
+                        <span className="whitespace-nowrap text-muted-foreground" title={`End: ${formatDateWithYear(item.endDate)}`}>
+                          {formatDateWithYear(item.endDate)}
+                          {(() => {
+                            const start = parseISO(item.startDate);
+                            const end = parseISO(item.endDate);
+                            return start && end ? ` (${Math.max(1, diffDays(end, start) + 1)}d)` : "";
+                          })()}
+                        </span>
                       </div>
                     )}
                     {colVisible("owner") && (
@@ -1392,62 +1396,38 @@ export function ProjectSchedule({
                     {colVisible("dep") && (
                       <div className="flex items-center gap-1 px-3 text-muted-foreground overflow-hidden" style={{ width: widths.dep }}>
                         {item.dependencies && item.dependencies.length > 0 ? (
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => onDependencyClick?.(item.name)}
-                            className="truncate text-xs text-foreground/80 underline-offset-2 hover:text-accent hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                            className="h-8 min-w-8 px-1 num-mono text-accent hover:underline"
+                            aria-label={`View ${item.dependencies.length} dependencies for ${item.name}`}
                             title={`View dependencies for ${item.name}`}
                           >
-                            {item.dependencies.length === 1
-                              ? `${item.dependencies[0].predecessor} · ${depLabel(item.dependencies[0])}`
-                              : `${item.dependencies.length} Dependencies`}
-                          </button>
+                            {item.dependencies.length}
+                          </Button>
                         ) : <span className="text-xs">—</span>}
                       </div>
                     )}
                     {colVisible("payment") && (() => {
-                      const payLinks = [item.payment, ...(item.extraPayments ?? [])].filter(Boolean) as PaymentLink[];
+                      const payLinks = [item.payment, ...(item.extraPayments ?? [])].filter(link => link && link.kind !== "None");
                       return (
-                      <div className="flex items-center overflow-hidden px-3" style={{ width: widths.payment }}>
-                        <div className="flex max-w-full items-center gap-1 overflow-hidden text-left">
-                          {payLinks.length === 0 ? (
-                            <span className={restricted || isGate ? "text-muted-foreground" : "text-xs text-accent hover:underline"}>
-                              —
-                            </span>
-                          ) : (
-                            <>
-                              <button
-                                type="button"
-                                title="Open financial link"
-                                onClick={() => onFinancialLinkClick?.(item.name)}
-                                className="min-w-0 max-w-full cursor-pointer transition-opacity hover:opacity-80"
-                              >
-                                {payLinks[0].kind === "Client Revenue" ? (
-                                  <Badge variant="outline" className="max-w-full truncate border-rag-green/40 bg-rag-green/10 text-rag-green text-[10px]">
-                                    Revenue · {payLinks[0].amount || "—"}
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="max-w-full truncate border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
-                                    {payLinks[0].packageId || "Pkg"} · {payLinks[0].amount || "—"}
-                                  </Badge>
-                                )}
-                              </button>
-                              {payLinks.length > 1 && (
-                                <button
-                                  type="button"
-                                  title={`${payLinks.length} financial links — click to view all`}
-                                  onClick={() => onFinancialLinkClick?.(item.name)}
-                                  className="shrink-0 cursor-pointer transition-opacity hover:opacity-80"
-                                >
-                                  <Badge variant="outline" className="border-border bg-muted/60 text-muted-foreground text-[10px]">
-                                    +{payLinks.length - 1}
-                                  </Badge>
-                                </button>
-                              )}
-                            </>
-                          )}
+                        <div className="flex items-center px-3" style={{ width: widths.payment }}>
+                          {payLinks.length > 0 ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 min-w-8 px-1 num-mono text-accent hover:underline"
+                              aria-label={`View ${payLinks.length} financial links for ${item.name}`}
+                              title="Open financial links"
+                              onClick={() => onFinancialLinkClick?.(item.name)}
+                            >
+                              {payLinks.length}
+                            </Button>
+                          ) : <span className="text-xs text-muted-foreground">—</span>}
                         </div>
-                      </div>
                       );
                     })()}
                     {/* Dedicated hover-only burger column — never covers data cells */}
@@ -1994,10 +1974,10 @@ function ColHeader({
 }) {
   return (
     <div
-      className="relative flex items-center px-3"
+      className="relative flex shrink-0 items-center px-2 text-xs"
       style={{ width }}
     >
-      <span className="truncate">{label}</span>
+      <span className="whitespace-normal leading-tight">{label}</span>
       <div
         onPointerDown={onResize}
         onDoubleClick={onAutoFit}

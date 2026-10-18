@@ -21,7 +21,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { EditAction, DeleteAction, ClipboardCheck, Plus, Check } from "@/lib/icons";
-import { formatDateWithYear } from "@/lib/date-format";
+import { formatDateWithYear, formatDateTime } from "@/lib/date-format";
 import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import { useRiskRegister } from "@/lib/risk-store";
 import {
@@ -240,9 +240,11 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project: strin
           if (!statusFor) return;
           if (editingUpdate) {
             editActionUpdate(statusFor.id, editingUpdate.id, comment);
-            if (st !== statusFor.status) logActionUpdate(statusFor.id, { comment, by: currentUser.name, status: st });
-          } else logActionUpdate(statusFor.id, { comment, by: currentUser.name, status: st });
-          toast.success("Action updated");
+            toast.success("Comment updated");
+          } else {
+            logActionUpdate(statusFor.id, { comment, by: currentUser.name, status: st });
+            toast.success("Action updated");
+          }
           setStatusFor(null); setEditingUpdate(null);
         }}
       />
@@ -259,7 +261,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project: strin
         open={!!pendingDeleteUpdate}
         onOpenChange={(o) => { if (!o) setPendingDeleteUpdate(null); }}
         title="Delete this comment?"
-        description="This comment will be permanently removed from the action history."
+        description="The comment will be removed from the action history. This cannot be undone."
         confirmLabel="Delete"
         tone="danger"
         onConfirm={() => { if (pendingDeleteUpdate) removeActionUpdate(pendingDeleteUpdate.a.id, pendingDeleteUpdate.u.id); setPendingDeleteUpdate(null); }}
@@ -468,22 +470,29 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, owne
 function ActionStatusDialog({ action, editing, onClose, onSave }: { action: ActionItem | null; editing: ActionUpdate | null; onClose: () => void; onSave: (comment: string, status: ActionStatus) => void }) {
   const [comment, setComment] = useState("");
   const [st, setSt] = useState<ActionStatus>("Open");
+  const [error, setError] = useState("");
   const [key, setKey] = useState("");
   const k = `${action?.id ?? ""}-${editing?.id ?? ""}`;
-  if (k !== key) { setKey(k); if (action) { setComment(editing?.comment ?? ""); setSt(action.status); } }
-  const valid = comment.trim().length > 0;
+  if (k !== key) { setKey(k); setError(""); if (action) { setComment(editing?.comment ?? ""); setSt(action.status); } }
+  const hasChange = !!action && (st !== action.status || comment.trim().length > 0);
   return (
-    <FormDialog open={!!action} onOpenChange={(o) => { if (!o) onClose(); }} title={editing ? "Edit comment" : t.updateStatus} description={action?.title} submitDisabled={!valid} submitLabel="Save update"
-      onSubmit={() => { if (valid) onSave(comment.trim().slice(0, COMMENT_MAX), st); }}>
-      <Field label="Status">
-        <Select value={st} onValueChange={(v) => setSt(v as ActionStatus)}>
-          <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent>{ACTION_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-        </Select>
-      </Field>
-      <Field label="Comment" htmlFor="act-comment">
-        <Textarea id="act-comment" maxLength={COMMENT_MAX} value={comment} onChange={(e) => setComment(e.target.value)} placeholder="What progressed on this action?" />
-        <p className="mt-1 text-xs text-muted-foreground">{t.commentTrackerHint}</p>
+    <FormDialog open={!!action} onOpenChange={(o) => { if (!o) onClose(); }} title={editing ? "Edit comment" : t.updateStatus} description={action?.title}
+      submitDisabled={editing ? false : !hasChange} submitLabel={editing ? "Save Changes" : "Save update"}
+      onSubmit={() => {
+        if (editing) { if (!comment.trim()) { setError("Comment is required."); return; } onSave(comment.trim().slice(0, COMMENT_MAX), action!.status); return; }
+        if (hasChange) onSave(comment.trim().slice(0, COMMENT_MAX), st);
+      }}>
+      {!editing && (
+        <Field label="Status">
+          <Select value={st} onValueChange={(v) => setSt(v as ActionStatus)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{ACTION_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+          </Select>
+        </Field>
+      )}
+      <Field label={editing ? "Comment" : "Comment (optional)"} htmlFor="act-comment" error={error}>
+        <Textarea id="act-comment" maxLength={COMMENT_MAX} value={comment} onChange={(e) => { setComment(e.target.value); setError(""); }} placeholder="What progressed on this action?" />
+        {!editing && <p className="mt-1 text-xs text-muted-foreground">{t.commentTrackerHint}</p>}
         <div className="mt-1 text-end text-[11px] text-muted-foreground num-mono">{comment.length}/{COMMENT_MAX}</div>
       </Field>
     </FormDialog>
@@ -529,13 +538,12 @@ function ActionDrawer({ action: a, onClose, onUpdate, onEdit, onEditUpdate, onDe
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium text-foreground">{u.by}</span>
                     <div className="flex items-center gap-1.5">
-                      <span className="num-mono text-[10px] text-muted-foreground">{formatDateWithYear(u.at)}</span>
+                      <span className="num-mono text-[10px] text-muted-foreground">{formatDateTime(u.at)}</span>
                       <button type="button" aria-label="Edit comment" className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => onEditUpdate(a, u)}><EditAction size={13} /></button>
                       <button type="button" aria-label="Delete comment" className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => onDeleteUpdate(a, u)}><DeleteAction size={13} /></button>
                     </div>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{u.comment}</p>
-                  {u.statusChange && <Badge variant="outline" className="mt-2">Status {u.statusChange[0]} → {u.statusChange[1]}</Badge>}
                 </div>
               ))}
             </div>

@@ -37,3 +37,10 @@ export function formatDateForDisplay(value: DisplayDateValue, fallback = "—"):
   }
   return formatDateWithYear(value, fallback);
 }
+/** Comment timestamp: `22 Sep, 2026 · 14:05`; legacy date-only values show the date alone. */
+export function formatDateTime(value: DisplayDateValue, fallback = "—"): string {
+  const date = parseDisplayDate(value);
+  if (!date) return fallback;
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) return format(date, "dd MMM, yyyy");
+  return format(date, "dd MMM, yyyy · HH:mm");
+}

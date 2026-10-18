@@ -27,7 +27,7 @@ import { useRiskRegister, type RiskRecord, type RiskUpdate, type IssueRecord, ty
 import { useOrgRules, severityForScore, type RiskSeverity } from "@/lib/org-rules";
 import { useOrgActive } from "@/lib/org-active";
 import { useCurrentUser } from "@/lib/projects-store";
-import { formatDateWithYear } from "@/lib/date-format";
+import { formatDateWithYear, formatDateTime } from "@/lib/date-format";
 import { LinkedActions, ActionsCount, ActionRowsEditor, emptyActionRow, actionRowsValid, cleanActionRows, type ActionRow } from "@/components/actions/ActionTracker";
 import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
 import { useActions } from "@/lib/action-store";
@@ -237,9 +237,6 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
           if (!statusFor) return;
           if (editingUpdate) {
             editRiskUpdate(statusFor.id, editingUpdate.id, input.comment);
-            if (input.status !== statusFor.status || input.prob !== statusFor.prob || input.impact !== statusFor.impact) {
-              logRiskUpdate(statusFor.id, { ...input, by: currentUser.name });
-            }
             toast.done("Comment", "updated");
           } else {
             logRiskUpdate(statusFor.id, { ...input, by: currentUser.name });
@@ -254,7 +251,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
         open={!!pendingDeleteUpdate}
         onOpenChange={(o) => !o && setPendingDeleteUpdate(null)}
         title="Delete this comment?"
-        description="The comment is removed from the risk history. This cannot be undone."
+        description="The comment will be removed from the risk history. This cannot be undone."
         confirmLabel="Delete"
         tone="danger"
         onConfirm={() => {
@@ -557,7 +554,7 @@ function RiskSheet({
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium text-foreground">{u.by}</span>
                     <div className="flex items-center gap-1.5">
-                      <span className="num-mono text-[10px] text-muted-foreground">{u.at}</span>
+                      <span className="num-mono text-[10px] text-muted-foreground">{formatDateTime(u.at)}</span>
                       {onEditUpdate && (
                         <CommentAction label="Edit comment" onClick={() => onEditUpdate(risk, u)}>
                           <EditAction size={13} />
@@ -571,22 +568,6 @@ function RiskSheet({
                     </div>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{u.comment}</p>
-                  {u.change && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {u.change.status && u.change.status[0] !== u.change.status[1] && (
-                        <Badge variant="outline" className="rounded-full text-[10px]">Status {u.change.status[0]} → {u.change.status[1]}</Badge>
-                      )}
-                      {u.change.prob && (
-                        <Badge variant="outline" className="rounded-full text-[10px]">P {u.change.prob[0]} → {u.change.prob[1]}</Badge>
-                      )}
-                      {u.change.impact && (
-                        <Badge variant="outline" className="rounded-full text-[10px]">I {u.change.impact[0]} → {u.change.impact[1]}</Badge>
-                      )}
-                      {u.change.score && (
-                        <Badge variant="outline" className="rounded-full text-[10px]">Score {u.change.score[0]} → {u.change.score[1]}</Badge>
-                      )}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -864,9 +845,6 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
           if (!statusFor) return;
           if (editingUpdate) {
             editIssueUpdate(statusFor.issue.id, editingUpdate.id, input.comment);
-            if (input.status !== statusFor.issue.status) {
-              logIssueUpdate(statusFor.issue.id, { ...input, by: currentUser.name });
-            }
             toast.done("Comment", "updated");
           } else {
             logIssueUpdate(statusFor.issue.id, { ...input, by: currentUser.name });
@@ -891,7 +869,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
         open={!!pendingDeleteUpdate}
         onOpenChange={(o) => !o && setPendingDeleteUpdate(null)}
         title="Delete this comment?"
-        description="The comment is removed from the issue history. This cannot be undone."
+        description="The comment will be removed from the issue history. This cannot be undone."
         confirmLabel="Delete"
         tone="danger"
         onConfirm={() => {
@@ -985,7 +963,7 @@ function IssueDetailDrawer({
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium text-foreground">{u.by}</span>
                     <div className="flex items-center gap-1.5">
-                      <span className="num-mono text-[10px] text-muted-foreground">{formatDateWithYear(u.at)}</span>
+                      <span className="num-mono text-[10px] text-muted-foreground">{formatDateTime(u.at)}</span>
                       {onEditUpdate && (
                         <CommentAction label="Edit comment" onClick={() => onEditUpdate(issue, u)}>
                           <EditAction size={13} />
@@ -999,11 +977,6 @@ function IssueDetailDrawer({
                     </div>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{u.comment}</p>
-                  {u.statusChange && (
-                    <div className="mt-2">
-                      <Badge variant="outline" className="rounded-full text-[10px]">Status {u.statusChange[0]} → {u.statusChange[1]}</Badge>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -1179,11 +1152,16 @@ function RiskStatusDialog({
 
   const score = Number(prob) * Number(impact);
 
+  const editing = initialComment !== undefined;
+  const hasChange = !!risk && (status !== risk.status || Number(prob) !== risk.prob || Number(impact) !== risk.impact || comment.trim().length > 0);
+
   function submit() {
-    if (!comment.trim()) {
-      setError("A comment is required so the change stays documented");
+    if (editing) {
+      if (!comment.trim()) { setError("Comment is required."); return; }
+      onSave({ status: risk!.status, prob: risk!.prob, impact: risk!.impact, comment: comment.trim() });
       return;
     }
+    if (!hasChange) return;
     onSave({ status, prob: Number(prob), impact: Number(impact), comment: comment.trim() });
   }
 
@@ -1191,12 +1169,13 @@ function RiskStatusDialog({
     <FormDialog
       open={!!risk}
       onOpenChange={(o) => { if (!o) onClose(); }}
-      title="Update risk status"
+      title={editing ? "Edit comment" : "Update risk status"}
       description={risk ? risk.title : undefined}
-      submitLabel="Record Update"
+      submitLabel={editing ? "Save Changes" : "Save update"}
+      submitDisabled={editing ? false : !hasChange}
       onSubmit={submit}
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {!editing && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Status" htmlFor="risk-status-update">
           <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
             <SelectTrigger id="risk-status-update"><SelectValue /></SelectTrigger>
@@ -1223,13 +1202,13 @@ function RiskStatusDialog({
             <Pill label={severityOf(score)} tone={SEVERITY_TONE[severityOf(score)]} />
           </div>
         </Field>
-      </div>
+      </div>}
 
       <Field
-        label="Comment"
+        label={editing ? "Comment" : "Comment (optional)"}
         htmlFor="risk-status-comment"
         error={error}
-        hint="What progressed, and why the severity changed. Kept in the risk history."
+        hint={editing ? undefined : "Kept in the risk comments."}
       >
         <Textarea
           id="risk-status-comment"
@@ -1258,11 +1237,16 @@ function IssueStatusDialog({
   const [comment, setComment] = useState(initialComment ?? "");
   const [error, setError] = useState("");
 
+  const editing = initialComment !== undefined;
+  const hasChange = !!issue && (status !== issue.status || comment.trim().length > 0);
+
   function submit() {
-    if (!comment.trim()) {
-      setError("A comment is required so the change stays documented");
+    if (editing) {
+      if (!comment.trim()) { setError("Comment is required."); return; }
+      onSave({ status: issue!.status, comment: comment.trim(), closureDate: issue!.closureDate });
       return;
     }
+    if (!hasChange) return;
     onSave({
       status,
       comment: comment.trim(),
@@ -1274,12 +1258,13 @@ function IssueStatusDialog({
     <FormDialog
       open={!!issue}
       onOpenChange={(o) => { if (!o) onClose(); }}
-      title="Update issue status"
+      title={editing ? "Edit comment" : "Update issue status"}
       description={issue ? issue.title : undefined}
-      submitLabel="Update Status"
+      submitLabel={editing ? "Save Changes" : "Save update"}
+      submitDisabled={editing ? false : !hasChange}
       onSubmit={submit}
     >
-      <Field label="Status" htmlFor="issue-status-update">
+      {!editing && <><Field label="Status" htmlFor="issue-status-update">
         <Select value={status} onValueChange={(v) => { setStatus(v as IssueStatus); setError(""); }}>
           <SelectTrigger id="issue-status-update"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -1297,10 +1282,10 @@ function IssueStatusDialog({
             max={todayISO()}
           />
         </Field>
-      )}
+      )}</>}
 
       <Field
-        label="Comment"
+        label={editing ? "Comment" : "Comment (optional)"}
         htmlFor="issue-status-comment"
         error={error}
         hint={`Kept in the issue view. ${comment.length}/${COMMENT_MAX} characters.`}

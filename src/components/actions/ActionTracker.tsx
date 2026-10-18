@@ -284,7 +284,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
   const { respTypes } = useResponsibilities();
   const { isActive } = useOrgActive("responsibility-type");
   const blank = (): ActionDraft => ({
-    project, title: "", description: "", source: fixedSource?.source ?? "General", sourceRef: fixedSource?.sourceRef,
+    project, title: "", description: "", source: fixedSource?.source ?? "General", sourceRef: fixedSource?.source === "Meeting" ? undefined : fixedSource?.sourceRef,
     owner: "", responsibility: defaultResponsibility(respTypes, isActive), dueDate: "", status: "Open",
   });
   const [d, setD] = useState<ActionDraft>(blank);
@@ -637,12 +637,15 @@ export function LinkedActions({ project, source, sourceRef, title, meetingMeta, 
         initial={editing}
         fixedSource={{ source, sourceRef }}
         onSave={(values) => {
+          const merged = isMeeting
+            ? { ...values, sourceRef: undefined, meetingId: sourceRef, meetingName: meetingMeta?.meetingName, meetingDate: meetingMeta?.meetingDate }
+            : values;
           if (editing) {
-            updateAction(editing.id, values);
+            updateAction(editing.id, merged);
             toast.success("Action updated");
           } else {
-            addAction(values);
-            toast.success("Action added to Action Tracker");
+            addAction(merged);
+            toast.success(isMeeting ? "Action added to the Action Tracker" : "Action added to Action Tracker");
           }
           setOpen(false);
           setEditing(null);

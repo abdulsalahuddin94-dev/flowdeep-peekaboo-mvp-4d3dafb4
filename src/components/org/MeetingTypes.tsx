@@ -59,7 +59,7 @@ export function MeetingTypesTab() {
         </TableRow>)}
       </TableBody>
     </Table>
-    <TablePagination {...pager} itemLabel={t.title} />
+    <TablePagination {...pager} itemLabel={t.title} demoPages={0} />
     <FormDialog open={open} onOpenChange={setOpen} title={editing ? t.edit : t.add} cancelLabel={t.cancel} submitLabel={editing ? t.save : t.add} onSubmit={submit}>
       <Field label={t.name} htmlFor="meeting-type-name"><Input id="meeting-type-name" maxLength={60} value={name} onChange={(e) => setName(e.target.value)} placeholder={t.placeholder} /></Field>
     </FormDialog>

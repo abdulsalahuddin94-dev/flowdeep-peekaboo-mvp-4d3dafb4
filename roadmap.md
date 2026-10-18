@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Add Organization Meeting Types lookup and connect meeting forms and filters; verify creation and persistence.
+- [x] Add Organization Meeting Types lookup and connect meeting forms and filters; verify creation and persistence.
 
 - [x] Remove the Issue View CTA and open Issue details from the full row.
 - [x] Move Status to the final column in Risk and Issue tables and swap it with actions on row hover.

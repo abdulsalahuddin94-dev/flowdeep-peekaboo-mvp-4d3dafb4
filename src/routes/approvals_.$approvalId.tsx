@@ -31,10 +31,10 @@ export const Route = createFileRoute("/approvals_/$approvalId")({
   component: ChangeRequestReviewPage,
   head: () => ({
     meta: [
-      { title: "Change Request Review — Nexus PMO MVP" },
-      { name: "description", content: "Review a baseline change request against the project schedule, cost breakdown and revenue breakdown before deciding." },
-      { property: "og:title", content: "Change Request Review — Nexus PMO MVP" },
-      { property: "og:description", content: "Review a baseline change request against the project schedule, cost breakdown and revenue breakdown before deciding." },
+      { title: "Project Approval Review — Nexus PMO MVP" },
+      { name: "description", content: "Review project milestone approvals and change requests alongside the schedule, cost breakdown and revenue breakdown." },
+      { property: "og:title", content: "Project Approval Review — Nexus PMO MVP" },
+      { property: "og:description", content: "Review project milestone approvals and change requests alongside the schedule, cost breakdown and revenue breakdown." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -67,15 +67,15 @@ function ChangeRequestReviewPage() {
   const [comment, setComment] = useState("");
   const [commentError, setCommentError] = useState("");
 
-  if (!approval || approval.type !== "change-request") {
+  if (!approval || approval.type === "calendar-change") {
     return (
       <div>
         <Link to="/approvals" className="inline-flex items-center gap-2 text-sm text-accent hover:underline">
           <ArrowLeft className="h-4 w-4" /> Back to Approvals
         </Link>
         <div className="mt-10 rounded-lg border border-border bg-card p-10 text-center">
-          <div className="text-lg font-medium text-foreground">Change request not found</div>
-          <p className="mt-2 text-sm text-muted-foreground">This request may have been removed, or it is not a change request.</p>
+          <div className="text-lg font-medium text-foreground">Project approval not found</div>
+          <p className="mt-2 text-sm text-muted-foreground">This request may have been removed, or it is not a project approval.</p>
         </div>
       </div>
     );
@@ -131,7 +131,7 @@ function ChangeRequestReviewPage() {
           subtitle={`${approval.ref} · Requested by ${approval.requestedBy} on ${formatDateWithYear(approval.requestedAt)}`}
           actions={
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="border-accent/40 bg-accent-dim text-accent">Change request</Badge>
+              <Badge variant="outline" className={approval.type === "milestone-gate" ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber" : "border-accent/40 bg-accent-dim text-accent"}>{approval.type === "milestone-gate" ? "Milestone gate" : "Change request"}</Badge>
               <Badge variant="outline" className={statusTone(approval.status)}>{approval.status}</Badge>
               {approval.status === "pending" && (
                 <>

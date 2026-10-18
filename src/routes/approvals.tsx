@@ -239,7 +239,7 @@ function ApprovalsInbox() {
                 <StyledTableRow
                   key={approval.id}
                   className="group cursor-pointer"
-                  onClick={() => approval.type === "change-request"
+                  onClick={() => approval.type !== "calendar-change"
                     ? navigate({ to: "/approvals/$approvalId", params: { approvalId: approval.id } })
                     : setDetailsId(approval.id)}
                 >

@@ -820,7 +820,6 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
         projectOptions={projectOptions}
         risks={risks}
         milestoneOptions={milestoneList}
-        impactLabels={rules.risk.impactLabels}
         onSave={(issue, actionRows) => {
           if (isDuplicateTitle(issue.title, editing?.id)) {
             toast.error(`Issue "${issue.title.trim()}" already exists`, { description: "Issue titles must be unique." });
@@ -993,7 +992,7 @@ function IssueDetailDrawer({
 }
 
 function IssueFormDialog({
-  open, onOpenChange, issue, projectOptions, risks, milestoneOptions, impactLabels, lockedProject, onSave,
+  open, onOpenChange, issue, projectOptions, risks, milestoneOptions, lockedProject, onSave,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -1001,7 +1000,6 @@ function IssueFormDialog({
   projectOptions: string[];
   risks: RiskRecord[];
   milestoneOptions: string[];
-  impactLabels: string[];
   lockedProject?: string;
   onSave: (issue: Omit<IssueItem, "id">, actions: ActionRow[]) => void;
 }) {
@@ -1067,13 +1065,7 @@ function IssueFormDialog({
         <Input id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="What is blocking or going wrong?" />
       </Field>
 
-      <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Field label="Impact" htmlFor="issue-impact" hint="1 (lowest) – 5 (highest)" className="min-w-0">
-          <Select value={impact} onValueChange={setImpact}>
-            <SelectTrigger id="issue-impact"><SelectValue /></SelectTrigger>
-            <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n} · {impactLabels[n - 1]}</SelectItem>)}</SelectContent>
-          </Select>
-        </Field>
+      <div className="grid items-start gap-4 sm:grid-cols-2">
         <Field label="Severity" htmlFor="issue-priority" className="min-w-0">
           <Select value={priority} onValueChange={(v) => setPriority(v as IssuePriority)}>
             <SelectTrigger id="issue-priority"><SelectValue /></SelectTrigger>

@@ -554,14 +554,15 @@ function ActionDrawer({ action: a, onClose, onUpdate, onEdit, onEditUpdate, onDe
 
 /* ── Linked actions (Risk / Issue drawers) ──────────────────────────────── */
 
-export function LinkedActions({ project, source, sourceRef, title }: { project: string; source: "Risk" | "Issue"; sourceRef: string; title: string }) {
+export function LinkedActions({ project, source, sourceRef, title, meetingMeta, onAdd }: { project: string; source: "Risk" | "Issue" | "Meeting"; sourceRef: string; title: string; meetingMeta?: { meetingName?: string; meetingDate?: string }; onAdd?: () => void }) {
   const { actions, addAction, updateAction, removeAction, logActionUpdate } = useActions();
   const { currentUser } = useCurrentUser();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ActionItem | null>(null);
   const [statusFor, setStatusFor] = useState<ActionItem | null>(null);
   const [pendingDelete, setPendingDelete] = useState<ActionItem | null>(null);
-  const linked = actions.filter((a) => a.source === source && a.sourceRef === sourceRef);
+  const isMeeting = source === "Meeting";
+  const linked = isMeeting ? actions.filter((a) => a.meetingId === sourceRef) : actions.filter((a) => a.source === source && a.sourceRef === sourceRef);
   const done = linked.filter((a) => a.status === "Done").length;
   const overdue = linked.filter((a) => isActionOverdue(a)).length;
   return (
@@ -573,7 +574,7 @@ export function LinkedActions({ project, source, sourceRef, title }: { project: 
           size="icon"
           aria-label="Add action"
           title="Add action"
-          onClick={() => setOpen(true)}
+          onClick={() => { if (onAdd) onAdd(); else setOpen(true); }}
         >
           <Plus className="h-5 w-5" />
         </Button>

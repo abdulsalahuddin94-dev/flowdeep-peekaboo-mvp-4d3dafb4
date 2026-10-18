@@ -1,3 +1,8 @@
+## 2026-10-18 — Compact Project Schedule columns
+- Combined Start/End/day duration in a single Duration column with stacked full dates and parenthesized days; preserved the existing inclusive duration calculation and dependency-shift indicator.
+- Depends on and Financial Link now show plain clickable totals, opening the existing detail views without badges, names or amounts.
+- Updated auto-fit measurement and adaptive column sizing to prioritize readable dates/status while filling narrower laptop viewports.
+
 ## 2026-10-18 — Milestone approvals also open the independent review page
 - Reproduced the reported drawer: the screenshot's request is a milestone gate, while change requests already navigate correctly.
 - Both milestone gates and change requests now open the independent approval review page with Project Schedule, Cost Breakdown and Revenue Breakdown; calendar changes retain their drawer. The page preserves request type and decision controls.

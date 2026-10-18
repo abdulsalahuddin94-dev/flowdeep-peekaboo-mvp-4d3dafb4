@@ -1008,7 +1008,7 @@ function IssueFormDialog({
   const [project, setProject] = useState(issue?.project ?? lockedProject ?? "");
   const [priority, setPriority] = useState<IssuePriority>(issue?.priority ?? "Medium");
   const [status, setStatus] = useState<IssueStatus>(issue?.status ?? "Open");
-  const [impact, setImpact] = useState(String(issue?.impact ?? 3));
+  const impact = issue?.impact ?? 3;
   const [openDate, setOpenDate] = useState(issue?.openDate ?? todayISO());
   const [targetDate, setTargetDate] = useState(issue?.targetDate ?? "");
   const [actionRows, setActionRows] = useState<ActionRow[]>([emptyActionRow(defaultResponsibility(respTypes))]);

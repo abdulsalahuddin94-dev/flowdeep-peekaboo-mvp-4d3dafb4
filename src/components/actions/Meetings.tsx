@@ -82,7 +82,7 @@ export function MeetingsTab({ project }: { project?: string }) {
   const [actionsFor, setActionsFor] = useState<Meeting | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Meeting | null>(null);
 
-  const scoped = meetings.filter((m) => m.project === project);
+  const scoped = project ? meetings.filter((m) => m.project === project) : meetings;
   const q = query.trim().toLowerCase();
   const list = scoped
     .filter((m) => !q || m.title.toLowerCase().includes(q))
@@ -103,6 +103,7 @@ export function MeetingsTab({ project }: { project?: string }) {
         onQueryChange={setQuery}
         placeholder={t.search}
         filterGroups={[
+          ...(pmo ? [{ key: "project", label: "Project", value: proj, onChange: setProj, options: [{ value: "all", label: "All projects" }, ...projectNames.map((v) => ({ value: v, label: v }))] }] : []),
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...(["Scheduled", "Held", "Cancelled"] as const).map((v) => ({ value: v, label: v }))] },
           { key: "type", label: "Meeting type", value: type, onChange: setType, options: [{ value: "all", label: "All types" }, ...Array.from(new Set([...meetingTypes.map((v) => v.name), ...scoped.map((m) => m.type)])).map((v) => ({ value: v, label: v }))] },
           { key: "party", label: "Attendee party", value: party, onChange: setParty, options: [{ value: "all", label: "All parties" }, ...ATTENDEE_PARTIES.map((v) => ({ value: v, label: v }))] },
@@ -115,6 +116,7 @@ export function MeetingsTab({ project }: { project?: string }) {
         <StyledTableHeader>
           <StyledTableHeaderRow>
             <StyledTableHead>Meeting</StyledTableHead>
+            {pmo && <StyledTableHead>{t.project}</StyledTableHead>}
             <StyledTableHead>Type</StyledTableHead>
             <StyledTableHead>Date</StyledTableHead>
             <StyledTableHead>Attendees</StyledTableHead>
@@ -123,7 +125,7 @@ export function MeetingsTab({ project }: { project?: string }) {
           </StyledTableHeaderRow>
         </StyledTableHeader>
         <StyledTableBody>
-          {pagination.pageItems.length === 0 && <EmptyRow colSpan={6} />}
+          {pagination.pageItems.length === 0 && <EmptyRow colSpan={pmo ? 7 : 6} />}
           {pagination.pageItems.map((m) => {
             const acts = actionsOf(m.id);
             const done = acts.filter((a) => a.status === "Done").length;

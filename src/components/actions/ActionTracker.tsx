@@ -153,6 +153,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
         onQueryChange={setQuery}
         placeholder={t.search}
         filterGroups={[
+          ...(pmo ? [{ key: "project", label: "Project", value: proj, onChange: setProj, options: [{ value: "all", label: "All projects" }, ...projectNames.map((v) => ({ value: v, label: v }))] }] : []),
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, { value: "Overdue", label: "Overdue" }, ...ACTION_STATUSES.map((v) => ({ value: v, label: v }))] },
           { key: "resp", label: "Responsibility", value: resp, onChange: setResp, options: [{ value: "all", label: "All parties" }, ...respTypes.map((v) => ({ value: v.name, label: v.name }))] },
           { key: "source", label: "Source", value: source, onChange: setSource, options: [{ value: "all", label: "All sources" }, ...ACTION_SOURCES.map((v) => ({ value: v, label: v }))] },
@@ -187,6 +188,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
         <StyledTableHeader>
           <StyledTableHeaderRow>
             <StyledTableHead>Action</StyledTableHead>
+            {pmo && <StyledTableHead>Project</StyledTableHead>}
             <StyledTableHead>Source</StyledTableHead>
             <StyledTableHead>Owner</StyledTableHead>
             <StyledTableHead>Responsibility</StyledTableHead>
@@ -195,10 +197,11 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
           </StyledTableHeaderRow>
         </StyledTableHeader>
         <StyledTableBody>
-          {pagination.pageItems.length === 0 && <EmptyRow colSpan={6} />}
+          {pagination.pageItems.length === 0 && <EmptyRow colSpan={pmo ? 7 : 6} />}
           {pagination.pageItems.map((a) => (
             <StyledTableRow key={a.id} className="group cursor-pointer" onClick={() => setViewId(a.id)}>
               <StyledTableCell className="font-medium text-foreground">{a.title}</StyledTableCell>
+              {pmo && <StyledTableCell className="text-sm text-muted-foreground">{a.project}</StyledTableCell>}
               <StyledTableCell><Badge variant="outline">{sourceLabel(a)}</Badge></StyledTableCell>
               <StyledTableCell className="text-sm">{a.owner}</StyledTableCell>
               <StyledTableCell><Pill label={a.responsibility} tone={respTone(a.responsibility, respTypes)} /></StyledTableCell>

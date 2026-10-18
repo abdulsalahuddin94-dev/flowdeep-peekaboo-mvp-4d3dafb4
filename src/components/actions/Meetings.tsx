@@ -134,6 +134,7 @@ export function MeetingsTab({ project }: { project?: string }) {
             return (
               <StyledTableRow key={m.id} className="group cursor-pointer" onClick={() => setViewId(m.id)}>
                 <StyledTableCell className="font-medium text-foreground">{m.title}</StyledTableCell>
+                {pmo && <StyledTableCell className="text-sm text-muted-foreground">{m.project}</StyledTableCell>}
                 <StyledTableCell className="text-sm text-muted-foreground">{m.type}</StyledTableCell>
                 <StyledTableCell className="num-mono text-sm">{formatDateWithYear(m.date)}{m.time ? ` · ${m.time}` : ""}</StyledTableCell>
                 <StyledTableCell><AttendeeSummary attendees={m.attendees} /></StyledTableCell>
@@ -164,6 +165,7 @@ export function MeetingsTab({ project }: { project?: string }) {
         open={formOpen}
         onOpenChange={setFormOpen}
         project={project}
+        projectOptions={pmo ? projectNames : undefined}
         initial={editing}
         onSave={(v, thenAddActions) => {
           if (editing) { updateMeeting(editing.id, v, currentUser.name); toast.success("Meeting updated"); setFormOpen(false); return; }
@@ -177,7 +179,7 @@ export function MeetingsTab({ project }: { project?: string }) {
         meeting={actionsFor}
         onClose={() => setActionsFor(null)}
         onSave={(m, rows) => {
-          addActions(rows.map((r) => ({ ...r, owner: currentUser.name, project, source: "Meeting" as const, meetingId: m.id, meetingName: m.title, meetingDate: m.date, status: "Open" as const })));
+          addActions(rows.map((r) => ({ ...r, owner: currentUser.name, project: m.project, source: "Meeting" as const, meetingId: m.id, meetingName: m.title, meetingDate: m.date, status: "Open" as const })));
           toast.success(`${rows.length} ${rows.length === 1 ? "action" : "actions"} added to the Action Tracker`);
           setActionsFor(null);
         }}

@@ -19,7 +19,7 @@ import { Route as MeetingsRouteImport } from './routes/meetings'
 import { Route as OrganizationRouteImport } from './routes/organization'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as RisksRouteImport } from './routes/risks'
-import { Route as ApprovalsApprovalIdRouteImport } from './routes/approvals.$approvalId'
+import { Route as ApprovalsApprovalIdRouteImport } from './routes/approvals_.$approvalId'
 import { Route as PortfolioIndexRouteImport } from './routes/portfolio.index'
 import { Route as PortfolioProjectIdRouteImport } from './routes/portfolio.$projectId'
 import { Route as PortfolioNewRouteImport } from './routes/portfolio.new'
@@ -76,9 +76,9 @@ const RisksRoute = RisksRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApprovalsApprovalIdRoute = ApprovalsApprovalIdRouteImport.update({
-  id: '/$approvalId',
-  path: '/$approvalId',
-  getParentRoute: () => ApprovalsRoute,
+  id: '/approvals_/$approvalId',
+  path: '/approvals/$approvalId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PortfolioIndexRoute = PortfolioIndexRouteImport.update({
   id: '/portfolio/',
@@ -104,7 +104,7 @@ const PortfolioProjectIdEditRoute = PortfolioProjectIdEditRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/action-tracker': typeof ActionTrackerRoute
-  '/approvals': typeof ApprovalsRouteWithChildren
+  '/approvals': typeof ApprovalsRoute
   '/auth': typeof AuthRoute
   '/clients-vendors': typeof ClientsVendorsRoute
   '/financials': typeof FinancialsRoute
@@ -121,7 +121,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/action-tracker': typeof ActionTrackerRoute
-  '/approvals': typeof ApprovalsRouteWithChildren
+  '/approvals': typeof ApprovalsRoute
   '/auth': typeof AuthRoute
   '/clients-vendors': typeof ClientsVendorsRoute
   '/financials': typeof FinancialsRoute
@@ -139,7 +139,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/action-tracker': typeof ActionTrackerRoute
-  '/approvals': typeof ApprovalsRouteWithChildren
+  '/approvals': typeof ApprovalsRoute
   '/auth': typeof AuthRoute
   '/clients-vendors': typeof ClientsVendorsRoute
   '/financials': typeof FinancialsRoute
@@ -147,7 +147,7 @@ export interface FileRoutesById {
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
   '/risks': typeof RisksRoute
-  '/approvals/$approvalId': typeof ApprovalsApprovalIdRoute
+  '/approvals_/$approvalId': typeof ApprovalsApprovalIdRoute
   '/portfolio/$projectId': typeof PortfolioProjectIdRoute
   '/portfolio/new': typeof PortfolioNewRoute
   '/portfolio/': typeof PortfolioIndexRoute
@@ -200,7 +200,7 @@ export interface FileRouteTypes {
     | '/organization'
     | '/resources'
     | '/risks'
-    | '/approvals/$approvalId'
+    | '/approvals_/$approvalId'
     | '/portfolio/$projectId'
     | '/portfolio/new'
     | '/portfolio/'
@@ -210,7 +210,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActionTrackerRoute: typeof ActionTrackerRoute
-  ApprovalsRoute: typeof ApprovalsRouteWithChildren
+  ApprovalsRoute: typeof ApprovalsRoute
   AuthRoute: typeof AuthRoute
   ClientsVendorsRoute: typeof ClientsVendorsRoute
   FinancialsRoute: typeof FinancialsRoute
@@ -218,6 +218,7 @@ export interface RootRouteChildren {
   OrganizationRoute: typeof OrganizationRoute
   ResourcesRoute: typeof ResourcesRoute
   RisksRoute: typeof RisksRoute
+  ApprovalsApprovalIdRoute: typeof ApprovalsApprovalIdRoute
   PortfolioProjectIdRoute: typeof PortfolioProjectIdRoute
   PortfolioNewRoute: typeof PortfolioNewRoute
   PortfolioIndexRoute: typeof PortfolioIndexRoute
@@ -296,12 +297,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RisksRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/approvals/$approvalId': {
-      id: '/approvals/$approvalId'
-      path: '/$approvalId'
+    '/approvals_/$approvalId': {
+      id: '/approvals_/$approvalId'
+      path: '/approvals/$approvalId'
       fullPath: '/approvals/$approvalId'
       preLoaderRoute: typeof ApprovalsApprovalIdRouteImport
-      parentRoute: typeof ApprovalsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/portfolio/': {
       id: '/portfolio/'
@@ -334,22 +335,10 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface ApprovalsRouteChildren {
-  ApprovalsApprovalIdRoute: typeof ApprovalsApprovalIdRoute
-}
-
-const ApprovalsRouteChildren: ApprovalsRouteChildren = {
-  ApprovalsApprovalIdRoute: ApprovalsApprovalIdRoute,
-}
-
-const ApprovalsRouteWithChildren = ApprovalsRoute._addFileChildren(
-  ApprovalsRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActionTrackerRoute: ActionTrackerRoute,
-  ApprovalsRoute: ApprovalsRouteWithChildren,
+  ApprovalsRoute: ApprovalsRoute,
   AuthRoute: AuthRoute,
   ClientsVendorsRoute: ClientsVendorsRoute,
   FinancialsRoute: FinancialsRoute,
@@ -357,6 +346,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrganizationRoute: OrganizationRoute,
   ResourcesRoute: ResourcesRoute,
   RisksRoute: RisksRoute,
+  ApprovalsApprovalIdRoute: ApprovalsApprovalIdRoute,
   PortfolioProjectIdRoute: PortfolioProjectIdRoute,
   PortfolioNewRoute: PortfolioNewRoute,
   PortfolioIndexRoute: PortfolioIndexRoute,

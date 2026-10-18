@@ -1,3 +1,7 @@
+## 2026-10-18 — Meetings: Action status filter
+- Added an "Action status" filter group to the Meetings filter drawer (after Attendee party) with options All actions, Open, In Progress, Done, Cancelled. A meeting matches when it has at least one linked action in the selected status.
+- Typecheck clean; browser verified the drawer shows the group and selecting Done leaves only meetings with done actions (Steering committee 1/1 done).
+
 ## 2026-10-18 — Organization Meeting Types lookup
 - Added Meeting Types under Organization with search, status filtering, add/edit/delete and activation controls using DS02 forms and bilingual labels.
 - Meeting creation/editing and filters now consume the central lookup; default types are seeded and lookup changes persist in browser storage. Renames update current meeting records; existing meetings keep unavailable types readable.

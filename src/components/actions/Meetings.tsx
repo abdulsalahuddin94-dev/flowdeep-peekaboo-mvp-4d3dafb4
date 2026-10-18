@@ -21,7 +21,7 @@ import { toast } from "@/lib/toast";
 import { DeleteAction, Plus } from "@/lib/icons";
 import { formatDateWithYear } from "@/lib/date-format";
 import { useCurrentUser } from "@/lib/projects-store";
-import { useActions, isActionOverdue } from "@/lib/action-store";
+import { useActions, isActionOverdue, ACTION_STATUSES } from "@/lib/action-store";
 import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
 import { useOrgActive } from "@/lib/org-active";
 import { useMeetingTypes } from "@/lib/meeting-types-store";
@@ -69,6 +69,7 @@ export function MeetingsTab({ project }: { project: string }) {
   const [status, setStatus] = useState("all");
   const [type, setType] = useState("all");
   const [party, setParty] = useState("all");
+  const [actionStatus, setActionStatus] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Meeting | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);
@@ -82,6 +83,7 @@ export function MeetingsTab({ project }: { project: string }) {
     .filter((m) => status === "all" || meetingStatus(m) === status)
     .filter((m) => type === "all" || m.type === type)
     .filter((m) => party === "all" || m.attendees.some((a) => a.party === party))
+    .filter((m) => actionStatus === "all" || actions.some((a) => a.meetingId === m.id && a.status === actionStatus))
     .sort((a, b) => b.date.localeCompare(a.date));
   const pagination = usePagination(list, 10);
   const actionsOf = (id: string) => actions.filter((a) => a.meetingId === id);
@@ -97,6 +99,7 @@ export function MeetingsTab({ project }: { project: string }) {
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...(["Scheduled", "Held", "Cancelled"] as const).map((v) => ({ value: v, label: v }))] },
           { key: "type", label: "Meeting type", value: type, onChange: setType, options: [{ value: "all", label: "All types" }, ...Array.from(new Set([...meetingTypes.map((v) => v.name), ...scoped.map((m) => m.type)])).map((v) => ({ value: v, label: v }))] },
           { key: "party", label: "Attendee party", value: party, onChange: setParty, options: [{ value: "all", label: "All parties" }, ...ATTENDEE_PARTIES.map((v) => ({ value: v, label: v }))] },
+          { key: "action-status", label: "Action status", value: actionStatus, onChange: setActionStatus, options: [{ value: "all", label: "All actions" }, ...ACTION_STATUSES.map((v) => ({ value: v, label: v }))] },
         ]}
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>{t.add}</Button>}
       />

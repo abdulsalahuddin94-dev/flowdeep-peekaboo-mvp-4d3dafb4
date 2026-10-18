@@ -331,9 +331,8 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
 
   return (
     <FormDialog open={open} onOpenChange={onOpenChange} title={initial ? "Edit action" : "Add action"} size="lg" submitDisabled={!valid} submitLabel={initial ? "Save" : "Add action"}
-      onSubmit={() => { if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), description: d.description?.trim().slice(0, 500) }); }}>
+      onSubmit={() => { if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), owner: d.owner.trim() || currentUser.name }); }}>
       <Field label="Action" htmlFor="act-title"><Input id="act-title" maxLength={150} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder="e.g. Share updated cutover plan" /></Field>
-      <Field label="Description" htmlFor="act-desc" optional><Textarea id="act-desc" maxLength={500} value={d.description ?? ""} onChange={(e) => up({ description: e.target.value })} /></Field>
       {!fixedSource && (
         <div className="grid grid-cols-2 gap-4">
           <Field label="Source">
@@ -355,11 +354,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
           )}
         </div>
       )}
-      <div className="grid grid-cols-3 gap-4">
-        <Field label="Owner" htmlFor="act-owner">
-          <Input id="act-owner" list="act-owner-list" maxLength={80} value={d.owner} onChange={(e) => up({ owner: e.target.value })} placeholder="Name" />
-          <datalist id="act-owner-list">{users.map((u) => <option key={u.id} value={u.name} />)}</datalist>
-        </Field>
+      <div className="grid grid-cols-2 gap-4">
         <Field label="Responsibility">
           <Select value={d.responsibility} onValueChange={(v) => up({ responsibility: v as ActionResponsibility })}>
             <SelectTrigger><SelectValue /></SelectTrigger>

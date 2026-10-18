@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ClipboardCheck, EditAction, DeleteAction } from "@/lib/icons";
@@ -117,6 +118,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
     .filter((r) => status === "all" || r.status === status);
 
   const pagination = usePagination(list, 10);
+  const scoreTip = (r: RiskRecord) => `Probability: ${rules.risk.probabilityLabels[r.prob - 1] ?? r.prob} (${r.prob}) · Impact: ${rules.risk.impactLabels[r.impact - 1] ?? r.impact} (${r.impact})`;
   const projectOptions = Array.from(new Set([...projects.map((p) => p.name), ...risks.map((r) => r.project)]));
   const activeCategories = categories.filter((c) => isActive(c.id)).map((c) => c.name);
   const view = risks.find((r) => r.id === viewId) ?? null;
@@ -147,26 +149,34 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
               {!project && <StyledTableHead>Project</StyledTableHead>}
               <StyledTableHead>Risk</StyledTableHead>
               <StyledTableHead>Category</StyledTableHead>
-              <StyledTableHead className="text-center">Probability</StyledTableHead>
-              <StyledTableHead className="text-center">Impact</StyledTableHead>
               <StyledTableHead className="text-center">Score</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Severity</StyledTableHead>
-              <StyledTableHead>Mitigation plan</StyledTableHead>
+              <StyledTableHead>Mitigation action</StyledTableHead>
               <StyledTableHead className="w-40 text-center">Status</StyledTableHead>
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {list.length === 0 && <EmptyRow colSpan={project ? 8 : 9} />}
+            {list.length === 0 && <EmptyRow colSpan={project ? 6 : 7} />}
             {pagination.pageItems.map((r) => (
               <StyledTableRow key={r.id} onClick={() => setViewId(r.id)} className="cursor-pointer">
                 {!project && <StyledTableCell className="text-muted-foreground">{r.project}</StyledTableCell>}
                 <StyledTableCell className="font-medium text-foreground">{r.title}</StyledTableCell>
                 <StyledTableCell className="text-muted-foreground">{r.category}</StyledTableCell>
-                <StyledTableCell className="text-center text-xs text-muted-foreground whitespace-nowrap">{rules.risk.probabilityLabels[r.prob - 1] ?? r.prob}</StyledTableCell>
-                <StyledTableCell className="text-center text-xs text-muted-foreground whitespace-nowrap">{rules.risk.impactLabels[r.impact - 1] ?? r.impact}</StyledTableCell>
-                <StyledTableCell className="text-center num-mono text-foreground">{r.score}</StyledTableCell>
                 <StyledTableCell className="text-center">
-                  <Pill label={severityOf(r.score)} tone={SEVERITY_TONE[severityOf(r.score)]} />
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="num-mono cursor-default text-foreground">{r.score}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>{scoreTip(r)}</TooltipContent>
+                  </Tooltip>
+                </StyledTableCell>
+                <StyledTableCell className="text-center">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-block cursor-default"><Pill label={severityOf(r.score)} tone={SEVERITY_TONE[severityOf(r.score)]} /></span>
+                    </TooltipTrigger>
+                    <TooltipContent>{scoreTip(r)}</TooltipContent>
+                  </Tooltip>
                 </StyledTableCell>
                 <StyledTableCell><ActionsCount source="Risk" sourceRef={r.id} /></StyledTableCell>
                 <StyledTableCell onClick={(e) => e.stopPropagation()}>
@@ -206,7 +216,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
         onSave={(risk, actionRows) => {
           if (editing) updateRisk(editing.id, risk);
           const rid = editing ? editing.id : addRisk({ ...risk, owner: risk.owner || currentUser.name });
-          if (actionRows.length) addActions(actionRows.map((a) => ({ ...a, project: risk.project, source: "Risk" as const, sourceRef: rid, status: "Open" as const })));
+          if (actionRows.length) addActions(actionRows.map((a) => ({ ...a, owner: currentUser.name, project: risk.project, source: "Risk" as const, sourceRef: rid, status: "Open" as const })));
           toast.done("Risk", editing ? "updated" : "logged");
           setFormOpen(false);
           setEditing(null);
@@ -327,7 +337,7 @@ function RiskFormDialog({
     if (!title.trim()) next.title = "Risk title is required";
     if (!project) next.project = "Select the project this risk belongs to";
     if (!category) next.category = "Select a category";
-    if (!actionRowsValid(actionRows)) next.actions = "Each action needs an owner and a due date";
+    if (!actionRowsValid(actionRows)) next.actions = "Each action needs a due date";
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
@@ -820,7 +830,6 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
         projectOptions={projectOptions}
         risks={risks}
         milestoneOptions={milestoneList}
-        impactLabels={rules.risk.impactLabels}
         onSave={(issue, actionRows) => {
           if (isDuplicateTitle(issue.title, editing?.id)) {
             toast.error(`Issue "${issue.title.trim()}" already exists`, { description: "Issue titles must be unique." });
@@ -828,7 +837,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
           }
           if (editing) updateIssue(editing.id, issue);
           const iid = editing ? editing.id : addIssue(issue);
-          if (actionRows.length) addActions(actionRows.map((a) => ({ ...a, project: issue.project, source: "Issue" as const, sourceRef: iid, status: "Open" as const })));
+          if (actionRows.length) addActions(actionRows.map((a) => ({ ...a, owner: currentUser.name, project: issue.project, source: "Issue" as const, sourceRef: iid, status: "Open" as const })));
           toast.done("Issue", editing ? "updated" : "logged");
           setFormOpen(false);
           setEditing(null);
@@ -993,7 +1002,7 @@ function IssueDetailDrawer({
 }
 
 function IssueFormDialog({
-  open, onOpenChange, issue, projectOptions, risks, milestoneOptions, impactLabels, lockedProject, onSave,
+  open, onOpenChange, issue, projectOptions, risks, milestoneOptions, lockedProject, onSave,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -1001,7 +1010,6 @@ function IssueFormDialog({
   projectOptions: string[];
   risks: RiskRecord[];
   milestoneOptions: string[];
-  impactLabels: string[];
   lockedProject?: string;
   onSave: (issue: Omit<IssueItem, "id">, actions: ActionRow[]) => void;
 }) {
@@ -1010,7 +1018,7 @@ function IssueFormDialog({
   const [project, setProject] = useState(issue?.project ?? lockedProject ?? "");
   const [priority, setPriority] = useState<IssuePriority>(issue?.priority ?? "Medium");
   const [status, setStatus] = useState<IssueStatus>(issue?.status ?? "Open");
-  const [impact, setImpact] = useState(String(issue?.impact ?? 3));
+  const impact = issue?.impact ?? 3;
   const [openDate, setOpenDate] = useState(issue?.openDate ?? todayISO());
   const [targetDate, setTargetDate] = useState(issue?.targetDate ?? "");
   const [actionRows, setActionRows] = useState<ActionRow[]>([emptyActionRow(defaultResponsibility(respTypes))]);
@@ -1023,7 +1031,7 @@ function IssueFormDialog({
     if (!title.trim()) next.title = "Issue title is required";
     if (!project) next.project = "Select the project this issue belongs to";
     if (!openDate) next.openDate = "Open date is required";
-    if (!actionRowsValid(actionRows)) next.actions = "Each action needs an owner and a due date";
+    if (!actionRowsValid(actionRows)) next.actions = "Each action needs a due date";
     if (targetDate && openDate && targetDate < openDate) next.targetDate = "Target date cannot be before the open date";
     setErrors(next);
     if (Object.keys(next).length > 0) return;
@@ -1067,13 +1075,7 @@ function IssueFormDialog({
         <Input id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="What is blocking or going wrong?" />
       </Field>
 
-      <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Field label="Impact" htmlFor="issue-impact" hint="1 (lowest) – 5 (highest)" className="min-w-0">
-          <Select value={impact} onValueChange={setImpact}>
-            <SelectTrigger id="issue-impact"><SelectValue /></SelectTrigger>
-            <SelectContent>{[1, 2, 3, 4, 5].map((n) => <SelectItem key={n} value={String(n)}>{n} · {impactLabels[n - 1]}</SelectItem>)}</SelectContent>
-          </Select>
-        </Field>
+      <div className="grid items-start gap-4 sm:grid-cols-2">
         <Field label="Severity" htmlFor="issue-priority" className="min-w-0">
           <Select value={priority} onValueChange={(v) => setPriority(v as IssuePriority)}>
             <SelectTrigger id="issue-priority"><SelectValue /></SelectTrigger>

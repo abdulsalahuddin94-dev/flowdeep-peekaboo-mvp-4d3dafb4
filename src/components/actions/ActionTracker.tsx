@@ -37,10 +37,10 @@ export const T = {
     open: "Open", overdue: "Overdue", dueWeek: "Due this week", done: "Done", mine: "My actions",
     commentsUpdates: "Comments & Updates", updateStatus: "Update action status",
     commentTrackerHint: "Comments are saved with this action and can be viewed in the Action Tracker.",
-    actionPlaceholder: "Action", ownerPlaceholder: "Owner", responsibility: "Responsibility", dueDate: "Due date",
+    actionPlaceholder: "Action", responsibility: "Responsibility", dueDate: "Due date",
     addActionRow: "Add action", updateActionRow: "Update action", editActionRow: "Edit action", deleteActionRow: "Delete action",
-    actionRowRequired: "Complete the action, owner, responsibility, and due date first.", noDraftActions: "No actions added yet.",
-    viewLinkedActions: "View linked actions in Action Tracker", linkedPlan: "Linked plan", allPlans: "All plans",
+    actionRowRequired: "Complete the action, responsibility, and due date first.", noDraftActions: "No actions added yet.",
+    viewLinkedActions: "View linked actions in Action Tracker", linkedPlan: "Linked plan", allPlans: "All plans", doneWord: "done",
     linkedActionPlan: "Action plan",
     linkedRiskHint: "Actions are added to the project's Action Tracker and stay linked to this risk.",
     linkedIssueHint: "Actions are added to the project's Action Tracker and stay linked to this issue.",
@@ -50,10 +50,10 @@ export const T = {
     open: "مفتوح", overdue: "متأخر", dueWeek: "مستحق هذا الأسبوع", done: "منجز", mine: "إجراءاتي",
     commentsUpdates: "التعليقات والتحديثات", updateStatus: "تحديث حالة الإجراء",
     commentTrackerHint: "يُحفظ التعليق مع هذا الإجراء ويمكن الرجوع إليه من متابعة الإجراءات.",
-    actionPlaceholder: "الإجراء", ownerPlaceholder: "المسؤول", responsibility: "المسؤولية", dueDate: "تاريخ الاستحقاق",
+    actionPlaceholder: "الإجراء", responsibility: "المسؤولية", dueDate: "تاريخ الاستحقاق",
     addActionRow: "إضافة إجراء", updateActionRow: "تحديث الإجراء", editActionRow: "تعديل الإجراء", deleteActionRow: "حذف الإجراء",
-    actionRowRequired: "أكمل الإجراء والمسؤول ونوع المسؤولية وتاريخ الاستحقاق أولاً.", noDraftActions: "لم تتم إضافة إجراءات بعد.",
-    viewLinkedActions: "عرض الإجراءات المرتبطة في متابعة الإجراءات", linkedPlan: "الخطة المرتبطة", allPlans: "كل الخطط",
+    actionRowRequired: "أكمل الإجراء ونوع المسؤولية وتاريخ الاستحقاق أولاً.", noDraftActions: "لم تتم إضافة إجراءات بعد.",
+    viewLinkedActions: "عرض الإجراءات المرتبطة في متابعة الإجراءات", linkedPlan: "الخطة المرتبطة", allPlans: "كل الخطط", doneWord: "منجز",
     linkedActionPlan: "خطة الإجراءات",
     linkedRiskHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذا الخطر.",
     linkedIssueHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذه المشكلة.",
@@ -280,7 +280,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
   onSave: (v: ActionDraft) => void;
 }) {
   const { risks, issues } = useRiskRegister();
-  const { users } = useCurrentUser();
+  const { currentUser } = useCurrentUser();
   const { respTypes } = useResponsibilities();
   const { isActive } = useOrgActive("responsibility-type");
   const blank = (): ActionDraft => ({
@@ -294,7 +294,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
 
   const refs = d.source === "Risk" ? risks.filter((r) => r.project === project).map((r) => ({ v: r.id, l: `${r.id} · ${r.title}` }))
     : d.source === "Issue" ? issues.filter((i) => i.project === project).map((i) => ({ v: i.id, l: `${i.id} · ${i.title}` })) : [];
-  const valid = d.title.trim() && d.owner.trim() && d.dueDate && (d.source !== "Risk" && d.source !== "Issue" || d.sourceRef);
+  const valid = d.title.trim() && d.dueDate && (d.source !== "Risk" && d.source !== "Issue" || d.sourceRef);
   const up = (p: Partial<ActionDraft>) => setD((x) => ({ ...x, ...p }));
 
   if (fixedSource?.source === "Risk" || fixedSource?.source === "Issue") {
@@ -308,21 +308,21 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
         submitDisabled={!valid}
         submitLabel={initial ? "Save" : t.addActionRow}
         onSubmit={() => {
-          if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), owner: d.owner.trim() });
+          if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), owner: d.owner.trim() || currentUser.name });
         }}
       >
         <div className="space-y-3">
           <div className="label-eyebrow">{t.linkedActionPlan}</div>
-          <div className="grid min-w-0 grid-cols-1 gap-2 rounded-lg border border-border bg-secondary/30 p-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="grid min-w-0 grid-cols-1 gap-2 rounded-lg border border-border bg-secondary/30 p-3">
             <Input aria-label={t.actionPlaceholder} maxLength={150} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder={t.actionPlaceholder} className="min-w-0" />
-            <Input aria-label={t.ownerPlaceholder} list="linked-action-owner-list" maxLength={80} value={d.owner} onChange={(e) => up({ owner: e.target.value })} placeholder={t.ownerPlaceholder} className="min-w-0" />
-            <Select value={d.responsibility} onValueChange={(v) => up({ responsibility: v as ActionResponsibility })}>
-              <SelectTrigger aria-label={t.responsibility} className="min-w-0"><SelectValue /></SelectTrigger>
-              <SelectContent>{respTypes.filter((s) => isActive(s.name) || s.name === d.responsibility).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
-            </Select>
-            <DatePicker value={d.dueDate} onChange={(v) => up({ dueDate: v })} placeholder={t.dueDate} className="min-w-0" />
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(160px,1fr)_190px]">
+              <Select value={d.responsibility} onValueChange={(v) => up({ responsibility: v as ActionResponsibility })}>
+                <SelectTrigger aria-label={t.responsibility} className="min-w-0"><SelectValue /></SelectTrigger>
+                <SelectContent>{respTypes.filter((s) => isActive(s.name) || s.name === d.responsibility).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+              </Select>
+              <DatePicker value={d.dueDate} onChange={(v) => up({ dueDate: v })} placeholder={t.dueDate} className="min-w-0" />
+            </div>
           </div>
-          <datalist id="linked-action-owner-list">{users.map((u) => <option key={u.id} value={u.name} />)}</datalist>
           <p className="text-xs text-muted-foreground">{fixedSource.source === "Risk" ? t.linkedRiskHint : t.linkedIssueHint}</p>
         </div>
       </FormDialog>
@@ -331,9 +331,8 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
 
   return (
     <FormDialog open={open} onOpenChange={onOpenChange} title={initial ? "Edit action" : "Add action"} size="lg" submitDisabled={!valid} submitLabel={initial ? "Save" : "Add action"}
-      onSubmit={() => { if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), description: d.description?.trim().slice(0, 500) }); }}>
+      onSubmit={() => { if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), owner: d.owner.trim() || currentUser.name }); }}>
       <Field label="Action" htmlFor="act-title"><Input id="act-title" maxLength={150} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder="e.g. Share updated cutover plan" /></Field>
-      <Field label="Description" htmlFor="act-desc" optional><Textarea id="act-desc" maxLength={500} value={d.description ?? ""} onChange={(e) => up({ description: e.target.value })} /></Field>
       {!fixedSource && (
         <div className="grid grid-cols-2 gap-4">
           <Field label="Source">
@@ -355,11 +354,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
           )}
         </div>
       )}
-      <div className="grid grid-cols-3 gap-4">
-        <Field label="Owner" htmlFor="act-owner">
-          <Input id="act-owner" list="act-owner-list" maxLength={80} value={d.owner} onChange={(e) => up({ owner: e.target.value })} placeholder="Name" />
-          <datalist id="act-owner-list">{users.map((u) => <option key={u.id} value={u.name} />)}</datalist>
-        </Field>
+      <div className="grid grid-cols-2 gap-4">
         <Field label="Responsibility">
           <Select value={d.responsibility} onValueChange={(v) => up({ responsibility: v as ActionResponsibility })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -374,19 +369,18 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
 
 /* ── Meeting batch ───────────────────────────────────────────────────────── */
 
-export type ActionRow = { title: string; owner: string; responsibility: ActionResponsibility; dueDate: string };
+export type ActionRow = { title: string; responsibility: ActionResponsibility; dueDate: string };
 type Row = ActionRow;
-export const emptyActionRow = (responsibility: ActionResponsibility = "Internal"): ActionRow => ({ title: "", owner: "", responsibility, dueDate: "" });
-/** Rows with a title; all of them must have owner + due date to be valid. */
+export const emptyActionRow = (responsibility: ActionResponsibility = "Internal"): ActionRow => ({ title: "", responsibility, dueDate: "" });
+/** Rows with a title; all of them must have a due date to be valid. */
 export function filledActionRows(rows: ActionRow[]) { return rows.filter((r) => r.title.trim()); }
-export function actionRowsValid(rows: ActionRow[]) { return filledActionRows(rows).every((r) => r.owner.trim() && r.dueDate); }
-export function cleanActionRows(rows: ActionRow[]) { return filledActionRows(rows).map((r) => ({ ...r, title: r.title.trim().slice(0, 150), owner: r.owner.trim() })); }
+export function actionRowsValid(rows: ActionRow[]) { return filledActionRows(rows).every((r) => r.dueDate); }
+export function cleanActionRows(rows: ActionRow[]) { return filledActionRows(rows).map((r) => ({ ...r, title: r.title.trim().slice(0, 150) })); }
 
 /** Shared calendar-style action composer (meeting batch, risk mitigation, issue action plan). */
-export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, ownerOptions }: { rows: ActionRow[]; onChange: (rows: ActionRow[]) => void; label?: string; hint?: string; ownerOptions?: string[] }) {
+export function ActionRowsEditor({ rows, onChange, label = "Actions", hint }: { rows: ActionRow[]; onChange: (rows: ActionRow[]) => void; label?: string; hint?: string }) {
   const { respTypes } = useResponsibilities();
   const { isActive } = useOrgActive("responsibility-type");
-  const listId = ownerOptions?.length ? `owners-${label.replace(/\W/g, "")}` : undefined;
   const committed = filledActionRows(rows);
   const freshDraft = () => emptyActionRow(defaultResponsibility(respTypes, isActive));
   const [draft, setDraft] = useState<Row>(freshDraft);
@@ -399,11 +393,11 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, owne
   }
 
   function commitDraft() {
-    if (!draft.title.trim() || !draft.owner.trim() || !draft.responsibility || !draft.dueDate) {
+    if (!draft.title.trim() || !draft.responsibility || !draft.dueDate) {
       toast.error(t.actionRowRequired);
       return;
     }
-    const clean = { ...draft, title: draft.title.trim().slice(0, 150), owner: draft.owner.trim() };
+    const clean = { ...draft, title: draft.title.trim().slice(0, 150) };
     if (editingIndex === null) onChange([...committed, clean]);
     else onChange(committed.map((row, index) => index === editingIndex ? clean : row));
     resetDraft();
@@ -425,17 +419,18 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, owne
   return (
     <div className="space-y-2">
       <div className="label-eyebrow">{label}</div>
-      <div className="grid gap-2 rounded-lg border border-border bg-secondary/30 p-3 lg:grid-cols-[minmax(180px,1fr)_140px_120px_150px_36px]">
+      <div className="space-y-2 rounded-lg border border-border bg-secondary/30 p-3">
         <Input aria-label={t.actionPlaceholder} maxLength={150} value={draft.title} onChange={(e) => upDraft({ title: e.target.value })} placeholder={t.actionPlaceholder} />
-        <Input aria-label={t.ownerPlaceholder} list={listId} maxLength={80} value={draft.owner} onChange={(e) => upDraft({ owner: e.target.value })} placeholder={t.ownerPlaceholder} />
-        <Select value={draft.responsibility} onValueChange={(v) => upDraft({ responsibility: v as ActionResponsibility })}>
-          <SelectTrigger aria-label={t.responsibility}><SelectValue placeholder={t.responsibility} /></SelectTrigger>
-          <SelectContent>{respTypes.filter((s) => isActive(s.name) || s.name === draft.responsibility).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
-        </Select>
-        <DatePicker value={draft.dueDate} onChange={(v) => upDraft({ dueDate: v })} placeholder={t.dueDate} />
-        <Button type="button" variant="primary" size="icon" aria-label={editingIndex === null ? t.addActionRow : t.updateActionRow} title={editingIndex === null ? t.addActionRow : t.updateActionRow} onClick={commitDraft} className="h-9 w-9 shrink-0">
-          {editingIndex === null ? <Plus size={16} /> : <Check size={16} />}
-        </Button>
+        <div className="grid grid-cols-[minmax(160px,1fr)_190px_36px] items-start gap-2">
+          <Select value={draft.responsibility} onValueChange={(v) => upDraft({ responsibility: v as ActionResponsibility })}>
+            <SelectTrigger aria-label={t.responsibility}><SelectValue placeholder={t.responsibility} /></SelectTrigger>
+            <SelectContent>{respTypes.filter((s) => isActive(s.name) || s.name === draft.responsibility).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+          </Select>
+          <DatePicker value={draft.dueDate} onChange={(v) => upDraft({ dueDate: v })} placeholder={t.dueDate} />
+          <Button type="button" variant="primary" size="icon" aria-label={editingIndex === null ? t.addActionRow : t.updateActionRow} title={editingIndex === null ? t.addActionRow : t.updateActionRow} onClick={commitDraft} className="h-9 w-9 shrink-0">
+            {editingIndex === null ? <Plus size={16} /> : <Check size={16} />}
+          </Button>
+        </div>
       </div>
       <div className="max-h-56 overflow-y-auto rounded-lg border border-border bg-card">
         {committed.length === 0 ? (
@@ -443,11 +438,11 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, owne
         ) : (
           <div className="divide-y divide-border/60">
             {committed.map((row, index) => (
-              <div key={`${row.title}-${row.owner}-${index}`} className={cn("group flex min-h-14 items-center gap-3 px-3 py-2 transition hover:bg-accent/5", editingIndex === index && "bg-accent/5")}>
+              <div key={`${row.title}-${index}`} className={cn("group flex min-h-14 items-center gap-3 px-3 py-2 transition hover:bg-accent/5", editingIndex === index && "bg-accent/5")}>
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium text-foreground">{row.title}</div>
                   <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
-                    <span>{row.owner}</span><span aria-hidden="true">·</span><span>{row.responsibility}</span><span aria-hidden="true">·</span><span className="num-mono">{formatDateWithYear(row.dueDate)}</span>
+                    <span>{row.responsibility}</span><span aria-hidden="true">·</span><span className="num-mono">{formatDateWithYear(row.dueDate)}</span>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
@@ -459,7 +454,6 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint, owne
           </div>
         )}
       </div>
-      {listId && <datalist id={listId}>{ownerOptions?.map((o) => <option key={o} value={o} />)}</datalist>}
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
@@ -696,12 +690,12 @@ export function ActionsCount({ source, sourceRef }: { source: "Risk" | "Issue"; 
   if (!project) return <span className={cn("num-mono text-sm", over ? "text-rag-red" : "text-foreground")}>{done}/{linked.length}</span>;
   return (
     <Button variant="link" className={cn("h-7 px-0 num-mono text-sm", over ? "text-rag-red" : "text-foreground")}
-      title={t.viewLinkedActions} aria-label={`${t.viewLinkedActions} · ${sourceRef} · ${done}/${linked.length}`}
+      title={`${done} ${t.doneWord} · ${linked.length}`} aria-label={`${t.viewLinkedActions} · ${sourceRef} · ${done} of ${linked.length}`}
       onClick={(event) => {
         event.stopPropagation();
         navigate({ to: "/portfolio/$projectId", params: { projectId: project.id }, search: { tab: "Action Tracker", actionRef: sourceRef } });
       }}>
-      {done}/{linked.length}
+      {linked.length}
     </Button>
   );
 }

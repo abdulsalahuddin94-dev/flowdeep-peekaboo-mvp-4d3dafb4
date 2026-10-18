@@ -35,3 +35,5 @@
 - [x] (2026-10-06) Risk Register & Issues Log: move KPI cards below search/filter; cards react to filters. Also: action-composer commit button becomes a check icon while editing a row. (done)
 
 - [x] Match Risk/Issue Add action popups to the compact inline Action plan reference and verify linked action creation.
+- [x] Risk Register table: drop Probability/Impact columns, show them as a hover tooltip on Score/Severity badges.
+- [x] Rename Mitigation plan column to Mitigation action; count shows the total only, hover shows X of Y.

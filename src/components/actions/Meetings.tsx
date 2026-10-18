@@ -49,15 +49,6 @@ const STATUS_TONE: Record<MeetingStatus, string> = {
   Held: "border-rag-green/40 bg-rag-green/10 text-rag-green",
   Cancelled: "border-border bg-muted text-muted-foreground",
 };
-/** Fixed mapping: attendee party → responsibility on meeting actions. */
-const PARTY_RESP: Record<AttendeeParty, string> = {
-  Internal: "Internal",
-  Client: "Client",
-  Vendor: "Vendor",
-  Stakeholder: "Client",
-  Other: "Client",
-};
-
 const PARTY_TONE: Record<AttendeeParty, string> = {
   Internal: "border-accent/40 bg-accent/10 text-accent",
   Client: "border-rag-teal/40 bg-rag-teal/10 text-rag-teal",
@@ -172,7 +163,7 @@ export function MeetingsTab({ project }: { project: string }) {
         meeting={actionsFor}
         onClose={() => setActionsFor(null)}
         onSave={(m, rows) => {
-          addActions(rows.map((r) => ({ ...r, project, source: "Meeting" as const, meetingId: m.id, meetingName: m.title, meetingDate: m.date, status: "Open" as const })));
+          addActions(rows.map((r) => ({ ...r, owner: currentUser.name, project, source: "Meeting" as const, meetingId: m.id, meetingName: m.title, meetingDate: m.date, status: "Open" as const })));
           toast.success(`${rows.length} ${rows.length === 1 ? "action" : "actions"} added to the Action Tracker`);
           setActionsFor(null);
         }}
@@ -314,14 +305,6 @@ function MeetingActionsDialog({ meeting, onClose, onSave }: { meeting: Meeting |
   const [rows, setRows] = useState<ActionRow[]>([emptyActionRow(def)]);
   const [key, setKey] = useState("");
   if ((meeting?.id ?? "") !== key) { setKey(meeting?.id ?? ""); setRows([emptyActionRow(def), emptyActionRow(def)]); }
-  const owners = meeting?.attendees.map((a) => a.name) ?? [];
-  // Pick responsibility from the attendee's party when the owner is an attendee.
-  const handle = (next: ActionRow[]) => setRows(next.map((r, i) => {
-    const prev = rows[i];
-    const att = meeting?.attendees.find((a) => a.name === r.owner);
-    const mapped = att ? PARTY_RESP[att.party] : undefined;
-    return att && mapped && prev?.owner !== r.owner ? { ...r, responsibility: mapped } : r;
-  }));
   const filled = filledActionRows(rows);
   const valid = filled.length > 0 && actionRowsValid(rows);
   return (
@@ -329,7 +312,7 @@ function MeetingActionsDialog({ meeting, onClose, onSave }: { meeting: Meeting |
       description={meeting ? `${meeting.title} · ${formatDateWithYear(meeting.date)}` : undefined}
       size="xl" submitDisabled={!valid} submitLabel={`Add ${filled.length || ""} actions`}
       onSubmit={() => { if (meeting && valid) onSave(meeting, cleanActionRows(rows)); }}>
-      <ActionRowsEditor rows={rows} onChange={handle} ownerOptions={owners} hint={t.actionsHint} />
+      <ActionRowsEditor rows={rows} onChange={setRows} hint={t.actionsHint} />
     </FormDialog>
   );
 }

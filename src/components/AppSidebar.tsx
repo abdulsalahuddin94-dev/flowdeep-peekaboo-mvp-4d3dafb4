@@ -82,6 +82,7 @@ const allItems: NavItem[] = [
       { title: "Roles & Skills", tab: "job-roles" },
       { title: "Calendars", tab: "calendars" },
       { title: "Responsibility Types", tab: "responsibility-types" },
+      { title: "Meeting Types", tab: "meeting-types" },
       { title: "Rules & Thresholds", tab: "rules" },
     ],
   },

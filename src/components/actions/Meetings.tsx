@@ -24,9 +24,10 @@ import { useCurrentUser } from "@/lib/projects-store";
 import { useActions, isActionOverdue } from "@/lib/action-store";
 import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
 import { useOrgActive } from "@/lib/org-active";
+import { useMeetingTypes } from "@/lib/meeting-types-store";
 import {
-  useMeetings, meetingStatus, ATTENDEE_PARTIES, MEETING_TYPES,
-  type Meeting, type Attendee, type AttendeeParty, type MeetingType, type MeetingStatus,
+  useMeetings, meetingStatus, ATTENDEE_PARTIES,
+  type Meeting, type Attendee, type AttendeeParty, type MeetingStatus,
 } from "@/lib/meeting-store";
 import { ActionRowsEditor, emptyActionRow, filledActionRows, actionRowsValid, cleanActionRows, type ActionRow } from "@/components/actions/ActionTracker";
 
@@ -61,6 +62,7 @@ const PARTY_TONE: Record<AttendeeParty, string> = {
 
 export function MeetingsTab({ project }: { project: string }) {
   const { meetings, addMeeting, updateMeeting, removeMeeting } = useMeetings();
+  const { meetingTypes } = useMeetingTypes();
   const { actions, addActions } = useActions();
   const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");
@@ -93,7 +95,7 @@ export function MeetingsTab({ project }: { project: string }) {
         placeholder={t.search}
         filterGroups={[
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...(["Scheduled", "Held", "Cancelled"] as const).map((v) => ({ value: v, label: v }))] },
-          { key: "type", label: "Meeting type", value: type, onChange: setType, options: [{ value: "all", label: "All types" }, ...MEETING_TYPES.map((v) => ({ value: v, label: v }))] },
+          { key: "type", label: "Meeting type", value: type, onChange: setType, options: [{ value: "all", label: "All types" }, ...Array.from(new Set([...meetingTypes.map((v) => v.name), ...scoped.map((m) => m.type)])).map((v) => ({ value: v, label: v }))] },
           { key: "party", label: "Attendee party", value: party, onChange: setParty, options: [{ value: "all", label: "All parties" }, ...ATTENDEE_PARTIES.map((v) => ({ value: v, label: v }))] },
         ]}
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>{t.add}</Button>}
@@ -208,7 +210,9 @@ function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
   onSave: (v: MeetingDraft, thenAddActions: boolean) => void;
 }) {
   const { users } = useCurrentUser();
-  const blank = (): MeetingDraft => ({ project, title: "", type: "Progress meeting", date: new Date().toISOString().slice(0, 10), time: "", location: "", notes: "", attendees: [] });
+  const { meetingTypes } = useMeetingTypes();
+  const activeTypes = meetingTypes.filter((v) => v.active);
+  const blank = (): MeetingDraft => ({ project, title: "", type: activeTypes[0]?.name ?? "", date: new Date().toISOString().slice(0, 10), time: "", location: "", notes: "", attendees: [] });
   const [d, setD] = useState<MeetingDraft>(blank);
   const [addAfter, setAddAfter] = useState(true);
   const [was, setWas] = useState(false);
@@ -220,7 +224,7 @@ function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
   const upA = (id: string, p: Partial<Attendee>) => up({ attendees: d.attendees.map((a) => (a.id === id ? { ...a, ...p } : a)) });
   const names = d.attendees.map((a) => a.name.trim().toLowerCase()).filter(Boolean);
   const dupes = names.length !== new Set(names).size;
-  const valid = d.title.trim() && d.date && d.attendees.length > 0 && d.attendees.every((a) => a.name.trim()) && !dupes;
+  const valid = d.title.trim() && d.type && (activeTypes.some((v) => v.name === d.type) || initial?.type === d.type) && d.date && d.attendees.length > 0 && d.attendees.every((a) => a.name.trim()) && !dupes;
 
   return (
     <FormDialog
@@ -238,9 +242,12 @@ function MeetingFormDialog({ open, onOpenChange, project, initial, onSave }: {
       <div className="grid grid-cols-2 gap-4">
         <Field label="Meeting name" htmlFor="mt-title"><Input id="mt-title" maxLength={100} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder="e.g. Weekly progress meeting" /></Field>
         <Field label="Meeting type">
-          <Select value={d.type} onValueChange={(v) => up({ type: v as MeetingType })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{MEETING_TYPES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+          <Select value={d.type} onValueChange={(v) => up({ type: v })}>
+            <SelectTrigger aria-label="Meeting type"><SelectValue placeholder="Select meeting type" /></SelectTrigger>
+            <SelectContent>
+              {initial?.type && !activeTypes.some((v) => v.name === initial.type) && <SelectItem value={initial.type}>{initial.type}</SelectItem>}
+              {activeTypes.map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+            </SelectContent>
           </Select>
         </Field>
         <Field label="Date"><DatePicker value={d.date} onChange={(v) => up({ date: v })} /></Field>

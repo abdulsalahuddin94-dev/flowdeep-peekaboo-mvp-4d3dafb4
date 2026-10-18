@@ -28,6 +28,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { businessLines, departments, projects as mockProjects, type WorkCalendar } from "@/lib/mock-data";
 import { RulesThresholdsTab } from "@/components/org/RulesThresholds";
 import { ResponsibilityTypesTab } from "@/components/org/ResponsibilityTypes";
+import { MeetingTypesTab } from "@/components/org/MeetingTypes";
 import { useRiskRegister, type RiskCategory } from "@/lib/risk-store";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests, useSkills } from "@/lib/projects-store";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
@@ -57,6 +58,7 @@ const ORG_TAB_LABELS: Record<string, string> = {
   departments: "Departments",
   "job-roles": "Roles & Skills", calendars: "Calendars",
   "responsibility-types": "Responsibility Types",
+  "meeting-types": "Meeting Types",
   "rules": "Rules & Thresholds",
 };
 
@@ -68,9 +70,9 @@ export const Route = createFileRoute("/organization")({
   head: () => ({
     meta: [
       { title: "Organization — Nexus PMO" },
-      { name: "description", content: "Manage business lines, departments and classification tags." },
+      { name: "description", content: "Manage project types, departments, responsibility types, meeting types and organization lookups." },
       { property: "og:title", content: "Organization — Nexus PMO" },
-      { property: "og:description", content: "Configure project types, tags, departments, roles, skills, calendars, and rules." },
+      { property: "og:description", content: "Configure project types, meeting types, responsibility types, departments, calendars and rules." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -118,6 +120,10 @@ function OrganizationPage() {
 
         <TabsContent value="responsibility-types">
           <ResponsibilityTypesTab />
+        </TabsContent>
+
+        <TabsContent value="meeting-types">
+          <MeetingTypesTab />
         </TabsContent>
 
         <TabsContent value="rules">

@@ -1,3 +1,8 @@
+## 2026-10-18 — Organization Meeting Types lookup
+- Added Meeting Types under Organization with search, status filtering, add/edit/delete and activation controls using DS02 forms and bilingual labels.
+- Meeting creation/editing and filters now consume the central lookup; default types are seeded and lookup changes persist in browser storage. Renames update current meeting records; existing meetings keep unavailable types readable.
+- Browser verified: added Project kickoff, refreshed the lookup, selected it in New meeting and read back the created meeting. No runtime errors. Preview build OK.
+
 ## 2026-10-18 — Risk Register table: hover-only Probability/Impact, Mitigation action count
 - Risk Register table (project-level and /risks module): removed the Probability and Impact columns; the details now appear on hover as a tooltip on both the Score number and the Severity badge — "Probability: {label} ({n}) · Impact: {label} ({n})" using org-defined labels.
 - Renamed the "Mitigation plan" column header to "Mitigation action".

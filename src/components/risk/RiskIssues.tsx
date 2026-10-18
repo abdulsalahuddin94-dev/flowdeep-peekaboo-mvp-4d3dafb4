@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { ClipboardCheck, EditAction, DeleteAction } from "@/lib/icons";
@@ -117,6 +118,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
     .filter((r) => status === "all" || r.status === status);
 
   const pagination = usePagination(list, 10);
+  const scoreTip = (r: RiskRecord) => `Probability: ${rules.risk.probabilityLabels[r.prob - 1] ?? r.prob} (${r.prob}) · Impact: ${rules.risk.impactLabels[r.impact - 1] ?? r.impact} (${r.impact})`;
   const projectOptions = Array.from(new Set([...projects.map((p) => p.name), ...risks.map((r) => r.project)]));
   const activeCategories = categories.filter((c) => isActive(c.id)).map((c) => c.name);
   const view = risks.find((r) => r.id === viewId) ?? null;

@@ -20,7 +20,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/lib/toast";
 import { DeleteAction, Plus } from "@/lib/icons";
 import { formatDateWithYear } from "@/lib/date-format";
-import { useCurrentUser } from "@/lib/projects-store";
+import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import { useActions, isActionOverdue, ACTION_STATUSES } from "@/lib/action-store";
 import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
 import { useOrgActive } from "@/lib/org-active";
@@ -36,11 +36,13 @@ export const T = {
     add: "New meeting", search: "Search meeting…", addActions: "Add actions", edit: "Edit meeting",
     attendees: "Attendees", actions: "Actions", noActions: "No actions yet. Add the actions agreed in this meeting.",
     actionsHint: "Actions are added to the project's Action Tracker and stay linked to this meeting.",
+    project: "Project",
   },
   ar: {
     add: "اجتماع جديد", search: "ابحث عن اجتماع…", addActions: "إضافة إجراءات", edit: "تعديل الاجتماع",
     attendees: "الحضور", actions: "الإجراءات", noActions: "لا توجد إجراءات بعد. أضف الإجراءات المتفق عليها في هذا الاجتماع.",
     actionsHint: "تُضاف الإجراءات إلى متابعة الإجراءات الخاصة بالمشروع وتبقى مرتبطة بهذا الاجتماع.",
+    project: "المشروع",
   },
 };
 const t = T.en;
@@ -60,16 +62,20 @@ const PARTY_TONE: Record<AttendeeParty, string> = {
 /** Action responsibility follows the owner's party, mapped via Organization → Responsibility Types. */
 
 
-export function MeetingsTab({ project }: { project: string }) {
+export function MeetingsTab({ project }: { project?: string }) {
   const { meetings, addMeeting, updateMeeting, removeMeeting } = useMeetings();
   const { meetingTypes } = useMeetingTypes();
   const { actions, addActions } = useActions();
   const { currentUser } = useCurrentUser();
+  const { projects } = useProjects();
+  const pmo = !project;
+  const projectNames = projects.map((p) => p.name);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [type, setType] = useState("all");
   const [party, setParty] = useState("all");
   const [actionStatus, setActionStatus] = useState("all");
+  const [proj, setProj] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Meeting | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);

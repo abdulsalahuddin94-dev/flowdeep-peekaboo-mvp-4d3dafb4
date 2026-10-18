@@ -22,7 +22,7 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { EditAction, DeleteAction, ClipboardCheck, Plus, Check } from "@/lib/icons";
 import { formatDateWithYear, formatDateTime } from "@/lib/date-format";
-import { useCurrentUser, useProjects } from "@/lib/projects-store";
+import { useProjects } from "@/lib/projects-store";
 import { useRiskRegister } from "@/lib/risk-store";
 import {
   useActions, isActionOverdue, daysOverdue, ACTION_SOURCES, ACTION_STATUSES,
@@ -37,9 +37,9 @@ export const T = {
     open: "Open", overdue: "Overdue", dueWeek: "Due this week", done: "Done", mine: "My actions",
     commentsUpdates: "Comments & Updates", updateStatus: "Update action status",
     commentTrackerHint: "Comments are saved with this action and can be viewed in the Action Tracker.",
-    actionPlaceholder: "Action", ownerPlaceholder: "Owner", responsibility: "Responsibility", dueDate: "Due date",
+    actionPlaceholder: "Action", responsibility: "Responsibility", dueDate: "Due date",
     addActionRow: "Add action", updateActionRow: "Update action", editActionRow: "Edit action", deleteActionRow: "Delete action",
-    actionRowRequired: "Complete the action, owner, responsibility, and due date first.", noDraftActions: "No actions added yet.",
+    actionRowRequired: "Complete the action, responsibility, and due date first.", noDraftActions: "No actions added yet.",
     viewLinkedActions: "View linked actions in Action Tracker", linkedPlan: "Linked plan", allPlans: "All plans",
     linkedActionPlan: "Action plan",
     linkedRiskHint: "Actions are added to the project's Action Tracker and stay linked to this risk.",
@@ -50,9 +50,9 @@ export const T = {
     open: "مفتوح", overdue: "متأخر", dueWeek: "مستحق هذا الأسبوع", done: "منجز", mine: "إجراءاتي",
     commentsUpdates: "التعليقات والتحديثات", updateStatus: "تحديث حالة الإجراء",
     commentTrackerHint: "يُحفظ التعليق مع هذا الإجراء ويمكن الرجوع إليه من متابعة الإجراءات.",
-    actionPlaceholder: "الإجراء", ownerPlaceholder: "المسؤول", responsibility: "المسؤولية", dueDate: "تاريخ الاستحقاق",
+    actionPlaceholder: "الإجراء", responsibility: "المسؤولية", dueDate: "تاريخ الاستحقاق",
     addActionRow: "إضافة إجراء", updateActionRow: "تحديث الإجراء", editActionRow: "تعديل الإجراء", deleteActionRow: "حذف الإجراء",
-    actionRowRequired: "أكمل الإجراء والمسؤول ونوع المسؤولية وتاريخ الاستحقاق أولاً.", noDraftActions: "لم تتم إضافة إجراءات بعد.",
+    actionRowRequired: "أكمل الإجراء ونوع المسؤولية وتاريخ الاستحقاق أولاً.", noDraftActions: "لم تتم إضافة إجراءات بعد.",
     viewLinkedActions: "عرض الإجراءات المرتبطة في متابعة الإجراءات", linkedPlan: "الخطة المرتبطة", allPlans: "كل الخطط",
     linkedActionPlan: "خطة الإجراءات",
     linkedRiskHint: "تُضاف الإجراءات إلى متابعة إجراءات المشروع وتظل مرتبطة بهذا الخطر.",
@@ -280,7 +280,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
   onSave: (v: ActionDraft) => void;
 }) {
   const { risks, issues } = useRiskRegister();
-  const { users } = useCurrentUser();
+  const { currentUser } = useCurrentUser();
   const { respTypes } = useResponsibilities();
   const { isActive } = useOrgActive("responsibility-type");
   const blank = (): ActionDraft => ({
@@ -294,7 +294,7 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
 
   const refs = d.source === "Risk" ? risks.filter((r) => r.project === project).map((r) => ({ v: r.id, l: `${r.id} · ${r.title}` }))
     : d.source === "Issue" ? issues.filter((i) => i.project === project).map((i) => ({ v: i.id, l: `${i.id} · ${i.title}` })) : [];
-  const valid = d.title.trim() && d.owner.trim() && d.dueDate && (d.source !== "Risk" && d.source !== "Issue" || d.sourceRef);
+  const valid = d.title.trim() && d.dueDate && (d.source !== "Risk" && d.source !== "Issue" || d.sourceRef);
   const up = (p: Partial<ActionDraft>) => setD((x) => ({ ...x, ...p }));
 
   if (fixedSource?.source === "Risk" || fixedSource?.source === "Issue") {
@@ -308,21 +308,21 @@ export function ActionFormDialog({ open, onOpenChange, project, initial, fixedSo
         submitDisabled={!valid}
         submitLabel={initial ? "Save" : t.addActionRow}
         onSubmit={() => {
-          if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), owner: d.owner.trim() });
+          if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), owner: d.owner.trim() || currentUser.name });
         }}
       >
         <div className="space-y-3">
           <div className="label-eyebrow">{t.linkedActionPlan}</div>
-          <div className="grid min-w-0 grid-cols-1 gap-2 rounded-lg border border-border bg-secondary/30 p-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="grid min-w-0 grid-cols-1 gap-2 rounded-lg border border-border bg-secondary/30 p-3">
             <Input aria-label={t.actionPlaceholder} maxLength={150} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder={t.actionPlaceholder} className="min-w-0" />
-            <Input aria-label={t.ownerPlaceholder} list="linked-action-owner-list" maxLength={80} value={d.owner} onChange={(e) => up({ owner: e.target.value })} placeholder={t.ownerPlaceholder} className="min-w-0" />
-            <Select value={d.responsibility} onValueChange={(v) => up({ responsibility: v as ActionResponsibility })}>
-              <SelectTrigger aria-label={t.responsibility} className="min-w-0"><SelectValue /></SelectTrigger>
-              <SelectContent>{respTypes.filter((s) => isActive(s.name) || s.name === d.responsibility).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
-            </Select>
-            <DatePicker value={d.dueDate} onChange={(v) => up({ dueDate: v })} placeholder={t.dueDate} className="min-w-0" />
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(160px,1fr)_190px]">
+              <Select value={d.responsibility} onValueChange={(v) => up({ responsibility: v as ActionResponsibility })}>
+                <SelectTrigger aria-label={t.responsibility} className="min-w-0"><SelectValue /></SelectTrigger>
+                <SelectContent>{respTypes.filter((s) => isActive(s.name) || s.name === d.responsibility).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
+              </Select>
+              <DatePicker value={d.dueDate} onChange={(v) => up({ dueDate: v })} placeholder={t.dueDate} className="min-w-0" />
+            </div>
           </div>
-          <datalist id="linked-action-owner-list">{users.map((u) => <option key={u.id} value={u.name} />)}</datalist>
           <p className="text-xs text-muted-foreground">{fixedSource.source === "Risk" ? t.linkedRiskHint : t.linkedIssueHint}</p>
         </div>
       </FormDialog>

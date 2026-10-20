@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "@tanstack/react-router";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { TableRowActions } from "@/components/TableRowActions";
@@ -717,13 +718,18 @@ export function ActionsCount({ source, sourceRef }: { source: "Risk" | "Issue"; 
   const project = projects.find((p) => p.name === linked[0]?.project);
   if (!project) return <span className={cn("num-mono text-sm", over ? "text-rag-red" : "text-foreground")}>{done}/{linked.length}</span>;
   return (
-    <Button variant="link" className={cn("h-7 px-0 num-mono text-sm", over ? "text-rag-red" : "text-foreground")}
-      title={`${done} ${t.doneWord} · ${linked.length}`} aria-label={`${t.viewLinkedActions} · ${sourceRef} · ${done} of ${linked.length}`}
-      onClick={(event) => {
-        event.stopPropagation();
-        navigate({ to: "/portfolio/$projectId", params: { projectId: project.id }, search: { tab: "Action Tracker", actionRef: sourceRef } });
-      }}>
-      {linked.length}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant="link" className={cn("h-7 px-0 num-mono text-sm", over ? "text-rag-red" : "text-foreground")}
+          aria-label={`${t.viewLinkedActions} · ${sourceRef} · ${done} of ${linked.length}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            navigate({ to: "/portfolio/$projectId", params: { projectId: project.id }, search: { tab: "Action Tracker", actionRef: sourceRef } });
+          }}>
+          {linked.length}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{`${done} ${t.doneWord} · ${linked.length}`}</TooltipContent>
+    </Tooltip>
   );
 }

@@ -1,3 +1,8 @@
+## 2026-10-20 — Comments scrolling and DS02 text/search rules
+- Action details comments have their own bounded scroll area; header and footer remain visible with long histories.
+- Natural-case labels replace uppercase styling globally, with Poppins-only font tokens.
+- Approval change searches moved to the left; shared page toolbars keep search physically left in EN and RTL.
+
 ## 2026-10-20 — Action details popup aligned to DS02
 - Footer actions in the action details popup (Risks/Issues/Meeting drawers) are now right-aligned and do not fill the width, following the DS02 popup anatomy: Delete (danger outline), Edit (outline) and Update action status (primary) as the last action.
 - Verified in the preview in both dark and light themes.

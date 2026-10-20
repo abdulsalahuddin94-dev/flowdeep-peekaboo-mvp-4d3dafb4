@@ -315,8 +315,8 @@
   --p-border-4: 4px;
 
   /* Typography · families */
-  --p-font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
-  --p-font-mono: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --p-font-sans: "Poppins";
+  --p-font-mono: "Poppins";
 
   /* Typography · sizes */
   --p-text-2xs: 10px;
@@ -1018,6 +1018,11 @@
   h1,h2,h3,h4,h5 { font-weight: 600; letter-spacing: -0.01em; }
 }
 
+/* DS02 keeps natural casing even on legacy uppercase utility consumers. */
+@utility uppercase {
+  text-transform: none;
+}
+
 /* ── Sidebar — fully token-driven ────────────────────────────────────────── */
 .ds02-sidebar,
 .ds02-sidebar [data-sidebar="sidebar"] {
@@ -1067,7 +1072,7 @@
     box-shadow: var(--shadow-md);
   }
   .label-eyebrow {
-    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+    font-size: 0.75rem; text-transform: none; letter-spacing: 0;
     font-weight: 700; color: var(--muted-foreground);
   }
   .pulse-dot { animation: ragpulse 1.5s ease-in-out infinite; }

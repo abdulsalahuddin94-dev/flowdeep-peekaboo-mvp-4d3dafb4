@@ -1,3 +1,6 @@
+## 2026-10-20 — Approval review: tabs are primary
+- Project Schedule, Cost Breakdown and Revenue Breakdown tabs now lead the review page, each with its change count, searchable paged change list, then the current plan. Approvers moved below.
+
 ## 2026-10-18 — Compact Project Schedule columns
 - Combined Start/End/day duration in a single Duration column with stacked full dates and parenthesized days; preserved the existing inclusive duration calculation and dependency-shift indicator.
 - Depends on and Financial Link now show plain clickable totals, opening the existing detail views without badges, names or amounts.

@@ -1,3 +1,7 @@
+## 2026-10-20 — Styled hover tooltips + meeting time picker
+- Mitigation/Action counts and Meetings Actions count now use the DS02 tooltip (same as Score).
+- Meeting time: typeable HH:mm field with 15-min list opening at the current time.
+
 ## 2026-10-20 — Meetings ticket
 - 24-hr time picker; attendees optional, added via composer like risk actions, parties Internal/External only; Actions column shows count with open/overdue on hover; removed cancelled checkbox + status; no meeting ID in view; Action Tracker source "Meeting"; global Meetings/Action Tracker lists: Project first column, extra Project + Project type filters.
 

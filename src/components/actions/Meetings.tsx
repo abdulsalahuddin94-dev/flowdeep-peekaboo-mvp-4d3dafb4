@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
+import { TimePicker } from "@/components/ui/time-picker";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "@/lib/toast";
 import { Check, DeleteAction, EditAction, Plus } from "@/lib/icons";
 import { cn } from "@/lib/utils";
@@ -142,7 +144,12 @@ export function MeetingsTab({ project }: { project?: string }) {
                 <StyledTableCell><AttendeeSummary attendees={m.attendees} /></StyledTableCell>
                 <StyledTableCell className="text-sm">
                   {acts.length === 0 ? <span className="text-muted-foreground">—</span> : (
-                    <span className="num-mono cursor-default underline decoration-dotted underline-offset-4" title={`${open} open · ${overdue} overdue`} aria-label={`${acts.length} actions: ${open} open, ${overdue} overdue`}>{acts.length}</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="num-mono cursor-default" aria-label={`${acts.length} actions: ${open} open, ${overdue} overdue`}>{acts.length}</span>
+                      </TooltipTrigger>
+                      <TooltipContent>{`${open} open · ${overdue} overdue`}</TooltipContent>
+                    </Tooltip>
                   )}
                 </StyledTableCell>
                 <StyledTableCell className="text-center" onClick={(e) => e.stopPropagation()}>
@@ -272,13 +279,7 @@ function MeetingFormDialog({ open, onOpenChange, project, projectOptions, initia
         </Field>
         <Field label="Date"><DatePicker value={d.date} onChange={(v) => up({ date: v })} /></Field>
         <Field label="Time (optional)">
-          <Select value={d.time || undefined} onValueChange={(v) => up({ time: v === "none" ? "" : v })}>
-            <SelectTrigger aria-label="Time"><SelectValue placeholder="No time (24-hour, HH:mm)" /></SelectTrigger>
-            <SelectContent className="max-h-64">
-              <SelectItem value="none">No time</SelectItem>
-              {TIMES_24H.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <TimePicker value={d.time ?? ""} onChange={(v) => up({ time: v })} placeholder="HH:mm (24-hour)" />
         </Field>
         <Field label="Location or link (optional)" htmlFor="mt-loc" className="col-span-2"><Input id="mt-loc" maxLength={200} value={d.location ?? ""} onChange={(e) => up({ location: e.target.value })} placeholder="e.g. Board room / Teams" /></Field>
       </div>

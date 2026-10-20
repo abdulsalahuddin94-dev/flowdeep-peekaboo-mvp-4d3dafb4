@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "@tanstack/react-router";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { TableRowActions } from "@/components/TableRowActions";

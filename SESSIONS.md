@@ -1,5 +1,5 @@
 ## 2026-10-20 — Approval review page: removed Reference
-- Removed the Reference field from the info card and subtitle of the approval review page (a request can span many schedule/cost/revenue items).
+- Removed the Reference field from the approval review page (a request can span many schedule/cost/revenue items) and show Project type in its place.
 
 ## 2026-10-20 — Attendee name is always a plain text field
 - In the meeting attendees composer the Name field is now a plain text input for both Internal and External parties (previously Internal used an employee dropdown); the unused employee list import was dropped from `AttendeesEditor`.

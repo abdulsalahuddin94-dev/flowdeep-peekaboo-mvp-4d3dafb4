@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -54,6 +55,94 @@ function displaySummaryValue(value?: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) ? formatDateWithYear(value) : value;
 }
 
+type SectionKey = "schedule" | "cost" | "revenue";
+const SECTIONS: { key: SectionKey; label: string; prefix: string }[] = [
+  { key: "schedule", label: "Project Schedule", prefix: "" },
+  { key: "cost", label: "Cost Breakdown", prefix: "Cost · " },
+  { key: "revenue", label: "Revenue Breakdown", prefix: "Revenue · " },
+];
+type SectionChange = { item: string; field: string; before?: string; after?: string };
+
+/** Change labels are "[Cost · |Revenue · ]Item · Field"; unprefixed labels belong to the schedule. */
+function splitChanges(summary: ApprovalRequest["summary"]): Record<SectionKey, SectionChange[]> {
+  const out: Record<SectionKey, SectionChange[]> = { schedule: [], cost: [], revenue: [] };
+  for (const entry of summary) {
+    const section = SECTIONS.find((sec) => sec.prefix && entry.label.startsWith(sec.prefix)) ?? SECTIONS[0];
+    const rest = entry.label.slice(section.prefix.length);
+    const cut = rest.lastIndexOf(" · ");
+    out[section.key].push({
+      item: cut >= 0 ? rest.slice(0, cut) : "—",
+      field: cut >= 0 ? rest.slice(cut + 3) : rest,
+      before: entry.before,
+      after: entry.after,
+    });
+  }
+  return out;
+}
+
+const PAGE_SIZE = 25;
+
+function SectionChanges({ changes, label }: { changes: SectionChange[]; label: string }) {
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(0);
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? changes.filter((c) => [c.item, c.field, c.before, c.after].some((v) => v?.toLowerCase().includes(q)))
+    : changes;
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const current = Math.min(page, pages - 1);
+  const rows = filtered.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE);
+
+  return (
+    <section>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-sm font-medium text-foreground">{label} changes ({changes.length})</h3>
+        {changes.length > 0 && (
+          <Input
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setPage(0); }}
+            placeholder="Search changes…"
+            className="w-64"
+          />
+        )}
+      </div>
+      <StyledTable wrapperClassName="">
+        <StyledTableHeader>
+          <StyledTableHeaderRow>
+            <StyledTableHead>Item</StyledTableHead>
+            <StyledTableHead>Field</StyledTableHead>
+            <StyledTableHead>Before</StyledTableHead>
+            <StyledTableHead>After</StyledTableHead>
+          </StyledTableHeaderRow>
+        </StyledTableHeader>
+        <StyledTableBody>
+          {rows.length === 0 ? (
+            <StyledTableRow>
+              <StyledTableCell colSpan={4} className="py-8 text-center text-sm text-muted-foreground">
+                {changes.length === 0 ? `No changes in ${label}.` : "No changes match your search."}
+              </StyledTableCell>
+            </StyledTableRow>
+          ) : rows.map((c, i) => (
+            <StyledTableRow key={`${c.item}-${c.field}-${i}`}>
+              <StyledTableCell><span className="font-medium text-foreground">{c.item}</span></StyledTableCell>
+              <StyledTableCell>{c.field}</StyledTableCell>
+              <StyledTableCell className="text-muted-foreground">{displaySummaryValue(c.before)}</StyledTableCell>
+              <StyledTableCell className="text-foreground">{displaySummaryValue(c.after)}</StyledTableCell>
+            </StyledTableRow>
+          ))}
+        </StyledTableBody>
+      </StyledTable>
+      {pages > 1 && (
+        <div className="mt-3 flex items-center justify-end gap-2 text-xs text-muted-foreground">
+          <span>Page {current + 1} of {pages} · {filtered.length} changes</span>
+          <Button variant="secondary" disabled={current === 0} onClick={() => setPage(current - 1)}>Previous</Button>
+          <Button variant="secondary" disabled={current >= pages - 1} onClick={() => setPage(current + 1)}>Next</Button>
+        </div>
+      )}
+    </section>
+  );
+}
+
 const money = (value: number | null) => (value == null ? "—" : `$${value.toFixed(2)}M`);
 
 function ChangeRequestReviewPage() {
@@ -88,6 +177,9 @@ function ChangeRequestReviewPage() {
   const scheduleItems = cached?.milestones ?? (project ? seedMilestones(project) : []);
   const costEntries = cached?.costEntries ?? initialCostEntries(false);
   const revEntries = cached?.revEntries ?? (project ? initialRevEntries(project, false) : []);
+
+  const sectionChanges = splitChanges(approval.summary);
+  const firstSection = SECTIONS.find((sec) => sectionChanges[sec.key].length > 0)?.key ?? "schedule";
 
   const me = approval.approvers.find((approver) => approver.id === currentUser.id);
   const canAct = approval.status === "pending" && me?.decision === "pending";
@@ -216,7 +308,8 @@ function ChangeRequestReviewPage() {
           </StyledTable>
         </TabsContent>
 
-        <TabsContent value="cost" className="mt-5">
+        <TabsContent value="cost" className="mt-6">
+          <h3 className="mb-3 text-sm font-medium text-foreground">Current cost lines</h3>
           <StyledTable wrapperClassName="">
             <StyledTableHeader>
               <StyledTableHeaderRow>
@@ -250,7 +343,8 @@ function ChangeRequestReviewPage() {
           </StyledTable>
         </TabsContent>
 
-        <TabsContent value="revenue" className="mt-5">
+        <TabsContent value="revenue" className="mt-6">
+          <h3 className="mb-3 text-sm font-medium text-foreground">Current revenue events</h3>
           <StyledTable wrapperClassName="">
             <StyledTableHeader>
               <StyledTableHeaderRow>
@@ -283,6 +377,25 @@ function ChangeRequestReviewPage() {
           </StyledTable>
         </TabsContent>
       </Tabs>
+
+      <section className="mt-6">
+        <h3 className="mb-3 text-sm font-medium text-foreground">Approvers</h3>
+        <div className="space-y-3 rounded-lg border border-border bg-card px-5 py-4">
+          {approval.approvers.map((approver) => (
+            <div key={approver.id} className="border-b border-border pb-3 last:border-b-0 last:pb-0">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm text-foreground">{approver.name}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">{approver.role}{approver.department ? ` · ${approver.department}` : ""}</div>
+                </div>
+                <Badge variant="outline" className={statusTone(approver.decision)}>{approver.decision}</Badge>
+              </div>
+              {approver.decidedAt && <div className="mt-2 text-xs text-muted-foreground">Decision date: {formatDateWithYear(approver.decidedAt)}</div>}
+              {approver.comment && <div className="mt-2 rounded-md bg-secondary/30 px-3 py-2 text-xs text-foreground">{approver.comment}</div>}
+            </div>
+          ))}
+        </div>
+      </section>
 
       <FormDialog
         open={decisionOpen}

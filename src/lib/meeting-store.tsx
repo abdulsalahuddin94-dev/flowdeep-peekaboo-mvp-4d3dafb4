@@ -6,8 +6,8 @@ import { logActivity } from "@/lib/activity-store";
  * Tracker and point back here via `meetingId`.
  */
 
-export type AttendeeParty = "Internal" | "Client" | "Vendor" | "Stakeholder" | "Other";
-export const ATTENDEE_PARTIES: AttendeeParty[] = ["Internal", "Client", "Vendor", "Stakeholder", "Other"];
+export type AttendeeParty = "Internal" | "External";
+export const ATTENDEE_PARTIES: AttendeeParty[] = ["Internal", "External"];
 
 export type MeetingType = string;
 
@@ -24,15 +24,14 @@ export type Meeting = {
   time?: string;
   location?: string;
   notes?: string;
+  /** Optional — a meeting can be logged before attendees are known. */
   attendees: Attendee[];
-  cancelled?: boolean;
 };
 
-export type MeetingStatus = "Scheduled" | "Held" | "Cancelled";
+export type MeetingStatus = "Scheduled" | "Held";
 const todayIso = () => new Date().toISOString().slice(0, 10);
-/** Status is derived from the date (except an explicit cancellation). */
-export function meetingStatus(m: Pick<Meeting, "date" | "cancelled">, today = todayIso()): MeetingStatus {
-  if (m.cancelled) return "Cancelled";
+/** Status is derived from the date. */
+export function meetingStatus(m: Pick<Meeting, "date">, today = todayIso()): MeetingStatus {
   return m.date > today ? "Scheduled" : "Held";
 }
 
@@ -44,8 +43,8 @@ const SEED: Meeting[] = [
     attendees: [
       { id: "at1", name: "Aisha Khoury", party: "Internal" },
       { id: "at2", name: "Sara Al-Rashid", party: "Internal" },
-      { id: "at3", name: "Client Finance Lead", party: "Client", organization: "Client" },
-      { id: "at4", name: "Ministry Liaison", party: "Stakeholder", organization: "Ministry of Digital Economy" },
+      { id: "at3", name: "Client Finance Lead", party: "External", organization: "Client" },
+      { id: "at4", name: "Ministry Liaison", party: "External", organization: "Ministry of Digital Economy" },
     ],
   },
   {
@@ -53,15 +52,15 @@ const SEED: Meeting[] = [
     attendees: [
       { id: "at1", name: "Aisha Khoury", party: "Internal" },
       { id: "at2", name: "Mei Chen", party: "Internal" },
-      { id: "at3", name: "Client IT Manager", party: "Client", organization: "Client" },
-      { id: "at4", name: "Omar Haddad", party: "Vendor", organization: "SAP Partner" },
+      { id: "at3", name: "Client IT Manager", party: "External", organization: "Client" },
+      { id: "at4", name: "Omar Haddad", party: "External", organization: "SAP Partner" },
     ],
   },
   {
     id: "M-003", project: P, title: "Cutover readiness workshop", type: "Workshop", date: "2026-10-20", time: "13:00", location: "Workshop room B",
     attendees: [
       { id: "at1", name: "John Smith", party: "Internal" },
-      { id: "at2", name: "Omar Haddad", party: "Vendor", organization: "SAP Partner" },
+      { id: "at2", name: "Omar Haddad", party: "External", organization: "SAP Partner" },
     ],
   },
 ];

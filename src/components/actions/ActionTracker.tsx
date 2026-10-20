@@ -106,6 +106,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
   const projectNames = useMemo(() => projects.map((p) => p.name), [projects]);
   const [query, setQuery] = useState("");
   const [proj, setProj] = useState("all");
+  const [ptype, setPtype] = useState("all");
   const [source, setSource] = useState("all");
   const [sourceRef, setSourceRef] = useState(initialSourceRef ?? "all");
   const [resp, setResp] = useState("all");
@@ -135,6 +136,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
   const list = scoped
     .filter((a) => !q || a.title.toLowerCase().includes(q))
     .filter((a) => proj === "all" || a.project === proj)
+    .filter((a) => ptype === "all" || projects.find((p) => p.name === a.project)?.businessLine === ptype)
     .filter((a) => source === "all" || a.source === source)
     .filter((a) => sourceRef === "all" || a.sourceRef === sourceRef)
     .filter((a) => resp === "all" || a.responsibility === resp)
@@ -153,12 +155,15 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
         onQueryChange={setQuery}
         placeholder={t.search}
         filterGroups={[
-          ...(pmo ? [{ key: "project", label: "Project", value: proj, onChange: setProj, options: [{ value: "all", label: "All projects" }, ...projectNames.map((v) => ({ value: v, label: v }))] }] : []),
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, { value: "Overdue", label: "Overdue" }, ...ACTION_STATUSES.map((v) => ({ value: v, label: v }))] },
           { key: "resp", label: "Responsibility", value: resp, onChange: setResp, options: [{ value: "all", label: "All parties" }, ...respTypes.map((v) => ({ value: v.name, label: v.name }))] },
           { key: "source", label: "Source", value: source, onChange: setSource, options: [{ value: "all", label: "All sources" }, ...ACTION_SOURCES.map((v) => ({ value: v, label: v }))] },
           { key: "sourceRef", label: t.linkedPlan, value: sourceRef, onChange: setSourceRef, options: [{ value: "all", label: t.allPlans }, ...Array.from(new Set(scoped.flatMap((a) => a.sourceRef ? [a.sourceRef] : []))).map((ref) => ({ value: ref, label: ref }))] },
           { key: "owner", label: "Owner", value: owner, onChange: setOwner, options: [{ value: "all", label: "All owners" }, ...owners.map((v) => ({ value: v, label: v }))] },
+          ...(pmo ? [
+            { key: "project", label: "Project", value: proj, onChange: setProj, options: [{ value: "all", label: "All projects" }, ...projectNames.map((v) => ({ value: v, label: v }))] },
+            { key: "ptype", label: "Project type", value: ptype, onChange: setPtype, options: [{ value: "all", label: "All project types" }, ...Array.from(new Set(projects.map((p) => p.businessLine))).map((v) => ({ value: v, label: v }))] },
+          ] : []),
         ]}
         trailing={
           <div className="flex items-center gap-2">
@@ -187,8 +192,8 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
       <StyledTable>
         <StyledTableHeader>
           <StyledTableHeaderRow>
-            <StyledTableHead>Action</StyledTableHead>
             {pmo && <StyledTableHead>Project</StyledTableHead>}
+            <StyledTableHead>Action</StyledTableHead>
             <StyledTableHead>Source</StyledTableHead>
             <StyledTableHead>Owner</StyledTableHead>
             <StyledTableHead>Responsibility</StyledTableHead>
@@ -357,7 +362,7 @@ export function ActionFormDialog({ open, onOpenChange, project, projects, initia
           <Field label="Source">
             <Select value={d.source} onValueChange={(v) => up({ source: v as ActionSource, sourceRef: undefined })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{ACTION_SOURCES.map((s) => <SelectItem key={s} value={s}>{s === "Meeting" ? "Progress meeting" : s}</SelectItem>)}</SelectContent>
+              <SelectContent>{ACTION_SOURCES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
             </Select>
           </Field>
           {(d.source === "Risk" || d.source === "Issue") && (

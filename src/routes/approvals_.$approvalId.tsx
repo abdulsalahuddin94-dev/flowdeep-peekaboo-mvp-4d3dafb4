@@ -95,10 +95,11 @@ function SectionChanges({ changes, label }: { changes: SectionChange[]; label: s
 
   return (
     <section>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-sm font-medium text-foreground">{label} changes ({changes.length})</h3>
+      <h3 className="mb-3 text-sm font-medium text-foreground">{label} changes ({changes.length})</h3>
+      <div dir="ltr" className="mb-3 flex flex-wrap items-center justify-start gap-3">
         {changes.length > 0 && (
           <Input
+            dir="auto"
             value={query}
             onChange={(e) => { setQuery(e.target.value); setPage(0); }}
             placeholder="Search changes…"

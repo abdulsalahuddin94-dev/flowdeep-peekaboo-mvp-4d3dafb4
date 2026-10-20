@@ -3170,8 +3170,8 @@ function RevenuePlanTable({
                 <TableRow className="bg-transparent hover:bg-transparent border-0 [&>td]:!bg-transparent hover:[&>td]:!bg-transparent">
                   <TableCell colSpan={8} className="px-4 pb-3 pt-1">
                     <div className="ml-4 border-l border-border pl-3">
-                      {/* Expanded nested actual-spend table uses Gray 600 (#45464F) fill. */}
-                      <div className="overflow-hidden rounded-lg bg-p-neutral-600">
+                      {/* Expanded nested actual-spend table uses the table header token (#292931) fill. */}
+                      <div className="overflow-hidden rounded-lg bg-p-charcoal-800">
                         <div className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center border-b border-black/20 px-5 py-3 text-xs font-medium text-foreground">
                           <span>Actual payment</span>
                           <span>Date</span>
@@ -3411,8 +3411,8 @@ function CostBreakdownTable({
                 <TableRow className="bg-transparent hover:bg-transparent border-0 [&>td]:!bg-transparent hover:[&>td]:!bg-transparent">
                   <TableCell colSpan={9} className="px-4 pb-3 pt-1">
                     <div className="ml-4 border-l border-border pl-3">
-                      {/* Expanded nested actual-spend table uses Gray 600 (#45464F) fill. */}
-                      <div className="overflow-hidden rounded-lg bg-p-neutral-600">
+                      {/* Expanded nested actual-spend table uses the table header token (#292931) fill. */}
+                      <div className="overflow-hidden rounded-lg bg-p-charcoal-800">
                         <div className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center border-b border-black/20 px-5 py-3 text-xs font-medium text-foreground">
                           <span>Actual spend</span>
                           <span>Date</span>

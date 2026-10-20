@@ -43,7 +43,7 @@
   --p-neutral-300:  #d4d4d4;                 /* Gray 300  · Neutral 500 */
   --p-neutral-400:  #a0a0a0;                 /* Gray 400  · Description  */
   --p-neutral-500:  #767680;                 /* Gray 500  · Secondary CTA border */
-  --p-neutral-600:  #45464f;                 /* Gray 600  · Border / table header */
+  --p-neutral-600:  #45464f;                 /* Gray 600  · Border */
   --p-neutral-700:  #282a30;                 /* Gray 700  · Tags */
   --p-neutral-800:  #1d1d1f;                 /* Gray 800  · Input fields / page */
   --p-neutral-900:  #12131a;                 /* Gray 900  · Main section / side menu */
@@ -65,7 +65,7 @@
   --p-charcoal-500: var(--p-neutral-600);
   --p-charcoal-600: var(--p-neutral-700);
   --p-charcoal-700: var(--p-neutral-600);    /* row hover      · Gray 600 */
-  --p-charcoal-800: var(--p-neutral-600);    /* table header   · Gray 600 */
+  --p-charcoal-800: #292931;                 /* table header */
   --p-charcoal-850: var(--p-neutral-800);    /* page color     · Gray 800 */
   --p-charcoal-900: var(--p-neutral-900);    /* main / sidebar · Gray 900 */
   --p-charcoal-950: var(--p-neutral-950);

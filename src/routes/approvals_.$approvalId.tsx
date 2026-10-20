@@ -221,7 +221,6 @@ function ChangeRequestReviewPage() {
       <div className="mt-3">
         <PageHeader
           title={approval.title}
-          subtitle={`Requested by ${approval.requestedBy} on ${formatDateWithYear(approval.requestedAt)}`}
           actions={
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline" className={approval.type === "milestone-gate" ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber" : "border-accent/40 bg-accent-dim text-accent"}>{approval.type === "milestone-gate" ? "Milestone gate" : "Change request"}</Badge>
@@ -242,20 +241,18 @@ function ChangeRequestReviewPage() {
         />
       </div>
 
-      <section className="mt-2 grid grid-cols-2 gap-x-5 gap-y-4 rounded-lg border border-border bg-card px-5 py-4 text-sm sm:grid-cols-4">
-        <div>
-          <div className="text-xs text-muted-foreground">Project</div>
-          {approval.projectId ? (
-            <Link to="/portfolio/$projectId" params={{ projectId: approval.projectId }} className="mt-1 block text-accent hover:underline">
-              {approval.projectName}
-            </Link>
-          ) : <div className="mt-1 text-foreground">{approval.projectName}</div>}
-        </div>
-        <div><div className="text-xs text-muted-foreground">Project type</div><div className="mt-1 text-foreground">{project?.businessLine ?? "—"}</div></div>
-
-        <div><div className="text-xs text-muted-foreground">Requested by</div><div className="mt-1 text-foreground">{approval.requestedBy}</div></div>
-        <div><div className="text-xs text-muted-foreground">Requested on</div><div className="mt-1 text-foreground">{formatDateWithYear(approval.requestedAt)}</div></div>
-      </section>
+      {/* Compact meta line — replaces the previous 4-column info card. */}
+      <div className="-mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+        {approval.projectId ? (
+          <Link to="/portfolio/$projectId" params={{ projectId: approval.projectId }} className="text-accent hover:underline">
+            {approval.projectName}
+          </Link>
+        ) : <span className="text-foreground">{approval.projectName}</span>}
+        <span aria-hidden>·</span>
+        <span>{project?.businessLine ?? "—"}</span>
+        <span aria-hidden>·</span>
+        <span>Requested by {approval.requestedBy} on {formatDateWithYear(approval.requestedAt)}</span>
+      </div>
 
       <Tabs defaultValue={firstSection} className="mt-6">
         <TabsList className="overflow-x-auto whitespace-nowrap">

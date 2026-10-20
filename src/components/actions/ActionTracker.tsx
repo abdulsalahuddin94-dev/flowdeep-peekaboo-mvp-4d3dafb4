@@ -205,8 +205,8 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
           {pagination.pageItems.length === 0 && <EmptyRow colSpan={pmo ? 7 : 6} />}
           {pagination.pageItems.map((a) => (
             <StyledTableRow key={a.id} className="group cursor-pointer" onClick={() => setViewId(a.id)}>
-              <StyledTableCell className="font-medium text-foreground">{a.title}</StyledTableCell>
               {pmo && <StyledTableCell className="text-sm text-muted-foreground">{a.project}</StyledTableCell>}
+              <StyledTableCell className="font-medium text-foreground">{a.title}</StyledTableCell>
               <StyledTableCell><Badge variant="outline">{sourceLabel(a)}</Badge></StyledTableCell>
               <StyledTableCell className="text-sm">{a.owner}</StyledTableCell>
               <StyledTableCell><Pill label={a.responsibility} tone={respTone(a.responsibility, respTypes)} /></StyledTableCell>

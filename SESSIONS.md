@@ -1,3 +1,7 @@
+## 2026-10-20 — Approval review header simplified
+- Replaced the redundant top block on the approval review page (subtitle duplicating Requested by/on plus a sparse 4-column info card) with a compact meta line: clickable project link, project type, and Requested by/on, directly under the title with badges and action buttons right-aligned.
+- Verified in the preview at 1587px: title/actions on one line, meta line beneath, tabs follow without the empty card band.
+
 ## 2026-10-20 — Action comments scroll after two
 - Action details comments show exactly two cards before scrolling: the list caps itself to the measured rendered height of the first two comments, so wrapped text is never cut, and scrolling appears only when a third comment exists.
 - Extracted the list into CommentList in src/components/actions/ActionTracker.tsx (measured cap + ResizeObserver) instead of the fixed 320px cap.

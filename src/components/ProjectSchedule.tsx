@@ -260,7 +260,7 @@ const LEVEL_COLORS = [
 // ── Column config ────────────────────────────────────────────────────────────
 const COLUMNS = [
   { key: "type",     label: "Type",        w: 90 },
-  { key: "duration", label: "Duration",    w: 166 },
+  { key: "duration", label: "Timeline",    w: 166 },
   { key: "owner",    label: "Owner",       w: 150 },
   { key: "assignee", label: "Assignee",    w: 130 },
   { key: "roles",    label: "Roles",       w: 180 },

@@ -8,6 +8,7 @@ import { usePagination, TablePagination } from "@/components/TablePagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { Field } from "@/components/ui/field";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow,
 } from "@/components/StyledTable";
@@ -577,12 +578,75 @@ function ActionDrawer({ action: a, onClose, onUpdate, onEdit, onEditUpdate, onDe
   );
 }
 
+/* ── Action details popup (opened from linked actions) ─────────────────── */
+
+function ActionDetailsDialog({ action: a, onClose, onUpdate, onEdit, onDelete, onEditUpdate, onDeleteUpdate }: {
+  action: ActionItem | null; onClose: () => void; onUpdate: (a: ActionItem) => void; onEdit: (a: ActionItem) => void; onDelete: (a: ActionItem) => void;
+  onEditUpdate: (a: ActionItem, u: ActionUpdate) => void; onDeleteUpdate: (a: ActionItem, u: ActionUpdate) => void;
+}) {
+  const { respTypes } = useResponsibilities();
+  return (
+    <Dialog open={!!a} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="flex max-h-[85vh] max-w-[560px] flex-col gap-0 p-0">
+        {a && (
+          <>
+            <DialogHeader className="border-b border-border px-6 pb-4 pt-6 text-start">
+              <div className="flex flex-wrap items-center gap-2"><StatusCell a={a} /><Pill label={a.responsibility} tone={respTone(a.responsibility, respTypes)} /></div>
+              <DialogTitle className="mt-2 text-lg">{a.title}</DialogTitle>
+              <DialogDescription className="text-xs">{sourceLabel(a)}{a.sourceRef ? ` · ${a.sourceRef}` : ""}</DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-3 divide-x divide-border border-b border-border rtl:divide-x-reverse">
+              {[{ l: "Owner", v: a.owner }, { l: "Due date", v: formatDateWithYear(a.dueDate) }, { l: "Closed", v: formatDateWithYear(a.closedDate) }].map((k) => (
+                <div key={k.l} className="px-4 py-3">
+                  <div className="label-eyebrow text-[10px]">{k.l}</div>
+                  <div className="mt-0.5 text-sm font-medium text-foreground">{k.v}</div>
+                </div>
+              ))}
+            </div>
+            <div className="flex-1 space-y-4 overflow-y-auto px-6 py-4">
+              {a.description && <div><div className="label-eyebrow mb-1">Description</div><p className="text-sm text-muted-foreground">{a.description}</p></div>}
+              <div>
+                <div className="label-eyebrow mb-2">{t.commentsUpdates}</div>
+                {a.updates.length === 0 && <p className="text-sm text-muted-foreground">No comments yet.</p>}
+                <div className="space-y-3">
+                  {a.updates.map((u) => (
+                    <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-medium text-foreground">{u.by}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="num-mono text-[10px] text-muted-foreground">{formatDateTime(u.at)}</span>
+                          <button type="button" aria-label="Edit comment" className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => onEditUpdate(a, u)}><EditAction size={13} /></button>
+                          <button type="button" aria-label="Delete comment" className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => onDeleteUpdate(a, u)}><DeleteAction size={13} /></button>
+                        </div>
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">{u.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2 border-t border-border px-6 py-4">
+              <Button variant="primary" className="flex-1" onClick={() => onUpdate(a)}>{t.updateStatus}</Button>
+              <Button variant="outline" onClick={() => onEdit(a)}><EditAction size={15} /> Edit</Button>
+              <Button variant="outline" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => onDelete(a)}><DeleteAction size={15} /> Delete</Button>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /* ── Linked actions (Risk / Issue drawers) ──────────────────────────────── */
 
 export function LinkedActions({ project, source, sourceRef, title, meetingMeta, onAdd }: { project: string; source: "Risk" | "Issue" | "Meeting"; sourceRef: string; title: string; meetingMeta?: { meetingName?: string; meetingDate?: string }; onAdd?: () => void }) {
-  const { actions, addAction, updateAction, removeAction, logActionUpdate } = useActions();
+  const { actions, addAction, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
   const { currentUser } = useCurrentUser();
   const [open, setOpen] = useState(false);
+  const [viewId, setViewId] = useState<string | null>(null);
+  const [editingUpdate, setEditingUpdate] = useState<ActionUpdate | null>(null);
+  const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ a: ActionItem; u: ActionUpdate } | null>(null);
+  const viewed = actions.find((a) => a.id === viewId) ?? null;
   const [editing, setEditing] = useState<ActionItem | null>(null);
   const [statusFor, setStatusFor] = useState<ActionItem | null>(null);
   const [pendingDelete, setPendingDelete] = useState<ActionItem | null>(null);
@@ -611,12 +675,12 @@ export function LinkedActions({ project, source, sourceRef, title, meetingMeta, 
             key={a.id}
             role="button"
             tabIndex={0}
-            aria-label={`Update ${a.title}`}
-            onClick={() => setStatusFor(a)}
+            aria-label={`View ${a.title}`}
+            onClick={() => setViewId(a.id)}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                setStatusFor(a);
+                setViewId(a.id);
               }
             }}
             className="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-[var(--field-bg-filled)] px-3 py-2 text-start transition-colors hover:border-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -676,16 +740,34 @@ export function LinkedActions({ project, source, sourceRef, title, meetingMeta, 
           setEditing(null);
         }}
       />
+      <ActionDetailsDialog
+        action={viewed}
+        onClose={() => setViewId(null)}
+        onUpdate={(a) => { setEditingUpdate(null); setStatusFor(a); }}
+        onEdit={(a) => setEditing(a)}
+        onDelete={(a) => setPendingDelete(a)}
+        onEditUpdate={(a, u) => { setEditingUpdate(u); setStatusFor(a); }}
+        onDeleteUpdate={(a, u) => setPendingDeleteUpdate({ a, u })}
+      />
       <ActionStatusDialog
         action={statusFor}
-        editing={null}
-        onClose={() => setStatusFor(null)}
+        editing={editingUpdate}
+        onClose={() => { setStatusFor(null); setEditingUpdate(null); }}
         onSave={(comment, st) => {
           if (!statusFor) return;
-          logActionUpdate(statusFor.id, { comment, by: currentUser.name, status: st });
-          toast.success("Action updated");
-          setStatusFor(null);
+          if (editingUpdate) { editActionUpdate(statusFor.id, editingUpdate.id, comment); toast.success("Comment updated"); }
+          else { logActionUpdate(statusFor.id, { comment, by: currentUser.name, status: st }); toast.success("Action updated"); }
+          setStatusFor(null); setEditingUpdate(null);
         }}
+      />
+      <ConfirmDialog
+        open={!!pendingDeleteUpdate}
+        onOpenChange={(o) => { if (!o) setPendingDeleteUpdate(null); }}
+        title="Delete this comment?"
+        description="The comment will be removed from the action history. This cannot be undone."
+        confirmLabel="Delete"
+        tone="danger"
+        onConfirm={() => { if (pendingDeleteUpdate) removeActionUpdate(pendingDeleteUpdate.a.id, pendingDeleteUpdate.u.id); setPendingDeleteUpdate(null); toast.success("Comment deleted"); }}
       />
       <ConfirmDialog
         open={!!pendingDelete}
@@ -696,6 +778,7 @@ export function LinkedActions({ project, source, sourceRef, title, meetingMeta, 
         tone="danger"
         onConfirm={() => {
           if (pendingDelete) {
+            if (pendingDelete.id === viewId) setViewId(null);
             removeAction(pendingDelete.id);
             toast.success("Action deleted");
           }

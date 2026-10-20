@@ -9,6 +9,8 @@ export const Route = createFileRoute("/action-tracker")({
       { name: "description", content: "PMO-wide Action Tracker covering actions across all projects." },
       { property: "og:title", content: "Action Tracker · Nexus PMO" },
       { property: "og:description", content: "PMO-wide Action Tracker covering actions across all projects." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: () => (

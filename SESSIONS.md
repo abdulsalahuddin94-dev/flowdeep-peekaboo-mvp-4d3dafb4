@@ -2,6 +2,7 @@
 - Action details comments have their own bounded scroll area; header and footer remain visible with long histories.
 - Natural-case labels replace uppercase styling globally, with Poppins-only font tokens.
 - Approval change searches moved to the left; shared page toolbars keep search physically left in EN and RTL.
+- Verified eight comments scroll within 320px while footer remains available; natural labels render in Poppins; approval search stays left in LTR/RTL. Completed missing social card metadata on Meetings and Action Tracker during the required route-head audit.
 
 ## 2026-10-20 — Action details popup aligned to DS02
 - Footer actions in the action details popup (Risks/Issues/Meeting drawers) are now right-aligned and do not fill the width, following the DS02 popup anatomy: Delete (danger outline), Edit (outline) and Update action status (primary) as the last action.

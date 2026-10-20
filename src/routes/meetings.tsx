@@ -9,6 +9,8 @@ export const Route = createFileRoute("/meetings")({
       { name: "description", content: "PMO-wide meetings covering all projects, with attendees and actions." },
       { property: "og:title", content: "Meetings · Nexus PMO" },
       { property: "og:description", content: "PMO-wide meetings covering all projects, with attendees and actions." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: () => (

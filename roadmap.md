@@ -1,5 +1,6 @@
 # Roadmap
 - [x] Bound action comments scrolling; apply natural-case/Poppins design rules and left-positioned search.
+- [x] Cap action comments to two visible cards before the list scrolls.
 - [x] Attendee name field: plain text input for both Internal and External parties in the meetings composer.
 
 

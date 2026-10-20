@@ -163,48 +163,24 @@ function ChangeRequestReviewPage() {
         <div><div className="text-xs text-muted-foreground">Requested on</div><div className="mt-1 text-foreground">{formatDateWithYear(approval.requestedAt)}</div></div>
       </section>
 
-      {approval.summary.length > 0 && (
-        <section className="mt-5">
-          <h3 className="mb-3 text-sm font-medium text-foreground">Change summary</h3>
-          <div className="divide-y divide-border rounded-lg border border-border bg-card">
-            {approval.summary.map((item, index) => (
-              <div key={`${item.label}-${index}`} className="grid grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,0.8fr)] gap-3 px-5 py-3 text-xs">
-                <div className="font-medium text-foreground">{item.label}</div>
-                <div><span className="mb-1 block text-muted-foreground">Before</span><span className="text-foreground">{displaySummaryValue(item.before)}</span></div>
-                <div><span className="mb-1 block text-muted-foreground">After</span><span className="text-foreground">{displaySummaryValue(item.after)}</span></div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="mt-5">
-        <h3 className="mb-3 text-sm font-medium text-foreground">Approvers</h3>
-        <div className="space-y-3 rounded-lg border border-border bg-card px-5 py-4">
-          {approval.approvers.map((approver) => (
-            <div key={approver.id} className="border-b border-border pb-3 last:border-b-0 last:pb-0">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-sm text-foreground">{approver.name}</div>
-                  <div className="mt-0.5 text-xs text-muted-foreground">{approver.role}{approver.department ? ` · ${approver.department}` : ""}</div>
-                </div>
-                <Badge variant="outline" className={statusTone(approver.decision)}>{approver.decision}</Badge>
-              </div>
-              {approver.decidedAt && <div className="mt-2 text-xs text-muted-foreground">Decision date: {formatDateWithYear(approver.decidedAt)}</div>}
-              {approver.comment && <div className="mt-2 rounded-md bg-secondary/30 px-3 py-2 text-xs text-foreground">{approver.comment}</div>}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <Tabs defaultValue="schedule" className="mt-6">
+      <Tabs defaultValue={firstSection} className="mt-6">
         <TabsList className="overflow-x-auto whitespace-nowrap">
-          <TabsTrigger value="schedule">Project Schedule</TabsTrigger>
-          <TabsTrigger value="cost">Cost Breakdown</TabsTrigger>
-          <TabsTrigger value="revenue">Revenue Breakdown</TabsTrigger>
+          {SECTIONS.map((s) => (
+            <TabsTrigger key={s.key} value={s.key} className="gap-2">
+              {s.label}
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-[11px] text-foreground">{sectionChanges[s.key].length}</span>
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="schedule" className="mt-5">
+        {SECTIONS.map((s) => (
+          <TabsContent key={s.key} value={s.key} className="mt-5">
+            <SectionChanges changes={sectionChanges[s.key]} label={s.label} />
+          </TabsContent>
+        ))}
+
+        <TabsContent value="schedule" className="mt-6">
+          <h3 className="mb-3 text-sm font-medium text-foreground">Current schedule</h3>
           <StyledTable wrapperClassName="">
             <StyledTableHeader>
               <StyledTableHeaderRow>

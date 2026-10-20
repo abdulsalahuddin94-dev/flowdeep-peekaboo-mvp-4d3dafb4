@@ -95,8 +95,8 @@ const SEED_APPROVALS: ApprovalRequest[] = [
     requestedBy: "John Smith",
     requestedAt: "2026-07-21",
     summary: [
-      { label: "Licences · Budget", before: "$180,000", after: "$225,000" },
-      { label: "Integration · Cost type", before: "OpEx", after: "CapEx" },
+      { label: "Cost · Licences · Budget", before: "$180,000", after: "$225,000" },
+      { label: "Cost · Integration · Cost type", before: "OpEx", after: "CapEx" },
     ],
     approvers: [
       { id: "u-aisha", name: "Aisha Khoury", role: "Portfolio Director", department: "PMO", decision: "pending" },

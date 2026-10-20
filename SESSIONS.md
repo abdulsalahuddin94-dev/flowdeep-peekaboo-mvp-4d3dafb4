@@ -1,4 +1,8 @@
 
+## 2026-10-20 — Design system: table header color #292931
+- Table header background changed from #45464F (Gray 600) to #292931 via the shared token --p-charcoal-800 / --table-header-bg in src/styles.css, so every table using the shared Table/TableHeader and the Project Schedule headers picks it up.
+- Updated the two nested actual-payment header bars in src/routes/portfolio.$projectId.tsx from bg-p-neutral-600 to the same token.
+
 ## 2026-10-20 — Linked action details popup + Timeline header
 - Clicking an action in Risk/Issue/Meeting drawers now opens a details popup (status, owner, due, comments with edit/delete) with Update status, Edit and Delete.
 - Project Schedule WBS header "Duration" renamed to "Timeline".

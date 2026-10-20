@@ -1,3 +1,6 @@
+## 2026-10-20 — Meeting Types: related meetings
+- Added Related meetings count column (popup lists meeting name + project), Has/No related meetings filter, and delete blocked for types in use (offers Deactivate); unused types delete permanently.
+
 ## 2026-10-20 — Approval review: tabs are primary
 - Project Schedule, Cost Breakdown and Revenue Breakdown tabs now lead the review page, each with its change count, searchable paged change list, then the current plan. Approvers moved below.
 

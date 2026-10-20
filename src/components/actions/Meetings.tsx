@@ -18,7 +18,8 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/lib/toast";
-import { DeleteAction, Plus } from "@/lib/icons";
+import { Check, DeleteAction, EditAction, Plus } from "@/lib/icons";
+import { cn } from "@/lib/utils";
 import { formatDateWithYear } from "@/lib/date-format";
 import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import { useActions, isActionOverdue, ACTION_STATUSES } from "@/lib/action-store";
@@ -50,14 +51,10 @@ const t = T.en;
 const STATUS_TONE: Record<MeetingStatus, string> = {
   Scheduled: "border-rag-blue/40 bg-rag-blue/10 text-rag-blue",
   Held: "border-rag-green/40 bg-rag-green/10 text-rag-green",
-  Cancelled: "border-border bg-muted text-muted-foreground",
 };
 const PARTY_TONE: Record<AttendeeParty, string> = {
   Internal: "border-accent/40 bg-accent/10 text-accent",
-  Client: "border-rag-teal/40 bg-rag-teal/10 text-rag-teal",
-  Vendor: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
-  Stakeholder: "border-border bg-muted text-muted-foreground",
-  Other: "border-border bg-muted text-muted-foreground",
+  External: "border-rag-teal/40 bg-rag-teal/10 text-rag-teal",
 };
 /** Action responsibility follows the owner's party, mapped via Organization → Responsibility Types. */
 
@@ -76,6 +73,7 @@ export function MeetingsTab({ project }: { project?: string }) {
   const [party, setParty] = useState("all");
   const [actionStatus, setActionStatus] = useState("all");
   const [proj, setProj] = useState("all");
+  const [ptype, setPtype] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Meeting | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);
@@ -88,6 +86,7 @@ export function MeetingsTab({ project }: { project?: string }) {
     .filter((m) => !q || m.title.toLowerCase().includes(q))
     .filter((m) => status === "all" || meetingStatus(m) === status)
     .filter((m) => proj === "all" || m.project === proj)
+    .filter((m) => ptype === "all" || projects.find((p) => p.name === m.project)?.businessLine === ptype)
     .filter((m) => type === "all" || m.type === type)
     .filter((m) => party === "all" || m.attendees.some((a) => a.party === party))
     .filter((m) => actionStatus === "all" || actions.some((a) => a.meetingId === m.id && a.status === actionStatus))
@@ -103,11 +102,14 @@ export function MeetingsTab({ project }: { project?: string }) {
         onQueryChange={setQuery}
         placeholder={t.search}
         filterGroups={[
-          ...(pmo ? [{ key: "project", label: "Project", value: proj, onChange: setProj, options: [{ value: "all", label: "All projects" }, ...projectNames.map((v) => ({ value: v, label: v }))] }] : []),
-          { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...(["Scheduled", "Held", "Cancelled"] as const).map((v) => ({ value: v, label: v }))] },
+          { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...(["Scheduled", "Held"] as const).map((v) => ({ value: v, label: v }))] },
           { key: "type", label: "Meeting type", value: type, onChange: setType, options: [{ value: "all", label: "All types" }, ...Array.from(new Set([...meetingTypes.map((v) => v.name), ...scoped.map((m) => m.type)])).map((v) => ({ value: v, label: v }))] },
           { key: "party", label: "Attendee party", value: party, onChange: setParty, options: [{ value: "all", label: "All parties" }, ...ATTENDEE_PARTIES.map((v) => ({ value: v, label: v }))] },
           { key: "action-status", label: "Action status", value: actionStatus, onChange: setActionStatus, options: [{ value: "all", label: "All actions" }, ...ACTION_STATUSES.map((v) => ({ value: v, label: v }))] },
+          ...(pmo ? [
+            { key: "project", label: "Project", value: proj, onChange: setProj, options: [{ value: "all", label: "All projects" }, ...projectNames.map((v) => ({ value: v, label: v }))] },
+            { key: "ptype", label: "Project type", value: ptype, onChange: setPtype, options: [{ value: "all", label: "All project types" }, ...Array.from(new Set(projects.map((p) => p.businessLine))).map((v) => ({ value: v, label: v }))] },
+          ] : []),
         ]}
         trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>{t.add}</Button>}
       />
@@ -115,8 +117,8 @@ export function MeetingsTab({ project }: { project?: string }) {
       <StyledTable>
         <StyledTableHeader>
           <StyledTableHeaderRow>
-            <StyledTableHead>Meeting</StyledTableHead>
             {pmo && <StyledTableHead>{t.project}</StyledTableHead>}
+            <StyledTableHead>Meeting</StyledTableHead>
             <StyledTableHead>Type</StyledTableHead>
             <StyledTableHead>Date</StyledTableHead>
             <StyledTableHead>Attendees</StyledTableHead>
@@ -128,19 +130,19 @@ export function MeetingsTab({ project }: { project?: string }) {
           {pagination.pageItems.length === 0 && <EmptyRow colSpan={pmo ? 7 : 6} />}
           {pagination.pageItems.map((m) => {
             const acts = actionsOf(m.id);
-            const done = acts.filter((a) => a.status === "Done").length;
+            const open = acts.filter((a) => a.status === "Open" || a.status === "In Progress").length;
             const overdue = acts.filter((a) => isActionOverdue(a)).length;
             const st = meetingStatus(m);
             return (
               <StyledTableRow key={m.id} className="group cursor-pointer" onClick={() => setViewId(m.id)}>
-                <StyledTableCell className="font-medium text-foreground">{m.title}</StyledTableCell>
                 {pmo && <StyledTableCell className="text-sm text-muted-foreground">{m.project}</StyledTableCell>}
+                <StyledTableCell className="font-medium text-foreground">{m.title}</StyledTableCell>
                 <StyledTableCell className="text-sm text-muted-foreground">{m.type}</StyledTableCell>
                 <StyledTableCell className="num-mono text-sm">{formatDateWithYear(m.date)}{m.time ? ` · ${m.time}` : ""}</StyledTableCell>
                 <StyledTableCell><AttendeeSummary attendees={m.attendees} /></StyledTableCell>
                 <StyledTableCell className="text-sm">
                   {acts.length === 0 ? <span className="text-muted-foreground">—</span> : (
-                    <span className="num-mono">{done}/{acts.length} done{overdue ? <span className="text-rag-red"> · {overdue} overdue</span> : null}</span>
+                    <span className="num-mono cursor-default underline decoration-dotted underline-offset-4" title={`${open} open · ${overdue} overdue`} aria-label={`${acts.length} actions: ${open} open, ${overdue} overdue`}>{acts.length}</span>
                   )}
                 </StyledTableCell>
                 <StyledTableCell className="text-center" onClick={(e) => e.stopPropagation()}>
@@ -216,13 +218,13 @@ function AttendeeSummary({ attendees }: { attendees: Attendee[] }) {
 /* ── Create / edit ───────────────────────────────────────────────────────── */
 
 type MeetingDraft = Omit<Meeting, "id">;
+const TIMES_24H = Array.from({ length: 96 }, (_, i) => `${String(Math.floor(i / 4)).padStart(2, "0")}:${String((i % 4) * 15).padStart(2, "0")}`);
 const uid = () => `at-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
 function MeetingFormDialog({ open, onOpenChange, project, projectOptions, initial, onSave }: {
   open: boolean; onOpenChange: (o: boolean) => void; project?: string; projectOptions?: string[]; initial: Meeting | null;
   onSave: (v: MeetingDraft, thenAddActions: boolean) => void;
 }) {
-  const { users } = useCurrentUser();
   const { meetingTypes } = useMeetingTypes();
   const activeTypes = meetingTypes.filter((v) => v.active);
   const blank = (): MeetingDraft => ({ project: initial?.project ?? project ?? projectOptions?.[0] ?? "", title: "", type: activeTypes[0]?.name ?? "", date: new Date().toISOString().slice(0, 10), time: "", location: "", notes: "", attendees: [] });
@@ -234,10 +236,7 @@ function MeetingFormDialog({ open, onOpenChange, project, projectOptions, initia
     if (open) { setD(initial ? { ...initial, attendees: initial.attendees.map((a) => ({ ...a })) } : blank()); setAddAfter(!initial); }
   }
   const up = (p: Partial<MeetingDraft>) => setD((x) => ({ ...x, ...p }));
-  const upA = (id: string, p: Partial<Attendee>) => up({ attendees: d.attendees.map((a) => (a.id === id ? { ...a, ...p } : a)) });
-  const names = d.attendees.map((a) => a.name.trim().toLowerCase()).filter(Boolean);
-  const dupes = names.length !== new Set(names).size;
-  const valid = d.project && d.title.trim() && d.type && (activeTypes.some((v) => v.name === d.type) || initial?.type === d.type) && d.date && d.attendees.length > 0 && d.attendees.every((a) => a.name.trim()) && !dupes;
+  const valid = d.project && d.title.trim() && d.type && (activeTypes.some((v) => v.name === d.type) || initial?.type === d.type) && d.date;
 
   return (
     <FormDialog
@@ -272,55 +271,92 @@ function MeetingFormDialog({ open, onOpenChange, project, projectOptions, initia
           </Select>
         </Field>
         <Field label="Date"><DatePicker value={d.date} onChange={(v) => up({ date: v })} /></Field>
-        <Field label="Time (optional)" htmlFor="mt-time"><Input id="mt-time" type="time" value={d.time ?? ""} onChange={(e) => up({ time: e.target.value })} /></Field>
+        <Field label="Time (optional)">
+          <Select value={d.time || "none"} onValueChange={(v) => up({ time: v === "none" ? "" : v })}>
+            <SelectTrigger aria-label="Time"><SelectValue placeholder="HH:mm" /></SelectTrigger>
+            <SelectContent className="max-h-64">
+              <SelectItem value="none">No time</SelectItem>
+              {TIMES_24H.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </Field>
         <Field label="Location or link (optional)" htmlFor="mt-loc" className="col-span-2"><Input id="mt-loc" maxLength={200} value={d.location ?? ""} onChange={(e) => up({ location: e.target.value })} placeholder="e.g. Board room / Teams" /></Field>
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="label-eyebrow">{t.attendees} <span className="num-mono normal-case text-muted-foreground">· {d.attendees.length}</span></div>
-          <Button type="button" variant="secondary" size="icon" aria-label="Add attendee" title="Add attendee" data-ds-size="auto"
-            onClick={() => up({ attendees: [...d.attendees, { id: uid(), name: "", party: "Internal" }] })}
-            className="h-7 w-7 shrink-0 rounded-full border border-border/60 text-accent-secondary hover:!bg-[var(--btn-secondary-bg-hover)]"><Plus size={14} /></Button>
-        </div>
-        {d.attendees.length === 0 && <p className="text-sm text-muted-foreground">Add at least one attendee — employees, client, vendor, external stakeholders, or anyone else.</p>}
-        <div className="max-h-[168px] space-y-2 overflow-y-auto pr-1">
-          {d.attendees.map((a) => (
-            <div key={a.id} className="grid grid-cols-[140px_1fr_1fr_36px] gap-2">
-              <Select value={a.party} onValueChange={(v) => upA(a.id, { party: v as AttendeeParty, name: "", organization: "" })}>
-                <SelectTrigger aria-label="Party"><SelectValue /></SelectTrigger>
-                <SelectContent>{ATTENDEE_PARTIES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-              </Select>
-              {a.party === "Internal" ? (
-                <Select value={a.name || undefined} onValueChange={(v) => upA(a.id, { name: v })}>
-                  <SelectTrigger aria-label="Employee"><SelectValue placeholder="Select employee" /></SelectTrigger>
-                  <SelectContent>{users.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
-                </Select>
-              ) : (
-                <Input aria-label="Name" maxLength={80} value={a.name} onChange={(e) => upA(a.id, { name: e.target.value })} placeholder="Full name" />
-              )}
-              <Input aria-label="Organization" maxLength={80} value={a.party === "Internal" ? "" : a.organization ?? ""} disabled={a.party === "Internal"}
-                onChange={(e) => upA(a.id, { organization: e.target.value })} placeholder={a.party === "Internal" ? "Our organization" : "Organization (optional)"} />
-              <Button type="button" variant="ghost" size="icon" aria-label="Remove attendee" onClick={() => up({ attendees: d.attendees.filter((x) => x.id !== a.id) })}><DeleteAction size={14} /></Button>
-            </div>
-          ))}
-        </div>
-        {dupes && <p className="text-xs text-destructive">Each attendee can be added once.</p>}
-      </div>
+      <AttendeesEditor attendees={d.attendees} onChange={(attendees) => up({ attendees })} />
 
       <Field label="Agenda / notes (optional)" htmlFor="mt-notes">
         <Textarea id="mt-notes" maxLength={1000} value={d.notes ?? ""} onChange={(e) => up({ notes: e.target.value })} placeholder="Agenda, decisions, or minutes" />
       </Field>
-      {initial ? (
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Checkbox checked={!!d.cancelled} onCheckedChange={(v) => up({ cancelled: v === true })} /> Mark meeting as cancelled
-        </label>
-      ) : (
+      {!initial && (
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <Checkbox checked={addAfter} onCheckedChange={(v) => setAddAfter(v === true)} /> Add actions right after creating
         </label>
       )}
     </FormDialog>
+  );
+}
+
+/* ── Attendees composer (same pattern as risk/issue action rows) ─────────── */
+
+function AttendeesEditor({ attendees, onChange }: { attendees: Attendee[]; onChange: (a: Attendee[]) => void }) {
+  const { users } = useCurrentUser();
+  const fresh = (): Attendee => ({ id: uid(), name: "", party: "Internal", organization: "" });
+  const [draft, setDraft] = useState<Attendee>(fresh);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const upD = (p: Partial<Attendee>) => setDraft((x) => ({ ...x, ...p }));
+  const reset = () => { setDraft(fresh()); setEditingId(null); };
+  function commit() {
+    const name = draft.name.trim();
+    if (!name) { toast.error("Attendee name is required."); return; }
+    if (attendees.some((a) => a.id !== editingId && a.name.trim().toLowerCase() === name.toLowerCase())) { toast.error("Each attendee can be added once."); return; }
+    const clean = { ...draft, name, organization: draft.party === "External" ? draft.organization?.trim() : undefined };
+    onChange(editingId ? attendees.map((a) => (a.id === editingId ? clean : a)) : [...attendees, clean]);
+    reset();
+  }
+  return (
+    <div className="space-y-2">
+      <div className="label-eyebrow">{t.attendees} <span className="normal-case text-muted-foreground">(optional) · {attendees.length}</span></div>
+      <div className="grid grid-cols-[130px_1fr_1fr_36px] items-start gap-2 rounded-lg border border-border bg-secondary/30 p-3">
+        <Select value={draft.party} onValueChange={(v) => upD({ party: v as AttendeeParty, name: "", organization: "" })}>
+          <SelectTrigger aria-label="Party"><SelectValue /></SelectTrigger>
+          <SelectContent>{ATTENDEE_PARTIES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+        </Select>
+        {draft.party === "Internal" ? (
+          <Select value={draft.name || undefined} onValueChange={(v) => upD({ name: v })}>
+            <SelectTrigger aria-label="Employee"><SelectValue placeholder="Select employee" /></SelectTrigger>
+            <SelectContent>{users.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
+          </Select>
+        ) : (
+          <Input aria-label="Name" maxLength={80} value={draft.name} onChange={(e) => upD({ name: e.target.value })} placeholder="Full name" />
+        )}
+        <Input aria-label="Organization" maxLength={80} value={draft.party === "Internal" ? "" : draft.organization ?? ""} disabled={draft.party === "Internal"}
+          onChange={(e) => upD({ organization: e.target.value })} placeholder={draft.party === "Internal" ? "Our organization" : "Organization (optional)"} />
+        <Button type="button" variant="primary" size="icon" aria-label={editingId ? "Update attendee" : "Add attendee"} title={editingId ? "Update attendee" : "Add attendee"} onClick={commit} className="h-9 w-9 shrink-0">
+          {editingId ? <Check size={16} /> : <Plus size={16} />}
+        </Button>
+      </div>
+      <div className="max-h-48 overflow-y-auto rounded-lg border border-border bg-card">
+        {attendees.length === 0 ? (
+          <div className="px-3 py-5 text-center text-xs text-muted-foreground">No attendees added yet.</div>
+        ) : (
+          <div className="divide-y divide-border/60">
+            {attendees.map((a) => (
+              <div key={a.id} className={cn("group flex min-h-12 items-center gap-3 px-3 py-2 transition hover:bg-accent/5", editingId === a.id && "bg-accent/5")}>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium text-foreground">{a.name}</div>
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">{a.party}{a.organization ? ` · ${a.organization}` : ""}</div>
+                </div>
+                <div className="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                  <Button type="button" variant="ghost" size="icon" aria-label="Edit attendee" title="Edit attendee" onClick={() => { setDraft({ ...a }); setEditingId(a.id); }} className="h-7 w-7 text-accent-secondary"><EditAction size={14} /></Button>
+                  <Button type="button" variant="ghost" size="icon" aria-label="Remove attendee" title="Remove attendee" onClick={() => { onChange(attendees.filter((x) => x.id !== a.id)); if (editingId === a.id) reset(); }} className="h-7 w-7 text-muted-foreground hover:!bg-rag-red/15 hover:!text-rag-red"><DeleteAction size={14} /></Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -358,7 +394,7 @@ function MeetingDrawer({ meeting: m, onClose, onAddActions, onEdit }: {
         <SheetHeader className="border-b border-border px-6 pb-4 pt-6">
           <div className="flex items-center gap-2"><Pill label={st} tone={STATUS_TONE[st]} /><Pill label={m.type} tone="border-border bg-muted text-muted-foreground" /></div>
           <SheetTitle className="mt-2 text-lg">{m.title}</SheetTitle>
-          <SheetDescription className="text-xs">{m.id}</SheetDescription>
+          <SheetDescription className="sr-only">{m.type}</SheetDescription>
         </SheetHeader>
         <div className="grid grid-cols-3 divide-x divide-border border-b border-border">
           {[{ l: "Date", v: formatDateWithYear(m.date) }, { l: "Time", v: m.time || "—" }, { l: "Location", v: m.location || "—" }].map((k) => (
@@ -372,6 +408,7 @@ function MeetingDrawer({ meeting: m, onClose, onAddActions, onEdit }: {
           <div>
             <div className="label-eyebrow mb-2">{t.attendees} <span className="num-mono normal-case text-muted-foreground">· {m.attendees.length}</span></div>
             <div className="space-y-1.5">
+              {m.attendees.length === 0 && <p className="text-sm text-muted-foreground">No attendees recorded.</p>}
               {m.attendees.map((a) => (
                 <div key={a.id} className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
                   <div className="min-w-0">

@@ -225,7 +225,6 @@ function AttendeeSummary({ attendees }: { attendees: Attendee[] }) {
 /* ── Create / edit ───────────────────────────────────────────────────────── */
 
 type MeetingDraft = Omit<Meeting, "id">;
-const TIMES_24H = Array.from({ length: 96 }, (_, i) => `${String(Math.floor(i / 4)).padStart(2, "0")}:${String((i % 4) * 15).padStart(2, "0")}`);
 const uid = () => `at-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 
 function MeetingFormDialog({ open, onOpenChange, project, projectOptions, initial, onSave }: {

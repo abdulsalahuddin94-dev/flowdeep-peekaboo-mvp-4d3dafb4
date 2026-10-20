@@ -1,3 +1,7 @@
+
+## 2026-10-20 — Linked action details popup + Timeline header
+- Clicking an action in Risk/Issue/Meeting drawers now opens a details popup (status, owner, due, comments with edit/delete) with Update status, Edit and Delete.
+- Project Schedule WBS header "Duration" renamed to "Timeline".
 ## 2026-10-20 — Approval review page: removed Reference
 - Removed the Reference field from the approval review page (a request can span many schedule/cost/revenue items) and show Project type in its place.
 

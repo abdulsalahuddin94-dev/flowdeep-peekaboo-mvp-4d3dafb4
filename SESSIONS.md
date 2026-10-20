@@ -1,3 +1,7 @@
+## 2026-10-20 — Action details popup aligned to DS02
+- Footer actions in the action details popup (Risks/Issues/Meeting drawers) are now right-aligned and do not fill the width, following the DS02 popup anatomy: Delete (danger outline), Edit (outline) and Update action status (primary) as the last action.
+- Verified in the preview in both dark and light themes.
+
 
 ## 2026-10-20 — Design system: table header color #292931
 - Table header background changed from #45464F (Gray 600) to #292931 via the shared token --p-charcoal-800 / --table-header-bg in src/styles.css, so every table using the shared Table/TableHeader and the Project Schedule headers picks it up.

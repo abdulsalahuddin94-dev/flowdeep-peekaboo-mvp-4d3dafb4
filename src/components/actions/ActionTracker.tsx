@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "@tanstack/react-router";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
@@ -578,6 +578,43 @@ function ActionDrawer({ action: a, onClose, onUpdate, onEdit, onEditUpdate, onDe
   );
 }
 
+/* Comments list: scrolling starts only once a third comment exists. The cap
+   follows the real rendered height of the first two, so they never get cut. */
+function CommentList({ updates, onEdit, onDelete }: { updates: ActionUpdate[]; onEdit: (u: ActionUpdate) => void; onDelete: (u: ActionUpdate) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [cap, setCap] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const kids = Array.from(el.children) as HTMLElement[];
+    if (kids.length < 3) { setCap(null); return; }
+    const measure = () => {
+      setCap(Math.ceil(kids[1].getBoundingClientRect().bottom - el.getBoundingClientRect().top + el.scrollTop) + 1);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    kids.slice(0, 2).forEach((k) => ro.observe(k));
+    return () => ro.disconnect();
+  }, [updates]);
+  return (
+    <div ref={ref} role="group" aria-label={t.commentsUpdates} className="space-y-3 overflow-y-auto overscroll-contain pr-1" style={cap ? { maxHeight: cap } : undefined}>
+      {updates.map((u) => (
+        <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-foreground">{u.by}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="num-mono text-[10px] text-muted-foreground">{formatDateTime(u.at)}</span>
+              <button type="button" aria-label="Edit comment" className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => onEdit(u)}><EditAction size={13} /></button>
+              <button type="button" aria-label="Delete comment" className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => onDelete(u)}><DeleteAction size={13} /></button>
+            </div>
+          </div>
+          <p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">{u.comment}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ── Action details popup (opened from linked actions) ─────────────────── */
 
 function ActionDetailsDialog({ action: a, onClose, onUpdate, onEdit, onDelete, onEditUpdate, onDeleteUpdate }: {
@@ -608,21 +645,7 @@ function ActionDetailsDialog({ action: a, onClose, onUpdate, onEdit, onDelete, o
               <div>
                 <div className="label-eyebrow mb-2">{t.commentsUpdates}</div>
                 {a.updates.length === 0 && <p className="text-sm text-muted-foreground">No comments yet.</p>}
-                <div aria-label={t.commentsUpdates} className="max-h-80 space-y-3 overflow-y-auto overscroll-contain pr-1">
-                  {a.updates.map((u) => (
-                    <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-medium text-foreground">{u.by}</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className="num-mono text-[10px] text-muted-foreground">{formatDateTime(u.at)}</span>
-                          <button type="button" aria-label="Edit comment" className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => onEditUpdate(a, u)}><EditAction size={13} /></button>
-                          <button type="button" aria-label="Delete comment" className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => onDeleteUpdate(a, u)}><DeleteAction size={13} /></button>
-                        </div>
-                      </div>
-                      <p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">{u.comment}</p>
-                    </div>
-                  ))}
-                </div>
+                <CommentList updates={a.updates} onEdit={(u) => onEditUpdate(a, u)} onDelete={(u) => onDeleteUpdate(a, u)} />
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4">

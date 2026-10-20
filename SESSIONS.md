@@ -1,3 +1,8 @@
+## 2026-10-20 — Action comments scroll after two
+- Action details comments show exactly two cards before scrolling: the list caps itself to the measured rendered height of the first two comments, so wrapped text is never cut, and scrolling appears only when a third comment exists.
+- Extracted the list into CommentList in src/components/actions/ActionTracker.tsx (measured cap + ResizeObserver) instead of the fixed 320px cap.
+- Verified in the preview: one comment 74px without scrolling; four comments capped at 161px with the third clipped below and scrolling enabled; deleting back to two removes scrolling again.
+
 ## 2026-10-20 — Comments scrolling and DS02 text/search rules
 - Action details comments have their own bounded scroll area; header and footer remain visible with long histories.
 - Natural-case labels replace uppercase styling globally, with Poppins-only font tokens.

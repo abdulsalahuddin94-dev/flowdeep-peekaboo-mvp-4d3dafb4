@@ -1,3 +1,6 @@
+## 2026-10-20 — Meetings ticket
+- 24-hr time picker; attendees optional, added via composer like risk actions, parties Internal/External only; Actions column shows count with open/overdue on hover; removed cancelled checkbox + status; no meeting ID in view; Action Tracker source "Meeting"; global Meetings/Action Tracker lists: Project first column, extra Project + Project type filters.
+
 ## 2026-10-20 — Meeting Types: related meetings
 - Added Related meetings count column (popup lists meeting name + project), Has/No related meetings filter, and delete blocked for types in use (offers Deactivate); unused types delete permanently.
 

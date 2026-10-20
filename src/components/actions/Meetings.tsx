@@ -272,8 +272,8 @@ function MeetingFormDialog({ open, onOpenChange, project, projectOptions, initia
         </Field>
         <Field label="Date"><DatePicker value={d.date} onChange={(v) => up({ date: v })} /></Field>
         <Field label="Time (optional)">
-          <Select value={d.time || "none"} onValueChange={(v) => up({ time: v === "none" ? "" : v })}>
-            <SelectTrigger aria-label="Time"><SelectValue placeholder="HH:mm" /></SelectTrigger>
+          <Select value={d.time || undefined} onValueChange={(v) => up({ time: v === "none" ? "" : v })}>
+            <SelectTrigger aria-label="Time"><SelectValue placeholder="No time (24-hour, HH:mm)" /></SelectTrigger>
             <SelectContent className="max-h-64">
               <SelectItem value="none">No time</SelectItem>
               {TIMES_24H.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}

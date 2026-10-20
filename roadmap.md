@@ -1,4 +1,7 @@
 # Roadmap
+- [x] Attendee name field: plain text input for both Internal and External parties in the meetings composer.
+
+
 - [x] Compact Project Schedule: stacked Duration dates, plain dependency/financial counts, and verify detail navigation at smaller laptop widths.
 
 - [x] Add PMO-level Action Tracker module (all projects) in the sidebar before Approvals.

@@ -300,8 +300,8 @@ function MeetingFormDialog({ open, onOpenChange, project, projectOptions, initia
 /* ── Attendees composer (same pattern as risk/issue action rows) ─────────── */
 
 function AttendeesEditor({ attendees, onChange }: { attendees: Attendee[]; onChange: (a: Attendee[]) => void }) {
-  const { users } = useCurrentUser();
   const fresh = (): Attendee => ({ id: uid(), name: "", party: "Internal", organization: "" });
+
   const [draft, setDraft] = useState<Attendee>(fresh);
   const [editingId, setEditingId] = useState<string | null>(null);
   const upD = (p: Partial<Attendee>) => setDraft((x) => ({ ...x, ...p }));
@@ -322,14 +322,8 @@ function AttendeesEditor({ attendees, onChange }: { attendees: Attendee[]; onCha
           <SelectTrigger aria-label="Party"><SelectValue /></SelectTrigger>
           <SelectContent>{ATTENDEE_PARTIES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
         </Select>
-        {draft.party === "Internal" ? (
-          <Select value={draft.name || undefined} onValueChange={(v) => upD({ name: v })}>
-            <SelectTrigger aria-label="Employee"><SelectValue placeholder="Select employee" /></SelectTrigger>
-            <SelectContent>{users.map((u) => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}</SelectContent>
-          </Select>
-        ) : (
-          <Input aria-label="Name" maxLength={80} value={draft.name} onChange={(e) => upD({ name: e.target.value })} placeholder="Full name" />
-        )}
+        <Input aria-label="Name" maxLength={80} value={draft.name} onChange={(e) => upD({ name: e.target.value })} placeholder="Full name" />
+
         <Input aria-label="Organization" maxLength={80} value={draft.party === "Internal" ? "" : draft.organization ?? ""} disabled={draft.party === "Internal"}
           onChange={(e) => upD({ organization: e.target.value })} placeholder={draft.party === "Internal" ? "Our organization" : "Organization (optional)"} />
         <Button type="button" variant="primary" size="icon" aria-label={editingId ? "Update attendee" : "Add attendee"} title={editingId ? "Update attendee" : "Add attendee"} onClick={commit} className="h-9 w-9 shrink-0">

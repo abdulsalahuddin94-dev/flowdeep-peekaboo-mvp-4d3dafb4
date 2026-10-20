@@ -625,10 +625,10 @@ function ActionDetailsDialog({ action: a, onClose, onUpdate, onEdit, onDelete, o
                 </div>
               </div>
             </div>
-            <div className="flex gap-2 border-t border-border px-6 py-4">
-              <Button variant="primary" className="flex-1" onClick={() => onUpdate(a)}>{t.updateStatus}</Button>
-              <Button variant="outline" onClick={() => onEdit(a)}><EditAction size={15} /> Edit</Button>
+            <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4">
               <Button variant="outline" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => onDelete(a)}><DeleteAction size={15} /> Delete</Button>
+              <Button variant="outline" onClick={() => onEdit(a)}><EditAction size={15} /> Edit</Button>
+              <Button variant="primary" onClick={() => onUpdate(a)}>{t.updateStatus}</Button>
             </div>
           </>
         )}

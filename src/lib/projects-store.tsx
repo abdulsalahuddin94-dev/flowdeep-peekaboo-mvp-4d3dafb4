@@ -42,6 +42,34 @@ export type ApprovalRequest = {
   reminders: number;
 };
 
+// Demo request spanning all three plan sections, sized to exercise paging on the review page.
+const AP_1035_DEMO_CHANGES: ApprovalRequest["summary"] = [
+  ...["Discovery & Assessment", "Data Mapping", "Org Setup", "Custom Objects", "Data Migration Wave 1", "Data Migration Wave 2", "Integration Build", "UAT Round 1", "UAT Round 2", "Training", "Go-Live", "Hypercare"].flatMap((item, i) => {
+    const start = new Date(Date.UTC(2026, 7, 3 + i * 9));
+    const fin = (d: number) => new Date(start.getTime() + d * 86400000).toISOString().slice(0, 10);
+    const rows: ApprovalRequest["summary"] = [
+      { label: `${item} · Finish`, before: fin(10), after: fin(14 + (i % 3) * 3) },
+    ];
+    if (i % 2 === 0) rows.push({ label: `${item} · Owner`, before: "Omar Haddad", after: "Mei Chen" });
+    if (i % 3 === 0) rows.push({ label: `${item} · Depends on`, before: "—", after: `${i === 0 ? "Kick-off" : "Previous phase"} (FS)` });
+    if (i % 4 === 1) rows.push({ label: `${item} · Weight`, before: `${5 + i}%`, after: `${7 + i}%` });
+    return rows;
+  }),
+  { label: "Cost · Licences · Planned amount", before: "$180,000", after: "$225,000" },
+  { label: "Cost · Licences · Due date", before: "2026-08-15", after: "2026-09-01" },
+  { label: "Cost · Integration · Cost type", before: "OpEx", after: "CapEx" },
+  { label: "Cost · Integration · Planned amount", before: "$95,000", after: "$120,000" },
+  { label: "Cost · Data Migration Contractor · Planned amount", before: "$60,000", after: "$72,500" },
+  { label: "Cost · Data Migration Contractor · Vendor", before: "DataBridge LLC", after: "MigrateCo" },
+  { label: "Cost · Training Materials · Due date", before: "2026-10-01", after: "2026-10-20" },
+  { label: "Cost · Hypercare Support · Planned amount", before: "—", after: "$18,000" },
+  { label: "Revenue · Phase 1 Acceptance · Planned amount", before: "$250,000", after: "$230,000" },
+  { label: "Revenue · Phase 1 Acceptance · Expected date", before: "2026-09-15", after: "2026-10-05" },
+  { label: "Revenue · Go-Live Milestone · Planned amount", before: "$300,000", after: "$340,000" },
+  { label: "Revenue · Go-Live Milestone · Probability", before: "75%", after: "90%" },
+  { label: "Revenue · Hypercare Closure · Expected date", before: "2026-12-10", after: "2027-01-15" },
+];
+
 const SEED_APPROVALS: ApprovalRequest[] = [
   {
     id: "AP-1041",
@@ -91,13 +119,10 @@ const SEED_APPROVALS: ApprovalRequest[] = [
     projectId: "p-003",
     projectName: "Salesforce Migration",
     ref: "CR-financials-0031",
-    title: "Financials change request — 2 changes",
+    title: `Plan change request — ${AP_1035_DEMO_CHANGES.length} changes`,
     requestedBy: "John Smith",
     requestedAt: "2026-07-21",
-    summary: [
-      { label: "Cost · Licences · Budget", before: "$180,000", after: "$225,000" },
-      { label: "Cost · Integration · Cost type", before: "OpEx", after: "CapEx" },
-    ],
+    summary: AP_1035_DEMO_CHANGES,
     approvers: [
       { id: "u-aisha", name: "Aisha Khoury", role: "Portfolio Director", department: "PMO", decision: "pending" },
     ],

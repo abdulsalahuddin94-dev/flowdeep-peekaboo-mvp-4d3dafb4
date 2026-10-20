@@ -1,4 +1,7 @@
 ## 2026-10-20 — Approval review header simplified
+
+## 2026-10-20 — Approval review demo data
+- AP-1035 sample change request now spans Project Schedule (~30 rows), Cost Breakdown (8) and Revenue Breakdown (5) changes so search and paging are visible.
 - Replaced the redundant top block on the approval review page (subtitle duplicating Requested by/on plus a sparse 4-column info card) with a compact meta line: clickable project link, project type, and Requested by/on, directly under the title with badges and action buttons right-aligned.
 - Verified in the preview at 1587px: title/actions on one line, meta line beneath, tabs follow without the empty card band.
 

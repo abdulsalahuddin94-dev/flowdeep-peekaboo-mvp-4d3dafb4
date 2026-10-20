@@ -220,7 +220,7 @@ function ChangeRequestReviewPage() {
       <div className="mt-3">
         <PageHeader
           title={approval.title}
-          subtitle={`${approval.ref} · Requested by ${approval.requestedBy} on ${formatDateWithYear(approval.requestedAt)}`}
+          subtitle={`Requested by ${approval.requestedBy} on ${formatDateWithYear(approval.requestedAt)}`}
           actions={
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="outline" className={approval.type === "milestone-gate" ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber" : "border-accent/40 bg-accent-dim text-accent"}>{approval.type === "milestone-gate" ? "Milestone gate" : "Change request"}</Badge>
@@ -250,7 +250,8 @@ function ChangeRequestReviewPage() {
             </Link>
           ) : <div className="mt-1 text-foreground">{approval.projectName}</div>}
         </div>
-        <div><div className="text-xs text-muted-foreground">Reference</div><div className="mt-1 text-foreground">{approval.ref}</div></div>
+        <div><div className="text-xs text-muted-foreground">Project type</div><div className="mt-1 text-foreground">{project?.businessLine ?? "—"}</div></div>
+
         <div><div className="text-xs text-muted-foreground">Requested by</div><div className="mt-1 text-foreground">{approval.requestedBy}</div></div>
         <div><div className="text-xs text-muted-foreground">Requested on</div><div className="mt-1 text-foreground">{formatDateWithYear(approval.requestedAt)}</div></div>
       </section>

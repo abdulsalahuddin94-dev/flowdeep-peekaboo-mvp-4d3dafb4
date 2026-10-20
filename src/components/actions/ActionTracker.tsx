@@ -608,21 +608,7 @@ function ActionDetailsDialog({ action: a, onClose, onUpdate, onEdit, onDelete, o
               <div>
                 <div className="label-eyebrow mb-2">{t.commentsUpdates}</div>
                 {a.updates.length === 0 && <p className="text-sm text-muted-foreground">No comments yet.</p>}
-                <div aria-label={t.commentsUpdates} className="max-h-80 space-y-3 overflow-y-auto overscroll-contain pr-1">
-                  {a.updates.map((u) => (
-                    <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-medium text-foreground">{u.by}</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className="num-mono text-[10px] text-muted-foreground">{formatDateTime(u.at)}</span>
-                          <button type="button" aria-label="Edit comment" className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground" onClick={() => onEditUpdate(a, u)}><EditAction size={13} /></button>
-                          <button type="button" aria-label="Delete comment" className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive" onClick={() => onDeleteUpdate(a, u)}><DeleteAction size={13} /></button>
-                        </div>
-                      </div>
-                      <p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">{u.comment}</p>
-                    </div>
-                  ))}
-                </div>
+                <CommentList updates={a.updates} onEdit={(u) => onEditUpdate(a, u)} onDelete={(u) => onDeleteUpdate(a, u)} />
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4">

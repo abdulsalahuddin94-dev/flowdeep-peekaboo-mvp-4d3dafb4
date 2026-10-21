@@ -159,7 +159,8 @@ function ProjectDetail() {
   const { addNotification } = useNotifications();
   const { addRfp } = useRfps();
   const { addResourceRequest, resourceRequests } = useResourceRequests();
-  const { addApprovalRequest: addProjectApproval, currentUser: approvalUser, approvals: centralApprovals } = useApprovals();
+  const { addApprovalRequest: addProjectApproval, currentUser: approvalUser, approvals: centralApprovals, withdrawApproval } = useApprovals();
+  const [pendingCrViewOpen, setPendingCrViewOpen] = useState(false);
   const { jobRoles } = useJobRoles();
   const navigate = useNavigate();
   const project = liveProjects.find((p) => p.id === loaderProject.id) ?? loaderProject;
@@ -608,6 +609,24 @@ function ProjectDetail() {
     toast.success(`New baseline sent for approval — track it in the Approvals module`);
   }
 
+  const pendingCr = changeRequests.find((cr) => cr.status === "pending" && cr.approvalId);
+
+  /** Withdraw cancels the approval and reopens Change Plan with the same edits as a draft. */
+  function withdrawPendingChange() {
+    if (!pendingCr) return;
+    if (pendingCr.approvalId) withdrawApproval(pendingCr.approvalId);
+    setChangeRequests((prev) => prev.map((c) => (c.id === pendingCr.id ? { ...c, status: "withdrawn" as const } : c)));
+    const latest = projectBaselineVersions[projectBaselineVersions.length - 1];
+    setEditBaselineSnapshot(((latest?.snapshot as Milestone[] | undefined) ?? milestones).map((m) => ({ ...m })));
+    const fin = latest?.financials ?? { cost: costEntries, rev: revEntries };
+    setEditFinSnapshot({ cost: fin.cost.map((e) => ({ ...e })), rev: fin.rev.map((e) => ({ ...e })) });
+    setPlanEditMode("editing");
+    setPendingCrViewOpen(false);
+    if (!FOCUS_TABS.includes(activeTab)) setActiveTab("Project Schedule");
+    logActivity({ project: project.name, kind: "Baseline", title: "Change request withdrawn", text: `${pendingCr.id} withdrawn — edits kept as a draft`, by: approvalUser.name });
+    toast.success("Request withdrawn — your changes are back in Change Plan as a draft");
+  }
+
   function saveProjectBaseline() {
     const snapshot = computeDerivedSchedule(milestones, resourceRequests).map((item) => ({ ...item }));
     const createdAt = new Date().toISOString().split("T")[0];
@@ -682,10 +701,12 @@ function ProjectDetail() {
                 </Badge>
               )}
               {isViewingCurrent && planEditMode === "pending" && (
-                <Badge variant="outline" className="h-7 gap-1.5 border-rag-blue/40 bg-rag-blue/10 px-2.5 text-[11px] font-medium text-rag-blue">
-                  <Clock className="h-3.5 w-3.5" />
-                  Waiting for Approval
-                </Badge>
+                <button type="button" onClick={() => setPendingCrViewOpen(true)} className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <Badge variant="outline" className="h-7 cursor-pointer gap-1.5 border-rag-blue/40 bg-rag-blue/10 px-2.5 text-[11px] font-medium text-rag-blue hover:bg-rag-blue/20">
+                    <Clock className="h-3.5 w-3.5" />
+                    Waiting for Approval
+                  </Badge>
+                </button>
               )}
               <Select value={selectedBaselineVersion} onValueChange={(v) => {
                 setSelectedBaselineVersion(v);
@@ -901,7 +922,15 @@ function ProjectDetail() {
           <div className="flex flex-wrap items-center justify-end gap-2">
             {project.tags.slice(0, 1).map((tag) => <Badge key={tag} variant="secondary">{tag}</Badge>)}
             {pendingApprovalCount > 0 && (
-              <Badge variant="outline" className="border-rag-amber/30 bg-rag-amber/10 text-rag-amber">{pendingApprovalCount} Pending Approvals</Badge>
+              pendingCr ? (
+                <button type="button" onClick={() => setPendingCrViewOpen(true)} className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <Badge variant="outline" className="cursor-pointer border-rag-amber/30 bg-rag-amber/10 text-rag-amber hover:bg-rag-amber/20">{pendingApprovalCount} Pending Approvals</Badge>
+                </button>
+              ) : (
+                <Link to="/approvals" className="rounded-full">
+                  <Badge variant="outline" className="cursor-pointer border-rag-amber/30 bg-rag-amber/10 text-rag-amber hover:bg-rag-amber/20">{pendingApprovalCount} Pending Approvals</Badge>
+                </Link>
+              )
             )}
           </div>
         </div>
@@ -1284,6 +1313,13 @@ function ProjectDetail() {
 
       </Tabs>
       {/* Mounted outside the tabs so Save baseline works from any baselined tab (Schedule, Cost, Revenue). */}
+          <PendingChangeRequestDialog
+            open={pendingCrViewOpen && !!pendingCr}
+            onOpenChange={setPendingCrViewOpen}
+            cr={pendingCr}
+            otherPending={Math.max(0, pendingApprovalCount - (pendingCr ? 1 : 0))}
+            onWithdraw={withdrawPendingChange}
+          />
           {/* CR Dialog — reviewing changes here is the only review step; decisions happen in the Approvals module. */}
           <ChangeRequestDialog
             open={crDialogOpen}
@@ -6179,7 +6215,7 @@ interface ChangeRequest {
   reason: string;
   submittedBy: string;
   createdAt: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "withdrawn";
   approvedBy?: string;
   approvedAt?: string;
   approvalReason?: string;
@@ -6364,6 +6400,100 @@ function ChangeRequestDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Read-only view of the submitted change request, with Withdraw for the requester. */
+function PendingChangeRequestDialog({
+  open, onOpenChange, cr, otherPending, onWithdraw,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  cr?: ChangeRequest;
+  otherPending: number;
+  onWithdraw: () => void;
+}) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const rows = (cr?.changes ?? []).map((c) => {
+    const i = c.field.lastIndexOf(" · ");
+    return { item: i >= 0 ? c.field.slice(0, i) : c.field, field: i >= 0 ? c.field.slice(i + 3) : "Item", oldValue: c.oldValue, newValue: c.newValue };
+  });
+  const grouped = (() => {
+    const m = new Map<string, Array<{ field: string; oldValue: string; newValue: string }>>();
+    for (const r of rows) {
+      if (!m.has(r.item)) m.set(r.item, []);
+      m.get(r.item)!.push({ field: r.field, oldValue: r.oldValue, newValue: r.newValue });
+    }
+    return Array.from(m.entries());
+  })();
+  const sections = [
+    { key: "schedule", label: "Project Schedule", match: (i: string) => !i.startsWith("Cost · ") && !i.startsWith("Revenue · "), strip: "" },
+    { key: "cost", label: "Cost Breakdown", match: (i: string) => i.startsWith("Cost · "), strip: "Cost · " },
+    { key: "revenue", label: "Revenue Breakdown", match: (i: string) => i.startsWith("Revenue · "), strip: "Revenue · " },
+  ];
+  const firstWith = sections.find((s) => grouped.some(([i]) => s.match(i)))?.key ?? "schedule";
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex flex-wrap items-center gap-2">
+              Waiting for approval
+              <Badge variant="outline" className="border-rag-blue/40 bg-rag-blue/10 text-[10px] text-rag-blue">
+                {rows.length} change{rows.length === 1 ? "" : "s"} · {grouped.length} item{grouped.length === 1 ? "" : "s"}
+              </Badge>
+            </DialogTitle>
+            <DialogDescription>
+              {cr ? `${cr.id} · sent ${formatDateWithYear(cr.createdAt)}. ` : ""}Withdraw to cancel the request and keep editing these changes.
+            </DialogDescription>
+          </DialogHeader>
+          <Tabs key={cr?.id} defaultValue={firstWith} className="w-full">
+            <TabsList className="w-full">
+              {sections.map((s) => (
+                <TabsTrigger key={s.key} value={s.key} className="flex-1 gap-2">
+                  {s.label}
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-[10px] text-muted-foreground">{rows.filter((r) => s.match(r.item)).length}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {sections.map((s) => {
+              const list = grouped.filter(([i]) => s.match(i));
+              return (
+                <TabsContent key={s.key} value={s.key}>
+                  <div className="max-h-[380px] space-y-2 overflow-y-auto rounded-md border border-border/50 bg-secondary/20 p-3">
+                    {list.length === 0 ? (
+                      <div className="py-6 text-center text-sm text-muted-foreground">No changes in {s.label}.</div>
+                    ) : list.map(([item, l]) => (
+                      <GroupedChangeItem key={item} item={s.strip ? item.slice(s.strip.length) : item} changes={l} />
+                    ))}
+                  </div>
+                </TabsContent>
+              );
+            })}
+          </Tabs>
+          {otherPending > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {otherPending} other pending approval{otherPending === 1 ? "" : "s"} on this project —{" "}
+              <Link to="/approvals" className="text-accent hover:underline">view in Approvals</Link>
+            </p>
+          )}
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => onOpenChange(false)}>Close</Button>
+            <Button variant="outline" className="border-rag-red/40 text-rag-red" onClick={() => setConfirmOpen(true)}>Withdraw request</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        tone="danger"
+        title="Withdraw this change request?"
+        description="Approvers will no longer see it. Your changes return to Change Plan as a draft so you can edit and send them again."
+        cancelLabel="Keep request"
+        confirmLabel="Withdraw"
+        onConfirm={() => { setConfirmOpen(false); onWithdraw(); }}
+      />
+    </>
   );
 }
 

@@ -193,7 +193,7 @@ function AwaitingOthersWidget() {
   return (
     <Tile className="col-span-12" eyebrow="Awaiting others">
       {mine.length === 0 ? (
-        <p className="text-xs text-muted-foreground">You have no requests pending with approvers.</p>
+        <p className="text-xs text-muted-foreground">You have no pending requests.</p>
       ) : (
         <ul className="space-y-2">
           {mine.map((a) => (
@@ -202,9 +202,7 @@ function AwaitingOthersWidget() {
                 <div className="truncate text-sm text-foreground">{a.title}</div>
                 <div className="text-[11px] text-muted-foreground">{a.projectName} · sent {formatDateWithYear(a.requestedAt)}</div>
               </div>
-              <span className="shrink-0 text-[11px] text-rag-amber">
-                {a.approvers.filter((ap) => ap.decision === "approved").length}/{a.approvers.length} approved
-              </span>
+              <span className="shrink-0 text-[11px] text-rag-amber">Awaiting decision</span>
             </li>
           ))}
         </ul>

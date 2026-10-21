@@ -39,7 +39,7 @@ export function ApprovalOutcomeBanner({
         {title ?? (
           request.status === "approved" ? "Approved in Approvals inbox"
           : request.status === "rejected" ? "Rejected in Approvals inbox"
-          : `Waiting — ${request.approvers.filter((a) => a.decision === "approved").length}/${request.approvers.length} approved`
+          : "Awaiting approval in Approvals inbox"
         )}
       </div>
       {decided.length > 0 && (

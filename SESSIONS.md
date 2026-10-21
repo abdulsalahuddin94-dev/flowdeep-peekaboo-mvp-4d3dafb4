@@ -1,3 +1,8 @@
+## 2026-10-21 — Approval review: change search removed
+- Removed the "Search changes…" field from the change-request review page, so each of the three tabs (Project Schedule, Cost Breakdown, Revenue Breakdown) opens straight into its changes table.
+- The section now lists every change for that tab with the same 25-per-page paging, and the empty state simply reads "No changes in {section}."
+- Verified in the preview on AP-1035: no search field on any tab, tabs still show 25 / 8 / 5 changes and page through normally.
+
 ## 2026-10-21 — Issues Log: Impact column removed
 - Dropped the Impact column from the Issues Log table in both the portfolio module and the project Risk & Issues tab; the severity pill now sits directly before Open date, and the empty-state colSpan was reduced to match.
 - Impact values are untouched in the records and stay readable in the issue details panel, so nothing is lost from the data.

@@ -4,7 +4,6 @@ import { PageHeader } from "@/components/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { FormDialog } from "@/components/ui/form-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -83,30 +82,14 @@ function splitChanges(summary: ApprovalRequest["summary"]): Record<SectionKey, S
 const PAGE_SIZE = 25;
 
 function SectionChanges({ changes, label }: { changes: SectionChange[]; label: string }) {
-  const [query, setQuery] = useState("");
   const [page, setPage] = useState(0);
-  const q = query.trim().toLowerCase();
-  const filtered = q
-    ? changes.filter((c) => [c.item, c.field, c.before, c.after].some((v) => v?.toLowerCase().includes(q)))
-    : changes;
-  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pages = Math.max(1, Math.ceil(changes.length / PAGE_SIZE));
   const current = Math.min(page, pages - 1);
-  const rows = filtered.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE);
+  const rows = changes.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <section>
       <h3 className="mb-3 text-sm font-medium text-foreground">{label} changes ({changes.length})</h3>
-      <div dir="ltr" className="mb-3 flex flex-wrap items-center justify-start gap-3">
-        {changes.length > 0 && (
-          <Input
-            dir="auto"
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); setPage(0); }}
-            placeholder="Search changes…"
-            className="w-64"
-          />
-        )}
-      </div>
       <StyledTable wrapperClassName="">
         <StyledTableHeader>
           <StyledTableHeaderRow>
@@ -120,7 +103,7 @@ function SectionChanges({ changes, label }: { changes: SectionChange[]; label: s
           {rows.length === 0 ? (
             <StyledTableRow>
               <StyledTableCell colSpan={4} className="py-8 text-center text-sm text-muted-foreground">
-                {changes.length === 0 ? `No changes in ${label}.` : "No changes match your search."}
+                {`No changes in ${label}.`}
               </StyledTableCell>
             </StyledTableRow>
           ) : rows.map((c, i) => (
@@ -135,7 +118,7 @@ function SectionChanges({ changes, label }: { changes: SectionChange[]; label: s
       </StyledTable>
       {pages > 1 && (
         <div className="mt-3 flex items-center justify-end gap-2 text-xs text-muted-foreground">
-          <span>Page {current + 1} of {pages} · {filtered.length} changes</span>
+          <span>Page {current + 1} of {pages} · {changes.length} changes</span>
           <Button variant="secondary" disabled={current === 0} onClick={() => setPage(current - 1)}>Previous</Button>
           <Button variant="secondary" disabled={current >= pages - 1} onClick={() => setPage(current + 1)}>Next</Button>
         </div>

@@ -257,7 +257,7 @@ function ChangeRequestReviewPage() {
                     {initialsOf(approver.name)}
                   </span>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="w-72 max-w-72 whitespace-normal text-left">
+                <TooltipContent side="bottom" className="w-64 max-w-64 whitespace-normal text-left">
                   <div className="space-y-1">
                     <div className="font-medium">
                       {approver.name}

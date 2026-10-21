@@ -18,7 +18,7 @@ import {
 } from "@/components/StyledTable";
 import { EmptyRow } from "@/components/ds/PageToolbar";
 import { RagBadge } from "@/components/RagBadge";
-import { ArrowLeft, Bell } from "@/lib/icons";
+import { ArrowLeft } from "@/lib/icons";
 import { useApprovals, type ApprovalRequest } from "@/lib/projects-store";
 import { projects } from "@/lib/mock-data";
 import { PLAN_CACHE } from "@/lib/plan-cache";
@@ -132,7 +132,7 @@ const money = (value: number | null) => (value == null ? "—" : `$${value.toFix
 function ChangeRequestReviewPage() {
   const { approvalId } = Route.useParams();
   const navigate = useNavigate();
-  const { approvals, decideApproval, remindApproval, currentUser } = useApprovals();
+  const { approvals, decideApproval, currentUser } = useApprovals();
   const approval = approvals.find((a) => a.id === approvalId) ?? null;
 
   const [mode, setMode] = useState<"approve" | "reject">("approve");
@@ -189,11 +189,6 @@ function ChangeRequestReviewPage() {
     navigate({ to: "/approvals" });
   }
 
-  function sendReminder() {
-    if (!approval) return;
-    remindApproval(approval.id);
-    toast.success("Reminder sent to pending approvers");
-  }
 
   return (
     <div>
@@ -210,7 +205,6 @@ function ChangeRequestReviewPage() {
               <Badge variant="outline" className={statusTone(approval.status)}>{approval.status}</Badge>
               {approval.status === "pending" && (
                 <>
-                  <Button variant="secondary" onClick={sendReminder}><Bell className="h-4 w-4" />Remind</Button>
                   {canAct && (
                     <>
                       <Button variant="outline" className="border-rag-red/40 text-rag-red" onClick={() => openDecision("reject")}>Reject</Button>

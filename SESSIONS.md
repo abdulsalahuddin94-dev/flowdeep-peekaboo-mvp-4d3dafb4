@@ -1,4 +1,10 @@
+## 2026-10-21 — Risk Register: score moved into the tooltip
+- Removed the Score column from the Risk Register table (module and project views); Severity is now the first numeric column and the empty-state colSpan was reduced to match.
+- The severity hover hint now ends with the score: "Probability: Likely (4) · Impact: Severe (5) = 20", so the number stays reachable without a dedicated column.
+- Verified in the preview: module headers Project · Risk · Category · Severity · Mitigation action · Status, project headers Risk · Category · Severity · Mitigation action · Status, and both tooltips render the score.
+
 ## 2026-10-20 — Approval review header simplified
+
 
 ## 2026-10-20 — Approval review demo data
 - AP-1035 sample change request now spans Project Schedule (~30 rows), Cost Breakdown (8) and Revenue Breakdown (5) changes so search and paging are visible.

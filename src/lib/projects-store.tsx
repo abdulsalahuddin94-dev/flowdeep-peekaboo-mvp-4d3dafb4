@@ -352,25 +352,34 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
     return id;
   }
 
+  // Single-approver mode: any signed-in user can decide, and one decision
+  // resolves the request immediately. The multi-approver structure stays so the
+  // approvers display can be restored later; a user deciding who was not
+  // pre-listed is recorded as the deciding approver.
   function decideApproval(id: string, approverId: string, decision: Exclude<ApprovalDecision, "pending">, comment?: string) {
-    let finalStatus: ApprovalDecision = "pending";
+    const actor = APP_USERS.find((u) => u.id === approverId);
     setApprovals((prev) => prev.map((a) => {
       if (a.id !== id) return a;
-      const approvers = a.approvers.map((ap) => ap.id === approverId
+      const listed = a.approvers.some((ap) => ap.id === approverId);
+      const approvers = (listed ? a.approvers : [
+        ...a.approvers,
+        {
+          id: approverId,
+          name: actor?.name ?? "Unknown",
+          role: actor?.role ?? "—",
+          department: actor?.department ?? "—",
+          decision: "pending" as ApprovalDecision,
+        },
+      ]).map((ap) => ap.id === approverId
         ? { ...ap, decision, decidedAt: new Date().toISOString().split("T")[0], comment }
         : ap);
-      const status: ApprovalDecision =
-        approvers.some((ap) => ap.decision === "rejected") ? "rejected"
-        : approvers.every((ap) => ap.decision === "approved") ? "approved"
-        : "pending";
-      finalStatus = status;
-      return { ...a, approvers, status };
+      return { ...a, approvers, status: decision };
     }));
     // Calendar edits are already applied org-wide. A project that rejects the
     // update keeps working on a frozen copy of the previous calendar.
     const queued = pendingCalendarPatches[id];
-    if (queued && finalStatus !== "pending") {
-      if (finalStatus === "rejected") {
+    if (queued) {
+      if (decision === "rejected") {
         const pinnedId = `${queued.previous.id}-pinned-${queued.projectId}`;
         setCalendars((prev) => prev.some((c) => c.id === pinnedId)
           ? prev
@@ -623,8 +632,8 @@ export function useCurrentUser() {
 
 export function useApprovals() {
   const { approvals, addApprovalRequest, decideApproval, remindApproval, withdrawApproval, currentUser } = useAppContext();
-  const myPending = approvals.filter(
-    (a) => a.status === "pending" && a.approvers.some((ap) => ap.id === currentUser.id && ap.decision === "pending"),
-  );
+  // Single-approver mode: any signed-in user can decide, so every pending
+  // request is actionable by the current user.
+  const myPending = approvals.filter((a) => a.status === "pending");
   return { approvals, addApprovalRequest, decideApproval, remindApproval, withdrawApproval, currentUser, myPending };
 }

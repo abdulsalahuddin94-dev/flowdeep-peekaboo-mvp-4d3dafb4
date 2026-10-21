@@ -54,3 +54,4 @@
 - [x] Approval review page: remove the change search field from all three plan tabs, keeping paging.
 - [x] Approvals module: remove the reminder action from table rows, the details drawer, and the review page header.
 - [x] Approval review header: remove the type/status tag badges and present Approvers inside the header alongside the other meta data.
+- [x] Approvals: hide Approvers (table column, review header, drawer) temporarily and switch to a single-approver flow — one decision by any signed-in user resolves the request immediately.

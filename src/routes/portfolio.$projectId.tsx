@@ -2118,7 +2118,7 @@ function ProgressUpdateDialog({
 
   const msApproved = approvalMilestone?.approvalStatus === "approved";
   // Decisions live in the central Approvals inbox — this panel is read-only here.
-  const { approvals, addApprovalRequest, remindApproval, currentUser } = useApprovals();
+  const { approvals, addApprovalRequest, currentUser } = useApprovals();
   const gateRequest = useMemo(
     () => approvals.find(
       (a) => a.type === "milestone-gate" && a.projectId === projectId && a.ref === approvalMilestone?.name,

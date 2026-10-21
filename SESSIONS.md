@@ -1,3 +1,16 @@
+## 2026-10-21 — Approval review: type/status pills removed, Approvers moved into the header
+- Removed the "Milestone gate" / "Change request" tag pill and the status pill from the review page header; the header now carries only the title, with Reject/Approve shown while the signed-in user still owes a decision.
+- The compact meta line under the title gained the request status as a coloured dot plus text, and the approvers now sit on the same band at the right: an "Approvers" label, an overlapping initials-avatar stack, and an "N of M approved" count.
+- Each avatar is ring-tinted by decision (green approved, red rejected, amber pending) and the signed-in user's own avatar carries a lavender ring; hovering an avatar opens the same dark detail card used by the Score tooltip — name (with "· you" for the signed-in user), role · department, decision · date, and the decision comment.
+- The separate Approvers section at the bottom of the page was removed, since its content now lives in the header.
+- Verified in the preview on AP-1038, AP-1035, AP-1029, AP-1024 and AP-1041: no type or status pills, avatar stacks and counts match each request's records, hover cards show the full decision comment without clipping, in both dark and light themes; build and typecheck clean.
+
+## 2026-10-21 — Approvals: reminder controls removed
+- Removed the reminder action everywhere in the Approvals module: the bell button in each pending row's hover actions, the "N reminders" line under the approver count, the Remind button in the calendar-change details drawer, and the Remind button on the change-request review page header.
+- Pending rows now expose only Reject and Approve on hover, and those appear only when the signed-in user still owes a decision; the drawer and review footers keep the same Reject/Approve pair without Remind.
+- The store's reminder counter is left in place but unused, so the synced Full edition keeps the same approval API.
+- Verified in the preview: inbox, a hovered pending row, review page AP-1041 and the calendar-change drawer contain no reminder control or reminder count; build and typecheck clean.
+
 ## 2026-10-21 — Approval review: change search removed
 - Removed the "Search changes…" field from the change-request review page, so each of the three tabs (Project Schedule, Cost Breakdown, Revenue Breakdown) opens straight into its changes table.
 - The section now lists every change for that tab with the same 25-per-page paging, and the empty state simply reads "No changes in {section}."

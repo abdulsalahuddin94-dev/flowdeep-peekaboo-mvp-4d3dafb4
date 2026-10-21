@@ -27,7 +27,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, X, Diamond, GitBranch, Bell, CalendarDays } from "@/lib/icons";
+import { Check, X, Diamond, GitBranch, CalendarDays } from "@/lib/icons";
 import { EmptyRegion } from "@/lib/empty-preview";
 import { useApprovals, type ApprovalRequest } from "@/lib/projects-store";
 import { toast } from "@/lib/toast";
@@ -83,7 +83,7 @@ function displaySummaryValue(value?: string) {
 }
 
 function ApprovalsInbox() {
-  const { approvals, decideApproval, remindApproval, currentUser } = useApprovals();
+  const { approvals, decideApproval, currentUser } = useApprovals();
   const { project: projectFilter } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const [query, setQuery] = useState("");
@@ -155,10 +155,6 @@ function ApprovalsInbox() {
     setDetailsId(null);
   }
 
-  function sendReminder(approval: ApprovalRequest) {
-    remindApproval(approval.id);
-    toast.success("Reminder sent to pending approvers");
-  }
 
   return (
     <div>
@@ -266,53 +262,36 @@ function ApprovalsInbox() {
                   </StyledTableCell>
                   <StyledTableCell>
                     <div className="text-foreground">{approvedCount} of {approval.approvers.length} approved</div>
-                    {approval.reminders > 0 && <div className="mt-0.5 text-xs text-muted-foreground">{approval.reminders} reminder{approval.reminders === 1 ? "" : "s"}</div>}
                   </StyledTableCell>
                   <StyledTableCell onClick={(event) => event.stopPropagation()}>
                     <TableRowActions
                       statusNode={<Badge variant="outline" className={statusTone(approval.status)}>{approval.status}</Badge>}
-                      extraActions={approval.status === "pending" ? (
+                      extraActions={approval.status === "pending" && canAct ? (
                         <>
                           <Button
                             type="button"
                             size="icon"
                             variant="secondary"
                             data-ds-size="auto"
-                            aria-label="Remind pending approvers"
-                            title="Remind pending approvers"
-                            onClick={() => sendReminder(approval)}
-                            className="h-9 w-9 rounded-full border border-border/60 text-accent-secondary"
+                            aria-label="Reject request"
+                            title="Reject request"
+                            onClick={() => openDecision(approval, "reject")}
+                            className="h-9 w-9 rounded-full border border-border/60 text-rag-red"
                           >
-                            <Bell className="h-4 w-4" />
+                            <X className="h-4 w-4" />
                           </Button>
-                          {canAct && (
-                            <>
-                              <Button
-                                type="button"
-                                size="icon"
-                                variant="secondary"
-                                data-ds-size="auto"
-                                aria-label="Reject request"
-                                title="Reject request"
-                                onClick={() => openDecision(approval, "reject")}
-                                className="h-9 w-9 rounded-full border border-border/60 text-rag-red"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                type="button"
-                                size="icon"
-                                variant="secondary"
-                                data-ds-size="auto"
-                                aria-label="Approve request"
-                                title="Approve request"
-                                onClick={() => openDecision(approval, "approve")}
-                                className="h-9 w-9 rounded-full border border-border/60 text-rag-green"
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="secondary"
+                            data-ds-size="auto"
+                            aria-label="Approve request"
+                            title="Approve request"
+                            onClick={() => openDecision(approval, "approve")}
+                            className="h-9 w-9 rounded-full border border-border/60 text-rag-green"
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
                         </>
                       ) : undefined}
                     />
@@ -330,7 +309,6 @@ function ApprovalsInbox() {
         currentUserId={currentUser.id}
         onClose={() => setDetailsId(null)}
         onDecision={openDecision}
-        onRemind={sendReminder}
       />
 
       <FormDialog
@@ -366,13 +344,11 @@ function ApprovalDetailsSheet({
   currentUserId,
   onClose,
   onDecision,
-  onRemind,
 }: {
   approval: ApprovalRequest | null;
   currentUserId: string;
   onClose: () => void;
   onDecision: (approval: ApprovalRequest, mode: "approve" | "reject") => void;
-  onRemind: (approval: ApprovalRequest) => void;
 }) {
   if (!approval) return null;
   const me = approval.approvers.find((approver) => approver.id === currentUserId);
@@ -444,7 +420,6 @@ function ApprovalDetailsSheet({
 
         {approval.status === "pending" && (
           <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border px-6 py-4">
-            <Button variant="secondary" onClick={() => onRemind(approval)}><Bell className="h-4 w-4" />Remind</Button>
             {canAct && (
               <>
                 <Button variant="outline" className="border-rag-red/40 text-rag-red" onClick={() => onDecision(approval, "reject")}>Reject</Button>

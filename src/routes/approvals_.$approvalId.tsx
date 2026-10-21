@@ -18,7 +18,7 @@ import {
 } from "@/components/StyledTable";
 import { EmptyRow } from "@/components/ds/PageToolbar";
 import { RagBadge } from "@/components/RagBadge";
-import { ArrowLeft, Bell } from "@/lib/icons";
+import { ArrowLeft } from "@/lib/icons";
 import { useApprovals, type ApprovalRequest } from "@/lib/projects-store";
 import { projects } from "@/lib/mock-data";
 import { PLAN_CACHE } from "@/lib/plan-cache";
@@ -26,6 +26,8 @@ import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/pla
 import type { CostEntry, Milestone, RevEntry } from "@/routes/portfolio.$projectId";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/approvals_/$approvalId")({
   component: ChangeRequestReviewPage,
@@ -127,12 +129,20 @@ function SectionChanges({ changes, label }: { changes: SectionChange[]; label: s
   );
 }
 
+function statusDot(status: ApprovalRequest["status"]) {
+  return status === "approved" ? "bg-rag-green" : status === "rejected" ? "bg-rag-red" : "bg-rag-amber";
+}
+
+function initialsOf(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word.slice(0, 1)).join("").toUpperCase();
+}
+
 const money = (value: number | null) => (value == null ? "—" : `$${value.toFixed(2)}M`);
 
 function ChangeRequestReviewPage() {
   const { approvalId } = Route.useParams();
   const navigate = useNavigate();
-  const { approvals, decideApproval, remindApproval, currentUser } = useApprovals();
+  const { approvals, decideApproval, currentUser } = useApprovals();
   const approval = approvals.find((a) => a.id === approvalId) ?? null;
 
   const [mode, setMode] = useState<"approve" | "reject">("approve");
@@ -189,11 +199,6 @@ function ChangeRequestReviewPage() {
     navigate({ to: "/approvals" });
   }
 
-  function sendReminder() {
-    if (!approval) return;
-    remindApproval(approval.id);
-    toast.success("Reminder sent to pending approvers");
-  }
 
   return (
     <div>
@@ -206,17 +211,10 @@ function ChangeRequestReviewPage() {
           title={approval.title}
           actions={
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className={approval.type === "milestone-gate" ? "border-rag-amber/40 bg-rag-amber/10 text-rag-amber" : "border-accent/40 bg-accent-dim text-accent"}>{approval.type === "milestone-gate" ? "Milestone gate" : "Change request"}</Badge>
-              <Badge variant="outline" className={statusTone(approval.status)}>{approval.status}</Badge>
-              {approval.status === "pending" && (
+              {approval.status === "pending" && canAct && (
                 <>
-                  <Button variant="secondary" onClick={sendReminder}><Bell className="h-4 w-4" />Remind</Button>
-                  {canAct && (
-                    <>
-                      <Button variant="outline" className="border-rag-red/40 text-rag-red" onClick={() => openDecision("reject")}>Reject</Button>
-                      <Button variant="primary" onClick={() => openDecision("approve")}>Approve</Button>
-                    </>
-                  )}
+                  <Button variant="outline" className="border-rag-red/40 text-rag-red" onClick={() => openDecision("reject")}>Reject</Button>
+                  <Button variant="primary" onClick={() => openDecision("approve")}>Approve</Button>
                 </>
               )}
             </div>
@@ -224,17 +222,59 @@ function ChangeRequestReviewPage() {
         />
       </div>
 
-      {/* Compact meta line — replaces the previous 4-column info card. */}
-      <div className="-mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-        {approval.projectId ? (
-          <Link to="/portfolio/$projectId" params={{ projectId: approval.projectId }} className="text-accent hover:underline">
-            {approval.projectName}
-          </Link>
-        ) : <span className="text-foreground">{approval.projectName}</span>}
-        <span aria-hidden>·</span>
-        <span>{project?.businessLine ?? "—"}</span>
-        <span aria-hidden>·</span>
-        <span>Requested by {approval.requestedBy} on {formatDateWithYear(approval.requestedAt)}</span>
+      {/* Compact meta line + approver presence — the request's facts in one band. */}
+      <div className="-mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+          {approval.projectId ? (
+            <Link to="/portfolio/$projectId" params={{ projectId: approval.projectId }} className="text-accent hover:underline">
+              {approval.projectName}
+            </Link>
+          ) : <span className="text-foreground">{approval.projectName}</span>}
+          <span aria-hidden>·</span>
+          <span>{project?.businessLine ?? "—"}</span>
+          <span aria-hidden>·</span>
+          <span>Requested by {approval.requestedBy} on {formatDateWithYear(approval.requestedAt)}</span>
+          <span aria-hidden>·</span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className={cn("h-1.5 w-1.5 rounded-full", statusDot(approval.status))} aria-hidden />
+            <span className="text-foreground capitalize">{approval.status}</span>
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-2">
+          <span className="text-xs text-muted-foreground">Approvers</span>
+          <div className="flex -space-x-2">
+            {approval.approvers.map((approver) => (
+              <Tooltip key={approver.id}>
+                <TooltipTrigger asChild>
+                  <span
+                    className={cn(
+                      "inline-flex h-7 w-7 items-center justify-center rounded-full border text-[11px] font-medium ring-2",
+                      statusTone(approver.decision),
+                      approver.id === currentUser.id ? "ring-accent/50" : "ring-background",
+                    )}
+                  >
+                    {initialsOf(approver.name)}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="w-64 max-w-64 whitespace-normal text-left">
+                  <div className="space-y-1">
+                    <div className="font-medium">
+                      {approver.name}
+                      {approver.id === currentUser.id && <span className="opacity-60"> · you</span>}
+                    </div>
+                    <div className="opacity-80">{approver.role}{approver.department ? ` · ${approver.department}` : ""}</div>
+                    <div className="capitalize">{approver.decision}{approver.decidedAt ? ` · ${formatDateWithYear(approver.decidedAt)}` : ""}</div>
+                    {approver.comment && <div className="italic opacity-80">“{approver.comment}”</div>}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {approval.approvers.filter((approver) => approver.decision === "approved").length} of {approval.approvers.length} approved
+          </span>
+        </div>
       </div>
 
       <Tabs defaultValue={firstSection} className="mt-6">
@@ -359,25 +399,6 @@ function ChangeRequestReviewPage() {
           </StyledTable>
         </TabsContent>
       </Tabs>
-
-      <section className="mt-6">
-        <h3 className="mb-3 text-sm font-medium text-foreground">Approvers</h3>
-        <div className="space-y-3 rounded-lg border border-border bg-card px-5 py-4">
-          {approval.approvers.map((approver) => (
-            <div key={approver.id} className="border-b border-border pb-3 last:border-b-0 last:pb-0">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-sm text-foreground">{approver.name}</div>
-                  <div className="mt-0.5 text-xs text-muted-foreground">{approver.role}{approver.department ? ` · ${approver.department}` : ""}</div>
-                </div>
-                <Badge variant="outline" className={statusTone(approver.decision)}>{approver.decision}</Badge>
-              </div>
-              {approver.decidedAt && <div className="mt-2 text-xs text-muted-foreground">Decision date: {formatDateWithYear(approver.decidedAt)}</div>}
-              {approver.comment && <div className="mt-2 rounded-md bg-secondary/30 px-3 py-2 text-xs text-foreground">{approver.comment}</div>}
-            </div>
-          ))}
-        </div>
-      </section>
 
       <FormDialog
         open={decisionOpen}

@@ -304,6 +304,8 @@ type AppContextValue = {
   addApprovalRequest: (r: Omit<ApprovalRequest, "id" | "status" | "requestedAt" | "reminders">) => string;
   decideApproval: (id: string, approverId: string, decision: Exclude<ApprovalDecision, "pending">, comment?: string) => void;
   remindApproval: (id: string) => void;
+  /** Requester cancels a still-pending request; it leaves the inbox. */
+  withdrawApproval: (id: string) => void;
   /** Applies the calendar edit immediately and asks each linked project to accept or keep its current calendar. */
   updateCalendarWithAdoption: (calendarId: string, patch: Partial<WorkCalendar>, summary: { label: string; before?: string; after?: string }[]) => number;
   pendingCalendarIds: string[];
@@ -431,6 +433,10 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       .map(([, v]) => v.calendarId);
   }, [approvals, pendingCalendarPatches]);
 
+  function withdrawApproval(id: string) {
+    setApprovals((prev) => prev.filter((a) => !(a.id === id && a.status === "pending")));
+  }
+
   function remindApproval(id: string) {
     setApprovals((prev) => prev.map((a) => a.id === id ? { ...a, reminders: a.reminders + 1 } : a));
   }
@@ -557,7 +563,7 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       jobRoles, addJobRole, updateJobRole, removeJobRole,
       skillsCatalog, addSkill, updateSkill, removeSkill,
       currentUser, setCurrentUserId,
-      approvals, addApprovalRequest, decideApproval, remindApproval,
+      approvals, addApprovalRequest, decideApproval, remindApproval, withdrawApproval,
       updateCalendarWithAdoption, pendingCalendarIds,
     }}>
       {children}
@@ -616,9 +622,9 @@ export function useCurrentUser() {
 }
 
 export function useApprovals() {
-  const { approvals, addApprovalRequest, decideApproval, remindApproval, currentUser } = useAppContext();
+  const { approvals, addApprovalRequest, decideApproval, remindApproval, withdrawApproval, currentUser } = useAppContext();
   const myPending = approvals.filter(
     (a) => a.status === "pending" && a.approvers.some((ap) => ap.id === currentUser.id && ap.decision === "pending"),
   );
-  return { approvals, addApprovalRequest, decideApproval, remindApproval, currentUser, myPending };
+  return { approvals, addApprovalRequest, decideApproval, remindApproval, withdrawApproval, currentUser, myPending };
 }

@@ -118,7 +118,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
     .filter((r) => status === "all" || r.status === status);
 
   const pagination = usePagination(list, 10);
-  const scoreTip = (r: RiskRecord) => `Probability: ${rules.risk.probabilityLabels[r.prob - 1] ?? r.prob} (${r.prob}) · Impact: ${rules.risk.impactLabels[r.impact - 1] ?? r.impact} (${r.impact})`;
+  const scoreTip = (r: RiskRecord) => `Probability: ${rules.risk.probabilityLabels[r.prob - 1] ?? r.prob} (${r.prob}) · Impact: ${rules.risk.impactLabels[r.impact - 1] ?? r.impact} (${r.impact}) = ${r.score}`;
   const projectOptions = Array.from(new Set([...projects.map((p) => p.name), ...risks.map((r) => r.project)]));
   const activeCategories = categories.filter((c) => isActive(c.id)).map((c) => c.name);
   const view = risks.find((r) => r.id === viewId) ?? null;
@@ -149,27 +149,18 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
               {!project && <StyledTableHead>Project</StyledTableHead>}
               <StyledTableHead>Risk</StyledTableHead>
               <StyledTableHead>Category</StyledTableHead>
-              <StyledTableHead className="text-center">Score</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Severity</StyledTableHead>
               <StyledTableHead>Mitigation action</StyledTableHead>
               <StyledTableHead className="w-40 text-center">Status</StyledTableHead>
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {list.length === 0 && <EmptyRow colSpan={project ? 6 : 7} />}
+            {list.length === 0 && <EmptyRow colSpan={project ? 5 : 6} />}
             {pagination.pageItems.map((r) => (
               <StyledTableRow key={r.id} onClick={() => setViewId(r.id)} className="cursor-pointer">
                 {!project && <StyledTableCell className="text-muted-foreground">{r.project}</StyledTableCell>}
                 <StyledTableCell className="font-medium text-foreground">{r.title}</StyledTableCell>
                 <StyledTableCell className="text-muted-foreground">{r.category}</StyledTableCell>
-                <StyledTableCell className="text-center">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="num-mono cursor-default text-foreground">{r.score}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>{scoreTip(r)}</TooltipContent>
-                  </Tooltip>
-                </StyledTableCell>
                 <StyledTableCell className="text-center">
                   <Tooltip>
                     <TooltipTrigger asChild>

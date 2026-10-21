@@ -5,6 +5,10 @@
 - The separate Approvers section at the bottom of the page was removed, since its content now lives in the header.
 - Verified in the preview on AP-1038, AP-1035, AP-1029, AP-1024 and AP-1041: no type or status pills, avatar stacks and counts match each request's records, hover cards show the full decision comment without clipping, in both dark and light themes; build and typecheck clean.
 
+## 2026-10-21 — Withdraw pending Change Plan request
+- "Waiting for Approval" and "N Pending Approvals" badges open a read-only popup of the submitted changes (3 tabs) with a Withdraw request button.
+- Withdraw removes the approval from the inbox and reopens Change Plan with the edits kept as a draft.
+
 ## 2026-10-21 — Approvals: reminder controls removed
 - Removed the reminder action everywhere in the Approvals module: the bell button in each pending row's hover actions, the "N reminders" line under the approver count, the Remind button in the calendar-change details drawer, and the Remind button on the change-request review page header.
 - Pending rows now expose only Reject and Approve on hover, and those appear only when the signed-in user still owes a decision; the drawer and review footers keep the same Reject/Approve pair without Remind.

@@ -257,9 +257,12 @@ function ChangeRequestReviewPage() {
                     {initialsOf(approver.name)}
                   </span>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-64">
+                <TooltipContent side="bottom" className="w-64 max-w-64 whitespace-normal text-left">
                   <div className="space-y-1">
-                    <div className="font-medium">{approver.name}</div>
+                    <div className="font-medium">
+                      {approver.name}
+                      {approver.id === currentUser.id && <span className="opacity-60"> · you</span>}
+                    </div>
                     <div className="opacity-80">{approver.role}{approver.department ? ` · ${approver.department}` : ""}</div>
                     <div className="capitalize">{approver.decision}{approver.decidedAt ? ` · ${formatDateWithYear(approver.decidedAt)}` : ""}</div>
                     {approver.comment && <div className="italic opacity-80">“{approver.comment}”</div>}

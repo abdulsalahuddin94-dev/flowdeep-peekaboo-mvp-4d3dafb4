@@ -1,3 +1,8 @@
+## 2026-10-21 — Issues Log: Impact column removed
+- Dropped the Impact column from the Issues Log table in both the portfolio module and the project Risk & Issues tab; the severity pill now sits directly before Open date, and the empty-state colSpan was reduced to match.
+- Impact values are untouched in the records and stay readable in the issue details panel, so nothing is lost from the data.
+- Verified in the preview: module headers Project · Issue · Risk · Severity · Open date · Target date · Closure date · Action Plan · Status, project headers Issue · Risk · Severity · Open date · Target date · Closure date · Action Plan · Status.
+
 ## 2026-10-21 — Risk Register: score moved into the tooltip
 - Removed the Score column from the Risk Register table (module and project views); Severity is now the first numeric column and the empty-state colSpan was reduced to match.
 - The severity hover hint now ends with the score: "Probability: Likely (4) · Impact: Severe (5) = 20", so the number stays reachable without a dedicated column.

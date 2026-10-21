@@ -771,7 +771,6 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
               <StyledTableHead>Issue</StyledTableHead>
               <StyledTableHead className="whitespace-nowrap">Risk</StyledTableHead>
               <StyledTableHead className="text-center">Severity</StyledTableHead>
-              <StyledTableHead className="text-center">Impact</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Open date</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Target date</StyledTableHead>
               <StyledTableHead className="text-center whitespace-nowrap">Closure date</StyledTableHead>
@@ -780,7 +779,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {list.length === 0 && <EmptyRow colSpan={project ? 9 : 10} />}
+            {list.length === 0 && <EmptyRow colSpan={project ? 8 : 9} />}
             {pagination.pageItems.map((i) => (
               <StyledTableRow key={i.id} onClick={() => setViewing(i.id)} className="cursor-pointer">
                 {!project && <StyledTableCell className="max-w-[140px] truncate text-muted-foreground" title={i.project}>{i.project}</StyledTableCell>}
@@ -789,7 +788,6 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
                   {i.riskId ? riskTitle(i.riskId) : "—"}
                 </StyledTableCell>
                 <StyledTableCell className="text-center"><Pill label={i.priority} tone={PRIORITY_TONE[i.priority]} /></StyledTableCell>
-                <StyledTableCell className="text-center text-xs text-muted-foreground whitespace-nowrap">{rules.risk.impactLabels[i.impact - 1] ?? i.impact}</StyledTableCell>
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.openDate)}</StyledTableCell>
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.targetDate)}</StyledTableCell>
                 <StyledTableCell className="text-center num-mono text-xs text-muted-foreground">{fmtDate(i.closureDate)}</StyledTableCell>

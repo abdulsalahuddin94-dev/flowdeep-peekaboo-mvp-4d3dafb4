@@ -52,3 +52,4 @@
 - [x] Rename Mitigation plan column to Mitigation action; count shows the total only, hover shows X of Y.
 - [x] Issues Log: remove the Impact column from the table (module and project views); impact stays in the issue details panel.
 - [x] Approval review page: remove the change search field from all three plan tabs, keeping paging.
+- [x] Approvals module: remove the reminder action from table rows, the details drawer, and the review page header.

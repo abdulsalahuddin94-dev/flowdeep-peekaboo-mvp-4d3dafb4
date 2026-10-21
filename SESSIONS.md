@@ -1,3 +1,9 @@
+## 2026-10-21 — Approvals: reminder controls removed
+- Removed the reminder action everywhere in the Approvals module: the bell button in each pending row's hover actions, the "N reminders" line under the approver count, the Remind button in the calendar-change details drawer, and the Remind button on the change-request review page header.
+- Pending rows now expose only Reject and Approve on hover, and those appear only when the signed-in user still owes a decision; the drawer and review footers keep the same Reject/Approve pair without Remind.
+- The store's reminder counter is left in place but unused, so the synced Full edition keeps the same approval API.
+- Verified in the preview: inbox, a hovered pending row, review page AP-1041 and the calendar-change drawer contain no reminder control or reminder count; build and typecheck clean.
+
 ## 2026-10-21 — Approval review: change search removed
 - Removed the "Search changes…" field from the change-request review page, so each of the three tabs (Project Schedule, Cost Breakdown, Revenue Breakdown) opens straight into its changes table.
 - The section now lists every change for that tab with the same 25-per-page paging, and the empty state simply reads "No changes in {section}."

@@ -707,7 +707,6 @@ const fmtDate = (v?: string) => formatDateWithYear(v);
 export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilterProp, onRiskFilterChange }: { project?: string; milestoneOptions?: string[]; riskFilter?: string[]; onRiskFilterChange?: (v: string[]) => void }) {
   const { addActions } = useActions();
   const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate, editIssueUpdate, removeIssueUpdate } = useRiskRegister();
-  const rules = useOrgRules();
   const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState<string[]>([]);

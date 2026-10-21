@@ -26,7 +26,6 @@ import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/pla
 import type { CostEntry, Milestone, RevEntry } from "@/routes/portfolio.$projectId";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/approvals_/$approvalId")({
@@ -42,14 +41,6 @@ export const Route = createFileRoute("/approvals_/$approvalId")({
     ],
   }),
 });
-
-function statusTone(status: ApprovalRequest["status"]) {
-  return status === "approved"
-    ? "border-rag-green/50 bg-rag-green/10 text-rag-green"
-    : status === "rejected"
-      ? "border-rag-red/50 bg-rag-red/10 text-rag-red"
-      : "border-rag-amber/50 bg-rag-amber/10 text-rag-amber";
-}
 
 function displaySummaryValue(value?: string) {
   if (!value) return "—";
@@ -133,10 +124,6 @@ function statusDot(status: ApprovalRequest["status"]) {
   return status === "approved" ? "bg-rag-green" : status === "rejected" ? "bg-rag-red" : "bg-rag-amber";
 }
 
-function initialsOf(name: string) {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word.slice(0, 1)).join("").toUpperCase();
-}
-
 const money = (value: number | null) => (value == null ? "—" : `$${value.toFixed(2)}M`);
 
 function ChangeRequestReviewPage() {
@@ -175,8 +162,8 @@ function ChangeRequestReviewPage() {
   const sectionChanges = splitChanges(approval.summary);
   const firstSection = SECTIONS.find((sec) => sectionChanges[sec.key].length > 0)?.key ?? "schedule";
 
-  const me = approval.approvers.find((approver) => approver.id === currentUser.id);
-  const canAct = approval.status === "pending" && me?.decision === "pending";
+  // Single-approver flow: any signed-in user can decide a pending request.
+  const canAct = approval.status === "pending";
 
   function openDecision(nextMode: "approve" | "reject") {
     setMode(nextMode);
@@ -222,59 +209,22 @@ function ChangeRequestReviewPage() {
         />
       </div>
 
-      {/* Compact meta line + approver presence — the request's facts in one band. */}
-      <div className="-mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-          {approval.projectId ? (
-            <Link to="/portfolio/$projectId" params={{ projectId: approval.projectId }} className="text-accent hover:underline">
-              {approval.projectName}
-            </Link>
-          ) : <span className="text-foreground">{approval.projectName}</span>}
-          <span aria-hidden>·</span>
-          <span>{project?.businessLine ?? "—"}</span>
-          <span aria-hidden>·</span>
-          <span>Requested by {approval.requestedBy} on {formatDateWithYear(approval.requestedAt)}</span>
-          <span aria-hidden>·</span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className={cn("h-1.5 w-1.5 rounded-full", statusDot(approval.status))} aria-hidden />
-            <span className="text-foreground capitalize">{approval.status}</span>
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-2">
-          <span className="text-xs text-muted-foreground">Approvers</span>
-          <div className="flex -space-x-2">
-            {approval.approvers.map((approver) => (
-              <Tooltip key={approver.id}>
-                <TooltipTrigger asChild>
-                  <span
-                    className={cn(
-                      "inline-flex h-7 w-7 items-center justify-center rounded-full border text-[11px] font-medium ring-2",
-                      statusTone(approver.decision),
-                      approver.id === currentUser.id ? "ring-accent/50" : "ring-background",
-                    )}
-                  >
-                    {initialsOf(approver.name)}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="w-64 max-w-64 whitespace-normal text-left">
-                  <div className="space-y-1">
-                    <div className="font-medium">
-                      {approver.name}
-                      {approver.id === currentUser.id && <span className="opacity-60"> · you</span>}
-                    </div>
-                    <div className="opacity-80">{approver.role}{approver.department ? ` · ${approver.department}` : ""}</div>
-                    <div className="capitalize">{approver.decision}{approver.decidedAt ? ` · ${formatDateWithYear(approver.decidedAt)}` : ""}</div>
-                    {approver.comment && <div className="italic opacity-80">“{approver.comment}”</div>}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ))}
-          </div>
-          <span className="text-xs text-muted-foreground">
-            {approval.approvers.filter((approver) => approver.decision === "approved").length} of {approval.approvers.length} approved
-          </span>
-        </div>
+      {/* Compact meta line — the request's facts in one band. */}
+      <div className="-mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+        {approval.projectId ? (
+          <Link to="/portfolio/$projectId" params={{ projectId: approval.projectId }} className="text-accent hover:underline">
+            {approval.projectName}
+          </Link>
+        ) : <span className="text-foreground">{approval.projectName}</span>}
+        <span aria-hidden>·</span>
+        <span>{project?.businessLine ?? "—"}</span>
+        <span aria-hidden>·</span>
+        <span>Requested by {approval.requestedBy} on {formatDateWithYear(approval.requestedAt)}</span>
+        <span aria-hidden>·</span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className={cn("h-1.5 w-1.5 rounded-full", statusDot(approval.status))} aria-hidden />
+          <span className="text-foreground capitalize">{approval.status}</span>
+        </span>
       </div>
 
       <Tabs defaultValue={firstSection} className="mt-6">

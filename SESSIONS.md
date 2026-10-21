@@ -1,3 +1,10 @@
+## 2026-10-21 — Approvals: single-approver flow, Approvers hidden
+- The Approvers column ("N of M approved") is removed from the Approvals inbox table, and the Approvers avatar stack/count and the per-approver decision list are removed from the change-request review page header and the calendar-change drawer — all temporarily, marked with restore comments since a multi-approver return is still possible.
+- Approvals now act as a single approver: any signed-in user can decide a pending request, and one decision resolves it immediately (approved/rejected) — no quorum across a pre-listed approver set.
+- The deciding user is recorded on the request even when they were not pre-listed, so decision history still shows who decided and any comment.
+- "Pending on me" (inbox), the dashboard "Awaiting others" widget and the ApprovalOutcome banner now reflect the single-approver flow (no N-of-M counts anywhere).
+- The multi-approver data structure stays intact in the store, so the previous approver UI can be re-enabled later.
+
 ## 2026-10-21 — Approval review: type/status pills removed, Approvers moved into the header
 - Removed the "Milestone gate" / "Change request" tag pill and the status pill from the review page header; the header now carries only the title, with Reject/Approve shown while the signed-in user still owes a decision.
 - The compact meta line under the title gained the request status as a coloured dot plus text, and the approvers now sit on the same band at the right: an "Approvers" label, an overlapping initials-avatar stack, and an "N of M approved" count.

@@ -108,8 +108,8 @@ function ApprovalsInbox() {
       .filter((approval) => {
         if (inboxView === "history") return approval.status !== "pending";
         if (inboxView === "pending") return approval.status === "pending";
-        return approval.status === "pending"
-          && approval.approvers.some((approver) => approver.id === currentUser.id && approver.decision === "pending");
+        // Single-approver flow: pending requests are actionable by any signed-in user.
+        return approval.status === "pending";
       })
       .filter((approval) => status === "all" || approval.status === status)
       .filter((approval) => type === "all" || approval.type === type)
@@ -222,15 +222,14 @@ function ApprovalsInbox() {
               <StyledTableHead>Project</StyledTableHead>
               <StyledTableHead>Type</StyledTableHead>
               <StyledTableHead>Requested by</StyledTableHead>
-              <StyledTableHead>Approvers</StyledTableHead>
+              {/* Approvers column temporarily hidden — single-approver flow; restore the "N of M approved" cell when multi-approver returns. */}
               <StyledTableHead className="w-52 text-center">Status</StyledTableHead>
             </StyledTableHeaderRow>
           </StyledTableHeader>
           <StyledTableBody>
-            {pagination.pageItems.length === 0 ? <EmptyRow colSpan={6} /> : pagination.pageItems.map((approval) => {
-              const me = approval.approvers.find((approver) => approver.id === currentUser.id);
-              const canAct = approval.status === "pending" && me?.decision === "pending";
-              const approvedCount = approval.approvers.filter((approver) => approver.decision === "approved").length;
+            {pagination.pageItems.length === 0 ? <EmptyRow colSpan={5} /> : pagination.pageItems.map((approval) => {
+              // Single-approver flow: any signed-in user can decide a pending request.
+              const canAct = approval.status === "pending";
               return (
                 <StyledTableRow
                   key={approval.id}
@@ -260,9 +259,7 @@ function ApprovalsInbox() {
                     <div className="text-foreground">{approval.requestedBy}</div>
                     <div className="mt-0.5 text-xs text-muted-foreground">{formatDateWithYear(approval.requestedAt)}</div>
                   </StyledTableCell>
-                  <StyledTableCell>
-                    <div className="text-foreground">{approvedCount} of {approval.approvers.length} approved</div>
-                  </StyledTableCell>
+                  {/* Approvers cell temporarily hidden — single-approver flow. */}
                   <StyledTableCell onClick={(event) => event.stopPropagation()}>
                     <TableRowActions
                       statusNode={<Badge variant="outline" className={statusTone(approval.status)}>{approval.status}</Badge>}
@@ -306,7 +303,6 @@ function ApprovalsInbox() {
 
       <ApprovalDetailsSheet
         approval={details}
-        currentUserId={currentUser.id}
         onClose={() => setDetailsId(null)}
         onDecision={openDecision}
       />
@@ -341,18 +337,16 @@ function ApprovalsInbox() {
 
 function ApprovalDetailsSheet({
   approval,
-  currentUserId,
   onClose,
   onDecision,
 }: {
   approval: ApprovalRequest | null;
-  currentUserId: string;
   onClose: () => void;
   onDecision: (approval: ApprovalRequest, mode: "approve" | "reject") => void;
 }) {
   if (!approval) return null;
-  const me = approval.approvers.find((approver) => approver.id === currentUserId);
-  const canAct = approval.status === "pending" && me?.decision === "pending";
+  // Single-approver flow: any signed-in user can decide a pending request.
+  const canAct = approval.status === "pending";
 
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>
@@ -397,24 +391,7 @@ function ApprovalDetailsSheet({
               </section>
             )}
 
-            <section>
-              <h3 className="mb-3 text-sm font-medium text-foreground">Approvers</h3>
-              <div className="space-y-3">
-                {approval.approvers.map((approver) => (
-                  <div key={approver.id} className="border-b border-border pb-3 last:border-b-0">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="text-sm text-foreground">{approver.name}</div>
-                        <div className="mt-0.5 text-xs text-muted-foreground">{approver.role}{approver.department ? ` · ${approver.department}` : ""}</div>
-                      </div>
-                      <Badge variant="outline" className={statusTone(approver.decision)}>{approver.decision}</Badge>
-                    </div>
-                    {approver.decidedAt && <div className="mt-2 text-xs text-muted-foreground">Decision date: {formatDateWithYear(approver.decidedAt)}</div>}
-                    {approver.comment && <div className="mt-2 rounded-md bg-secondary/30 px-3 py-2 text-xs text-foreground">{approver.comment}</div>}
-                  </div>
-                ))}
-              </div>
-            </section>
+            {/* Approvers section temporarily hidden — single-approver flow; restore the per-approver decision list when multi-approver returns. */}
           </div>
         </ScrollArea>
 

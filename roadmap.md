@@ -57,3 +57,5 @@
 - [x] Approvals: hide Approvers (table column, review header, drawer) temporarily and switch to a single-approver flow — one decision by any signed-in user resolves the request immediately.
 
 - [x] Match Save new baseline popup changes to the Approvals table using a shared three-tab changes display.
+
+- [x] Include current project basic information above the approval review change tabs.

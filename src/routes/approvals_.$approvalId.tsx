@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { PlanChangesTable } from "@/components/PlanChangesTable";
+import { ProjectOverviewHeader } from "@/components/ProjectOverviewHeader";
+import { computePlannedProgress } from "@/components/ProjectSchedule";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +22,7 @@ import {
 import { EmptyRow } from "@/components/ds/PageToolbar";
 import { RagBadge } from "@/components/RagBadge";
 import { ArrowLeft } from "@/lib/icons";
-import { useApprovals, useProjects, type ApprovalRequest } from "@/lib/projects-store";
+import { useApprovals, useProjects, useCalendars, type ApprovalRequest } from "@/lib/projects-store";
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/plan-seeds";
 import type { CostEntry, Milestone, RevEntry } from "@/routes/portfolio.$projectId";
@@ -73,16 +75,30 @@ function statusDot(status: ApprovalRequest["status"]) {
 
 const money = (value: number | null) => (value == null ? "—" : `$${value.toFixed(2)}M`);
 
-const T = {
-  en: { basicInfo: "Project basic information", code: "Project code", type: "Project type", client: "Client", manager: "Project manager", departments: "Departments", timeline: "Timeline", budget: "Project budget", revenue: "Expected revenue" },
-  ar: { basicInfo: "معلومات المشروع الأساسية", code: "كود المشروع", type: "نوع المشروع", client: "العميل", manager: "مدير المشروع", departments: "الأقسام", timeline: "الفترة الزمنية", budget: "ميزانية المشروع", revenue: "الإيرادات المتوقعة" },
-};
+/** Weighted planned-vs-actual over leaf tasks — same derivation as the project header. */
+function scheduleSummaryOf(items: Milestone[], fallback: number) {
+  const leaves = items.filter((item) => item.kind === "Task" && !items.some((child) => child.parent === item.name));
+  let totalWeight = 0;
+  let weightedActual = 0;
+  let weightedPlanned = 0;
+  for (const task of leaves) {
+    const weight = Math.max(0, task.weightScore ?? 1);
+    totalWeight += weight;
+    weightedActual += weight * (task.progress ?? 0);
+    weightedPlanned += weight * computePlannedProgress(task.startDate, task.endDate);
+  }
+  return {
+    actual: totalWeight ? Math.round(weightedActual / totalWeight) : fallback,
+    planned: totalWeight ? Math.round(weightedPlanned / totalWeight) : fallback,
+  };
+}
 
 function ChangeRequestReviewPage() {
   const { approvalId } = Route.useParams();
   const navigate = useNavigate();
   const { approvals, decideApproval, currentUser } = useApprovals();
   const { projects } = useProjects();
+  const { calendars } = useCalendars();
   const approval = approvals.find((a) => a.id === approvalId) ?? null;
 
   const [mode, setMode] = useState<"approve" | "reject">("approve");
@@ -105,17 +121,6 @@ function ChangeRequestReviewPage() {
   }
 
   const project = projects.find((p) => p.id === approval.projectId);
-  const t = T.en;
-  const basicInfo = project ? [
-    { label: t.code, value: project.code || "—" },
-    { label: t.type, value: project.businessLine || "—" },
-    { label: t.client, value: project.client || "Internal" },
-    { label: t.manager, value: project.pm || "—" },
-    { label: t.departments, value: project.department?.join(", ") || "—" },
-    { label: t.timeline, value: `${formatDateWithYear(project.startDate)} → ${formatDateWithYear(project.endDate)}` },
-    { label: t.budget, value: money(project.budgetTotal) },
-    ...(project.client && project.client !== "Internal" ? [{ label: t.revenue, value: money(project.expectedRevenue ?? null) }] : []),
-  ] : [];
   const cached = PLAN_CACHE.get(approval.projectId) as
     | { milestones?: Milestone[]; costEntries?: CostEntry[]; revEntries?: RevEntry[] }
     | undefined;
@@ -190,16 +195,13 @@ function ChangeRequestReviewPage() {
       </div>
 
       {project && (
-        <section aria-label={t.basicInfo} className="mt-5 border-y border-border py-4">
-          <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
-            {basicInfo.map((info) => (
-              <div key={info.label} className="min-w-0">
-                <dt className="text-xs text-muted-foreground">{info.label}</dt>
-                <dd className="mt-1 break-words text-sm font-medium text-foreground">{info.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
+        <div className="mt-5">
+          <ProjectOverviewHeader
+            project={project}
+            projectCalendar={calendars.find((c) => c.id === project.calendarId)}
+            scheduleSummary={scheduleSummaryOf(scheduleItems, project.progress)}
+          />
+        </div>
       )}
 
       <Tabs defaultValue={firstSection} className="mt-6">

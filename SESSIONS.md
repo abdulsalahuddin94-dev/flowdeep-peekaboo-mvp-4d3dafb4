@@ -1,6 +1,7 @@
-## 2026-10-22 — Approval review: project basic information
-- Added a compact, unframed project information band above the three change tabs: code, type, client, project manager, departments, timeline, budget and expected revenue for external projects.
-- Uses current project records, including newly created and updated projects, with no changes to approval decisions.
+## 2026-10-22 — Approval review: project header in the project-page layout
+- Replaced the flat basic-information band with the full project overview header, identical to the project detail page: project name, tag pill, client avatar + name, calendar and project code, followed by the six quick-stat cards (Timeline, Budget, Stage Gate, Progress, Issues, Risks).
+- Extracted the layout into the shared ProjectOverviewHeader component so the review page and project page stay in sync; the Stage Gate card is display-only on the review page.
+- Progress uses the weighted planned-vs-actual summary derived from the cached plan milestones, falling back to the stored project progress.
 
 ## 2026-10-22 — Baseline popup: Approvals changes table
 - Replaced the Save new baseline grouped change cards with the same Item / Field / Before / After table used by approval review, shared through PlanChangesTable.

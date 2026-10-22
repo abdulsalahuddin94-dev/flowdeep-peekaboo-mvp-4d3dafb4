@@ -308,6 +308,8 @@ function ProjectDetail() {
   );
   const [cancelEditDialogOpen, setCancelEditDialogOpen] = useState(false);
   const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(cached?.editBaselineSnapshot ?? null);
+  const [editInfoSnapshot, setEditInfoSnapshot] = useState<Project | null>((cached as any)?.editInfoSnapshot ?? null);
+  const infoChanges = useMemo(() => (editInfoSnapshot ? diffProjectInfo(editInfoSnapshot, project) : []), [editInfoSnapshot, project]);
   const [compareVersionOpen, setCompareVersionOpen] = useState(false);
 
   // Demo version authors (in a real app, comes from CR history)
@@ -340,8 +342,8 @@ function ProjectDetail() {
     }
     for (const b of editBaselineSnapshot) if (!curByName.has(b.name)) count++;
     if (editFinSnapshot) count += diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }).length;
-    return count;
-  }, [editBaselineSnapshot, milestones, editFinSnapshot, costEntries, revEntries]);
+    return count + infoChanges.length;
+  }, [editBaselineSnapshot, milestones, editFinSnapshot, costEntries, revEntries, infoChanges]);
 
   const hasPlanChanges = useMemo(() => {
     if (!editBaselineSnapshot) return false;
@@ -364,12 +366,13 @@ function ProjectDetail() {
     }
     for (const b of editBaselineSnapshot) if (!curByName.has(b.name)) return true;
     if (editFinSnapshot && diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }).length > 0) return true;
-    return false;
-  }, [editBaselineSnapshot, milestones, editFinSnapshot, costEntries, revEntries]);
+    return infoChanges.length > 0;
+  }, [editBaselineSnapshot, milestones, editFinSnapshot, costEntries, revEntries, infoChanges]);
 
   function enterEditMode() {
     setEditBaselineSnapshot(milestones.map((m) => ({ ...m })));
     setEditFinSnapshot({ cost: costEntries.map((e) => ({ ...e })), rev: revEntries.map((e) => ({ ...e })) });
+    setEditInfoSnapshot({ ...project });
     setPlanEditMode("editing");
     if (!FOCUS_TABS.includes(activeTab)) setActiveTab("Project Schedule");
   }
@@ -385,8 +388,8 @@ function ProjectDetail() {
 
   // Keep the plan state alive while the PM visits Approvals or Edit project.
   useEffect(() => {
-    PLAN_CACHE.set(project.id, { milestones, costEntries, revEntries, versions: projectBaselineVersions, baseline: projectBaseline, changeRequests, planEditMode, editBaselineSnapshot, editFinSnapshot });
-  }, [project.id, milestones, costEntries, revEntries, projectBaselineVersions, projectBaseline, changeRequests, planEditMode, editBaselineSnapshot, editFinSnapshot]);
+    PLAN_CACHE.set(project.id, { milestones, costEntries, revEntries, versions: projectBaselineVersions, baseline: projectBaseline, changeRequests, planEditMode, editBaselineSnapshot, editFinSnapshot, editInfoSnapshot } as any);
+  }, [project.id, milestones, costEntries, revEntries, projectBaselineVersions, projectBaseline, changeRequests, planEditMode, editBaselineSnapshot, editFinSnapshot, editInfoSnapshot]);
 
   function requestExitEditMode() {
     if (hasPlanChanges) {
@@ -394,6 +397,7 @@ function ProjectDetail() {
     } else {
       setEditBaselineSnapshot(null);
       setEditFinSnapshot(null);
+      setEditInfoSnapshot(null);
       setPlanEditMode("view");
     }
   }
@@ -409,6 +413,11 @@ function ProjectDetail() {
       setCostEntries(editFinSnapshot.cost.map((e) => { const cur = actualsByCost.get(`${e.c}|${e.desc ?? ""}`); return cur ? { ...e, a: cur.a, actuals: cur.actuals } : e; }));
       setRevEntries(editFinSnapshot.rev.map((e) => { const cur = actualsByRev.get(`${e.ms}|${e.evt}`); return cur ? { ...e, act: cur.act, actuals: cur.actuals, s: cur.s, sl: cur.sl } : e; }));
     }
+    if (editInfoSnapshot && infoChanges.length > 0) {
+      const { id: _id, ...rest } = editInfoSnapshot;
+      updateProject(project.id, rest);
+    }
+    setEditInfoSnapshot(null);
     setEditFinSnapshot(null);
     setEditBaselineSnapshot(null);
     setCancelEditDialogOpen(false);
@@ -590,6 +599,7 @@ function ProjectDetail() {
     setPlanEditMode("pending");
     setEditBaselineSnapshot(null);
     setEditFinSnapshot(null);
+    setEditInfoSnapshot(null);
     setMilestones((prev) => prev.map((m) => (m.depDateShift ? { ...m, depDateShift: undefined } : m)));
     const approvalId = addProjectApproval({
       type: "change-request",
@@ -621,6 +631,14 @@ function ProjectDetail() {
     setEditBaselineSnapshot(((latest?.snapshot as Milestone[] | undefined) ?? milestones).map((m) => ({ ...m })));
     const fin = latest?.financials ?? { cost: costEntries, rev: revEntries };
     setEditFinSnapshot({ cost: fin.cost.map((e) => ({ ...e })), rev: fin.rev.map((e) => ({ ...e })) });
+    // Restore the pre-request basic info as the comparison point so info edits stay in the draft.
+    const infoRows = (pendingCr.changes ?? []).filter((c) => c.field.startsWith("Info · "));
+    if (infoRows.length) {
+      const base: Project = { ...project };
+      const map: Record<string, keyof Project> = { Name: "name", Code: "code", "Business line": "businessLine", "Project manager": "pm", Client: "client", Stage: "stage" };
+      for (const r of infoRows) { const k = map[r.field.slice(r.field.lastIndexOf(" · ") + 3)]; if (k) (base as any)[k] = r.oldValue === "—" ? undefined : r.oldValue; }
+      setEditInfoSnapshot(base);
+    } else setEditInfoSnapshot({ ...project });
     setPlanEditMode("editing");
     setPendingCrViewOpen(false);
     if (!FOCUS_TABS.includes(activeTab)) setActiveTab("Project Schedule");
@@ -1328,7 +1346,7 @@ function ProjectDetail() {
             baselineSnapshot={projectBaselineVersions[projectBaselineVersions.length - 1]?.snapshot as Milestone[] | undefined}
             currentMilestones={milestones}
             baselineVersion={projectBaselineVersions.length}
-            extraChanges={editFinSnapshot ? diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }) : []}
+            extraChanges={[...infoChanges, ...(editFinSnapshot ? diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }) : [])]}
             onSubmit={(cr) => {
               setCrDialogOpen(false);
               setPendingCrConfirm(cr);
@@ -2695,6 +2713,33 @@ function fmtPlanValue(v: unknown): string {
   if (Array.isArray(v)) return v.length ? `${v.length} line${v.length === 1 ? "" : "s"}` : "—";
   if (typeof v === "object") return JSON.stringify(v);
   return String(v);
+}
+/** Basic-info edits made during Change Plan; item labels use the "Info · " section prefix. */
+function diffProjectInfo(base: Project, cur: Project) {
+  const money = (v?: number) => (v == null ? "—" : `$${v.toFixed(2)}M`);
+  const list = (v?: string[]) => (v && v.length ? v.join(", ") : "—");
+  const fields: Array<{ label: string; get: (p: Project) => string }> = [
+    { label: "Name", get: (p) => p.name || "—" },
+    { label: "Code", get: (p) => p.code || "—" },
+    { label: "Business line", get: (p) => p.businessLine || "—" },
+    { label: "Departments", get: (p) => list(p.department) },
+    { label: "Project manager", get: (p) => p.pm || "—" },
+    { label: "Client", get: (p) => p.client || "—" },
+    { label: "Start date", get: (p) => (p.startDate ? formatDateWithYear(p.startDate) : "—") },
+    { label: "End date", get: (p) => (p.endDate ? formatDateWithYear(p.endDate) : "—") },
+    { label: "Budget", get: (p) => money(p.budgetTotal) },
+    { label: "Expected revenue", get: (p) => money(p.expectedRevenue) },
+    { label: "Stage", get: (p) => p.stage || "—" },
+    { label: "Tags", get: (p) => list(p.tags) },
+    { label: "Calendar", get: (p) => p.calendarId || "—" },
+  ];
+  const out: Array<{ item: string; field: string; oldValue: string; newValue: string }> = [];
+  for (const f of fields) {
+    const o = f.get(base);
+    const n = f.get(cur);
+    if (o !== n) out.push({ item: `Info · ${base.name || cur.name}`, field: f.label, oldValue: o, newValue: n });
+  }
+  return out;
 }
 function diffFinancialPlan(base: FinancialPlan, cur: FinancialPlan) {
   const out: Array<{ item: string; field: string; oldValue: string; newValue: string }> = [];
@@ -6352,11 +6397,13 @@ function ChangeRequestDialog({
 
         {(() => {
           const itemKinds = new Map<string, string>([...(baselineSnapshot ?? []), ...currentMilestones].map((m) => [m.name, m.kind]));
-          const sections = [
-            { key: "schedule", label: "Project Schedule", match: (i: string) => !i.startsWith("Cost · ") && !i.startsWith("Revenue · "), strip: "" },
+          const allSections = [
+            { key: "info", label: "Project Info", match: (i: string) => i.startsWith("Info · "), strip: "Info · " },
+            { key: "schedule", label: "Project Schedule", match: (i: string) => !i.startsWith("Cost · ") && !i.startsWith("Revenue · ") && !i.startsWith("Info · "), strip: "" },
             { key: "cost", label: "Cost Breakdown", match: (i: string) => i.startsWith("Cost · "), strip: "Cost · " },
             { key: "revenue", label: "Revenue Breakdown", match: (i: string) => i.startsWith("Revenue · "), strip: "Revenue · " },
           ];
+          const sections = allSections.filter((s) => s.key !== "info" || changes.some((c) => s.match(c.item)));
           const firstWith = sections.find((s) => grouped.some(([i]) => s.match(i)))?.key ?? "schedule";
           return (
             <Tabs defaultValue={firstWith} className="w-full">
@@ -6427,11 +6474,13 @@ function PendingChangeRequestDialog({
     }
     return Array.from(m.entries());
   })();
-  const sections = [
-    { key: "schedule", label: "Project Schedule", match: (i: string) => !i.startsWith("Cost · ") && !i.startsWith("Revenue · "), strip: "" },
+  const allSections = [
+    { key: "info", label: "Project Info", match: (i: string) => i.startsWith("Info · "), strip: "Info · " },
+            { key: "schedule", label: "Project Schedule", match: (i: string) => !i.startsWith("Cost · ") && !i.startsWith("Revenue · ") && !i.startsWith("Info · "), strip: "" },
     { key: "cost", label: "Cost Breakdown", match: (i: string) => i.startsWith("Cost · "), strip: "Cost · " },
     { key: "revenue", label: "Revenue Breakdown", match: (i: string) => i.startsWith("Revenue · "), strip: "Revenue · " },
   ];
+  const sections = allSections.filter((s) => s.key !== "info" || rows.some((r) => s.match(r.item)));
   const firstWith = sections.find((s) => grouped.some(([i]) => s.match(i)))?.key ?? "schedule";
   return (
     <>

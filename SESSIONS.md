@@ -1,3 +1,8 @@
+## 2026-10-22 — Project basic info changes in Change Plan approvals
+- Change Plan now snapshots the project's basic info on entry; edits made through Edit project during Change Plan appear as a "Project Info" tab in Save baseline, Waiting for approval, and the Approvals review page (tab shows only when info changed).
+- Discarding Change Plan restores the original basic info; withdrawing keeps the info edits in the draft.
+- Verified in the preview: renaming the project during Change Plan showed in the Save baseline popup and on the approval review page.
+
 ## 2026-10-22 — Baseline popup: row separators and narrower dialog
 - Added a `--table-row-separator` design token (dark: white 20%, light: Gray 400) and drew it as a hairline under the header and between every row in the shared changes table, so the Save baseline popup and the approval review page both read as a proper table instead of floating text.
 - The table's vertical row gap was removed inside this table so the separator sits directly on the row edge; the last row keeps no line, preserving the rounded bottom corners.

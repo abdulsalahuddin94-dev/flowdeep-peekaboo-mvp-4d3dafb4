@@ -44,8 +44,9 @@ export const Route = createFileRoute("/approvals_/$approvalId")({
   }),
 });
 
-type SectionKey = "schedule" | "cost" | "revenue";
+type SectionKey = "info" | "schedule" | "cost" | "revenue";
 const SECTIONS: { key: SectionKey; label: string; prefix: string }[] = [
+  { key: "info", label: "Project Info", prefix: "Info · " },
   { key: "schedule", label: "Project Schedule", prefix: "" },
   { key: "cost", label: "Cost Breakdown", prefix: "Cost · " },
   { key: "revenue", label: "Revenue Breakdown", prefix: "Revenue · " },
@@ -57,9 +58,9 @@ function splitChanges(
   summary: ApprovalRequest["summary"],
   kindOf: (item: string) => string | undefined,
 ): Record<SectionKey, SectionChange[]> {
-  const out: Record<SectionKey, SectionChange[]> = { schedule: [], cost: [], revenue: [] };
+  const out: Record<SectionKey, SectionChange[]> = { info: [], schedule: [], cost: [], revenue: [] };
   for (const entry of summary) {
-    const section = SECTIONS.find((sec) => sec.prefix && entry.label.startsWith(sec.prefix)) ?? SECTIONS[0];
+    const section = SECTIONS.find((sec) => sec.prefix && entry.label.startsWith(sec.prefix)) ?? SECTIONS.find((sec) => sec.key === "schedule")!;
     const rest = entry.label.slice(section.prefix.length);
     const cut = rest.lastIndexOf(" · ");
     const item = cut >= 0 ? rest.slice(0, cut) : "—";
@@ -138,7 +139,9 @@ function ChangeRequestReviewPage() {
   const sectionChanges = splitChanges(approval.summary, (item) =>
     itemKinds.get(item) ?? (item === "—" && approval.type === "milestone-gate" ? itemKinds.get(approval.ref) ?? "Milestone" : undefined),
   );
-  const firstSection = SECTIONS.find((sec) => sectionChanges[sec.key].length > 0)?.key ?? "schedule";
+  // Project Info tab only appears when the request carries basic-info edits.
+  const visibleSections = SECTIONS.filter((sec) => sec.key !== "info" || sectionChanges.info.length > 0);
+  const firstSection = visibleSections.find((sec) => sectionChanges[sec.key].length > 0)?.key ?? "schedule";
 
   // Single-approver flow: any signed-in user can decide a pending request.
   const canAct = approval.status === "pending";
@@ -215,7 +218,7 @@ function ChangeRequestReviewPage() {
 
       <Tabs defaultValue={firstSection} className="mt-6">
         <TabsList className="overflow-x-auto whitespace-nowrap">
-          {SECTIONS.map((s) => (
+          {visibleSections.map((s) => (
             <TabsTrigger key={s.key} value={s.key} className="gap-2">
               {s.label}
               <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-[11px] text-foreground">{sectionChanges[s.key].length}</span>
@@ -223,7 +226,7 @@ function ChangeRequestReviewPage() {
           ))}
         </TabsList>
 
-        {SECTIONS.map((s) => (
+        {visibleSections.map((s) => (
           <TabsContent key={s.key} value={s.key} className="mt-5">
             <PlanChangesTable changes={sectionChanges[s.key]} label={s.label} showType={s.key === "schedule"} />
           </TabsContent>

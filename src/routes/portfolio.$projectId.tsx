@@ -308,6 +308,8 @@ function ProjectDetail() {
   );
   const [cancelEditDialogOpen, setCancelEditDialogOpen] = useState(false);
   const [editBaselineSnapshot, setEditBaselineSnapshot] = useState<Milestone[] | null>(cached?.editBaselineSnapshot ?? null);
+  const [editInfoSnapshot, setEditInfoSnapshot] = useState<Project | null>((cached as any)?.editInfoSnapshot ?? null);
+  const infoChanges = useMemo(() => (editInfoSnapshot ? diffProjectInfo(editInfoSnapshot, project) : []), [editInfoSnapshot, project]);
   const [compareVersionOpen, setCompareVersionOpen] = useState(false);
 
   // Demo version authors (in a real app, comes from CR history)
@@ -2695,6 +2697,33 @@ function fmtPlanValue(v: unknown): string {
   if (Array.isArray(v)) return v.length ? `${v.length} line${v.length === 1 ? "" : "s"}` : "—";
   if (typeof v === "object") return JSON.stringify(v);
   return String(v);
+}
+/** Basic-info edits made during Change Plan; item labels use the "Info · " section prefix. */
+function diffProjectInfo(base: Project, cur: Project) {
+  const money = (v?: number) => (v == null ? "—" : `$${v.toFixed(2)}M`);
+  const list = (v?: string[]) => (v && v.length ? v.join(", ") : "—");
+  const fields: Array<{ label: string; get: (p: Project) => string }> = [
+    { label: "Name", get: (p) => p.name || "—" },
+    { label: "Code", get: (p) => p.code || "—" },
+    { label: "Business line", get: (p) => p.businessLine || "—" },
+    { label: "Departments", get: (p) => list(p.department) },
+    { label: "Project manager", get: (p) => p.pm || "—" },
+    { label: "Client", get: (p) => p.client || "—" },
+    { label: "Start date", get: (p) => (p.startDate ? formatDateWithYear(p.startDate) : "—") },
+    { label: "End date", get: (p) => (p.endDate ? formatDateWithYear(p.endDate) : "—") },
+    { label: "Budget", get: (p) => money(p.budgetTotal) },
+    { label: "Expected revenue", get: (p) => money(p.expectedRevenue) },
+    { label: "Stage", get: (p) => p.stage || "—" },
+    { label: "Tags", get: (p) => list(p.tags) },
+    { label: "Calendar", get: (p) => p.calendarId || "—" },
+  ];
+  const out: Array<{ item: string; field: string; oldValue: string; newValue: string }> = [];
+  for (const f of fields) {
+    const o = f.get(base);
+    const n = f.get(cur);
+    if (o !== n) out.push({ item: `Info · ${base.name || cur.name}`, field: f.label, oldValue: o, newValue: n });
+  }
+  return out;
 }
 function diffFinancialPlan(base: FinancialPlan, cur: FinancialPlan) {
   const out: Array<{ item: string; field: string; oldValue: string; newValue: string }> = [];

@@ -50,20 +50,26 @@ const SECTIONS: { key: SectionKey; label: string; prefix: string }[] = [
   { key: "cost", label: "Cost Breakdown", prefix: "Cost · " },
   { key: "revenue", label: "Revenue Breakdown", prefix: "Revenue · " },
 ];
-type SectionChange = { item: string; field: string; before?: string; after?: string };
+type SectionChange = { item: string; field: string; before?: string; after?: string; type?: string };
 
 /** Change labels are "[Cost · |Revenue · ]Item · Field"; unprefixed labels belong to the schedule. */
-function splitChanges(summary: ApprovalRequest["summary"]): Record<SectionKey, SectionChange[]> {
+function splitChanges(
+  summary: ApprovalRequest["summary"],
+  kindOf: (item: string) => string | undefined,
+): Record<SectionKey, SectionChange[]> {
   const out: Record<SectionKey, SectionChange[]> = { schedule: [], cost: [], revenue: [] };
   for (const entry of summary) {
     const section = SECTIONS.find((sec) => sec.prefix && entry.label.startsWith(sec.prefix)) ?? SECTIONS[0];
     const rest = entry.label.slice(section.prefix.length);
     const cut = rest.lastIndexOf(" · ");
+    const item = cut >= 0 ? rest.slice(0, cut) : "—";
     out[section.key].push({
-      item: cut >= 0 ? rest.slice(0, cut) : "—",
+      item,
       field: cut >= 0 ? rest.slice(cut + 3) : rest,
       before: entry.before,
       after: entry.after,
+      // Schedule rows carry the item kind; financial rows have none.
+      type: section.key === "schedule" ? entry.type ?? kindOf(item) : undefined,
     });
   }
   return out;
@@ -128,7 +134,10 @@ function ChangeRequestReviewPage() {
   const costEntries = cached?.costEntries ?? initialCostEntries(false);
   const revEntries = cached?.revEntries ?? (project ? initialRevEntries(project, false) : []);
 
-  const sectionChanges = splitChanges(approval.summary);
+  const itemKinds = new Map(scheduleItems.map((item) => [item.name, item.kind as string]));
+  const sectionChanges = splitChanges(approval.summary, (item) =>
+    itemKinds.get(item) ?? (item === "—" && approval.type === "milestone-gate" ? itemKinds.get(approval.ref) ?? "Milestone" : undefined),
+  );
   const firstSection = SECTIONS.find((sec) => sectionChanges[sec.key].length > 0)?.key ?? "schedule";
 
   // Single-approver flow: any signed-in user can decide a pending request.
@@ -216,7 +225,7 @@ function ChangeRequestReviewPage() {
 
         {SECTIONS.map((s) => (
           <TabsContent key={s.key} value={s.key} className="mt-5">
-            <PlanChangesTable changes={sectionChanges[s.key]} label={s.label} />
+            <PlanChangesTable changes={sectionChanges[s.key]} label={s.label} showType={s.key === "schedule"} />
           </TabsContent>
         ))}
 

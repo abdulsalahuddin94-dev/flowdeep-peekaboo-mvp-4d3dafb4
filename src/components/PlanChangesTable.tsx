@@ -1,13 +1,14 @@
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow } from "@/components/StyledTable";
 import { formatDateWithYear } from "@/lib/date-format";
 
-export type PlanSectionChange = { item: string; field: string; before?: string; after?: string };
+export type PlanSectionChange = { item: string; field: string; before?: string; after?: string; type?: string };
 
 const T = {
-  en: { item: "Item", field: "Field", before: "Before", after: "After", changes: "changes", empty: "No changes in", page: "Page", of: "of", previous: "Previous", next: "Next" },
-  ar: { item: "البند", field: "الحقل", before: "قبل", after: "بعد", changes: "تغييرات", empty: "لا توجد تغييرات في", page: "صفحة", of: "من", previous: "السابق", next: "التالي" },
+  en: { item: "Item", type: "Type", field: "Field", before: "Before", after: "After", changes: "changes", empty: "No changes in", page: "Page", of: "of", previous: "Previous", next: "Next" },
+  ar: { item: "البند", type: "النوع", field: "الحقل", before: "قبل", after: "بعد", changes: "تغييرات", empty: "لا توجد تغييرات في", page: "صفحة", of: "من", previous: "السابق", next: "التالي" },
 };
 
 function displayValue(value?: string) {
@@ -15,12 +16,23 @@ function displayValue(value?: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) ? formatDateWithYear(value) : value;
 }
 
-export function PlanChangesTable({ changes, label, lang = "en", compact = false }: { changes: PlanSectionChange[]; label: string; lang?: keyof typeof T; compact?: boolean }) {
+/** Schedule item kind as a pill — Milestone is accented, Task stays neutral. */
+function TypePill({ type }: { type?: string }) {
+  if (!type) return <span className="text-muted-foreground">—</span>;
+  return (
+    <Badge variant="outline" className={type === "Milestone" ? "border-accent/40 bg-accent-dim text-accent" : "border-border text-muted-foreground"}>
+      {type}
+    </Badge>
+  );
+}
+
+export function PlanChangesTable({ changes, label, lang = "en", compact = false, showType = false }: { changes: PlanSectionChange[]; label: string; lang?: keyof typeof T; compact?: boolean; showType?: boolean }) {
   const [page, setPage] = useState(0);
   const t = T[lang];
   const pages = Math.max(1, Math.ceil(changes.length / 25));
   const current = Math.min(page, pages - 1);
   const rows = changes.slice(current * 25, current * 25 + 25);
+  const colCount = showType ? 5 : 4;
 
   return (
     <section className="min-w-0">
@@ -30,6 +42,7 @@ export function PlanChangesTable({ changes, label, lang = "en", compact = false 
           <StyledTableHeader>
             <StyledTableHeaderRow>
               <StyledTableHead>{t.item}</StyledTableHead>
+              {showType && <StyledTableHead>{t.type}</StyledTableHead>}
               <StyledTableHead>{t.field}</StyledTableHead>
               <StyledTableHead>{t.before}</StyledTableHead>
               <StyledTableHead>{t.after}</StyledTableHead>
@@ -37,10 +50,11 @@ export function PlanChangesTable({ changes, label, lang = "en", compact = false 
           </StyledTableHeader>
           <StyledTableBody>
             {rows.length === 0 ? (
-              <StyledTableRow><StyledTableCell colSpan={4} className="py-8 text-center text-sm text-muted-foreground">{t.empty} {label}.</StyledTableCell></StyledTableRow>
+              <StyledTableRow><StyledTableCell colSpan={colCount} className="py-8 text-center text-sm text-muted-foreground">{t.empty} {label}.</StyledTableCell></StyledTableRow>
             ) : rows.map((change, index) => (
               <StyledTableRow key={`${change.item}-${change.field}-${index}`}>
                 <StyledTableCell className="whitespace-normal break-words"><span className="font-medium text-foreground">{change.item}</span></StyledTableCell>
+                {showType && <StyledTableCell><TypePill type={change.type} /></StyledTableCell>}
                 <StyledTableCell className="whitespace-normal break-words">{change.field}</StyledTableCell>
                 <StyledTableCell className="whitespace-normal break-words text-muted-foreground">{displayValue(change.before)}</StyledTableCell>
                 <StyledTableCell className="whitespace-normal break-words text-foreground">{displayValue(change.after)}</StyledTableCell>

@@ -36,7 +36,7 @@ export type ApprovalRequest = {
   title: string;
   requestedBy: string;
   requestedAt: string;
-  summary: { label: string; before?: string; after?: string }[];
+  summary: { label: string; before?: string; after?: string; type?: "Milestone" | "Task" }[];
   approvers: ApprovalApprover[];
   status: ApprovalDecision;
   reminders: number;
@@ -44,15 +44,19 @@ export type ApprovalRequest = {
 
 // Demo request spanning all three plan sections, sized to exercise paging on the review page.
 const AP_1035_DEMO_CHANGES: ApprovalRequest["summary"] = [
-  ...["Discovery & Assessment", "Data Mapping", "Org Setup", "Custom Objects", "Data Migration Wave 1", "Data Migration Wave 2", "Integration Build", "UAT Round 1", "UAT Round 2", "Training", "Go-Live", "Hypercare"].flatMap((item, i) => {
+  ...([
+    ["Discovery & Assessment", "Task"], ["Data Mapping", "Task"], ["Org Setup", "Task"], ["Custom Objects", "Task"],
+    ["Data Migration Wave 1", "Task"], ["Data Migration Wave 2", "Task"], ["Integration Build", "Task"],
+    ["UAT Round 1", "Task"], ["UAT Round 2", "Task"], ["Training", "Task"], ["Go-Live", "Milestone"], ["Hypercare", "Milestone"],
+  ] as const).flatMap(([item, kind], i) => {
     const start = new Date(Date.UTC(2026, 7, 3 + i * 9));
     const fin = (d: number) => new Date(start.getTime() + d * 86400000).toISOString().slice(0, 10);
     const rows: ApprovalRequest["summary"] = [
-      { label: `${item} · Finish`, before: fin(10), after: fin(14 + (i % 3) * 3) },
+      { label: `${item} · Finish`, before: fin(10), after: fin(14 + (i % 3) * 3), type: kind },
     ];
-    if (i % 2 === 0) rows.push({ label: `${item} · Owner`, before: "Omar Haddad", after: "Mei Chen" });
-    if (i % 3 === 0) rows.push({ label: `${item} · Depends on`, before: "—", after: `${i === 0 ? "Kick-off" : "Previous phase"} (FS)` });
-    if (i % 4 === 1) rows.push({ label: `${item} · Weight`, before: `${5 + i}%`, after: `${7 + i}%` });
+    if (i % 2 === 0) rows.push({ label: `${item} · Owner`, before: "Omar Haddad", after: "Mei Chen", type: kind });
+    if (i % 3 === 0) rows.push({ label: `${item} · Depends on`, before: "—", after: `${i === 0 ? "Kick-off" : "Previous phase"} (FS)`, type: kind });
+    if (i % 4 === 1) rows.push({ label: `${item} · Weight`, before: `${5 + i}%`, after: `${7 + i}%`, type: kind });
     return rows;
   }),
   { label: "Cost · Licences · Planned amount", before: "$180,000", after: "$225,000" },
@@ -102,9 +106,9 @@ const SEED_APPROVALS: ApprovalRequest[] = [
     requestedBy: "Mei Chen",
     requestedAt: "2026-07-23",
     summary: [
-      { label: "Detailed Design · Finish", before: "2026-09-10", after: "2026-10-02" },
-      { label: "Detailed Design · Owner", before: "Omar Haddad", after: "Mei Chen" },
-      { label: "Procurement Kick-off · Depends on", before: "Detailed Design (FS)", after: "Detailed Design (FS +10d)" },
+      { label: "Detailed Design · Finish", before: "2026-09-10", after: "2026-10-02", type: "Task" },
+      { label: "Detailed Design · Owner", before: "Omar Haddad", after: "Mei Chen", type: "Task" },
+      { label: "Procurement Kick-off · Depends on", before: "Detailed Design (FS)", after: "Detailed Design (FS +10d)", type: "Milestone" },
       { label: "Cost · Design Consultancy · Planned amount", before: "$420,000", after: "$465,000" },
       { label: "Cost · Design Consultancy · Due date", before: "2026-09-10", after: "2026-10-02" },
       { label: "Cost · Long-lead Equipment · Planned amount", before: "$1,250,000", after: "$1,310,000" },

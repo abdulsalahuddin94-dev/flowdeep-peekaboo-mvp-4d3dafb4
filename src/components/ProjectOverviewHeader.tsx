@@ -103,14 +103,28 @@ export function ProjectOverviewHeader({
           </div>
         </div>
 
-        <StageGateCard
-          {...(onStageGateClick ? { type: "button" as const, variant: "ghost" as const, "data-ds-size": "auto" as const, onClick: onStageGateClick } : {})}
-          className={cn(
-            "group h-16 justify-center rounded-lg bg-[var(--field-bg-filled)] px-4 text-left",
-            onStageGateClick && "hover:bg-[var(--field-bg-filled)]/80",
-          )}
-        >
-          <div className="flex w-full min-w-0 flex-col gap-1.5">
+        {onStageGateClick ? (
+          <Button
+            type="button"
+            variant="ghost"
+            data-ds-size="auto"
+            onClick={onStageGateClick}
+            className="group h-16 justify-center rounded-lg bg-[var(--field-bg-filled)] px-4 text-left hover:bg-[var(--field-bg-filled)]/80"
+          >
+            <div className="flex w-full min-w-0 flex-col gap-1.5">
+              <div className="text-xs font-normal text-muted-foreground">Stage Gate</div>
+              <div className="flex items-center gap-3">
+                <span className="shrink-0 text-sm font-semibold text-foreground">{currentStage.name}</span>
+                <div className="flex min-w-0 flex-1 items-center gap-1" aria-label={`Stage ${currentStage.n} of ${PLANNING_STAGES.length}`}>
+                  {PLANNING_STAGES.map((stage) => (
+                    <span key={stage.n} className={cn("h-1 flex-1 rounded-full", stage.state === "done" ? "bg-accent" : stage.state === "active" ? "bg-accent/60" : "bg-secondary")} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Button>
+        ) : (
+          <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
             <div className="text-xs font-normal text-muted-foreground">Stage Gate</div>
             <div className="flex items-center gap-3">
               <span className="shrink-0 text-sm font-semibold text-foreground">{currentStage.name}</span>
@@ -121,7 +135,7 @@ export function ProjectOverviewHeader({
               </div>
             </div>
           </div>
-        </StageGateCard>
+        )}
 
         <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
           <div className="flex items-center justify-between">

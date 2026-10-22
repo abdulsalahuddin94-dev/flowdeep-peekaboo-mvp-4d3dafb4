@@ -1,3 +1,8 @@
+## 2026-10-22 — Financials Overview: Actuals badge shows the profit amount
+- The Actuals by Project Type badge now shows the realised money instead of a percentage: "+$1.32M Profit" for a profit, "−$0.85M Loss" for a loss, and "No revenue yet" when nothing has been collected.
+- The redundant loss figure at the end of each row's "Rev / Pay" line was dropped, since the badge already carries it; the unused margin calculation was removed.
+- Verified in the preview: four project types render dollar badges, and a forced payments-over-collected state renders red "−$X Loss" badges with the loss lane intact; build and typecheck clean.
+
 ## 2026-10-22 — Approval review: project header in the project-page layout
 - Replaced the flat basic-information band with the full project overview header, identical to the project detail page: project name, tag pill, client avatar + name, calendar and project code, followed by the six quick-stat cards (Timeline, Budget, Stage Gate, Progress, Issues, Risks).
 - Extracted the layout into the shared ProjectOverviewHeader component so the review page and project page stay in sync; the Stage Gate card is display-only on the review page.

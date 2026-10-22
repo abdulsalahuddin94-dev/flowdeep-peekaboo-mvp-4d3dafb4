@@ -388,7 +388,7 @@ function FinancialsPage() {
               </div>
             </div>
             <div className="glass-card p-4 lg:col-span-2">
-              <div className="label-eyebrow">Margin by Project Type</div>
+              <div className="label-eyebrow">Profit Share by project type</div>
               <div className="mb-2 text-xs text-muted-foreground">Expected profit share by project type · margin %</div>
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
@@ -460,7 +460,7 @@ function FinancialsPage() {
                         )}
                       </div>
                       <div className="mt-1 flex justify-between text-[10px] num-mono text-muted-foreground">
-                        <span>$0.0M</span>
+                        <span>{"\n"}</span>
                         <span>{money(x.Collected)} Rev / {money(x.Spent)} Pay</span>
                       </div>
                     </div>

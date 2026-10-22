@@ -6397,12 +6397,13 @@ function ChangeRequestDialog({
 
         {(() => {
           const itemKinds = new Map<string, string>([...(baselineSnapshot ?? []), ...currentMilestones].map((m) => [m.name, m.kind]));
-          const sections = [
+          const allSections = [
             { key: "info", label: "Project Info", match: (i: string) => i.startsWith("Info · "), strip: "Info · " },
             { key: "schedule", label: "Project Schedule", match: (i: string) => !i.startsWith("Cost · ") && !i.startsWith("Revenue · ") && !i.startsWith("Info · "), strip: "" },
             { key: "cost", label: "Cost Breakdown", match: (i: string) => i.startsWith("Cost · "), strip: "Cost · " },
             { key: "revenue", label: "Revenue Breakdown", match: (i: string) => i.startsWith("Revenue · "), strip: "Revenue · " },
           ];
+          const sections = allSections.filter((s) => s.key !== "info" || changes.some((c) => s.match(c.item)));
           const firstWith = sections.find((s) => grouped.some(([i]) => s.match(i)))?.key ?? "schedule";
           return (
             <Tabs defaultValue={firstWith} className="w-full">
@@ -6473,12 +6474,13 @@ function PendingChangeRequestDialog({
     }
     return Array.from(m.entries());
   })();
-  const sections = [
+  const allSections = [
     { key: "info", label: "Project Info", match: (i: string) => i.startsWith("Info · "), strip: "Info · " },
             { key: "schedule", label: "Project Schedule", match: (i: string) => !i.startsWith("Cost · ") && !i.startsWith("Revenue · ") && !i.startsWith("Info · "), strip: "" },
     { key: "cost", label: "Cost Breakdown", match: (i: string) => i.startsWith("Cost · "), strip: "Cost · " },
     { key: "revenue", label: "Revenue Breakdown", match: (i: string) => i.startsWith("Revenue · "), strip: "Revenue · " },
   ];
+  const sections = allSections.filter((s) => s.key !== "info" || rows.some((r) => s.match(r.item)));
   const firstWith = sections.find((s) => grouped.some(([i]) => s.match(i)))?.key ?? "schedule";
   return (
     <>

@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Hide the change-count badge from the Change Plan banner.
 - [x] Rule the changes table rows (header + between rows) in the Save baseline popup and approval review, and narrow that popup.
 - [x] Bound action comments scrolling; apply natural-case/Poppins design rules and left-positioned search.
 - [x] Risk Register: drop the Score column and show the score inside the severity tooltip.

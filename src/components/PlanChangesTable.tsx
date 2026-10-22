@@ -37,15 +37,15 @@ export function PlanChangesTable({ changes, label, lang = "en", compact = false,
   return (
     <section className="min-w-0">
       <h3 className="mb-3 text-sm font-medium text-foreground">{label} {t.changes} ({changes.length})</h3>
-      <div className={compact ? "max-h-[380px] overflow-y-auto" : undefined}>
+      <div className={compact ? "h-[244px] overflow-y-auto overflow-x-hidden rounded-lg" : undefined}>
         <StyledTable
           wrapperClassName=""
-          className="[&]:border-spacing-y-0 [&_thead_th]:border-b [&_thead_th]:border-table-row-separator [&_tbody_td]:border-b [&_tbody_td]:border-table-row-separator [&_tbody_tr:last-child_td]:border-b-0"
+          className={`${compact ? "table-fixed w-full [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:z-10 [&_thead_th]:bg-table-header-bg [&_tbody_td]:py-2.5 " : ""}[&]:border-spacing-y-0 [&_thead_th]:border-b [&_thead_th]:border-table-row-separator [&_tbody_td]:border-b [&_tbody_td]:border-table-row-separator [&_tbody_tr:last-child_td]:border-b-0`}
         >
           <StyledTableHeader>
             <StyledTableHeaderRow>
               <StyledTableHead>{t.item}</StyledTableHead>
-              {showType && <StyledTableHead>{t.type}</StyledTableHead>}
+              {showType && <StyledTableHead className={compact ? "w-[110px]" : undefined}>{t.type}</StyledTableHead>}
               <StyledTableHead>{t.field}</StyledTableHead>
               <StyledTableHead>{t.before}</StyledTableHead>
               <StyledTableHead>{t.after}</StyledTableHead>

@@ -1,3 +1,5 @@
+- 2026-10-22: Save baseline popup fits without horizontal scroll, fixed 4-row table height with sticky header, button renamed Save baseline; AP-1038 demo covers info/schedule/cost/revenue edits, additions and removals.
+
 ## 2026-10-22 — Project basic info changes in Change Plan approvals
 - Change Plan now snapshots the project's basic info on entry; edits made through Edit project during Change Plan appear as a "Project Info" tab in Save baseline, Waiting for approval, and the Approvals review page (tab shows only when info changed).
 - Discarding Change Plan restores the original basic info; withdrawing keeps the info edits in the draft.

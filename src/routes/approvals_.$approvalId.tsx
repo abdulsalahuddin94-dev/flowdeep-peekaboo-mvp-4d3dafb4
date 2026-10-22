@@ -98,6 +98,7 @@ function ChangeRequestReviewPage() {
   const navigate = useNavigate();
   const { approvals, decideApproval, currentUser } = useApprovals();
   const { projects } = useProjects();
+  const { calendars } = useCalendars();
   const approval = approvals.find((a) => a.id === approvalId) ?? null;
 
   const [mode, setMode] = useState<"approve" | "reject">("approve");
@@ -120,17 +121,6 @@ function ChangeRequestReviewPage() {
   }
 
   const project = projects.find((p) => p.id === approval.projectId);
-  const t = T.en;
-  const basicInfo = project ? [
-    { label: t.code, value: project.code || "—" },
-    { label: t.type, value: project.businessLine || "—" },
-    { label: t.client, value: project.client || "Internal" },
-    { label: t.manager, value: project.pm || "—" },
-    { label: t.departments, value: project.department?.join(", ") || "—" },
-    { label: t.timeline, value: `${formatDateWithYear(project.startDate)} → ${formatDateWithYear(project.endDate)}` },
-    { label: t.budget, value: money(project.budgetTotal) },
-    ...(project.client && project.client !== "Internal" ? [{ label: t.revenue, value: money(project.expectedRevenue ?? null) }] : []),
-  ] : [];
   const cached = PLAN_CACHE.get(approval.projectId) as
     | { milestones?: Milestone[]; costEntries?: CostEntry[]; revEntries?: RevEntry[] }
     | undefined;

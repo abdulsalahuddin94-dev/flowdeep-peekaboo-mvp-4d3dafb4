@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Rule the changes table rows (header + between rows) in the Save baseline popup and approval review, and narrow that popup.
 - [x] Bound action comments scrolling; apply natural-case/Poppins design rules and left-positioned search.
 - [x] Risk Register: drop the Score column and show the score inside the severity tooltip.
 - [x] Cap action comments to two visible cards before the list scrolls.

@@ -58,4 +58,4 @@
 
 - [x] Match Save new baseline popup changes to the Approvals table using a shared three-tab changes display.
 
-- [x] Include current project basic information above the approval review change tabs.
+- [x] Approval review: project basic info rendered as the project-page header layout (ProjectOverviewHeader).

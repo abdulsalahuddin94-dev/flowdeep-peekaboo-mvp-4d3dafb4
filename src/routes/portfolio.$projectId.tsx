@@ -6351,6 +6351,7 @@ function ChangeRequestDialog({
         </DialogHeader>
 
         {(() => {
+          const itemKinds = new Map<string, string>([...(baselineSnapshot ?? []), ...currentMilestones].map((m) => [m.name, m.kind]));
           const sections = [
             { key: "schedule", label: "Project Schedule", match: (i: string) => !i.startsWith("Cost · ") && !i.startsWith("Revenue · "), strip: "" },
             { key: "cost", label: "Cost Breakdown", match: (i: string) => i.startsWith("Cost · "), strip: "Cost · " },
@@ -6371,13 +6372,17 @@ function ChangeRequestDialog({
                 })}
               </TabsList>
               {sections.map((s) => {
-                const list = changes.filter((c) => s.match(c.item)).map((c) => ({
-                  item: s.strip ? c.item.slice(s.strip.length) : c.item,
-                  field: c.field, before: c.oldValue, after: c.newValue,
-                }));
+                const list = changes.filter((c) => s.match(c.item)).map((c) => {
+                  const name = s.strip ? c.item.slice(s.strip.length) : c.item;
+                  return {
+                    item: name,
+                    field: c.field, before: c.oldValue, after: c.newValue,
+                    type: s.key === "schedule" ? itemKinds.get(name) : undefined,
+                  };
+                });
                 return (
                   <TabsContent key={s.key} value={s.key}>
-                    <PlanChangesTable changes={list} label={s.label} compact />
+                    <PlanChangesTable changes={list} label={s.label} compact showType={s.key === "schedule"} />
                   </TabsContent>
                 );
               })}

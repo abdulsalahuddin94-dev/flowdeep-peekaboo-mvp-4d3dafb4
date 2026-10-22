@@ -53,8 +53,6 @@ export function ProjectOverviewHeader({
     : 0;
   const currentStage = PLANNING_STAGES.find((s) => s.state === "active") ?? PLANNING_STAGES[0];
 
-  const StageGateCard = onStageGateClick ? Button : "div";
-
   return (
     <section className="mb-5 rounded-lg bg-card p-5" aria-label="Project overview information">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">

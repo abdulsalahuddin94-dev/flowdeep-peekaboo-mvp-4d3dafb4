@@ -36,7 +36,7 @@ export type ApprovalRequest = {
   title: string;
   requestedBy: string;
   requestedAt: string;
-  summary: { label: string; before?: string; after?: string }[];
+  summary: { label: string; before?: string; after?: string; type?: "Milestone" | "Task" }[];
   approvers: ApprovalApprover[];
   status: ApprovalDecision;
   reminders: number;

@@ -1043,9 +1043,6 @@ function ProjectDetail() {
               <span className="ml-2 opacity-70">Esc = exit · ⌘/Ctrl+S = save</span>
             </div>
           </div>
-          <Badge variant="outline" className="h-7 rounded-full border-rag-amber/40 bg-rag-amber/10 px-3 text-rag-amber">
-            {planChangeCount} change{planChangeCount === 1 ? "" : "s"}
-          </Badge>
         </div>
       )}
       <Tabs value={activeTab} onValueChange={(t) => setActiveTab(t)}>

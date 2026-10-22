@@ -1,3 +1,8 @@
+## 2026-10-22 — Change Plan banner: change-count badge hidden
+- Removed the "N changes" pill from the right end of the Change Plan focus banner; the banner now carries only the draft label, the instruction line and the keyboard hints.
+- The change count itself stays in the code (pending chip, Save baseline enablement, unsaved-exit warning), so the number is still available where it drives a decision.
+- Verified in the preview: entering Change Plan on p-001 shows the banner with no count pill; build clean.
+
 - 2026-10-22: Save baseline popup fits without horizontal scroll, fixed 4-row table height with sticky header, button renamed Save baseline; AP-1038 demo covers info/schedule/cost/revenue edits, additions and removals.
 
 ## 2026-10-22 — Project basic info changes in Change Plan approvals

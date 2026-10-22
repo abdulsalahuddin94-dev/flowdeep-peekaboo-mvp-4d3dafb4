@@ -441,9 +441,9 @@ function FinancialsPage() {
                           style={loss
                             ? { color: "var(--chart-loss)", border: "1px solid var(--p-red-a-20)", background: "var(--p-red-a-10)" }
                             : { color: "var(--chart-profit)", border: "1px solid var(--p-gold-a-25)", background: "var(--p-gold-a-10)" }}>
-                          {x.Collected > 0
-                            ? `${loss ? "−" : "+"}${Math.abs(margin).toFixed(1)}% ${loss ? "Loss" : "Profit"}`
-                            : loss ? `${money(Math.abs(x.Profit))} Loss` : "No revenue yet"}
+                          {loss
+                            ? `−${money(Math.abs(x.Profit))} Loss`
+                            : x.Collected > 0 ? `+${money(x.Profit)} Profit` : "No revenue yet"}
                         </span>
                       </div>
                       {/* Collected revenue lane; the gold tail marks the profit portion of the collected revenue. */}

@@ -6335,7 +6335,7 @@ function ChangeRequestDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-4xl">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-3xl">
         <DialogHeader>
           <DialogTitle>
             Save new baseline (v{baselineVersion + 1})

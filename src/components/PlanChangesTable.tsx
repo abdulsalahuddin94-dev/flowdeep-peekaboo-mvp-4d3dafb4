@@ -38,7 +38,10 @@ export function PlanChangesTable({ changes, label, lang = "en", compact = false,
     <section className="min-w-0">
       <h3 className="mb-3 text-sm font-medium text-foreground">{label} {t.changes} ({changes.length})</h3>
       <div className={compact ? "max-h-[380px] overflow-y-auto" : undefined}>
-        <StyledTable wrapperClassName="">
+        <StyledTable
+          wrapperClassName=""
+          className="[&]:border-spacing-y-0 [&_thead_th]:border-b [&_thead_th]:border-border [&_tbody_td]:border-b [&_tbody_td]:border-border [&_tbody_tr:last-child_td]:border-b-0"
+        >
           <StyledTableHeader>
             <StyledTableHeaderRow>
               <StyledTableHead>{t.item}</StyledTableHead>

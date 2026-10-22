@@ -6380,7 +6380,7 @@ function ChangeRequestDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-3xl">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-3xl overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>
             Save new baseline (v{baselineVersion + 1})
@@ -6406,8 +6406,8 @@ function ChangeRequestDialog({
           const sections = allSections.filter((s) => s.key !== "info" || changes.some((c) => s.match(c.item)));
           const firstWith = sections.find((s) => grouped.some(([i]) => s.match(i)))?.key ?? "schedule";
           return (
-            <Tabs defaultValue={firstWith} className="w-full">
-              <TabsList className="w-full overflow-x-auto">
+            <Tabs defaultValue={firstWith} className="w-full min-w-0">
+              <TabsList className="w-full">
                 {sections.map((s) => {
                   const n = changes.filter((c) => s.match(c.item)).length;
                   return (
@@ -6443,7 +6443,7 @@ function ChangeRequestDialog({
             onClick={handleSubmit}
             disabled={changes.length === 0}
           >
-            Send for approval
+            Save baseline
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate, useBlocker } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import { PlanChangesTable } from "@/components/PlanChangesTable";
 import { EmptyRegion, useEmptyPreview } from "@/lib/empty-preview";
 
 import { RagBadge } from "@/components/RagBadge";
@@ -6327,14 +6328,14 @@ function ChangeRequestDialog({
     const m = new Map<string, Array<{ field: string; oldValue: string; newValue: string }>>();
     for (const c of changes) {
       if (!m.has(c.item)) m.set(c.item, []);
-      m.get(c.item)!.push({ field: c.field, oldValue: c.oldValue, newValue: c.newValue });
+      m.get(c.item)?.push({ field: c.field, oldValue: c.oldValue, newValue: c.newValue });
     }
     return Array.from(m.entries());
   }, [changes]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-4xl">
         <DialogHeader>
           <DialogTitle>
             Save new baseline (v{baselineVersion + 1})
@@ -6358,7 +6359,7 @@ function ChangeRequestDialog({
           const firstWith = sections.find((s) => grouped.some(([i]) => s.match(i)))?.key ?? "schedule";
           return (
             <Tabs defaultValue={firstWith} className="w-full">
-              <TabsList className="w-full">
+              <TabsList className="w-full overflow-x-auto">
                 {sections.map((s) => {
                   const n = changes.filter((c) => s.match(c.item)).length;
                   return (
@@ -6370,18 +6371,13 @@ function ChangeRequestDialog({
                 })}
               </TabsList>
               {sections.map((s) => {
-                const list = grouped.filter(([i]) => s.match(i));
+                const list = changes.filter((c) => s.match(c.item)).map((c) => ({
+                  item: s.strip ? c.item.slice(s.strip.length) : c.item,
+                  field: c.field, before: c.oldValue, after: c.newValue,
+                }));
                 return (
                   <TabsContent key={s.key} value={s.key}>
-                    <div className="max-h-[380px] space-y-2 overflow-y-auto rounded-md border border-border/50 bg-secondary/20 p-3">
-                      {list.length === 0 ? (
-                        <div className="py-6 text-center text-sm text-muted-foreground">No changes in {s.label}.</div>
-                      ) : (
-                        list.map(([item, l]) => (
-                          <GroupedChangeItem key={item} item={s.strip ? item.slice(s.strip.length) : item} changes={l} />
-                        ))
-                      )}
-                    </div>
+                    <PlanChangesTable changes={list} label={s.label} compact />
                   </TabsContent>
                 );
               })}

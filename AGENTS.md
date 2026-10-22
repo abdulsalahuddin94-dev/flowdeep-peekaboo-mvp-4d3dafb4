@@ -5,3 +5,5 @@
 - Navigate linked-action counts through the project route's tab and actionRef search parameters, with a removable Action Tracker filter, so project and portfolio registers share the same destination.
 - Meeting type options come from the Organization lookup store, persisted like other local master data; renames propagate to meeting records and unavailable types remain readable on existing meetings.
 - Route project approvals (milestone gates and change requests) to the un-nested approval review page; keep calendar approvals in the drawer because they are organization-wide rather than project-plan reviews.
+
+- Reuse PlanChangesTable for baseline submission and approval review changes so both show the same Item/Field/Before/After presentation and date formatting.

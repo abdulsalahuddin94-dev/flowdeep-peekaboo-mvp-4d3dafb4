@@ -59,3 +59,4 @@
 - [x] Match Save new baseline popup changes to the Approvals table using a shared three-tab changes display.
 
 - [x] Approval review: project basic info rendered as the project-page header layout (ProjectOverviewHeader).
+- [x] Financials Overview: Actuals by Project Type badge shows the profit/loss amount instead of a percentage.

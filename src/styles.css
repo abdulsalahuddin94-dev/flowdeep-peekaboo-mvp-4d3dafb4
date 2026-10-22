@@ -474,6 +474,7 @@
   --table-header-fg: var(--p-neutral-900);
   --table-row-bg:    var(--p-neutral-25);
   --table-row-hover: var(--p-neutral-50);
+  --table-row-separator: var(--p-neutral-300);
 
   /* Header */
   --header:            var(--p-white);
@@ -589,6 +590,7 @@
   --table-header-fg: var(--p-white);
   --table-row-bg:    var(--p-charcoal-900);
   --table-row-hover: var(--p-charcoal-700);
+  --table-row-separator: var(--p-white-a-20);
 
   /* Sidebar */
   --sidebar:                    var(--p-charcoal-900);
@@ -980,6 +982,7 @@
   --color-table-header-fg:   var(--table-header-fg);
   --color-table-row-bg:      var(--table-row-bg);
   --color-table-row-hover:   var(--table-row-hover);
+  --color-table-row-separator: var(--table-row-separator);
 
   /* Semantic · Chart */
   --color-chart-1:  var(--chart-1);

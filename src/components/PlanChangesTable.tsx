@@ -40,7 +40,7 @@ export function PlanChangesTable({ changes, label, lang = "en", compact = false,
       <div className={compact ? "max-h-[380px] overflow-y-auto" : undefined}>
         <StyledTable
           wrapperClassName=""
-          className="[&]:border-spacing-y-0 [&_thead_th]:border-b [&_thead_th]:border-border [&_tbody_td]:border-b [&_tbody_td]:border-border [&_tbody_tr:last-child_td]:border-b-0"
+          className="[&]:border-spacing-y-0 [&_thead_th]:border-b [&_thead_th]:border-table-row-separator [&_tbody_td]:border-b [&_tbody_td]:border-table-row-separator [&_tbody_tr:last-child_td]:border-b-0"
         >
           <StyledTableHeader>
             <StyledTableHeaderRow>

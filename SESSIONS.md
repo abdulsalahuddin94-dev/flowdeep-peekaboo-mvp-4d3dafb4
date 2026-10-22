@@ -1,3 +1,8 @@
+## 2026-10-22 — Baseline popup: Approvals changes table
+- Replaced the Save new baseline grouped change cards with the same Item / Field / Before / After table used by approval review, shared through PlanChangesTable.
+- Preserved three section tabs, section counts, Cancel and Send for approval; dates use the standard format, long lists retain 25-row pagination and internal scrolling.
+- Widened the popup for readable change comparisons; baseline and approval logic are unchanged.
+
 ## 2026-10-21 — Approvals: single-approver flow, Approvers hidden
 - The Approvers column ("N of M approved") is removed from the Approvals inbox table, and the Approvers avatar stack/count and the per-approver decision list are removed from the change-request review page header and the calendar-change drawer — all temporarily, marked with restore comments since a multi-approver return is still possible.
 - Approvals now act as a single approver: any signed-in user can decide a pending request, and one decision resolves it immediately (approved/rejected) — no quorum across a pre-listed approver set.

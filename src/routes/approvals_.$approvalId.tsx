@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import { PlanChangesTable } from "@/components/PlanChangesTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,11 +43,6 @@ export const Route = createFileRoute("/approvals_/$approvalId")({
   }),
 });
 
-function displaySummaryValue(value?: string) {
-  if (!value) return "—";
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? formatDateWithYear(value) : value;
-}
-
 type SectionKey = "schedule" | "cost" | "revenue";
 const SECTIONS: { key: SectionKey; label: string; prefix: string }[] = [
   { key: "schedule", label: "Project Schedule", prefix: "" },
@@ -70,54 +66,6 @@ function splitChanges(summary: ApprovalRequest["summary"]): Record<SectionKey, S
     });
   }
   return out;
-}
-
-const PAGE_SIZE = 25;
-
-function SectionChanges({ changes, label }: { changes: SectionChange[]; label: string }) {
-  const [page, setPage] = useState(0);
-  const pages = Math.max(1, Math.ceil(changes.length / PAGE_SIZE));
-  const current = Math.min(page, pages - 1);
-  const rows = changes.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE);
-
-  return (
-    <section>
-      <h3 className="mb-3 text-sm font-medium text-foreground">{label} changes ({changes.length})</h3>
-      <StyledTable wrapperClassName="">
-        <StyledTableHeader>
-          <StyledTableHeaderRow>
-            <StyledTableHead>Item</StyledTableHead>
-            <StyledTableHead>Field</StyledTableHead>
-            <StyledTableHead>Before</StyledTableHead>
-            <StyledTableHead>After</StyledTableHead>
-          </StyledTableHeaderRow>
-        </StyledTableHeader>
-        <StyledTableBody>
-          {rows.length === 0 ? (
-            <StyledTableRow>
-              <StyledTableCell colSpan={4} className="py-8 text-center text-sm text-muted-foreground">
-                {`No changes in ${label}.`}
-              </StyledTableCell>
-            </StyledTableRow>
-          ) : rows.map((c, i) => (
-            <StyledTableRow key={`${c.item}-${c.field}-${i}`}>
-              <StyledTableCell><span className="font-medium text-foreground">{c.item}</span></StyledTableCell>
-              <StyledTableCell>{c.field}</StyledTableCell>
-              <StyledTableCell className="text-muted-foreground">{displaySummaryValue(c.before)}</StyledTableCell>
-              <StyledTableCell className="text-foreground">{displaySummaryValue(c.after)}</StyledTableCell>
-            </StyledTableRow>
-          ))}
-        </StyledTableBody>
-      </StyledTable>
-      {pages > 1 && (
-        <div className="mt-3 flex items-center justify-end gap-2 text-xs text-muted-foreground">
-          <span>Page {current + 1} of {pages} · {changes.length} changes</span>
-          <Button variant="secondary" disabled={current === 0} onClick={() => setPage(current - 1)}>Previous</Button>
-          <Button variant="secondary" disabled={current >= pages - 1} onClick={() => setPage(current + 1)}>Next</Button>
-        </div>
-      )}
-    </section>
-  );
 }
 
 function statusDot(status: ApprovalRequest["status"]) {
@@ -239,7 +187,7 @@ function ChangeRequestReviewPage() {
 
         {SECTIONS.map((s) => (
           <TabsContent key={s.key} value={s.key} className="mt-5">
-            <SectionChanges changes={sectionChanges[s.key]} label={s.label} />
+            <PlanChangesTable changes={sectionChanges[s.key]} label={s.label} />
           </TabsContent>
         ))}
 

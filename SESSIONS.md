@@ -1,3 +1,9 @@
+## 2026-10-22 — Plan changes table: Item type on the Project Schedule tab
+- The Project Schedule changes table now carries a Type column between Item and Field, showing each item as a Milestone or Task pill; Cost Breakdown and Revenue Breakdown keep the original four columns.
+- Item kind is read from the project's own schedule (current items first, baseline snapshot as fallback) on the Save baseline popup, and from the cached plan on the approval review page; demo requests state the kind directly so their rows stay readable.
+- Shared through PlanChangesTable with a showType flag, so the baseline popup and the approval review page render the same table with the same column order and date formatting.
+- Verified in the preview: AP-1038, AP-1035 and AP-1041 review pages show Item/Type/Field/Before/After on Project Schedule and Item/Field/Before/After on the other two tabs; a live Change Plan edit (added item) shows the new row with its Task pill; build and typecheck clean.
+
 ## 2026-10-22 — Financials Overview: Actuals badge shows the profit amount
 - The Actuals by Project Type badge now shows the realised money instead of a percentage: "+$1.32M Profit" for a profit, "−$0.85M Loss" for a loss, and "No revenue yet" when nothing has been collected.
 - The redundant loss figure at the end of each row's "Rev / Pay" line was dropped, since the badge already carries it; the unused margin calculation was removed.

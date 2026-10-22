@@ -195,16 +195,13 @@ function ChangeRequestReviewPage() {
       </div>
 
       {project && (
-        <section aria-label={t.basicInfo} className="mt-5 border-y border-border py-4">
-          <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
-            {basicInfo.map((info) => (
-              <div key={info.label} className="min-w-0">
-                <dt className="text-xs text-muted-foreground">{info.label}</dt>
-                <dd className="mt-1 break-words text-sm font-medium text-foreground">{info.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
+        <div className="mt-5">
+          <ProjectOverviewHeader
+            project={project}
+            projectCalendar={calendars.find((c) => c.id === project.calendarId)}
+            scheduleSummary={scheduleSummaryOf(scheduleItems, project.progress)}
+          />
+        </div>
       )}
 
       <Tabs defaultValue={firstSection} className="mt-6">

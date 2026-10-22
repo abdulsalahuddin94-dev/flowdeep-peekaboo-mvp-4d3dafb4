@@ -1,3 +1,9 @@
+## 2026-10-22 — Baseline popup: row separators and narrower dialog
+- Added a `--table-row-separator` design token (dark: white 20%, light: Gray 400) and drew it as a hairline under the header and between every row in the shared changes table, so the Save baseline popup and the approval review page both read as a proper table instead of floating text.
+- The table's vertical row gap was removed inside this table so the separator sits directly on the row edge; the last row keeps no line, preserving the rounded bottom corners.
+- Narrowed the Save new baseline dialog from max-w-4xl to max-w-3xl (768px) so it no longer stretches across the screen.
+- Verified in the preview: separator detected at every row edge (25 of 25 rows) in dark and light themes on AP-1035, and the popup reopened at 768px with its own table ruled; build clean.
+
 ## 2026-10-22 — Plan changes table: Item type on the Project Schedule tab
 - The Project Schedule changes table now carries a Type column between Item and Field, showing each item as a Milestone or Task pill; Cost Breakdown and Revenue Breakdown keep the original four columns.
 - Item kind is read from the project's own schedule (current items first, baseline snapshot as fallback) on the Save baseline popup, and from the cached plan on the approval review page; demo requests state the kind directly so their rows stay readable.

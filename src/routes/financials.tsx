@@ -427,7 +427,6 @@ function FinancialsPage() {
                 const maxVal = Math.max(0.01, ...rows.map((r) => Math.max(r.Collected, r.Spent)));
                 return rows.map((x) => {
                   const loss = x.Profit < 0;
-                  const margin = x.Collected > 0 ? (x.Profit / x.Collected) * 100 : 0;
                   const pct = (v: number) => Math.min(100, (v / maxVal) * 100);
                   const profitStart = !loss && x.Spent < x.Collected ? pct(x.Spent) : null;
                   const profitWidth = profitStart !== null ? pct(x.Collected) - profitStart : 0;
@@ -462,7 +461,7 @@ function FinancialsPage() {
                       </div>
                       <div className="mt-1 flex justify-between text-[10px] num-mono text-muted-foreground">
                         <span>$0.0M</span>
-                        <span>{money(x.Collected)} Rev / {money(x.Spent)} Pay{loss ? ` · ${money(Math.abs(x.Profit))} loss` : ""}</span>
+                        <span>{money(x.Collected)} Rev / {money(x.Spent)} Pay</span>
                       </div>
                     </div>
                   );

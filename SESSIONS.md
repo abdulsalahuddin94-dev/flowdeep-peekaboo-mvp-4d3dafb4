@@ -1,3 +1,7 @@
+## 2026-10-22 — Approval review: project basic information
+- Added a compact, unframed project information band above the three change tabs: code, type, client, project manager, departments, timeline, budget and expected revenue for external projects.
+- Uses current project records, including newly created and updated projects, with no changes to approval decisions.
+
 ## 2026-10-22 — Baseline popup: Approvals changes table
 - Replaced the Save new baseline grouped change cards with the same Item / Field / Before / After table used by approval review, shared through PlanChangesTable.
 - Preserved three section tabs, section counts, Cancel and Send for approval; dates use the standard format, long lists retain 25-row pagination and internal scrolling.

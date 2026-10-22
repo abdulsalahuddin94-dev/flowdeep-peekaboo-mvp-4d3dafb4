@@ -22,7 +22,7 @@ import {
 import { EmptyRow } from "@/components/ds/PageToolbar";
 import { RagBadge } from "@/components/RagBadge";
 import { ArrowLeft } from "@/lib/icons";
-import { useApprovals, useProjects, type ApprovalRequest } from "@/lib/projects-store";
+import { useApprovals, useProjects, useCalendars, type ApprovalRequest } from "@/lib/projects-store";
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/plan-seeds";
 import type { CostEntry, Milestone, RevEntry } from "@/routes/portfolio.$projectId";
@@ -75,10 +75,23 @@ function statusDot(status: ApprovalRequest["status"]) {
 
 const money = (value: number | null) => (value == null ? "—" : `$${value.toFixed(2)}M`);
 
-const T = {
-  en: { basicInfo: "Project basic information", code: "Project code", type: "Project type", client: "Client", manager: "Project manager", departments: "Departments", timeline: "Timeline", budget: "Project budget", revenue: "Expected revenue" },
-  ar: { basicInfo: "معلومات المشروع الأساسية", code: "كود المشروع", type: "نوع المشروع", client: "العميل", manager: "مدير المشروع", departments: "الأقسام", timeline: "الفترة الزمنية", budget: "ميزانية المشروع", revenue: "الإيرادات المتوقعة" },
-};
+/** Weighted planned-vs-actual over leaf tasks — same derivation as the project header. */
+function scheduleSummaryOf(items: Milestone[], fallback: number) {
+  const leaves = items.filter((item) => item.kind === "Task" && !items.some((child) => child.parent === item.name));
+  let totalWeight = 0;
+  let weightedActual = 0;
+  let weightedPlanned = 0;
+  for (const task of leaves) {
+    const weight = Math.max(0, task.weightScore ?? 1);
+    totalWeight += weight;
+    weightedActual += weight * (task.progress ?? 0);
+    weightedPlanned += weight * computePlannedProgress(task.startDate, task.endDate);
+  }
+  return {
+    actual: totalWeight ? Math.round(weightedActual / totalWeight) : fallback,
+    planned: totalWeight ? Math.round(weightedPlanned / totalWeight) : fallback,
+  };
+}
 
 function ChangeRequestReviewPage() {
   const { approvalId } = Route.useParams();

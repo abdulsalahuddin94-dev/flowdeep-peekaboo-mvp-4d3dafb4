@@ -219,6 +219,9 @@ function ChangeRequestReviewPage() {
         </div>
       )}
 
+      {/* Decided requests: who decided, when, and the comment they left. */}
+      {!isPending && <ApprovalOutcomeBanner request={approval} className="mt-5" />}
+
       <Tabs defaultValue={firstSection} className="mt-6">
         <TabsList className="overflow-x-auto whitespace-nowrap">
           {visibleSections.map((s) => (

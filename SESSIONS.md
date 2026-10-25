@@ -1,3 +1,9 @@
+## 2026-10-25 — Change Plan keeps the current tab
+- Entering Change Plan no longer jumps to Basic info when the PM is already on Project Schedule, Cost Breakdown or Revenue Breakdown; the tab is kept exactly where it was.
+- Non-baselined tabs (Overview, Team, Documents, …) still land on Basic info, since those tabs are hidden during Change Plan.
+- The tab is resolved with a state updater so the keyboard shortcut (E), whose handler is registered once, reads the live tab instead of a stale one.
+- Verified in the preview: from Project Schedule / Cost Breakdown / Revenue Breakdown the active tab is unchanged after Change Plan; from Overview it opens Basic info; no runtime errors, typecheck clean and build OK.
+
 ## 2026-10-25 — Employees table drops the Tasks column
 - Removed the Tasks column from the Employees table in the Resources module; assigned tasks stay visible only in the employee side panel.
 - Empty-row span reduced from 7 to 6 columns to match the new header count.

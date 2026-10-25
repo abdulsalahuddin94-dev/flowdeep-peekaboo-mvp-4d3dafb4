@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Approval review: decided (approved/rejected) requests hide the Current plan tables and show the decision banner with the decider's comment.
 - [x] Hide the change-count badge from the Change Plan banner.
 - [x] Rule the changes table rows (header + between rows) in the Save baseline popup and approval review, and narrow that popup.
 - [x] Bound action comments scrolling; apply natural-case/Poppins design rules and left-positioned search.

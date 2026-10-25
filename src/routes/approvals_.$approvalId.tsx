@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { PlanChangesTable } from "@/components/PlanChangesTable";
+import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { ProjectOverviewHeader } from "@/components/ProjectOverviewHeader";
 import { computePlannedProgress } from "@/components/ProjectSchedule";
 import { Badge } from "@/components/ui/badge";
@@ -145,6 +146,8 @@ function ChangeRequestReviewPage() {
 
   // Single-approver flow: any signed-in user can decide a pending request.
   const canAct = approval.status === "pending";
+  // Decided requests show the changes only — no "Current …" reference tables.
+  const isPending = approval.status === "pending";
 
   function openDecision(nextMode: "approve" | "reject") {
     setMode(nextMode);
@@ -216,6 +219,9 @@ function ChangeRequestReviewPage() {
         </div>
       )}
 
+      {/* Decided requests: who decided, when, and the comment they left. */}
+      {!isPending && <ApprovalOutcomeBanner request={approval} className="mt-5" />}
+
       <Tabs defaultValue={firstSection} className="mt-6">
         <TabsList className="overflow-x-auto whitespace-nowrap">
           {visibleSections.map((s) => (
@@ -232,6 +238,7 @@ function ChangeRequestReviewPage() {
           </TabsContent>
         ))}
 
+        {isPending && (
         <TabsContent value="schedule" className="mt-6">
           <h3 className="mb-3 text-sm font-medium text-foreground">Current schedule</h3>
           <StyledTable wrapperClassName="">
@@ -268,7 +275,9 @@ function ChangeRequestReviewPage() {
             </StyledTableBody>
           </StyledTable>
         </TabsContent>
+        )}
 
+        {isPending && (
         <TabsContent value="cost" className="mt-6">
           <h3 className="mb-3 text-sm font-medium text-foreground">Current cost lines</h3>
           <StyledTable wrapperClassName="">
@@ -303,7 +312,9 @@ function ChangeRequestReviewPage() {
             </StyledTableBody>
           </StyledTable>
         </TabsContent>
+        )}
 
+        {isPending && (
         <TabsContent value="revenue" className="mt-6">
           <h3 className="mb-3 text-sm font-medium text-foreground">Current revenue events</h3>
           <StyledTable wrapperClassName="">
@@ -337,6 +348,7 @@ function ChangeRequestReviewPage() {
             </StyledTableBody>
           </StyledTable>
         </TabsContent>
+        )}
       </Tabs>
 
       <FormDialog

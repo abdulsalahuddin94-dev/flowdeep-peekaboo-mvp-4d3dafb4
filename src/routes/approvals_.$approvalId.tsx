@@ -3,8 +3,6 @@ import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { PlanChangesTable } from "@/components/PlanChangesTable";
 import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
-import { ProjectOverviewHeader } from "@/components/ProjectOverviewHeader";
-import { computePlannedProgress } from "@/components/ProjectSchedule";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,7 +21,7 @@ import {
 import { EmptyRow } from "@/components/ds/PageToolbar";
 import { RagBadge } from "@/components/RagBadge";
 import { ArrowLeft } from "@/lib/icons";
-import { useApprovals, useProjects, useCalendars, type ApprovalRequest } from "@/lib/projects-store";
+import { useApprovals, useProjects, type ApprovalRequest } from "@/lib/projects-store";
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/plan-seeds";
 import type { CostEntry, Milestone, RevEntry } from "@/routes/portfolio.$projectId";
@@ -83,30 +81,12 @@ function statusDot(status: ApprovalRequest["status"]) {
 
 const money = (value: number | null) => (value == null ? "—" : `$${value.toFixed(2)}M`);
 
-/** Weighted planned-vs-actual over leaf tasks — same derivation as the project header. */
-function scheduleSummaryOf(items: Milestone[], fallback: number) {
-  const leaves = items.filter((item) => item.kind === "Task" && !items.some((child) => child.parent === item.name));
-  let totalWeight = 0;
-  let weightedActual = 0;
-  let weightedPlanned = 0;
-  for (const task of leaves) {
-    const weight = Math.max(0, task.weightScore ?? 1);
-    totalWeight += weight;
-    weightedActual += weight * (task.progress ?? 0);
-    weightedPlanned += weight * computePlannedProgress(task.startDate, task.endDate);
-  }
-  return {
-    actual: totalWeight ? Math.round(weightedActual / totalWeight) : fallback,
-    planned: totalWeight ? Math.round(weightedPlanned / totalWeight) : fallback,
-  };
-}
 
 function ChangeRequestReviewPage() {
   const { approvalId } = Route.useParams();
   const navigate = useNavigate();
   const { approvals, decideApproval, currentUser } = useApprovals();
   const { projects } = useProjects();
-  const { calendars } = useCalendars();
   const approval = approvals.find((a) => a.id === approvalId) ?? null;
 
   const [mode, setMode] = useState<"approve" | "reject">("approve");
@@ -208,16 +188,6 @@ function ChangeRequestReviewPage() {
           <span className="text-foreground capitalize">{approval.status}</span>
         </span>
       </div>
-
-      {project && (
-        <div className="mt-5">
-          <ProjectOverviewHeader
-            project={project}
-            projectCalendar={calendars.find((c) => c.id === project.calendarId)}
-            scheduleSummary={scheduleSummaryOf(scheduleItems, project.progress)}
-          />
-        </div>
-      )}
 
       {/* Decided requests: who decided, when, and the comment they left. */}
       {!isPending && <ApprovalOutcomeBanner request={approval} className="mt-5" />}

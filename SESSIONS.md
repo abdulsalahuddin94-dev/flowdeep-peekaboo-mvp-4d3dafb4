@@ -1,3 +1,9 @@
+## 2026-10-25 — Approvals: one table, no status tabs
+- Removed the Pending / Approved / Rejected tabs from the Approvals page; all requests now share one table.
+- Moved status filtering into the filter drawer as a new Status group (All statuses / Pending / Approved / Rejected), shown before Project and Request type.
+- Removed the project overview (type pill, meta line, six KPI cards) from the approval review page; the page now goes straight from title/meta to the change tabs (Project Info / Project Schedule / Cost / Revenue).
+- Verified in the preview: 8 requests in one table, Status filter returns 2 rejected and 2 approved rows respectively, review page shows no KPI cards; typecheck clean and build OK.
+
 ## 2026-10-25 — Basic info inside Change Plan
 - Added Basic info as the first and initially selected Change Plan tab, followed by Project Schedule, Cost Breakdown and Revenue Breakdown (revenue remains hidden for internal projects).
 - Reused every Edit Project field without its page heading, right-side summary or separate save/cancel bar. Valid edits feed the existing Change Plan draft and remain mounted across tab switches.

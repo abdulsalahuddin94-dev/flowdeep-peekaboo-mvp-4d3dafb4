@@ -379,17 +379,16 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: React.D
           <StyledTable wrapperClassName="">
             <StyledTableHeader><StyledTableHeaderRow>
               <StyledTableHead>Employee</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead>
-              <StyledTableHead>Capacity / wk</StyledTableHead><StyledTableHead>Utilization</StyledTableHead><StyledTableHead>Tasks</StyledTableHead>
+              <StyledTableHead>Capacity / wk</StyledTableHead><StyledTableHead>Utilization</StyledTableHead>
               <StyledTableHead className="w-16" />
             </StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
-              {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((r) => (
+              {pagination.pageItems.length === 0 ? <EmptyRow colSpan={6} /> : pagination.pageItems.map((r) => (
                   <StyledTableRow key={r.name} className="group cursor-pointer" onClick={() => setOpenName(r.name)}>
                     <StyledTableCell className="font-medium text-foreground"><div className="flex items-center gap-2"><Avatar className="h-8 w-8"><AvatarFallback className="bg-accent-dim text-[10px] text-accent">{r.name.split(" ").map((s) => s[0]).join("")}</AvatarFallback></Avatar>{r.name}</div></StyledTableCell>
                     <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell className="text-muted-foreground">{r.dept}</StyledTableCell>
                     <StyledTableCell className="num-mono">{r.capacity}h</StyledTableCell>
                     <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(r.util, 100)} className={`h-1.5 ${r.util > 100 ? "[&>div]:bg-rag-red" : r.util > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${r.util > 100 ? "text-rag-red" : "text-foreground"}`}>{r.util}%</span></div></StyledTableCell>
-                    <StyledTableCell className="max-w-56 truncate text-xs text-muted-foreground">{r.tasks.length ? r.tasks.join(", ") : "—"}</StyledTableCell>
                     <StyledTableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
                         <AssignDialog resource={r} compact onAssign={(projectName, alloc) => setPool((prev) => prev.map((x) => x.name === r.name ? { ...x, util: Math.min(x.util + alloc, 200), projects: x.projects.includes(projectName) ? x.projects : [...x.projects, projectName] } : x))} />

@@ -12,6 +12,11 @@ async function hydrateApp() {
       <StrictMode>
         <RouterProvider router={router} />
       </StrictMode>,
+      {
+        onRecoverableError: (error, errorInfo) => {
+          console.error("[debug] recoverable hydration error:", error, errorInfo?.componentStack?.slice(0, 1200));
+        },
+      },
     );
   });
 }

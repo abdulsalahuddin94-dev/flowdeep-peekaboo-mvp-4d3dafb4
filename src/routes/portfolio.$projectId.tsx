@@ -1130,6 +1130,7 @@ function ProjectDetail() {
               const prevAssignee = milestones.find((m) => m.name === name)?.assignee;
               const id = addResourceRequest({
                 project: project.name,
+                task: name,
                 role: role.role,
                 skill: role.skill,
                 fte: role.fte,

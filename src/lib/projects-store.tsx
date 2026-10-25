@@ -302,6 +302,8 @@ export type ResourceRequest = {
   priority: "Critical" | "High" | "Medium" | "Low";
   status: "Pending" | "Fulfilled" | "Declined";
   submittedBy: string; date: string; notes: string;
+  /** WBS task the requested person will be assigned to. */
+  task?: string;
   assignedTo?: string; declineReason?: string;
   /** Outcome details captured when the request is fulfilled or declined. */
   allocation?: number; utilBefore?: number; utilAfter?: number;
@@ -321,12 +323,12 @@ const SEED_NOTIFS: Notification[] = [
 const SEED_RFPS: RfpEntry[] = initialRfps.map((r) => ({ ...r }));
 
 export const SEED_RESOURCE_REQUESTS: ResourceRequest[] = [
-  { id: "RR-001", project: "ERP System Upgrade",         role: "Solution Architect", skill: "Senior", fte: 1.0, from: "2026-06", until: "2026-09", priority: "Critical", status: "Pending",   submittedBy: "Sara Al-Rashid", date: "2d ago",  notes: "Must have SAP ECC or S/4HANA experience" },
-  { id: "RR-002", project: "Coastal Refinery Expansion",  role: "Field Engineer",    skill: "Senior", fte: 2.0, from: "2026-07", until: "2026-12", priority: "High",     status: "Pending",   submittedBy: "John Smith",     date: "3d ago",  notes: "" },
-  { id: "RR-003", project: "Smart Grid Pilot",            role: "QA Engineer",       skill: "Mid",    fte: 1.0, from: "2026-07", until: "2026-09", priority: "Medium",   status: "Pending",   submittedBy: "Priya Iyer",     date: "5d ago",  notes: "" },
-  { id: "RR-004", project: "AI Forecasting Engine",       role: "Data Engineer",     skill: "Mid",    fte: 1.5, from: "2026-06", until: "2026-11", priority: "Medium",   status: "Pending",   submittedBy: "Diego Ortiz",    date: "6d ago",  notes: "Python + Spark stack preferred" },
-  { id: "RR-005", project: "Security Hardening 2026",     role: "Security Lead",     skill: "Senior", fte: 0.5, from: "2026-08", until: "2026-08", priority: "Critical", status: "Fulfilled", submittedBy: "Mei Chen",       date: "1w ago",  notes: "Pen-test cert required", assignedTo: "Mei Chen", allocation: 50, utilBefore: 68, utilAfter: 118, decidedOn: "2026-09-15" },
-  { id: "RR-006", project: "Warehouse Robotics",          role: "Change Manager",    skill: "Mid",    fte: 0.5, from: "2026-09", until: "2026-09", priority: "Low",      status: "Declined",  submittedBy: "Priya Iyer",     date: "1w ago",  notes: "", declineReason: "No available change managers this quarter — recommend external consultant" },
+  { id: "RR-001", task: "Solution Design", project: "ERP System Upgrade",         role: "Solution Architect", skill: "Senior", fte: 1.0, from: "2026-06", until: "2026-09", priority: "Critical", status: "Pending",   submittedBy: "Sara Al-Rashid", date: "2d ago",  notes: "Must have SAP ECC or S/4HANA experience" },
+  { id: "RR-002", task: "Site Mobilisation", project: "Coastal Refinery Expansion",  role: "Field Engineer",    skill: "Senior", fte: 2.0, from: "2026-07", until: "2026-12", priority: "High",     status: "Pending",   submittedBy: "John Smith",     date: "3d ago",  notes: "" },
+  { id: "RR-003", task: "UAT Execution", project: "Smart Grid Pilot",            role: "QA Engineer",       skill: "Mid",    fte: 1.0, from: "2026-07", until: "2026-09", priority: "Medium",   status: "Pending",   submittedBy: "Priya Iyer",     date: "5d ago",  notes: "" },
+  { id: "RR-004", task: "Data Pipeline Build", project: "AI Forecasting Engine",       role: "Data Engineer",     skill: "Mid",    fte: 1.5, from: "2026-06", until: "2026-11", priority: "Medium",   status: "Pending",   submittedBy: "Diego Ortiz",    date: "6d ago",  notes: "Python + Spark stack preferred" },
+  { id: "RR-005", task: "Penetration Testing", project: "Security Hardening 2026",     role: "Security Lead",     skill: "Senior", fte: 0.5, from: "2026-08", until: "2026-08", priority: "Critical", status: "Fulfilled", submittedBy: "Mei Chen",       date: "1w ago",  notes: "Pen-test cert required", assignedTo: "Mei Chen", allocation: 50, utilBefore: 68, utilAfter: 118, decidedOn: "2026-09-15" },
+  { id: "RR-006", task: "Change Readiness", project: "Warehouse Robotics",          role: "Change Manager",    skill: "Mid",    fte: 0.5, from: "2026-09", until: "2026-09", priority: "Low",      status: "Declined",  submittedBy: "Priya Iyer",     date: "1w ago",  notes: "", declineReason: "No available change managers this quarter — recommend external consultant" },
 ];
 
 // ── Context ───────────────────────────────────────────────────────────────────

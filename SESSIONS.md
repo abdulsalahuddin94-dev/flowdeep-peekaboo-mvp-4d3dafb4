@@ -1,3 +1,7 @@
+## 2026-10-25 — Approvals inbox views as tabs
+- Replaced the "Inbox view" filter group in the Approvals filter drawer with visible tabs under the page header: Pending on me, All pending, History.
+- Verified in the preview: tabs switch views correctly (History shows the 4 decided demo requests), typecheck clean.
+
 ## 2026-10-25 — Approvals demo data covering every decided state
 - Expanded AP-1029 (Customer Portal v3) into an approved 12-change request spanning Project Info, Schedule, Cost and Revenue with edits, additions and removals, plus an approval comment.
 - Added AP-1022 (approved milestone gate, Salesforce Migration) and AP-1019 (rejected 6-change request, ERP System Upgrade) with decision comments; AP-1024 (rejected milestone gate) gained fuller summary rows.

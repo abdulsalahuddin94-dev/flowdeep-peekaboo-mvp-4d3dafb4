@@ -52,8 +52,7 @@ export const Route = createFileRoute("/approvals")({
   }),
 });
 
-type InboxView = "mine" | "pending" | "history";
-type StatusFilter = "all" | ApprovalRequest["status"];
+type InboxTab = ApprovalRequest["status"];
 type TypeFilter = "all" | ApprovalRequest["type"];
 
 const TYPE_LABELS: Record<ApprovalRequest["type"], string> = {
@@ -88,8 +87,7 @@ function ApprovalsInbox() {
   const { project: projectFilter } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const [query, setQuery] = useState("");
-  const [inboxView, setInboxView] = useState<InboxView>("mine");
-  const [status, setStatus] = useState<StatusFilter>("all");
+  const [inboxTab, setInboxTab] = useState<InboxTab>("pending");
   const [type, setType] = useState<TypeFilter>("all");
   const [detailsId, setDetailsId] = useState<string | null>(null);
   const [selected, setSelected] = useState<ApprovalRequest | null>(null);
@@ -106,13 +104,7 @@ function ApprovalsInbox() {
     const normalizedQuery = query.trim().toLowerCase();
     return approvals
       .filter((approval) => !projectFilter || approval.projectName === projectFilter)
-      .filter((approval) => {
-        if (inboxView === "history") return approval.status !== "pending";
-        if (inboxView === "pending") return approval.status === "pending";
-        // Single-approver flow: pending requests are actionable by any signed-in user.
-        return approval.status === "pending";
-      })
-      .filter((approval) => status === "all" || approval.status === status)
+      .filter((approval) => approval.status === inboxTab)
       .filter((approval) => type === "all" || approval.type === type)
       .filter((approval) => !normalizedQuery || [
         approval.title,
@@ -121,7 +113,7 @@ function ApprovalsInbox() {
         TYPE_LABELS[approval.type],
         approval.ref,
       ].some((value) => value.toLowerCase().includes(normalizedQuery)));
-  }, [approvals, currentUser.id, inboxView, projectFilter, query, status, type]);
+  }, [approvals, currentUser.id, inboxTab, projectFilter, query, type]);
 
   const pagination = usePagination(rows, 10);
   const details = approvals.find((approval) => approval.id === detailsId) ?? null;
@@ -165,11 +157,11 @@ function ApprovalsInbox() {
         actions={<ViewAsSelect />}
       />
 
-      <Tabs value={inboxView} onValueChange={(value) => setInboxView(value as InboxView)}>
+      <Tabs value={inboxTab} onValueChange={(value) => setInboxTab(value as InboxTab)} className="mb-6">
         <TabsList>
-          <TabsTrigger value="mine">Pending on me</TabsTrigger>
-          <TabsTrigger value="pending">All pending</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
+          <TabsTrigger value="approved">Approved</TabsTrigger>
+          <TabsTrigger value="rejected">Rejected</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -184,18 +176,6 @@ function ApprovalsInbox() {
             value: projectFilter ?? "all",
             onChange: setProjectFilter,
             options: [{ value: "all", label: "All projects" }, ...projectNames.map((name) => ({ value: name, label: name }))],
-          },
-          {
-            key: "status",
-            label: "Status",
-            value: status,
-            onChange: (value) => setStatus(value as StatusFilter),
-            options: [
-              { value: "all", label: "All statuses" },
-              { value: "pending", label: "Pending" },
-              { value: "approved", label: "Approved" },
-              { value: "rejected", label: "Rejected" },
-            ],
           },
           {
             key: "type",

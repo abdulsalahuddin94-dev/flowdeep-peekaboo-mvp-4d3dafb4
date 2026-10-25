@@ -312,7 +312,9 @@ function ChangeRequestReviewPage() {
             </StyledTableBody>
           </StyledTable>
         </TabsContent>
+        )}
 
+        {isPending && (
         <TabsContent value="revenue" className="mt-6">
           <h3 className="mb-3 text-sm font-medium text-foreground">Current revenue events</h3>
           <StyledTable wrapperClassName="">

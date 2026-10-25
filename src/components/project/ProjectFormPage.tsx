@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -106,7 +106,7 @@ const autoCode = (t: ProjectType) =>
   `${t === "capital" ? "CAP" : "COM"}-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`;
 const isAutoCode = (v: string) => /^(CAP|COM)-\d{4}-\d{4}$/.test(v.trim());
 
-export function ProjectFormPage({ project }: { project?: Project }) {
+export function ProjectFormPage({ project, embedded = false }: { project?: Project; embedded?: boolean }) {
   const isEdit = !!project;
   const navigate = useNavigate();
   const { calendars } = useCalendars();
@@ -123,6 +123,21 @@ export function ProjectFormPage({ project }: { project?: Project }) {
   const [submitted, setSubmitted] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const updateProjectRef = useRef(updateProject);
+  updateProjectRef.current = updateProject;
+
+  // Embedded edits belong to the existing Change Plan draft, not a separate save flow.
+  useEffect(() => {
+    if (!embedded || !project || !dirty) return;
+    const result = projectRequiredFieldsSchema.safeParse(form);
+    if (!result.success) {
+      const fields = result.error.flatten().fieldErrors;
+      setErrors({ name: fields.name?.[0], client: fields.client?.[0] });
+      return;
+    }
+    setErrors({});
+    updateProjectRef.current(project.id, projectInfoPatch(form));
+  }, [embedded, project?.id, form, dirty]);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -135,9 +150,9 @@ export function ProjectFormPage({ project }: { project?: Project }) {
   /* Unsaved-changes guard */
 
   const blocker = useBlocker({
-    shouldBlockFn: () => dirty && !submitted,
+    shouldBlockFn: () => !embedded && dirty && !submitted,
     withResolver: true,
-    enableBeforeUnload: () => dirty && !submitted,
+    enableBeforeUnload: () => !embedded && dirty && !submitted,
   });
 
   function onStartChange(v: string) {
@@ -225,20 +240,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
     const endDateLabel = form.endDate ? formatLabelDate(new Date(`${form.endDate}T00:00:00`)) : "TBD";
 
     if (isEdit && project) {
-      updateProject(project.id, {
-        name: form.name.trim(),
-        businessLine: form.businessLine,
-        department: form.departments,
-        client: finalClient,
-        stage: form.stage,
-        budgetTotal: parseFloat(form.budget) || 0,
-        expectedRevenue: form.revenue ? parseFloat(form.revenue) || 0 : undefined,
-        tags: form.tags,
-        calendarId: form.calendarId || undefined,
-        ...(form.code.trim() ? { code: form.code.trim() } : {}),
-        ...(form.startDate ? { startDate: startDateLabel } : {}),
-        ...(form.endDate ? { endDate: endDateLabel } : {}),
-      });
+      updateProject(project.id, projectInfoPatch(form));
       toast.done("Project", "updated");
       finish();
       return;
@@ -284,7 +286,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
     <div>
 
       {/* Back link — page is 2nd level so no breadcrumb trail */}
-      {isEdit && project ? (
+      {!embedded && (isEdit && project ? (
         <Link
           to="/portfolio/$projectId"
           params={{ projectId: project.id }}
@@ -299,9 +301,9 @@ export function ProjectFormPage({ project }: { project?: Project }) {
         >
           <ChevronLeft className="h-4 w-4" />{backTo}
         </Link>
-      )}
+      ))}
 
-      <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+      {!embedded && <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <h1 className="truncate text-xl font-medium text-foreground">
             {isEdit ? "Edit Project" : "New Project"}
@@ -317,12 +319,12 @@ export function ProjectFormPage({ project }: { project?: Project }) {
             {form.projectType === "capital" ? "Capital / Internal" : "Commercial / External"}
           </Badge>
         )}
-      </div>
+      </div>}
 
       {!form.projectType ? (
         <TypeCards onPick={pickType} />
       ) : (
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className={embedded ? "grid gap-6" : "mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]"}>
           {/* ---------- Form column ---------- */}
           <div className="min-w-0 space-y-5">
             {!isEdit && <TypeSwitch value={form.projectType} onChange={pickType} />}
@@ -436,7 +438,7 @@ export function ProjectFormPage({ project }: { project?: Project }) {
           </div>
 
           {/* ---------- Summary column ---------- */}
-          <aside className="hidden lg:block">
+          {!embedded && <aside className="hidden lg:block">
             <div className="sticky top-6 space-y-4">
               <div className="glass-card p-4">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -504,12 +506,12 @@ export function ProjectFormPage({ project }: { project?: Project }) {
                 ))}
               </nav>
             </div>
-          </aside>
+          </aside>}
         </div>
       )}
 
       {/* Sticky action bar */}
-      {form.projectType && (
+      {!embedded && form.projectType && (
         <div className="sticky bottom-0 z-30 -mx-6 mt-6 border-t border-border bg-background/95 px-6 py-3 backdrop-blur">
           <div className="flex items-center justify-between gap-3">
             <p className="hidden text-xs text-muted-foreground sm:block">
@@ -571,6 +573,23 @@ export function ProjectFormPage({ project }: { project?: Project }) {
       </Dialog>
     </div>
   );
+}
+
+function projectInfoPatch(form: FormState): Partial<Project> {
+  return {
+    name: form.name.trim(),
+    businessLine: form.businessLine,
+    department: form.departments,
+    client: form.projectType === "capital" ? "Internal" : form.client || "Internal",
+    stage: form.stage,
+    budgetTotal: parseFloat(form.budget) || 0,
+    expectedRevenue: form.revenue ? parseFloat(form.revenue) || 0 : undefined,
+    tags: form.tags,
+    calendarId: form.calendarId || undefined,
+    ...(form.code.trim() ? { code: form.code.trim() } : {}),
+    ...(form.startDate ? { startDate: formatLabelDate(new Date(`${form.startDate}T00:00:00`)) } : {}),
+    ...(form.endDate ? { endDate: formatLabelDate(new Date(`${form.endDate}T00:00:00`)) } : {}),
+  };
 }
 
 function SummaryRow({ l, v }: { l: string; v: string }) {

@@ -377,7 +377,8 @@ function ProjectDetail() {
     setEditInfoSnapshot({ ...project });
     setPlanEditMode("editing");
     // Stay put when the PM is already on one of the baselined tabs; otherwise land on Basic info.
-    if (!FOCUS_TABS.includes(activeTab)) setActiveTab("Basic info");
+    // Updater form so the keyboard shortcut (registered once) reads the live tab.
+    setActiveTab((cur) => (FOCUS_TABS.includes(cur) ? cur : "Basic info"));
   }
 
   /** Change Plan focus mode: only the baselined tabs stay visible. */

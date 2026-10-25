@@ -16,6 +16,7 @@ import { TablePagination, usePagination } from "@/components/TablePagination";
 import { TableRowActions } from "@/components/TableRowActions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Field } from "@/components/ui/field";
 import { FormDialog } from "@/components/ui/form-dialog";
@@ -164,22 +165,19 @@ function ApprovalsInbox() {
         actions={<ViewAsSelect />}
       />
 
+      <Tabs value={inboxView} onValueChange={(value) => setInboxView(value as InboxView)}>
+        <TabsList>
+          <TabsTrigger value="mine">Pending on me</TabsTrigger>
+          <TabsTrigger value="pending">All pending</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       <PageToolbar
         query={query}
         onQueryChange={setQuery}
         placeholder="Search request, project or requester…"
         filterGroups={[
-          {
-            key: "inbox",
-            label: "Inbox view",
-            value: inboxView,
-            onChange: (value) => setInboxView(value as InboxView),
-            options: [
-              { value: "mine", label: "Pending on me" },
-              { value: "pending", label: "All pending" },
-              { value: "history", label: "History" },
-            ],
-          },
           {
             key: "project",
             label: "Project",

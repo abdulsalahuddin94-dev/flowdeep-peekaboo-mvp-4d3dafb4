@@ -1,3 +1,8 @@
+## 2026-10-25 — Approvals tabs are status-based
+- The Approvals tabs now read Pending / Approved / Rejected and filter the table by request status directly; the redundant Status filter was removed from the filter drawer.
+- Added spacing between the tab row and the toolbar so the tabs no longer sit against the search bar.
+- Verified in the preview: Pending shows 4 requests, Approved and Rejected show the decided demo requests; typecheck clean.
+
 ## 2026-10-25 — Approvals inbox views as tabs
 - Replaced the "Inbox view" filter group in the Approvals filter drawer with visible tabs under the page header: Pending on me, All pending, History.
 - Verified in the preview: tabs switch views correctly (History shows the 4 decided demo requests), typecheck clean.

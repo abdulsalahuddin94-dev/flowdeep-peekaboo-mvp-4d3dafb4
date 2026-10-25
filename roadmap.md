@@ -1,7 +1,6 @@
 # Roadmap
 - [x] Approval review: decided (approved/rejected) requests hide the Current plan tables and show the decision banner with the decider's comment.
-- [x] Approvals inbox views (Pending on me / All pending / History) shown as tabs under the header instead of a filter option.
-- [x] Hide the change-count badge from the Change Plan banner.
+- [x] Approvals inbox views shown as status tabs (Pending / Approved / Rejected) under the header, replacing the inbox and status filters.- [x] Hide the change-count badge from the Change Plan banner.
 - [x] Rule the changes table rows (header + between rows) in the Save baseline popup and approval review, and narrow that popup.
 - [x] Bound action comments scrolling; apply natural-case/Poppins design rules and left-positioned search.
 - [x] Risk Register: drop the Score column and show the score inside the severity tooltip.

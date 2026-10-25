@@ -1871,6 +1871,12 @@ export function ProjectSchedule({
           setPendingDelete(null);
         }}
       />
+      <RolesDialog
+        item={rolesFor ? items.find((i) => i.name === rolesFor) ?? null : null}
+        onClose={() => setRolesFor(null)}
+        onUpdate={(roles) => { if (rolesFor) patch(rolesFor, { roles }); }}
+        roleOptions={jobRoles && jobRoles.length ? jobRoles : ROLE_OPTIONS}
+      />
     </div>
   );
 }

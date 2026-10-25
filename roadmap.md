@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Change Plan: stay on the tab the PM is already on (Schedule / Cost / Revenue) instead of jumping to Basic info.
 - [x] Approvals: drop the status tabs — one table for all requests with a Status filter group in the drawer; remove the project overview from the approval review page.
 - [x] Add Basic info as the first Change Plan tab, reusing all Edit Project fields without its summary and preserving draft edits across tabs.
 - [x] Approval review: decided (approved/rejected) requests hide the Current plan tables and show the decision banner with the decider's comment.

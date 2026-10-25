@@ -1,3 +1,9 @@
+## 2026-10-25 — Basic info inside Change Plan
+- Added Basic info as the first and initially selected Change Plan tab, followed by Project Schedule, Cost Breakdown and Revenue Breakdown (revenue remains hidden for internal projects).
+- Reused every Edit Project field without its page heading, right-side summary or separate save/cancel bar. Valid edits feed the existing Change Plan draft and remain mounted across tab switches.
+- The Change Plan Edit project menu opens Basic info in place. Existing snapshot, discard and approval-diff flows remain in use.
+- Verified in the preview: edited the project name, switched to Schedule and back, confirmed the value remained and the name change appeared in the Save baseline Project Info table; no runtime errors and build OK.
+
 ## 2026-10-25 — Approvals tabs are status-based
 - The Approvals tabs now read Pending / Approved / Rejected and filter the table by request status directly; the redundant Status filter was removed from the filter drawer.
 - Added spacing between the tab row and the toolbar so the tabs no longer sit against the search bar.

@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate, useBlocker } from "@tanstack/react-
 import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { PlanChangesTable } from "@/components/PlanChangesTable";
+import { ProjectFormPage } from "@/components/project/ProjectFormPage";
 import { EmptyRegion, useEmptyPreview } from "@/lib/empty-preview";
 
 import { RagBadge } from "@/components/RagBadge";
@@ -96,7 +97,8 @@ const TABS = [
   "Overview", "Project Schedule", "Cost Breakdown", "Revenue Breakdown", "Risk & Issues", "Action Tracker", "Meetings", "Recent Activity", "Status Reports",
 ];
 /** Tabs covered by the baseline — the only ones shown while in Change Plan. */
-const FOCUS_TABS = ["Project Schedule", "Cost Breakdown", "Revenue Breakdown"];
+const FOCUS_TABS = ["Basic info", "Project Schedule", "Cost Breakdown", "Revenue Breakdown"];
+const T = { en: { basicInfo: "Basic info" }, ar: { basicInfo: "البيانات الأساسية" } };
 /** In-memory plan state per project, so it survives visits to Approvals / Edit project. */
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/plan-seeds";
@@ -374,7 +376,7 @@ function ProjectDetail() {
     setEditFinSnapshot({ cost: costEntries.map((e) => ({ ...e })), rev: revEntries.map((e) => ({ ...e })) });
     setEditInfoSnapshot({ ...project });
     setPlanEditMode("editing");
-    if (!FOCUS_TABS.includes(activeTab)) setActiveTab("Project Schedule");
+    setActiveTab("Basic info");
   }
 
   /** Change Plan focus mode: only the baselined tabs stay visible. */
@@ -869,7 +871,7 @@ function ProjectDetail() {
                 )}
                 {isBaselineLocked && isViewingCurrent && planEditMode === "editing" && (
                   <>
-                    <DropdownMenuItem onClick={() => navigate({ to: "/portfolio/$projectId/edit", params: { projectId: project.id } })}>
+                    <DropdownMenuItem onClick={() => setActiveTab("Basic info")}>
                       <Pencil size={14} className="mr-2" />Edit project
                     </DropdownMenuItem>
                     <DropdownMenuItem disabled={planChangeCount === 0} onClick={requestSaveBaselineChange}>
@@ -1048,11 +1050,15 @@ function ProjectDetail() {
       <Tabs value={activeTab} onValueChange={(t) => setActiveTab(t)}>
         <div>
         <TabsList className="overflow-x-auto whitespace-nowrap">
-          {TABS.filter((t) => t !== "Revenue Breakdown" || !isInternalProject).filter((t) => !focusMode || FOCUS_TABS.includes(t)).map((t) => (
-            <TabsTrigger key={t} value={t}>{t}</TabsTrigger>
+          {(focusMode ? FOCUS_TABS : TABS).filter((t) => t !== "Revenue Breakdown" || !isInternalProject).map((t) => (
+            <TabsTrigger key={t} value={t}>{t === "Basic info" ? T.en.basicInfo : t}</TabsTrigger>
           ))}
         </TabsList>
         </div>
+
+        {focusMode && <TabsContent value="Basic info" forceMount className="mt-5 data-[state=inactive]:hidden">
+          <ProjectFormPage project={project} embedded />
+        </TabsContent>}
 
         <TabsContent value="Overview" className="mt-5">
           <OverviewTab

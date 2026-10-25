@@ -1,3 +1,8 @@
+## 2026-10-25 — Employees table drops the Tasks column
+- Removed the Tasks column from the Employees table in the Resources module; assigned tasks stay visible only in the employee side panel.
+- Empty-row span reduced from 7 to 6 columns to match the new header count.
+- Verified in the preview: table headers are Employee / Role / Department / Capacity per week / Utilization, and the side panel still lists Tasks (2) for Sara Al-Rashid; no runtime errors, typecheck clean and build OK.
+
 ## 2026-10-25 — Approvals: one table, no status tabs
 - Removed the Pending / Approved / Rejected tabs from the Approvals page; all requests now share one table.
 - Moved status filtering into the filter drawer as a new Status group (All statuses / Pending / Approved / Rejected), shown before Project and Request type.

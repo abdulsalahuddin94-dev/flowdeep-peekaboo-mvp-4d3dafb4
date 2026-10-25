@@ -376,7 +376,8 @@ function ProjectDetail() {
     setEditFinSnapshot({ cost: costEntries.map((e) => ({ ...e })), rev: revEntries.map((e) => ({ ...e })) });
     setEditInfoSnapshot({ ...project });
     setPlanEditMode("editing");
-    setActiveTab("Basic info");
+    // Stay put when the PM is already on one of the baselined tabs; otherwise land on Basic info.
+    if (!FOCUS_TABS.includes(activeTab)) setActiveTab("Basic info");
   }
 
   /** Change Plan focus mode: only the baselined tabs stay visible. */

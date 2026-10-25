@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { PlanChangesTable } from "@/components/PlanChangesTable";
+import { ApprovalOutcomeBanner } from "@/components/ApprovalOutcome";
 import { ProjectOverviewHeader } from "@/components/ProjectOverviewHeader";
 import { computePlannedProgress } from "@/components/ProjectSchedule";
 import { Badge } from "@/components/ui/badge";

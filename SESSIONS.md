@@ -4,6 +4,13 @@
 - Removed the project overview (type pill, meta line, six KPI cards) from the approval review page; the page now goes straight from title/meta to the change tabs (Project Info / Project Schedule / Cost / Revenue).
 - Verified in the preview: 8 requests in one table, Status filter returns 2 rejected and 2 approved rows respectively, review page shows no KPI cards; typecheck clean and build OK.
 
+## 2026-10-25 — Resources Employees + WBS roles
+- Resources "People" renamed to "Employees" (sidebar, breadcrumb, KPI card replaces Headcount).
+- Employees table: Projects and Status columns removed, Tasks column added; row click opens an employee drawer (details, email, salary, projects, tasks).
+- Add Employee: Role picked from Organization Roles lookup, Email required (validated), Salary required.
+- Requests: new Task column + drawer row; fulfilling a request adds its project and task to the employee.
+- WBS: Roles column restored; row burger menu offers Add role / Edit role opening a popup editor.
+
 ## 2026-10-25 — Basic info inside Change Plan
 - Added Basic info as the first and initially selected Change Plan tab, followed by Project Schedule, Cost Breakdown and Revenue Breakdown (revenue remains hidden for internal projects).
 - Reused every Edit Project field without its page heading, right-side summary or separate save/cancel bar. Valid edits feed the existing Change Plan draft and remain mounted across tab switches.

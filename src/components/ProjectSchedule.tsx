@@ -27,6 +27,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, GanttChartSquare, Link2, PanelLeft, PanelLeftClose, Pencil, Plus, Trash2, TrendingUp, Upload, UserPlus, X } from "@/lib/icons";
 import { RagBadge } from "@/components/RagBadge";
@@ -349,8 +350,8 @@ export function ProjectSchedule({
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);
   const [visibleCols] = useState<Set<ColKey>>(
-    // Owner + Assignee + Roles columns hidden for the MVP demo view
-    () => new Set<ColKey>(["type", "duration", "weight", "status", "actual", "planned", "dep", "payment"]),
+    // Owner + Assignee columns hidden for the MVP demo view
+    () => new Set<ColKey>(["type", "duration", "roles", "weight", "status", "actual", "planned", "dep", "payment"]),
   );
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(items.map(i => i.name)));
   const [leftPct, setLeftPct] = useState(48);
@@ -364,6 +365,7 @@ export function ProjectSchedule({
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingImport, setPendingImport] = useState<ScheduleItem[] | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [rolesFor, setRolesFor] = useState<string | null>(null);
   // Live preview overrides while dragging/resizing a bar
   const [dragPreview, setDragPreview] = useState<Record<string, { startDate: string; endDate: string }>>({});
   // Undo history: each entry is the list of patches needed to restore the prior state
@@ -1295,17 +1297,6 @@ export function ProjectSchedule({
                           const label = item.roles.length
                             ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ")
                             : (assigneeRole ?? "");
-                          if (editable) {
-                            return (
-                              <RolesCell
-                                item={item}
-                                label={label}
-                                onUpdate={(roles) => patch(item.name, { roles })}
-                                onRequestRole={(role) => onRequestSkill?.(item.name, role)}
-                                roleOptions={jobRoles && jobRoles.length ? jobRoles : ROLE_OPTIONS}
-                              />
-                            );
-                          }
                           return label ? (
                             <span className="truncate text-[11px] text-foreground/80" title={label}>{label}</span>
                           ) : (
@@ -1449,6 +1440,9 @@ export function ProjectSchedule({
                                 </PlanActionMenuItem>
                                 <PlanActionMenuItem restricted={restricted} onSelect={() => onEditItem?.(item.name)}>
                                   <Pencil className="h-4 w-4" /> Edit
+                                </PlanActionMenuItem>
+                                <PlanActionMenuItem restricted={restricted} onSelect={() => setRolesFor(item.name)}>
+                                  <UserPlus className="h-4 w-4" /> {item.roles.length ? "Edit role" : "Add role"}
                                 </PlanActionMenuItem>
                                 <PlanActionMenuItem restricted={restricted} onSelect={() => onAddDependencyClick?.(item.name)}>
                                   <Link2 className="h-4 w-4" /> Add dependency
@@ -1877,6 +1871,12 @@ export function ProjectSchedule({
           setPendingDelete(null);
         }}
       />
+      <RolesDialog
+        item={rolesFor ? items.find((i) => i.name === rolesFor) ?? null : null}
+        onClose={() => setRolesFor(null)}
+        onUpdate={(roles) => { if (rolesFor) patch(rolesFor, { roles }); }}
+        roleOptions={jobRoles && jobRoles.length ? jobRoles : ROLE_OPTIONS}
+      />
     </div>
   );
 }
@@ -2240,175 +2240,100 @@ function DateCell({
 }
 
 // ── Assignee cell: name pill / Waiting / request skill popover ──────────────
-// ── RolesCell: Edit roles with approval workflow ──────────────────────────────
-function RolesCell({
+// ── RolesDialog: add / edit the roles a WBS item needs (opened from the row menu) ──
+function RolesDialog({
   item,
-  label,
+  onClose,
   onUpdate,
-  onRequestRole,
   roleOptions = ROLE_OPTIONS,
 }: {
-  item: ScheduleItem;
-  label?: string;
+  item: ScheduleItem | null;
+  onClose: () => void;
   onUpdate: (roles: RoleReq[]) => void;
-  onRequestRole: (role: RoleReq) => void;
   roleOptions?: readonly string[];
 }) {
-  const [editOpen, setEditOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<RoleReq | null>(null);
+  const [draft, setDraft] = useState<RoleReq[]>([]);
   const [newRole, setNewRole] = useState("");
   const [newLevel, setNewLevel] = useState<RoleReq["skill"]>("Mid");
   const [newFte, setNewFte] = useState("1");
 
-  const handleRemoveRole = (role: RoleReq) => {
-    const updated = item.roles.filter(r => r.role !== role.role);
-    onUpdate(updated);
+  useEffect(() => {
+    if (item) setDraft(item.roles.map((r) => ({ ...r })));
+    setNewRole(""); setNewLevel("Mid"); setNewFte("1");
+  }, [item]);
+
+  const editing = !!item?.roles.length;
+  const updateRow = (i: number, p: Partial<RoleReq>) => setDraft((d) => d.map((r, j) => (j === i ? { ...r, ...p } : r)));
+  const addRow = () => {
+    if (!newRole.trim()) return;
+    setDraft((d) => [...d, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }]);
+    setNewRole(""); setNewLevel("Mid"); setNewFte("1");
   };
-
-  const handleEditRole = (oldRole: RoleReq) => {
-    setSelectedRole(oldRole);
-    setNewRole(oldRole.role);
-    setNewLevel(oldRole.skill);
-    setNewFte(String(oldRole.fte));
-    setEditOpen(true);
+  const save = () => {
+    const pending = newRole.trim() ? [...draft, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }] : draft;
+    onUpdate(pending);
+    toast.success(pending.length ? `Roles updated for ${item?.name}` : `Roles cleared for ${item?.name}`);
+    onClose();
   };
-
-  const handleSubmit = () => {
-    if (!selectedRole || !newRole.trim()) return;
-
-    // Remove old role
-    const withoutOld = item.roles.filter(r => r.role !== selectedRole.role);
-
-    // Add request for new role
-    onRequestRole({ role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 });
-
-    // Update list
-    onUpdate(withoutOld);
-
-    setEditOpen(false);
-    setSelectedRole(null);
-    setNewRole("");
-    setNewLevel("Mid");
-    setNewFte("1");
-  };
+  const levels = ["Junior", "Mid", "Senior", "Lead"] as const;
 
   return (
-    <div className="flex items-center gap-1">
-      <div className="truncate text-[11px] text-foreground/80 flex-1" title={label ?? ""}>
-        {label || <span className="text-muted-foreground">—</span>}
-      </div>
-      <Popover open={editOpen} onOpenChange={(o) => { setEditOpen(o); if (!o) { setSelectedRole(null); setNewRole(""); setNewLevel("Mid"); setNewFte("1"); } }}>
-        <PopoverTrigger asChild>
-          <button className="shrink-0 rounded p-1 hover:bg-secondary text-muted-foreground hover:text-foreground">
-            <Pencil className="h-3 w-3" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80 p-3" align="start">
-          <div className="space-y-3">
-            <div className="text-xs font-medium">
-              {selectedRole ? `Edit ${selectedRole.role} Role` : "Edit Roles"}
+    <Dialog open={!!item} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{editing ? "Edit role" : "Add role"}</DialogTitle>
+          <DialogDescription>{item?.name}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          {draft.length > 0 && (
+            <div className="space-y-2">
+              {draft.map((r, i) => (
+                <div key={`${r.role}-${i}`} className="grid grid-cols-[1fr_110px_80px_36px] items-center gap-2">
+                  <Select value={r.role} onValueChange={(v) => updateRow(i, { role: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Array.from(new Set([r.role, ...roleOptions])).map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={r.skill} onValueChange={(v) => updateRow(i, { skill: v as RoleReq["skill"] })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{levels.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <Input type="number" min={0.1} step={0.1} value={r.fte} onChange={(e) => updateRow(i, { fte: parseFloat(e.target.value) || 0 })} className="num-mono" aria-label="FTE" />
+                  <Button variant="ghost" size="icon" className="h-9 w-9" aria-label={`Remove ${r.role}`} onClick={() => setDraft((d) => d.filter((_, j) => j !== i))}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
-            {selectedRole && (
-              <>
-                <p className="text-[10px] text-muted-foreground border-b border-border pb-2">
-                  Removing "{selectedRole.role}" and requesting replacement
-                </p>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase">New Role</Label>
-                  <Select value={newRole} onValueChange={setNewRole}>
-                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a role" /></SelectTrigger>
-                    <SelectContent>
-                      {roleOptions.map((r) => (
-                        <SelectItem key={r} value={r}>{r}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
-                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {(["Junior", "Mid", "Senior", "Lead"] as const).map((s) => (
-                          <SelectItem key={s} value={s}>{s}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input type="number" min={0.1} step={0.1} value={newFte} onChange={(e) => setNewFte(e.target.value)} className="h-8 text-xs num-mono" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <Button size="sm" variant="secondary" className="h-8 text-xs" onClick={() => setSelectedRole(null)}>Cancel</Button>
-                  <Button size="sm" className="h-8 text-xs" disabled={!newRole.trim()} onClick={handleSubmit}>
-                    Edit
-                  </Button>
-                </div>
-              </>
-            )}
-            {!selectedRole && (
-              <div className="space-y-2">
-                <div className="space-y-1">
-                  {item.roles.map((r) => (
-                    <div key={r.role} className="flex items-center justify-between rounded bg-secondary/30 p-2 text-xs">
-                      <span>{r.role} ({r.skill}, {r.fte})</span>
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => handleEditRole(r)} className="text-muted-foreground hover:text-foreground">
-                          <Pencil className="h-3 w-3" />
-                        </button>
-                        <button onClick={() => handleRemoveRole(r)} className="text-muted-foreground hover:text-destructive">
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {item.roles.length === 0 && (
-                    <p className="text-[10px] text-muted-foreground">No roles assigned yet.</p>
-                  )}
-                </div>
-                <div className="space-y-2 border-t border-border pt-2">
-                  <Label className="text-[10px] uppercase">Add role</Label>
-                  <Select value={newRole} onValueChange={setNewRole}>
-                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Select a role" /></SelectTrigger>
-                    <SelectContent>
-                      {roleOptions.filter(r => !item.roles.some(x => x.role === r)).map((r) => (
-                        <SelectItem key={r} value={r}>{r}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
-                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {(["Junior", "Mid", "Senior", "Lead"] as const).map((s) => (
-                          <SelectItem key={s} value={s}>{s}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input type="number" min={0.1} step={0.1} value={newFte} onChange={(e) => setNewFte(e.target.value)} className="h-8 text-xs num-mono" />
-                  </div>
-                  <Button
-                    size="sm"
-                    className="h-7 w-full text-xs"
-                    disabled={!newRole.trim()}
-                    onClick={() => {
-                      const next = [...item.roles, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }];
-                      onUpdate(next);
-                      if (next.length >= 2) {
-                        toast.info("We recommend a subtask for this new role");
-                      }
-                      setNewRole("");
-                      setNewLevel("Mid");
-                      setNewFte("1");
-                    }}
-                  >
-                    <Plus className="mr-1 h-3 w-3" /> Add role
-                  </Button>
-
-                </div>
-              </div>
-            )}
+          )}
+          <div className="space-y-2 border-t border-border pt-3">
+            <Label>{draft.length ? "Add another role" : "Role"}</Label>
+            <div className="grid grid-cols-[1fr_110px_80px_36px] items-center gap-2">
+              <Select value={newRole} onValueChange={setNewRole}>
+                <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
+                <SelectContent>
+                  {roleOptions.filter((o) => !draft.some((r) => r.role === o)).map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{levels.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+              </Select>
+              <Input type="number" min={0.1} step={0.1} value={newFte} onChange={(e) => setNewFte(e.target.value)} className="num-mono" aria-label="FTE" />
+              <Button variant="outline" size="icon" className="h-9 w-9" aria-label="Add role" disabled={!newRole.trim()} onClick={addRow}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">Role · Seniority · FTE</p>
           </div>
-        </PopoverContent>
-      </Popover>
-    </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" onClick={save}>Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

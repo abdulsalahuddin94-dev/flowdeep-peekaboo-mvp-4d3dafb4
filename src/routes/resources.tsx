@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { resources, projects, departments } from "@/lib/mock-data";
-import { useResourceRequests } from "@/lib/projects-store";
+import { useResourceRequests, useJobRoles } from "@/lib/projects-store";
 import type { ResourceRequest } from "@/lib/projects-store";
 import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck } from "@/lib/icons";
 import { toast } from "@/lib/toast";
@@ -48,7 +48,11 @@ export const Route = createFileRoute("/resources")({
 });
 
 type Priority = "Critical" | "High" | "Medium" | "Low";
-type PoolResource = typeof resources[number];
+type PoolResource = Omit<typeof resources[number], "projects"> & { projects: string[]; email: string; salary: number; tasks: string[] };
+
+const SEED_SALARY = [14500, 12800, 13200, 9800, 13900, 8700, 9200, 11000, 10400, 9900];
+const SEED_TASKS: string[][] = [["Solution Design", "Integration Blueprint"], ["Site Mobilisation"], ["Penetration Testing"], ["Field Survey", "Commissioning"], ["Model Training"], ["Budget Review"]];
+const formatSalary = (n: number) => `$${n.toLocaleString("en-US")} / mo`;
 
 const PRIORITY_STYLE: Record<Priority, string> = {
   Critical: "border-rag-red/40 bg-rag-red/10 text-rag-red",
@@ -58,7 +62,7 @@ const PRIORITY_STYLE: Record<Priority, string> = {
 };
 
 const RES_TAB_LABELS: Record<string, string> = {
-  requests: "Requests", people: "People", heatmap: "Utilization Heatmap",
+  requests: "Requests", people: "Employees", heatmap: "Utilization Heatmap",
   planning: "Manpower Planning", skills: "Skill Demand",
 };
 
@@ -81,7 +85,13 @@ const MANPOWER_PLAN = [
 function ResourcesPage() {
   const { tab = "requests" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
-  const [pool, setPool] = useState<PoolResource[]>(resources.map((r) => ({ ...r })));
+  const [pool, setPool] = useState<PoolResource[]>(resources.map((r, i) => ({
+    ...r,
+    projects: [...r.projects],
+    email: `${r.name.toLowerCase().replace(/[^a-z ]/g, "").trim().replace(/\s+/g, ".")}@company.com`,
+    salary: SEED_SALARY[i % SEED_SALARY.length],
+    tasks: SEED_TASKS[i] ?? [],
+  })));
   const { resourceRequests: requests, updateResourceRequest } = useResourceRequests();
 
   const pendingCount = requests.filter((r) => r.status === "Pending").length;
@@ -98,7 +108,12 @@ function ResourcesPage() {
     const utilBefore = person?.util;
     const utilAfter = utilBefore == null ? undefined : Math.min(utilBefore + alloc, 200);
     if (person) {
-      setPool((prev) => prev.map((p) => (p.name === assignedTo ? { ...p, util: utilAfter ?? p.util } : p)));
+      setPool((prev) => prev.map((p) => (p.name === assignedTo ? {
+        ...p,
+        util: utilAfter ?? p.util,
+        projects: req && !p.projects.includes(req.project) ? [...p.projects, req.project] : p.projects,
+        tasks: req?.task && !p.tasks.includes(req.task) ? [...p.tasks, req.task] : p.tasks,
+      } : p)));
     }
     updateResourceRequest(id, {
       status: "Fulfilled", assignedTo, allocation: alloc,
@@ -132,7 +147,7 @@ function ResourcesPage() {
       />
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="Headcount" value={pool.length} className="p-4" />
+        <KpiCard label="Employees" value={pool.length} className="p-4" />
         <KpiCard label="Avg utilization" value={`${avgUtilization}%`} accent={avgUtilization > 90 ? "amber" : "teal"} className="p-4" />
         <KpiCard label="Open requests" value={pendingCount} accent={pendingCount ? "amber" : undefined} className="p-4" />
         <KpiCard label="Capacity gap" value={`-${capacityGap}`} accent={capacityGap ? "red" : "green"} className="p-4" />
@@ -173,7 +188,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
   const [openId, setOpenId] = useState<string | null>(null);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return requests.filter((r) => (!q || r.role.toLowerCase().includes(q) || r.skill.toLowerCase().includes(q) || r.project.toLowerCase().includes(q)))
+    return requests.filter((r) => (!q || r.role.toLowerCase().includes(q) || (r.task ?? "").toLowerCase().includes(q) || r.skill.toLowerCase().includes(q) || r.project.toLowerCase().includes(q)))
       .filter((r) => status === "all" || r.status === status)
       .filter((r) => priority === "all" || r.priority === priority);
   }, [priority, query, requests, status]);
@@ -182,7 +197,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
 
   return (
     <>
-      <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search role, skill or project…" filterGroups={[
+      <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search role, task or project…" filterGroups={[
         { key: "status", label: "Status", value: status, onChange: setStatus, options: [
           { value: "all", label: "All statuses" }, { value: "Pending", label: "Pending" },
           { value: "Fulfilled", label: "Fulfilled" }, { value: "Declined", label: "Declined" },
@@ -193,19 +208,20 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
       ]} />
         <StyledTable wrapperClassName="">
           <StyledTableHeader><StyledTableHeaderRow>
-            <StyledTableHead>Role / Skill</StyledTableHead><StyledTableHead>Project</StyledTableHead>
+            <StyledTableHead>Role / Skill</StyledTableHead><StyledTableHead>Task</StyledTableHead><StyledTableHead>Project</StyledTableHead>
             <StyledTableHead>FTE</StyledTableHead><StyledTableHead>Period</StyledTableHead>
             <StyledTableHead>Priority</StyledTableHead><StyledTableHead>Submitted by</StyledTableHead>
             <StyledTableHead className="w-44 text-center">Status</StyledTableHead>
           </StyledTableHeaderRow></StyledTableHeader>
           <StyledTableBody>
-            {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((req) => (
+            {pagination.pageItems.length === 0 ? <EmptyRow colSpan={8} /> : pagination.pageItems.map((req) => (
                 <StyledTableRow
                   key={req.id}
                   className="group cursor-pointer"
                   onClick={() => setOpenId(req.id)}
                 >
                   <StyledTableCell><div className="font-medium text-foreground">{req.role}</div><div className="text-xs text-muted-foreground">{req.skill}</div></StyledTableCell>
+                  <StyledTableCell>{req.task ?? <span className="text-muted-foreground">—</span>}</StyledTableCell>
                   <StyledTableCell>{req.project}</StyledTableCell>
                   <StyledTableCell className="num-mono">{req.fte}</StyledTableCell>
                   <StyledTableCell className="num-mono text-xs text-muted-foreground">{req.from} → {req.until}</StyledTableCell>
@@ -272,6 +288,7 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
               <section className="space-y-2">
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Request</h4>
                 <DrawerRow label="Project" value={req.project} />
+                <DrawerRow label="Task" value={req.task ?? "—"} />
                 <DrawerRow label="FTE" value={req.fte} valueClass="num-mono" />
                 <DrawerRow label="Period" value={`${req.from} → ${req.until}`} valueClass="num-mono" />
                 <DrawerRow label="Submitted by" value={req.submittedBy} />
@@ -342,47 +359,96 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: React.D
   const [query, setQuery] = useState("");
   const [department, setDepartment] = useState("all");
   const [related, setRelated] = useState("all");
+  const [openName, setOpenName] = useState<string | null>(null);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return pool.filter((r) => !q || r.name.toLowerCase().includes(q) || r.role.toLowerCase().includes(q))
+    return pool.filter((r) => !q || r.name.toLowerCase().includes(q) || r.role.toLowerCase().includes(q) || r.tasks.some((t) => t.toLowerCase().includes(q)))
       .filter((r) => department === "all" || r.dept === department)
       .filter((r) => matchRelated(related, r.projects.length));
   }, [department, pool, query, related]);
   const pagination = usePagination(filtered, 10);
+  const selected = pool.find((r) => r.name === openName) ?? null;
 
   return (
     <>
-      <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search member or role…" filterGroups={[
+      <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search employee, role or task…" filterGroups={[
         relatedProjectsGroup(related, setRelated),
         { key: "department", label: "Department", value: department, onChange: setDepartment, options: [{ value: "all", label: "All departments" }, ...departments.map((d) => ({ value: d.name, label: d.name }))] },
       ]} />
       <EmptyRegion id="resources-capacity">
           <StyledTable wrapperClassName="">
             <StyledTableHeader><StyledTableHeaderRow>
-              <StyledTableHead>Member</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead>
-              <StyledTableHead>Capacity / wk</StyledTableHead><StyledTableHead>Utilization</StyledTableHead><StyledTableHead>Projects</StyledTableHead>
-              <StyledTableHead className="w-44 text-center">Status</StyledTableHead>
+              <StyledTableHead>Employee</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead>
+              <StyledTableHead>Capacity / wk</StyledTableHead><StyledTableHead>Utilization</StyledTableHead><StyledTableHead>Tasks</StyledTableHead>
+              <StyledTableHead className="w-16" />
             </StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
-              {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((r) => {
-                const state = r.util > 100 ? "Over-allocated" : r.util === 0 ? "Bench" : "Allocated";
-                const tone = r.util > 100 ? "border-rag-red/50 bg-rag-red/10 text-rag-red" : r.util === 0 ? "border-border bg-secondary/40 text-muted-foreground" : "border-rag-green/50 bg-rag-green/10 text-rag-green";
-                return (
-                  <StyledTableRow key={r.name} className="group">
+              {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((r) => (
+                  <StyledTableRow key={r.name} className="group cursor-pointer" onClick={() => setOpenName(r.name)}>
                     <StyledTableCell className="font-medium text-foreground"><div className="flex items-center gap-2"><Avatar className="h-8 w-8"><AvatarFallback className="bg-accent-dim text-[10px] text-accent">{r.name.split(" ").map((s) => s[0]).join("")}</AvatarFallback></Avatar>{r.name}</div></StyledTableCell>
                     <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell className="text-muted-foreground">{r.dept}</StyledTableCell>
                     <StyledTableCell className="num-mono">{r.capacity}h</StyledTableCell>
                     <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(r.util, 100)} className={`h-1.5 ${r.util > 100 ? "[&>div]:bg-rag-red" : r.util > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${r.util > 100 ? "text-rag-red" : "text-foreground"}`}>{r.util}%</span></div></StyledTableCell>
-                    <StyledTableCell className="max-w-56 truncate text-xs text-muted-foreground">{r.projects.length ? r.projects.join(", ") : "—"}</StyledTableCell>
-                    <StyledTableCell><TableRowActions statusNode={<Badge variant="outline" className={tone}>{state}</Badge>} extraActions={<AssignDialog resource={r} compact onAssign={(projectName, alloc) => setPool((prev) => prev.map((x) => x.name === r.name ? { ...x, util: Math.min(x.util + alloc, 200), projects: x.projects.includes(projectName) ? x.projects : [...x.projects, projectName] } : x))} />} /></StyledTableCell>
+                    <StyledTableCell className="max-w-56 truncate text-xs text-muted-foreground">{r.tasks.length ? r.tasks.join(", ") : "—"}</StyledTableCell>
+                    <StyledTableCell onClick={(e) => e.stopPropagation()}>
+                      <div className="flex justify-end opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                        <AssignDialog resource={r} compact onAssign={(projectName, alloc) => setPool((prev) => prev.map((x) => x.name === r.name ? { ...x, util: Math.min(x.util + alloc, 200), projects: x.projects.includes(projectName) ? x.projects : [...x.projects, projectName] } : x))} />
+                      </div>
+                    </StyledTableCell>
                   </StyledTableRow>
-                );
-              })}
+              ))}
             </StyledTableBody>
           </StyledTable>
       </EmptyRegion>
-      <TablePagination {...pagination} itemLabel="resources" demoPages={1} />
+      <TablePagination {...pagination} itemLabel="employees" demoPages={1} />
+      <EmployeeSheet employee={selected} onClose={() => setOpenName(null)} />
     </>
+  );
+}
+
+/** Employee detail drawer: profile, salary, projects and assigned tasks. */
+function EmployeeSheet({ employee, onClose }: { employee: PoolResource | null; onClose: () => void }) {
+  return (
+    <Sheet open={!!employee} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <SheetContent side="right" className="flex w-[480px] max-w-full flex-col rounded-l-lg border-l border-border bg-drawer p-0 sm:max-w-[480px]">
+        {employee && (
+          <>
+            <SheetHeader className="border-b border-border px-6 pb-4 pt-6 text-left">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10"><AvatarFallback className="bg-accent-dim text-xs text-accent">{employee.name.split(" ").map((s) => s[0]).join("")}</AvatarFallback></Avatar>
+                <div>
+                  <SheetTitle className="text-lg">{employee.name}</SheetTitle>
+                  <SheetDescription className="text-xs">{employee.role} · {employee.dept}</SheetDescription>
+                </div>
+              </div>
+            </SheetHeader>
+            <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+              <section className="space-y-2">
+                <h4 className="text-xs font-semibold text-muted-foreground">Details</h4>
+                <DrawerRow label="Email" value={employee.email} />
+                <DrawerRow label="Role" value={employee.role} />
+                <DrawerRow label="Department" value={employee.dept} />
+                <DrawerRow label="Salary" value={formatSalary(employee.salary)} valueClass="num-mono" />
+                <DrawerRow label="Capacity" value={`${employee.capacity}h / week`} valueClass="num-mono" />
+                <DrawerRow label="Utilization" value={`${employee.util}%`} valueClass={`num-mono ${employee.util > 100 ? "text-rag-red" : ""}`} />
+              </section>
+              <section className="space-y-2">
+                <h4 className="text-xs font-semibold text-muted-foreground">Projects ({employee.projects.length})</h4>
+                {employee.projects.length ? (
+                  <div className="flex flex-wrap gap-2">{employee.projects.map((p) => <Badge key={p} variant="outline">{p}</Badge>)}</div>
+                ) : <p className="text-sm text-muted-foreground">Not assigned to any project yet.</p>}
+              </section>
+              <section className="space-y-2">
+                <h4 className="text-xs font-semibold text-muted-foreground">Tasks ({employee.tasks.length})</h4>
+                {employee.tasks.length ? (
+                  <ul className="space-y-1.5">{employee.tasks.map((t) => <li key={t} className="rounded-md border border-border bg-secondary/30 px-3 py-2 text-sm">{t}</li>)}</ul>
+                ) : <p className="text-sm text-muted-foreground">No tasks assigned yet.</p>}
+              </section>
+            </div>
+          </>
+        )}
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -628,13 +694,17 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
   const [dept, setDept]       = useState("");
   const [capacity, setCapacity] = useState("40");
   const [email, setEmail]     = useState("");
-  const [errors, setErrors] = useState<{ name?: string; role?: string; dept?: string }>({});
+  const [salary, setSalary]   = useState("");
+  const { jobRoles } = useJobRoles();
+  const [errors, setErrors] = useState<{ name?: string; role?: string; dept?: string; email?: string; salary?: string }>({});
 
   function handleSave() {
     const next = {
       name: name.trim() ? undefined : "Full name is required.",
       role: role.trim() ? undefined : "Job title / Role is required.",
       dept: dept ? undefined : "Department is required.",
+      email: !email.trim() ? "Email is required." : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? undefined : "Enter a valid email.",
+      salary: Number(salary) > 0 ? undefined : "Salary is required.",
     };
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
@@ -645,24 +715,27 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
       util:     0,
       capacity: Number(capacity) || 40,
       projects: [],
+      email: email.trim(),
+      salary: Number(salary),
+      tasks: [],
     });
-    toast.success(`${name.trim()} added to resource pool`, {
+    toast.success(`${name.trim()} added to employees`, {
       description: `${role.trim()} · ${dept} · ${capacity}h / week`,
     });
     setOpen(false);
-    setName(""); setRole(""); setDept(""); setCapacity("40"); setEmail("");
+    setName(""); setRole(""); setDept(""); setCapacity("40"); setEmail(""); setSalary(""); setErrors({});
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" variant="primary">
-          <Plus className="mr-1 h-4 w-4" />Add Resource
+          <Plus className="mr-1 h-4 w-4" />Add Employee
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add resource to pool</DialogTitle>
+          <DialogTitle>Add employee</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-3">
@@ -675,13 +748,13 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
                 onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: undefined })); }}
               />
             </Field>
-            <Field className="col-span-2" label="Job title / Role" htmlFor="resource-role" required error={errors.role}>
-              <Input
-                id="resource-role"
-                placeholder="e.g. Cloud Architect"
-                value={role}
-                onChange={(e) => { setRole(e.target.value); setErrors((p) => ({ ...p, role: undefined })); }}
-              />
+            <Field className="col-span-2" label="Role" htmlFor="resource-role" required error={errors.role}>
+              <Select value={role} onValueChange={(value) => { setRole(value); setErrors((p) => ({ ...p, role: undefined })); }}>
+                <SelectTrigger id="resource-role"><SelectValue placeholder="Select a role…" /></SelectTrigger>
+                <SelectContent>
+                  {jobRoles.map((r) => <SelectItem key={r.id} value={r.title}>{r.title}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </Field>
             <Field label="Department" htmlFor="resource-department" required error={errors.dept}>
               <Select onValueChange={(value) => { setDept(value); setErrors((p) => ({ ...p, dept: undefined })); }}>
@@ -702,15 +775,25 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
                 onChange={(e) => setCapacity(e.target.value)}
               />
             </div>
-            <div className="col-span-2">
-              <Label>Email (optional)</Label>
+            <Field className="col-span-2" label="Email" htmlFor="resource-email" required error={errors.email}>
               <Input
+                id="resource-email"
                 type="email"
                 placeholder="alex.morgan@company.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: undefined })); }}
               />
-            </div>
+            </Field>
+            <Field className="col-span-2" label="Salary (monthly, USD)" htmlFor="resource-salary" required error={errors.salary}>
+              <Input
+                id="resource-salary"
+                type="number"
+                min={0}
+                placeholder="e.g. 9500"
+                value={salary}
+                onChange={(e) => { setSalary(e.target.value); setErrors((p) => ({ ...p, salary: undefined })); }}
+              />
+            </Field>
           </div>
 
           {/* Preview badge */}
@@ -731,7 +814,7 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="primary" onClick={handleSave}>
-            <Plus className="mr-1 h-3.5 w-3.5" />Add to pool
+            <Plus className="mr-1 h-3.5 w-3.5" />Add employee
           </Button>
         </DialogFooter>
       </DialogContent>

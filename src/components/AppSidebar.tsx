@@ -42,7 +42,7 @@ const allItems: NavItem[] = [
     title: "Resources", url: "/resources", icon: NavResources, defaultTab: "requests",
     children: [
       { title: "Requests", tab: "requests" },
-      { title: "People", tab: "people" },
+      { title: "Employees", tab: "people" },
       { title: "Utilization Heatmap", tab: "heatmap" },
       { title: "Manpower Planning", tab: "planning" },
       { title: "Skill Demand", tab: "skills" },

@@ -105,12 +105,14 @@ export function PageToolbar({
   const activeCount = filterGroups.reduce((acc, g) => acc + (isMultiGroup(g) ? g.value.length : isGroupActive(g) ? 1 : 0), 0);
 
   function openDrawer() {
+    console.log("[debug] openDrawer called, groups:", filterGroups.length);
     setDraft(Object.fromEntries(filterGroups.map((g) => [g.key, g.value])));
     setPanel(null);
     setOpen(true);
   }
 
   function apply() {
+    console.log("[debug] apply clicked");
     filterGroups.forEach((g) => {
       const next = draft[g.key];
       if (next === undefined) return;

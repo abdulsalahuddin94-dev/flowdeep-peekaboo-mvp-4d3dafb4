@@ -146,6 +146,8 @@ function ChangeRequestReviewPage() {
 
   // Single-approver flow: any signed-in user can decide a pending request.
   const canAct = approval.status === "pending";
+  // Decided requests show the changes only — no "Current …" reference tables.
+  const isPending = approval.status === "pending";
 
   function openDecision(nextMode: "approve" | "reject") {
     setMode(nextMode);

@@ -1,3 +1,9 @@
+## 2026-10-25 — Approvals demo data covering every decided state
+- Expanded AP-1029 (Customer Portal v3) into an approved 12-change request spanning Project Info, Schedule, Cost and Revenue with edits, additions and removals, plus an approval comment.
+- Added AP-1022 (approved milestone gate, Salesforce Migration) and AP-1019 (rejected 6-change request, ERP System Upgrade) with decision comments; AP-1024 (rejected milestone gate) gained fuller summary rows.
+- History now shows all four decided combinations: approved/rejected × milestone gate/change request, each opening the decided review view (outcome banner + comment, no Current tables).
+- Verified in the preview: History lists the four requests; each opens with its banner, comment and section tabs; typecheck clean.
+
 ## 2026-10-25 — Approval review: decided view without Current sections
 - Approved and rejected requests on the review page no longer show the "Current schedule / cost lines / revenue events" reference tables — those stay pending-only, since a decided request is about what was decided, not the live plan.
 - Decided requests instead show the shared outcome banner under the project header: who approved or rejected, when, and the comment they left with the decision (green for approved, red for rejected).

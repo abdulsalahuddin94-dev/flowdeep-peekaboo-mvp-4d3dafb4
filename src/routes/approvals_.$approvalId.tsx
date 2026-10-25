@@ -348,6 +348,7 @@ function ChangeRequestReviewPage() {
             </StyledTableBody>
           </StyledTable>
         </TabsContent>
+        )}
       </Tabs>
 
       <FormDialog

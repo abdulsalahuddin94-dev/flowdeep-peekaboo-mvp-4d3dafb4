@@ -1,3 +1,8 @@
+## 2026-10-25 — Approval review: decided view without Current sections
+- Approved and rejected requests on the review page no longer show the "Current schedule / cost lines / revenue events" reference tables — those stay pending-only, since a decided request is about what was decided, not the live plan.
+- Decided requests instead show the shared outcome banner under the project header: who approved or rejected, when, and the comment they left with the decision (green for approved, red for rejected).
+- Verified in the preview: approved a milestone gate with a comment, reopened it from History — no Current tables, banner and comment visible, no Approve/Reject buttons; typecheck clean.
+
 ## 2026-10-22 — Change Plan banner: change-count badge hidden
 - Removed the "N changes" pill from the right end of the Change Plan focus banner; the banner now carries only the draft label, the instruction line and the keyboard hints.
 - The change count itself stays in the code (pending chip, Save baseline enablement, unsaved-exit warning), so the number is still available where it drives a decision.

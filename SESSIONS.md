@@ -1,3 +1,9 @@
+## 2026-10-26 — Employee details layout refinement
+- Verified the employee overview at desktop and mobile widths, all five tabs switching to their panels, no mobile page overflow or runtime errors; preview build OK.
+- Replaced the heavy five-card row with an unframed metric strip; kept full salary precision in financial tables.
+- Simplified the identity header and separated employee information from the allocation overview in a balanced two-column layout.
+- Unified navigation and tab content under one Tabs root; tabs wrap without the clipped scrollbar, with a separate year selector. All views remain read-only and existing calculations/data are unchanged.
+
 ## 2026-10-26 — Cash flow legend below the chart
 - Moved Inflow / Outflow / Cumulative net from the controls row to a centered wrapping legend below the chart; semantic colors match the actual plotted series.
 - Verified the legend is below the plotting area with all three labels present.

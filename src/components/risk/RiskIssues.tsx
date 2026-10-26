@@ -29,9 +29,9 @@ import { useOrgRules, severityForScore, type RiskSeverity } from "@/lib/org-rule
 import { useOrgActive } from "@/lib/org-active";
 import { useCurrentUser } from "@/lib/projects-store";
 import { formatDateWithYear, formatDateTime } from "@/lib/date-format";
-import { LinkedActions, ActionsCount, ActionRowsEditor, emptyActionRow, actionRowsValid, cleanActionRows, type ActionRow } from "@/components/actions/ActionTracker";
-import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
-import { useActions } from "@/lib/action-store";
+import { useNavigate } from "@tanstack/react-router";
+import { LinkedActions, ActionsCount } from "@/components/actions/ActionList";
+import { useBackParam } from "@/lib/record-pages";
 
 /* ── Tone helpers ─────────────────────────────────────────────────────────── */
 
@@ -48,8 +48,8 @@ const RISK_STATUS_TONE: Record<RiskStatus, string> = {
   Mitigated: "border-rag-green/40 bg-rag-green/10 text-rag-green",
 };
 
-const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated"];
-const ISSUE_STATUSES: IssueStatus[] = ["Open", "In Progress", "Resolved", "Escalated"];
+export const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated"];
+export const ISSUE_STATUSES: IssueStatus[] = ["Open", "In Progress", "Resolved", "Escalated"];
 const COMMENT_MAX = 500;
 
 const PRIORITY_TONE: Record<IssuePriority, string> = {
@@ -84,7 +84,8 @@ export function useSeverity() {
 /* ── Risk register ────────────────────────────────────────────────────────── */
 
 export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues, initialViewId }: { project?: string; milestoneOptions?: string[]; onViewLinkedIssues?: (riskId: string) => void; initialViewId?: string | null }) {
-  const { addActions } = useActions();
+  const navigate = useNavigate();
+  const back = useBackParam();
   const { risks, issues, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, editRiskUpdate, removeRiskUpdate, convertRiskToIssue } = useRiskRegister();
   const hasLinkedIssue = (riskId: string) => issues.some((i) => i.riskId === riskId);
   const { severityOf, rules } = useSeverity();
@@ -96,8 +97,6 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [severity, setSeverity] = useState("all");
   const [status, setStatus] = useState("all");
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<RiskRecord | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<RiskRecord | null>(null);
   const [statusFor, setStatusFor] = useState<RiskRecord | null>(null);
@@ -137,7 +136,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
           { key: "severity", label: "Score", value: severity, onChange: setSeverity, options: [{ value: "all", label: "All severities" }, { value: "Critical", label: "Critical" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...RISK_STATUSES.map((v) => ({ value: v, label: v }))] },
         ]}
-        trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Risk</Button>}
+        trailing={<Button variant="primary" onClick={() => navigate({ to: "/risks/new", search: { project, back } })}>Log Risk</Button>}
       />
 
       {!project && <RiskKpiStrip risks={list} />}
@@ -177,7 +176,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
                     onStatus={() => setStatusFor(r)}
                     statusLabel="Update risk status"
                     statusIcon={<ClipboardCheck size={16} />}
-                    onEdit={() => { setEditing(r); setFormOpen(true); }}
+                    onEdit={() => navigate({ to: "/risks/$riskId", params: { riskId: r.id }, search: { project, back } })}
                     onDelete={() => {
                       if (hasLinkedIssue(r.id)) {
                         toast.warning("This risk has linked issues. Resolve or delete them first.", { title: "Cannot delete risk" });
@@ -219,7 +218,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
         showProjectName={!project}
         onViewLinkedIssues={onViewLinkedIssues}
         onClose={() => setViewId(null)}
-        onEdit={(r) => { setViewId(null); setEditing(r); setFormOpen(true); }}
+        onEdit={(r) => { setViewId(null); navigate({ to: "/risks/$riskId", params: { riskId: r.id }, search: { project, back } }); }}
         onUpdate={(r) => setStatusFor(r)}
         onConvert={(r) => {
           const id = convertRiskToIssue(r.id, currentUser.name);
@@ -705,7 +704,8 @@ const normTitle = (v: string) => v.trim().replace(/\s+/g, " ").toLowerCase();
 const fmtDate = (v?: string) => formatDateWithYear(v);
 
 export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilterProp, onRiskFilterChange }: { project?: string; milestoneOptions?: string[]; riskFilter?: string[]; onRiskFilterChange?: (v: string[]) => void }) {
-  const { addActions } = useActions();
+  const navigate = useNavigate();
+  const back = useBackParam();
   const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate, editIssueUpdate, removeIssueUpdate } = useRiskRegister();
   const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");
@@ -715,8 +715,6 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
   const [riskFilterState, setRiskFilterState] = useState<string[]>([]);
   const riskFilter = riskFilterProp ?? riskFilterState;
   const setRiskFilter = onRiskFilterChange ?? setRiskFilterState;
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<IssueRecord | null>(null);
   const [pendingDelete, setPendingDelete] = useState<IssueRecord | null>(null);
   const [statusFor, setStatusFor] = useState<{ issue: IssueRecord; preset?: IssueStatus } | null>(null);
   const [editingUpdate, setEditingUpdate] = useState<IssueUpdate | null>(null);
@@ -757,7 +755,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...ISSUE_STATUSES.map((v) => ({ value: v, label: v }))] },
           { key: "risk", label: "Originating Risk", mode: "multi", value: riskFilter, onChange: setRiskFilter, options: [{ value: "all", label: "All risks" }, { value: "none", label: "No originating risk" }, ...risks.map((r) => ({ value: r.id, label: r.title }))] },
         ]}
-        trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Issue</Button>}
+        trailing={<Button variant="primary" onClick={() => navigate({ to: "/issues/new", search: { project, back } })}>Log Issue</Button>}
       />
 
       {!project && <RiskKpiStrip issues={list} />}
@@ -798,7 +796,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
                     onStatus={() => setStatusFor({ issue: i })}
                     statusLabel="Update issue status"
                     statusIcon={<ClipboardCheck size={16} />}
-                    onEdit={() => { setEditing(i); setFormOpen(true); }}
+                    onEdit={() => navigate({ to: "/issues/$issueId", params: { issueId: i.id }, search: { project, back } })}
                     onDelete={() => setPendingDelete(i)}
                   />
                 </StyledTableCell>

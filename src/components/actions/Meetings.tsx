@@ -26,6 +26,7 @@ import {
 } from "@/lib/meeting-store";
 import { useNavigate } from "@tanstack/react-router";
 import { LinkedActions } from "@/components/actions/ActionList";
+import { ActionAddDialog } from "@/components/actions/ActionNewPage";
 import { useBackParam } from "@/lib/record-pages";
 
 export const T = {
@@ -74,6 +75,7 @@ export function MeetingsTab({ project }: { project?: string }) {
   const [ptype, setPtype] = useState("all");
   const [viewId, setViewId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Meeting | null>(null);
+  const [actionMeeting, setActionMeeting] = useState<Meeting | null>(null);
 
   const scoped = project ? meetings.filter((m) => m.project === project) : meetings;
   const q = query.trim().toLowerCase();
@@ -149,7 +151,7 @@ export function MeetingsTab({ project }: { project?: string }) {
                   <TableRowActions
                     showStatus
                     statusNode={<Pill label={st} tone={STATUS_TONE[st]} />}
-                    onStatus={() => navigate({ to: "/meetings/$meetingId", params: { meetingId: m.id }, search: { project, back } })}
+                    onStatus={() => setActionMeeting(m)}
                     statusIcon={<Plus size={15} />}
                     statusLabel={t.addActions}
                     onEdit={() => navigate({ to: "/meetings/$meetingId", params: { meetingId: m.id }, search: { project, back } })}
@@ -166,9 +168,10 @@ export function MeetingsTab({ project }: { project?: string }) {
       <MeetingDrawer
         meeting={view}
         onClose={() => setViewId(null)}
-        onAddActions={(m) => { setViewId(null); navigate({ to: "/meetings/$meetingId", params: { meetingId: m.id }, search: { project, back } }); }}
+        onAddActions={setActionMeeting}
         onEdit={(m) => { setViewId(null); navigate({ to: "/meetings/$meetingId", params: { meetingId: m.id }, search: { project, back } }); }}
       />
+      <ActionAddDialog open={!!actionMeeting} onOpenChange={(open) => { if (!open) setActionMeeting(null); }} project={actionMeeting?.project} source="Meeting" sourceRef={actionMeeting?.id} meetingName={actionMeeting?.title} meetingDate={actionMeeting?.date} />
       <ConfirmDialog
         open={!!pendingDelete}
         onOpenChange={(o) => { if (!o) setPendingDelete(null); }}

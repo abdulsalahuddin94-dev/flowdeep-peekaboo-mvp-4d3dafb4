@@ -42,3 +42,16 @@ export function cashSeries(events: readonly CashEvent[], mode: "monthly" | "year
     return { key: bucket.key, label: forecast ? `${label}*` : label, Inflow: +bucket.Inflow.toFixed(2), Outflow: +(-bucket.Outflow).toFixed(2), Net: +net.toFixed(2), Cumulative: +cumulative.toFixed(2) };
   }).filter((bucket) => mode === "yearly" || bucket.key.startsWith(`${year}-`));
 }
+export type ShareSlice = { name: string; Revenue: number; Profit: number; margin: number };
+
+/** Top-N + Others: pies stay readable only up to ~7 slices, so the long tail collapses into one "Others" slice. */
+export function topShareSlices<T extends ShareSlice>(rows: readonly T[], top = 6) {
+  const sorted = [...rows].sort((a, b) => b.Profit - a.Profit);
+  if (sorted.length <= top) return { slices: sorted as ShareSlice[], others: [] as T[], all: sorted };
+  const head = sorted.slice(0, top);
+  const others = sorted.slice(top);
+  const rev = others.reduce((a, x) => a + x.Revenue, 0);
+  const prof = others.reduce((a, x) => a + x.Profit, 0);
+  const othersSlice: ShareSlice = { name: `Others · ${others.length}`, Revenue: +rev.toFixed(2), Profit: +prof.toFixed(2), margin: rev ? (prof / rev) * 100 : 0 };
+  return { slices: [...head, othersSlice] as ShareSlice[], others, all: sorted };
+}

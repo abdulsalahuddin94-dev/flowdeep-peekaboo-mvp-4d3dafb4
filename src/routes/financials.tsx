@@ -40,7 +40,7 @@ const MARKUP: Record<string, number> = { "Software Solutions": 1.32, EPC: 1.12, 
 // Pie slice colors for the Margin by Project Type donut.
 const PIE_COLORS = ["#51CAAD", "#D4A574", "#A78BFA", "#60A5FA", "#F87171", "#FBBF24"];
 const OTHERS_COLOR = "#64748B";
-// Demo-only long tail so the Top 6 + Others pattern is visible (only 4 real types exist in mock data).
+// Demo-only long tail so the Top 4 + Others pattern is visible (only 4 real types exist in mock data).
 const DEMO_LONG_TAIL = ["Infrastructure", "Data & Analytics", "Cybersecurity", "Cloud Migration", "Training", "Managed Services", "Telecom", "Smart Cities", "Facilities", "Renewables", "Digital Marketing", "Logistics", "Healthcare IT", "GovTech"].map((name, i) => {
   const Revenue = +(9 - i * 0.55).toFixed(2);
   const Profit = +(Revenue * (0.28 - i * 0.012)).toFixed(2);
@@ -181,9 +181,9 @@ function FinancialsPage() {
     }
     return Array.from(map.values()).map((x) => ({ name: x.name, Revenue: +x.Revenue.toFixed(2), Cost: +x.Cost.toFixed(2), Profit: +x.Profit.toFixed(2), margin: (x.Profit / x.Revenue) * 100 }));
   }, [filteredPnlRows]);
-  // Profit share donut — Top 6 + Others (see DESIGN.md). Demo long-tail types make the Others pattern visible.
+  // Profit share donut — Top 4 + Others (see DESIGN.md). Demo long-tail types make the Others pattern visible.
   const shareSource = useMemo(() => profitability.length === 0 ? [] : [...profitability, ...DEMO_LONG_TAIL], [profitability]);
-  const share = useMemo(() => topShareSlices(shareSource, 6), [shareSource]);
+  const share = useMemo(() => topShareSlices(shareSource), [shareSource]);
   const marginPie = share.slices.map((x, i) => ({ ...x, color: x.name.startsWith("Others") ? OTHERS_COLOR : PIE_COLORS[i % PIE_COLORS.length] }));
   const [shareOpen, setShareOpen] = useState(false);
   const [shareQuery, setShareQuery] = useState("");
@@ -421,9 +421,6 @@ function FinancialsPage() {
                   );
                 })}
               </div>
-              {share.others.length > 0 && (
-                <div className="mt-2 text-end"><Button variant="ghost" size="sm" onClick={() => setShareOpen(true)}>View all {share.all.length} types</Button></div>
-              )}
               </EmptyRegion>
               <Dialog open={shareOpen} onOpenChange={(o) => { setShareOpen(o); if (!o) setShareQuery(""); }}>
                 <DialogContent className="max-w-2xl">
@@ -435,7 +432,7 @@ function FinancialsPage() {
                   <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
                     {share.all.filter((x) => x.name.toLowerCase().includes(shareQuery.toLowerCase())).map((x) => {
                       const rank = share.all.indexOf(x);
-                      const color = rank < 6 ? PIE_COLORS[rank % PIE_COLORS.length] : OTHERS_COLOR;
+                      const color = rank < 4 ? PIE_COLORS[rank % PIE_COLORS.length] : OTHERS_COLOR;
                       const pct = shareTotal ? (Math.max(0, x.Profit) / shareTotal) * 100 : 0;
                       return (
                         <div key={x.name} className="grid grid-cols-[2rem_minmax(0,11rem)_1fr_auto] items-center gap-3 text-xs">

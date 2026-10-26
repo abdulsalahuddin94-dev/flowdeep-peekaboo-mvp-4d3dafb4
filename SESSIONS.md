@@ -1,3 +1,6 @@
+## 2026-10-26 — Profit Share donut: Top 4 + Others only
+- Donut now shows the 4 largest project types plus the grey Others slice; the separate "View all N types" link was removed — the Others legend row is the only entry to the ranked all-types dialog.
+- `topShareSlices` default changed from 6 to 4; tests updated and passing (2 pass), verified in preview.
 
 ## 2026-10-26 — Profit Share donut: Top 6 + Others
 - Donut shows the 6 largest project types plus a grey Others slice; Others/View all opens a ranked, searchable horizontal-bar dialog. Demo long-tail types added. Helper `topShareSlices` + tests; rule documented in DESIGN.md.

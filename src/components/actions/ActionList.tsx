@@ -1,4 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { ActionAddDialog } from "@/components/actions/ActionNewPage";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Plus } from "@/lib/icons";
@@ -26,6 +28,7 @@ export function LinkedActions({ project, source, sourceRef, title, meetingMeta, 
   const { actions } = useActions();
   const navigate = useNavigate();
   const back = useBackParam();
+  const [addOpen, setAddOpen] = useState(false);
   const linked = source === "Meeting"
     ? actions.filter((a) => a.meetingId === sourceRef)
     : actions.filter((a) => a.source === source && a.sourceRef === sourceRef);
@@ -34,17 +37,7 @@ export function LinkedActions({ project, source, sourceRef, title, meetingMeta, 
 
   function addAction() {
     if (onAdd) { onAdd(); return; }
-    navigate({
-      to: "/actions/new",
-      search: {
-        project,
-        source,
-        ref: sourceRef,
-        meetingName: meetingMeta?.meetingName,
-        meetingDate: meetingMeta?.meetingDate,
-        back,
-      },
-    });
+    setAddOpen(true);
   }
 
   function openAction(id: string) {
@@ -53,6 +46,7 @@ export function LinkedActions({ project, source, sourceRef, title, meetingMeta, 
 
   return (
     <div>
+      <ActionAddDialog open={addOpen} onOpenChange={setAddOpen} project={project} source={source} sourceRef={sourceRef} meetingName={meetingMeta?.meetingName} meetingDate={meetingMeta?.meetingDate} />
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="label-eyebrow">
           {title} <span className="num-mono normal-case text-muted-foreground">· {done}/{linked.length} done{overdue ? ` · ${overdue} overdue` : ""}</span>

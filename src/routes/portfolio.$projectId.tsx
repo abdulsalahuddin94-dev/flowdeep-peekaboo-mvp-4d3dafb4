@@ -63,9 +63,10 @@ void ProjectGantt;
 
 export const Route = createFileRoute("/portfolio/$projectId")({
   component: ProjectDetail,
-  validateSearch: (search: Record<string, unknown>): { tab?: string; actionRef?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { tab?: string; actionRef?: string; riskTab?: string } => ({
     tab: typeof search.tab === "string" ? search.tab : undefined,
     actionRef: typeof search.actionRef === "string" ? search.actionRef : undefined,
+    riskTab: typeof search.riskTab === "string" ? search.riskTab : undefined,
   }),
   loader: ({ params }) => {
     const p = projects.find((x) => x.id === params.projectId);
@@ -175,7 +176,7 @@ function ProjectDetail() {
   function clearNewFlag() {
     if (project.ragNote === "New") updateProject(project.id, { ragNote: undefined });
   }
-  const { tab: initialTab, actionRef } = Route.useSearch();
+  const { tab: initialTab, actionRef, riskTab } = Route.useSearch();
   const [activeTab, setActiveTab] = useState<string>(() => (initialTab && TABS.includes(initialTab) ? initialTab : TABS[0]));
   useEffect(() => {
     if (initialTab && TABS.includes(initialTab)) setActiveTab(initialTab);
@@ -1309,6 +1310,7 @@ function ProjectDetail() {
         <TabsContent value="Risk & Issues" className="mt-5">
           <ProjectRiskIssuesTab
             projectName={project.name}
+            initialView={riskTab}
             milestoneOptions={milestones.filter((m) => m.kind === "Milestone").map((m) => m.name)}
             initialRiskId={overviewRiskId}
           />
@@ -7228,8 +7230,9 @@ function TeamAllocationTab({
 
 // ── Risk & Issues tab ─────────────────────────────────────────────────────────
 
-function ProjectRiskIssuesTab({ projectName, milestoneOptions, initialRiskId }: { projectName: string; milestoneOptions: string[]; initialRiskId?: string | null }) {
-  const [view, setView] = useState<"register" | "issues">("register");
+function ProjectRiskIssuesTab({ projectName, milestoneOptions, initialRiskId, initialView }: { projectName: string; milestoneOptions: string[]; initialRiskId?: string | null; initialView?: string }) {
+  const [view, setView] = useState<"register" | "issues">(initialView === "issues" ? "issues" : "register");
+  useEffect(() => { setView(initialView === "issues" ? "issues" : "register"); }, [initialView]);
   const [issueRiskFilter, setIssueRiskFilter] = useState<string[]>([]);
 
   return (

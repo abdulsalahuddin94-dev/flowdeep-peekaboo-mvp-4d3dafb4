@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
+import { FormDialog } from "@/components/ui/form-dialog";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
 import { useCurrentUser, useProjects } from "@/lib/projects-store";
@@ -14,24 +15,28 @@ import { useRiskRegister } from "@/lib/risk-store";
 import { useActions, ACTION_SOURCES, type ActionSource, type ActionResponsibility } from "@/lib/action-store";
 import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
 import { useOrgActive } from "@/lib/org-active";
-import { T as actionT } from "@/components/actions/ActionTracker";
 import { useBackNav } from "@/lib/record-pages";
 
-const t = actionT.en;
+export const T = {
+  en: { add: "Add action", linkedPlan: "Linked plan", actionPlaceholder: "Action", responsibility: "Responsibility", dueDate: "Due date", linkedRiskHint: "Actions stay linked to this risk.", linkedIssueHint: "Actions stay linked to this issue.", linkedMeetingHint: "Actions stay linked to this meeting." },
+  ar: { add: "إضافة إجراء", linkedPlan: "الخطة المرتبطة", actionPlaceholder: "الإجراء", responsibility: "المسؤولية", dueDate: "تاريخ الاستحقاق", linkedRiskHint: "تظل الإجراءات مرتبطة بهذا الخطر.", linkedIssueHint: "تظل الإجراءات مرتبطة بهذه المشكلة.", linkedMeetingHint: "تظل الإجراءات مرتبطة بهذا الاجتماع." },
+};
+const t = T.en;
+
+type ActionNewProps = { project?: string; source?: string; sourceRef?: string; meetingName?: string; meetingDate?: string; back?: string; onClose?: () => void };
+
+export function ActionAddDialog({ open, onOpenChange, ...props }: ActionNewProps & { open: boolean; onOpenChange: (open: boolean) => void }) {
+  return <FormDialog open={open} onOpenChange={onOpenChange} title={t.add} size="lg" hideFooter asForm={false}>
+    {open && <ActionNewPage {...props} onClose={() => onOpenChange(false)} />}
+  </FormDialog>;
+}
 
 /**
  * Standalone "add action" page. Opened from the Action Tracker toolbar or from
  * a risk, issue or meeting drawer — the source stays locked when it was opened
  * from there, so the action always lands linked to the right record.
  */
-export function ActionNewPage({ project, source, sourceRef, meetingName, meetingDate, back }: {
-  project?: string;
-  source?: string;
-  sourceRef?: string;
-  meetingName?: string;
-  meetingDate?: string;
-  back?: string;
-}) {
+export function ActionNewPage({ project, source, sourceRef, meetingName, meetingDate, back, onClose }: ActionNewProps) {
   const { addAction } = useActions();
   const { risks, issues } = useRiskRegister();
   const { currentUser } = useCurrentUser();
@@ -64,6 +69,7 @@ export function ActionNewPage({ project, source, sourceRef, meetingName, meeting
   const needsRef = (d.source === "Risk" || d.source === "Issue") && !d.sourceRef;
   const valid = d.title.trim() && d.dueDate && d.project && !needsRef;
   const fallback = { to: project ? "/portfolio" : "/action-tracker" };
+  const close = () => onClose ? onClose() : goBack(back, fallback);
 
   function submit() {
     if (!valid) {
@@ -84,17 +90,17 @@ export function ActionNewPage({ project, source, sourceRef, meetingName, meeting
       ? { ...base, meetingId: sourceRef, meetingName: d.meetingName || undefined, meetingDate: d.meetingDate || undefined }
       : { ...base, sourceRef: d.sourceRef });
     toast.success("Action added");
-    goBack(back, fallback);
+    close();
   }
 
   return (
     <>
-      <RecordPageHeader kind="action" back={back}
+      {!onClose && <RecordPageHeader kind="action" back={back}
         title="Add action"
         subtitle={project ? `Project: ${project}` : "Any project in the portfolio"}
-      />
+      />}
 
-      <div className="glass-card w-full p-6">
+      <div className={onClose ? "w-full" : "glass-card w-full p-6"}>
         <div className="space-y-4">
           {!project && (
             <Field label="Project" htmlFor="act-project" error={errors.project}>
@@ -176,7 +182,7 @@ export function ActionNewPage({ project, source, sourceRef, meetingName, meeting
         </div>
 
         <div className="mt-7 flex items-center justify-end gap-3">
-          <Button variant="secondary" onClick={() => goBack(back, fallback)}>{recordT.en.cancel}</Button>
+          <Button variant="secondary" onClick={close}>{recordT.en.cancel}</Button>
           <Button variant="primary" onClick={submit} disabled={!valid}>{recordT.en.save}</Button>
         </div>
       </div>

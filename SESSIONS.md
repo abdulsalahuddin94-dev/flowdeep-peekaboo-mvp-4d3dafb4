@@ -1,3 +1,8 @@
+## 2026-10-26 — Record breadcrumbs and Add action popup
+- Added Risk register / Issues log / Meetings before the current project record page in breadcrumbs; section links select the appropriate project tab and register via riskTab.
+- Restored Add action as a shared DS02 FormDialog from project/PMO Action Tracker, risk/issue drawers and meeting action controls; kept Action details standalone and existing quick-view drawers open after creation.
+- Browser verified Risk register and Meetings breadcrumb destinations, general action creation/readback, linked risk and meeting creation/readback with retained drawers, and no runtime errors; build OK.
+
 ## 2026-10-26 — Action details layout cleanup
 - Removed the Source and Project sidebar panels; Action and Comments & Updates now fill the available width while retaining DS02 backgrounds.
 - Moved action-edit Cancel / Save Update controls below the fields with a footer separator.

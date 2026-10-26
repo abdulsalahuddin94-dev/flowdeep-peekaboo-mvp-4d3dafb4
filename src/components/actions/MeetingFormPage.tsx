@@ -90,7 +90,7 @@ export function MeetingFormPage({ meetingId, lockedProject, back }: { meetingId?
         subtitle={lockedProject ? `Project: ${lockedProject}` : meeting ? `${meeting.id} · ${meeting.project}` : "Record the meeting, its attendees and the actions it produced"}
       />
 
-      <div className="w-full p-6">
+      <div className="glass-card w-full p-6">
         <div className="space-y-4">
           {!lockedProject && (
             <Field label="Project" htmlFor="mt-project">
@@ -142,7 +142,7 @@ export function MeetingFormPage({ meetingId, lockedProject, back }: { meetingId?
       </div>
 
       {meeting && (
-        <div className="mt-6 w-full border-t border-border p-5">
+        <div className="glass-card mt-6 w-full p-5">
           <LinkedActions project={meeting.project} source="Meeting" sourceRef={meeting.id} title="Actions"
             meetingMeta={{ meetingName: meeting.title, meetingDate: meeting.date }} />
         </div>

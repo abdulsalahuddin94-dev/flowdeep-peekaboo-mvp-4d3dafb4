@@ -102,7 +102,7 @@ export function RiskFormPage({ riskId, lockedProject, back }: { riskId?: string;
         subtitle={lockedProject ? `Project: ${lockedProject}` : risk ? `${risk.id} · ${risk.project}` : "Record a potential event, assess it, and define mitigation actions"}
       />
 
-      <div className="w-full p-6">
+      <div className="glass-card w-full p-6">
         <div className="space-y-4">
           {!lockedProject && (
             <Field label="Project" htmlFor="risk-project" error={errors.project}>
@@ -188,7 +188,7 @@ export function RiskFormPage({ riskId, lockedProject, back }: { riskId?: string;
       </div>
 
       {risk && (
-        <div className="mt-6 w-full border-t border-border p-5">
+        <div className="glass-card mt-6 w-full p-5">
           <LinkedActions project={risk.project} source="Risk" sourceRef={risk.id} title="Mitigation plan" />
         </div>
       )}

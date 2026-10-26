@@ -1,11 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ActionNewPage } from "@/components/actions/ActionNewPage";
+import type { RecordSearch } from "@/lib/record-pages";
 
 const text = (v: unknown) => (typeof v === "string" && v.trim() ? v : undefined);
 
+/** Only `project` and `back` are always known; the link to a risk/issue/meeting is optional. */
+type ActionNewSearch = RecordSearch & {
+  source?: string;
+  ref?: string;
+  meetingName?: string;
+  meetingDate?: string;
+};
+
 export const Route = createFileRoute("/actions_/new")({
   component: ActionNewRoute,
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): ActionNewSearch => ({
     project: text(search.project),
     source: text(search.source),
     ref: text(search.ref),

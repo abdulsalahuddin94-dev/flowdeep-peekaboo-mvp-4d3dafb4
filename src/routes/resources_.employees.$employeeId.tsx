@@ -59,8 +59,8 @@ function EmployeeDetails() {
     </div>
    </header>
   </div>
-  <dl className="grid grid-cols-2 gap-x-6 gap-y-6 border-y border-border py-6 sm:grid-cols-3 xl:grid-cols-5">
-   {[[t.monthly, new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(employee.salary)], [t.capacity, `${employee.capacity}h`], [t.utilization, `${monthly.utilization}%`], [t.projects, employee.projects.length], [t.vacation, `${vacation.remaining}d`]].map(([label, value]) => <div key={label} className="min-w-0 xl:border-s xl:border-border xl:ps-6 xl:first:border-s-0 xl:first:ps-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className={`mt-2 break-words text-2xl font-semibold tabular-nums ${label === t.utilization ? monthly.utilization > 100 ? "text-rag-red" : "text-accent" : "text-foreground"}`}>{value}</dd></div>)}
+  <dl className="glass-card grid items-stretch p-0 sm:grid-cols-2 xl:grid-cols-5">
+   {[[t.monthly, new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(employee.salary)], [t.capacity, `${employee.capacity}h`], [t.utilization, `${monthly.utilization}%`], [t.projects, employee.projects.length], [t.vacation, `${vacation.remaining}d`]].map(([label, value], i) => <div key={label} className={`flex min-w-0 flex-col justify-center border-border px-5 py-4 ${i < 4 ? "border-b xl:border-b-0 xl:border-e" : ""}`}><dt className="label-eyebrow">{label}</dt><dd className={`mt-2 break-words text-2xl font-semibold tabular-nums ${label === t.utilization ? monthly.utilization > 100 ? "text-rag-red" : "text-accent" : "text-foreground"}`}>{value}</dd></div>)}
   </dl>
   <Tabs value={tab} onValueChange={setTab} className="min-w-0 space-y-7">
    <div className="grid min-w-0 grid-cols-1 items-end gap-4 xl:grid-cols-[minmax(0,1fr)_auto]">

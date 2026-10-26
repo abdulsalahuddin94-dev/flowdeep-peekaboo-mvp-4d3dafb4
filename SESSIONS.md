@@ -1,3 +1,6 @@
+## 2026-10-26 — Employee metrics match Cost Milestone
+- Matched the employee top metrics to the Cost Milestone strip: shared glass-card background, compact padding, label styling and internal separators; retained the existing data and page layout.
+
 ## 2026-10-26 — Employee details layout refinement
 - Verified the employee overview at desktop and mobile widths, all five tabs switching to their panels, no mobile page overflow or runtime errors; preview build OK.
 - Replaced the heavy five-card row with an unframed metric strip; kept full salary precision in financial tables.

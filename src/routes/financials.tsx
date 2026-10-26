@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { ChevronDown, ChevronLeft, ChevronRight } from "@/lib/icons";
-import { matchesProjectTypes, cashYears, cashYearNavigation, cashSeries } from "@/lib/financial-filters";
+import { matchesProjectTypes, cashYears, cashYearNavigation, cashSeries, financialDemoDate } from "@/lib/financial-filters";
 import { Tooltip as ControlTooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { projects } from "@/lib/mock-data";
 import { Download, FileSpreadsheet, TrendingUp, TrendingDown, Wallet, PiggyBank, GanttChartSquare, List } from "@/lib/icons";
@@ -49,7 +49,6 @@ const REV_TEMPLATES = [
   { milestone: "Mid-delivery acceptance", share: 0.4 },
   { milestone: "Final acceptance", share: 0.3 },
 ] as const;
-const iso = (y: number, m: number, d: number) => `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 const TODAY = new Date().toISOString().slice(0, 10);
 
 type CostItem = { id: string; projectId: string; project: string; businessLine: string; item: string; cat: string; type: string; planned: number; actual: number; due: string };
@@ -58,8 +57,8 @@ type RevenueItem = { id: string; projectId: string; project: string; businessLin
 const COST_ITEMS: CostItem[] = projects.slice(0, 12).flatMap((p, pi) =>
   COST_TEMPLATES.map((t, ti) => {
     const planned = +(p.budgetTotal * t.share).toFixed(2);
-    const month = ((pi * 2 + ti * 3) % 18) + 1; // spread over FY2026 → mid-2027
-    const due = iso(FIN_YEAR + (month > 12 ? 1 : 0), ((month - 1) % 12) + 1, 5 + ((pi + ti) % 20));
+    const month = ((pi * 2 + ti * 3) % 36) + 1;
+    const due = financialDemoDate(month, 5 + ((pi + ti) % 20));
     const ratio = due < TODAY ? [1, 0.6, 0.85, 1][(pi + ti) % 4] : [0, 0.25, 0, 0][(pi + ti) % 4];
     return { id: `${p.id}-c${ti}`, projectId: p.id, project: p.name, businessLine: p.businessLine, item: t.item, cat: t.cat, type: t.type, planned, actual: +(planned * ratio).toFixed(2), due };
   }),
@@ -67,8 +66,8 @@ const COST_ITEMS: CostItem[] = projects.slice(0, 12).flatMap((p, pi) =>
 const REVENUE_ITEMS: RevenueItem[] = projects.slice(0, 12).flatMap((p, pi) =>
   REV_TEMPLATES.map((t, ti) => {
     const planned = +(p.budgetTotal * (MARKUP[p.businessLine] ?? 1.15) * t.share).toFixed(2);
-    const month = ((pi * 2 + ti * 5 + 1) % 18) + 1;
-    const due = iso(FIN_YEAR + (month > 12 ? 1 : 0), ((month - 1) % 12) + 1, 10 + ((pi + ti) % 15));
+    const month = ((pi * 2 + ti * 5 + 1) % 36) + 1;
+    const due = financialDemoDate(month, 10 + ((pi + ti) % 15));
     const ratio = due < TODAY ? [1, 0.5, 0, 1][(pi + ti) % 4] : [0, 0.2, 0][(pi + ti) % 3];
     return { id: `${p.id}-r${ti}`, projectId: p.id, project: p.name, businessLine: p.businessLine, milestone: t.milestone, due, planned, collected: +(planned * ratio).toFixed(2) };
   }),
@@ -128,8 +127,7 @@ function FinancialsPage() {
   const [revMonth, setRevMonth] = useState("all");
   const [revLine, setRevLine] = useState("all");
   const [revStatus, setRevStatus] = useState("all");
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 3 }, (_, i) => (currentYear - 2 + i).toString());
+  const years = cashYears([...COST_ITEMS, ...REVENUE_ITEMS].map((item) => ({ due: item.due, inflow: 0, outflow: 0 })));
   const lineOptions = [{ value: "all", label: "All project types" }, ...Array.from(new Set(projects.map((p) => p.businessLine))).map((v) => ({ value: v, label: v }))];
 
   const pnlRows = useMemo(
@@ -325,7 +323,6 @@ function FinancialsPage() {
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
 
         <TabsContent value="overview" className="mt-5">
-          <EmptyRegion id="financials-overview">
           <div className="flex items-start gap-2">
             <div className="min-w-0 flex-1">
               <PageToolbar
@@ -377,6 +374,7 @@ function FinancialsPage() {
                 <Legendish items={[["Revenue", "#51CAAD"], ["Cost", "#94A3B8"], ["Profit", "#D4A574"]]} />
               </div>
               {/* Fills the card height and scrolls sideways when project types exceed the visible width. */}
+              <EmptyRegion id="financials-profitability" variant="card" force={profitability.length === 0} className="min-h-64 flex-1 flex-wrap text-center [&_img]:h-32 [&_img]:w-32">
               <div className="min-h-64 flex-1 overflow-x-auto">
                 <div style={{ width: profMinWidth, minWidth: "100%", height: "100%" }}>
                   <ResponsiveContainer width="100%" height="100%">
@@ -392,10 +390,12 @@ function FinancialsPage() {
                   </ResponsiveContainer>
                 </div>
               </div>
+              </EmptyRegion>
             </div>
             <div className="glass-card p-4 lg:col-span-2">
               <div className="label-eyebrow">Profit Share by project type</div>
               <div className="mb-2 text-xs text-muted-foreground">Expected profit share by project type · margin %</div>
+              <EmptyRegion id="financials-profit-share" variant="card" force={marginPie.length === 0} className="min-h-64 flex-wrap text-center [&_img]:h-32 [&_img]:w-32">
               <div className="h-52">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -414,6 +414,7 @@ function FinancialsPage() {
                   </div>
                 ))}
               </div>
+              </EmptyRegion>
             </div>
           </div>
 
@@ -426,6 +427,7 @@ function FinancialsPage() {
               <Legendish items={actualsLegend} />
             </div>
             {/* Lanes scroll after 4 rows so the card keeps a stable height with many project types. */}
+            <EmptyRegion id="financials-actuals" variant="card" force={actuals.length === 0} className="min-h-64 flex-wrap text-center [&_img]:h-32 [&_img]:w-32">
             <div className="max-h-[296px] space-y-4 overflow-y-auto pr-1">
               {(() => {
                 const rows = [...actuals].sort((a, b) => b.Profit - a.Profit);
@@ -474,6 +476,7 @@ function FinancialsPage() {
                 });
               })()}
             </div>
+            </EmptyRegion>
           </div>
 
           <div className="glass-card mb-5 p-4">
@@ -487,7 +490,7 @@ function FinancialsPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <Popover onOpenChange={() => setCashTypeQuery("")}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" aria-label="Cash flow project types" className="max-w-full gap-2">
+                    <Button variant="ghost" size="sm" aria-label="Cash flow project types" className="max-w-full gap-2 border border-border bg-secondary text-foreground hover:bg-secondary/80 hover:text-foreground">
                       <span className="truncate">Project type: {cashProjectTypes.length === 0 ? "All" : cashProjectTypes.length === 1 ? cashProjectTypes[0] : `${cashProjectTypes.length} selected`}</span>
                       <ChevronDown className="h-4 w-4 shrink-0" />
                     </Button>
@@ -524,6 +527,7 @@ function FinancialsPage() {
                 </div>
               </div>
             </div>
+            <EmptyRegion id="financials-cash-flow" variant="card" force={cashEvents.length === 0} className="min-h-64 flex-wrap text-center [&_img]:h-32 [&_img]:w-32">
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={cashFlow} stackOffset="sign" margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
@@ -551,6 +555,7 @@ function FinancialsPage() {
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
+            </EmptyRegion>
             <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground" aria-label="Cash flow legend">
               <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-rag-green" />Inflow</span>
               <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-rag-red" />Outflow</span>
@@ -586,7 +591,6 @@ function FinancialsPage() {
           </Table>
           </>
           )}
-          </EmptyRegion>
         </TabsContent>
 
         <TabsContent value="cost" className="mt-5">

@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { PageHeader } from "@/components/PageHeader";
+import { RecordPageHeader, T as recordT } from "@/components/ds/RecordPageHeader";
 import { Pill } from "@/components/Pill";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/lib/toast";
-import { ArrowLeft } from "@/lib/icons";
 import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import { useRiskRegister, type RiskRecord } from "@/lib/risk-store";
 import { useActions } from "@/lib/action-store";
@@ -98,13 +97,12 @@ export function RiskFormPage({ riskId, lockedProject, back }: { riskId?: string;
 
   return (
     <>
-      <PageHeader
+      <RecordPageHeader kind="risk" back={back}
         title={risk ? "Edit risk" : "Log a new risk"}
         subtitle={lockedProject ? `Project: ${lockedProject}` : risk ? `${risk.id} · ${risk.project}` : "Record a potential event, assess it, and define mitigation actions"}
-        actions={<Button variant="outline" onClick={() => goBack(back, fallback)}><ArrowLeft size={15} />Back</Button>}
       />
 
-      <div className="glass-card max-w-4xl p-6">
+      <div className="w-full p-6">
         <div className="space-y-4">
           {!lockedProject && (
             <Field label="Project" htmlFor="risk-project" error={errors.project}>
@@ -184,13 +182,13 @@ export function RiskFormPage({ riskId, lockedProject, back }: { riskId?: string;
         </div>
 
         <div className="mt-7 flex items-center justify-end gap-3">
-          <Button variant="secondary" onClick={() => goBack(back, fallback)}>Cancel</Button>
-          <Button variant="primary" onClick={submit} disabled={scoreLoading}>{risk ? "Save Changes" : "Log Risk"}</Button>
+          <Button variant="secondary" onClick={() => goBack(back, fallback)}>{recordT.en.cancel}</Button>
+          <Button variant="primary" onClick={submit} disabled={scoreLoading}>{risk ? recordT.en.saveUpdate : recordT.en.save}</Button>
         </div>
       </div>
 
       {risk && (
-        <div className="glass-card mt-6 max-w-4xl p-5">
+        <div className="mt-6 w-full border-t border-border p-5">
           <LinkedActions project={risk.project} source="Risk" sourceRef={risk.id} title="Mitigation plan" />
         </div>
       )}

@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { PageHeader } from "@/components/PageHeader";
+import { RecordPageHeader, T as recordT } from "@/components/ds/RecordPageHeader";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/lib/toast";
-import { ArrowLeft } from "@/lib/icons";
 import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import { useRiskRegister, type IssueRecord } from "@/lib/risk-store";
 import { useActions } from "@/lib/action-store";
@@ -92,13 +91,12 @@ export function IssueFormPage({ issueId, lockedProject, back }: { issueId?: stri
 
   return (
     <>
-      <PageHeader
+      <RecordPageHeader kind="issue" back={back}
         title={issue ? "Edit issue" : "Log a new issue"}
         subtitle={lockedProject ? `Project: ${lockedProject}` : issue ? `${issue.id} · ${issue.project}` : "Record a realized event that requires immediate corrective action"}
-        actions={<Button variant="outline" onClick={() => goBack(back, fallback)}><ArrowLeft size={15} />Back</Button>}
       />
 
-      <div className="glass-card max-w-4xl p-6">
+      <div className="w-full p-6">
         <div className="space-y-4">
           {!lockedProject && (
             <Field label="Project" htmlFor="issue-project" error={errors.project}>
@@ -168,13 +166,13 @@ export function IssueFormPage({ issueId, lockedProject, back }: { issueId?: stri
         </div>
 
         <div className="mt-7 flex items-center justify-end gap-3">
-          <Button variant="secondary" onClick={() => goBack(back, fallback)}>Cancel</Button>
-          <Button variant="primary" onClick={submit}>{issue ? "Save Changes" : "Log Issue"}</Button>
+          <Button variant="secondary" onClick={() => goBack(back, fallback)}>{recordT.en.cancel}</Button>
+          <Button variant="primary" onClick={submit}>{issue ? recordT.en.saveUpdate : recordT.en.save}</Button>
         </div>
       </div>
 
       {issue && (
-        <div className="glass-card mt-6 max-w-4xl p-5">
+        <div className="mt-6 w-full border-t border-border p-5">
           <LinkedActions project={issue.project} source="Issue" sourceRef={issue.id} title="Action plan" />
         </div>
       )}

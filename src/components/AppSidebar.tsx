@@ -83,6 +83,7 @@ const allItems: NavItem[] = [
       { title: "Calendars", tab: "calendars" },
       { title: "Responsibility Types", tab: "responsibility-types" },
       { title: "Meeting Types", tab: "meeting-types" },
+      { title: "Employment Types", tab: "employment-types" },
       { title: "Rules & Thresholds", tab: "rules" },
     ],
   },
@@ -143,7 +144,7 @@ export function AppSidebar() {
                 if (item.children) {
                   const onModule = isActive(item.url);
                   const open = openGroups[item.url] ?? false;
-                  const activeTab = search?.tab ?? item.defaultTab;
+                  const activeTab = pathname.startsWith("/resources/employees/") ? "people" : search?.tab ?? item.defaultTab;
                   const childLinks = (
                     <>
                       {item.children.map((t) => {

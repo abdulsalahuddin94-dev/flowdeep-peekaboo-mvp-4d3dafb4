@@ -1,3 +1,10 @@
+## 2026-10-26 — Standalone risk, issue, meeting and action pages
+- Replaced the stacked popups with standalone pages — `/risks/new`, `/risks/$riskId`, `/issues/new`, `/issues/$issueId`, `/meetings/new`, `/meetings/$meetingId`, `/actions/new`, `/actions/$actionId` — each carrying `project` and `back` so it returns to the exact tab it was opened from, at project level and in the PMO modules.
+- Action details is one page now (details, owner, responsibility, due date, status, comments & updates with edit/delete, delete confirmation) instead of a drawer with popups on top; linked-action rows in Risk/Issue/Meeting drawers and in the Action Tracker open it directly.
+- Quick-view side drawers stay as they were; their Edit / Update-status / comment-edit controls hand over to the standalone page, and short confirmations remain dialogs. Section titles match the drawers ("Mitigation plan", "Action plan").
+- Removed the superseded dialog implementations (RiskFormDialog, IssueFormDialog, MeetingFormDialog, MeetingActionsDialog, ActionFormDialog, ActionStatusDialog, ActionDetailsDialog) and moved the shared linked-action list to `src/components/actions/ActionList.tsx`.
+- Verified in the browser: drawer → action page from risks, issues, meetings and inside project p-001; risk creation validates the required category then lands in the register; meeting and issue creation appear in their lists; action status set to Done with a comment and a closed date; Back returns to the caller. No runtime errors; build OK.
+
 ## 2026-10-26 — Salary by month opens a breakdown popup
 - Removed the arrow column and the always-visible breakdown section under the Salary by month table; clicking any month row now opens a compact popup with the per-project allocation, cost, overhead and total salary, and syncs the selected month for the other tabs.
 

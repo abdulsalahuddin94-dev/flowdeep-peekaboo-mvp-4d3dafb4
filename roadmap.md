@@ -1,4 +1,6 @@
 # Roadmap
+- [x] Standalone New/Edit pages for Risk, Issue and Meeting, plus one Action details page; quick-view drawers kept and the stacked popups removed.
+- [x] Verify create and update flows end to end in the browser, then log in SESSIONS.md.
 - [x] Improve employee details layout: lighter metrics, clear tab spacing and balanced profile/allocation overview; verify all tabs.
 - [x] Cash Flow Forecast: move Inflow / Outflow / Cumulative net legend below the chart.
 - [x] Employment types: Organization lookup and employee creation/filter integration.

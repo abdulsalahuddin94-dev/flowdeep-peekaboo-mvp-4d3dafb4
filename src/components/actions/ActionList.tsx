@@ -107,7 +107,7 @@ export function ActionsCount({ source, sourceRef }: { source: "Risk" | "Issue"; 
     <Tooltip>
       <TooltipTrigger asChild>
         <Button variant="link" className={cn("h-7 px-0 num-mono text-sm", over ? "text-rag-red" : "text-foreground")}
-          aria-label={`${actionT.viewLinkedActions} · ${sourceRef} · ${done} of ${linked.length}`}
+          aria-label={`${actionT.en.viewLinkedActions} · ${sourceRef} · ${done} of ${linked.length}`}
           onClick={(event) => {
             event.stopPropagation();
             navigate({ to: "/portfolio/$projectId", params: { projectId: project.id }, search: { tab: "Action Tracker", actionRef: sourceRef } });

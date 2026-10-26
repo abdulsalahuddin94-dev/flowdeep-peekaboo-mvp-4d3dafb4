@@ -1,3 +1,8 @@
+## 2026-10-26 — Cash Flow Forecast monthly by default
+- Removed the Monthly | Yearly toggle from the Cash Flow Forecast card; the chart now always shows the selected year month by month, so the year arrows and Project type selector are the only controls left.
+- Dropped the yearly-mode chart branches (clickable year ticks, cumulative dots) and the cashMode state; the subtitle always reads FY<year>.
+- Browser verified the card shows Jan–Dec with forecast marks, no Monthly/Yearly labels, and the next-year arrow moves 2026 → 2027; filter tests pass and build OK.
+
 ## 2026-10-26 — Destructive outline button stroke
 - Added DS02 danger-outline button tokens (`--btn-danger-outline-*`) and a `dangerOutline` Button variant so destructive actions carry a red stroke/text instead of the lavender primary outline.
 - Action details Delete now uses `variant="dangerOutline"`; quick-view drawers and neutral outline buttons are unchanged.

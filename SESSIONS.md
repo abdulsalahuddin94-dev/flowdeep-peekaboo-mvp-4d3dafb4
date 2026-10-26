@@ -1,3 +1,7 @@
+## 2026-10-26 — Restore standalone form backgrounds
+- Restored the original DS02 glass-card backgrounds for Risk, Issue, Meeting and Action creation/edit forms and linked-action areas while keeping full available width.
+- Replaced ArrowLeft with ChevronLeft in contextual record back links; breadcrumb chevron separators remain unchanged.
+
 ## 2026-10-26 — Full-width standalone record pages
 - Expanded risk, issue, meeting and action creation/edit forms to the available content width, removing narrow popup-style framing.
 - Added a shared contextual header: list-level Back to register/list link above the title, project-level Portfolio > Project > Page breadcrumbs, preserving the caller's tab.

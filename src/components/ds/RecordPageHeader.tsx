@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { PageHeader } from "@/components/PageHeader";
-import { ArrowLeft, ChevronRight } from "@/lib/icons";
+import { ChevronLeft, ChevronRight } from "@/lib/icons";
 import { useProjects } from "@/lib/projects-store";
 
 export const T = {
@@ -37,11 +37,11 @@ export function RecordPageHeader({ kind, title, subtitle, back, actions }: {
         </nav>
       ) : segments[0] === "actions" && segments[1] && segments[1] !== "new" ? (
         <Link to="/actions/$actionId" params={{ actionId: segments[1] }} search={search} className={`${linkClass} mb-2`}>
-          <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t.back} {t.details}
+          <ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t.back} {t.details}
         </Link>
       ) : (
         <Link to={target} search={search} className={`${linkClass} mb-2`}>
-          <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t.back} {label}
+          <ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t.back} {label}
         </Link>
       )}
       <PageHeader title={title} subtitle={subtitle} actions={actions} />

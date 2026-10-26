@@ -96,7 +96,7 @@ export function IssueFormPage({ issueId, lockedProject, back }: { issueId?: stri
         subtitle={lockedProject ? `Project: ${lockedProject}` : issue ? `${issue.id} · ${issue.project}` : "Record a realized event that requires immediate corrective action"}
       />
 
-      <div className="w-full p-6">
+      <div className="glass-card w-full p-6">
         <div className="space-y-4">
           {!lockedProject && (
             <Field label="Project" htmlFor="issue-project" error={errors.project}>
@@ -172,7 +172,7 @@ export function IssueFormPage({ issueId, lockedProject, back }: { issueId?: stri
       </div>
 
       {issue && (
-        <div className="mt-6 w-full border-t border-border p-5">
+        <div className="glass-card mt-6 w-full p-5">
           <LinkedActions project={issue.project} source="Issue" sourceRef={issue.id} title="Action plan" />
         </div>
       )}

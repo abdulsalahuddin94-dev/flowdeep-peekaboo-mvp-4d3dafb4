@@ -94,7 +94,7 @@ export function ActionNewPage({ project, source, sourceRef, meetingName, meeting
         subtitle={project ? `Project: ${project}` : "Any project in the portfolio"}
       />
 
-      <div className="w-full p-6">
+      <div className="glass-card w-full p-6">
         <div className="space-y-4">
           {!project && (
             <Field label="Project" htmlFor="act-project" error={errors.project}>

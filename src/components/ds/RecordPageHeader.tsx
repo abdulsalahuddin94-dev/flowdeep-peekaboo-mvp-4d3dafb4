@@ -5,8 +5,8 @@ import { ArrowLeft, ChevronRight } from "@/lib/icons";
 import { useProjects } from "@/lib/projects-store";
 
 export const T = {
-  en: { save: "Save", saveUpdate: "Save Update", cancel: "Cancel", portfolio: "Portfolio", risk: "Risk register", issue: "Issues log", meeting: "Meetings", action: "Action Tracker", back: "Back to", breadcrumb: "Breadcrumb" },
-  ar: { save: "حفظ", saveUpdate: "حفظ التحديث", cancel: "إلغاء", portfolio: "المحفظة", risk: "سجل المخاطر", issue: "سجل المشكلات", meeting: "الاجتماعات", action: "متابعة الإجراءات", back: "العودة إلى", breadcrumb: "مسار التنقل" },
+  en: { save: "Save", saveUpdate: "Save Update", cancel: "Cancel", portfolio: "Portfolio", risk: "Risk register", issue: "Issues log", meeting: "Meetings", action: "Action Tracker", details: "Action details", back: "Back to", breadcrumb: "Breadcrumb" },
+  ar: { save: "حفظ", saveUpdate: "حفظ التحديث", cancel: "إلغاء", portfolio: "المحفظة", risk: "سجل المخاطر", issue: "سجل المشكلات", meeting: "الاجتماعات", action: "متابعة الإجراءات", details: "تفاصيل الإجراء", back: "العودة إلى", breadcrumb: "مسار التنقل" },
 };
 
 type Kind = "risk" | "issue" | "meeting" | "action";
@@ -23,7 +23,7 @@ export function RecordPageHeader({ kind, title, subtitle, back, actions }: {
   const label = segments[0] === "risks" ? destination.searchParams.get("tab") === "issues" ? t.issue : t.risk
     : segments[0] === "meetings" ? t.meeting : segments[0] === "portfolio" ? t.portfolio : t.action;
   const linkClass = "inline-flex items-center gap-2 text-sm text-breadcrumb-muted transition-colors hover:text-breadcrumb-hover";
-  const target = destination.pathname as "/risks" | "/meetings" | "/action-tracker" | "/actions/$actionId";
+  const target = segments[0] === "risks" ? "/risks" : segments[0] === "meetings" ? "/meetings" : segments[0] === "portfolio" ? "/portfolio" : "/action-tracker";
   const search = Object.fromEntries(destination.searchParams);
   return (
     <>
@@ -35,6 +35,10 @@ export function RecordPageHeader({ kind, title, subtitle, back, actions }: {
           <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden />
           <span className="text-breadcrumb-current">{title}</span>
         </nav>
+      ) : segments[0] === "actions" && segments[1] && segments[1] !== "new" ? (
+        <Link to="/actions/$actionId" params={{ actionId: segments[1] }} search={search} className={`${linkClass} mb-2`}>
+          <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t.back} {t.details}
+        </Link>
       ) : (
         <Link to={target} search={search} className={`${linkClass} mb-2`}>
           <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t.back} {label}

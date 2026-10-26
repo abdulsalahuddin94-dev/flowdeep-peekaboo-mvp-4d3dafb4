@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Cash Flow Forecast: chart-local Project type multiselect with All default; explain multiyear display options without changing the timeline yet.
 - [x] Change Plan: stay on the tab the PM is already on (Schedule / Cost / Revenue) instead of jumping to Basic info.
 - [x] Approvals: drop the status tabs — one table for all requests with a Status filter group in the drawer; remove the project overview from the approval review page.
 - [x] Add Basic info as the first Change Plan tab, reusing all Edit Project fields without its summary and preserving draft edits across tabs.

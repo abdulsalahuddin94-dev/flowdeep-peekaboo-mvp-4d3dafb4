@@ -4,20 +4,14 @@ import { TableRowActions } from "@/components/TableRowActions";
 import { Pill } from "@/components/Pill";
 import { usePagination, TablePagination } from "@/components/TablePagination";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { FormDialog } from "@/components/ui/form-dialog";
-import { Field } from "@/components/ui/field";
 import {
   StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow,
 } from "@/components/StyledTable";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DatePicker } from "@/components/ui/date-picker";
-import { TimePicker } from "@/components/ui/time-picker";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "@/lib/toast";
 import { Check, DeleteAction, EditAction, Plus } from "@/lib/icons";
@@ -25,14 +19,14 @@ import { cn } from "@/lib/utils";
 import { formatDateWithYear } from "@/lib/date-format";
 import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import { useActions, isActionOverdue, ACTION_STATUSES } from "@/lib/action-store";
-import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
-import { useOrgActive } from "@/lib/org-active";
 import { useMeetingTypes } from "@/lib/meeting-types-store";
 import {
   useMeetings, meetingStatus, ATTENDEE_PARTIES,
   type Meeting, type Attendee, type AttendeeParty, type MeetingStatus,
 } from "@/lib/meeting-store";
-import { ActionRowsEditor, emptyActionRow, filledActionRows, actionRowsValid, cleanActionRows, LinkedActions, type ActionRow } from "@/components/actions/ActionTracker";
+import { useNavigate } from "@tanstack/react-router";
+import { LinkedActions } from "@/components/actions/ActionList";
+import { useBackParam } from "@/lib/record-pages";
 
 export const T = {
   en: {
@@ -62,11 +56,13 @@ const PARTY_TONE: Record<AttendeeParty, string> = {
 
 
 export function MeetingsTab({ project }: { project?: string }) {
-  const { meetings, addMeeting, updateMeeting, removeMeeting } = useMeetings();
+  const { meetings, removeMeeting } = useMeetings();
   const { meetingTypes } = useMeetingTypes();
-  const { actions, addActions } = useActions();
+  const { actions } = useActions();
   const { currentUser } = useCurrentUser();
   const { projects } = useProjects();
+  const navigate = useNavigate();
+  const back = useBackParam();
   const pmo = !project;
   const projectNames = projects.map((p) => p.name);
   const [query, setQuery] = useState("");
@@ -76,10 +72,7 @@ export function MeetingsTab({ project }: { project?: string }) {
   const [actionStatus, setActionStatus] = useState("all");
   const [proj, setProj] = useState("all");
   const [ptype, setPtype] = useState("all");
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<Meeting | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);
-  const [actionsFor, setActionsFor] = useState<Meeting | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Meeting | null>(null);
 
   const scoped = project ? meetings.filter((m) => m.project === project) : meetings;
@@ -113,7 +106,7 @@ export function MeetingsTab({ project }: { project?: string }) {
             { key: "ptype", label: "Project type", value: ptype, onChange: setPtype, options: [{ value: "all", label: "All project types" }, ...Array.from(new Set(projects.map((p) => p.businessLine))).map((v) => ({ value: v, label: v }))] },
           ] : []),
         ]}
-        trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>{t.add}</Button>}
+        trailing={<Button variant="primary" onClick={() => navigate({ to: "/meetings/new", search: { project, back } })}>{t.add}</Button>}
       />
 
       <StyledTable>
@@ -156,10 +149,10 @@ export function MeetingsTab({ project }: { project?: string }) {
                   <TableRowActions
                     showStatus
                     statusNode={<Pill label={st} tone={STATUS_TONE[st]} />}
-                    onStatus={() => setActionsFor(m)}
+                    onStatus={() => navigate({ to: "/meetings/$meetingId", params: { meetingId: m.id }, search: { project, back } })}
                     statusIcon={<Plus size={15} />}
                     statusLabel={t.addActions}
-                    onEdit={() => { setEditing(m); setFormOpen(true); }}
+                    onEdit={() => navigate({ to: "/meetings/$meetingId", params: { meetingId: m.id }, search: { project, back } })}
                     onDelete={() => setPendingDelete(m)}
                   />
                 </StyledTableCell>
@@ -170,34 +163,11 @@ export function MeetingsTab({ project }: { project?: string }) {
       </StyledTable>
       <TablePagination {...pagination} />
 
-      <MeetingFormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        project={project}
-        projectOptions={pmo ? projectNames : undefined}
-        initial={editing}
-        onSave={(v, thenAddActions) => {
-          if (editing) { updateMeeting(editing.id, v, currentUser.name); toast.success("Meeting updated"); setFormOpen(false); return; }
-          const id = addMeeting(v, currentUser.name);
-          toast.success("Meeting created");
-          setFormOpen(false);
-          if (thenAddActions) setActionsFor({ ...v, id });
-        }}
-      />
-      <MeetingActionsDialog
-        meeting={actionsFor}
-        onClose={() => setActionsFor(null)}
-        onSave={(m, rows) => {
-          addActions(rows.map((r) => ({ ...r, owner: currentUser.name, project: m.project, source: "Meeting" as const, meetingId: m.id, meetingName: m.title, meetingDate: m.date, status: "Open" as const })));
-          toast.success(`${rows.length} ${rows.length === 1 ? "action" : "actions"} added to the Action Tracker`);
-          setActionsFor(null);
-        }}
-      />
       <MeetingDrawer
         meeting={view}
         onClose={() => setViewId(null)}
-        onAddActions={(m) => setActionsFor(m)}
-        onEdit={(m) => { setViewId(null); setEditing(m); setFormOpen(true); }}
+        onAddActions={(m) => { setViewId(null); navigate({ to: "/meetings/$meetingId", params: { meetingId: m.id }, search: { project, back } }); }}
+        onEdit={(m) => { setViewId(null); navigate({ to: "/meetings/$meetingId", params: { meetingId: m.id }, search: { project, back } }); }}
       />
       <ConfirmDialog
         open={!!pendingDelete}
@@ -222,84 +192,11 @@ function AttendeeSummary({ attendees }: { attendees: Attendee[] }) {
   );
 }
 
-/* ── Create / edit ───────────────────────────────────────────────────────── */
-
-type MeetingDraft = Omit<Meeting, "id">;
 const uid = () => `at-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-
-function MeetingFormDialog({ open, onOpenChange, project, projectOptions, initial, onSave }: {
-  open: boolean; onOpenChange: (o: boolean) => void; project?: string; projectOptions?: string[]; initial: Meeting | null;
-  onSave: (v: MeetingDraft, thenAddActions: boolean) => void;
-}) {
-  const { meetingTypes } = useMeetingTypes();
-  const activeTypes = meetingTypes.filter((v) => v.active);
-  const blank = (): MeetingDraft => ({ project: initial?.project ?? project ?? projectOptions?.[0] ?? "", title: "", type: activeTypes[0]?.name ?? "", date: new Date().toISOString().slice(0, 10), time: "", location: "", notes: "", attendees: [] });
-  const [d, setD] = useState<MeetingDraft>(blank);
-  const [addAfter, setAddAfter] = useState(true);
-  const [was, setWas] = useState(false);
-  if (open !== was) {
-    setWas(open);
-    if (open) { setD(initial ? { ...initial, attendees: initial.attendees.map((a) => ({ ...a })) } : blank()); setAddAfter(!initial); }
-  }
-  const up = (p: Partial<MeetingDraft>) => setD((x) => ({ ...x, ...p }));
-  const valid = d.project && d.title.trim() && d.type && (activeTypes.some((v) => v.name === d.type) || initial?.type === d.type) && d.date;
-
-  return (
-    <FormDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title={initial ? t.edit : t.add}
-      size="xl"
-      submitDisabled={!valid}
-      submitLabel={initial ? "Save changes" : "Create meeting"}
-      onSubmit={() => {
-        if (!valid) return;
-        onSave({ ...d, title: d.title.trim().slice(0, 100), location: d.location?.trim(), notes: d.notes?.trim().slice(0, 1000), attendees: d.attendees.map((a) => ({ ...a, name: a.name.trim(), organization: a.organization?.trim() })) }, addAfter);
-      }}
-    >
-      {projectOptions && (
-        <Field label="Project" htmlFor="mt-project">
-          <Select value={d.project} onValueChange={(v) => up({ project: v })}>
-            <SelectTrigger id="mt-project" aria-label="Project"><SelectValue placeholder="Select project" /></SelectTrigger>
-            <SelectContent>{projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-          </Select>
-        </Field>
-      )}
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="Meeting name" htmlFor="mt-title"><Input id="mt-title" maxLength={100} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder="e.g. Weekly progress meeting" /></Field>
-        <Field label="Meeting type">
-          <Select value={d.type} onValueChange={(v) => up({ type: v })}>
-            <SelectTrigger aria-label="Meeting type"><SelectValue placeholder="Select meeting type" /></SelectTrigger>
-            <SelectContent>
-              {initial?.type && !activeTypes.some((v) => v.name === initial.type) && <SelectItem value={initial.type}>{initial.type}</SelectItem>}
-              {activeTypes.map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label="Date"><DatePicker value={d.date} onChange={(v) => up({ date: v })} /></Field>
-        <Field label="Time (optional)">
-          <TimePicker value={d.time ?? ""} onChange={(v) => up({ time: v })} placeholder="HH:mm (24-hour)" />
-        </Field>
-        <Field label="Location or link (optional)" htmlFor="mt-loc" className="col-span-2"><Input id="mt-loc" maxLength={200} value={d.location ?? ""} onChange={(e) => up({ location: e.target.value })} placeholder="e.g. Board room / Teams" /></Field>
-      </div>
-
-      <AttendeesEditor attendees={d.attendees} onChange={(attendees) => up({ attendees })} />
-
-      <Field label="Agenda / notes (optional)" htmlFor="mt-notes">
-        <Textarea id="mt-notes" maxLength={1000} value={d.notes ?? ""} onChange={(e) => up({ notes: e.target.value })} placeholder="Agenda, decisions, or minutes" />
-      </Field>
-      {!initial && (
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Checkbox checked={addAfter} onCheckedChange={(v) => setAddAfter(v === true)} /> Add actions right after creating
-        </label>
-      )}
-    </FormDialog>
-  );
-}
 
 /* ── Attendees composer (same pattern as risk/issue action rows) ─────────── */
 
-function AttendeesEditor({ attendees, onChange }: { attendees: Attendee[]; onChange: (a: Attendee[]) => void }) {
+export function AttendeesEditor({ attendees, onChange }: { attendees: Attendee[]; onChange: (a: Attendee[]) => void }) {
   const fresh = (): Attendee => ({ id: uid(), name: "", party: "Internal", organization: "" });
 
   const [draft, setDraft] = useState<Attendee>(fresh);
@@ -354,26 +251,6 @@ function AttendeesEditor({ attendees, onChange }: { attendees: Attendee[]; onCha
   );
 }
 
-/* ── Add actions ─────────────────────────────────────────────────────────── */
-
-function MeetingActionsDialog({ meeting, onClose, onSave }: { meeting: Meeting | null; onClose: () => void; onSave: (m: Meeting, rows: ActionRow[]) => void }) {
-  const { respTypes } = useResponsibilities();
-  const { isActive } = useOrgActive("responsibility-type");
-  const def = defaultResponsibility(respTypes, isActive);
-  const [rows, setRows] = useState<ActionRow[]>([emptyActionRow(def)]);
-  const [key, setKey] = useState("");
-  if ((meeting?.id ?? "") !== key) { setKey(meeting?.id ?? ""); setRows([emptyActionRow(def), emptyActionRow(def)]); }
-  const filled = filledActionRows(rows);
-  const valid = filled.length > 0 && actionRowsValid(rows);
-  return (
-    <FormDialog open={!!meeting} onOpenChange={(o) => { if (!o) onClose(); }} title={t.addActions}
-      description={meeting ? `${meeting.title} · ${formatDateWithYear(meeting.date)}` : undefined}
-      size="xl" submitDisabled={!valid} submitLabel={`Add ${filled.length || ""} actions`}
-      onSubmit={() => { if (meeting && valid) onSave(meeting, cleanActionRows(rows)); }}>
-      <ActionRowsEditor rows={rows} onChange={setRows} hint={t.actionsHint} />
-    </FormDialog>
-  );
-}
 
 /* ── Drawer ──────────────────────────────────────────────────────────────── */
 

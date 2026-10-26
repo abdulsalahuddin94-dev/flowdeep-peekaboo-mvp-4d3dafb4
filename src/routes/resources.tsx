@@ -379,7 +379,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
             </StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
               {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((r) => (
-                  <StyledTableRow key={r.name} className="group cursor-pointer" onClick={() => navigate({ to: "/resources_/employees/$employeeId", params: { employeeId: r.id } })}>
+                  <StyledTableRow key={r.id} className="group cursor-pointer" onClick={() => navigate({ to: "/resources/employees/$employeeId", params: { employeeId: r.id } })}>
                     <StyledTableCell className="font-medium text-foreground"><div className="flex items-center gap-2"><Avatar className="h-8 w-8"><AvatarFallback className="bg-accent-dim text-[10px] text-accent">{r.name.split(" ").map((s) => s[0]).join("")}</AvatarFallback></Avatar>{r.name}</div></StyledTableCell>
                     <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell className="text-muted-foreground">{r.dept}</StyledTableCell><StyledTableCell>{employmentTypes.find((v) => v.id === r.employmentTypeId)?.name ?? "—"}</StyledTableCell>
                     <StyledTableCell className="num-mono">{r.capacity}h</StyledTableCell>

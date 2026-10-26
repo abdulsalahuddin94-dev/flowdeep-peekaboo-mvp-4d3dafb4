@@ -507,7 +507,6 @@ function FinancialsPage() {
                     </div>
                   </PopoverContent>
                 </Popover>
-                <Legendish items={[["Inflow", "#51CAAD"], ["Outflow", "#F87171"], ["Cumulative net", "#D4A574"]]} />
                 {cashMode === "monthly" && cashNavigation.year && (
                   <div className="grid h-9 grid-cols-[36px_64px_36px] items-center" dir="ltr" aria-label="Cash flow year navigation">
                     <div>{cashNavigation.previous && <ControlTooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" aria-label="Previous cash flow year" onClick={() => { if (cashNavigation.previous) setCashYear(cashNavigation.previous); }}><ChevronLeft className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Previous year</TooltipContent></ControlTooltip>}</div>
@@ -551,6 +550,11 @@ function FinancialsPage() {
                   <Line type="monotone" dataKey="Cumulative" stroke="var(--accent)" strokeWidth={2.5} dot={cashMode === "yearly" ? { r: 4 } : false} />
                 </ComposedChart>
               </ResponsiveContainer>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground" aria-label="Cash flow legend">
+              <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-rag-green" />Inflow</span>
+              <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-rag-red" />Outflow</span>
+              <span className="inline-flex items-center gap-2"><span className="h-0.5 w-4 bg-accent" />Cumulative net</span>
             </div>
           </div>
 

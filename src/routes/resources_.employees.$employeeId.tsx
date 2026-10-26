@@ -33,7 +33,7 @@ function DataTable({ headers, rows, onRowClick }: { headers: string[]; rows: Rea
 function EmployeeDetails() {
  const { employeeId } = Route.useParams(); const { employees, employmentTypes } = useEmployees(); const { projects } = useProjects(); const { resourceRequests } = useResourceRequests();
  const employee = employees.find((e) => e.id === employeeId);
- const [tab, setTab] = useState("overview"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10");
+ const [tab, setTab] = useState("overview"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
  const projectLink = (name: string) => { const p = projects.find((v) => v.name === name); return p ? <Link to="/portfolio/$projectId" params={{ projectId: p.id }} className="text-accent hover:underline">{name}</Link> : name; };
  if (!employee) return <><Button asChild variant="outline"><Link to="/resources" search={{ tab: "people" }}><ChevronLeft className="h-4 w-4" />{t.employees}</Link></Button><h1 className="mt-6 text-xl">{t.missing}</h1></>;
  const monthly = employeeMonth(employee, selectedMonth); const vacation = vacationBalance(employee, year);
@@ -77,5 +77,11 @@ function EmployeeDetails() {
    <TabsContent value="salary" className="mt-0 space-y-6"><DataTable headers={[t.month, t.total, t.projectCost, t.overhead]} onRowClick={(i) => { const m = months[i]; setSelectedMonth(m); setSalaryMonth(m); }} rows={months.map((m) => { const values = employeeMonth(employee, m); return [<span className={m === selectedMonth ? "font-medium text-accent" : undefined}>{monthLabel(m)}</span>, money(values.salary), money(values.projectCost), money(values.overhead)]; })} /></TabsContent>
    <TabsContent value="leave" className="mt-0 space-y-6"><div className="grid grid-cols-2 gap-3 lg:grid-cols-4"><KpiCard label={t.entitlement} value={`${vacation.entitlement}d`} /><KpiCard label={t.used} value={`${vacation.used}d`} /><KpiCard label={t.pending} value={`${vacation.pending}d`} accent="amber" /><KpiCard label={t.balance} value={`${vacation.remaining}d`} accent="teal" /></div><DataTable headers={[t.leaveType, t.from, t.until, t.days, t.status]} rows={employee.leave.filter((l) => l.from.startsWith(year)).map((l) => [l.type, formatDateWithYear(l.from), formatDateWithYear(l.until), l.days, <Badge variant="outline" className={l.status === "Approved" ? "text-rag-green" : l.status === "Rejected" ? "text-rag-red" : "text-rag-amber"}>{l.status}</Badge>])} /></TabsContent>
   </Tabs>
+  <Dialog open={!!salaryMonth} onOpenChange={(open) => { if (!open) setSalaryMonth(null); }}>
+   <DialogContent className="max-w-md">
+    <DialogHeader><DialogTitle>{t.charges} · {monthLabel(salaryMonth ?? selectedMonth)}</DialogTitle></DialogHeader>
+    <DataTable headers={[t.project, t.allocation, t.cost]} rows={[...monthly.charges.map((a) => [projectLink(a.project), `${a.percent}%`, money(a.amount)]), [t.overhead, "—", money(monthly.overhead)], [t.total, "—", money(monthly.salary)]]} />
+   </DialogContent>
+  </Dialog>
  </div>;
 }

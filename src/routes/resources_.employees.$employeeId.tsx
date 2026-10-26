@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { useEmployees } from "@/lib/employees-store";
+import { PLAN_CACHE } from "@/lib/plan-cache";
+import { seedMilestones } from "@/lib/plan-seeds";
 import { employeeMonth, vacationBalance } from "@/lib/employee-finance";
 import { useProjects, useResourceRequests } from "@/lib/projects-store";
 import { KpiCard } from "@/components/KpiCard";
@@ -36,15 +38,20 @@ function EmployeeDetails() {
  const monthly = employeeMonth(employee, selectedMonth); const vacation = vacationBalance(employee, year);
  const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
  const years = Array.from(new Set(["2025", "2026", "2027", employee.joinedOn.slice(0, 4), ...employee.allocations.flatMap((a) => [a.from.slice(0, 4), a.until.slice(0, 4)]).filter(Boolean)])).sort();
- const requestTasks = resourceRequests.filter((r) => r.status === "Fulfilled" && r.assignedTo === employee.name && r.task).map((r) => ({ task: r.task ?? "", project: r.project, period: `${r.from} → ${r.until}` }));
+ const requestTasks = resourceRequests.filter((r) => r.status === "Fulfilled" && r.assignedTo === employee.name && r.task).map((r) => ({ task: r.task ?? "", project: r.project, period: `${monthLabel(r.from)} → ${monthLabel(r.until)}` }));
  const assignmentTasks = employee.allocations.filter((a) => a.task).map((a) => ({ task: a.task ?? "", project: a.project, period: `${monthLabel(a.from)} → ${monthLabel(a.until)}` }));
- const tasks = [...assignmentTasks, ...requestTasks]; employee.tasks.forEach((task) => { if (!tasks.some((v) => v.task === task)) tasks.push({ task, project: "—", period: "—" }); });
+ const scheduleTasks = projects.filter((p) => employee.projects.includes(p.name)).flatMap((p) => {
+   const cached = PLAN_CACHE.get(p.id) as { milestones?: ReturnType<typeof seedMilestones> } | undefined;
+   const items = cached?.milestones ?? (employee.demo ? seedMilestones(p) : []);
+   return items.filter((item) => item.kind === "Task" && !items.some((child) => child.parent === item.name) && item.assignee?.split(",").some((name) => name.trim() === employee.name)).map((item) => ({ task: item.name, project: p.name, period: `${formatDateWithYear(item.startDate)} → ${formatDateWithYear(item.endDate)}` }));
+ });
+ const tasks = [...scheduleTasks, ...assignmentTasks, ...requestTasks]; employee.tasks.forEach((task) => { if (!tasks.some((v) => v.task === task)) tasks.push({ task, project: "—", period: "—" }); });
  const uniqueTasks = tasks.filter((v, i) => tasks.findIndex((a) => a.task === v.task && a.project === v.project) === i);
  const profile = [[t.id, employee.id], [t.email, employee.email], [t.role, employee.role], [t.department, employee.dept], [t.type, employmentTypes.find((v) => v.id === employee.employmentTypeId)?.name ?? "—"], [t.joined, formatDateWithYear(employee.joinedOn)]];
  return <div className="space-y-6">
   <Button asChild variant="ghost" className="px-0"><Link to="/resources" search={{ tab: "people" }}><ChevronLeft className="mr-1 h-4 w-4" />{t.employees}</Link></Button>
   <header className="flex flex-wrap items-center gap-4"><Avatar className="h-16 w-16"><AvatarFallback className="bg-accent-dim text-lg text-accent">{employee.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback></Avatar><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-3"><h1 className="text-2xl font-semibold text-foreground">{employee.name}</h1><Badge variant="outline">{profile[4]?.[1]}</Badge>{employee.demo && <Badge variant="secondary">{t.demo}</Badge>}</div><p className="mt-2 break-words text-sm text-muted-foreground">{employee.role} · {employee.dept} · {employee.email}</p></div></header>
-  <div className="grid grid-cols-2 gap-3 xl:grid-cols-5"><KpiCard label={t.monthly} value={money(employee.salary)} /><KpiCard label={t.capacity} value={`${employee.capacity}h`} /><KpiCard label={t.utilization} value={`${monthly.utilization}%`} accent={monthly.utilization > 100 ? "red" : "teal"} /><KpiCard label={t.projects} value={employee.projects.length} /><KpiCard label={t.vacation} value={`${vacation.remaining}d`} /></div>
+  <div className="grid grid-cols-2 gap-3 xl:grid-cols-5"><KpiCard label={t.monthly} value={<span className="block break-words text-xl sm:text-3xl">{money(employee.salary)}</span>} /><KpiCard label={t.capacity} value={`${employee.capacity}h`} /><KpiCard label={t.utilization} value={`${monthly.utilization}%`} accent={monthly.utilization > 100 ? "red" : "teal"} /><KpiCard label={t.projects} value={employee.projects.length} /><KpiCard label={t.vacation} value={`${vacation.remaining}d`} /></div>
   <div className="flex flex-wrap items-center justify-between gap-4"><Tabs value={tab} onValueChange={setTab} className="min-w-0 max-w-full"><TabsList className="max-w-full overflow-x-auto">{[["overview", t.overview], ["allocation", t.allocation], ["tasks", t.tasks], ["salary", t.salary], ["leave", t.leave]].map(([key, label]) => <TabsTrigger key={key} value={key}>{label}</TabsTrigger>)}</TabsList></Tabs><Select value={year} onValueChange={(v) => { setYear(v); setSelectedMonth(`${v}-${selectedMonth.slice(5)}`); }}><SelectTrigger aria-label={t.year} className="w-28"><SelectValue /></SelectTrigger><SelectContent>{years.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select></div>
   <Tabs value={tab}>
    <TabsContent value="overview" className="mt-0 space-y-8"><section><h2 className="mb-4 text-base font-semibold">{t.details}</h2><dl className="grid gap-x-10 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">{profile.map(([label, value]) => <div key={label} className="border-b border-border pb-3"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-medium">{value}</dd></div>)}</dl></section><section><h2 className="mb-4 text-base font-semibold">{t.allocation} · {monthLabel(selectedMonth)}</h2><DataTable headers={[t.project, t.role, t.allocation, t.hours, t.cost]} rows={monthly.charges.map((a) => [projectLink(a.project), a.role, `${a.percent}%`, `${(employee.capacity * a.percent / 100).toFixed(1)}h`, money(a.amount)])} /></section></TabsContent>

@@ -191,7 +191,7 @@ export function RiskFormPage({ riskId, lockedProject, back }: { riskId?: string;
 
       {risk && (
         <div className="glass-card mt-6 max-w-4xl p-5">
-          <LinkedActions project={risk.project} source="Risk" sourceRef={risk.id} title="Mitigation actions" />
+          <LinkedActions project={risk.project} source="Risk" sourceRef={risk.id} title="Mitigation plan" />
         </div>
       )}
     </>

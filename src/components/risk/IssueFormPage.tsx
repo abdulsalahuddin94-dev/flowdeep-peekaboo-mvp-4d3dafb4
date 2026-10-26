@@ -175,7 +175,7 @@ export function IssueFormPage({ issueId, lockedProject, back }: { issueId?: stri
 
       {issue && (
         <div className="glass-card mt-6 max-w-4xl p-5">
-          <LinkedActions project={issue.project} source="Issue" sourceRef={issue.id} title="Action plan actions" />
+          <LinkedActions project={issue.project} source="Issue" sourceRef={issue.id} title="Action plan" />
         </div>
       )}
     </>

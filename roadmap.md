@@ -1,4 +1,7 @@
 # Roadmap
+- [ ] Employment types: Organization lookup and employee creation/filter integration.
+- [ ] Read-only employee page: monthly salaries and project charges, leave, assignments, tasks, capacity and utilization.
+- [ ] Verify employee creation, lookup changes, detail navigation and monthly views; log the work.
 - [x] Cash Flow Forecast: bounded year arrows and Yearly-to-monthly year drill-down, with navigation and aggregation tests.
 - [x] Cash Flow Forecast: chart-local Project type multiselect with All default; explain multiyear display options without changing the timeline yet.
 - [x] Change Plan: stay on the tab the PM is already on (Schedule / Cost / Revenue) instead of jumping to Basic info.

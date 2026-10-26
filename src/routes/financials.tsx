@@ -10,7 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { ChevronDown, ChevronLeft, ChevronRight } from "@/lib/icons";
-import { matchesProjectTypes, cashYears, cashYearNavigation, cashSeries, financialDemoDate } from "@/lib/financial-filters";
+import { matchesProjectTypes, cashYears, cashYearNavigation, cashSeries, financialDemoDate, topShareSlices } from "@/lib/financial-filters";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tooltip as ControlTooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { projects } from "@/lib/mock-data";
 import { Download, FileSpreadsheet, TrendingUp, TrendingDown, Wallet, PiggyBank, GanttChartSquare, List } from "@/lib/icons";
@@ -37,7 +38,14 @@ const FIN_YEAR = 2026;
 // Demo contract markup per project type so profitability differs by line.
 const MARKUP: Record<string, number> = { "Software Solutions": 1.32, EPC: 1.12, Maintenance: 1.22, Consultation: 1.45 };
 // Pie slice colors for the Margin by Project Type donut.
-const PIE_COLORS = ["#51CAAD", "#94A3B8", "#D4A574", "#A78BFA", "#F87171"];
+const PIE_COLORS = ["#51CAAD", "#D4A574", "#A78BFA", "#60A5FA", "#F87171", "#FBBF24"];
+const OTHERS_COLOR = "#64748B";
+// Demo-only long tail so the Top 6 + Others pattern is visible (only 4 real types exist in mock data).
+const DEMO_LONG_TAIL = ["Infrastructure", "Data & Analytics", "Cybersecurity", "Cloud Migration", "Training", "Managed Services", "Telecom", "Smart Cities", "Facilities", "Renewables", "Digital Marketing", "Logistics", "Healthcare IT", "GovTech"].map((name, i) => {
+  const Revenue = +(9 - i * 0.55).toFixed(2);
+  const Profit = +(Revenue * (0.28 - i * 0.012)).toFixed(2);
+  return { name, Revenue, Cost: +(Revenue - Profit).toFixed(2), Profit, margin: (Profit / Revenue) * 100 };
+});
 const COST_TEMPLATES = [
   { item: "Licences & subscriptions", cat: "Software", type: "CapEx", share: 0.3 },
   { item: "Delivery labour", cat: "Staff", type: "OpEx", share: 0.4 },
@@ -173,16 +181,14 @@ function FinancialsPage() {
     }
     return Array.from(map.values()).map((x) => ({ name: x.name, Revenue: +x.Revenue.toFixed(2), Cost: +x.Cost.toFixed(2), Profit: +x.Profit.toFixed(2), margin: (x.Profit / x.Revenue) * 100 }));
   }, [filteredPnlRows]);
-  // Margin donut — with many project types the smallest ones collapse into "Other" so colours stay unique.
-  const marginPie = useMemo(() => {
-    const sorted = [...profitability].sort((a, b) => b.Profit - a.Profit);
-    if (sorted.length <= 4) return sorted.map((x, i) => ({ ...x, color: PIE_COLORS[i % PIE_COLORS.length] }));
-    const top = sorted.slice(0, 4).map((x, i) => ({ ...x, color: PIE_COLORS[i] }));
-    const rest = sorted.slice(4);
-    const rev = rest.reduce((a, x) => a + x.Revenue, 0);
-    const prof = rest.reduce((a, x) => a + x.Profit, 0);
-    return [...top, { name: `Other · ${rest.length}`, Revenue: rev, Cost: 0, Profit: +prof.toFixed(2), margin: rev ? (prof / rev) * 100 : 0, color: "#94A3B8" }];
-  }, [profitability]);
+  // Profit share donut — Top 6 + Others (see DESIGN.md). Demo long-tail types make the Others pattern visible.
+  const shareSource = useMemo(() => profitability.length === 0 ? [] : [...profitability, ...DEMO_LONG_TAIL], [profitability]);
+  const share = useMemo(() => topShareSlices(shareSource, 6), [shareSource]);
+  const marginPie = share.slices.map((x, i) => ({ ...x, color: x.name.startsWith("Others") ? OTHERS_COLOR : PIE_COLORS[i % PIE_COLORS.length] }));
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareQuery, setShareQuery] = useState("");
+  const shareTotal = share.all.reduce((a, x) => a + Math.max(0, x.Profit), 0);
+  const shareMax = Math.max(1e-9, ...share.all.map((x) => x.Profit));
   // With many project types the vertical bars keep their width and the card scrolls sideways.
   const profMinWidth = Math.max(0, profitability.length) * 130;
   // Actual figures per project type: paid costs, collected revenue and realised profit.

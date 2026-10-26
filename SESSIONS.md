@@ -1,3 +1,8 @@
+## 2026-10-26 — Cash flow project type multiselect
+- Added a searchable Project type multiselect directly to Cash Flow Forecast, defaulting to All; multiple selected types contribute to the same chart.
+- Selection is local to the chart and respects existing overview filters. Added concrete tests for All and multiple-type inclusion/exclusion.
+- Multiyear display remains a recommendation, not an implemented change; monthly data currently displays FY2026 only.
+
 ## 2026-10-25 — Change Plan keeps the current tab
 - Entering Change Plan no longer jumps to Basic info when the PM is already on Project Schedule, Cost Breakdown or Revenue Breakdown; the tab is kept exactly where it was.
 - Non-baselined tabs (Overview, Team, Documents, …) still land on Basic info, since those tabs are hidden during Change Plan.

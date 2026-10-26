@@ -1,5 +1,7 @@
 # Project architecture rules
 
+- Keep Cash Flow Forecast project-type selection chart-local and combine it with overview filters; an empty selection means All and must include every type.
+
 - Keep schedule health derived from item dates and progress, not manually stored, so WBS and Gantt always agree.
 - Keep schedule column auto-fit measurements aligned with rendered cell content and adapt widths to the table viewport; this preserves readable compact layouts and existing detail navigation.
 - Navigate linked-action counts through the project route's tab and actionRef search parameters, with a removable Action Tracker filter, so project and portfolio registers share the same destination.

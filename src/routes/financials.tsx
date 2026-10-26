@@ -6,6 +6,11 @@ import { EmptyRegion } from "@/lib/empty-preview";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { ChevronDown } from "@/lib/icons";
+import { matchesProjectTypes } from "@/lib/financial-filters";
 import { projects } from "@/lib/mock-data";
 import { Download, FileSpreadsheet, TrendingUp, TrendingDown, Wallet, PiggyBank, GanttChartSquare, List } from "@/lib/icons";
 import { useState, useMemo } from "react";
@@ -109,6 +114,8 @@ function FinancialsPage() {
   const [pnlLine, setPnlLine] = useState("all");
   const [overviewView, setOverviewView] = useState<"charts" | "table">("charts");
   const [cashMode, setCashMode] = useState<"monthly" | "yearly">("monthly");
+  const [cashProjectTypes, setCashProjectTypes] = useState<string[]>([]);
+  const [cashTypeQuery, setCashTypeQuery] = useState("");
   const [costQuery, setCostQuery] = useState("");
   const [costMonth, setCostMonth] = useState("all");
   const [costLine, setCostLine] = useState("all");
@@ -197,8 +204,8 @@ function FinancialsPage() {
     const keyOf = (d: string) => (cashMode === "monthly" ? d.slice(0, 7) : d.slice(0, 4));
     const map = new Map<string, { key: string; Inflow: number; Outflow: number }>();
     if (cashMode === "monthly") for (let m = 1; m <= 12; m++) { const k = `${FIN_YEAR}-${String(m).padStart(2, "0")}`; map.set(k, { key: k, Inflow: 0, Outflow: 0 }); }
-    for (const r of REVENUE_ITEMS) { if (selectedYear !== "all" && !r.due.startsWith(selectedYear)) continue; if (pnlLine !== "all" && r.businessLine !== pnlLine) continue; if (!pnlMatch(r.project, r.businessLine)) continue; const k = keyOf(r.due); if (cashMode === "monthly" && !map.has(k)) continue; const c = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; c.Inflow += r.planned; map.set(k, c); }
-    for (const c of COST_ITEMS) { if (selectedYear !== "all" && !c.due.startsWith(selectedYear)) continue; if (pnlLine !== "all" && c.businessLine !== pnlLine) continue; if (!pnlMatch(c.project, c.businessLine)) continue; const k = keyOf(c.due); if (cashMode === "monthly" && !map.has(k)) continue; const e = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; e.Outflow += c.planned; map.set(k, e); }
+    for (const r of REVENUE_ITEMS) { if (selectedYear !== "all" && !r.due.startsWith(selectedYear)) continue; if (pnlLine !== "all" && r.businessLine !== pnlLine) continue; if (!matchesProjectTypes(cashProjectTypes, r.businessLine)) continue; if (!pnlMatch(r.project, r.businessLine)) continue; const k = keyOf(r.due); if (cashMode === "monthly" && !map.has(k)) continue; const c = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; c.Inflow += r.planned; map.set(k, c); }
+    for (const c of COST_ITEMS) { if (selectedYear !== "all" && !c.due.startsWith(selectedYear)) continue; if (pnlLine !== "all" && c.businessLine !== pnlLine) continue; if (!matchesProjectTypes(cashProjectTypes, c.businessLine)) continue; if (!pnlMatch(c.project, c.businessLine)) continue; const k = keyOf(c.due); if (cashMode === "monthly" && !map.has(k)) continue; const e = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; e.Outflow += c.planned; map.set(k, e); }
     let cum = 0;
     return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key)).map((x) => {
       const net = x.Inflow - x.Outflow; cum += net;
@@ -206,7 +213,7 @@ function FinancialsPage() {
       const forecast = cashMode === "monthly" ? x.key > TODAY.slice(0, 7) : x.key > TODAY.slice(0, 4);
       return { label: forecast ? `${label}*` : label, Inflow: +x.Inflow.toFixed(2), Outflow: +(-x.Outflow).toFixed(2), Net: +net.toFixed(2), Cumulative: +cum.toFixed(2) };
     });
-  }, [cashMode, pnlQuery, pnlLine, selectedYear]);
+  }, [cashMode, pnlQuery, pnlLine, selectedYear, cashProjectTypes]);
 
   const costCategories = Array.from(new Set(COST_ITEMS.map((item) => item.cat)));
   const filteredCostItems = COST_ITEMS.filter((item) => {
@@ -478,7 +485,29 @@ function FinancialsPage() {
                   Expected collections vs payments from cost and revenue events · $M · {cashMode === "monthly" ? `FY${FIN_YEAR}` : "by fiscal year"} · * forecast
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <Popover onOpenChange={() => setCashTypeQuery("")}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" aria-label="Cash flow project types" className="max-w-full gap-2">
+                      <span className="truncate">Project type: {cashProjectTypes.length === 0 ? "All" : cashProjectTypes.length === 1 ? cashProjectTypes[0] : `${cashProjectTypes.length} selected`}</span>
+                      <ChevronDown className="h-4 w-4 shrink-0" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-72 max-w-[calc(100vw-2rem)] p-2">
+                    <Input value={cashTypeQuery} onChange={(e) => setCashTypeQuery(e.target.value)} placeholder="Search project types…" aria-label="Search cash flow project types" className="mb-2" />
+                    <Button variant="ghost" className="w-full justify-start gap-2" aria-pressed={cashProjectTypes.length === 0} onClick={() => setCashProjectTypes([])}>
+                      <Checkbox checked={cashProjectTypes.length === 0} className="pointer-events-none" tabIndex={-1} />All
+                    </Button>
+                    <div className="max-h-56 overflow-y-auto">
+                      {lineOptions.slice(1).filter((option) => option.label.toLowerCase().includes(cashTypeQuery.trim().toLowerCase())).map((option) => (
+                        <Button key={option.value} variant="ghost" className="w-full justify-start gap-2" aria-pressed={cashProjectTypes.includes(option.value)} onClick={() => setCashProjectTypes((selected) => selected.includes(option.value) ? selected.filter((value) => value !== option.value) : [...selected, option.value])}>
+                          <Checkbox checked={cashProjectTypes.includes(option.value)} className="pointer-events-none" tabIndex={-1} />
+                          <span className="truncate">{option.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 <Legendish items={[["Inflow", "#51CAAD"], ["Outflow", "#F87171"], ["Cumulative net", "#D4A574"]]} />
                 <div className="inline-flex rounded-lg border border-border p-0.5">
                   {(["monthly", "yearly"] as const).map((m) => (

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { IssueFormPage } from "@/components/risk/IssueFormPage";
 import { recordSearch } from "@/lib/record-pages";
 
-export const Route = createFileRoute("/issues_.new")({
+export const Route = createFileRoute("/issues_/new")({
   component: NewIssueRoute,
   validateSearch: recordSearch,
   head: () => ({

@@ -22,9 +22,15 @@ import { Route as RisksRouteImport } from './routes/risks'
 import { Route as ActionsActionIdRouteImport } from './routes/actions_.$actionId'
 import { Route as ActionsNewRouteImport } from './routes/actions_.new'
 import { Route as ApprovalsApprovalIdRouteImport } from './routes/approvals_.$approvalId'
+import { Route as IssuesIssueIdRouteImport } from './routes/issues_.$issueId'
+import { Route as IssuesNewRouteImport } from './routes/issues_.new'
+import { Route as MeetingsMeetingIdRouteImport } from './routes/meetings_.$meetingId'
+import { Route as MeetingsNewRouteImport } from './routes/meetings_.new'
 import { Route as PortfolioIndexRouteImport } from './routes/portfolio.index'
 import { Route as PortfolioProjectIdRouteImport } from './routes/portfolio.$projectId'
 import { Route as PortfolioNewRouteImport } from './routes/portfolio.new'
+import { Route as RisksRiskIdRouteImport } from './routes/risks_.$riskId'
+import { Route as RisksNewRouteImport } from './routes/risks_.new'
 import { Route as PortfolioProjectIdEditRouteImport } from './routes/portfolio.$projectId_.edit'
 import { Route as ResourcesEmployeesEmployeeIdRouteImport } from './routes/resources_.employees.$employeeId'
 
@@ -93,6 +99,26 @@ const ApprovalsApprovalIdRoute = ApprovalsApprovalIdRouteImport.update({
   path: '/approvals/$approvalId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IssuesIssueIdRoute = IssuesIssueIdRouteImport.update({
+  id: '/issues_/$issueId',
+  path: '/issues/$issueId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IssuesNewRoute = IssuesNewRouteImport.update({
+  id: '/issues_/new',
+  path: '/issues/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeetingsMeetingIdRoute = MeetingsMeetingIdRouteImport.update({
+  id: '/meetings_/$meetingId',
+  path: '/meetings/$meetingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeetingsNewRoute = MeetingsNewRouteImport.update({
+  id: '/meetings_/new',
+  path: '/meetings/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortfolioIndexRoute = PortfolioIndexRouteImport.update({
   id: '/portfolio/',
   path: '/portfolio/',
@@ -106,6 +132,16 @@ const PortfolioProjectIdRoute = PortfolioProjectIdRouteImport.update({
 const PortfolioNewRoute = PortfolioNewRouteImport.update({
   id: '/portfolio/new',
   path: '/portfolio/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RisksRiskIdRoute = RisksRiskIdRouteImport.update({
+  id: '/risks_/$riskId',
+  path: '/risks/$riskId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RisksNewRoute = RisksNewRouteImport.update({
+  id: '/risks_/new',
+  path: '/risks/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortfolioProjectIdEditRoute = PortfolioProjectIdEditRouteImport.update({
@@ -134,8 +170,14 @@ export interface FileRoutesByFullPath {
   '/actions/$actionId': typeof ActionsActionIdRoute
   '/actions/new': typeof ActionsNewRoute
   '/approvals/$approvalId': typeof ApprovalsApprovalIdRoute
+  '/issues/$issueId': typeof IssuesIssueIdRoute
+  '/issues/new': typeof IssuesNewRoute
+  '/meetings/$meetingId': typeof MeetingsMeetingIdRoute
+  '/meetings/new': typeof MeetingsNewRoute
   '/portfolio/$projectId': typeof PortfolioProjectIdRoute
   '/portfolio/new': typeof PortfolioNewRoute
+  '/risks/$riskId': typeof RisksRiskIdRoute
+  '/risks/new': typeof RisksNewRoute
   '/portfolio/': typeof PortfolioIndexRoute
   '/portfolio/$projectId/edit': typeof PortfolioProjectIdEditRoute
   '/resources/employees/$employeeId': typeof ResourcesEmployeesEmployeeIdRoute
@@ -154,8 +196,14 @@ export interface FileRoutesByTo {
   '/actions/$actionId': typeof ActionsActionIdRoute
   '/actions/new': typeof ActionsNewRoute
   '/approvals/$approvalId': typeof ApprovalsApprovalIdRoute
+  '/issues/$issueId': typeof IssuesIssueIdRoute
+  '/issues/new': typeof IssuesNewRoute
+  '/meetings/$meetingId': typeof MeetingsMeetingIdRoute
+  '/meetings/new': typeof MeetingsNewRoute
   '/portfolio/$projectId': typeof PortfolioProjectIdRoute
   '/portfolio/new': typeof PortfolioNewRoute
+  '/risks/$riskId': typeof RisksRiskIdRoute
+  '/risks/new': typeof RisksNewRoute
   '/portfolio': typeof PortfolioIndexRoute
   '/portfolio/$projectId/edit': typeof PortfolioProjectIdEditRoute
   '/resources/employees/$employeeId': typeof ResourcesEmployeesEmployeeIdRoute
@@ -175,8 +223,14 @@ export interface FileRoutesById {
   '/actions_/$actionId': typeof ActionsActionIdRoute
   '/actions_/new': typeof ActionsNewRoute
   '/approvals_/$approvalId': typeof ApprovalsApprovalIdRoute
+  '/issues_/$issueId': typeof IssuesIssueIdRoute
+  '/issues_/new': typeof IssuesNewRoute
+  '/meetings_/$meetingId': typeof MeetingsMeetingIdRoute
+  '/meetings_/new': typeof MeetingsNewRoute
   '/portfolio/$projectId': typeof PortfolioProjectIdRoute
   '/portfolio/new': typeof PortfolioNewRoute
+  '/risks_/$riskId': typeof RisksRiskIdRoute
+  '/risks_/new': typeof RisksNewRoute
   '/portfolio/': typeof PortfolioIndexRoute
   '/portfolio/$projectId_/edit': typeof PortfolioProjectIdEditRoute
   '/resources_/employees/$employeeId': typeof ResourcesEmployeesEmployeeIdRoute
@@ -197,8 +251,14 @@ export interface FileRouteTypes {
     | '/actions/$actionId'
     | '/actions/new'
     | '/approvals/$approvalId'
+    | '/issues/$issueId'
+    | '/issues/new'
+    | '/meetings/$meetingId'
+    | '/meetings/new'
     | '/portfolio/$projectId'
     | '/portfolio/new'
+    | '/risks/$riskId'
+    | '/risks/new'
     | '/portfolio/'
     | '/portfolio/$projectId/edit'
     | '/resources/employees/$employeeId'
@@ -217,8 +277,14 @@ export interface FileRouteTypes {
     | '/actions/$actionId'
     | '/actions/new'
     | '/approvals/$approvalId'
+    | '/issues/$issueId'
+    | '/issues/new'
+    | '/meetings/$meetingId'
+    | '/meetings/new'
     | '/portfolio/$projectId'
     | '/portfolio/new'
+    | '/risks/$riskId'
+    | '/risks/new'
     | '/portfolio'
     | '/portfolio/$projectId/edit'
     | '/resources/employees/$employeeId'
@@ -237,8 +303,14 @@ export interface FileRouteTypes {
     | '/actions_/$actionId'
     | '/actions_/new'
     | '/approvals_/$approvalId'
+    | '/issues_/$issueId'
+    | '/issues_/new'
+    | '/meetings_/$meetingId'
+    | '/meetings_/new'
     | '/portfolio/$projectId'
     | '/portfolio/new'
+    | '/risks_/$riskId'
+    | '/risks_/new'
     | '/portfolio/'
     | '/portfolio/$projectId_/edit'
     | '/resources_/employees/$employeeId'
@@ -258,8 +330,14 @@ export interface RootRouteChildren {
   ActionsActionIdRoute: typeof ActionsActionIdRoute
   ActionsNewRoute: typeof ActionsNewRoute
   ApprovalsApprovalIdRoute: typeof ApprovalsApprovalIdRoute
+  IssuesIssueIdRoute: typeof IssuesIssueIdRoute
+  IssuesNewRoute: typeof IssuesNewRoute
+  MeetingsMeetingIdRoute: typeof MeetingsMeetingIdRoute
+  MeetingsNewRoute: typeof MeetingsNewRoute
   PortfolioProjectIdRoute: typeof PortfolioProjectIdRoute
   PortfolioNewRoute: typeof PortfolioNewRoute
+  RisksRiskIdRoute: typeof RisksRiskIdRoute
+  RisksNewRoute: typeof RisksNewRoute
   PortfolioIndexRoute: typeof PortfolioIndexRoute
   PortfolioProjectIdEditRoute: typeof PortfolioProjectIdEditRoute
   ResourcesEmployeesEmployeeIdRoute: typeof ResourcesEmployeesEmployeeIdRoute
@@ -358,6 +436,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApprovalsApprovalIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/issues_/$issueId': {
+      id: '/issues_/$issueId'
+      path: '/issues/$issueId'
+      fullPath: '/issues/$issueId'
+      preLoaderRoute: typeof IssuesIssueIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/issues_/new': {
+      id: '/issues_/new'
+      path: '/issues/new'
+      fullPath: '/issues/new'
+      preLoaderRoute: typeof IssuesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/meetings_/$meetingId': {
+      id: '/meetings_/$meetingId'
+      path: '/meetings/$meetingId'
+      fullPath: '/meetings/$meetingId'
+      preLoaderRoute: typeof MeetingsMeetingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/meetings_/new': {
+      id: '/meetings_/new'
+      path: '/meetings/new'
+      fullPath: '/meetings/new'
+      preLoaderRoute: typeof MeetingsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/portfolio/': {
       id: '/portfolio/'
       path: '/portfolio'
@@ -377,6 +483,20 @@ declare module '@tanstack/react-router' {
       path: '/portfolio/new'
       fullPath: '/portfolio/new'
       preLoaderRoute: typeof PortfolioNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/risks_/$riskId': {
+      id: '/risks_/$riskId'
+      path: '/risks/$riskId'
+      fullPath: '/risks/$riskId'
+      preLoaderRoute: typeof RisksRiskIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/risks_/new': {
+      id: '/risks_/new'
+      path: '/risks/new'
+      fullPath: '/risks/new'
+      preLoaderRoute: typeof RisksNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portfolio/$projectId_/edit': {
@@ -410,8 +530,14 @@ const rootRouteChildren: RootRouteChildren = {
   ActionsActionIdRoute: ActionsActionIdRoute,
   ActionsNewRoute: ActionsNewRoute,
   ApprovalsApprovalIdRoute: ApprovalsApprovalIdRoute,
+  IssuesIssueIdRoute: IssuesIssueIdRoute,
+  IssuesNewRoute: IssuesNewRoute,
+  MeetingsMeetingIdRoute: MeetingsMeetingIdRoute,
+  MeetingsNewRoute: MeetingsNewRoute,
   PortfolioProjectIdRoute: PortfolioProjectIdRoute,
   PortfolioNewRoute: PortfolioNewRoute,
+  RisksRiskIdRoute: RisksRiskIdRoute,
+  RisksNewRoute: RisksNewRoute,
   PortfolioIndexRoute: PortfolioIndexRoute,
   PortfolioProjectIdEditRoute: PortfolioProjectIdEditRoute,
   ResourcesEmployeesEmployeeIdRoute: ResourcesEmployeesEmployeeIdRoute,

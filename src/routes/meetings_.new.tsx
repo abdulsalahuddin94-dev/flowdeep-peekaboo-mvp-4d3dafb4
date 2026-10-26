@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { MeetingFormPage } from "@/components/actions/MeetingFormPage";
 import { recordSearch } from "@/lib/record-pages";
 
-export const Route = createFileRoute("/meetings_.new")({
+export const Route = createFileRoute("/meetings_/new")({
   component: NewMeetingRoute,
   validateSearch: recordSearch,
   head: () => ({

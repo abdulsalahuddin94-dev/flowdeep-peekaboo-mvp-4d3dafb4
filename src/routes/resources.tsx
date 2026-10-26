@@ -23,12 +23,13 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { resources, projects, departments } from "@/lib/mock-data";
+import { projects, departments } from "@/lib/mock-data";
 import { useResourceRequests, useJobRoles } from "@/lib/projects-store";
 import type { ResourceRequest } from "@/lib/projects-store";
 import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
+import { useEmployees, type Employee, type EmployeeAllocation } from "@/lib/employees-store";
 
 export const Route = createFileRoute("/resources")({
   component: ResourcesPage,
@@ -48,11 +49,7 @@ export const Route = createFileRoute("/resources")({
 });
 
 type Priority = "Critical" | "High" | "Medium" | "Low";
-type PoolResource = Omit<typeof resources[number], "projects"> & { projects: string[]; email: string; salary: number; tasks: string[] };
-
-const SEED_SALARY = [14500, 12800, 13200, 9800, 13900, 8700, 9200, 11000, 10400, 9900];
-const SEED_TASKS: string[][] = [["Solution Design", "Integration Blueprint"], ["Site Mobilisation"], ["Penetration Testing"], ["Field Survey", "Commissioning"], ["Model Training"], ["Budget Review"]];
-const formatSalary = (n: number) => `$${n.toLocaleString("en-US")} / mo`;
+type PoolResource = Employee;
 
 const PRIORITY_STYLE: Record<Priority, string> = {
   Critical: "border-rag-red/40 bg-rag-red/10 text-rag-red",
@@ -85,13 +82,7 @@ const MANPOWER_PLAN = [
 function ResourcesPage() {
   const { tab = "requests" } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
-  const [pool, setPool] = useState<PoolResource[]>(resources.map((r, i) => ({
-    ...r,
-    projects: [...r.projects],
-    email: `${r.name.toLowerCase().replace(/[^a-z ]/g, "").trim().replace(/\s+/g, ".")}@company.com`,
-    salary: SEED_SALARY[i % SEED_SALARY.length],
-    tasks: SEED_TASKS[i] ?? [],
-  })));
+  const { employees: pool, setEmployees: setPool } = useEmployees();
   const { resourceRequests: requests, updateResourceRequest } = useResourceRequests();
 
   const pendingCount = requests.filter((r) => r.status === "Pending").length;
@@ -113,6 +104,7 @@ function ResourcesPage() {
         util: utilAfter ?? p.util,
         projects: req && !p.projects.includes(req.project) ? [...p.projects, req.project] : p.projects,
         tasks: req?.task && !p.tasks.includes(req.task) ? [...p.tasks, req.task] : p.tasks,
+        allocations: req ? [...p.allocations, { id: req.id, project: req.project, role: req.role, percent: alloc, from: req.from, until: req.until, task: req.task }] : p.allocations,
       } : p)));
     }
     updateResourceRequest(id, {
@@ -355,43 +347,46 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
   );
 }
 
-function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: React.Dispatch<React.SetStateAction<PoolResource[]>> }) {
+function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update: PoolResource[] | ((prev: PoolResource[]) => PoolResource[])) => void }) {
   const [query, setQuery] = useState("");
   const [department, setDepartment] = useState("all");
   const [related, setRelated] = useState("all");
-  const [openName, setOpenName] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { employmentTypes } = useEmployees();
+  const [employmentType, setEmploymentType] = useState("all");
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return pool.filter((r) => !q || r.name.toLowerCase().includes(q) || r.role.toLowerCase().includes(q) || r.tasks.some((t) => t.toLowerCase().includes(q)))
       .filter((r) => department === "all" || r.dept === department)
-      .filter((r) => matchRelated(related, r.projects.length));
-  }, [department, pool, query, related]);
+      .filter((r) => matchRelated(related, r.projects.length))
+      .filter((r) => employmentType === "all" || r.employmentTypeId === employmentType);
+  }, [department, pool, query, related, employmentType]);
   const pagination = usePagination(filtered, 10);
-  const selected = pool.find((r) => r.name === openName) ?? null;
 
   return (
     <>
       <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search employee, role or task…" filterGroups={[
         relatedProjectsGroup(related, setRelated),
+        { key: "employment-type", label: "Employment type", value: employmentType, onChange: setEmploymentType, options: [{ value: "all", label: "All employment types" }, ...employmentTypes.map((v) => ({ value: v.id, label: v.name }))] },
         { key: "department", label: "Department", value: department, onChange: setDepartment, options: [{ value: "all", label: "All departments" }, ...departments.map((d) => ({ value: d.name, label: d.name }))] },
       ]} />
       <EmptyRegion id="resources-capacity">
           <StyledTable wrapperClassName="">
             <StyledTableHeader><StyledTableHeaderRow>
-              <StyledTableHead>Employee</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead>
+              <StyledTableHead>Employee</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Employment type</StyledTableHead>
               <StyledTableHead>Capacity / wk</StyledTableHead><StyledTableHead>Utilization</StyledTableHead>
               <StyledTableHead className="w-16" />
             </StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
-              {pagination.pageItems.length === 0 ? <EmptyRow colSpan={6} /> : pagination.pageItems.map((r) => (
-                  <StyledTableRow key={r.name} className="group cursor-pointer" onClick={() => setOpenName(r.name)}>
+              {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((r) => (
+                  <StyledTableRow key={r.name} className="group cursor-pointer" onClick={() => navigate({ to: "/resources_/employees/$employeeId", params: { employeeId: r.id } })}>
                     <StyledTableCell className="font-medium text-foreground"><div className="flex items-center gap-2"><Avatar className="h-8 w-8"><AvatarFallback className="bg-accent-dim text-[10px] text-accent">{r.name.split(" ").map((s) => s[0]).join("")}</AvatarFallback></Avatar>{r.name}</div></StyledTableCell>
-                    <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell className="text-muted-foreground">{r.dept}</StyledTableCell>
+                    <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell className="text-muted-foreground">{r.dept}</StyledTableCell><StyledTableCell>{employmentTypes.find((v) => v.id === r.employmentTypeId)?.name ?? "—"}</StyledTableCell>
                     <StyledTableCell className="num-mono">{r.capacity}h</StyledTableCell>
                     <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(r.util, 100)} className={`h-1.5 ${r.util > 100 ? "[&>div]:bg-rag-red" : r.util > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${r.util > 100 ? "text-rag-red" : "text-foreground"}`}>{r.util}%</span></div></StyledTableCell>
                     <StyledTableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                        <AssignDialog resource={r} compact onAssign={(projectName, alloc) => setPool((prev) => prev.map((x) => x.name === r.name ? { ...x, util: Math.min(x.util + alloc, 200), projects: x.projects.includes(projectName) ? x.projects : [...x.projects, projectName] } : x))} />
+                        <AssignDialog resource={r} compact onAssign={(assignment) => setPool((prev) => prev.map((x) => x.id === r.id ? { ...x, util: Math.min(x.util + assignment.percent, 200), projects: x.projects.includes(assignment.project) ? x.projects : [...x.projects, assignment.project], allocations: [...x.allocations, assignment] } : x))} />
                       </div>
                     </StyledTableCell>
                   </StyledTableRow>
@@ -400,54 +395,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: React.D
           </StyledTable>
       </EmptyRegion>
       <TablePagination {...pagination} itemLabel="employees" demoPages={1} />
-      <EmployeeSheet employee={selected} onClose={() => setOpenName(null)} />
     </>
-  );
-}
-
-/** Employee detail drawer: profile, salary, projects and assigned tasks. */
-function EmployeeSheet({ employee, onClose }: { employee: PoolResource | null; onClose: () => void }) {
-  return (
-    <Sheet open={!!employee} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" className="flex w-[480px] max-w-full flex-col rounded-l-lg border-l border-border bg-drawer p-0 sm:max-w-[480px]">
-        {employee && (
-          <>
-            <SheetHeader className="border-b border-border px-6 pb-4 pt-6 text-left">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10"><AvatarFallback className="bg-accent-dim text-xs text-accent">{employee.name.split(" ").map((s) => s[0]).join("")}</AvatarFallback></Avatar>
-                <div>
-                  <SheetTitle className="text-lg">{employee.name}</SheetTitle>
-                  <SheetDescription className="text-xs">{employee.role} · {employee.dept}</SheetDescription>
-                </div>
-              </div>
-            </SheetHeader>
-            <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
-              <section className="space-y-2">
-                <h4 className="text-xs font-semibold text-muted-foreground">Details</h4>
-                <DrawerRow label="Email" value={employee.email} />
-                <DrawerRow label="Role" value={employee.role} />
-                <DrawerRow label="Department" value={employee.dept} />
-                <DrawerRow label="Salary" value={formatSalary(employee.salary)} valueClass="num-mono" />
-                <DrawerRow label="Capacity" value={`${employee.capacity}h / week`} valueClass="num-mono" />
-                <DrawerRow label="Utilization" value={`${employee.util}%`} valueClass={`num-mono ${employee.util > 100 ? "text-rag-red" : ""}`} />
-              </section>
-              <section className="space-y-2">
-                <h4 className="text-xs font-semibold text-muted-foreground">Projects ({employee.projects.length})</h4>
-                {employee.projects.length ? (
-                  <div className="flex flex-wrap gap-2">{employee.projects.map((p) => <Badge key={p} variant="outline">{p}</Badge>)}</div>
-                ) : <p className="text-sm text-muted-foreground">Not assigned to any project yet.</p>}
-              </section>
-              <section className="space-y-2">
-                <h4 className="text-xs font-semibold text-muted-foreground">Tasks ({employee.tasks.length})</h4>
-                {employee.tasks.length ? (
-                  <ul className="space-y-1.5">{employee.tasks.map((t) => <li key={t} className="rounded-md border border-border bg-secondary/30 px-3 py-2 text-sm">{t}</li>)}</ul>
-                ) : <p className="text-sm text-muted-foreground">No tasks assigned yet.</p>}
-              </section>
-            </div>
-          </>
-        )}
-      </SheetContent>
-    </Sheet>
   );
 }
 
@@ -695,10 +643,13 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
   const [email, setEmail]     = useState("");
   const [salary, setSalary]   = useState("");
   const { jobRoles } = useJobRoles();
-  const [errors, setErrors] = useState<{ name?: string; role?: string; dept?: string; email?: string; salary?: string }>({});
+  const { employmentTypes } = useEmployees();
+  const [employmentTypeId, setEmploymentTypeId] = useState("");
+  const [errors, setErrors] = useState<{ name?: string; role?: string; dept?: string; email?: string; salary?: string; employmentTypeId?: string }>({});
 
   function handleSave() {
     const next = {
+      employmentTypeId: employmentTypes.some((v) => v.id === employmentTypeId && v.active) ? undefined : "Employment type is required.",
       name: name.trim() ? undefined : "Full name is required.",
       role: role.trim() ? undefined : "Job title / Role is required.",
       dept: dept ? undefined : "Department is required.",
@@ -708,6 +659,10 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
     onAdd({
+      id: `EMP-${crypto.randomUUID()}`,
+      employmentTypeId,
+      joinedOn: new Date().toISOString().slice(0, 10),
+      allocations: [], leave: [], vacationEntitlement: 0, demo: false,
       name:     name.trim(),
       role:     role.trim(),
       dept,
@@ -722,7 +677,7 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
       description: `${role.trim()} · ${dept} · ${capacity}h / week`,
     });
     setOpen(false);
-    setName(""); setRole(""); setDept(""); setCapacity("40"); setEmail(""); setSalary(""); setErrors({});
+    setName(""); setRole(""); setDept(""); setCapacity("40"); setEmail(""); setSalary(""); setEmploymentTypeId(""); setErrors({});
   }
 
   return (
@@ -754,6 +709,9 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
                   {jobRoles.map((r) => <SelectItem key={r.id} value={r.title}>{r.title}</SelectItem>)}
                 </SelectContent>
               </Select>
+            </Field>
+            <Field className="col-span-2" label="Employment type" htmlFor="resource-employment-type" required error={errors.employmentTypeId}>
+              <Select value={employmentTypeId} onValueChange={(v) => { setEmploymentTypeId(v); setErrors((p) => ({ ...p, employmentTypeId: undefined })); }}><SelectTrigger id="resource-employment-type"><SelectValue placeholder="Select employment type…" /></SelectTrigger><SelectContent>{employmentTypes.filter((v) => v.active).map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent></Select>
             </Field>
             <Field label="Department" htmlFor="resource-department" required error={errors.dept}>
               <Select onValueChange={(value) => { setDept(value); setErrors((p) => ({ ...p, dept: undefined })); }}>
@@ -823,7 +781,7 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
 
 // ── Direct-assign dialog (from People tab) ────────────────────────────────────
 
-function AssignDialog({ resource, onAssign, compact = false }: { resource: PoolResource; onAssign?: (projectName: string, alloc: number) => void; compact?: boolean }) {
+function AssignDialog({ resource, onAssign, compact = false }: { resource: PoolResource; onAssign?: (assignment: EmployeeAllocation) => void; compact?: boolean }) {
   const [open, setOpen] = useState(false);
   const [projectId, setProjectId] = useState("");
   const [role, setRole] = useState(resource.role);
@@ -839,7 +797,7 @@ function AssignDialog({ resource, onAssign, compact = false }: { resource: PoolR
     if (!projectId) { setProjectError("Project is required."); return; }
     const proj = projects.find((p) => p.id === projectId);
     const projectName = proj?.name ?? projectId;
-    onAssign?.(projectName, alloc);
+    onAssign?.({ id: crypto.randomUUID(), project: projectName, role, percent: alloc, from: from || new Date().toISOString().slice(0, 7), until: until || "2027-12" });
     toast.success(`${resource.name} assigned to ${projectName} at ${alloc}%`);
     setOpen(false);
     setProjectId(""); setRole(resource.role); setAlloc(50); setFrom(""); setUntil("");

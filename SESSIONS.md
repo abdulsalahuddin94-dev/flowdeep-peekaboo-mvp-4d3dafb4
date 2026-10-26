@@ -1,3 +1,10 @@
+## 2026-10-26 — Employment types and employee details
+- Added Organization Employment Types (In source / Out source / Offshore) with add/edit, activation and in-use deletion protection; employee creation requires an active type, and Employees supports type filtering.
+- Employee rows open a full read-only details page with overview, projects/allocation, assigned tasks, all twelve salary months and project charges, leave/vacation, capacity and utilization.
+- Replaced route-local employee state with a shared browser-persisted store; fulfilled and direct assignments retain project/role/period/task data across navigation.
+- Existing employee salaries plus new leave/allocations are explicitly marked Demo data. Monthly salary allocation is an illustrative distribution, not a payroll integration or posted project expense; over-allocation is normalized to avoid charging above salary. New employees do not receive invented leave records.
+- Added concrete monthly attribution, allocation-period, over-allocation and vacation-balance tests.
+
 ## 2026-10-26 — Cash flow year navigation
 - Monthly chart now displays the selected year's twelve months with bounded previous/next arrows; Yearly displays all available years, with clickable/keyboard-accessible year labels opening their months.
 - Years derive from filtered event dates and include intermediate years; cumulative net carries across year boundaries. Existing demo dates cover 2026–2027 without inventing a third year.

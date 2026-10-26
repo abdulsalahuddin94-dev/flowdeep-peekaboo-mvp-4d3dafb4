@@ -28,6 +28,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { businessLines, departments, projects as mockProjects, type WorkCalendar } from "@/lib/mock-data";
 import { RulesThresholdsTab } from "@/components/org/RulesThresholds";
 import { ResponsibilityTypesTab } from "@/components/org/ResponsibilityTypes";
+import { EmploymentTypesTab } from "@/components/org/EmploymentTypes";
 import { MeetingTypesTab } from "@/components/org/MeetingTypes";
 import { useRiskRegister, type RiskCategory } from "@/lib/risk-store";
 import { useTags, useProjects, useCalendars, useJobRoles, useApprovals, useResourceRequests, useSkills } from "@/lib/projects-store";
@@ -59,6 +60,7 @@ const ORG_TAB_LABELS: Record<string, string> = {
   "job-roles": "Roles & Skills", calendars: "Calendars",
   "responsibility-types": "Responsibility Types",
   "meeting-types": "Meeting Types",
+  "employment-types": "Employment Types",
   "rules": "Rules & Thresholds",
 };
 
@@ -125,6 +127,8 @@ function OrganizationPage() {
         <TabsContent value="meeting-types">
           <MeetingTypesTab />
         </TabsContent>
+
+        <TabsContent value="employment-types"><EmploymentTypesTab /></TabsContent>
 
         <TabsContent value="rules">
           <RulesThresholdsTab />

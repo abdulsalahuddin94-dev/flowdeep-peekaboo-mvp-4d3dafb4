@@ -12,3 +12,5 @@
 - Basic-info edits made during Change Plan are diffed against a snapshot taken on entry and sent with the change request under the "Info · " label prefix, so approvals cover the whole plan change.
 - Reuse ProjectFormPage in an embedded mode for Change Plan basic info; persist valid edits into the existing draft and keep the form mounted across tabs so the standalone editor and plan editor share fields without duplicate save flows.
 - Reuse PlanChangesTable for baseline submission and approval review changes so both show the same Item/Field/Before/After presentation and date formatting; the Item type column belongs to the schedule section only, so item kind stays opt-in per section.
+
+- Keep employees and employment-type lookups in one persisted browser store with stable IDs, so list/detail navigation and lookup renames retain identity. Employee details are read-only; allocations retain their project, period and task for monthly salary attribution.

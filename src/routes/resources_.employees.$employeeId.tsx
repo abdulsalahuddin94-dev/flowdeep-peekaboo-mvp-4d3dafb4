@@ -13,7 +13,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow } from "@/components/StyledTable";
 import { Progress } from "@/components/ui/progress";
-import { ChevronLeft, ArrowRight } from "@/lib/icons";
+import { ChevronLeft } from "@/lib/icons";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatDateWithYear } from "@/lib/date-format";
 export const Route = createFileRoute("/resources_/employees/$employeeId")({
   component: EmployeeDetails,
@@ -26,13 +27,13 @@ export const T = {
 const t = T.en;
 const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(n);
 const monthLabel = (month: string) => new Date(`${month}-01T12:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
-function DataTable({ headers, rows }: { headers: string[]; rows: ReactNode[][] }) {
- return <StyledTable className="[&_th]:whitespace-normal [&_th]:text-xs [&_td]:py-4"><StyledTableHeader><StyledTableHeaderRow>{headers.map((h) => <StyledTableHead key={h}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader><StyledTableBody>{rows.length ? rows.map((row, i) => <StyledTableRow key={i}>{row.map((value, j) => <StyledTableCell key={j} className="whitespace-normal break-words text-sm">{value}</StyledTableCell>)}</StyledTableRow>) : <StyledTableRow><StyledTableCell colSpan={headers.length} className="py-8 text-center text-muted-foreground">{t.empty}</StyledTableCell></StyledTableRow>}</StyledTableBody></StyledTable>;
+function DataTable({ headers, rows, onRowClick }: { headers: string[]; rows: ReactNode[][]; onRowClick?: (index: number) => void }) {
+  return <StyledTable className="[&_th]:whitespace-normal [&_th]:text-xs [&_td]:py-4"><StyledTableHeader><StyledTableHeaderRow>{headers.map((h) => <StyledTableHead key={h}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader><StyledTableBody>{rows.length ? rows.map((row, i) => <StyledTableRow key={i} onClick={onRowClick ? () => onRowClick(i) : undefined} className={onRowClick ? "cursor-pointer" : undefined}>{row.map((value, j) => <StyledTableCell key={j} className="whitespace-normal break-words text-sm">{value}</StyledTableCell>)}</StyledTableRow>) : <StyledTableRow><StyledTableCell colSpan={headers.length} className="py-8 text-center text-muted-foreground">{t.empty}</StyledTableCell></StyledTableRow>}</StyledTableBody></StyledTable>;
 }
 function EmployeeDetails() {
  const { employeeId } = Route.useParams(); const { employees, employmentTypes } = useEmployees(); const { projects } = useProjects(); const { resourceRequests } = useResourceRequests();
  const employee = employees.find((e) => e.id === employeeId);
- const [tab, setTab] = useState("overview"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10");
+ const [tab, setTab] = useState("overview"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
  const projectLink = (name: string) => { const p = projects.find((v) => v.name === name); return p ? <Link to="/portfolio/$projectId" params={{ projectId: p.id }} className="text-accent hover:underline">{name}</Link> : name; };
  if (!employee) return <><Button asChild variant="outline"><Link to="/resources" search={{ tab: "people" }}><ChevronLeft className="h-4 w-4" />{t.employees}</Link></Button><h1 className="mt-6 text-xl">{t.missing}</h1></>;
  const monthly = employeeMonth(employee, selectedMonth); const vacation = vacationBalance(employee, year);
@@ -73,8 +74,14 @@ function EmployeeDetails() {
    </TabsContent>
    <TabsContent value="allocation" className="mt-0 space-y-4"><div className="flex items-center gap-3"><Select value={selectedMonth} onValueChange={setSelectedMonth}><SelectTrigger aria-label={t.month} className="w-44"><SelectValue /></SelectTrigger><SelectContent>{months.map((m) => <SelectItem key={m} value={m}>{monthLabel(m)}</SelectItem>)}</SelectContent></Select><span className="text-sm text-muted-foreground">{monthly.allocatedHours.toFixed(1)}h / {employee.capacity}h</span></div><Progress value={Math.min(100, monthly.utilization)} className={monthly.utilization > 100 ? "[&>div]:bg-rag-red" : ""} /><DataTable headers={[t.project, t.role, t.period, t.allocation, t.hours, t.budget]} rows={employee.allocations.map((a) => [projectLink(a.project), a.role, `${monthLabel(a.from)} → ${monthLabel(a.until)}`, `${a.percent}%`, `${(employee.capacity * a.percent / 100).toFixed(1)}h`, money(monthly.charges.find((c) => c.id === a.id)?.amount ?? 0)])} /></TabsContent>
    <TabsContent value="tasks" className="mt-0"><DataTable headers={[t.task, t.project, t.date]} rows={uniqueTasks.map((v) => [v.task, projectLink(v.project), v.period])} /></TabsContent>
-   <TabsContent value="salary" className="mt-0 space-y-6"><DataTable headers={[t.month, t.total, t.projectCost, t.overhead, ""]} rows={months.map((m) => { const values = employeeMonth(employee, m); return [<Button variant={m === selectedMonth ? "secondary" : "ghost"} onClick={() => setSelectedMonth(m)}>{monthLabel(m)}</Button>, money(values.salary), money(values.projectCost), money(values.overhead), <Button variant="ghost" size="icon" aria-label={`${t.charges} ${monthLabel(m)}`} onClick={() => setSelectedMonth(m)}><ArrowRight className="h-4 w-4" /></Button>]; })} /><section><h2 className="mb-4 text-base font-semibold">{t.charges} · {monthLabel(selectedMonth)}</h2><DataTable headers={[t.project, t.allocation, t.cost]} rows={[...monthly.charges.map((a) => [projectLink(a.project), `${a.percent}%`, money(a.amount)]), [t.overhead, "—", money(monthly.overhead)]]} /></section></TabsContent>
+   <TabsContent value="salary" className="mt-0 space-y-6"><DataTable headers={[t.month, t.total, t.projectCost, t.overhead]} onRowClick={(i) => { const m = months[i]; setSelectedMonth(m); setSalaryMonth(m); }} rows={months.map((m) => { const values = employeeMonth(employee, m); return [<span className={m === selectedMonth ? "font-medium text-accent" : undefined}>{monthLabel(m)}</span>, money(values.salary), money(values.projectCost), money(values.overhead)]; })} /></TabsContent>
    <TabsContent value="leave" className="mt-0 space-y-6"><div className="grid grid-cols-2 gap-3 lg:grid-cols-4"><KpiCard label={t.entitlement} value={`${vacation.entitlement}d`} /><KpiCard label={t.used} value={`${vacation.used}d`} /><KpiCard label={t.pending} value={`${vacation.pending}d`} accent="amber" /><KpiCard label={t.balance} value={`${vacation.remaining}d`} accent="teal" /></div><DataTable headers={[t.leaveType, t.from, t.until, t.days, t.status]} rows={employee.leave.filter((l) => l.from.startsWith(year)).map((l) => [l.type, formatDateWithYear(l.from), formatDateWithYear(l.until), l.days, <Badge variant="outline" className={l.status === "Approved" ? "text-rag-green" : l.status === "Rejected" ? "text-rag-red" : "text-rag-amber"}>{l.status}</Badge>])} /></TabsContent>
   </Tabs>
+  <Dialog open={!!salaryMonth} onOpenChange={(open) => { if (!open) setSalaryMonth(null); }}>
+   <DialogContent className="max-w-md">
+    <DialogHeader><DialogTitle>{t.charges} · {monthLabel(salaryMonth ?? selectedMonth)}</DialogTitle></DialogHeader>
+    <DataTable headers={[t.project, t.allocation, t.cost]} rows={[...monthly.charges.map((a) => [projectLink(a.project), `${a.percent}%`, money(a.amount)]), [t.overhead, "—", money(monthly.overhead)], [t.total, "—", money(monthly.salary)]]} />
+   </DialogContent>
+  </Dialog>
  </div>;
 }

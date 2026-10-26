@@ -1,3 +1,9 @@
+## 2026-10-26 — Full-width standalone record pages
+- Expanded risk, issue, meeting and action creation/edit forms to the available content width, removing narrow popup-style framing.
+- Added a shared contextual header: list-level Back to register/list link above the title, project-level Portfolio > Project > Page breadcrumbs, preserving the caller's tab.
+- Removed top-right Back/Cancel duplicates and unified form CTAs to Save + Cancel for creation and Save Update + Cancel for editing; action updates and comment edits share the same edit CTA labels.
+- Browser verified all four creation pages use full content width and one Cancel/Save pair, risk creation and edits read back in the register, project breadcrumbs return to the original tab, and Action edit/update CTA labels match; no runtime errors, build OK.
+
 ## 2026-10-26 — Financials chart demo and empty states
 - Expanded demo cost/revenue dates across 2026–2028 without changing total amounts; fiscal-year filters derive from event years.
 - Matched the Cash Flow Project type selector to the neutral Monthly/Yearly control colors.

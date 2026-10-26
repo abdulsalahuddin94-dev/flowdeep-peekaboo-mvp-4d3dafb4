@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PageHeader } from "@/components/PageHeader";
+import { RecordPageHeader, T as recordT } from "@/components/ds/RecordPageHeader";
 import { Pill } from "@/components/Pill";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "@/lib/toast";
-import { ArrowLeft } from "@/lib/icons";
 import { formatDateWithYear } from "@/lib/date-format";
 import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import { useRiskRegister } from "@/lib/risk-store";
@@ -90,13 +89,12 @@ export function ActionNewPage({ project, source, sourceRef, meetingName, meeting
 
   return (
     <>
-      <PageHeader
+      <RecordPageHeader kind="action" back={back}
         title="Add action"
         subtitle={project ? `Project: ${project}` : "Any project in the portfolio"}
-        actions={<Button variant="outline" onClick={() => goBack(back, fallback)}><ArrowLeft size={15} />Cancel</Button>}
       />
 
-      <div className="glass-card max-w-3xl p-6">
+      <div className="w-full p-6">
         <div className="space-y-4">
           {!project && (
             <Field label="Project" htmlFor="act-project" error={errors.project}>
@@ -178,8 +176,8 @@ export function ActionNewPage({ project, source, sourceRef, meetingName, meeting
         </div>
 
         <div className="mt-7 flex items-center justify-end gap-3">
-          <Button variant="secondary" onClick={() => goBack(back, fallback)}>Cancel</Button>
-          <Button variant="primary" onClick={submit} disabled={!valid}>Add action</Button>
+          <Button variant="secondary" onClick={() => goBack(back, fallback)}>{recordT.en.cancel}</Button>
+          <Button variant="primary" onClick={submit} disabled={!valid}>{recordT.en.save}</Button>
         </div>
       </div>
     </>

@@ -17,3 +17,4 @@
 - Keep employees and employment-type lookups in one persisted browser store with stable IDs, so list/detail navigation and lookup renames retain identity. Employee details are read-only; allocations retain their project, period and task for monthly salary attribution.
 
 - Employee detail navigation and panels share one Tabs root so selection and accessibility stay synchronized; keep layout changes independent of employee financial calculations.
+- Standalone record pages share RecordPageHeader for contextual list back links or project breadcrumbs and shared form CTA labels; use full-width unframed forms to avoid narrow popup-style layouts.

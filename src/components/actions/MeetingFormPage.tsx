@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PageHeader } from "@/components/PageHeader";
+import { RecordPageHeader, T as recordT } from "@/components/ds/RecordPageHeader";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DatePicker } from "@/components/ui/date-picker";
 import { TimePicker } from "@/components/ui/time-picker";
 import { toast } from "@/lib/toast";
-import { ArrowLeft } from "@/lib/icons";
 import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import { useActions } from "@/lib/action-store";
 import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
@@ -86,13 +85,12 @@ export function MeetingFormPage({ meetingId, lockedProject, back }: { meetingId?
 
   return (
     <>
-      <PageHeader
+      <RecordPageHeader kind="meeting" back={back}
         title={meeting ? "Edit meeting" : "New meeting"}
         subtitle={lockedProject ? `Project: ${lockedProject}` : meeting ? `${meeting.id} · ${meeting.project}` : "Record the meeting, its attendees and the actions it produced"}
-        actions={<Button variant="outline" onClick={() => goBack(back, fallback)}><ArrowLeft size={15} />Back</Button>}
       />
 
-      <div className="glass-card max-w-4xl p-6">
+      <div className="w-full p-6">
         <div className="space-y-4">
           {!lockedProject && (
             <Field label="Project" htmlFor="mt-project">
@@ -136,15 +134,15 @@ export function MeetingFormPage({ meetingId, lockedProject, back }: { meetingId?
         </div>
 
         <div className="mt-7 flex items-center justify-end gap-3">
-          <Button variant="secondary" onClick={() => goBack(back, fallback)}>Cancel</Button>
+          <Button variant="secondary" onClick={() => goBack(back, fallback)}>{recordT.en.cancel}</Button>
           <Button variant="primary" onClick={submit} disabled={!valid || filledActionRows(rows).length > 0 && !actionRowsValid(rows)}>
-            {meeting ? "Save changes" : "Create meeting"}
+            {meeting ? recordT.en.saveUpdate : recordT.en.save}
           </Button>
         </div>
       </div>
 
       {meeting && (
-        <div className="glass-card mt-6 max-w-4xl p-5">
+        <div className="mt-6 w-full border-t border-border p-5">
           <LinkedActions project={meeting.project} source="Meeting" sourceRef={meeting.id} title="Actions"
             meetingMeta={{ meetingName: meeting.title, meetingDate: meeting.date }} />
         </div>

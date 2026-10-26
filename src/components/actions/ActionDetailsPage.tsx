@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { PageHeader } from "@/components/PageHeader";
+import { RecordPageHeader, T as recordT } from "@/components/ds/RecordPageHeader";
 import { Pill } from "@/components/Pill";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -11,7 +11,7 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, Check, DeleteAction, EditAction } from "@/lib/icons";
+import { Check, DeleteAction, EditAction } from "@/lib/icons";
 import { formatDateWithYear, formatDateTime } from "@/lib/date-format";
 import { useCurrentUser, useProjects } from "@/lib/projects-store";
 import {
@@ -56,10 +56,9 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
   if (!a) {
     return (
       <>
-        <PageHeader title="Action details" subtitle={actionId} />
+        <RecordPageHeader kind="action" back={back} title="Action details" subtitle={actionId} />
         <div className="glass-card flex flex-wrap items-center justify-between gap-4 p-6">
           <p className="text-sm text-muted-foreground">This action is no longer in the tracker — it may have been deleted.</p>
-          <Button variant="outline" onClick={() => goBack(back, fallback)}><ArrowLeft size={15} />Back</Button>
         </div>
       </>
     );
@@ -126,12 +125,11 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
 
   return (
     <>
-      <PageHeader
+      <RecordPageHeader kind="action" back={back}
         title={a.title}
         subtitle={`${a.id} · ${sourceLabel(a)}`}
         actions={
           <>
-            <Button variant="outline" onClick={() => goBack(back, fallback)}><ArrowLeft size={15} />Back</Button>
             <Button variant="outline" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => setPendingDelete(true)}>
               <DeleteAction size={15} />Delete
             </Button>
@@ -165,8 +163,8 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
               <h2 className="text-base font-semibold text-foreground">Action</h2>
               {editing && (
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setEditing(false)}>Cancel</Button>
-                  <Button variant="primary" size="sm" onClick={saveEdit}>Save changes</Button>
+                  <Button variant="outline" size="sm" onClick={() => setEditing(false)}>{recordT.en.cancel}</Button>
+                  <Button variant="primary" size="sm" onClick={saveEdit}>{recordT.en.saveUpdate}</Button>
                 </div>
               )}
             </div>
@@ -214,7 +212,7 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
             </div>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">{t.commentTrackerHint}</p>
-              <Button variant="primary" onClick={saveUpdate} disabled={!canSaveUpdate}>Save update</Button>
+              <div className="flex items-center gap-3"><Button variant="secondary" onClick={() => { setComment(""); setStatus(a.status); }}>{recordT.en.cancel}</Button><Button variant="primary" onClick={saveUpdate} disabled={!canSaveUpdate}>{recordT.en.saveUpdate}</Button></div>
             </div>
             <div className="mt-5 space-y-3">
               {a.updates.length === 0 && <p className="text-sm text-muted-foreground">No comments yet.</p>}
@@ -222,8 +220,8 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
                 <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
                   <Textarea aria-label="Edit comment" maxLength={COMMENT_MAX} value={updateComment} onChange={(e) => setUpdateComment(e.target.value)} />
                   <div className="mt-2 flex justify-end gap-2">
-                    <Button variant="outline" size="sm" onClick={() => { setEditingUpdate(null); setUpdateComment(""); }}>Cancel</Button>
-                    <Button variant="primary" size="sm" disabled={!updateComment.trim()} onClick={saveCommentEdit}><Check size={14} />Save</Button>
+                    <Button variant="outline" size="sm" onClick={() => { setEditingUpdate(null); setUpdateComment(""); }}>{recordT.en.cancel}</Button>
+                    <Button variant="primary" size="sm" disabled={!updateComment.trim()} onClick={saveCommentEdit}><Check size={14} />{recordT.en.saveUpdate}</Button>
                   </div>
                 </div>
               ) : (

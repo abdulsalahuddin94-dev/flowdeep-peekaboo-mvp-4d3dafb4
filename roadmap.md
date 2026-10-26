@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Improve employee details layout: lighter metrics, clear tab spacing and balanced profile/allocation overview; verify all tabs.
+- [x] Improve employee details layout: lighter metrics, clear tab spacing and balanced profile/allocation overview; verify all tabs.
 - [x] Cash Flow Forecast: move Inflow / Outflow / Cumulative net legend below the chart.
 - [x] Employment types: Organization lookup and employee creation/filter integration.
 - [x] Read-only employee page: monthly salaries and project charges, leave, assignments, tasks, capacity and utilization.

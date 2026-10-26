@@ -14,3 +14,5 @@
 - Reuse PlanChangesTable for baseline submission and approval review changes so both show the same Item/Field/Before/After presentation and date formatting; the Item type column belongs to the schedule section only, so item kind stays opt-in per section.
 
 - Keep employees and employment-type lookups in one persisted browser store with stable IDs, so list/detail navigation and lookup renames retain identity. Employee details are read-only; allocations retain their project, period and task for monthly salary attribution.
+
+- Employee detail navigation and panels share one Tabs root so selection and accessibility stay synchronized; keep layout changes independent of employee financial calculations.

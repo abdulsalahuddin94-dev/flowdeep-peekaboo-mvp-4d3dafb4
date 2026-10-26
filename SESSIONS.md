@@ -1,4 +1,5 @@
 ## 2026-10-26 — Employee details layout refinement
+- Verified the employee overview at desktop and mobile widths, all five tabs switching to their panels, no mobile page overflow or runtime errors; preview build OK.
 - Replaced the heavy five-card row with an unframed metric strip; kept full salary precision in financial tables.
 - Simplified the identity header and separated employee information from the allocation overview in a balanced two-column layout.
 - Unified navigation and tab content under one Tabs root; tabs wrap without the clipped scrollbar, with a separate year selector. All views remain read-only and existing calculations/data are unchanged.

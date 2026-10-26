@@ -757,3 +757,10 @@ Use `FieldSuffix` for trailing units (e.g. "Minutes").
 
 `MultiSelectField` from `@/components/ui/multi-select-field` — chips with
 per-chip remove, `+N` overflow after 5, clear-all ✕, and the same field states.
+
+## Charts — Many categories in a Pie/Donut (Top 6 + Others)
+**Best practice (Power BI, Tableau, standard P&L dashboards):** a pie stays readable only up to ~6–7 slices.
+- Show the **6 largest** categories by value; collapse the rest into one grey **"Others · N"** slice (`OTHERS_COLOR`).
+- "Others" appears only when there are more than 6 categories.
+- Clicking the Others slice, its legend row, or **View all N types** opens a dialog listing **every** category ranked by value as **horizontal bars** (never a bigger pie): rank, name, bar, amount · share % · margin %, with search and internal scroll.
+- The dialog respects the page filters. Logic lives in `topShareSlices()` (`src/lib/financial-filters.ts`, tested).

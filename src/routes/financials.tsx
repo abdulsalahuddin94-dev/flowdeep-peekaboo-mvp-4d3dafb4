@@ -10,7 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { ChevronDown, ChevronLeft, ChevronRight } from "@/lib/icons";
-import { matchesProjectTypes, cashYears, cashYearNavigation, cashSeries, financialDemoDate } from "@/lib/financial-filters";
+import { matchesProjectTypes, cashYears, cashYearNavigation, cashSeries, financialDemoDate, topShareSlices } from "@/lib/financial-filters";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tooltip as ControlTooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { projects } from "@/lib/mock-data";
 import { Download, FileSpreadsheet, TrendingUp, TrendingDown, Wallet, PiggyBank, GanttChartSquare, List } from "@/lib/icons";
@@ -37,7 +38,14 @@ const FIN_YEAR = 2026;
 // Demo contract markup per project type so profitability differs by line.
 const MARKUP: Record<string, number> = { "Software Solutions": 1.32, EPC: 1.12, Maintenance: 1.22, Consultation: 1.45 };
 // Pie slice colors for the Margin by Project Type donut.
-const PIE_COLORS = ["#51CAAD", "#94A3B8", "#D4A574", "#A78BFA", "#F87171"];
+const PIE_COLORS = ["#51CAAD", "#D4A574", "#A78BFA", "#60A5FA", "#F87171", "#FBBF24"];
+const OTHERS_COLOR = "#64748B";
+// Demo-only long tail so the Top 6 + Others pattern is visible (only 4 real types exist in mock data).
+const DEMO_LONG_TAIL = ["Infrastructure", "Data & Analytics", "Cybersecurity", "Cloud Migration", "Training", "Managed Services", "Telecom", "Smart Cities", "Facilities", "Renewables", "Digital Marketing", "Logistics", "Healthcare IT", "GovTech"].map((name, i) => {
+  const Revenue = +(9 - i * 0.55).toFixed(2);
+  const Profit = +(Revenue * (0.28 - i * 0.012)).toFixed(2);
+  return { name, Revenue, Cost: +(Revenue - Profit).toFixed(2), Profit, margin: (Profit / Revenue) * 100 };
+});
 const COST_TEMPLATES = [
   { item: "Licences & subscriptions", cat: "Software", type: "CapEx", share: 0.3 },
   { item: "Delivery labour", cat: "Staff", type: "OpEx", share: 0.4 },
@@ -173,16 +181,14 @@ function FinancialsPage() {
     }
     return Array.from(map.values()).map((x) => ({ name: x.name, Revenue: +x.Revenue.toFixed(2), Cost: +x.Cost.toFixed(2), Profit: +x.Profit.toFixed(2), margin: (x.Profit / x.Revenue) * 100 }));
   }, [filteredPnlRows]);
-  // Margin donut — with many project types the smallest ones collapse into "Other" so colours stay unique.
-  const marginPie = useMemo(() => {
-    const sorted = [...profitability].sort((a, b) => b.Profit - a.Profit);
-    if (sorted.length <= 4) return sorted.map((x, i) => ({ ...x, color: PIE_COLORS[i % PIE_COLORS.length] }));
-    const top = sorted.slice(0, 4).map((x, i) => ({ ...x, color: PIE_COLORS[i] }));
-    const rest = sorted.slice(4);
-    const rev = rest.reduce((a, x) => a + x.Revenue, 0);
-    const prof = rest.reduce((a, x) => a + x.Profit, 0);
-    return [...top, { name: `Other · ${rest.length}`, Revenue: rev, Cost: 0, Profit: +prof.toFixed(2), margin: rev ? (prof / rev) * 100 : 0, color: "#94A3B8" }];
-  }, [profitability]);
+  // Profit share donut — Top 6 + Others (see DESIGN.md). Demo long-tail types make the Others pattern visible.
+  const shareSource = useMemo(() => profitability.length === 0 ? [] : [...profitability, ...DEMO_LONG_TAIL], [profitability]);
+  const share = useMemo(() => topShareSlices(shareSource, 6), [shareSource]);
+  const marginPie = share.slices.map((x, i) => ({ ...x, color: x.name.startsWith("Others") ? OTHERS_COLOR : PIE_COLORS[i % PIE_COLORS.length] }));
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareQuery, setShareQuery] = useState("");
+  const shareTotal = share.all.reduce((a, x) => a + Math.max(0, x.Profit), 0);
+  const shareMax = Math.max(1e-9, ...share.all.map((x) => x.Profit));
   // With many project types the vertical bars keep their width and the card scrolls sideways.
   const profMinWidth = Math.max(0, profitability.length) * 130;
   // Actual figures per project type: paid costs, collected revenue and realised profit.
@@ -404,15 +410,45 @@ function FinancialsPage() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-3 max-h-24 space-y-1.5 overflow-y-auto pr-1">
-                {marginPie.map((x) => (
-                  <div key={x.name} className="flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-2 text-foreground"><span className="h-2 w-2 shrink-0 rounded-full" style={{ background: x.color }} />{x.name}</span>
-                    <span className="num-mono text-muted-foreground">{money(x.Profit)} · <span className={x.margin > 15 ? "text-rag-green" : x.margin > 5 ? "text-rag-amber" : "text-rag-red"}>{x.margin.toFixed(1)}%</span></span>
-                  </div>
-                ))}
+              <div className="mt-3 space-y-1.5">
+                {marginPie.map((x) => {
+                  const isOthers = x.name.startsWith("Others");
+                  return (
+                    <button type="button" key={x.name} disabled={!isOthers} onClick={() => setShareOpen(true)} className={`flex w-full items-center justify-between rounded-md px-1 text-start text-xs ${isOthers ? "cursor-pointer hover:bg-muted/40" : "cursor-default"}`}>
+                      <span className={`flex items-center gap-2 ${isOthers ? "text-primary underline-offset-2 hover:underline" : "text-foreground"}`}><span className="h-2 w-2 shrink-0 rounded-full" style={{ background: x.color }} />{x.name}</span>
+                      <span className="num-mono text-muted-foreground">{money(x.Profit)} · <span className={x.margin > 15 ? "text-rag-green" : x.margin > 5 ? "text-rag-amber" : "text-rag-red"}>{x.margin.toFixed(1)}%</span></span>
+                    </button>
+                  );
+                })}
               </div>
+              {share.others.length > 0 && (
+                <div className="mt-2 text-end"><Button variant="ghost" size="sm" onClick={() => setShareOpen(true)}>View all {share.all.length} types</Button></div>
+              )}
               </EmptyRegion>
+              <Dialog open={shareOpen} onOpenChange={(o) => { setShareOpen(o); if (!o) setShareQuery(""); }}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Profit share · all project types</DialogTitle>
+                    <DialogDescription>{share.all.length} types ranked by expected profit · share of total · margin %</DialogDescription>
+                  </DialogHeader>
+                  <Input placeholder="Search project type" value={shareQuery} onChange={(e) => setShareQuery(e.target.value)} />
+                  <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+                    {share.all.filter((x) => x.name.toLowerCase().includes(shareQuery.toLowerCase())).map((x) => {
+                      const rank = share.all.indexOf(x);
+                      const color = rank < 6 ? PIE_COLORS[rank % PIE_COLORS.length] : OTHERS_COLOR;
+                      const pct = shareTotal ? (Math.max(0, x.Profit) / shareTotal) * 100 : 0;
+                      return (
+                        <div key={x.name} className="grid grid-cols-[2rem_minmax(0,11rem)_1fr_auto] items-center gap-3 text-xs">
+                          <span className="num-mono text-muted-foreground">#{rank + 1}</span>
+                          <span className="truncate text-foreground">{x.name}</span>
+                          <div className="h-2 rounded-full bg-muted/40"><div className="h-2 rounded-full" style={{ width: `${Math.max(2, (x.Profit / shareMax) * 100)}%`, background: color }} /></div>
+                          <span className="num-mono w-40 text-end text-muted-foreground">{money(x.Profit)} · {pct.toFixed(1)}% · <span className={x.margin > 15 ? "text-rag-green" : x.margin > 5 ? "text-rag-amber" : "text-rag-red"}>{x.margin.toFixed(1)}%</span></span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 

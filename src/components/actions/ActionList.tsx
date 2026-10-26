@@ -115,7 +115,7 @@ export function ActionsCount({ source, sourceRef }: { source: "Risk" | "Issue"; 
           {linked.length}
         </Button>
       </TooltipTrigger>
-      <TooltipContent>{`${done} ${actionT.doneWord} · ${linked.length}`}</TooltipContent>
+      <TooltipContent>{`${done} ${actionT.en.doneWord} · ${linked.length}`}</TooltipContent>
     </Tooltip>
   );
 }

@@ -44,8 +44,8 @@ export function cashSeries(events: readonly CashEvent[], mode: "monthly" | "year
 }
 export type ShareSlice = { name: string; Revenue: number; Profit: number; margin: number };
 
-/** Top-N + Others: pies stay readable only up to ~7 slices, so the long tail collapses into one "Others" slice. */
-export function topShareSlices<T extends ShareSlice>(rows: readonly T[], top = 6) {
+/** Top-N + Others: pies stay readable only up to ~5 slices, so the long tail collapses into one "Others" slice. */
+export function topShareSlices<T extends ShareSlice>(rows: readonly T[], top = 4) {
   const sorted = [...rows].sort((a, b) => b.Profit - a.Profit);
   if (sorted.length <= top) return { slices: sorted as ShareSlice[], others: [] as T[], all: sorted };
   const head = sorted.slice(0, top);

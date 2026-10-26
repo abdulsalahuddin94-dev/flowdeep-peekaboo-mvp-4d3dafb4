@@ -1,3 +1,8 @@
+## 2026-10-26 — Cash flow year navigation
+- Monthly chart now displays the selected year's twelve months with bounded previous/next arrows; Yearly displays all available years, with clickable/keyboard-accessible year labels opening their months.
+- Years derive from filtered event dates and include intermediate years; cumulative net carries across year boundaries. Existing demo dates cover 2026–2027 without inventing a third year.
+- Added tests for first/middle/last arrow rules, yearly buckets and twelve-month drill-down.
+
 ## 2026-10-26 — Cash flow project type multiselect
 - Added a searchable Project type multiselect directly to Cash Flow Forecast, defaulting to All; multiple selected types contribute to the same chart.
 - Selection is local to the chart and respects existing overview filters. Added concrete tests for All and multiple-type inclusion/exclusion.

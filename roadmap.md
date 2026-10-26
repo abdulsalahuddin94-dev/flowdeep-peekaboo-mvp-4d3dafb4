@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Cash Flow Forecast: bounded year arrows and Yearly-to-monthly year drill-down, with navigation and aggregation tests.
 - [x] Cash Flow Forecast: chart-local Project type multiselect with All default; explain multiyear display options without changing the timeline yet.
 - [x] Change Plan: stay on the tab the PM is already on (Schedule / Cost / Revenue) instead of jumping to Basic info.
 - [x] Approvals: drop the status tabs — one table for all requests with a Status filter group in the drawer; remove the project overview from the approval review page.

@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { ChevronDown } from "@/lib/icons";
-import { matchesProjectTypes } from "@/lib/financial-filters";
+import { ChevronDown, ChevronLeft, ChevronRight } from "@/lib/icons";
+import { matchesProjectTypes, cashYears, cashYearNavigation, cashSeries } from "@/lib/financial-filters";
+import { Tooltip as ControlTooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { projects } from "@/lib/mock-data";
 import { Download, FileSpreadsheet, TrendingUp, TrendingDown, Wallet, PiggyBank, GanttChartSquare, List } from "@/lib/icons";
 import { useState, useMemo } from "react";
@@ -116,6 +117,7 @@ function FinancialsPage() {
   const [cashMode, setCashMode] = useState<"monthly" | "yearly">("monthly");
   const [cashProjectTypes, setCashProjectTypes] = useState<string[]>([]);
   const [cashTypeQuery, setCashTypeQuery] = useState("");
+  const [cashYear, setCashYear] = useState(String(FIN_YEAR));
   const [costQuery, setCostQuery] = useState("");
   const [costMonth, setCostMonth] = useState("all");
   const [costLine, setCostLine] = useState("all");
@@ -200,20 +202,17 @@ function FinancialsPage() {
   const actualsLegend: [string, string][] = [["Collected revenue", "var(--p-teal-400)"], ["Actual payments", "var(--chart-payments)"], ["Actual profit", "var(--chart-profit)"]];
   if (actuals.some((r) => r.Profit < 0)) actualsLegend.push(["Loss", "var(--chart-loss)"]);
 
-  const cashFlow = useMemo(() => {
-    const keyOf = (d: string) => (cashMode === "monthly" ? d.slice(0, 7) : d.slice(0, 4));
-    const map = new Map<string, { key: string; Inflow: number; Outflow: number }>();
-    if (cashMode === "monthly") for (let m = 1; m <= 12; m++) { const k = `${FIN_YEAR}-${String(m).padStart(2, "0")}`; map.set(k, { key: k, Inflow: 0, Outflow: 0 }); }
-    for (const r of REVENUE_ITEMS) { if (selectedYear !== "all" && !r.due.startsWith(selectedYear)) continue; if (pnlLine !== "all" && r.businessLine !== pnlLine) continue; if (!matchesProjectTypes(cashProjectTypes, r.businessLine)) continue; if (!pnlMatch(r.project, r.businessLine)) continue; const k = keyOf(r.due); if (cashMode === "monthly" && !map.has(k)) continue; const c = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; c.Inflow += r.planned; map.set(k, c); }
-    for (const c of COST_ITEMS) { if (selectedYear !== "all" && !c.due.startsWith(selectedYear)) continue; if (pnlLine !== "all" && c.businessLine !== pnlLine) continue; if (!matchesProjectTypes(cashProjectTypes, c.businessLine)) continue; if (!pnlMatch(c.project, c.businessLine)) continue; const k = keyOf(c.due); if (cashMode === "monthly" && !map.has(k)) continue; const e = map.get(k) ?? { key: k, Inflow: 0, Outflow: 0 }; e.Outflow += c.planned; map.set(k, e); }
-    let cum = 0;
-    return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key)).map((x) => {
-      const net = x.Inflow - x.Outflow; cum += net;
-      const label = cashMode === "monthly" ? MONTHS[+x.key.slice(5, 7) - 1] : `FY${x.key}`;
-      const forecast = cashMode === "monthly" ? x.key > TODAY.slice(0, 7) : x.key > TODAY.slice(0, 4);
-      return { label: forecast ? `${label}*` : label, Inflow: +x.Inflow.toFixed(2), Outflow: +(-x.Outflow).toFixed(2), Net: +net.toFixed(2), Cumulative: +cum.toFixed(2) };
-    });
-  }, [cashMode, pnlQuery, pnlLine, selectedYear, cashProjectTypes]);
+  const cashEvents = useMemo(() => {
+    const matches = (item: CostItem | RevenueItem) => (selectedYear === "all" || item.due.startsWith(selectedYear))
+      && (pnlLine === "all" || item.businessLine === pnlLine)
+      && matchesProjectTypes(cashProjectTypes, item.businessLine) && pnlMatch(item.project, item.businessLine);
+    return [...REVENUE_ITEMS.filter(matches).map((item) => ({ due: item.due, inflow: item.planned, outflow: 0 })),
+      ...COST_ITEMS.filter(matches).map((item) => ({ due: item.due, inflow: 0, outflow: item.planned }))];
+  }, [pnlQuery, pnlLine, selectedYear, cashProjectTypes]);
+  const cashNavigation = cashYearNavigation(cashYears(cashEvents), cashYear);
+  const displayedCashYear = cashNavigation.year ?? cashYear;
+  const cashFlow = useMemo(() => cashSeries(cashEvents, cashMode, displayedCashYear, TODAY), [cashEvents, cashMode, displayedCashYear]);
+  const openCashYear = (year: string) => { setCashYear(year); setCashMode("monthly"); };
 
   const costCategories = Array.from(new Set(COST_ITEMS.map((item) => item.cat)));
   const filteredCostItems = COST_ITEMS.filter((item) => {
@@ -482,7 +481,7 @@ function FinancialsPage() {
               <div>
                 <div className="label-eyebrow">Cash Flow Forecast</div>
                 <div className="text-xs text-muted-foreground">
-                  Expected collections vs payments from cost and revenue events · $M · {cashMode === "monthly" ? `FY${FIN_YEAR}` : "by fiscal year"} · * forecast
+                  Expected collections vs payments from cost and revenue events · $M · {cashMode === "monthly" ? `FY${displayedCashYear}` : "by fiscal year"} · * forecast
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -509,12 +508,19 @@ function FinancialsPage() {
                   </PopoverContent>
                 </Popover>
                 <Legendish items={[["Inflow", "#51CAAD"], ["Outflow", "#F87171"], ["Cumulative net", "#D4A574"]]} />
+                {cashMode === "monthly" && cashNavigation.year && (
+                  <div className="grid h-9 grid-cols-[36px_64px_36px] items-center" dir="ltr" aria-label="Cash flow year navigation">
+                    <div>{cashNavigation.previous && <ControlTooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" aria-label="Previous cash flow year" onClick={() => { if (cashNavigation.previous) setCashYear(cashNavigation.previous); }}><ChevronLeft className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Previous year</TooltipContent></ControlTooltip>}</div>
+                    <span className="text-center text-sm font-medium" aria-live="polite">{displayedCashYear}</span>
+                    <div>{cashNavigation.next && <ControlTooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" aria-label="Next cash flow year" onClick={() => { if (cashNavigation.next) setCashYear(cashNavigation.next); }}><ChevronRight className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Next year</TooltipContent></ControlTooltip>}</div>
+                  </div>
+                )}
                 <div className="inline-flex rounded-lg border border-border p-0.5">
                   {(["monthly", "yearly"] as const).map((m) => (
-                    <button key={m} type="button" onClick={() => setCashMode(m)}
+                    <Button key={m} variant="ghost" type="button" aria-pressed={cashMode === m} onClick={() => setCashMode(m)}
                       className={`h-8 rounded-md px-3 text-xs font-medium ${cashMode === m ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
                       {m === "monthly" ? "Monthly" : "Yearly"}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -533,13 +539,16 @@ function FinancialsPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="label" {...axis} />
+                  <XAxis dataKey="label" {...axis} tick={cashMode === "yearly" ? ({ x, y, payload }: { x: number; y: number; payload: { value: string } }) => {
+                    const year = payload.value.replace(/[^0-9]/g, "");
+                    return <g transform={`translate(${x},${y})`} role="button" tabIndex={0} aria-label={`View ${year} months`} className="cursor-pointer text-primary" onClick={() => openCashYear(year)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openCashYear(year); } }}><rect x={-36} y={0} width={72} height={28} fill="transparent" /><text y={16} textAnchor="middle" fill="currentColor" fontSize={11}>{payload.value}</text></g>;
+                  } : axis.tick} />
                   <YAxis {...axis} />
                   <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
                   <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
                   <Area type="monotone" dataKey="Inflow" stroke="var(--rag-green)" strokeWidth={2} fill="url(#cashInflowArea)" />
                   <Area type="monotone" dataKey="Outflow" stroke="var(--rag-red)" strokeWidth={2} fill="url(#cashOutflowArea)" />
-                  <Line type="monotone" dataKey="Cumulative" stroke="var(--accent)" strokeWidth={2.5} dot={false} />
+                  <Line type="monotone" dataKey="Cumulative" stroke="var(--accent)" strokeWidth={2.5} dot={cashMode === "yearly" ? { r: 4 } : false} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>

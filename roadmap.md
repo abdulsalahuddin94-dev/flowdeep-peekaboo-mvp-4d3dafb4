@@ -1,4 +1,5 @@
 # Roadmap
+- [ ] Cash Flow Forecast: move Inflow / Outflow / Cumulative net legend below the chart.
 - [ ] Employment types: Organization lookup and employee creation/filter integration.
 - [ ] Read-only employee page: monthly salaries and project charges, leave, assignments, tasks, capacity and utilization.
 - [ ] Verify employee creation, lookup changes, detail navigation and monthly views; log the work.

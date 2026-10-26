@@ -3,7 +3,7 @@ import { ActionNewPage } from "@/components/actions/ActionNewPage";
 
 const text = (v: unknown) => (typeof v === "string" && v.trim() ? v : undefined);
 
-export const Route = createFileRoute("/actions_.new")({
+export const Route = createFileRoute("/actions_/new")({
   component: ActionNewRoute,
   validateSearch: (search: Record<string, unknown>) => ({
     project: text(search.project),

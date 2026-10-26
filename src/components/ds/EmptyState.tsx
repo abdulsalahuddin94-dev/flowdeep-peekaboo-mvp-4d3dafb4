@@ -15,6 +15,7 @@ import briefcase from "@/assets/empty/briefcase.png";
 import coins from "@/assets/empty/coins.png";
 import tag from "@/assets/empty/tag.png";
 import handshake from "@/assets/empty/handshake.png";
+import charts from "@/assets/empty/charts.png";
 
 /*
  * DS02 empty state — one shared shape for every "nothing here yet" surface:
@@ -36,6 +37,7 @@ export const EMPTY_ART = {
   coins,
   tag,
   handshake,
+  charts,
 } as const;
 
 export type EmptyArt = keyof typeof EMPTY_ART;

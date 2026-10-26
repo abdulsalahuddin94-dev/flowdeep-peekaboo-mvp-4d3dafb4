@@ -46,6 +46,10 @@ export const EMPTY_STATES: EmptyStateEntry[] = [
   { id: "vendors", module: "Clients & Vendors", page: "Vendors", path: "/clients-vendors", art: "handshake", title: "No Vendors added yet", description: "Start by adding the first vendor", ctaLabel: "Add Vendor" },
 
   // Financials
+  { id: "financials-profitability", module: "Financials", page: "Profitability by Project Type", path: "/financials", art: "charts", title: "No profitability data yet", description: "Project revenue and costs will appear here." },
+  { id: "financials-profit-share", module: "Financials", page: "Profit Share by project type", path: "/financials", art: "charts", title: "No profit share yet", description: "Profit by project type will appear here." },
+  { id: "financials-actuals", module: "Financials", page: "Actuals by Project Type", path: "/financials", art: "charts", title: "No actuals yet", description: "Collected revenue and payments will appear here." },
+  { id: "financials-cash-flow", module: "Financials", page: "Cash Flow Forecast", path: "/financials", art: "charts", title: "No cash flow data yet", description: "Cost and revenue events will appear here." },
   { id: "financials-overview", module: "Financials", page: "Overview (P&L)", path: "/financials", art: "coins", title: "No Financial data yet", description: "Budgets and revenue appear here once projects are created" },
   { id: "financials-costs", module: "Financials", page: "Costs", path: "/financials", art: "coins", title: "No Cost Items added yet", description: "Start by adding the first cost item", ctaLabel: "Add Cost Item" },
   { id: "financials-revenue", module: "Financials", page: "Revenue", path: "/financials", art: "coins", title: "No Revenue events yet", description: "Milestone-linked revenue appears here once projects are created" },

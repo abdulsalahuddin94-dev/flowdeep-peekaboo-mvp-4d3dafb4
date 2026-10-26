@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { RecordPageHeader, T as recordT } from "@/components/ds/RecordPageHeader";
 import { Pill } from "@/components/Pill";
 import { Button } from "@/components/ui/button";
@@ -11,9 +10,10 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { Check, DeleteAction, EditAction } from "@/lib/icons";
+import { DeleteAction, EditAction } from "@/lib/icons";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatDateWithYear, formatDateTime } from "@/lib/date-format";
-import { useCurrentUser, useProjects } from "@/lib/projects-store";
+import { useCurrentUser } from "@/lib/projects-store";
 import {
   useActions, isActionOverdue, daysOverdue, ACTION_STATUSES,
   type ActionResponsibility, type ActionStatus, type ActionUpdate,
@@ -35,8 +35,6 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
   const { currentUser } = useCurrentUser();
   const { respTypes } = useResponsibilities();
   const { isActive } = useOrgActive("responsibility-type");
-  const { projects } = useProjects();
-  const navigate = useNavigate();
   const goBack = useBackNav();
 
   const a = actions.find((x) => x.id === actionId) ?? null;
@@ -65,22 +63,23 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
   }
 
   const over = isActionOverdue(a);
-  const sourceProject = projects.find((p) => p.name === a.project);
   const canSaveUpdate = comment.trim().length > 0 || status !== a.status;
 
   function startEdit() {
-    setDraft({ title: a!.title, description: a!.description ?? "", owner: a!.owner, responsibility: a!.responsibility, dueDate: a!.dueDate });
+    if (!a) return;
+    setDraft({ title: a.title, description: a.description ?? "", owner: a.owner, responsibility: a.responsibility, dueDate: a.dueDate });
     setErrors({});
     setEditing(true);
   }
 
   function saveEdit() {
+    if (!a) return;
     const next: Record<string, string> = {};
     if (!draft.title.trim()) next.title = "Action title is required";
     if (!draft.dueDate) next.dueDate = "Due date is required";
     setErrors(next);
     if (Object.keys(next).length > 0) return;
-    updateAction(a!.id, {
+    updateAction(a.id, {
       title: draft.title.trim().slice(0, 150),
       description: draft.description.trim().slice(0, 1000),
       owner: draft.owner.trim() || currentUser.name,
@@ -92,35 +91,18 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
   }
 
   function saveUpdate() {
-    if (!canSaveUpdate) return;
-    logActionUpdate(a!.id, { comment: comment.trim().slice(0, COMMENT_MAX), by: currentUser.name, status });
+    if (!a || !canSaveUpdate) return;
+    logActionUpdate(a.id, { comment: comment.trim().slice(0, COMMENT_MAX), by: currentUser.name, status });
     toast.success("Action updated");
     setComment("");
-    setStatus(a!.status);
   }
 
   function saveCommentEdit() {
-    if (!updateComment.trim()) return;
-    editActionUpdate(a!.id, editingUpdate!.id, updateComment.trim().slice(0, COMMENT_MAX));
+    if (!a || !editingUpdate || !updateComment.trim()) return;
+    editActionUpdate(a.id, editingUpdate.id, updateComment.trim().slice(0, COMMENT_MAX));
     toast.success("Comment updated");
     setEditingUpdate(null);
     setUpdateComment("");
-  }
-
-  function openSource() {
-    if (a!.source === "Meeting" && a!.meetingId) {
-      navigate({ to: "/meetings/$meetingId", params: { meetingId: a!.meetingId }, search: { back } });
-      return;
-    }
-    if (a!.sourceRef && sourceProject) {
-      navigate({
-        to: "/portfolio/$projectId",
-        params: { projectId: sourceProject.id },
-        search: { tab: "Risk & Issues", ...(a!.source === "Risk" ? { risk: a!.sourceRef } : { issue: a!.sourceRef }) },
-      });
-      return;
-    }
-    navigate({ to: "/risks", search: { tab: a!.source === "Issue" ? "issues" : "register" } });
   }
 
   return (
@@ -156,17 +138,11 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
         ))}
       </dl>
 
-      <div className="mt-6 grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="mt-6 min-w-0">
         <div className="min-w-0 space-y-6">
           <section className="glass-card p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-base font-semibold text-foreground">Action</h2>
-              {editing && (
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setEditing(false)}>{recordT.en.cancel}</Button>
-                  <Button variant="primary" size="sm" onClick={saveEdit}>{recordT.en.saveUpdate}</Button>
-                </div>
-              )}
             </div>
             {editing ? (
               <div className="space-y-4">
@@ -178,7 +154,7 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
                   <Textarea id="act-desc" maxLength={1000} value={draft.description}
                     onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))} placeholder="What this action covers" />
                 </Field>
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-3">
                   <Field label="Owner" htmlFor="act-owner"><Input id="act-owner" maxLength={80} value={draft.owner} onChange={(e) => setDraft((d) => ({ ...d, owner: e.target.value }))} /></Field>
                   <Field label={t.responsibility}>
                     <Select value={draft.responsibility} onValueChange={(v) => setDraft((d) => ({ ...d, responsibility: v as ActionResponsibility }))}>
@@ -190,6 +166,10 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
                   </Field>
                   <Field label={t.dueDate} error={errors.dueDate}><DatePicker value={draft.dueDate} onChange={(v) => { setDraft((d) => ({ ...d, dueDate: v })); setErrors((x) => ({ ...x, dueDate: "" })); }} /></Field>
                 </div>
+                <div className="flex flex-wrap justify-end gap-3 border-t border-border pt-5">
+                  <Button variant="secondary" onClick={() => setEditing(false)}>{recordT.en.cancel}</Button>
+                  <Button variant="primary" onClick={saveEdit}>{recordT.en.saveUpdate}</Button>
+                </div>
               </div>
             ) : (
               <p className="whitespace-pre-line text-sm text-muted-foreground">{a.description || "No description yet."}</p>
@@ -198,44 +178,41 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
 
           <section className="glass-card p-5">
             <h2 className="mb-4 text-base font-semibold text-foreground">{t.commentsUpdates}</h2>
-            <div className="grid gap-3 rounded-lg border border-border bg-secondary/30 p-3 sm:grid-cols-[190px_minmax(0,1fr)]">
+            <div className="space-y-4">
               <Field label="Status" className="min-w-0">
                 <Select value={status} onValueChange={(v) => setStatus(v as ActionStatus)}>
-                  <SelectTrigger aria-label="Status"><SelectValue /></SelectTrigger>
+                  <SelectTrigger aria-label="Status" className="w-full sm:w-64"><SelectValue /></SelectTrigger>
                   <SelectContent>{ACTION_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                 </Select>
               </Field>
               <Field label="Comment" htmlFor="act-new-comment" optional className="min-w-0">
-                <Textarea id="act-new-comment" maxLength={COMMENT_MAX} value={comment}
+                <Textarea id="act-new-comment" className="min-h-28 resize-y" maxLength={COMMENT_MAX} value={comment}
                   onChange={(e) => setComment(e.target.value)} placeholder="What progressed on this action?" />
               </Field>
             </div>
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground">{t.commentTrackerHint}</p>
+            <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
               <div className="flex items-center gap-3"><Button variant="secondary" onClick={() => { setComment(""); setStatus(a.status); }}>{recordT.en.cancel}</Button><Button variant="primary" onClick={saveUpdate} disabled={!canSaveUpdate}>{recordT.en.saveUpdate}</Button></div>
             </div>
-            <div className="mt-5 space-y-3">
+            <div className="mt-6 max-h-80 space-y-4 overflow-y-auto border-t border-border pt-5">
               {a.updates.length === 0 && <p className="text-sm text-muted-foreground">No comments yet.</p>}
               {a.updates.map((u) => editingUpdate?.id === u.id ? (
-                <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
+                <div key={u.id} className="border-b border-border pb-4 last:border-b-0">
                   <Textarea aria-label="Edit comment" maxLength={COMMENT_MAX} value={updateComment} onChange={(e) => setUpdateComment(e.target.value)} />
                   <div className="mt-2 flex justify-end gap-2">
                     <Button variant="outline" size="sm" onClick={() => { setEditingUpdate(null); setUpdateComment(""); }}>{recordT.en.cancel}</Button>
-                    <Button variant="primary" size="sm" disabled={!updateComment.trim()} onClick={saveCommentEdit}><Check size={14} />{recordT.en.saveUpdate}</Button>
+                    <Button variant="primary" size="sm" disabled={!updateComment.trim()} onClick={saveCommentEdit}>{recordT.en.saveUpdate}</Button>
                   </div>
                 </div>
               ) : (
-                <div key={u.id} className="rounded-lg border border-border bg-[var(--field-bg-filled)] p-3">
-                  <div className="flex items-center justify-between gap-2">
+                <div key={u.id} className="border-b border-border pb-4 last:border-b-0">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-xs font-medium text-foreground">{u.by}</span>
                     <div className="flex items-center gap-1.5">
                       <span className="num-mono text-[10px] text-muted-foreground">{formatDateTime(u.at)}</span>
-                      <button type="button" aria-label="Edit comment" title="Edit comment"
-                        className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
-                        onClick={() => { setEditingUpdate(u); setUpdateComment(u.comment); }}><EditAction size={13} /></button>
-                      <button type="button" aria-label="Delete comment" title="Delete comment"
-                        className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                        onClick={() => setPendingDeleteUpdate(u)}><DeleteAction size={13} /></button>
+                      <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" aria-label="Edit comment" className="text-muted-foreground hover:bg-muted hover:text-foreground"
+                        onClick={() => { setEditingUpdate(u); setUpdateComment(u.comment); }}><EditAction size={13} /></Button></TooltipTrigger><TooltipContent>Edit comment</TooltipContent></Tooltip>
+                      <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" aria-label="Delete comment" className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setPendingDeleteUpdate(u)}><DeleteAction size={13} /></Button></TooltipTrigger><TooltipContent>Delete comment</TooltipContent></Tooltip>
                     </div>
                   </div>
                   <p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">{u.comment}</p>
@@ -245,26 +222,6 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
           </section>
         </div>
 
-        <aside className="space-y-4">
-          <section className="glass-card p-5">
-            <h2 className="mb-3 text-base font-semibold text-foreground">Source</h2>
-            {a.source === "General" ? (
-              <p className="text-sm text-muted-foreground">Logged directly in the Action Tracker.</p>
-            ) : (
-              <Button variant="outline" className="w-full justify-start" onClick={openSource}>
-                <Pill label={a.source} tone="border-border bg-muted text-muted-foreground" />
-                <span className="min-w-0 truncate text-sm">
-                  {a.source === "Meeting" ? (a.meetingName ?? a.meetingId) : a.sourceRef}
-                  {a.source === "Meeting" && a.meetingDate ? ` · ${formatDateWithYear(a.meetingDate)}` : ""}
-                </span>
-              </Button>
-            )}
-          </section>
-          <section className="glass-card p-5">
-            <h2 className="mb-3 text-base font-semibold text-foreground">Project</h2>
-            <p className="break-words text-sm text-foreground">{a.project}</p>
-          </section>
-        </aside>
       </div>
 
       <ConfirmDialog

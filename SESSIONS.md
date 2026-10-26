@@ -1,3 +1,6 @@
+## 2026-10-26 — Salary by month opens a breakdown popup
+- Removed the arrow column and the always-visible breakdown section under the Salary by month table; clicking any month row now opens a compact popup with the per-project allocation, cost, overhead and total salary, and syncs the selected month for the other tabs.
+
 ## 2026-10-26 — Employee metrics match Cost Milestone
 - Matched the employee top metrics to the Cost Milestone strip: shared glass-card background, compact padding, label styling and internal separators; retained the existing data and page layout.
 

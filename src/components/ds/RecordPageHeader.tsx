@@ -25,13 +25,17 @@ export function RecordPageHeader({ kind, title, subtitle, back, actions }: {
   const linkClass = "inline-flex items-center gap-2 text-sm text-breadcrumb-muted transition-colors hover:text-breadcrumb-hover";
   const target = segments[0] === "risks" ? "/risks" : segments[0] === "meetings" ? "/meetings" : segments[0] === "portfolio" ? "/portfolio" : "/action-tracker";
   const search = Object.fromEntries(destination.searchParams);
+  const projectSection = kind === "risk" || kind === "issue" ? "Risk & Issues" : kind === "meeting" ? "Meetings" : "Action Tracker";
+  const sectionSearch = { ...search, tab: projectSection, ...(kind === "risk" || kind === "issue" ? { riskTab: kind === "risk" ? "register" : "issues" } : {}) };
   return (
     <>
       {project ? (
         <nav aria-label={t.breadcrumb} className="mb-2 flex flex-wrap items-center gap-2 text-sm text-breadcrumb-muted">
           <Link to="/portfolio" className={linkClass}>{t.portfolio}</Link>
           <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden />
-          <Link to="/portfolio/$projectId" params={{ projectId: project.id }} search={search} className={linkClass}>{project.name}</Link>
+          <Link to="/portfolio/$projectId" params={{ projectId: project.id }} className={linkClass}>{project.name}</Link>
+          <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden />
+          <Link to="/portfolio/$projectId" params={{ projectId: project.id }} search={sectionSearch} className={linkClass}>{t[kind]}</Link>
           <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden />
           <span className="text-breadcrumb-current">{title}</span>
         </nav>

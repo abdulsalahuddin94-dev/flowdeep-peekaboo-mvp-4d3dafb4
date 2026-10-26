@@ -33,6 +33,7 @@ import {
 import { useResponsibilities, respTone, defaultResponsibility } from "@/lib/responsibility-store";
 import { useOrgActive } from "@/lib/org-active";
 import { useBackParam } from "@/lib/record-pages";
+import { ActionAddDialog } from "@/components/actions/ActionNewPage";
 
 export const T = {
   en: {
@@ -119,6 +120,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
   const [status, setStatus] = useState("all");
   const [onlyMine, setOnlyMine] = useState(false);
   const [viewId, setViewId] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<ActionItem | null>(null);
   const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ a: ActionItem; u: ActionUpdate } | null>(null);
 
@@ -169,7 +171,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
         trailing={
           <div className="flex items-center gap-2">
             <Button variant={onlyMine ? "primary" : "outline"} onClick={() => setOnlyMine((v) => !v)}>{t.mine}</Button>
-            <Button variant="primary" onClick={() => navigate({ to: "/actions/new", search: { project, back } })}>{t.add}</Button>
+            <Button variant="primary" onClick={() => setAddOpen(true)}>{t.add}</Button>
           </div>
         }
       />
@@ -228,6 +230,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
         </StyledTableBody>
       </StyledTable>
       <TablePagination {...pagination} />
+      <ActionAddDialog open={addOpen} onOpenChange={setAddOpen} project={project} />
 
       <ActionDrawer
         action={view}

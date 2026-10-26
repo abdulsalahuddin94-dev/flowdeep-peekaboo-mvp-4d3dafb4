@@ -1176,6 +1176,15 @@
   --btn-danger-fg:             var(--p-white);
   --btn-danger-bg-hover:       var(--p-red-900);
 
+  /* Danger outline: destructive actions keep a red stroke, never the lavender
+     primary outline used by neutral outline buttons. */
+  --btn-danger-outline-bg:            var(--p-neutral-800);
+  --btn-danger-outline-border:        var(--p-red-a-40);
+  --btn-danger-outline-fg:            var(--p-red-500);
+  --btn-danger-outline-border-hover:  var(--p-red-500);
+  --btn-danger-outline-fg-hover:      var(--p-red-400);
+  --btn-danger-outline-bg-hover:      var(--p-red-a-10);
+
   --btn-warning-bg:            var(--p-amber-300);
   --btn-warning-fg:            var(--p-neutral-800);
   --btn-warning-bg-hover:      var(--p-amber-700);
@@ -1207,6 +1216,13 @@
   --btn-outline-2-fg:       var(--p-white);
   --btn-outline-2-border:   var(--p-neutral-700);
   --btn-outline-2-bg-hover: var(--p-neutral-800);
+
+  --btn-danger-outline-bg:            var(--p-neutral-50);
+  --btn-danger-outline-border:        var(--p-red-300);
+  --btn-danger-outline-fg:            var(--p-red-700);
+  --btn-danger-outline-border-hover:  var(--p-red-700);
+  --btn-danger-outline-fg-hover:      var(--p-red-700);
+  --btn-danger-outline-bg-hover:      var(--p-red-50);
 }
 
 /* ── DS02 confirmation popup tokens (success / info / warning / danger) ──── */

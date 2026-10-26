@@ -1,3 +1,8 @@
+## 2026-10-26 — Destructive outline button stroke
+- Added DS02 danger-outline button tokens (`--btn-danger-outline-*`) and a `dangerOutline` Button variant so destructive actions carry a red stroke/text instead of the lavender primary outline.
+- Action details Delete now uses `variant="dangerOutline"`; quick-view drawers and neutral outline buttons are unchanged.
+- Browser verified the Delete button computed border rgba(255,104,103,0.4) with red text beside the filled lavender Edit button; build OK.
+
 ## 2026-10-26 — Record breadcrumbs and Add action popup
 - Added Risk register / Issues log / Meetings before the current project record page in breadcrumbs; section links select the appropriate project tab and register via riskTab.
 - Restored Add action as a shared DS02 FormDialog from project/PMO Action Tracker, risk/issue drawers and meeting action controls; kept Action details standalone and existing quick-view drawers open after creation.

@@ -112,7 +112,7 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
         subtitle={`${a.id} · ${sourceLabel(a)}`}
         actions={
           <>
-            <Button variant="outline" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => setPendingDelete(true)}>
+            <Button variant="dangerOutline" onClick={() => setPendingDelete(true)}>
               <DeleteAction size={15} />Delete
             </Button>
             {!editing && <Button variant="primary" onClick={startEdit}><EditAction size={15} />Edit</Button>}

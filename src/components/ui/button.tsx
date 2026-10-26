@@ -19,6 +19,8 @@ const buttonVariants = cva(
           "border border-[var(--btn-outline-border)] bg-[var(--btn-outline-bg)] text-[var(--btn-outline-fg)] hover:border-[var(--btn-outline-border-hover)] hover:bg-[var(--btn-outline-bg-hover)] hover:text-[var(--btn-outline-fg-hover)]",
         danger:
           "bg-[var(--btn-danger-bg)] text-[var(--btn-danger-fg)] shadow-sm hover:bg-[var(--btn-danger-bg-hover)]",
+        dangerOutline:
+          "border border-[var(--btn-danger-outline-border)] bg-[var(--btn-danger-outline-bg)] text-[var(--btn-danger-outline-fg)] hover:border-[var(--btn-danger-outline-border-hover)] hover:bg-[var(--btn-danger-outline-bg-hover)] hover:text-[var(--btn-danger-outline-fg-hover)]",
         destructive:
           "bg-[var(--btn-danger-bg)] text-[var(--btn-danger-fg)] shadow-sm hover:bg-[var(--btn-danger-bg-hover)]",
         warning:

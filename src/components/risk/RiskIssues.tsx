@@ -29,9 +29,9 @@ import { useOrgRules, severityForScore, type RiskSeverity } from "@/lib/org-rule
 import { useOrgActive } from "@/lib/org-active";
 import { useCurrentUser } from "@/lib/projects-store";
 import { formatDateWithYear, formatDateTime } from "@/lib/date-format";
-import { LinkedActions, ActionsCount, ActionRowsEditor, emptyActionRow, actionRowsValid, cleanActionRows, type ActionRow } from "@/components/actions/ActionTracker";
-import { useResponsibilities, defaultResponsibility } from "@/lib/responsibility-store";
-import { useActions } from "@/lib/action-store";
+import { useNavigate } from "@tanstack/react-router";
+import { LinkedActions, ActionsCount } from "@/components/actions/ActionList";
+import { useBackParam } from "@/lib/record-pages";
 
 /* ── Tone helpers ─────────────────────────────────────────────────────────── */
 
@@ -48,8 +48,8 @@ const RISK_STATUS_TONE: Record<RiskStatus, string> = {
   Mitigated: "border-rag-green/40 bg-rag-green/10 text-rag-green",
 };
 
-const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated"];
-const ISSUE_STATUSES: IssueStatus[] = ["Open", "In Progress", "Resolved", "Escalated"];
+export const RISK_STATUSES: RiskStatus[] = ["Open", "In Progress", "Mitigated"];
+export const ISSUE_STATUSES: IssueStatus[] = ["Open", "In Progress", "Resolved", "Escalated"];
 const COMMENT_MAX = 500;
 
 const PRIORITY_TONE: Record<IssuePriority, string> = {
@@ -84,7 +84,8 @@ export function useSeverity() {
 /* ── Risk register ────────────────────────────────────────────────────────── */
 
 export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues, initialViewId }: { project?: string; milestoneOptions?: string[]; onViewLinkedIssues?: (riskId: string) => void; initialViewId?: string | null }) {
-  const { addActions } = useActions();
+  const navigate = useNavigate();
+  const back = useBackParam();
   const { risks, issues, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, editRiskUpdate, removeRiskUpdate, convertRiskToIssue } = useRiskRegister();
   const hasLinkedIssue = (riskId: string) => issues.some((i) => i.riskId === riskId);
   const { severityOf, rules } = useSeverity();
@@ -96,8 +97,6 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [severity, setSeverity] = useState("all");
   const [status, setStatus] = useState("all");
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<RiskRecord | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<RiskRecord | null>(null);
   const [statusFor, setStatusFor] = useState<RiskRecord | null>(null);
@@ -137,7 +136,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
           { key: "severity", label: "Score", value: severity, onChange: setSeverity, options: [{ value: "all", label: "All severities" }, { value: "Critical", label: "Critical" }, { value: "High", label: "High" }, { value: "Medium", label: "Medium" }, { value: "Low", label: "Low" }] },
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...RISK_STATUSES.map((v) => ({ value: v, label: v }))] },
         ]}
-        trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Risk</Button>}
+        trailing={<Button variant="primary" onClick={() => navigate({ to: "/risks/new", search: { project, back } })}>Log Risk</Button>}
       />
 
       {!project && <RiskKpiStrip risks={list} />}
@@ -177,7 +176,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
                     onStatus={() => setStatusFor(r)}
                     statusLabel="Update risk status"
                     statusIcon={<ClipboardCheck size={16} />}
-                    onEdit={() => { setEditing(r); setFormOpen(true); }}
+                    onEdit={() => navigate({ to: "/risks/$riskId", params: { riskId: r.id }, search: { project, back } })}
                     onDelete={() => {
                       if (hasLinkedIssue(r.id)) {
                         toast.warning("This risk has linked issues. Resolve or delete them first.", { title: "Cannot delete risk" });
@@ -194,32 +193,13 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
         <TablePagination {...pagination} itemLabel="risks" />
       </EmptyRegion>
 
-      <RiskFormDialog
-        key={editing?.id ?? "new"}
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        risk={editing}
-        lockedProject={project}
-        projectOptions={projectOptions}
-        categoryOptions={activeCategories.length > 0 ? activeCategories : categories.map((c) => c.name)}
-        milestoneOptions={milestoneList}
-
-        onSave={(risk, actionRows) => {
-          if (editing) updateRisk(editing.id, risk);
-          const rid = editing ? editing.id : addRisk({ ...risk, owner: risk.owner || currentUser.name });
-          if (actionRows.length) addActions(actionRows.map((a) => ({ ...a, owner: currentUser.name, project: risk.project, source: "Risk" as const, sourceRef: rid, status: "Open" as const })));
-          toast.done("Risk", editing ? "updated" : "logged");
-          setFormOpen(false);
-          setEditing(null);
-        }}
-      />
 
       <RiskSheet
         risk={view}
         showProjectName={!project}
         onViewLinkedIssues={onViewLinkedIssues}
         onClose={() => setViewId(null)}
-        onEdit={(r) => { setViewId(null); setEditing(r); setFormOpen(true); }}
+        onEdit={(r) => { setViewId(null); navigate({ to: "/risks/$riskId", params: { riskId: r.id }, search: { project, back } }); }}
         onUpdate={(r) => setStatusFor(r)}
         onConvert={(r) => {
           const id = convertRiskToIssue(r.id, currentUser.name);
@@ -276,175 +256,6 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
         }}
       />
     </>
-  );
-}
-
-/* ── Risk form ────────────────────────────────────────────────────────────── */
-
-function RiskFormDialog({
-  open, onOpenChange, risk, projectOptions, categoryOptions, milestoneOptions, lockedProject, onSave,
-}: {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
-  risk: RiskRecord | null;
-  projectOptions: string[];
-  categoryOptions: string[];
-  milestoneOptions: string[];
-  lockedProject?: string;
-  onSave: (risk: Omit<RiskRecord, "id" | "updates">, actions: ActionRow[]) => void;
-}) {
-  const { severityOf, rules } = useSeverity();
-  const { respTypes } = useResponsibilities();
-  const [title, setTitle] = useState(risk?.title ?? "");
-  const [project, setProject] = useState(risk?.project ?? lockedProject ?? "");
-  const [category, setCategory] = useState(risk?.category ?? "");
-  const [milestone, setMilestone] = useState(risk?.milestone ?? "none");
-  const [prob, setProb] = useState(String(risk?.prob ?? 3));
-  const [impact, setImpact] = useState(String(risk?.impact ?? 3));
-  const [status, setStatus] = useState<RiskStatus>(risk?.status ?? "Open");
-  const statusOptions = RISK_STATUSES.includes(status) ? RISK_STATUSES : [...RISK_STATUSES, status];
-  const [actionRows, setActionRows] = useState<ActionRow[]>([emptyActionRow(defaultResponsibility(respTypes))]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const score = Number(prob) * Number(impact);
-  const [scoreResult, setScoreResult] = useState<number | null>(null);
-  const [scoreLoading, setScoreLoading] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-
-    setScoreLoading(true);
-    setScoreResult(null);
-    const request = window.setTimeout(() => {
-      setScoreResult(score);
-      setScoreLoading(false);
-    }, 700);
-
-    return () => window.clearTimeout(request);
-  }, [open, score]);
-
-  function submit() {
-    const next: Record<string, string> = {};
-    if (!title.trim()) next.title = "Risk title is required";
-    if (!project) next.project = "Select the project this risk belongs to";
-    if (!category) next.category = "Select a category";
-    if (!actionRowsValid(actionRows)) next.actions = "Each action needs a due date";
-    setErrors(next);
-    if (Object.keys(next).length > 0) return;
-
-    onSave({
-      project, title: title.trim(), category,
-      owner: risk?.owner ?? "",
-      prob: Number(prob), impact: Number(impact), score, status,
-      mitigation: risk?.mitigation ?? "",
-      milestone: milestone === "none" ? undefined : milestone,
-    }, cleanActionRows(actionRows));
-  }
-
-
-  return (
-    <FormDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title={risk ? (lockedProject ? `Edit risk for ${lockedProject}` : "Edit risk") : (lockedProject ? `Log a new risk for ${lockedProject}` : "Log a new risk")}
-      description={risk ? "Update this risk's classification, scoring and mitigation plan." : "Record a potential event, assess its likelihood and impact, and define an optional mitigation plan."}
-      size="xl"
-      submitLabel={risk ? "Save Changes" : "Log Risk"}
-      submitDisabled={scoreLoading}
-      onSubmit={submit}
-    >
-      {!lockedProject && (
-        <Field label="Project" htmlFor="risk-project" error={errors.project}>
-          <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }}>
-            <SelectTrigger id="risk-project"><SelectValue placeholder="Select project" /></SelectTrigger>
-            <SelectContent>
-              {projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-      )}
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Risk title" htmlFor="risk-title" error={errors.title}>
-          <Input id="risk-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="Describe the risk in one line" />
-        </Field>
-        <Field label="Category" htmlFor="risk-category" error={errors.category} hint="Maintained in Organization → Risk Categories">
-          <Select value={category} onValueChange={(v) => { setCategory(v); setErrors((x) => ({ ...x, category: "" })); }}>
-            <SelectTrigger id="risk-category"><SelectValue placeholder="Select category" /></SelectTrigger>
-            <SelectContent>
-              {categoryOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-
-      <div className="grid items-start gap-4 sm:grid-cols-2">
-        <Field label="Linked milestone" htmlFor="risk-milestone" optional hint="Link the risk to the schedule milestone it threatens." className="min-w-0">
-          <Select value={milestone} onValueChange={setMilestone}>
-            <SelectTrigger id="risk-milestone"><SelectValue placeholder="No linked milestone" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No linked milestone</SelectItem>
-              {milestoneOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label="Status" htmlFor="risk-status" className="min-w-0">
-          <Select value={status} onValueChange={(v) => setStatus(v as RiskStatus)}>
-            <SelectTrigger id="risk-status"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-
-
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Field label="Probability" htmlFor="risk-prob" hint="1 – 5">
-          <Select value={prob} onValueChange={setProb}>
-            <SelectTrigger id="risk-prob"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {[1, 2, 3, 4, 5].map((n) => (
-                <SelectItem key={n} value={String(n)}>{n} · {rules.risk.probabilityLabels[n - 1]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label="Impact" htmlFor="risk-impact" hint="1 – 5">
-          <Select value={impact} onValueChange={setImpact}>
-            <SelectTrigger id="risk-impact"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {[1, 2, 3, 4, 5].map((n) => (
-                <SelectItem key={n} value={String(n)}>{n} · {rules.risk.impactLabels[n - 1]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label="Score" hint="Probability × Impact">
-          <div
-            className="flex h-9 items-center gap-2 rounded-md border border-border bg-[var(--field-bg-filled)] px-3"
-            aria-live="polite"
-            aria-busy={scoreLoading}
-          >
-            {scoreLoading || scoreResult === null ? (
-              <span role="status" className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-accent" aria-hidden="true" />
-                Calculating…
-              </span>
-            ) : (
-              <>
-                <span className="num-mono text-sm text-foreground">{scoreResult}</span>
-                <Pill label={severityOf(scoreResult)} tone={SEVERITY_TONE[severityOf(scoreResult)]} />
-              </>
-            )}
-          </div>
-        </Field>
-      </div>
-
-      <ActionRowsEditor rows={actionRows} onChange={setActionRows} label={risk ? "Add mitigation actions" : "Mitigation plan"}
-        hint={errors.actions ?? (risk ? "Existing actions are tracked from the risk details and the Action Tracker." : "Optional — each action is tracked in the Action Tracker.")} />
-    </FormDialog>
   );
 }
 
@@ -705,7 +516,8 @@ const normTitle = (v: string) => v.trim().replace(/\s+/g, " ").toLowerCase();
 const fmtDate = (v?: string) => formatDateWithYear(v);
 
 export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilterProp, onRiskFilterChange }: { project?: string; milestoneOptions?: string[]; riskFilter?: string[]; onRiskFilterChange?: (v: string[]) => void }) {
-  const { addActions } = useActions();
+  const navigate = useNavigate();
+  const back = useBackParam();
   const { risks, issues, addIssue, updateIssue, removeIssue, logIssueUpdate, editIssueUpdate, removeIssueUpdate } = useRiskRegister();
   const { currentUser } = useCurrentUser();
   const [query, setQuery] = useState("");
@@ -715,8 +527,6 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
   const [riskFilterState, setRiskFilterState] = useState<string[]>([]);
   const riskFilter = riskFilterProp ?? riskFilterState;
   const setRiskFilter = onRiskFilterChange ?? setRiskFilterState;
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<IssueRecord | null>(null);
   const [pendingDelete, setPendingDelete] = useState<IssueRecord | null>(null);
   const [statusFor, setStatusFor] = useState<{ issue: IssueRecord; preset?: IssueStatus } | null>(null);
   const [editingUpdate, setEditingUpdate] = useState<IssueUpdate | null>(null);
@@ -757,7 +567,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
           { key: "status", label: "Status", value: status, onChange: setStatus, options: [{ value: "all", label: "All statuses" }, ...ISSUE_STATUSES.map((v) => ({ value: v, label: v }))] },
           { key: "risk", label: "Originating Risk", mode: "multi", value: riskFilter, onChange: setRiskFilter, options: [{ value: "all", label: "All risks" }, { value: "none", label: "No originating risk" }, ...risks.map((r) => ({ value: r.id, label: r.title }))] },
         ]}
-        trailing={<Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>Log Issue</Button>}
+        trailing={<Button variant="primary" onClick={() => navigate({ to: "/issues/new", search: { project, back } })}>Log Issue</Button>}
       />
 
       {!project && <RiskKpiStrip issues={list} />}
@@ -798,7 +608,7 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
                     onStatus={() => setStatusFor({ issue: i })}
                     statusLabel="Update issue status"
                     statusIcon={<ClipboardCheck size={16} />}
-                    onEdit={() => { setEditing(i); setFormOpen(true); }}
+                    onEdit={() => navigate({ to: "/issues/$issueId", params: { issueId: i.id }, search: { project, back } })}
                     onDelete={() => setPendingDelete(i)}
                   />
                 </StyledTableCell>
@@ -808,29 +618,6 @@ export function IssuesLogTab({ project, milestoneOptions, riskFilter: riskFilter
         </StyledTable>
         <TablePagination {...pagination} itemLabel="issues" />
       </EmptyRegion>
-
-      <IssueFormDialog
-        key={editing?.id ?? "new"}
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        issue={editing}
-        lockedProject={project}
-        projectOptions={projectOptions}
-        risks={risks}
-        milestoneOptions={milestoneList}
-        onSave={(issue, actionRows) => {
-          if (isDuplicateTitle(issue.title, editing?.id)) {
-            toast.error(`Issue "${issue.title.trim()}" already exists`, { description: "Issue titles must be unique." });
-            return;
-          }
-          if (editing) updateIssue(editing.id, issue);
-          const iid = editing ? editing.id : addIssue(issue);
-          if (actionRows.length) addActions(actionRows.map((a) => ({ ...a, owner: currentUser.name, project: issue.project, source: "Issue" as const, sourceRef: iid, status: "Open" as const })));
-          toast.done("Issue", editing ? "updated" : "logged");
-          setFormOpen(false);
-          setEditing(null);
-        }}
-      />
 
       <IssueStatusDialog
         key={`istatus-${statusFor?.issue.id ?? "none"}-${statusFor?.preset ?? ""}-${editingUpdate?.id ?? "new"}`}
@@ -986,138 +773,6 @@ function IssueDetailDrawer({
         </div>
       </SheetContent>
     </Sheet>
-  );
-}
-
-function IssueFormDialog({
-  open, onOpenChange, issue, projectOptions, risks, milestoneOptions, lockedProject, onSave,
-}: {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
-  issue: IssueRecord | null;
-  projectOptions: string[];
-  risks: RiskRecord[];
-  milestoneOptions: string[];
-  lockedProject?: string;
-  onSave: (issue: Omit<IssueItem, "id">, actions: ActionRow[]) => void;
-}) {
-  const { respTypes } = useResponsibilities();
-  const [title, setTitle] = useState(issue?.title ?? "");
-  const [project, setProject] = useState(issue?.project ?? lockedProject ?? "");
-  const [priority, setPriority] = useState<IssuePriority>(issue?.priority ?? "Medium");
-  const [status, setStatus] = useState<IssueStatus>(issue?.status ?? "Open");
-  const impact = issue?.impact ?? 3;
-  const [openDate, setOpenDate] = useState(issue?.openDate ?? todayISO());
-  const [targetDate, setTargetDate] = useState(issue?.targetDate ?? "");
-  const [actionRows, setActionRows] = useState<ActionRow[]>([emptyActionRow(defaultResponsibility(respTypes))]);
-  const [riskId, setRiskId] = useState(issue?.riskId ?? "none");
-  const [milestone, setMilestone] = useState(issue?.milestone ?? "none");
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  function submit() {
-    const next: Record<string, string> = {};
-    if (!title.trim()) next.title = "Issue title is required";
-    if (!project) next.project = "Select the project this issue belongs to";
-    if (!openDate) next.openDate = "Open date is required";
-    if (!actionRowsValid(actionRows)) next.actions = "Each action needs a due date";
-    if (targetDate && openDate && targetDate < openDate) next.targetDate = "Target date cannot be before the open date";
-    setErrors(next);
-    if (Object.keys(next).length > 0) return;
-
-    onSave({
-      project, title: title.trim(), owner: issue?.owner ?? "", priority,
-      impact: Number(impact),
-      status,
-      raised: issue?.raised ?? "Today",
-      openDate,
-      targetDate: targetDate || undefined,
-      closureDate: status === "Resolved" ? (issue?.closureDate ?? todayISO()) : undefined,
-      action: issue?.action ?? "",
-      riskId: riskId === "none" ? undefined : riskId,
-      milestone: milestone === "none" ? undefined : milestone,
-      resolution: issue?.resolution,
-      attachment: issue?.attachment,
-    }, cleanActionRows(actionRows));
-  }
-
-  return (
-    <FormDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title={issue ? (lockedProject ? `Edit issue for ${lockedProject}` : "Edit issue") : (lockedProject ? `Log a new issue for ${lockedProject}` : "Log a new issue")}
-      description={issue ? "Update this issue's details and action plan." : "Record a realized event that requires immediate corrective action."}
-      size="xl"
-      submitLabel={issue ? "Save Changes" : "Log Issue"}
-      onSubmit={submit}
-    >
-      {!lockedProject && (
-        <Field label="Project" htmlFor="issue-project" error={errors.project}>
-          <Select value={project} onValueChange={(v) => { setProject(v); setErrors((x) => ({ ...x, project: "" })); }}>
-            <SelectTrigger id="issue-project"><SelectValue placeholder="Select project" /></SelectTrigger>
-            <SelectContent>{projectOptions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-          </Select>
-        </Field>
-      )}
-
-      <Field label="Issue title" htmlFor="issue-title" error={errors.title}>
-        <Input id="issue-title" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((x) => ({ ...x, title: "" })); }} placeholder="What is blocking or going wrong?" />
-      </Field>
-
-      <div className="grid items-start gap-4 sm:grid-cols-2">
-        <Field label="Severity" htmlFor="issue-priority" className="min-w-0">
-          <Select value={priority} onValueChange={(v) => setPriority(v as IssuePriority)}>
-            <SelectTrigger id="issue-priority"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Critical">Critical</SelectItem>
-              <SelectItem value="High">High</SelectItem>
-              <SelectItem value="Medium">Medium</SelectItem>
-              <SelectItem value="Low">Low</SelectItem>
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label="Status" htmlFor="issue-status" className="min-w-0">
-          <Select value={status} onValueChange={(v) => setStatus(v as IssueStatus)}>
-            <SelectTrigger id="issue-status"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {ISSUE_STATUSES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-
-      <div className="grid items-start gap-4 sm:grid-cols-2">
-        <Field label="Open date" htmlFor="issue-open-date" error={errors.openDate} className="min-w-0">
-          <DatePicker id="issue-open-date" value={openDate} onChange={(v) => { setOpenDate(v); setErrors((x) => ({ ...x, openDate: "" })); }} placeholder="Pick a date" />
-        </Field>
-        <Field label="Target closure date" htmlFor="issue-target-date" optional error={errors.targetDate} className="min-w-0">
-          <DatePicker id="issue-target-date" value={targetDate} onChange={(v) => { setTargetDate(v); setErrors((x) => ({ ...x, targetDate: "" })); }} placeholder="Pick a date" min={openDate || undefined} />
-        </Field>
-      </div>
-
-      <div className="grid items-start gap-4 sm:grid-cols-2">
-        <Field label="Originating risk" htmlFor="issue-risk" optional hint="Leave empty when the issue was not foreseen as a risk." className="min-w-0">
-          <Select value={riskId} onValueChange={setRiskId}>
-            <SelectTrigger id="issue-risk"><SelectValue placeholder="No originating risk" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No originating risk</SelectItem>
-              {risks.map((r) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field label="Linked milestone" htmlFor="issue-milestone" optional hint="Link the issue to the schedule milestone it affects." className="min-w-0">
-          <Select value={milestone} onValueChange={setMilestone}>
-            <SelectTrigger id="issue-milestone"><SelectValue placeholder="No linked milestone" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No linked milestone</SelectItem>
-              {milestoneOptions.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
-
-      <ActionRowsEditor rows={actionRows} onChange={setActionRows} label={issue ? "Add actions" : "Action plan"}
-        hint={errors.actions ?? (issue ? "Existing actions are tracked from the issue details and the Action Tracker." : "Optional — each action is tracked in the Action Tracker.")} />
-    </FormDialog>
   );
 }
 

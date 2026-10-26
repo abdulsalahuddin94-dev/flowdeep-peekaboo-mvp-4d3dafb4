@@ -82,3 +82,4 @@
 - [x] Financials Overview: Actuals by Project Type badge shows the profit/loss amount instead of a percentage.
 
 - [x] Add the item type column to the Project Schedule changes table only (baseline popup and approval review).
+- [x] Profit Share donut: Top 6 + Others with all-types dialog and demo data.

@@ -410,15 +410,45 @@ function FinancialsPage() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-3 max-h-24 space-y-1.5 overflow-y-auto pr-1">
-                {marginPie.map((x) => (
-                  <div key={x.name} className="flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-2 text-foreground"><span className="h-2 w-2 shrink-0 rounded-full" style={{ background: x.color }} />{x.name}</span>
-                    <span className="num-mono text-muted-foreground">{money(x.Profit)} · <span className={x.margin > 15 ? "text-rag-green" : x.margin > 5 ? "text-rag-amber" : "text-rag-red"}>{x.margin.toFixed(1)}%</span></span>
-                  </div>
-                ))}
+              <div className="mt-3 space-y-1.5">
+                {marginPie.map((x) => {
+                  const isOthers = x.name.startsWith("Others");
+                  return (
+                    <button type="button" key={x.name} disabled={!isOthers} onClick={() => setShareOpen(true)} className={`flex w-full items-center justify-between rounded-md px-1 text-start text-xs ${isOthers ? "cursor-pointer hover:bg-muted/40" : "cursor-default"}`}>
+                      <span className={`flex items-center gap-2 ${isOthers ? "text-primary underline-offset-2 hover:underline" : "text-foreground"}`}><span className="h-2 w-2 shrink-0 rounded-full" style={{ background: x.color }} />{x.name}</span>
+                      <span className="num-mono text-muted-foreground">{money(x.Profit)} · <span className={x.margin > 15 ? "text-rag-green" : x.margin > 5 ? "text-rag-amber" : "text-rag-red"}>{x.margin.toFixed(1)}%</span></span>
+                    </button>
+                  );
+                })}
               </div>
+              {share.others.length > 0 && (
+                <div className="mt-2 text-end"><Button variant="ghost" size="sm" onClick={() => setShareOpen(true)}>View all {share.all.length} types</Button></div>
+              )}
               </EmptyRegion>
+              <Dialog open={shareOpen} onOpenChange={(o) => { setShareOpen(o); if (!o) setShareQuery(""); }}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Profit share · all project types</DialogTitle>
+                    <DialogDescription>{share.all.length} types ranked by expected profit · share of total · margin %</DialogDescription>
+                  </DialogHeader>
+                  <Input placeholder="Search project type" value={shareQuery} onChange={(e) => setShareQuery(e.target.value)} />
+                  <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+                    {share.all.filter((x) => x.name.toLowerCase().includes(shareQuery.toLowerCase())).map((x) => {
+                      const rank = share.all.indexOf(x);
+                      const color = rank < 6 ? PIE_COLORS[rank % PIE_COLORS.length] : OTHERS_COLOR;
+                      const pct = shareTotal ? (Math.max(0, x.Profit) / shareTotal) * 100 : 0;
+                      return (
+                        <div key={x.name} className="grid grid-cols-[2rem_minmax(0,11rem)_1fr_auto] items-center gap-3 text-xs">
+                          <span className="num-mono text-muted-foreground">#{rank + 1}</span>
+                          <span className="truncate text-foreground">{x.name}</span>
+                          <div className="h-2 rounded-full bg-muted/40"><div className="h-2 rounded-full" style={{ width: `${Math.max(2, (x.Profit / shareMax) * 100)}%`, background: color }} /></div>
+                          <span className="num-mono w-40 text-end text-muted-foreground">{money(x.Profit)} · {pct.toFixed(1)}% · <span className={x.margin > 15 ? "text-rag-green" : x.margin > 5 ? "text-rag-amber" : "text-rag-red"}>{x.margin.toFixed(1)}%</span></span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 

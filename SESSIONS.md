@@ -1,3 +1,6 @@
+
+## 2026-10-26 — Profit Share donut: Top 6 + Others
+- Donut shows the 6 largest project types plus a grey Others slice; Others/View all opens a ranked, searchable horizontal-bar dialog. Demo long-tail types added. Helper `topShareSlices` + tests; rule documented in DESIGN.md.
 ## 2026-10-26 — Cash Flow Forecast monthly by default
 - Removed the Monthly | Yearly toggle from the Cash Flow Forecast card; the chart now always shows the selected year month by month, so the year arrows and Project type selector are the only controls left.
 - Dropped the yearly-mode chart branches (clickable year ticks, cumulative dots) and the cashMode state; the subtitle always reads FY<year>.

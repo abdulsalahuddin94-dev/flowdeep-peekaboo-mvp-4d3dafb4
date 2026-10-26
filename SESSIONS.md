@@ -1,3 +1,10 @@
+## 2026-10-26 — Financials chart demo and empty states
+- Expanded demo cost/revenue dates across 2026–2028 without changing total amounts; fiscal-year filters derive from event years.
+- Matched the Cash Flow Project type selector to the neutral Monthly/Yearly control colors.
+- Replaced the whole-overview empty preview with four chart-local empty states, preserving headings, KPIs and filters; each uses shared DS02 card styling and generated chart-themed artwork, including natural no-data states.
+- Added a concrete three-year demo date regression test.
+- Verified all three yearly buckets, drill-down and bounded arrows, multiselect, all four empty previews and no-result search in the browser; no runtime errors, 8 tests passed, build OK.
+
 ## 2026-10-26 — Standalone risk, issue, meeting and action pages
 - Replaced the stacked popups with standalone pages — `/risks/new`, `/risks/$riskId`, `/issues/new`, `/issues/$issueId`, `/meetings/new`, `/meetings/$meetingId`, `/actions/new`, `/actions/$actionId` — each carrying `project` and `back` so it returns to the exact tab it was opened from, at project level and in the PMO modules.
 - Action details is one page now (details, owner, responsibility, due date, status, comments & updates with edit/delete, delete confirmation) instead of a drawer with popups on top; linked-action rows in Risk/Issue/Meeting drawers and in the Action Tracker open it directly.

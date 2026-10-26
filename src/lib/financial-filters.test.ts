@@ -1,6 +1,14 @@
 import { describe, test } from "node:test";
 import { strict as assert } from "node:assert";
-import { matchesProjectTypes, cashYears, cashYearNavigation, cashSeries } from "./financial-filters";
+import { matchesProjectTypes, cashYears, cashYearNavigation, cashSeries, financialDemoDate } from "./financial-filters";
+
+test("financial demo event dates span three years, 2026 through 2028", () => {
+  const dates = Array.from({ length: 12 }, (_, project) =>
+    Array.from({ length: 4 }, (_, item) => financialDemoDate(((project * 2 + item * 3) % 36) + 1, 5)),
+  ).flat();
+  assert.deepEqual([...new Set(dates.map((date) => date.slice(0, 4)))].sort(), ["2026", "2027", "2028"]);
+  assert.equal(financialDemoDate(25, 5), "2028-01-05");
+});
 
 describe("Cash flow project type selection", () => {
   test("defaults to All when no types are selected", () => {

@@ -4,6 +4,11 @@ export function matchesProjectTypes(selected: readonly string[], projectType: st
 
 export type CashEvent = { due: string; inflow: number; outflow: number };
 
+export function financialDemoDate(month: number, day: number): string {
+  const year = 2026 + Math.floor((month - 1) / 12);
+  return `${year}-${String(((month - 1) % 12) + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
 export function cashYears(events: readonly CashEvent[]): string[] {
   const years = events.map((event) => Number(event.due.slice(0, 4)));
   if (years.length === 0) return [];

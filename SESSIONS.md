@@ -1,3 +1,9 @@
+## 2026-10-26 — Action details layout cleanup
+- Removed the Source and Project sidebar panels; Action and Comments & Updates now fill the available width while retaining DS02 backgrounds.
+- Moved action-edit Cancel / Save Update controls below the fields with a footer separator.
+- Simplified Comments & Updates to stacked status/comment fields, footer controls and separated scrollable history; comment icon controls use shared Buttons and tooltips.
+- Verified action edits, comment creation and comment editing read back in the UI without runtime errors; build OK. Existing action data remains in-memory and does not survive a full reload; storage behavior was not changed.
+
 ## 2026-10-26 — Restore standalone form backgrounds
 - Restored the original DS02 glass-card backgrounds for Risk, Issue, Meeting and Action creation/edit forms and linked-action areas while keeping full available width.
 - Replaced ArrowLeft with ChevronLeft in contextual record back links; breadcrumb chevron separators remain unchanged.

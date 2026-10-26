@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Action details: remove Source/Project sidebar, put edit controls below fields, improve Comments & Updates; verify editing and comment updates.
+- [x] Action details: remove Source/Project sidebar, put edit controls below fields, improve Comments & Updates; verify editing and comment updates.
 - [x] Standalone record pages: full width, contextual DS02 navigation and consistent Save / Save Update + Cancel; verify PMO and project entry points.
 - [x] Financials: three-year cash-flow demo, matching Project type control colors, and four chart-local illustrated empty states; verify and log.
 - [x] Standalone New/Edit pages for Risk, Issue and Meeting, plus one Action details page; quick-view drawers kept and the stacked popups removed.

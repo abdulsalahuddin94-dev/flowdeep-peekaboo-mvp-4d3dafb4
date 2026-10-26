@@ -32,6 +32,7 @@ import {
 } from "@/lib/action-store";
 import { useResponsibilities, respTone, defaultResponsibility } from "@/lib/responsibility-store";
 import { useOrgActive } from "@/lib/org-active";
+import { useBackParam } from "@/lib/record-pages";
 
 export const T = {
   en: {
@@ -65,7 +66,7 @@ export const T = {
 };
 const t = T.en;
 
-const STATUS_TONE: Record<ActionStatus | "Overdue", string> = {
+export const STATUS_TONE: Record<ActionStatus | "Overdue", string> = {
   Open: "border-rag-blue/40 bg-rag-blue/10 text-rag-blue",
   "In Progress": "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
   Done: "border-rag-green/40 bg-rag-green/10 text-rag-green",
@@ -76,13 +77,13 @@ const COMMENT_MAX = 500;
 const todayIso = () => new Date().toISOString().slice(0, 10);
 const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * 86_400_000).toISOString().slice(0, 10);
 
-function sourceLabel(a: ActionItem) {
+export function sourceLabel(a: ActionItem) {
   if (a.source === "Meeting") return a.meetingName ? `Meeting · ${a.meetingName}` : "Meeting";
   if (a.sourceRef) return `${a.source} · ${a.sourceRef}`;
   return a.source;
 }
 
-function StatusCell({ a }: { a: ActionItem }) {
+export function StatusCell({ a }: { a: ActionItem }) {
   const over = isActionOverdue(a);
   return <Pill label={over ? "Overdue" : a.status} tone={STATUS_TONE[over ? "Overdue" : a.status]} />;
 }
@@ -100,10 +101,12 @@ function DueCell({ a }: { a: ActionItem }) {
 /* ── Tab ─────────────────────────────────────────────────────────────────── */
 
 export function ActionTrackerTab({ project, initialSourceRef }: { project?: string; initialSourceRef?: string }) {
-  const { actions, addAction, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
+  const { actions, removeAction, removeActionUpdate } = useActions();
   const { currentUser } = useCurrentUser();
   const { projects } = useProjects();
   const { respTypes } = useResponsibilities();
+  const navigate = useNavigate();
+  const back = useBackParam();
   const pmo = !project;
   const projectNames = useMemo(() => projects.map((p) => p.name), [projects]);
   const [query, setQuery] = useState("");
@@ -115,11 +118,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
   const [owner, setOwner] = useState("all");
   const [status, setStatus] = useState("all");
   const [onlyMine, setOnlyMine] = useState(false);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<ActionItem | null>(null);
   const [viewId, setViewId] = useState<string | null>(null);
-  const [statusFor, setStatusFor] = useState<ActionItem | null>(null);
-  const [editingUpdate, setEditingUpdate] = useState<ActionUpdate | null>(null);
   const [pendingDelete, setPendingDelete] = useState<ActionItem | null>(null);
   const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ a: ActionItem; u: ActionUpdate } | null>(null);
 
@@ -170,7 +169,7 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
         trailing={
           <div className="flex items-center gap-2">
             <Button variant={onlyMine ? "primary" : "outline"} onClick={() => setOnlyMine((v) => !v)}>{t.mine}</Button>
-            <Button variant="primary" onClick={() => { setEditing(null); setFormOpen(true); }}>{t.add}</Button>
+            <Button variant="primary" onClick={() => navigate({ to: "/actions/new", search: { project, back } })}>{t.add}</Button>
           </div>
         }
       />
@@ -217,10 +216,10 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
                 <TableRowActions
                   showStatus
                   statusNode={<StatusCell a={a} />}
-                  onStatus={() => { setEditingUpdate(null); setStatusFor(a); }}
+                  onStatus={() => navigate({ to: "/actions/$actionId", params: { actionId: a.id }, search: { back } })}
                   statusIcon={<ClipboardCheck size={15} />}
                   statusLabel={t.updateStatus}
-                  onEdit={() => { setEditing(a); setFormOpen(true); }}
+                  onEdit={() => navigate({ to: "/actions/$actionId", params: { actionId: a.id }, search: { back } })}
                   onDelete={() => setPendingDelete(a)}
                 />
               </StyledTableCell>
@@ -230,41 +229,13 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
       </StyledTable>
       <TablePagination {...pagination} />
 
-      <ActionFormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        project={project}
-        projects={pmo ? projectNames : undefined}
-        initial={editing}
-        onSave={(v) => {
-          if (editing) { updateAction(editing.id, v); toast.success("Action updated"); }
-          else { addAction(v); toast.success("Action added"); }
-          setFormOpen(false);
-        }}
-      />
       <ActionDrawer
         action={view}
         onClose={() => setViewId(null)}
-        onUpdate={(a) => { setEditingUpdate(null); setStatusFor(a); }}
-        onEdit={(a) => { setViewId(null); setEditing(a); setFormOpen(true); }}
-        onEditUpdate={(a, u) => { setEditingUpdate(u); setStatusFor(a); }}
+        onUpdate={(a) => { setViewId(null); navigate({ to: "/actions/$actionId", params: { actionId: a.id }, search: { back } }); }}
+        onEdit={(a) => { setViewId(null); navigate({ to: "/actions/$actionId", params: { actionId: a.id }, search: { back } }); }}
+        onEditUpdate={(a) => { setViewId(null); navigate({ to: "/actions/$actionId", params: { actionId: a.id }, search: { back } }); }}
         onDeleteUpdate={(a, u) => setPendingDeleteUpdate({ a, u })}
-      />
-      <ActionStatusDialog
-        action={statusFor}
-        editing={editingUpdate}
-        onClose={() => { setStatusFor(null); setEditingUpdate(null); }}
-        onSave={(comment, st) => {
-          if (!statusFor) return;
-          if (editingUpdate) {
-            editActionUpdate(statusFor.id, editingUpdate.id, comment);
-            toast.success("Comment updated");
-          } else {
-            logActionUpdate(statusFor.id, { comment, by: currentUser.name, status: st });
-            toast.success("Action updated");
-          }
-          setStatusFor(null); setEditingUpdate(null);
-        }}
       />
       <ConfirmDialog
         open={!!pendingDelete}
@@ -288,110 +259,6 @@ export function ActionTrackerTab({ project, initialSourceRef }: { project?: stri
   );
 }
 
-/* ── Form ────────────────────────────────────────────────────────────────── */
-
-type ActionDraft = Omit<ActionItem, "id" | "updates">;
-
-export function ActionFormDialog({ open, onOpenChange, project, projects, initial, fixedSource, onSave }: {
-  open: boolean; onOpenChange: (o: boolean) => void; project?: string; projects?: string[]; initial?: ActionItem | null;
-  fixedSource?: { source: ActionSource; sourceRef: string };
-  onSave: (v: ActionDraft) => void;
-}) {
-  const { risks, issues } = useRiskRegister();
-  const { currentUser } = useCurrentUser();
-  const { respTypes } = useResponsibilities();
-  const { isActive } = useOrgActive("responsibility-type");
-  const blank = (): ActionDraft => ({
-    project: project ?? projects?.[0] ?? "", title: "", description: "", source: fixedSource?.source ?? "General", sourceRef: fixedSource?.source === "Meeting" ? undefined : fixedSource?.sourceRef,
-    owner: "", responsibility: defaultResponsibility(respTypes, isActive), dueDate: "", status: "Open",
-  });
-  const [d, setD] = useState<ActionDraft>(blank);
-  const [key, setKey] = useState("");
-  const k = `${open}-${initial?.id ?? "new"}`;
-  if (k !== key) { setKey(k); if (open) setD(initial ? { ...initial } : blank()); }
-
-  const refs = d.source === "Risk" ? risks.filter((r) => r.project === d.project).map((r) => ({ v: r.id, l: `${r.id} · ${r.title}` }))
-    : d.source === "Issue" ? issues.filter((i) => i.project === d.project).map((i) => ({ v: i.id, l: `${i.id} · ${i.title}` })) : [];
-  const valid = d.title.trim() && d.dueDate && d.project && (d.source !== "Risk" && d.source !== "Issue" || d.sourceRef);
-  const up = (p: Partial<ActionDraft>) => setD((x) => ({ ...x, ...p }));
-
-  if (fixedSource?.source === "Risk" || fixedSource?.source === "Issue" || fixedSource?.source === "Meeting") {
-    return (
-      <FormDialog
-        open={open}
-        onOpenChange={onOpenChange}
-        title={initial ? t.editActionRow : t.addActionRow}
-        size="xl"
-        className="w-[calc(100%-2rem)]"
-        submitDisabled={!valid}
-        submitLabel={initial ? "Save" : t.addActionRow}
-        onSubmit={() => {
-          if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), owner: d.owner.trim() || currentUser.name });
-        }}
-      >
-        <div className="space-y-3">
-          <div className="label-eyebrow">{t.linkedActionPlan}</div>
-          <div className="grid min-w-0 grid-cols-1 gap-2 rounded-lg border border-border bg-secondary/30 p-3">
-            <Input aria-label={t.actionPlaceholder} maxLength={150} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder={t.actionPlaceholder} className="min-w-0" />
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(160px,1fr)_190px]">
-              <Select value={d.responsibility} onValueChange={(v) => up({ responsibility: v as ActionResponsibility })}>
-                <SelectTrigger aria-label={t.responsibility} className="min-w-0"><SelectValue /></SelectTrigger>
-                <SelectContent>{respTypes.filter((s) => isActive(s.name) || s.name === d.responsibility).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
-              </Select>
-              <DatePicker value={d.dueDate} onChange={(v) => up({ dueDate: v })} placeholder={t.dueDate} className="min-w-0" />
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">{fixedSource.source === "Risk" ? t.linkedRiskHint : fixedSource.source === "Issue" ? t.linkedIssueHint : t.linkedMeetingHint}</p>
-        </div>
-      </FormDialog>
-    );
-  }
-
-  return (
-    <FormDialog open={open} onOpenChange={onOpenChange} title={initial ? "Edit action" : "Add action"} size="lg" submitDisabled={!valid} submitLabel={initial ? "Save" : "Add action"}
-      onSubmit={() => { if (valid) onSave({ ...d, title: d.title.trim().slice(0, 150), owner: d.owner.trim() || currentUser.name }); }}>
-      {projects && !fixedSource && (
-        <Field label="Project" htmlFor="act-project">
-          <Select value={d.project} onValueChange={(v) => up({ project: v, sourceRef: undefined })}>
-            <SelectTrigger id="act-project"><SelectValue placeholder="Select project" /></SelectTrigger>
-            <SelectContent>{projects.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-          </Select>
-        </Field>
-      )}
-      <Field label="Action" htmlFor="act-title"><Input id="act-title" maxLength={150} value={d.title} onChange={(e) => up({ title: e.target.value })} placeholder="e.g. Share updated cutover plan" /></Field>
-      {!fixedSource && (
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Source">
-            <Select value={d.source} onValueChange={(v) => up({ source: v as ActionSource, sourceRef: undefined })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{ACTION_SOURCES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-            </Select>
-          </Field>
-          {(d.source === "Risk" || d.source === "Issue") && (
-            <Field label={`Linked ${d.source.toLowerCase()}`}>
-              <Select value={d.sourceRef ?? ""} onValueChange={(v) => up({ sourceRef: v })}>
-                <SelectTrigger><SelectValue placeholder={`Select ${d.source.toLowerCase()}`} /></SelectTrigger>
-                <SelectContent>{refs.map((r) => <SelectItem key={r.v} value={r.v}>{r.l}</SelectItem>)}</SelectContent>
-              </Select>
-            </Field>
-          )}
-          {d.source === "Meeting" && (
-            <Field label="Meeting name" htmlFor="act-meet"><Input id="act-meet" maxLength={100} value={d.meetingName ?? ""} onChange={(e) => up({ meetingName: e.target.value })} /></Field>
-          )}
-        </div>
-      )}
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="Responsibility">
-          <Select value={d.responsibility} onValueChange={(v) => up({ responsibility: v as ActionResponsibility })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{respTypes.filter((s) => isActive(s.name) || s.name === d.responsibility).map((s) => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
-          </Select>
-        </Field>
-        <Field label="Due date"><DatePicker value={d.dueDate} onChange={(v) => up({ dueDate: v })} /></Field>
-      </div>
-    </FormDialog>
-  );
-}
 
 /* ── Meeting batch ───────────────────────────────────────────────────────── */
 
@@ -485,39 +352,6 @@ export function ActionRowsEditor({ rows, onChange, label = "Actions", hint }: { 
   );
 }
 
-/* ── Status update ───────────────────────────────────────────────────────── */
-
-function ActionStatusDialog({ action, editing, onClose, onSave }: { action: ActionItem | null; editing: ActionUpdate | null; onClose: () => void; onSave: (comment: string, status: ActionStatus) => void }) {
-  const [comment, setComment] = useState("");
-  const [st, setSt] = useState<ActionStatus>("Open");
-  const [error, setError] = useState("");
-  const [key, setKey] = useState("");
-  const k = `${action?.id ?? ""}-${editing?.id ?? ""}`;
-  if (k !== key) { setKey(k); setError(""); if (action) { setComment(editing?.comment ?? ""); setSt(action.status); } }
-  const hasChange = !!action && (st !== action.status || comment.trim().length > 0);
-  return (
-    <FormDialog open={!!action} onOpenChange={(o) => { if (!o) onClose(); }} title={editing ? "Edit comment" : t.updateStatus} description={action?.title}
-      submitDisabled={editing ? false : !hasChange} submitLabel={editing ? "Save Changes" : "Save update"}
-      onSubmit={() => {
-        if (editing) { if (!comment.trim()) { setError("Comment is required."); return; } onSave(comment.trim().slice(0, COMMENT_MAX), action!.status); return; }
-        if (hasChange) onSave(comment.trim().slice(0, COMMENT_MAX), st);
-      }}>
-      {!editing && (
-        <Field label="Status">
-          <Select value={st} onValueChange={(v) => setSt(v as ActionStatus)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{ACTION_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-          </Select>
-        </Field>
-      )}
-      <Field label={editing ? "Comment" : "Comment (optional)"} htmlFor="act-comment" error={error}>
-        <Textarea id="act-comment" maxLength={COMMENT_MAX} value={comment} onChange={(e) => { setComment(e.target.value); setError(""); }} placeholder="What progressed on this action?" />
-        {!editing && <p className="mt-1 text-xs text-muted-foreground">{t.commentTrackerHint}</p>}
-        <div className="mt-1 text-end text-[11px] text-muted-foreground num-mono">{comment.length}/{COMMENT_MAX}</div>
-      </Field>
-    </FormDialog>
-  );
-}
 
 /* ── Drawer ──────────────────────────────────────────────────────────────── */
 
@@ -615,202 +449,6 @@ function CommentList({ updates, onEdit, onDelete }: { updates: ActionUpdate[]; o
   );
 }
 
-/* ── Action details popup (opened from linked actions) ─────────────────── */
-
-function ActionDetailsDialog({ action: a, onClose, onUpdate, onEdit, onDelete, onEditUpdate, onDeleteUpdate }: {
-  action: ActionItem | null; onClose: () => void; onUpdate: (a: ActionItem) => void; onEdit: (a: ActionItem) => void; onDelete: (a: ActionItem) => void;
-  onEditUpdate: (a: ActionItem, u: ActionUpdate) => void; onDeleteUpdate: (a: ActionItem, u: ActionUpdate) => void;
-}) {
-  const { respTypes } = useResponsibilities();
-  return (
-    <Dialog open={!!a} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="flex max-h-[85vh] max-w-[560px] flex-col gap-0 p-0">
-        {a && (
-          <>
-            <DialogHeader className="border-b border-border px-6 pb-4 pt-6 text-start">
-              <div className="flex flex-wrap items-center gap-2"><StatusCell a={a} /><Pill label={a.responsibility} tone={respTone(a.responsibility, respTypes)} /></div>
-              <DialogTitle className="mt-2 text-lg">{a.title}</DialogTitle>
-              <DialogDescription className="text-xs">{sourceLabel(a)}{a.sourceRef ? ` · ${a.sourceRef}` : ""}</DialogDescription>
-            </DialogHeader>
-            <div className="grid grid-cols-3 divide-x divide-border border-b border-border rtl:divide-x-reverse">
-              {[{ l: "Owner", v: a.owner }, { l: "Due date", v: formatDateWithYear(a.dueDate) }, { l: "Closed", v: formatDateWithYear(a.closedDate) }].map((k) => (
-                <div key={k.l} className="px-4 py-3">
-                  <div className="label-eyebrow text-[10px]">{k.l}</div>
-                  <div className="mt-0.5 text-sm font-medium text-foreground">{k.v}</div>
-                </div>
-              ))}
-            </div>
-            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
-              {a.description && <div><div className="label-eyebrow mb-1">Description</div><p className="text-sm text-muted-foreground">{a.description}</p></div>}
-              <div>
-                <div className="label-eyebrow mb-2">{t.commentsUpdates}</div>
-                {a.updates.length === 0 && <p className="text-sm text-muted-foreground">No comments yet.</p>}
-                <CommentList updates={a.updates} onEdit={(u) => onEditUpdate(a, u)} onDelete={(u) => onDeleteUpdate(a, u)} />
-              </div>
-            </div>
-            <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4">
-              <Button variant="outline" className="text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => onDelete(a)}><DeleteAction size={15} /> Delete</Button>
-              <Button variant="outline" onClick={() => onEdit(a)}><EditAction size={15} /> Edit</Button>
-              <Button variant="primary" onClick={() => onUpdate(a)}>{t.updateStatus}</Button>
-            </div>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-/* ── Linked actions (Risk / Issue drawers) ──────────────────────────────── */
-
-export function LinkedActions({ project, source, sourceRef, title, meetingMeta, onAdd }: { project: string; source: "Risk" | "Issue" | "Meeting"; sourceRef: string; title: string; meetingMeta?: { meetingName?: string; meetingDate?: string }; onAdd?: () => void }) {
-  const { actions, addAction, updateAction, removeAction, logActionUpdate, editActionUpdate, removeActionUpdate } = useActions();
-  const { currentUser } = useCurrentUser();
-  const [open, setOpen] = useState(false);
-  const [viewId, setViewId] = useState<string | null>(null);
-  const [editingUpdate, setEditingUpdate] = useState<ActionUpdate | null>(null);
-  const [pendingDeleteUpdate, setPendingDeleteUpdate] = useState<{ a: ActionItem; u: ActionUpdate } | null>(null);
-  const viewed = actions.find((a) => a.id === viewId) ?? null;
-  const [editing, setEditing] = useState<ActionItem | null>(null);
-  const [statusFor, setStatusFor] = useState<ActionItem | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<ActionItem | null>(null);
-  const isMeeting = source === "Meeting";
-  const linked = isMeeting ? actions.filter((a) => a.meetingId === sourceRef) : actions.filter((a) => a.source === source && a.sourceRef === sourceRef);
-  const done = linked.filter((a) => a.status === "Done").length;
-  const overdue = linked.filter((a) => isActionOverdue(a)).length;
-  return (
-    <div>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="label-eyebrow">{title} <span className="num-mono normal-case text-muted-foreground">· {done}/{linked.length} done{overdue ? ` · ${overdue} overdue` : ""}</span></div>
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Add action"
-          title="Add action"
-          onClick={() => { if (onAdd) onAdd(); else setOpen(true); }}
-        >
-          <Plus className="h-5 w-5" />
-        </Button>
-      </div>
-      {linked.length === 0 && <p className="text-sm text-muted-foreground">No actions yet. Tracked in the project's Action Tracker.</p>}
-      <div className="space-y-2">
-        {linked.map((a) => (
-          <div
-            key={a.id}
-            role="button"
-            tabIndex={0}
-            aria-label={`View ${a.title}`}
-            onClick={() => setViewId(a.id)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                setViewId(a.id);
-              }
-            }}
-            className="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-[var(--field-bg-filled)] px-3 py-2 text-start transition-colors hover:border-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <div className="min-w-0">
-              <div className="truncate text-sm text-foreground">{a.title}</div>
-              <div className="text-[11px] text-muted-foreground">{a.owner} · <span className={cn("num-mono", isActionOverdue(a) && "text-rag-red")}>{formatDateWithYear(a.dueDate)}</span></div>
-            </div>
-            <div className="relative flex min-h-7 min-w-[72px] shrink-0 items-center justify-end">
-              <div className="transition-opacity group-hover:opacity-0 group-focus-within:opacity-0"><StatusCell a={a} /></div>
-              <div className="absolute end-0 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 rounded-full"
-                  aria-label={`Edit ${a.title}`}
-                  title="Edit action"
-                  onClick={(event) => { event.stopPropagation(); setEditing(a); }}
-                >
-                  <EditAction size={14} />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  aria-label={`Delete ${a.title}`}
-                  title="Delete action"
-                  onClick={(event) => { event.stopPropagation(); setPendingDelete(a); }}
-                >
-                  <DeleteAction size={14} />
-                </Button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <ActionFormDialog
-        open={open || !!editing}
-        onOpenChange={(nextOpen) => { if (!nextOpen) { setOpen(false); setEditing(null); } }}
-        project={project}
-        initial={editing}
-        fixedSource={{ source, sourceRef }}
-        onSave={(values) => {
-          const merged = isMeeting
-            ? { ...values, sourceRef: undefined, meetingId: sourceRef, meetingName: meetingMeta?.meetingName, meetingDate: meetingMeta?.meetingDate }
-            : values;
-          if (editing) {
-            updateAction(editing.id, merged);
-            toast.success("Action updated");
-          } else {
-            addAction(merged);
-            toast.success(isMeeting ? "Action added to the Action Tracker" : "Action added to Action Tracker");
-          }
-          setOpen(false);
-          setEditing(null);
-        }}
-      />
-      <ActionDetailsDialog
-        action={viewed}
-        onClose={() => setViewId(null)}
-        onUpdate={(a) => { setEditingUpdate(null); setStatusFor(a); }}
-        onEdit={(a) => setEditing(a)}
-        onDelete={(a) => setPendingDelete(a)}
-        onEditUpdate={(a, u) => { setEditingUpdate(u); setStatusFor(a); }}
-        onDeleteUpdate={(a, u) => setPendingDeleteUpdate({ a, u })}
-      />
-      <ActionStatusDialog
-        action={statusFor}
-        editing={editingUpdate}
-        onClose={() => { setStatusFor(null); setEditingUpdate(null); }}
-        onSave={(comment, st) => {
-          if (!statusFor) return;
-          if (editingUpdate) { editActionUpdate(statusFor.id, editingUpdate.id, comment); toast.success("Comment updated"); }
-          else { logActionUpdate(statusFor.id, { comment, by: currentUser.name, status: st }); toast.success("Action updated"); }
-          setStatusFor(null); setEditingUpdate(null);
-        }}
-      />
-      <ConfirmDialog
-        open={!!pendingDeleteUpdate}
-        onOpenChange={(o) => { if (!o) setPendingDeleteUpdate(null); }}
-        title="Delete this comment?"
-        description="The comment will be removed from the action history. This cannot be undone."
-        confirmLabel="Delete"
-        tone="danger"
-        onConfirm={() => { if (pendingDeleteUpdate) removeActionUpdate(pendingDeleteUpdate.a.id, pendingDeleteUpdate.u.id); setPendingDeleteUpdate(null); toast.success("Comment deleted"); }}
-      />
-      <ConfirmDialog
-        open={!!pendingDelete}
-        onOpenChange={(nextOpen) => { if (!nextOpen) setPendingDelete(null); }}
-        title="Delete this action?"
-        description="This action and its update history will be permanently removed from the Action Tracker."
-        confirmLabel="Delete"
-        tone="danger"
-        onConfirm={() => {
-          if (pendingDelete) {
-            if (pendingDelete.id === viewId) setViewId(null);
-            removeAction(pendingDelete.id);
-            toast.success("Action deleted");
-          }
-          setPendingDelete(null);
-        }}
-      />
-    </div>
-  );
-}
 
 /** Compact "done/total" indicator for register tables. */
 export function ActionsCount({ source, sourceRef }: { source: "Risk" | "Issue"; sourceRef: string }) {

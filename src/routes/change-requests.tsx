@@ -41,9 +41,9 @@ export const Route = createFileRoute("/change-requests")({
   },
   head: () => ({
     meta: [
-      { title: "Approvals Inbox — Nexus PMO MVP" },
-      { name: "description", content: "Central inbox for milestone completion gates and baseline change requests awaiting your decision." },
-      { property: "og:title", content: "Approvals Inbox — Nexus PMO MVP" },
+      { title: "Change Requests — Nexus PMO MVP" },
+      { name: "description", content: "Central list of milestone completion gates and baseline change requests awaiting your decision." },
+      { property: "og:title", content: "Change Requests — Nexus PMO MVP" },
       { property: "og:description", content: "Review and decide on milestone gates and baseline change requests in one place." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -151,7 +151,7 @@ function ApprovalsInbox() {
   return (
     <div>
       <PageHeader
-        title="Approvals"
+        title="Change Requests"
         subtitle={`Signed in as ${currentUser.name} · ${currentUser.role}`}
         actions={<ViewAsSelect />}
       />

@@ -37,9 +37,9 @@ export function ApprovalOutcomeBanner({
           : request.status === "rejected" ? <X className="h-3 w-3" />
           : <Clock className="h-3 w-3" />}
         {title ?? (
-          request.status === "approved" ? "Approved in Approvals inbox"
-          : request.status === "rejected" ? "Rejected in Approvals inbox"
-          : "Awaiting approval in Approvals inbox"
+          request.status === "approved" ? "Approved in Change Requests"
+          : request.status === "rejected" ? "Rejected in Change Requests"
+          : "Awaiting approval in Change Requests"
         )}
       </div>
       {decided.length > 0 && (

@@ -19,7 +19,7 @@ const MODULES: Record<string, { label: string; to: string }> = {
   financials: { label: "Financials", to: "/financials" },
   risks: { label: "Risk & Issues", to: "/risks" },
   organization: { label: "Organization", to: "/organization" },
-  approvals: { label: "Approvals", to: "/change-requests" },
+  "change-requests": { label: "Change Requests", to: "/change-requests" },
 };
 
 type BreadcrumbItem = { label: string; to?: string; params?: Record<string, string> };

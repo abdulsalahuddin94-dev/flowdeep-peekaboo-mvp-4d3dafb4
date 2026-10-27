@@ -187,7 +187,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
             {projectsAwaiting.length > 3 ? ` +${projectsAwaiting.length - 3} more` : ""}
           </span>
           <button onClick={() => setOnlyPending(true)} className="ml-auto text-accent hover:underline">Show only these</button>
-          <Link to="/approvals" className="text-accent hover:underline">Open Approvals</Link>
+          <Link to="/change-requests" className="text-accent hover:underline">Open Approvals</Link>
         </div>
       )}
       {onlyPending && (
@@ -329,8 +329,8 @@ function PendingApprovalsChip({ count, projectName, className }: { count: number
       role="button"
       tabIndex={0}
       title={`${count} pending approval${count === 1 ? "" : "s"} — open Approvals`}
-      onClick={(e) => { e.stopPropagation(); navigate({ to: "/approvals", search: { project: projectName } }); }}
-      onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); navigate({ to: "/approvals", search: { project: projectName } }); } }}
+      onClick={(e) => { e.stopPropagation(); navigate({ to: "/change-requests", search: { project: projectName } }); }}
+      onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); navigate({ to: "/change-requests", search: { project: projectName } }); } }}
       className={cn(
         "inline-flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full bg-rag-amber text-[10px] font-semibold text-black hover:bg-rag-amber/90",
         className,

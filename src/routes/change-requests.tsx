@@ -33,7 +33,7 @@ import { useApprovals, type ApprovalRequest } from "@/lib/projects-store";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
 
-export const Route = createFileRoute("/approvals")({
+export const Route = createFileRoute("/change-requests")({
   component: ApprovalsInbox,
   validateSearch: (search: Record<string, unknown>) => {
     if (typeof search.project === "string" && search.project) return { project: search.project };
@@ -216,7 +216,7 @@ function ApprovalsInbox() {
                   key={approval.id}
                   className="group cursor-pointer"
                   onClick={() => approval.type !== "calendar-change"
-                    ? navigate({ to: "/approvals/$approvalId", params: { approvalId: approval.id } })
+                    ? navigate({ to: "/change-requests/$approvalId", params: { approvalId: approval.id } })
                     : setDetailsId(approval.id)}
                 >
                   <StyledTableCell>

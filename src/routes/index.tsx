@@ -158,7 +158,7 @@ function ApprovalsWidget() {
       className="col-span-12"
       eyebrow="Awaiting your approval"
       right={
-        <Link to="/approvals" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
+        <Link to="/change-requests" className="inline-flex items-center gap-1 text-xs text-accent hover:underline">
           View all <ArrowUpRight className="h-3 w-3" />
         </Link>
       }
@@ -176,7 +176,7 @@ function ApprovalsWidget() {
                   {a.projectName} · {a.type === "milestone-gate" ? "Milestone gate" : "Change request"} · {formatDateWithYear(a.requestedAt)}
                 </div>
               </div>
-              <Link to="/approvals">
+              <Link to="/change-requests">
                 <Button size="sm" variant="outline" className="h-7 text-[11px]">Review</Button>
               </Link>
             </li>

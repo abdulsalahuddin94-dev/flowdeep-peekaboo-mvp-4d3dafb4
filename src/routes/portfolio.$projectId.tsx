@@ -951,7 +951,7 @@ function ProjectDetail() {
                   <Badge variant="outline" className="cursor-pointer border-rag-amber/30 bg-rag-amber/10 text-rag-amber hover:bg-rag-amber/20">{pendingApprovalCount} Pending Approvals</Badge>
                 </button>
               ) : (
-                <Link to="/approvals" className="rounded-full">
+                <Link to="/change-requests" className="rounded-full">
                   <Badge variant="outline" className="cursor-pointer border-rag-amber/30 bg-rag-amber/10 text-rag-amber hover:bg-rag-amber/20">{pendingApprovalCount} Pending Approvals</Badge>
                 </Link>
               )
@@ -6535,7 +6535,7 @@ function PendingChangeRequestDialog({
           {otherPending > 0 && (
             <p className="text-xs text-muted-foreground">
               {otherPending} other pending approval{otherPending === 1 ? "" : "s"} on this project —{" "}
-              <Link to="/approvals" className="text-accent hover:underline">view in Approvals</Link>
+              <Link to="/change-requests" className="text-accent hover:underline">view in Approvals</Link>
             </p>
           )}
           <DialogFooter>

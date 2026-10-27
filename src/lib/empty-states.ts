@@ -71,7 +71,7 @@ export const EMPTY_STATES: EmptyStateEntry[] = [
   { id: "org-calendars", module: "Organization", page: "Calendars", path: "/organization", art: "calendar", title: "No Calendars added yet", description: "Start by adding the first calendar", ctaLabel: "Add Calendar" },
 
   // Approvals
-  { id: "approvals-inbox", module: "Approvals", page: "Inbox", path: "/approvals", art: "shield", title: "Nothing to approve", description: "Approval requests assigned to you will appear here" },
+  { id: "approvals-inbox", module: "Approvals", page: "Inbox", path: "/change-requests", art: "shield", title: "Nothing to approve", description: "Approval requests assigned to you will appear here" },
 ];
 
 /** Empty states that belong to the given pathname. */

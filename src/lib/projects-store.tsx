@@ -374,7 +374,7 @@ type AppContextValue = {
   // Identity (demo "view as" switcher)
   currentUser: AppUser;
   setCurrentUserId: (id: string) => void;
-  // Approvals inbox
+  // Change Requests
   approvals: ApprovalRequest[];
   addApprovalRequest: (r: Omit<ApprovalRequest, "id" | "status" | "requestedAt" | "reminders">) => string;
   decideApproval: (id: string, approverId: string, decision: Exclude<ApprovalDecision, "pending">, comment?: string) => void;

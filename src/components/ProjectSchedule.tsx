@@ -317,6 +317,7 @@ export function ProjectSchedule({
   jobRoles,
   highlightItem,
   onHighlightDone,
+  calendar,
 }: {
   items: ScheduleItem[];
   AddItemSlot?: React.ReactNode;
@@ -346,6 +347,8 @@ export function ProjectSchedule({
   /** Cross-module navigation: flash this WBS row and scroll it into view (e.g. from the Cost tab). */
   highlightItem?: string | null;
   onHighlightDone?: () => void;
+  /** Project work calendar: non-working weekdays and holidays are shaded on the Gantt. */
+  calendar?: { workingDays: number[]; holidays: { date: string; label: string }[] };
 }) {
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);
@@ -505,6 +508,20 @@ export function ProjectSchedule({
   const dayWidth = scale === "day" ? 36 : scale === "week" ? 18 : 6;
   const totalDays = Math.max(1, diffDays(maxDate, minDate) + 1);
   const chartWidth = totalDays * dayWidth;
+
+  const offDays = useMemo(() => {
+    const working = new Set(calendar?.workingDays ?? [1, 2, 3, 4, 5]);
+    const holidays = new Map((calendar?.holidays ?? []).map((h) => [h.date, h.label]));
+    const out: { i: number; kind: "weekend" | "holiday"; label?: string }[] = [];
+    for (let i = 0; i < totalDays; i++) {
+      const d = addDays(minDate, i);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const label = holidays.get(key);
+      if (label) out.push({ i, kind: "holiday", label });
+      else if (!working.has(d.getDay())) out.push({ i, kind: "weekend" });
+    }
+    return out;
+  }, [calendar, minDate, totalDays]);
 
   // Schedule health follows the organization Rules & Thresholds: the gap
   // between time-expected % and actual % is banded by the configured Amber
@@ -1506,7 +1523,14 @@ export function ProjectSchedule({
             <div style={{ width: chartWidth, minWidth: "100%" }}>
               {/* Header */}
               <div className="sticky top-0 z-20 border-b border-border bg-[var(--table-header-bg)] text-[var(--table-header-fg)]" style={{ height: HEADER_H }}>
-                <div className="flex h-full">
+                {scale === "day" && (
+                  <div className="pointer-events-none absolute inset-0">
+                    {offDays.map((o) => (
+                      <div key={o.i} className={cn("absolute inset-y-0", o.kind === "holiday" ? "bg-accent/20" : "bg-foreground/10")} style={{ left: o.i * dayWidth, width: dayWidth }} />
+                    ))}
+                  </div>
+                )}
+                <div className="relative flex h-full">
                   {headerCells.map((c, i) => (
                     <div
                       key={i}
@@ -1526,6 +1550,14 @@ export function ProjectSchedule({
                 style={{ height: visibleRows.length * ROW_H }}
                 onPointerDown={beginPan}
               >
+                {/* Non-working days: weekends and calendar holidays */}
+                {scale !== "month" && (
+                  <div className="pointer-events-none absolute inset-0">
+                    {offDays.map((o) => (
+                      <div key={o.i} className={cn("absolute inset-y-0", o.kind === "holiday" ? "bg-accent/10" : "bg-foreground/[0.04]")} style={{ left: o.i * dayWidth, width: dayWidth }} />
+                    ))}
+                  </div>
+                )}
                 {/* Vertical grid lines */}
                 <div className="absolute inset-0 flex pointer-events-none">
                   {headerCells.map((c, i) => (
@@ -1732,6 +1764,8 @@ export function ProjectSchedule({
               <span className="flex items-center gap-1.5"><span className="flex h-3 w-5 items-center rounded-sm border border-foreground/60 bg-secondary p-0.5"><span className="h-full w-2/3 rounded-[2px] bg-foreground/50" /></span> Planned progress</span>
               <span className="flex items-center gap-1.5"><span className="relative h-3 w-5 rounded-sm border border-border bg-secondary"><span className="absolute inset-y-[-2px] left-2.5 w-0.5 bg-foreground" /></span> Planned position</span>
               <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm border border-foreground bg-foreground/80" /> Summary from subtasks</span>
+              <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm border border-border bg-foreground/15" /> Weekend</span>
+              <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm border border-accent/40 bg-accent/25" /> Holiday / vacation</span>
               {healthHighlight ? (
                 <>
                   <span className="flex items-center gap-1.5"><span className="h-3 w-5 rounded-sm bg-rag-green" /> On Track <span className="text-muted-foreground">below {orgRules.rag.progressAmberPct}%</span></span>

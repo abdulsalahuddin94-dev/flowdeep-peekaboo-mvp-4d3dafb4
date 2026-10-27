@@ -622,7 +622,7 @@ function ProjectDetail() {
       })),
     });
     setChangeRequests((prev) => [...prev, { ...cr, approvalId }]);
-    toast.success(`New baseline sent for approval — track it in the Approvals module`);
+    toast.success(`New baseline sent for approval — track it in the Change Requests module`);
   }
 
   const pendingCr = changeRequests.find((cr) => cr.status === "pending" && cr.approvalId);

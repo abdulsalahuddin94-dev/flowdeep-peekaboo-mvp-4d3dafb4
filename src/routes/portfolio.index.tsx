@@ -328,7 +328,7 @@ function PendingApprovalsChip({ count, projectName, className }: { count: number
     <span
       role="button"
       tabIndex={0}
-      title={`${count} pending approval${count === 1 ? "" : "s"} — open Approvals`}
+      title={`${count} pending approval${count === 1 ? "" : "s"} — open Change Requests`}
       onClick={(e) => { e.stopPropagation(); navigate({ to: "/change-requests", search: { project: projectName } }); }}
       onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); navigate({ to: "/change-requests", search: { project: projectName } }); } }}
       className={cn(

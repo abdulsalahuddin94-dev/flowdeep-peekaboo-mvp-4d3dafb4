@@ -3,7 +3,7 @@ import type { ApprovalRequest } from "@/lib/projects-store";
 import { formatDateWithYear } from "@/lib/date-format";
 
 /**
- * Shared read-out of a central Approvals Inbox decision, rendered at the place
+ * Shared read-out of a central Change Requests list decision, rendered at the place
  * where the request originated (project tab, milestone gate, calendar, …).
  */
 export function ApprovalOutcomeBanner({

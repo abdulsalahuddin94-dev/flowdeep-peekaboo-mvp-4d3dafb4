@@ -1,3 +1,7 @@
+## 2026-10-27 — Action details: Source instead of Closed
+- The action header strip (details page and quick-view drawer) now shows the action's Source (Risk/Issue · ref or Meeting · name) in place of the Closed date card.
+- `ActionDetailsPage.tsx`, `ActionTracker.tsx`; verified in preview, no runtime errors.
+
 ## 2026-10-26 — Profit Share donut: Top 4 + Others only
 - Donut now shows the 4 largest project types plus the grey Others slice; the separate "View all N types" link was removed — the Others legend row is the only entry to the ranked all-types dialog.
 - `topShareSlices` default changed from 6 to 4; tests updated and passing (2 pass), verified in preview.

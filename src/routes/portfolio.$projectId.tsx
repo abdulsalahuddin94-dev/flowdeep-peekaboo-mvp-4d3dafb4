@@ -6535,7 +6535,7 @@ function PendingChangeRequestDialog({
           {otherPending > 0 && (
             <p className="text-xs text-muted-foreground">
               {otherPending} other pending approval{otherPending === 1 ? "" : "s"} on this project —{" "}
-              <Link to="/change-requests" className="text-accent hover:underline">view in Approvals</Link>
+              <Link to="/change-requests" className="text-accent hover:underline">view in Change Requests</Link>
             </p>
           )}
           <DialogFooter>

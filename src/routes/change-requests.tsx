@@ -195,7 +195,7 @@ function ApprovalsInbox() {
         ]}
       />
 
-      <EmptyRegion id="approvals-inbox">
+      <EmptyRegion id="change-requests-inbox">
         <StyledTable wrapperClassName="">
           <StyledTableHeader>
             <StyledTableHeaderRow>

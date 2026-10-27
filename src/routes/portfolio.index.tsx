@@ -187,7 +187,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
             {projectsAwaiting.length > 3 ? ` +${projectsAwaiting.length - 3} more` : ""}
           </span>
           <button onClick={() => setOnlyPending(true)} className="ml-auto text-accent hover:underline">Show only these</button>
-          <Link to="/change-requests" className="text-accent hover:underline">Open Approvals</Link>
+          <Link to="/change-requests" className="text-accent hover:underline">Open Change Requests</Link>
         </div>
       )}
       {onlyPending && (

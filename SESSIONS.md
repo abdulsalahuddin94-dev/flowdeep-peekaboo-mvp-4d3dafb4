@@ -2436,3 +2436,6 @@ Created `product-spec.md` â€” the master product design specification for N
 
 ## 2026-10-14 — Save baseline requires a schedule item
 - Validation popup now also blocks Save baseline when the schedule has no milestone/task; CTA "Go to Project Schedule".
+
+## 2026-10-27 — Gantt non-working days
+- Project Gantt shades weekends (per project work calendar) and calendar holidays; legend entries added.

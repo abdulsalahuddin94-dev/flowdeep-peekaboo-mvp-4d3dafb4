@@ -1092,6 +1092,7 @@ function ProjectDetail() {
             </div>
           )}
           <ProjectSchedule
+            calendar={projectCalendar}
             items={useMemo(() => {
               if (!isViewingCurrent) {
                 const vNum = parseInt(selectedBaselineVersion.slice(1));

@@ -1,3 +1,8 @@
+## 2026-10-27 — Approval Current financial breakdown tables
+- Reused the project CostBreakdownTable and RevenuePlanTable for pending approval Current sections, retaining matching columns, utilization/collection, milestone-linked dates and expandable actual spend/payment rows.
+- Added explicit read-only mode hiding plan and bookkeeping actions, preserving revenue status on hover and removing empty action columns from expanded details; decided requests still hide Current sections.
+- Browser verified both tabs, actual expansion/collapse, invoice readback and absence of edit/delete controls; no runtime errors and preview build OK.
+
 ## 2026-10-27 — Action details: Source instead of Closed
 - The action header strip (details page and quick-view drawer) now shows the action's Source (Risk/Issue · ref or Meeting · name) in place of the Closed date card.
 - `ActionDetailsPage.tsx`, `ActionTracker.tsx`; verified in preview, no runtime errors.

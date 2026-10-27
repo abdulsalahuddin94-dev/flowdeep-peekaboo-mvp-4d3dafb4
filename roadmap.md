@@ -1,5 +1,5 @@
 # Roadmap
-- [ ] Match Approval Current cost/revenue to project breakdown tables with read-only expandable actuals; verify both tabs and log.
+- [x] Match Approval Current cost/revenue to project breakdown tables with read-only expandable actuals; verify both tabs and log.
 - [x] Cash Flow Forecast: remove the Monthly | Yearly toggle and keep Monthly as the only (default) view; verify year arrows and build.
 - [x] Correct project record breadcrumbs to the matching register/meeting tab and restore Add action popups; verify navigation and creation.
 - [x] Action details: remove Source/Project sidebar, put edit controls below fields, improve Comments & Updates; verify editing and comment updates.

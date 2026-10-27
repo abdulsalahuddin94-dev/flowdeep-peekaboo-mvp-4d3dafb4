@@ -3,7 +3,7 @@ import type { ApprovalRequest } from "@/lib/projects-store";
 import { formatDateWithYear } from "@/lib/date-format";
 
 /**
- * Shared read-out of a central Approvals Inbox decision, rendered at the place
+ * Shared read-out of a central Change Requests list decision, rendered at the place
  * where the request originated (project tab, milestone gate, calendar, …).
  */
 export function ApprovalOutcomeBanner({
@@ -37,9 +37,9 @@ export function ApprovalOutcomeBanner({
           : request.status === "rejected" ? <X className="h-3 w-3" />
           : <Clock className="h-3 w-3" />}
         {title ?? (
-          request.status === "approved" ? "Approved in Approvals inbox"
-          : request.status === "rejected" ? "Rejected in Approvals inbox"
-          : "Awaiting approval in Approvals inbox"
+          request.status === "approved" ? "Approved in Change Requests"
+          : request.status === "rejected" ? "Rejected in Change Requests"
+          : "Awaiting approval in Change Requests"
         )}
       </div>
       {decided.length > 0 && (

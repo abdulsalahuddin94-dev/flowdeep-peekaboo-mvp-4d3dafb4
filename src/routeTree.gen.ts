@@ -11,8 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActionTrackerRouteImport } from './routes/action-tracker'
-import { Route as ApprovalsRouteImport } from './routes/approvals'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ChangeRequestsRouteImport } from './routes/change-requests'
 import { Route as ClientsVendorsRouteImport } from './routes/clients-vendors'
 import { Route as FinancialsRouteImport } from './routes/financials'
 import { Route as MeetingsRouteImport } from './routes/meetings'
@@ -21,7 +21,7 @@ import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as RisksRouteImport } from './routes/risks'
 import { Route as ActionsActionIdRouteImport } from './routes/actions_.$actionId'
 import { Route as ActionsNewRouteImport } from './routes/actions_.new'
-import { Route as ApprovalsApprovalIdRouteImport } from './routes/approvals_.$approvalId'
+import { Route as ChangeRequestsApprovalIdRouteImport } from './routes/change-requests_.$approvalId'
 import { Route as IssuesIssueIdRouteImport } from './routes/issues_.$issueId'
 import { Route as IssuesNewRouteImport } from './routes/issues_.new'
 import { Route as MeetingsMeetingIdRouteImport } from './routes/meetings_.$meetingId'
@@ -44,14 +44,14 @@ const ActionTrackerRoute = ActionTrackerRouteImport.update({
   path: '/action-tracker',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApprovalsRoute = ApprovalsRouteImport.update({
-  id: '/approvals',
-  path: '/approvals',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangeRequestsRoute = ChangeRequestsRouteImport.update({
+  id: '/change-requests',
+  path: '/change-requests',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClientsVendorsRoute = ClientsVendorsRouteImport.update({
@@ -94,11 +94,12 @@ const ActionsNewRoute = ActionsNewRouteImport.update({
   path: '/actions/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApprovalsApprovalIdRoute = ApprovalsApprovalIdRouteImport.update({
-  id: '/approvals_/$approvalId',
-  path: '/approvals/$approvalId',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const ChangeRequestsApprovalIdRoute =
+  ChangeRequestsApprovalIdRouteImport.update({
+    id: '/change-requests_/$approvalId',
+    path: '/change-requests/$approvalId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const IssuesIssueIdRoute = IssuesIssueIdRouteImport.update({
   id: '/issues_/$issueId',
   path: '/issues/$issueId',
@@ -159,8 +160,8 @@ const ResourcesEmployeesEmployeeIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/action-tracker': typeof ActionTrackerRoute
-  '/approvals': typeof ApprovalsRoute
   '/auth': typeof AuthRoute
+  '/change-requests': typeof ChangeRequestsRoute
   '/clients-vendors': typeof ClientsVendorsRoute
   '/financials': typeof FinancialsRoute
   '/meetings': typeof MeetingsRoute
@@ -169,7 +170,7 @@ export interface FileRoutesByFullPath {
   '/risks': typeof RisksRoute
   '/actions/$actionId': typeof ActionsActionIdRoute
   '/actions/new': typeof ActionsNewRoute
-  '/approvals/$approvalId': typeof ApprovalsApprovalIdRoute
+  '/change-requests/$approvalId': typeof ChangeRequestsApprovalIdRoute
   '/issues/$issueId': typeof IssuesIssueIdRoute
   '/issues/new': typeof IssuesNewRoute
   '/meetings/$meetingId': typeof MeetingsMeetingIdRoute
@@ -185,8 +186,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/action-tracker': typeof ActionTrackerRoute
-  '/approvals': typeof ApprovalsRoute
   '/auth': typeof AuthRoute
+  '/change-requests': typeof ChangeRequestsRoute
   '/clients-vendors': typeof ClientsVendorsRoute
   '/financials': typeof FinancialsRoute
   '/meetings': typeof MeetingsRoute
@@ -195,7 +196,7 @@ export interface FileRoutesByTo {
   '/risks': typeof RisksRoute
   '/actions/$actionId': typeof ActionsActionIdRoute
   '/actions/new': typeof ActionsNewRoute
-  '/approvals/$approvalId': typeof ApprovalsApprovalIdRoute
+  '/change-requests/$approvalId': typeof ChangeRequestsApprovalIdRoute
   '/issues/$issueId': typeof IssuesIssueIdRoute
   '/issues/new': typeof IssuesNewRoute
   '/meetings/$meetingId': typeof MeetingsMeetingIdRoute
@@ -212,8 +213,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/action-tracker': typeof ActionTrackerRoute
-  '/approvals': typeof ApprovalsRoute
   '/auth': typeof AuthRoute
+  '/change-requests': typeof ChangeRequestsRoute
   '/clients-vendors': typeof ClientsVendorsRoute
   '/financials': typeof FinancialsRoute
   '/meetings': typeof MeetingsRoute
@@ -222,7 +223,7 @@ export interface FileRoutesById {
   '/risks': typeof RisksRoute
   '/actions_/$actionId': typeof ActionsActionIdRoute
   '/actions_/new': typeof ActionsNewRoute
-  '/approvals_/$approvalId': typeof ApprovalsApprovalIdRoute
+  '/change-requests_/$approvalId': typeof ChangeRequestsApprovalIdRoute
   '/issues_/$issueId': typeof IssuesIssueIdRoute
   '/issues_/new': typeof IssuesNewRoute
   '/meetings_/$meetingId': typeof MeetingsMeetingIdRoute
@@ -240,8 +241,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/action-tracker'
-    | '/approvals'
     | '/auth'
+    | '/change-requests'
     | '/clients-vendors'
     | '/financials'
     | '/meetings'
@@ -250,7 +251,7 @@ export interface FileRouteTypes {
     | '/risks'
     | '/actions/$actionId'
     | '/actions/new'
-    | '/approvals/$approvalId'
+    | '/change-requests/$approvalId'
     | '/issues/$issueId'
     | '/issues/new'
     | '/meetings/$meetingId'
@@ -266,8 +267,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/action-tracker'
-    | '/approvals'
     | '/auth'
+    | '/change-requests'
     | '/clients-vendors'
     | '/financials'
     | '/meetings'
@@ -276,7 +277,7 @@ export interface FileRouteTypes {
     | '/risks'
     | '/actions/$actionId'
     | '/actions/new'
-    | '/approvals/$approvalId'
+    | '/change-requests/$approvalId'
     | '/issues/$issueId'
     | '/issues/new'
     | '/meetings/$meetingId'
@@ -292,8 +293,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/action-tracker'
-    | '/approvals'
     | '/auth'
+    | '/change-requests'
     | '/clients-vendors'
     | '/financials'
     | '/meetings'
@@ -302,7 +303,7 @@ export interface FileRouteTypes {
     | '/risks'
     | '/actions_/$actionId'
     | '/actions_/new'
-    | '/approvals_/$approvalId'
+    | '/change-requests_/$approvalId'
     | '/issues_/$issueId'
     | '/issues_/new'
     | '/meetings_/$meetingId'
@@ -319,8 +320,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActionTrackerRoute: typeof ActionTrackerRoute
-  ApprovalsRoute: typeof ApprovalsRoute
   AuthRoute: typeof AuthRoute
+  ChangeRequestsRoute: typeof ChangeRequestsRoute
   ClientsVendorsRoute: typeof ClientsVendorsRoute
   FinancialsRoute: typeof FinancialsRoute
   MeetingsRoute: typeof MeetingsRoute
@@ -329,7 +330,7 @@ export interface RootRouteChildren {
   RisksRoute: typeof RisksRoute
   ActionsActionIdRoute: typeof ActionsActionIdRoute
   ActionsNewRoute: typeof ActionsNewRoute
-  ApprovalsApprovalIdRoute: typeof ApprovalsApprovalIdRoute
+  ChangeRequestsApprovalIdRoute: typeof ChangeRequestsApprovalIdRoute
   IssuesIssueIdRoute: typeof IssuesIssueIdRoute
   IssuesNewRoute: typeof IssuesNewRoute
   MeetingsMeetingIdRoute: typeof MeetingsMeetingIdRoute
@@ -359,18 +360,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActionTrackerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/approvals': {
-      id: '/approvals'
-      path: '/approvals'
-      fullPath: '/approvals'
-      preLoaderRoute: typeof ApprovalsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/change-requests': {
+      id: '/change-requests'
+      path: '/change-requests'
+      fullPath: '/change-requests'
+      preLoaderRoute: typeof ChangeRequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clients-vendors': {
@@ -429,11 +430,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ActionsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/approvals_/$approvalId': {
-      id: '/approvals_/$approvalId'
-      path: '/approvals/$approvalId'
-      fullPath: '/approvals/$approvalId'
-      preLoaderRoute: typeof ApprovalsApprovalIdRouteImport
+    '/change-requests_/$approvalId': {
+      id: '/change-requests_/$approvalId'
+      path: '/change-requests/$approvalId'
+      fullPath: '/change-requests/$approvalId'
+      preLoaderRoute: typeof ChangeRequestsApprovalIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/issues_/$issueId': {
@@ -519,8 +520,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActionTrackerRoute: ActionTrackerRoute,
-  ApprovalsRoute: ApprovalsRoute,
   AuthRoute: AuthRoute,
+  ChangeRequestsRoute: ChangeRequestsRoute,
   ClientsVendorsRoute: ClientsVendorsRoute,
   FinancialsRoute: FinancialsRoute,
   MeetingsRoute: MeetingsRoute,
@@ -529,7 +530,7 @@ const rootRouteChildren: RootRouteChildren = {
   RisksRoute: RisksRoute,
   ActionsActionIdRoute: ActionsActionIdRoute,
   ActionsNewRoute: ActionsNewRoute,
-  ApprovalsApprovalIdRoute: ApprovalsApprovalIdRoute,
+  ChangeRequestsApprovalIdRoute: ChangeRequestsApprovalIdRoute,
   IssuesIssueIdRoute: IssuesIssueIdRoute,
   IssuesNewRoute: IssuesNewRoute,
   MeetingsMeetingIdRoute: MeetingsMeetingIdRoute,

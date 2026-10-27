@@ -63,7 +63,7 @@ export type TabChangeRequest<TSnapshot = unknown> = {
   approvers: ApproverPick[];
   responses: ApproverResponse[];
   pendingSnapshot: TSnapshot;
-  /** Linked central Approvals Inbox request id. */
+  /** Linked central Change Requests list request id. */
   approvalId?: string;
 };
 
@@ -271,7 +271,7 @@ export function useTabBaseline<TSnapshot>({
     setApprovalDialogOpen(true);
   };
 
-  // Mirror decisions taken in the central Approvals Inbox back onto this tab's CR.
+  // Mirror decisions taken in the central Change Requests list back onto this tab's CR.
   useEffect(() => {
     for (const cr of changeRequests) {
       if (cr.status !== "pending" || !cr.approvalId) continue;

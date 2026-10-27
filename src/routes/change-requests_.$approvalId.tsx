@@ -29,13 +29,13 @@ import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/approvals_/$approvalId")({
+export const Route = createFileRoute("/change-requests_/$approvalId")({
   component: ChangeRequestReviewPage,
   head: () => ({
     meta: [
-      { title: "Project Approval Review — Nexus PMO MVP" },
+      { title: "Change Request Review — Nexus PMO MVP" },
       { name: "description", content: "Review project milestone approvals and change requests alongside the schedule, cost breakdown and revenue breakdown." },
-      { property: "og:title", content: "Project Approval Review — Nexus PMO MVP" },
+      { property: "og:title", content: "Change Request Review — Nexus PMO MVP" },
       { property: "og:description", content: "Review project milestone approvals and change requests alongside the schedule, cost breakdown and revenue breakdown." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -97,8 +97,8 @@ function ChangeRequestReviewPage() {
   if (!approval || approval.type === "calendar-change") {
     return (
       <div>
-        <Link to="/approvals" className="inline-flex items-center gap-2 text-sm text-accent hover:underline">
-          <ArrowLeft className="h-4 w-4" /> Back to Approvals
+        <Link to="/change-requests" className="inline-flex items-center gap-2 text-sm text-accent hover:underline">
+          <ArrowLeft className="h-4 w-4" /> Back to Change Requests
         </Link>
         <div className="mt-10 rounded-lg border border-border bg-card p-10 text-center">
           <div className="text-lg font-medium text-foreground">Project approval not found</div>
@@ -154,14 +154,14 @@ function ChangeRequestReviewPage() {
       mode === "approve" ? `Approved — ${approval.title}` : `Rejected — ${approval.title}`,
     );
     setDecisionOpen(false);
-    navigate({ to: "/approvals" });
+    navigate({ to: "/change-requests" });
   }
 
 
   return (
     <div>
-      <Link to="/approvals" className="inline-flex items-center gap-2 text-sm text-accent hover:underline">
-        <ArrowLeft className="h-4 w-4" /> Back to Approvals
+      <Link to="/change-requests" className="inline-flex items-center gap-2 text-sm text-accent hover:underline">
+        <ArrowLeft className="h-4 w-4" /> Back to Change Requests
       </Link>
 
       <div className="mt-3">

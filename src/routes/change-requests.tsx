@@ -33,7 +33,7 @@ import { useApprovals, type ApprovalRequest } from "@/lib/projects-store";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
 
-export const Route = createFileRoute("/approvals")({
+export const Route = createFileRoute("/change-requests")({
   component: ApprovalsInbox,
   validateSearch: (search: Record<string, unknown>) => {
     if (typeof search.project === "string" && search.project) return { project: search.project };
@@ -41,9 +41,9 @@ export const Route = createFileRoute("/approvals")({
   },
   head: () => ({
     meta: [
-      { title: "Approvals Inbox — Nexus PMO MVP" },
-      { name: "description", content: "Central inbox for milestone completion gates and baseline change requests awaiting your decision." },
-      { property: "og:title", content: "Approvals Inbox — Nexus PMO MVP" },
+      { title: "Change Requests — Nexus PMO MVP" },
+      { name: "description", content: "Central list of milestone completion gates and baseline change requests awaiting your decision." },
+      { property: "og:title", content: "Change Requests — Nexus PMO MVP" },
       { property: "og:description", content: "Review and decide on milestone gates and baseline change requests in one place." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -151,7 +151,7 @@ function ApprovalsInbox() {
   return (
     <div>
       <PageHeader
-        title="Approvals"
+        title="Change Requests"
         subtitle={`Signed in as ${currentUser.name} · ${currentUser.role}`}
         actions={<ViewAsSelect />}
       />
@@ -195,7 +195,7 @@ function ApprovalsInbox() {
         ]}
       />
 
-      <EmptyRegion id="approvals-inbox">
+      <EmptyRegion id="change-requests-inbox">
         <StyledTable wrapperClassName="">
           <StyledTableHeader>
             <StyledTableHeaderRow>
@@ -216,7 +216,7 @@ function ApprovalsInbox() {
                   key={approval.id}
                   className="group cursor-pointer"
                   onClick={() => approval.type !== "calendar-change"
-                    ? navigate({ to: "/approvals/$approvalId", params: { approvalId: approval.id } })
+                    ? navigate({ to: "/change-requests/$approvalId", params: { approvalId: approval.id } })
                     : setDetailsId(approval.id)}
                 >
                   <StyledTableCell>

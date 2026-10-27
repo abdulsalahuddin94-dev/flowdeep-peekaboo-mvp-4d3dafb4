@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Rename the Approvals module to Change Requests across nav, headings, links, banners, empty state and routes; verify navigation and log.
 - [x] Match Approval Current cost/revenue to project breakdown tables with read-only expandable actuals; verify both tabs and log.
 - [x] Cash Flow Forecast: remove the Monthly | Yearly toggle and keep Monthly as the only (default) view; verify year arrows and build.
 - [x] Correct project record breadcrumbs to the matching register/meeting tab and restore Add action popups; verify navigation and creation.

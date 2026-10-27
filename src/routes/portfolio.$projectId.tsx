@@ -3243,7 +3243,7 @@ export function RevenuePlanTable({
                 <TableCell className="text-xs text-muted-foreground">{formatDateForDisplay(dateOf(r))}</TableCell>
                 <TableCell className="text-center" onClick={(ev) => ev.stopPropagation()}>
                   {/* Status pill at rest; row actions replace it on hover (DS02). */}
-                  <TableRowActions
+                  {readOnly ? <RagBadge rag={status.s as any} label={status.sl} /> : <TableRowActions
                     showStatus
                     statusNode={<RagBadge rag={status.s as any} label={status.sl} />}
                     onEdit={!readOnly && canEdit ? () => setEditingIdx(idx) : undefined}
@@ -3255,7 +3255,7 @@ export function RevenuePlanTable({
                         onAdd={(a) => { onAddActual(idx, a); setExpanded((prev) => new Set(prev).add(r.ms)); }}
                       />
                     }
-                  />
+                  />}
                 </TableCell>
               </TableRow>
               {open && (

@@ -1,3 +1,8 @@
+## 2026-10-27 — Approvals module renamed to Change Requests
+- The module is now "Change Requests" everywhere it is visible: sidebar item, page heading, review page back links, portfolio "Open Change Requests", project "view in Change Requests", decision banners ("Approved / Rejected / Awaiting approval in Change Requests"), empty state and page/browser titles.
+- Routes renamed to /change-requests and /change-requests/$approvalId (files change-requests.tsx and change-requests_.$approvalId.tsx); all links, the breadcrumb module map and the empty-state registry follow the new path.
+- Browser verified the sidebar label with its pending badge, the list heading, row → review → back navigation, and the portfolio entry link with no runtime errors; preview build OK.
+
 ## 2026-10-27 — Approval Current financial breakdown tables
 - Reused the project CostBreakdownTable and RevenuePlanTable for pending approval Current sections, retaining matching columns, utilization/collection, milestone-linked dates and expandable actual spend/payment rows.
 - Added explicit read-only mode hiding plan and bookkeeping actions, preserving revenue status on hover and removing empty action columns from expanded details; decided requests still hide Current sections.

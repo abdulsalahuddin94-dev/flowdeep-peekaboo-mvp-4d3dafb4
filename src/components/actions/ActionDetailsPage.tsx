@@ -129,7 +129,7 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
             l: t.dueDate,
             v: <span className={cn(over && "text-rag-red")}>{formatDateWithYear(a.dueDate)}{over && <span className="ms-2 text-[11px]">{daysOverdue(a)}d overdue</span>}</span>,
           },
-          { l: "Closed", v: formatDateWithYear(a.closedDate) },
+          { l: "Source", v: sourceLabel(a) },
         ].map((k, i) => (
           <div key={k.l} className={cn("flex min-w-0 flex-col justify-center border-border px-5 py-4", i < 4 && "border-b xl:border-b-0 xl:border-e")}>
             <dt className="label-eyebrow">{k.l}</dt>

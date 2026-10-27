@@ -373,7 +373,7 @@ function ActionDrawer({ action: a, onClose, onUpdate, onEdit, onEditUpdate, onDe
           <SheetDescription className="text-xs">{a.id} · {sourceLabel(a)}</SheetDescription>
         </SheetHeader>
         <div className="grid grid-cols-3 divide-x divide-border border-b border-border">
-          {[{ l: "Owner", v: a.owner }, { l: "Due date", v: formatDateWithYear(a.dueDate) }, { l: "Closed", v: formatDateWithYear(a.closedDate) }].map((k) => (
+          {[{ l: "Owner", v: a.owner }, { l: "Due date", v: formatDateWithYear(a.dueDate) }, { l: "Source", v: sourceLabel(a) }].map((k) => (
             <div key={k.l} className="px-4 py-3">
               <div className="label-eyebrow text-[10px]">{k.l}</div>
               <div className="mt-0.5 text-sm font-medium text-foreground">{k.v}</div>

@@ -24,7 +24,7 @@ import { ArrowLeft } from "@/lib/icons";
 import { useApprovals, useProjects, type ApprovalRequest } from "@/lib/projects-store";
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/plan-seeds";
-import type { CostEntry, Milestone, RevEntry } from "@/routes/portfolio.$projectId";
+import { CostBreakdownTable, RevenuePlanTable, type CostEntry, type Milestone, type RevEntry } from "@/routes/portfolio.$projectId";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
@@ -79,7 +79,7 @@ function statusDot(status: ApprovalRequest["status"]) {
   return status === "approved" ? "bg-rag-green" : status === "rejected" ? "bg-rag-red" : "bg-rag-amber";
 }
 
-const money = (value: number | null) => (value == null ? "—" : `$${value.toFixed(2)}M`);
+const readOnlyAction = () => {};
 
 
 function ChangeRequestReviewPage() {
@@ -115,6 +115,13 @@ function ChangeRequestReviewPage() {
   const scheduleItems = cached?.milestones ?? (project ? seedMilestones(project) : []);
   const costEntries = cached?.costEntries ?? initialCostEntries(false);
   const revEntries = cached?.revEntries ?? (project ? initialRevEntries(project, false) : []);
+
+  const milestoneNames = scheduleItems.filter((item) => item.kind === "Milestone").map((item) => item.name);
+  const milestoneEnd = (name?: string) => scheduleItems.find((item) => item.name === name)?.endDate;
+  const costDate = (entry: CostEntry) => (entry.linkKind === "milestone" ? milestoneEnd(entry.linkRef) || entry.linkRef : entry.linkRef) || "—";
+  const revenueDate = (entry: RevEntry) => (entry.linkKind === "milestone" ? milestoneEnd(entry.ms) || entry.date : entry.date) || "—";
+  const plannedRevenue = revEntries.reduce((sum, entry) => sum + entry.plan, 0);
+  const actualRevenue = revEntries.reduce((sum, entry) => sum + (entry.act ?? 0), 0);
 
   const itemKinds = new Map(scheduleItems.map((item) => [item.name, item.kind as string]));
   const sectionChanges = splitChanges(approval.summary, (item) =>
@@ -250,73 +257,26 @@ function ChangeRequestReviewPage() {
         {isPending && (
         <TabsContent value="cost" className="mt-6">
           <h3 className="mb-3 text-sm font-medium text-foreground">Current cost lines</h3>
-          <StyledTable wrapperClassName="">
-            <StyledTableHeader>
-              <StyledTableHeaderRow>
-                <StyledTableHead>Cost line</StyledTableHead>
-                <StyledTableHead>Category</StyledTableHead>
-                <StyledTableHead>Type</StyledTableHead>
-                <StyledTableHead>CapEx/OpEx</StyledTableHead>
-                <StyledTableHead>Planned</StyledTableHead>
-                <StyledTableHead>Actual</StyledTableHead>
-                <StyledTableHead>Date</StyledTableHead>
-              </StyledTableHeaderRow>
-            </StyledTableHeader>
-            <StyledTableBody>
-              {costEntries.length === 0 ? <EmptyRow colSpan={7} /> : costEntries.map((entry) => (
-                <StyledTableRow key={entry.c}>
-                  <StyledTableCell>
-                    <div className="font-medium text-foreground">{entry.c}</div>
-                    {entry.desc && <div className="mt-0.5 text-xs text-muted-foreground">{entry.desc}</div>}
-                  </StyledTableCell>
-                  <StyledTableCell>{entry.cat ?? "—"}</StyledTableCell>
-                  <StyledTableCell className="capitalize">{entry.ctype ?? "—"}</StyledTableCell>
-                  <StyledTableCell className="uppercase">{entry.classification ?? "—"}</StyledTableCell>
-                  <StyledTableCell>{money(entry.b)}</StyledTableCell>
-                  <StyledTableCell>{money(entry.a)}</StyledTableCell>
-                  <StyledTableCell>
-                    {entry.linkKind === "milestone" ? entry.linkRef : entry.linkRef ? formatDateWithYear(entry.linkRef) : "—"}
-                  </StyledTableCell>
-                </StyledTableRow>
-              ))}
-            </StyledTableBody>
-          </StyledTable>
+          <CostBreakdownTable
+            entries={costEntries} canEdit={false} allowActuals={false} readOnly
+            categories={[]} milestoneNames={milestoneNames} dateOf={costDate}
+            totals={{ planned: 0, actual: 0, util: 0 }}
+            onSave={readOnlyAction} onDelete={readOnlyAction} onAddActual={readOnlyAction}
+            onEditActual={readOnlyAction} onDeleteActual={readOnlyAction}
+          />
         </TabsContent>
         )}
 
         {isPending && (
         <TabsContent value="revenue" className="mt-6">
           <h3 className="mb-3 text-sm font-medium text-foreground">Current revenue events</h3>
-          <StyledTable wrapperClassName="">
-            <StyledTableHeader>
-              <StyledTableHeaderRow>
-                <StyledTableHead>Milestone</StyledTableHead>
-                <StyledTableHead>Event</StyledTableHead>
-                <StyledTableHead>Planned</StyledTableHead>
-                <StyledTableHead>Actual</StyledTableHead>
-                <StyledTableHead>Date</StyledTableHead>
-                <StyledTableHead>Status</StyledTableHead>
-              </StyledTableHeaderRow>
-            </StyledTableHeader>
-            <StyledTableBody>
-              {revEntries.length === 0 ? <EmptyRow colSpan={6} /> : revEntries.map((entry) => (
-                <StyledTableRow key={`${entry.ms}-${entry.evt}`}>
-                  <StyledTableCell>{entry.ms}</StyledTableCell>
-                  <StyledTableCell><div className="font-medium text-foreground">{entry.evt}</div></StyledTableCell>
-                  <StyledTableCell>{money(entry.plan)}</StyledTableCell>
-                  <StyledTableCell>{money(entry.act)}</StyledTableCell>
-                  <StyledTableCell>{/^\d{4}-\d{2}-\d{2}$/.test(entry.date) ? formatDateWithYear(entry.date) : entry.date}</StyledTableCell>
-                  <StyledTableCell>
-                    <Badge variant="outline" className={
-                      entry.sl === "Received" ? "border-rag-green/50 bg-rag-green/10 text-rag-green"
-                        : entry.sl === "Pending" ? "border-rag-amber/50 bg-rag-amber/10 text-rag-amber"
-                          : "border-rag-blue/50 bg-rag-blue/10 text-rag-blue"
-                    }>{entry.sl}</Badge>
-                  </StyledTableCell>
-                </StyledTableRow>
-              ))}
-            </StyledTableBody>
-          </StyledTable>
+          <RevenuePlanTable
+            entries={revEntries} canEdit={false} allowActuals={false} readOnly
+            milestoneNames={milestoneNames} dateOf={revenueDate}
+            totals={{ planned: plannedRevenue, actual: actualRevenue, util: plannedRevenue ? Math.min(100, Math.round(actualRevenue / plannedRevenue * 100)) : 0 }}
+            onSave={readOnlyAction} onDelete={readOnlyAction} onAddActual={readOnlyAction}
+            onEditActual={readOnlyAction} onDeleteActual={readOnlyAction}
+          />
         </TabsContent>
         )}
       </Tabs>

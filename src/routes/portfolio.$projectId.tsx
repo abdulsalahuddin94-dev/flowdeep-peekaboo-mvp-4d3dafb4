@@ -3143,12 +3143,13 @@ function FinancialsTab({
 }
 
 /** Revenue plan with one row per planned event; expanding a row reveals its logged actuals. */
-function RevenuePlanTable({
-  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual, onMilestoneClick, allowActuals = true,
+export function RevenuePlanTable({
+  entries, canEdit, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual, onMilestoneClick, allowActuals = true, readOnly = false,
 }: {
   entries: RevEntry[];
   canEdit: boolean;
   allowActuals?: boolean;
+  readOnly?: boolean;
   milestoneNames: string[];
   dateOf: (e: RevEntry) => string;
   totals: { planned: number; actual: number; util: number };
@@ -3226,7 +3227,7 @@ function RevenuePlanTable({
                 <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
                 <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
                 <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
-                  {linkedMs ? (
+                  {linkedMs && !readOnly ? (
                     <button
                       type="button"
                       onClick={() => onMilestoneClick?.(linkedMs)}
@@ -3236,7 +3237,7 @@ function RevenuePlanTable({
                       {r.ms}
                     </button>
                   ) : (
-                    <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
+                    <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">{linkedMs || "Fixed date"}</span>
                   )}
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">{formatDateForDisplay(dateOf(r))}</TableCell>
@@ -3245,9 +3246,9 @@ function RevenuePlanTable({
                   <TableRowActions
                     showStatus
                     statusNode={<RagBadge rag={status.s as any} label={status.sl} />}
-                    onEdit={canEdit ? () => setEditingIdx(idx) : undefined}
-                    onDelete={canEdit ? () => setPendingDeleteIdx(idx) : undefined}
-                    extraActions={allowActuals &&
+                    onEdit={!readOnly && canEdit ? () => setEditingIdx(idx) : undefined}
+                    onDelete={!readOnly && canEdit ? () => setPendingDeleteIdx(idx) : undefined}
+                    extraActions={!readOnly && allowActuals &&
                       <AddActualDialog
                         title="Add revenue recognition"
                         validateAmount={(amt) => overPlanMessage(amt, remaining)}
@@ -3263,29 +3264,29 @@ function RevenuePlanTable({
                     <div className="ml-4 border-l border-border pl-3">
                       {/* Expanded nested actual-spend table uses the table header token (#292931) fill. */}
                       <div className="overflow-hidden rounded-lg bg-p-charcoal-800">
-                        <div className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center border-b border-black/20 px-5 py-3 text-xs font-medium text-foreground">
+                        <div className={cn("grid items-center border-b border-border px-5 py-3 text-xs font-medium text-foreground", readOnly ? "grid-cols-[minmax(0,1fr)_140px_140px]" : "grid-cols-[minmax(220px,1fr)_180px_150px_108px]")}>
                           <span>Actual payment</span>
                           <span>Date</span>
                           <span className="text-right">Amount ($M)</span>
-                          <span className="sr-only">Actions</span>
+                          {!readOnly && <span className="sr-only">Actions</span>}
                         </div>
                         {actuals.map((a, i) => (
                           <div
                             key={`${r.ms}-a${i}`}
-                            className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center px-5 py-3 text-xs text-muted-foreground transition-colors hover:bg-p-charcoal-400"
+                            className={cn("grid items-center px-5 py-3 text-xs text-muted-foreground transition-colors hover:bg-p-charcoal-400", readOnly ? "grid-cols-[minmax(0,1fr)_140px_140px]" : "grid-cols-[minmax(220px,1fr)_180px_150px_108px]")}
                           >
                             <span className="text-foreground">
                               {a.name ?? "Actual payment"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
                             </span>
                             <span>{formatDateForDisplay(a.date)}</span>
                             <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
-                            <span className="flex justify-end">
+                            {!readOnly && <span className="flex justify-end">
                               {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
                               <TableRowActions
-                                onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
-                                onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
+                                onEdit={readOnly ? undefined : () => setEditingActual({ rowIdx: idx, actualIdx: i })}
+                                onDelete={readOnly ? undefined : () => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
                               />
-                            </span>
+                            </span>}
                           </div>
                         ))}
                       </div>
@@ -3360,12 +3361,13 @@ function RevenuePlanTable({
 }
 
 /** Cost breakdown with one row per planned item; expanding a row reveals its logged actual expenses. */
-function CostBreakdownTable({
-  entries, canEdit, categories, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual, onMilestoneClick, allowActuals = true,
+export function CostBreakdownTable({
+  entries, canEdit, categories, milestoneNames, dateOf, totals, onSave, onDelete, onAddActual, onEditActual, onDeleteActual, onMilestoneClick, allowActuals = true, readOnly = false,
 }: {
   entries: CostEntry[];
   canEdit: boolean;
   allowActuals?: boolean;
+  readOnly?: boolean;
   categories: string[];
   milestoneNames: string[];
   dateOf: (e: CostEntry) => string;
@@ -3403,7 +3405,7 @@ function CostBreakdownTable({
           <TableHead>Linked to</TableHead>
           <TableHead>Date</TableHead>
 
-          <TableHead className="w-32" />
+          {!readOnly && <TableHead className="w-32" />}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -3468,7 +3470,7 @@ function CostBreakdownTable({
                   </Tooltip>
                 </TableCell>
                 <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
-                  {e.linkKind === "milestone" && e.linkRef ? (
+                  {e.linkKind === "milestone" && e.linkRef && !readOnly ? (
                     <button
                       type="button"
                       onClick={() => onMilestoneClick?.(e.linkRef ?? "")}
@@ -3478,17 +3480,17 @@ function CostBreakdownTable({
                       {e.linkRef}
                     </button>
                   ) : (
-                    <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">Fixed date</span>
+                    <span className="inline-flex items-center rounded bg-secondary/40 px-1.5 py-0.5 text-[11px] text-muted-foreground">{(e.linkKind === "milestone" ? e.linkRef : undefined) || "Fixed date"}</span>
                   )}
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">{formatDateForDisplay(dateOf(e))}</TableCell>
 
-                <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
+                {!readOnly && <TableCell className="text-right" onClick={(ev) => ev.stopPropagation()}>
                   {/* Logging an actual expense stays available after baseline lock; re-planning does not. */}
                   <TableRowActions
-                    onEdit={canEdit ? () => setEditingIdx(idx) : undefined}
-                    onDelete={requestDelete}
-                    extraActions={allowActuals &&
+                    onEdit={!readOnly && canEdit ? () => setEditingIdx(idx) : undefined}
+                    onDelete={readOnly ? undefined : requestDelete}
+                    extraActions={!readOnly && allowActuals &&
                       <AddActualDialog
                         title="Add actual spend"
                         validateAmount={(amt) => overPlanMessage(amt, remaining)}
@@ -3496,37 +3498,37 @@ function CostBreakdownTable({
                       />
                     }
                   />
-                </TableCell>
+                </TableCell>}
               </TableRow>
               {open && (
                 <TableRow className="bg-transparent hover:bg-transparent border-0 [&>td]:!bg-transparent hover:[&>td]:!bg-transparent">
-                  <TableCell colSpan={9} className="px-4 pb-3 pt-1">
+                  <TableCell colSpan={readOnly ? 8 : 9} className="px-4 pb-3 pt-1">
                     <div className="ml-4 border-l border-border pl-3">
                       {/* Expanded nested actual-spend table uses the table header token (#292931) fill. */}
                       <div className="overflow-hidden rounded-lg bg-p-charcoal-800">
-                        <div className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center border-b border-black/20 px-5 py-3 text-xs font-medium text-foreground">
+                        <div className={cn("grid items-center border-b border-border px-5 py-3 text-xs font-medium text-foreground", readOnly ? "grid-cols-[minmax(0,1fr)_140px_140px]" : "grid-cols-[minmax(220px,1fr)_180px_150px_108px]")}>
                           <span>Actual spend</span>
                           <span>Date</span>
                           <span className="text-right">Amount ($M)</span>
-                          <span className="sr-only">Actions</span>
+                          {!readOnly && <span className="sr-only">Actions</span>}
                         </div>
                         {actuals.map((a, i) => (
                           <div
                             key={`${e.c}-a${i}`}
-                            className="grid grid-cols-[minmax(220px,1fr)_180px_150px_108px] items-center px-5 py-3 text-xs text-muted-foreground transition-colors hover:bg-p-charcoal-400"
+                            className={cn("grid items-center px-5 py-3 text-xs text-muted-foreground transition-colors hover:bg-p-charcoal-400", readOnly ? "grid-cols-[minmax(0,1fr)_140px_140px]" : "grid-cols-[minmax(220px,1fr)_180px_150px_108px]")}
                           >
                             <span className="text-foreground">
                               {a.name ?? "Actual spend"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
                             </span>
                             <span>{formatDateForDisplay(a.date)}</span>
                             <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
-                            <span className="flex justify-end">
+                            {!readOnly && <span className="flex justify-end">
                               {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
                               <TableRowActions
-                                onEdit={() => setEditingActual({ rowIdx: idx, actualIdx: i })}
-                                onDelete={() => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
+                                onEdit={readOnly ? undefined : () => setEditingActual({ rowIdx: idx, actualIdx: i })}
+                                onDelete={readOnly ? undefined : () => setPendingDeleteActual({ rowIdx: idx, actualIdx: i })}
                               />
-                            </span>
+                            </span>}
                           </div>
                         ))}
                       </div>

@@ -1,3 +1,10 @@
+## 2026-10-29 — Project Overview cash-flow forecast
+- Added a full-width monthly Cash Flow Forecast above the project Overview summaries, matching the Financials chart and bottom legend without a Project type selector.
+- Uses current project planned cost/revenue events and milestone-linked finish dates; undated cost lines are excluded, and legacy yearless revenue dates follow the existing current-year convention.
+- Year arrows follow the complete project start/end timeline, including years without events; cumulative net carries forward across years.
+- Added unit tests for one/two/three-year navigation, linked dates and cumulative values in empty years.
+- Verified project Overview rendering and three-year navigation (2025 → 2026 → 2027 → 2026), final-year arrow bounds, mobile layout without horizontal overflow, and no runtime errors; 11 tests pass and preview build OK.
+
 ## 2026-10-27 — Approvals module renamed to Change Requests
 - The module is now "Change Requests" everywhere it is visible: sidebar item, page heading, review page back links, portfolio "Open Change Requests", project "view in Change Requests", decision banners ("Approved / Rejected / Awaiting approval in Change Requests"), empty state and page/browser titles.
 - Routes renamed to /change-requests and /change-requests/$approvalId (files change-requests.tsx and change-requests_.$approvalId.tsx); all links, the breadcrumb module map and the empty-state registry follow the new path.

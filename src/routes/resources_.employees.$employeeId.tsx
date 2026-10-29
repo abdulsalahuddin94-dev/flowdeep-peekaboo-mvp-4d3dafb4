@@ -81,12 +81,12 @@ function EmployeeDetails() {
     <div className="flex shrink-0 items-center gap-3 xl:pb-1"><span className="text-xs text-muted-foreground">{t.year}</span><Select value={year} onValueChange={(v) => { setYear(v); setSelectedMonth(`${v}-${selectedMonth.slice(5)}`); }}><SelectTrigger aria-label={t.year} className="w-28"><SelectValue /></SelectTrigger><SelectContent>{years.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select></div>
    </div>
    <TabsContent value="overview" className="mt-0 space-y-8">
-    <section className="min-w-0"><h2 className="mb-5 text-base font-semibold">{t.details}</h2><dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">{[...profile, [t.baseSalary, money(employee.salary)], [t.baseCapacity, `${employee.capacity}h`]].map(([label, value]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1.5 break-words text-sm font-medium leading-relaxed">{value}</dd></div>)}</dl></section>
+    <section className="min-w-0"><h2 className="mb-5 text-base font-semibold">{t.details}</h2><dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">{profile.map(([label, value]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1.5 break-words text-sm font-medium leading-relaxed">{value}</dd></div>)}</dl></section>
     <div className="grid min-w-0 gap-8 xl:grid-cols-2">
      <section className="min-w-0 space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.monthSummary}</h2><span className="text-xs text-muted-foreground">{monthLabel(selectedMonth)}</span></div>
-      <div className="glass-card grid grid-cols-3 divide-x divide-border p-0 rtl:divide-x-reverse">
-       {[[t.monthly, money(monthly.salary)], [t.available, `${monthly.availableCapacity}h`], [t.assigned, `${monthly.allocatedHours.toFixed(1)}h`]].map(([label, value]) => <div key={label} className="min-w-0 px-4 py-3"><div className="label-eyebrow">{label}</div><div className="mt-1.5 break-words text-lg font-semibold tabular-nums text-foreground">{value}</div></div>)}
+      <div className="glass-card grid grid-cols-2 divide-x divide-border p-0 rtl:divide-x-reverse">
+       {[[t.available, `${monthly.availableCapacity}h`], [t.assigned, `${monthly.allocatedHours.toFixed(1)}h`]].map(([label, value]) => <div key={label} className="min-w-0 px-4 py-3"><div className="label-eyebrow">{label}</div><div className="mt-1.5 break-words text-lg font-semibold tabular-nums text-foreground">{value}</div></div>)}
       </div>
       <div className="space-y-2">
        <div className="flex items-center justify-between text-xs"><span className="text-muted-foreground">{t.utilization}</span><span className={`font-medium ${monthly.effectiveUtilization > 100 ? "text-rag-red" : monthly.effectiveUtilization >= 80 ? "text-rag-amber" : "text-rag-green"}`}>{monthly.effectiveUtilization}%</span></div>

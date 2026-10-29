@@ -105,7 +105,7 @@ function EmployeeDetails() {
        <div className="grid items-center gap-6 sm:grid-cols-[220px_minmax(0,1fr)]">
         <div className="relative h-[220px] w-[220px]">
          <PieChart width={220} height={220}>
-          <Pie data={[...monthly.charges.map((a, i) => ({ name: a.project, value: a.amount, color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ name: t.overhead, value: monthly.overhead, color: donutOverheadColor }] : [])]} dataKey="value" nameKey="name" innerRadius={62} outerRadius={95} paddingAngle={3} stroke="none">
+          <Pie data={[...monthly.charges.map((a, i) => ({ name: a.project, value: a.amount, color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ name: t.overhead, value: monthly.overhead, color: donutOverheadColor }] : [])]} dataKey="value" nameKey="name" innerRadius={62} outerRadius={95} paddingAngle={3} stroke="none" isAnimationActive={false}>
            {[...monthly.charges.map((a, i) => ({ color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ color: donutOverheadColor }] : [])].map((x, i) => <Cell key={i} fill={x.color} />)}
           </Pie>
          </PieChart>

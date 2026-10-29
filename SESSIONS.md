@@ -1,5 +1,10 @@
+## 2026-10-29 — Project Overview layout reorder
+- Reordered the project Overview tab: Project Health, Budget Status and Next Milestones as an equal-height three-card row, Risks Summary and Stage Gates below in two columns, and Cash Flow Forecast last across the full width.
+- Sized the Risks Summary list to exactly five rows (307px) so entries stop clipping mid-row, and showed the used-budget percentage beside Remaining so the Budget Status card fills its row.
+- Browser verified the new order, chart rendering, card heights and mobile stacking with no runtime errors; typecheck clean and preview build OK.
+
 ## 2026-10-29 — Project Overview cash-flow forecast
-- Added a full-width monthly Cash Flow Forecast above the project Overview summaries, matching the Financials chart and bottom legend without a Project type selector.
+- Added a full-width monthly Cash Flow Forecast on the project Overview, matching the Financials chart and bottom legend without a Project type selector.
 - Uses current project planned cost/revenue events and milestone-linked finish dates; undated cost lines are excluded, and legacy yearless revenue dates follow the existing current-year convention.
 - Year arrows follow the complete project start/end timeline, including years without events; cumulative net carries forward across years.
 - Added unit tests for one/two/three-year navigation, linked dates and cumulative values in empty years.

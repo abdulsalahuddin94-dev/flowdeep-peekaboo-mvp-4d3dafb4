@@ -29,7 +29,7 @@ import type { ResourceRequest } from "@/lib/projects-store";
 import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
-import { useEmployees, type Employee, type EmployeeAllocation } from "@/lib/employees-store";
+import { useEmployees, DEFAULT_MONTHLY_CAPACITY, type Employee, type EmployeeAllocation } from "@/lib/employees-store";
 
 export const Route = createFileRoute("/resources")({
   component: ResourcesPage,
@@ -374,7 +374,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
           <StyledTable wrapperClassName="">
             <StyledTableHeader><StyledTableHeaderRow>
               <StyledTableHead>Employee</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Employment type</StyledTableHead>
-              <StyledTableHead>Capacity / wk</StyledTableHead><StyledTableHead>Utilization</StyledTableHead>
+              <StyledTableHead>Capacity / mo</StyledTableHead><StyledTableHead>Utilization</StyledTableHead>
               <StyledTableHead className="w-16" />
             </StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
@@ -639,13 +639,11 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
   const [name, setName]       = useState("");
   const [role, setRole]       = useState("");
   const [dept, setDept]       = useState("");
-  const [capacity, setCapacity] = useState("40");
   const [email, setEmail]     = useState("");
-  const [salary, setSalary]   = useState("");
   const { jobRoles } = useJobRoles();
   const { employmentTypes } = useEmployees();
   const [employmentTypeId, setEmploymentTypeId] = useState("");
-  const [errors, setErrors] = useState<{ name?: string; role?: string; dept?: string; email?: string; salary?: string; employmentTypeId?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; role?: string; dept?: string; email?: string; employmentTypeId?: string }>({});
 
   function handleSave() {
     const next = {
@@ -654,30 +652,30 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
       role: role.trim() ? undefined : "Job title / Role is required.",
       dept: dept ? undefined : "Department is required.",
       email: !email.trim() ? "Email is required." : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? undefined : "Enter a valid email.",
-      salary: Number(salary) > 0 ? undefined : "Salary is required.",
     };
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
+    // Salary and capacity are planned per month from the employee profile, not at creation.
     onAdd({
       id: `EMP-${crypto.randomUUID()}`,
       employmentTypeId,
       joinedOn: new Date().toISOString().slice(0, 10),
-      allocations: [], leave: [], vacationEntitlement: 0, demo: false,
+      allocations: [], leave: [], trips: [], monthly: {}, vacationEntitlement: 0, demo: false,
       name:     name.trim(),
       role:     role.trim(),
       dept,
       util:     0,
-      capacity: Number(capacity) || 40,
+      capacity: DEFAULT_MONTHLY_CAPACITY,
       projects: [],
       email: email.trim(),
-      salary: Number(salary),
+      salary: 0,
       tasks: [],
     });
     toast.success(`${name.trim()} added to employees`, {
-      description: `${role.trim()} · ${dept} · ${capacity}h / week`,
+      description: `${role.trim()} · ${dept} · set the monthly salary & capacity from the profile`,
     });
     setOpen(false);
-    setName(""); setRole(""); setDept(""); setCapacity("40"); setEmail(""); setSalary(""); setEmploymentTypeId(""); setErrors({});
+    setName(""); setRole(""); setDept(""); setEmail(""); setEmploymentTypeId(""); setErrors({});
   }
 
   return (
@@ -723,15 +721,6 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
                 </SelectContent>
               </Select>
             </Field>
-            <div>
-              <Label>Capacity (hrs / week)</Label>
-              <Input
-                type="number"
-                min={4} max={60} step={4}
-                value={capacity}
-                onChange={(e) => setCapacity(e.target.value)}
-              />
-            </div>
             <Field className="col-span-2" label="Email" htmlFor="resource-email" required error={errors.email}>
               <Input
                 id="resource-email"
@@ -739,16 +728,6 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
                 placeholder="alex.morgan@company.com"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: undefined })); }}
-              />
-            </Field>
-            <Field className="col-span-2" label="Salary (monthly, USD)" htmlFor="resource-salary" required error={errors.salary}>
-              <Input
-                id="resource-salary"
-                type="number"
-                min={0}
-                placeholder="e.g. 9500"
-                value={salary}
-                onChange={(e) => { setSalary(e.target.value); setErrors((p) => ({ ...p, salary: undefined })); }}
               />
             </Field>
           </div>
@@ -761,7 +740,7 @@ function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
               </div>
               <div>
                 <div className="text-sm font-medium text-foreground">{name}</div>
-                <div className="text-xs text-muted-foreground">{role} · {dept} · {capacity}h/wk · 0% utilized</div>
+                <div className="text-xs text-muted-foreground">{role} · {dept} · 0% utilized</div>
               </div>
               <UserCheck className="ml-auto h-4 w-4 text-accent" />
             </div>

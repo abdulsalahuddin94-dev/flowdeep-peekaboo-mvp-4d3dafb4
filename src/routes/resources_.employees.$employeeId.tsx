@@ -87,18 +87,22 @@ function EmployeeDetails() {
    </TabsContent>
    <TabsContent value="allocation" className="mt-0 space-y-8">
     <section className="min-w-0">
+     <h2 className="mb-5 text-base font-semibold">{t.projects}</h2>
+     <DataTable headers={[t.project, t.role, t.period, t.allocation]} rows={employee.allocations.map((a) => [projectLink(a.project), a.role, `${monthLabel(a.from)} → ${monthLabel(a.until)}`, `${a.percent}%`])} />
+    </section>
+    <section className="min-w-0">
      <h2 className="mb-5 text-base font-semibold">{t.monthlyUtil}</h2>
      <DataTable
-      headers={[t.month, ...allocationProjects, t.totalUtil]}
+      headers={[t.month, t.projects, t.assignedHours, t.utilization]}
       rows={months.map((m) => { const v = employeeMonth(employee, m); return [
        <span className={m === selectedMonth ? "font-medium text-accent" : undefined}>{monthLabel(m)}</span>,
-       ...allocationProjects.map((p) => { const a = v.allocations.find((x) => x.project === p); return a ? `${a.percent}%` : <span className="text-muted-foreground">—</span>; }),
+       v.allocations.length ? <span className="text-muted-foreground">{v.allocations.map((a) => `${a.project} · ${a.percent}%`).join("، ")}</span> : <span className="text-muted-foreground">—</span>,
+       <span className="num-mono">{v.allocatedHours.toFixed(1)}h / {v.availableCapacity}h{v.absentDays > 0 ? <span className="block text-xs text-muted-foreground">{v.absentDays}d {t.absence.toLowerCase()}</span> : null}</span>,
        <span className={`num-mono font-medium ${v.effectiveUtilization > 100 ? "text-rag-red" : "text-foreground"}`}>{v.effectiveUtilization}%</span>,
       ]; })}
       onRowClick={(i) => setSelectedMonth(months[i])}
      />
     </section>
-    <section className="min-w-0 space-y-4"><div className="flex items-center gap-3"><Select value={selectedMonth} onValueChange={setSelectedMonth}><SelectTrigger aria-label={t.month} className="w-44"><SelectValue /></SelectTrigger><SelectContent>{months.map((m) => <SelectItem key={m} value={m}>{monthLabel(m)}</SelectItem>)}</SelectContent></Select><span className="text-sm text-muted-foreground">{monthly.allocatedHours.toFixed(1)}h / {monthly.availableCapacity}h</span></div><Progress value={Math.min(100, monthly.effectiveUtilization)} className={monthly.effectiveUtilization > 100 ? "[&>div]:bg-rag-red" : ""} /><DataTable headers={[t.project, t.role, t.period, t.allocation, t.hours, t.budget]} rows={employee.allocations.map((a) => [projectLink(a.project), a.role, `${monthLabel(a.from)} → ${monthLabel(a.until)}`, `${a.percent}%`, `${(monthly.capacity * a.percent / 100).toFixed(1)}h`, money(monthly.charges.find((c) => c.id === a.id)?.amount ?? 0)])} /></section>
    </TabsContent>
    <TabsContent value="tasks" className="mt-0"><DataTable headers={[t.task, t.project, t.date]} rows={uniqueTasks.map((v) => [v.task, projectLink(v.project), v.period])} /></TabsContent>
    <TabsContent value="salary" className="mt-0 space-y-6">

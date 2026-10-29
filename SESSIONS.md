@@ -1,3 +1,10 @@
+## 2026-10-29 — Employee Overview tab redesign
+- Employee information moved to a full-width four-column grid and gained Base salary and Base capacity rows.
+- New Month summary section: a three-stat card (monthly salary, available hours, assigned hours) for the selected month, plus a thicker utilization bar with per-project colored segments, tick marks and labels at 80% and 100%, green/amber/red percentage states, and an absence note (e.g. "4d absence days · 160h → 130.9h available").
+- New Salary distribution stacked bar under the allocation table: each project's share of the month salary as a colored segment plus a muted Unassigned/overhead segment, with a dot legend showing amounts.
+- Segment palette ordered accent → blue → green → amber so adjacent projects stay visually distinct.
+- Browser verified both a normal month (96%) and an over-utilized month (117%, red, absence note); preview build OK.
+
 ## 2026-10-29 — Leave record actions and allocation tab rework
 - Leave records now have the same actions as Business trips & training: an Add entry dialog (leave type, status, from/until dates with validation) and a per-row delete button; the employee store gained addLeave/removeLeave, and added leave immediately updates the vacation balance and absence-aware capacity.
 - Projects & allocation tab reorganized: it now leads with an Assigned projects table (project, role, period, allocation %) followed by a Monthly utilization table with one row per month — project breakdown, assigned vs available hours (with absence days) and a red utilization % when over 100%; clicking a row selects the month.

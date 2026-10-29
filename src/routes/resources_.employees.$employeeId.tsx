@@ -18,6 +18,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
+import { Cell, Pie, PieChart } from "recharts";
 export const Route = createFileRoute("/resources_/employees/$employeeId")({
   component: EmployeeDetails,
   head: ({ params }) => ({ meta: [{ title: `Employee ${params.employeeId} — Nexus PMO` }, { name: "description", content: "Employee profile, monthly salary, project cost allocation, assigned tasks, capacity and leave." }, { property: "og:title", content: `Employee ${params.employeeId} — Nexus PMO` }, { property: "og:description", content: "Read-only employee information, salary allocation, projects, tasks and vacation." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
@@ -31,6 +32,9 @@ const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency",
 const monthLabel = (month: string) => new Date(`${month}-01T12:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 const daysBetween = (from: string, until: string) => Math.max(1, Math.round((new Date(`${until}T00:00:00Z`).getTime() - new Date(`${from}T00:00:00Z`).getTime()) / 86400000) + 1);
 const utilColors = ["bg-accent", "bg-rag-blue", "bg-rag-green", "bg-rag-amber", "bg-accent-secondary"];
+// Hex fills for the SVG donut (CSS var fills don't resolve in recharts slices); matches the Financials donut palette.
+const donutColors = ["#A78BFA", "#60A5FA", "#51CAAD", "#FBBF24", "#D4A574"];
+const donutOverheadColor = "#64748B";
 function DataTable({ headers, rows, onRowClick }: { headers: ReactNode[]; rows: ReactNode[][]; onRowClick?: (index: number) => void }) {
   return <StyledTable className="[&_th]:whitespace-normal [&_th]:text-xs [&_td]:py-4"><StyledTableHeader><StyledTableHeaderRow>{headers.map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader><StyledTableBody>{rows.length ? rows.map((row, i) => <StyledTableRow key={i} onClick={onRowClick ? () => onRowClick(i) : undefined} className={onRowClick ? "cursor-pointer" : undefined}>{row.map((value, j) => <StyledTableCell key={j} className="whitespace-normal break-words text-sm">{value}</StyledTableCell>)}</StyledTableRow>) : <StyledTableRow><StyledTableCell colSpan={headers.length} className="py-8 text-center text-muted-foreground">{t.empty}</StyledTableCell></StyledTableRow>}</StyledTableBody></StyledTable>;
 }
@@ -39,9 +43,13 @@ function EmployeeDetails() {
  const employee = employees.find((e) => e.id === employeeId);
  const [tab, setTab] = useState("overview"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
  const [planOpen, setPlanOpen] = useState(false); const [editMonth, setEditMonth] = useState<string | null>(null); const [tripOpen, setTripOpen] = useState(false); const [leaveOpen, setLeaveOpen] = useState(false);
+ // Recharts generates different clip IDs on server vs client — render the donut only after mount.
+ const [mounted, setMounted] = useState(false);
+ useEffect(() => setMounted(true), []);
  const projectLink = (name: string) => { const p = projects.find((v) => v.name === name); return p ? <Link to="/portfolio/$projectId" params={{ projectId: p.id }} className="text-accent hover:underline">{name}</Link> : name; };
  if (!employee) return <><Button asChild variant="outline"><Link to="/resources" search={{ tab: "people" }}><ChevronLeft className="h-4 w-4" />{t.employees}</Link></Button><h1 className="mt-6 text-xl">{t.missing}</h1></>;
  const monthly = employeeMonth(employee, selectedMonth); const vacation = vacationBalance(employee, year);
+ const utilTone = monthly.effectiveUtilization > 100 ? "text-rag-red" : monthly.effectiveUtilization >= 80 ? "text-rag-green" : "text-rag-amber";
  const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
  const years = Array.from(new Set(["2025", "2026", "2027", employee.joinedOn.slice(0, 4), ...employee.allocations.flatMap((a) => [a.from.slice(0, 4), a.until.slice(0, 4)]).filter(Boolean)])).sort();
  const overMonths = months.filter((m) => employeeMonth(employee, m).effectiveUtilization > 100);
@@ -67,7 +75,13 @@ function EmployeeDetails() {
    </header>
   </div>
   <dl className="glass-card grid items-stretch p-0 sm:grid-cols-2 xl:grid-cols-5">
-   {[[t.monthly, new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(monthly.salary)], [t.capacity, `${monthly.capacity}h`], [t.utilization, `${monthly.effectiveUtilization}%`], [t.projects, employee.projects.length], [t.vacation, `${vacation.remaining}d`]].map(([label, value], i) => <div key={label} className={`flex min-w-0 flex-col justify-center border-border px-5 py-4 ${i < 4 ? "border-b xl:border-b-0 xl:border-e" : ""}`}><dt className="label-eyebrow">{label}</dt><dd className={`mt-2 break-words text-2xl font-semibold tabular-nums ${label === t.utilization ? monthly.effectiveUtilization > 100 ? "text-rag-red" : "text-accent" : "text-foreground"}`}>{value}</dd></div>)}
+   {[
+    { label: t.monthly, value: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(monthly.salary), tone: "text-foreground", bar: false },
+    { label: t.capacity, value: `${monthly.availableCapacity}h / ${monthly.allocatedHours.toFixed(1)}h`, tone: utilTone, bar: false },
+    { label: t.utilization, value: `${monthly.effectiveUtilization}%`, tone: utilTone, bar: true },
+    { label: t.projects, value: String(employee.projects.length), tone: "text-foreground", bar: false },
+    { label: t.vacation, value: `${vacation.remaining}d`, tone: "text-foreground", bar: false },
+   ].map((card, i) => <div key={card.label} className={`flex min-w-0 flex-col justify-center border-border px-5 py-4 ${i < 4 ? "border-b xl:border-b-0 xl:border-e" : ""}`}><dt className="label-eyebrow">{card.label}</dt><dd className={`mt-2 break-words text-2xl font-semibold tabular-nums ${card.tone}`}>{card.value}</dd>{card.bar && <div className="mt-2 flex h-1.5 w-full overflow-hidden rounded-full bg-muted/40">{monthly.charges.map((a, j) => <div key={a.id} className={utilColors[j % utilColors.length]} style={{ width: `${a.percent / Math.max(100, monthly.utilization) * 100}%` }} />)}</div>}</div>)}
   </dl>
   {overMonths.length > 0 && (
    <div className="flex items-start gap-3 rounded-lg border border-rag-red/40 bg-rag-red/10 px-4 py-3">
@@ -80,44 +94,31 @@ function EmployeeDetails() {
     <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible"><TabsTrigger value="overview" className="shrink-0 px-0">{t.overview}</TabsTrigger><TabsTrigger value="allocation" className="shrink-0 px-0">{t.allocation}</TabsTrigger><TabsTrigger value="tasks" className="shrink-0 px-0">{t.tasks}</TabsTrigger><TabsTrigger value="salary" className="shrink-0 px-0">{t.salary}</TabsTrigger><TabsTrigger value="leave" className="shrink-0 px-0">{t.leave}</TabsTrigger></TabsList>
     <div className="flex shrink-0 items-center gap-3 xl:pb-1"><span className="text-xs text-muted-foreground">{t.year}</span><Select value={year} onValueChange={(v) => { setYear(v); setSelectedMonth(`${v}-${selectedMonth.slice(5)}`); }}><SelectTrigger aria-label={t.year} className="w-28"><SelectValue /></SelectTrigger><SelectContent>{years.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select></div>
    </div>
-   <TabsContent value="overview" className="mt-0 space-y-8">
-    <section className="min-w-0"><h2 className="mb-5 text-base font-semibold">{t.details}</h2><dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">{profile.map(([label, value]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1.5 break-words text-sm font-medium leading-relaxed">{value}</dd></div>)}</dl></section>
-    <div className="grid min-w-0 gap-8 xl:grid-cols-2">
-     <section className="min-w-0 space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.monthSummary}</h2><span className="text-xs text-muted-foreground">{monthLabel(selectedMonth)}</span></div>
-      <div className="glass-card grid grid-cols-2 divide-x divide-border p-0 rtl:divide-x-reverse">
-       {[[t.available, `${monthly.availableCapacity}h`], [t.assigned, `${monthly.allocatedHours.toFixed(1)}h`]].map(([label, value]) => <div key={label} className="min-w-0 px-4 py-3"><div className="label-eyebrow">{label}</div><div className="mt-1.5 break-words text-lg font-semibold tabular-nums text-foreground">{value}</div></div>)}
-      </div>
-      <div className="space-y-2">
-       <div className="flex items-center justify-between text-xs"><span className="text-muted-foreground">{t.utilization}</span><span className={`font-medium ${monthly.effectiveUtilization > 100 ? "text-rag-red" : monthly.effectiveUtilization >= 80 ? "text-rag-amber" : "text-rag-green"}`}>{monthly.effectiveUtilization}%</span></div>
-       <div className="relative h-3 w-full rounded-full bg-muted/40">
-        <div className="flex h-full overflow-hidden rounded-full" style={{ width: `${Math.min(100, monthly.utilization / Math.max(100, monthly.utilization) * 100)}%` }}>
-         {monthly.charges.map((a, i) => <div key={a.id} className={utilColors[i % utilColors.length]} style={{ width: `${monthly.utilization > 0 ? a.percent / monthly.utilization * 100 : 0}%` }} />)}
-        </div>
-        {[80, 100].map((mark) => <div key={mark} className="absolute inset-y-[-3px] border-l border-foreground/30" style={{ left: `${mark / Math.max(100, monthly.utilization) * 100}%` }} />)}
-       </div>
-       <div className="relative h-4 text-[10px] text-muted-foreground">
-        {[80, 100].map((mark) => <span key={mark} className="absolute -translate-x-1/2 rtl:translate-x-1/2" style={{ left: `${mark / Math.max(100, monthly.utilization) * 100}%` }}>{mark}%</span>)}
-       </div>
-       {monthly.absentDays > 0 && <p className="text-xs text-muted-foreground">{monthly.absentDays}d {t.absence.toLowerCase()} · {monthly.capacity}h → {monthly.availableCapacity}h {t.available.toLowerCase()}</p>}
-      </div>
-     </section>
-     <section className="min-w-0 space-y-5">
-      <h2 className="text-base font-semibold">{t.allocation}</h2>
-      <DataTable headers={[t.project, t.role, t.allocation, t.hours, t.cost]} rows={monthly.charges.map((a) => [projectLink(a.project), a.role, `${a.percent}%`, `${(monthly.capacity * a.percent / 100).toFixed(1)}h`, money(a.amount)])} />
-      <div className="space-y-2">
+   <TabsContent value="overview" className="mt-0 grid min-w-0 gap-8 xl:grid-cols-[280px_minmax(0,1fr)]">
+    <section className="min-w-0 xl:border-e xl:border-border xl:pe-8"><h2 className="mb-5 text-base font-semibold">{t.details}</h2><dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 xl:grid-cols-1">{profile.map(([label, value]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1.5 break-words text-sm font-medium leading-relaxed">{value}</dd></div>)}</dl></section>
+    <section className="min-w-0 space-y-5">
+     <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.allocation}</h2><span className="text-xs text-muted-foreground">{monthLabel(selectedMonth)}</span></div>
+     <DataTable headers={[t.project, t.role, t.allocation, t.hours, t.cost]} rows={monthly.charges.map((a) => [projectLink(a.project), a.role, `${a.percent}%`, `${(monthly.capacity * a.percent / 100).toFixed(1)}h`, money(a.amount)])} />
+     {mounted && monthly.salary > 0 && (
+      <div className="space-y-3">
        <div className="text-xs text-muted-foreground">{t.salarySplit}</div>
-       <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted/40">
-        {monthly.salary > 0 && monthly.charges.map((a, i) => <div key={a.id} className={utilColors[i % utilColors.length]} style={{ width: `${a.amount / monthly.salary * 100}%` }} />)}
-        {monthly.salary > 0 && monthly.overhead > 0 && <div className="bg-muted" style={{ width: `${monthly.overhead / monthly.salary * 100}%` }} />}
+       <div className="grid items-center gap-6 sm:grid-cols-[220px_minmax(0,1fr)]">
+        <div className="relative h-[220px] w-[220px]">
+         <PieChart width={220} height={220}>
+          <Pie data={[...monthly.charges.map((a, i) => ({ name: a.project, value: a.amount, color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ name: t.overhead, value: monthly.overhead, color: donutOverheadColor }] : [])]} dataKey="value" nameKey="name" innerRadius={62} outerRadius={95} paddingAngle={3} stroke="none" isAnimationActive={false}>
+           {[...monthly.charges.map((a, i) => ({ color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ color: donutOverheadColor }] : [])].map((x, i) => <Cell key={i} fill={x.color} />)}
+          </Pie>
+         </PieChart>
+         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><span className="text-xs text-muted-foreground">{t.total}</span><span className="text-lg font-semibold tabular-nums text-foreground">{money(monthly.salary)}</span></div>
+        </div>
+        <ul className="space-y-2 text-sm">
+         {monthly.charges.map((a, i) => <li key={a.id} className="flex items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutColors[i % donutColors.length] }} /><span className="min-w-0 flex-1 truncate text-foreground">{a.project}</span><span className="num-mono text-muted-foreground">{money(a.amount)}</span></li>)}
+         {monthly.overhead > 0 && <li className="flex items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutOverheadColor }} /><span className="min-w-0 flex-1 truncate text-muted-foreground">{t.overhead}</span><span className="num-mono text-muted-foreground">{money(monthly.overhead)}</span></li>}
+        </ul>
        </div>
-       <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        {monthly.charges.map((a, i) => <li key={a.id} className="flex items-center gap-1.5"><span className={`h-2 w-2 shrink-0 rounded-full ${utilColors[i % utilColors.length]}`} />{a.project} · {money(a.amount)}</li>)}
-        {monthly.overhead > 0 && <li className="flex items-center gap-1.5"><span className="h-2 w-2 shrink-0 rounded-full bg-muted" />{t.overhead} · {money(monthly.overhead)}</li>}
-       </ul>
       </div>
-     </section>
-    </div>
+     )}
+    </section>
    </TabsContent>
    <TabsContent value="allocation" className="mt-0 space-y-8">
     <section className="min-w-0">

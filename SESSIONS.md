@@ -1,9 +1,9 @@
 ## 2026-10-29 — Employee Overview tab redesign
-- Employee information moved to a full-width four-column grid with identity fields only; salary and capacity stay in the top KPI strip to avoid duplication.
-- New Month summary section: a two-stat card (available hours, assigned hours) for the selected month, plus a thicker utilization bar with per-project colored segments, tick marks and labels at 80% and 100%, green/amber/red percentage states, and an absence note (e.g. "4d absence days · 160h → 130.9h available").
-- New Salary distribution stacked bar under the allocation table: each project's share of the month salary as a colored segment plus a muted Unassigned/overhead segment, with a dot legend showing amounts.
-- Segment palette ordered accent → blue → green → amber so adjacent projects stay visually distinct.
-- Browser verified both a normal month (96%) and an over-utilized month (117%, red, absence note); preview build OK.
+- Employee information is a vertical strip on the left (identity fields only); the Month summary section was removed and its data folded into the top KPI strip to avoid duplication.
+- Capacity/month card now shows "available / assigned" hours (e.g. 130.9h / 153.6h) and both it and the Utilization card use a three-state color rule: red over 100%, green in the 80–100% sweet spot, amber below 80%.
+- The Utilization card carries a small per-project segmented bar under the percentage.
+- Salary distribution is a recharts donut (fixed 220px, animation off, client-only render to avoid SSR clip-ID hydration mismatch) with Total salary in the center and a dot legend with amounts; slices use the Financials hex palette because CSS var fills don't resolve in recharts SVG slices.
+- Browser verified a normal month (96%, green) and an over-utilized month (117%, red) including the tab-switch flow; preview build OK.
 
 ## 2026-10-29 — Leave record actions and allocation tab rework
 - Leave records now have the same actions as Business trips & training: an Add entry dialog (leave type, status, from/until dates with validation) and a per-row delete button; the employee store gained addLeave/removeLeave, and added leave immediately updates the vacation balance and absence-aware capacity.

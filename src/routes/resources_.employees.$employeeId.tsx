@@ -80,9 +80,44 @@ function EmployeeDetails() {
     <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible"><TabsTrigger value="overview" className="shrink-0 px-0">{t.overview}</TabsTrigger><TabsTrigger value="allocation" className="shrink-0 px-0">{t.allocation}</TabsTrigger><TabsTrigger value="tasks" className="shrink-0 px-0">{t.tasks}</TabsTrigger><TabsTrigger value="salary" className="shrink-0 px-0">{t.salary}</TabsTrigger><TabsTrigger value="leave" className="shrink-0 px-0">{t.leave}</TabsTrigger></TabsList>
     <div className="flex shrink-0 items-center gap-3 xl:pb-1"><span className="text-xs text-muted-foreground">{t.year}</span><Select value={year} onValueChange={(v) => { setYear(v); setSelectedMonth(`${v}-${selectedMonth.slice(5)}`); }}><SelectTrigger aria-label={t.year} className="w-28"><SelectValue /></SelectTrigger><SelectContent>{years.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select></div>
    </div>
-   <TabsContent value="overview" className="mt-0 grid min-w-0 gap-8 xl:grid-cols-[280px_minmax(0,1fr)]">
-    <section className="min-w-0 xl:border-e xl:border-border xl:pe-8"><h2 className="mb-5 text-base font-semibold">{t.details}</h2><dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 xl:grid-cols-1">{profile.map(([label, value]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1.5 break-words text-sm font-medium leading-relaxed">{value}</dd></div>)}</dl></section>
-    <section className="min-w-0"><div className="mb-5 flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.allocation}</h2><span className="text-xs text-muted-foreground">{monthLabel(selectedMonth)}</span></div><DataTable headers={[t.project, t.role, t.allocation, t.hours, t.cost]} rows={monthly.charges.map((a) => [projectLink(a.project), a.role, `${a.percent}%`, `${(monthly.capacity * a.percent / 100).toFixed(1)}h`, money(a.amount)])} /><div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 text-xs"><span className="text-muted-foreground">{t.utilization} · {monthly.allocatedHours.toFixed(1)}h / {monthly.availableCapacity}h {t.available.toLowerCase()}</span><span className="font-medium text-foreground">{monthly.effectiveUtilization}%</span><Progress value={Math.min(100, monthly.effectiveUtilization)} className={`col-span-2 h-1.5 ${monthly.effectiveUtilization > 100 ? "[&>div]:bg-rag-red" : ""}`} /></div></section>
+   <TabsContent value="overview" className="mt-0 space-y-8">
+    <section className="min-w-0"><h2 className="mb-5 text-base font-semibold">{t.details}</h2><dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">{[...profile, [t.baseSalary, money(employee.salary)], [t.baseCapacity, `${employee.capacity}h`]].map(([label, value]) => <div key={label} className="min-w-0"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1.5 break-words text-sm font-medium leading-relaxed">{value}</dd></div>)}</dl></section>
+    <div className="grid min-w-0 gap-8 xl:grid-cols-2">
+     <section className="min-w-0 space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.monthSummary}</h2><span className="text-xs text-muted-foreground">{monthLabel(selectedMonth)}</span></div>
+      <div className="glass-card grid grid-cols-3 divide-x divide-border p-0 rtl:divide-x-reverse">
+       {[[t.monthly, money(monthly.salary)], [t.available, `${monthly.availableCapacity}h`], [t.assigned, `${monthly.allocatedHours.toFixed(1)}h`]].map(([label, value]) => <div key={label} className="min-w-0 px-4 py-3"><div className="label-eyebrow">{label}</div><div className="mt-1.5 break-words text-lg font-semibold tabular-nums text-foreground">{value}</div></div>)}
+      </div>
+      <div className="space-y-2">
+       <div className="flex items-center justify-between text-xs"><span className="text-muted-foreground">{t.utilization}</span><span className={`font-medium ${monthly.effectiveUtilization > 100 ? "text-rag-red" : monthly.effectiveUtilization >= 80 ? "text-rag-amber" : "text-rag-green"}`}>{monthly.effectiveUtilization}%</span></div>
+       <div className="relative h-3 w-full rounded-full bg-muted/40">
+        <div className="flex h-full overflow-hidden rounded-full" style={{ width: `${Math.min(100, monthly.utilization / Math.max(100, monthly.utilization) * 100)}%` }}>
+         {monthly.charges.map((a, i) => <div key={a.id} className={utilColors[i % utilColors.length]} style={{ width: `${monthly.utilization > 0 ? a.percent / monthly.utilization * 100 : 0}%` }} />)}
+        </div>
+        {[80, 100].map((mark) => <div key={mark} className="absolute inset-y-[-3px] border-l border-foreground/30" style={{ left: `${mark / Math.max(100, monthly.utilization) * 100}%` }} />)}
+       </div>
+       <div className="relative h-4 text-[10px] text-muted-foreground">
+        {[80, 100].map((mark) => <span key={mark} className="absolute -translate-x-1/2 rtl:translate-x-1/2" style={{ left: `${mark / Math.max(100, monthly.utilization) * 100}%` }}>{mark}%</span>)}
+       </div>
+       {monthly.absentDays > 0 && <p className="text-xs text-muted-foreground">{monthly.absentDays}d {t.absence.toLowerCase()} · {monthly.capacity}h → {monthly.availableCapacity}h {t.available.toLowerCase()}</p>}
+      </div>
+     </section>
+     <section className="min-w-0 space-y-5">
+      <h2 className="text-base font-semibold">{t.allocation}</h2>
+      <DataTable headers={[t.project, t.role, t.allocation, t.hours, t.cost]} rows={monthly.charges.map((a) => [projectLink(a.project), a.role, `${a.percent}%`, `${(monthly.capacity * a.percent / 100).toFixed(1)}h`, money(a.amount)])} />
+      <div className="space-y-2">
+       <div className="text-xs text-muted-foreground">{t.salarySplit}</div>
+       <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted/40">
+        {monthly.salary > 0 && monthly.charges.map((a, i) => <div key={a.id} className={utilColors[i % utilColors.length]} style={{ width: `${a.amount / monthly.salary * 100}%` }} />)}
+        {monthly.salary > 0 && monthly.overhead > 0 && <div className="bg-muted" style={{ width: `${monthly.overhead / monthly.salary * 100}%` }} />}
+       </div>
+       <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        {monthly.charges.map((a, i) => <li key={a.id} className="flex items-center gap-1.5"><span className={`h-2 w-2 shrink-0 rounded-full ${utilColors[i % utilColors.length]}`} />{a.project} · {money(a.amount)}</li>)}
+        {monthly.overhead > 0 && <li className="flex items-center gap-1.5"><span className="h-2 w-2 shrink-0 rounded-full bg-muted" />{t.overhead} · {money(monthly.overhead)}</li>}
+       </ul>
+      </div>
+     </section>
+    </div>
    </TabsContent>
    <TabsContent value="allocation" className="mt-0 space-y-8">
     <section className="min-w-0">

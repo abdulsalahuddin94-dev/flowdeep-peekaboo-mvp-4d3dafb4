@@ -121,7 +121,20 @@ function EmployeeDetails() {
    </TabsContent>
    <TabsContent value="leave" className="mt-0 space-y-8">
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4"><KpiCard label={t.entitlement} value={`${vacation.entitlement}d`} /><KpiCard label={t.used} value={`${vacation.used}d`} /><KpiCard label={t.pending} value={`${vacation.pending}d`} accent="amber" /><KpiCard label={t.balance} value={`${vacation.remaining}d`} accent="teal" /></div>
-    <section className="min-w-0"><h2 className="mb-5 text-base font-semibold">{t.leaveRecords}</h2><DataTable headers={[t.leaveType, t.from, t.until, t.days, t.status]} rows={employee.leave.filter((l) => l.from.startsWith(year)).map((l) => [l.type, formatDateWithYear(l.from), formatDateWithYear(l.until), l.days, <Badge variant="outline" className={l.status === "Approved" ? "text-rag-green" : l.status === "Rejected" ? "text-rag-red" : "text-rag-amber"}>{l.status}</Badge>])} /></section>
+    <section className="min-w-0">
+     <div className="mb-5 flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.leaveRecords}</h2><Button size="sm" variant="outline" onClick={() => setLeaveOpen(true)}><Plus className="mr-1 h-4 w-4" />{t.addEntry}</Button></div>
+     <DataTable
+      headers={[t.leaveType, t.from, t.until, t.days, t.status, ""]}
+      rows={employee.leave.filter((l) => l.from.startsWith(year)).map((l) => [
+       l.type,
+       formatDateWithYear(l.from),
+       formatDateWithYear(l.until),
+       l.days,
+       <Badge variant="outline" className={l.status === "Approved" ? "text-rag-green" : l.status === "Rejected" ? "text-rag-red" : "text-rag-amber"}>{l.status}</Badge>,
+       <Button size="icon" variant="dangerOutline" data-ds-size="auto" aria-label={t.leaveRemoved} title={t.leaveRemoved} className="h-9 w-9 rounded-full" onClick={() => { removeLeave(employee.id, l.id); toast.success(t.leaveRemoved); }}><Trash2 className="h-4 w-4" /></Button>,
+      ])}
+     />
+    </section>
     <section className="min-w-0">
      <div className="mb-5 flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.trips}</h2><Button size="sm" variant="outline" onClick={() => setTripOpen(true)}><Plus className="mr-1 h-4 w-4" />{t.addEntry}</Button></div>
      <DataTable
@@ -148,6 +161,7 @@ function EmployeeDetails() {
   <MonthlyPlanDialog employee={employee} open={planOpen} onClose={() => setPlanOpen(false)} defaultStart={selectedMonth} onApply={(start, count, salary, capacity) => { setMonthlyPlan(employee.id, start, count, { salary, capacity }); setPlanOpen(false); toast.success(t.planApplied, { description: `${monthLabel(start)} · ${count} ${count === 1 ? "month" : "months"}` }); }} />
   <MonthEditDialog employee={employee} month={editMonth} onClose={() => setEditMonth(null)} onSave={(m, salary, capacity) => { setMonthOverride(employee.id, m, { salary, capacity }); setEditMonth(null); toast.success(t.monthUpdated, { description: monthLabel(m) }); }} />
   <TripDialog open={tripOpen} onClose={() => setTripOpen(false)} onAdd={(trip) => { addTrip(employee.id, trip); setTripOpen(false); toast.success(t.tripAdded, { description: trip.title }); }} />
+  <LeaveDialog open={leaveOpen} onClose={() => setLeaveOpen(false)} onAdd={(leave) => { addLeave(employee.id, leave); setLeaveOpen(false); toast.success(t.leaveAdded, { description: leave.type }); }} />
  </div>;
 }
 

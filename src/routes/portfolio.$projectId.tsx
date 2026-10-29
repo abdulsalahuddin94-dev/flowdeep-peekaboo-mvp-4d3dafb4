@@ -1775,17 +1775,68 @@ function OverviewTab({
 
   return (
     <div className="space-y-4">
-    <ProjectCashFlowChart key={project.id} events={cashEvents} startDate={project.startDate} endDate={project.endDate} isNew={isNew} />
-    <div className="grid items-start gap-4 md:grid-cols-2">
-      <div className="space-y-4">
+      <div className="grid items-stretch gap-4 md:grid-cols-3">
+        <div className="glass-card p-5">
+          <div className="label-eyebrow mb-4">Project Health</div>
+          <EmptyRegion id="project-overview-health" variant="card" force={isNew} className="min-h-[144px]">
+            <div className="flex items-start gap-3">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-full ${r.bg} ring-2 ${r.ring}`}>
+                <span className={`text-lg ${r.text}`}>✓</span>
+              </div>
+              <div>
+                <div className={`text-base font-medium ${r.text}`}>{r.label}</div>
+                <div className="text-xs text-muted-foreground">Last updated: 2 hours ago</div>
+              </div>
+            </div>
+            <div className="mt-5 space-y-3 text-sm">
+              <div className="flex items-center justify-between"><span className="text-muted-foreground">Progress:</span><span className="num-mono font-medium text-foreground">{project.progress}%</span></div>
+              <div className="flex items-center justify-between"><span className="text-muted-foreground">Start Date:</span><span className="num-mono font-medium text-foreground">{formatDateWithYear(project.startDate)}</span></div>
+              <div className="flex items-center justify-between"><span className="text-muted-foreground">End Date:</span><span className="num-mono font-medium text-foreground">{formatDateWithYear(project.endDate)}</span></div>
+            </div>
+          </EmptyRegion>
+        </div>
+        <div className="glass-card p-5">
+          <div className="label-eyebrow mb-4">Budget Status</div>
+          <EmptyRegion id="project-overview-budget" variant="card" force={isNew} className="min-h-[72px]">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Spent</span>
+              <span className="num-mono font-medium text-foreground">${project.budgetUsed.toFixed(1)}M / ${project.budgetTotal.toFixed(1)}M</span>
+            </div>
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-secondary/50">
+              <div className="h-full rounded-full bg-rag-green" style={{ width: `${spentPct}%` }} />
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+              <span>Remaining: ${remaining}M</span>
+              <span className="num-mono">{spentPct}% used</span>
+            </div>
+          </EmptyRegion>
+        </div>
+        <div className="glass-card p-5">
+          <div className="label-eyebrow mb-4">Next Milestones</div>
+          <EmptyRegion id="project-overview-milestones" variant="card" force={isNew} className="min-h-[88px]">
+            <ul className="space-y-3">
+              {milestones.map((m) => (
+                <li key={m.name} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className={`h-2 w-2 rounded-full ${m.rag === "green" ? "bg-rag-green" : "bg-rag-amber"}`} />
+                    <span className="text-sm font-medium text-foreground">{m.name}</span>
+                  </div>
+                  <span className="num-mono text-xs text-muted-foreground">{formatDateWithYear(m.date)}</span>
+                </li>
+              ))}
+            </ul>
+          </EmptyRegion>
+        </div>
+      </div>
+      <div className="grid items-start gap-4 md:grid-cols-2">
         <div className="glass-card p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div className="label-eyebrow">Risks Summary</div>
             {!showEmptyCards && <span className="num-mono text-xs text-muted-foreground">{projectRisks.length} risks</span>}
           </div>
-          <EmptyRegion id="project-overview-risks" variant="card" force={isNew} className="min-h-[220px]">
+          <EmptyRegion id="project-overview-risks" variant="card" force={isNew} className="min-h-[307px]">
             {projectRisks.length > 0 ? (
-              <ul className="max-h-[220px] space-y-1 overflow-y-auto pr-2 [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]">
+              <ul className="max-h-[307px] space-y-1 overflow-y-auto pr-2 [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]">
                 {projectRisks.map((risk) => {
                   const scoreTone = risk.score >= 15 ? "bg-rag-red/15 text-rag-red" : risk.score >= 9 ? "bg-rag-amber/15 text-rag-amber" : "bg-rag-green/15 text-rag-green";
                   return (
@@ -1805,7 +1856,6 @@ function OverviewTab({
             ) : <p className="text-sm text-muted-foreground">No risks logged for this project.</p>}
           </EmptyRegion>
         </div>
-
         <div className="glass-card p-5">
           <div className="label-eyebrow mb-4">Stage Gates</div>
           <EmptyRegion id="project-overview-gates" variant="card" force={isNew} className="min-h-[264px]">
@@ -1831,60 +1881,7 @@ function OverviewTab({
           </EmptyRegion>
         </div>
       </div>
-
-      <div className="space-y-4">
-        <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Project Health</div>
-          <EmptyRegion id="project-overview-health" variant="card" force={isNew} className="min-h-[144px]">
-            <div className="flex items-start gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-full ${r.bg} ring-2 ${r.ring}`}>
-                <span className={`text-lg ${r.text}`}>✓</span>
-              </div>
-              <div>
-                <div className={`text-base font-medium ${r.text}`}>{r.label}</div>
-                <div className="text-xs text-muted-foreground">Last updated: 2 hours ago</div>
-              </div>
-            </div>
-            <div className="mt-5 space-y-3 text-sm">
-              <div className="flex items-center justify-between"><span className="text-muted-foreground">Progress:</span><span className="num-mono font-medium text-foreground">{project.progress}%</span></div>
-              <div className="flex items-center justify-between"><span className="text-muted-foreground">Start Date:</span><span className="num-mono font-medium text-foreground">{formatDateWithYear(project.startDate)}</span></div>
-              <div className="flex items-center justify-between"><span className="text-muted-foreground">End Date:</span><span className="num-mono font-medium text-foreground">{formatDateWithYear(project.endDate)}</span></div>
-            </div>
-          </EmptyRegion>
-        </div>
-
-        <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Next Milestones</div>
-          <EmptyRegion id="project-overview-milestones" variant="card" force={isNew} className="min-h-[88px]">
-            <ul className="space-y-3">
-              {milestones.map((m) => (
-                <li key={m.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className={`h-2 w-2 rounded-full ${m.rag === "green" ? "bg-rag-green" : "bg-rag-amber"}`} />
-                    <span className="text-sm font-medium text-foreground">{m.name}</span>
-                  </div>
-                  <span className="num-mono text-xs text-muted-foreground">{formatDateWithYear(m.date)}</span>
-                </li>
-              ))}
-            </ul>
-          </EmptyRegion>
-        </div>
-
-        <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Budget Status</div>
-          <EmptyRegion id="project-overview-budget" variant="card" force={isNew} className="min-h-[72px]">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Spent</span>
-              <span className="num-mono font-medium text-foreground">${project.budgetUsed.toFixed(1)}M / ${project.budgetTotal.toFixed(1)}M</span>
-            </div>
-            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-secondary/50">
-              <div className="h-full rounded-full bg-rag-green" style={{ width: `${spentPct}%` }} />
-            </div>
-            <div className="mt-3 text-xs text-muted-foreground">Remaining: ${remaining}M</div>
-          </EmptyRegion>
-        </div>
-      </div>
-    </div>
+      <ProjectCashFlowChart key={project.id} events={cashEvents} startDate={project.startDate} endDate={project.endDate} isNew={isNew} />
     </div>
   );
 }

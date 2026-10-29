@@ -1,3 +1,12 @@
+## 2026-10-29 — Monthly salary & capacity planning, trips, and over-utilization
+- Add employee now collects only Full name, Role, Employment type, Department and Email; salary and capacity are planned later from the employee profile (new employees start at 0 salary / 160h monthly capacity).
+- Salary and capacity are tracked per month: the employee store keeps per-month overrides keyed by YYYY-MM with the base values as fallback, and the demo data seeds a mid-year raise and a part-time month so the pattern is visible.
+- Employee profile "Salary & capacity" tab gained a Set monthly plan bulk action (start month + number of months + salary + capacity, e.g. 9000 for the next 12 months) and a per-month edit action for single-month raises; rows still open the project salary breakdown popup.
+- New "Leave & trips" tab combines leave records with a Business trips & training register (add/remove entries); approved/pending leave and trip days reduce the month's available capacity (prorated over 22 working days).
+- Projects & allocation tab now leads with a monthly utilization-by-project matrix (per-project % per month with a red Total when over 100%), and an over-utilization banner on the profile lists the months where assigned hours exceed available capacity.
+- WBS role requests now carry the task name and the task's full period (start → end month) so they land complete on the Resources Requests page.
+- Verified in the browser: plan bulk apply, per-month overrides, absence-aware capacity, trips add/remove, utilization matrix, the cleaned Add employee form and the Requests page; 7 employee-finance tests pass and preview build OK.
+
 ## 2026-10-29 — Project cash-flow demo spread across the year
 - Respaced the shared demo plan seeds so the project Cash Flow Forecast rises and falls through 2026 instead of sitting flat: Hardware moved to 20 Jan 2026, Software licenses to 01 Apr 2026, Business trips to 10 Aug 2026, Contingency now linked to the Go-Live milestone, and the 20% progress invoice moved from 30 Nov to 15 Jun.
 - Labour (Build Complete) and the UAT Sign-off invoice stay in 2025, so the cumulative net still carries into 2026 and ends back near zero.

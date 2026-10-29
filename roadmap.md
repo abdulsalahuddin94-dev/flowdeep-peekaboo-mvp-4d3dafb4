@@ -1,7 +1,7 @@
 # Roadmap
-- [ ] Employees: drop Capacity/Salary from Add employee; monthly per-month salary & capacity with bulk 12-month plan and per-month override from the profile.
-- [ ] Employee profile: Business trips & Training plan section affecting available capacity; monthly project utilization % table; over-utilization alert.
-- [ ] WBS role requests land on the Requests page with task name and full period; verify and log all of the above.
+- [x] Employees: drop Capacity/Salary from Add employee; monthly per-month salary & capacity with bulk 12-month plan and per-month override from the profile.
+- [x] Employee profile: Business trips & Training plan section affecting available capacity; monthly project utilization % table; over-utilization alert.
+- [x] WBS role requests land on the Requests page with task name and full period; verify and log all of the above.
 - [x] Spread the project cash-flow demo events across 2026 so the Overview chart shows ups and downs; verify and log.
 - [x] Project Overview: tidy the card layout and move Cash Flow Forecast to the bottom; verify and log.
 - [x] Add project Overview monthly Cash Flow Forecast without Project type, using project timeline year navigation; test and verify.

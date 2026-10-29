@@ -1,3 +1,9 @@
+## 2026-10-29 — Salary distribution Donut card background
+- Wrapped the Salary distribution donut chart and project allocation breakdown inside a styled card container matching the full width of the Projects & allocation table above it.
+- Styled the card with background `#12131A` (matching DS02 surface and table row backgrounds), rounded borders (`rounded-xl border border-border/50`), inner padding (`p-6`), and subtle shadow.
+- Aligned project amounts to the far right with `justify-between` for clean vertical balance with the table columns.
+- Verified build passes and pushed to GitHub main.
+
 ## 2026-10-29 — Employee Overview tab redesign
 - Employee information is a vertical strip on the left (identity fields only); the Month summary section was removed and its data folded into the top KPI strip to avoid duplication.
 - Capacity/month card now shows "available / assigned" hours (e.g. 130.9h / 153.6h) and both it and the Utilization card use a three-state color rule: red over 100%, green in the 80–100% sweet spot, amber below 80%.

@@ -1,3 +1,8 @@
+## 2026-10-29 — Project cash-flow demo spread across the year
+- Respaced the shared demo plan seeds so the project Cash Flow Forecast rises and falls through 2026 instead of sitting flat: Hardware moved to 20 Jan 2026, Software licenses to 01 Apr 2026, Business trips to 10 Aug 2026, Contingency now linked to the Go-Live milestone, and the 20% progress invoice moved from 30 Nov to 15 Jun.
+- Labour (Build Complete) and the UAT Sign-off invoice stay in 2025, so the cumulative net still carries into 2026 and ends back near zero.
+- Browser verified the Overview chart now shows interleaved inflow/outflow humps with no runtime errors.
+
 ## 2026-10-29 — Project Overview layout reorder
 - Reordered the project Overview tab: Project Health, Budget Status and Next Milestones as an equal-height three-card row, Risks Summary and Stage Gates below in two columns, and Cash Flow Forecast last across the full width.
 - Sized the Risks Summary list to exactly five rows (307px) so entries stop clipping mid-row, and showed the used-budget percentage beside Remaining so the Budget Status card fills its row.

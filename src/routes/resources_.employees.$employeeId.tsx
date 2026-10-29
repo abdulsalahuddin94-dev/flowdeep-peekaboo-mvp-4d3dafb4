@@ -100,10 +100,10 @@ function EmployeeDetails() {
      <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.allocation}</h2><span className="text-xs text-muted-foreground">{monthLabel(selectedMonth)}</span></div>
      <DataTable headers={[t.project, t.role, t.allocation, t.hours, t.cost]} rows={monthly.charges.map((a) => [projectLink(a.project), a.role, `${a.percent}%`, `${(monthly.capacity * a.percent / 100).toFixed(1)}h`, money(a.amount)])} />
      {mounted && monthly.salary > 0 && (
-      <div className="space-y-3">
-       <div className="text-xs text-muted-foreground">{t.salarySplit}</div>
-       <div className="grid items-center gap-6 sm:grid-cols-[220px_minmax(0,1fr)]">
-        <div className="relative h-[220px] w-[220px]">
+      <div className="rounded-xl border border-border/50 bg-[#12131A] p-6 shadow-sm">
+       <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">{t.salarySplit}</h3>
+       <div className="grid items-center gap-8 sm:grid-cols-[220px_minmax(0,1fr)]">
+        <div className="relative mx-auto h-[220px] w-[220px] sm:mx-0">
          <PieChart width={220} height={220}>
           <Pie data={[...monthly.charges.map((a, i) => ({ name: a.project, value: a.amount, color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ name: t.overhead, value: monthly.overhead, color: donutOverheadColor }] : [])]} dataKey="value" nameKey="name" innerRadius={62} outerRadius={95} paddingAngle={3} stroke="none" isAnimationActive={false}>
            {[...monthly.charges.map((a, i) => ({ color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ color: donutOverheadColor }] : [])].map((x, i) => <Cell key={i} fill={x.color} />)}
@@ -111,9 +111,9 @@ function EmployeeDetails() {
          </PieChart>
          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><span className="text-xs text-muted-foreground">{t.total}</span><span className="text-lg font-semibold tabular-nums text-foreground">{money(monthly.salary)}</span></div>
         </div>
-        <ul className="space-y-2 text-sm">
-         {monthly.charges.map((a, i) => <li key={a.id} className="flex items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutColors[i % donutColors.length] }} /><span className="min-w-0 flex-1 truncate text-foreground">{a.project}</span><span className="num-mono text-muted-foreground">{money(a.amount)}</span></li>)}
-         {monthly.overhead > 0 && <li className="flex items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutOverheadColor }} /><span className="min-w-0 flex-1 truncate text-muted-foreground">{t.overhead}</span><span className="num-mono text-muted-foreground">{money(monthly.overhead)}</span></li>}
+        <ul className="space-y-3 text-sm">
+         {monthly.charges.map((a, i) => <li key={a.id} className="flex items-center justify-between gap-4"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutColors[i % donutColors.length] }} /><span className="truncate text-foreground">{a.project}</span></div><span className="num-mono shrink-0 text-muted-foreground">{money(a.amount)}</span></li>)}
+         {monthly.overhead > 0 && <li className="flex items-center justify-between gap-4"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutOverheadColor }} /><span className="truncate text-muted-foreground">{t.overhead}</span></div><span className="num-mono shrink-0 text-muted-foreground">{money(monthly.overhead)}</span></li>}
         </ul>
        </div>
       </div>

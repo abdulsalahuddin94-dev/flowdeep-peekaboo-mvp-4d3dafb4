@@ -142,7 +142,7 @@ function EmployeeDetails() {
     <DataTable headers={[t.project, t.allocation, t.cost]} rows={[...monthly.charges.map((a) => [projectLink(a.project), `${a.percent}%`, money(a.amount)]), [t.overhead, "—", money(monthly.overhead)], [t.total, "—", money(monthly.salary)]]} />
    </DialogContent>
   </Dialog>
-  <MonthlyPlanDialog employee={employee} open={planOpen} onClose={() => setPlanOpen(false)} defaultStart={selectedMonth} onApply={(start, count, salary, capacity) => { setMonthlyPlan(employee.id, start, count, { salary, capacity }); setPlanOpen(false); toast.success(t.planApplied, { description: `${monthLabel(start)} · ${count} ${t.planMonths.toLowerCase()}` }); }} />
+  <MonthlyPlanDialog employee={employee} open={planOpen} onClose={() => setPlanOpen(false)} defaultStart={selectedMonth} onApply={(start, count, salary, capacity) => { setMonthlyPlan(employee.id, start, count, { salary, capacity }); setPlanOpen(false); toast.success(t.planApplied, { description: `${monthLabel(start)} · ${count} ${count === 1 ? "month" : "months"}` }); }} />
   <MonthEditDialog employee={employee} month={editMonth} onClose={() => setEditMonth(null)} onSave={(m, salary, capacity) => { setMonthOverride(employee.id, m, { salary, capacity }); setEditMonth(null); toast.success(t.monthUpdated, { description: monthLabel(m) }); }} />
   <TripDialog open={tripOpen} onClose={() => setTripOpen(false)} onAdd={(trip) => { addTrip(employee.id, trip); setTripOpen(false); toast.success(t.tripAdded, { description: trip.title }); }} />
  </div>;

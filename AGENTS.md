@@ -2,6 +2,7 @@
 
 - Keep Cash Flow Forecast project-type selection chart-local and combine it with overview filters; an empty selection means All and must include every type.
 - Derive cash-flow year bounds and monthly/yearly buckets from filtered event dates; carry cumulative net across years before selecting the displayed month's year.
+- Project Overview cash flow uses the project's current cost/revenue plan and milestone-linked dates, with navigation bounded by the project start/end years; pad empty timeline years and preserve cumulative cash from earlier events.
 - Keep Financials overview empty states inside each chart's data area using the shared EmptyRegion card variant; preserve chart headings, controls and overview filters in empty preview.
 
 - Keep schedule health derived from item dates and progress, not manually stored, so WBS and Gantt always agree.

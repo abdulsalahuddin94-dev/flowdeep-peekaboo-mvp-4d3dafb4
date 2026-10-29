@@ -3,6 +3,8 @@ import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { PlanChangesTable } from "@/components/PlanChangesTable";
 import { ProjectFormPage } from "@/components/project/ProjectFormPage";
+import { ProjectCashFlowChart } from "@/components/project/ProjectCashFlowChart";
+import { projectCashEvents } from "@/lib/project-cash-flow";
 import { EmptyRegion, useEmptyPreview } from "@/lib/empty-preview";
 
 import { RagBadge } from "@/components/RagBadge";
@@ -1067,6 +1069,9 @@ function ProjectDetail() {
           <OverviewTab
             project={project}
             isNew={isNewProject}
+            cost={costEntries}
+            revenue={revEntries}
+            schedule={milestones}
             gateData={gateData}
             onRiskSelect={(riskId) => {
               setOverviewRiskId(riskId);
@@ -1730,10 +1735,12 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
 }
 
 function OverviewTab({
-  project, isNew, gateData, onRiskSelect,
+  project, isNew, gateData, onRiskSelect, cost, revenue, schedule,
 }: {
   project: typeof projects[number]; isNew: boolean; gateData: GateStage[]; onRiskSelect: (riskId: string) => void;
+  cost: CostEntry[]; revenue: RevEntry[]; schedule: Milestone[];
 }) {
+  const cashEvents = useMemo(() => projectCashEvents(cost, revenue, schedule, new Date().toISOString().slice(0, 10)), [cost, revenue, schedule]);
   const { enabled: emptyPreview } = useEmptyPreview();
   const showEmptyCards = isNew || emptyPreview;
   const { risks } = useRiskRegister();
@@ -1767,6 +1774,8 @@ function OverviewTab({
 
 
   return (
+    <div className="space-y-4">
+    <ProjectCashFlowChart key={project.id} events={cashEvents} startDate={project.startDate} endDate={project.endDate} isNew={isNew} />
     <div className="grid items-start gap-4 md:grid-cols-2">
       <div className="space-y-4">
         <div className="glass-card p-5">
@@ -1875,6 +1884,7 @@ function OverviewTab({
           </EmptyRegion>
         </div>
       </div>
+    </div>
     </div>
   );
 }

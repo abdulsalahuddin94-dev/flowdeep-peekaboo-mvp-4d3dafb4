@@ -4461,9 +4461,10 @@ function AddMilestoneDialog({
           skill: r.skill,
           fte: r.fte,
           from: fromMonth,
-          until: fromMonth,
+          until: computedEnd.slice(0, 7),
           priority: "Medium",
           submittedBy: owner || defaultOwner,
+          task: name.trim(),
           notes: `Auto-requested for task "${name.trim()}"`,
         });
         requestIds.push(id);

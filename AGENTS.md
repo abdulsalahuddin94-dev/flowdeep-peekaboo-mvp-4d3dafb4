@@ -16,7 +16,8 @@
 - Reuse PlanChangesTable for baseline submission and approval review changes so both show the same Item/Field/Before/After presentation and date formatting; the Item type column belongs to the schedule section only, so item kind stays opt-in per section.
 - Approval Current financial tables reuse the project CostBreakdownTable and RevenuePlanTable in explicit read-only mode; expansion stays available while all bookkeeping and plan mutations are hidden.
 
-- Keep employees and employment-type lookups in one persisted browser store with stable IDs, so list/detail navigation and lookup renames retain identity. Employee details are read-only; allocations retain their project, period and task for monthly salary attribution.
+- Keep employees and employment-type lookups in one persisted browser store with stable IDs, so list/detail navigation and lookup renames retain identity. Employee assignments stay read-only on the profile; allocations retain their project, period and task for monthly salary attribution.
+- Salary and capacity are monthly values: the employee store keeps per-month overrides keyed by YYYY-MM over base salary/capacity, edited from the profile (bulk plan + single-month override), never collected at employee creation. Leave and business-trip/training days prorate the month's available capacity over 22 working days, and over-utilization is derived from assigned hours vs available capacity.
 
 - Employee detail navigation and panels share one Tabs root so selection and accessibility stay synchronized; keep layout changes independent of employee financial calculations.
 - Standalone record pages share RecordPageHeader for contextual list back links or project breadcrumbs and shared form CTA labels; retain full-width DS02 form surfaces so field contrast stays consistent without narrow popup-style width caps.

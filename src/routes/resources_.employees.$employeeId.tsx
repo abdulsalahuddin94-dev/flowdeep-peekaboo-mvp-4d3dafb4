@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useEmployees, monthRange, type Employee, type EmployeeTrip } from "@/lib/employees-store";
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { seedMilestones } from "@/lib/plan-seeds";
@@ -152,14 +152,14 @@ function EmployeeDetails() {
 function MonthlyPlanDialog({ employee, open, onClose, defaultStart, onApply }: { employee: Employee; open: boolean; onClose: () => void; defaultStart: string; onApply: (start: string, months: number, salary: number, capacity: number) => void }) {
  const [start, setStart] = useState(defaultStart); const [count, setCount] = useState("12"); const [salary, setSalary] = useState(""); const [capacity, setCapacity] = useState("");
  const [errors, setErrors] = useState<{ start?: string; salary?: string; capacity?: string }>({});
- function handleOpen() { setStart(defaultStart); setCount("12"); setSalary(String(employee.salary || "")); setCapacity(String(employee.capacity || "")); setErrors({}); }
+ useEffect(() => { if (open) { setStart(defaultStart); setCount("12"); setSalary(String(employee.salary || "")); setCapacity(String(employee.capacity || "")); setErrors({}); } }, [open, defaultStart, employee.salary, employee.capacity]);
  function submit() {
   const next = { start: start ? undefined : "Start month is required.", salary: Number(salary) >= 0 && salary !== "" ? undefined : "Salary is required.", capacity: Number(capacity) > 0 ? undefined : "Capacity is required." };
   setErrors(next);
   if (Object.values(next).some(Boolean)) return;
   onApply(start, Math.max(1, Number(count) || 12), Number(salary), Number(capacity));
  }
- return <Dialog open={open} onOpenChange={(o) => { if (o) handleOpen(); else onClose(); }}>
+ return <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
   <DialogContent className="max-w-md">
    <DialogHeader><DialogTitle>{t.setPlan}</DialogTitle></DialogHeader>
    <div className="grid grid-cols-2 gap-3">
@@ -178,7 +178,8 @@ function MonthlyPlanDialog({ employee, open, onClose, defaultStart, onApply }: {
 function MonthEditDialog({ employee, month, onClose, onSave }: { employee: Employee; month: string | null; onClose: () => void; onSave: (month: string, salary: number, capacity: number) => void }) {
  const values = month ? employeeMonth(employee, month) : null;
  const [salary, setSalary] = useState(""); const [capacity, setCapacity] = useState("");
- return <Dialog open={!!month} onOpenChange={(o) => { if (o && values) { setSalary(String(values.salary)); setCapacity(String(values.capacity)); } else if (!o) onClose(); }}>
+ useEffect(() => { if (month && values) { setSalary(String(values.salary)); setCapacity(String(values.capacity)); } }, [month]);
+ return <Dialog open={!!month} onOpenChange={(o) => { if (!o) onClose(); }}>
   <DialogContent className="max-w-sm">
    <DialogHeader><DialogTitle>{t.editMonth} · {month ? monthLabel(month) : ""}</DialogTitle></DialogHeader>
    <div className="grid gap-3">

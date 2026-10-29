@@ -44,6 +44,7 @@ function EmployeeDetails() {
  const projectLink = (name: string) => { const p = projects.find((v) => v.name === name); return p ? <Link to="/portfolio/$projectId" params={{ projectId: p.id }} className="text-accent hover:underline">{name}</Link> : name; };
  if (!employee) return <><Button asChild variant="outline"><Link to="/resources" search={{ tab: "people" }}><ChevronLeft className="h-4 w-4" />{t.employees}</Link></Button><h1 className="mt-6 text-xl">{t.missing}</h1></>;
  const monthly = employeeMonth(employee, selectedMonth); const vacation = vacationBalance(employee, year);
+ const utilTone = monthly.effectiveUtilization > 100 ? "text-rag-red" : monthly.effectiveUtilization >= 80 ? "text-rag-green" : "text-rag-amber";
  const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
  const years = Array.from(new Set(["2025", "2026", "2027", employee.joinedOn.slice(0, 4), ...employee.allocations.flatMap((a) => [a.from.slice(0, 4), a.until.slice(0, 4)]).filter(Boolean)])).sort();
  const overMonths = months.filter((m) => employeeMonth(employee, m).effectiveUtilization > 100);
@@ -69,7 +70,13 @@ function EmployeeDetails() {
    </header>
   </div>
   <dl className="glass-card grid items-stretch p-0 sm:grid-cols-2 xl:grid-cols-5">
-   {[[t.monthly, new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(monthly.salary)], [t.capacity, `${monthly.capacity}h`], [t.utilization, `${monthly.effectiveUtilization}%`], [t.projects, employee.projects.length], [t.vacation, `${vacation.remaining}d`]].map(([label, value], i) => <div key={label} className={`flex min-w-0 flex-col justify-center border-border px-5 py-4 ${i < 4 ? "border-b xl:border-b-0 xl:border-e" : ""}`}><dt className="label-eyebrow">{label}</dt><dd className={`mt-2 break-words text-2xl font-semibold tabular-nums ${label === t.utilization ? monthly.effectiveUtilization > 100 ? "text-rag-red" : "text-accent" : "text-foreground"}`}>{value}</dd></div>)}
+   {[
+    { label: t.monthly, value: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(monthly.salary), tone: "text-foreground", bar: false },
+    { label: t.capacity, value: `${monthly.availableCapacity}h / ${monthly.allocatedHours.toFixed(1)}h`, tone: utilTone, bar: false },
+    { label: t.utilization, value: `${monthly.effectiveUtilization}%`, tone: utilTone, bar: true },
+    { label: t.projects, value: String(employee.projects.length), tone: "text-foreground", bar: false },
+    { label: t.vacation, value: `${vacation.remaining}d`, tone: "text-foreground", bar: false },
+   ].map((card, i) => <div key={card.label} className={`flex min-w-0 flex-col justify-center border-border px-5 py-4 ${i < 4 ? "border-b xl:border-b-0 xl:border-e" : ""}`}><dt className="label-eyebrow">{card.label}</dt><dd className={`mt-2 break-words text-2xl font-semibold tabular-nums ${card.tone}`}>{card.value}</dd>{card.bar && <div className="mt-2 flex h-1.5 w-full overflow-hidden rounded-full bg-muted/40">{monthly.charges.map((a, j) => <div key={a.id} className={utilColors[j % utilColors.length]} style={{ width: `${a.percent / Math.max(100, monthly.utilization) * 100}%` }} />)}</div>}</div>)}
   </dl>
   {overMonths.length > 0 && (
    <div className="flex items-start gap-3 rounded-lg border border-rag-red/40 bg-rag-red/10 px-4 py-3">

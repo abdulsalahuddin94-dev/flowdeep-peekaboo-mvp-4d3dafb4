@@ -1,5 +1,5 @@
 ## 2026-10-29 — Employee Overview tab redesign
-- Employee information moved to a full-width four-column grid and gained Base salary and Base capacity rows.
+- Employee information moved to a full-width four-column grid with identity fields only; salary and capacity stay in the top KPI strip to avoid duplication.
 - New Month summary section: a three-stat card (monthly salary, available hours, assigned hours) for the selected month, plus a thicker utilization bar with per-project colored segments, tick marks and labels at 80% and 100%, green/amber/red percentage states, and an absence note (e.g. "4d absence days · 160h → 130.9h available").
 - New Salary distribution stacked bar under the allocation table: each project's share of the month salary as a colored segment plus a muted Unassigned/overhead segment, with a dot legend showing amounts.
 - Segment palette ordered accent → blue → green → amber so adjacent projects stay visually distinct.

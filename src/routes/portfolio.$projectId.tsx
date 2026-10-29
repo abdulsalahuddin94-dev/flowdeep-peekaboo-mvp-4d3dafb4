@@ -1805,7 +1805,10 @@ function OverviewTab({
             <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-secondary/50">
               <div className="h-full rounded-full bg-rag-green" style={{ width: `${spentPct}%` }} />
             </div>
-            <div className="mt-3 text-xs text-muted-foreground">Remaining: ${remaining}M</div>
+            <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+              <span>Remaining: ${remaining}M</span>
+              <span className="num-mono">{spentPct}% used</span>
+            </div>
           </EmptyRegion>
         </div>
         <div className="glass-card p-5">
@@ -1831,9 +1834,9 @@ function OverviewTab({
             <div className="label-eyebrow">Risks Summary</div>
             {!showEmptyCards && <span className="num-mono text-xs text-muted-foreground">{projectRisks.length} risks</span>}
           </div>
-          <EmptyRegion id="project-overview-risks" variant="card" force={isNew} className="min-h-[290px]">
+          <EmptyRegion id="project-overview-risks" variant="card" force={isNew} className="min-h-[307px]">
             {projectRisks.length > 0 ? (
-              <ul className="max-h-[290px] space-y-1 overflow-y-auto pr-2 [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]">
+              <ul className="max-h-[307px] space-y-1 overflow-y-auto pr-2 [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]">
                 {projectRisks.map((risk) => {
                   const scoreTone = risk.score >= 15 ? "bg-rag-red/15 text-rag-red" : risk.score >= 9 ? "bg-rag-amber/15 text-rag-amber" : "bg-rag-green/15 text-rag-green";
                   return (

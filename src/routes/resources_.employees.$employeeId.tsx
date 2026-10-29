@@ -233,3 +233,31 @@ function TripDialog({ open, onClose, onAdd }: { open: boolean; onClose: () => vo
   </DialogContent>
  </Dialog>;
 }
+
+function LeaveDialog({ open, onClose, onAdd }: { open: boolean; onClose: () => void; onAdd: (leave: Omit<EmployeeLeave, "id">) => void }) {
+ const [type, setType] = useState<EmployeeLeave["type"]>("Annual vacation"); const [status, setStatus] = useState<EmployeeLeave["status"]>("Approved"); const [from, setFrom] = useState(""); const [until, setUntil] = useState("");
+ const [errors, setErrors] = useState<{ from?: string; until?: string }>({});
+ function submit() {
+  const next = { from: from ? undefined : "Start date is required.", until: !until ? "End date is required." : from && until < from ? "End date must be on or after start date." : undefined };
+  setErrors(next);
+  if (Object.values(next).some(Boolean)) return;
+  onAdd({ type, from, until, days: daysBetween(from, until), status });
+  setType("Annual vacation"); setStatus("Approved"); setFrom(""); setUntil(""); setErrors({});
+ }
+ return <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+  <DialogContent className="max-w-md">
+   <DialogHeader><DialogTitle>{t.addEntry} · {t.leaveRecords}</DialogTitle></DialogHeader>
+   <div className="grid gap-3">
+    <div className="grid grid-cols-2 gap-2">
+     <Field label={t.leaveType} htmlFor="leave-type" required><Select value={type} onValueChange={(v) => setType(v as EmployeeLeave["type"])}><SelectTrigger id="leave-type"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Annual vacation">{t.annualVacation}</SelectItem><SelectItem value="Sick leave">{t.sickLeave}</SelectItem><SelectItem value="Unpaid leave">{t.unpaidLeave}</SelectItem></SelectContent></Select></Field>
+     <Field label={t.status} htmlFor="leave-status" required><Select value={status} onValueChange={(v) => setStatus(v as EmployeeLeave["status"])}><SelectTrigger id="leave-status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Approved">Approved</SelectItem><SelectItem value="Pending">Pending</SelectItem><SelectItem value="Rejected">Rejected</SelectItem></SelectContent></Select></Field>
+    </div>
+    <div className="grid grid-cols-2 gap-2">
+     <Field label={t.from} htmlFor="leave-from" required error={errors.from}><Input id="leave-from" type="date" value={from} onChange={(e) => { setFrom(e.target.value); setErrors((p) => ({ ...p, from: undefined })); }} /></Field>
+     <Field label={t.until} htmlFor="leave-until" required error={errors.until}><Input id="leave-until" type="date" value={until} onChange={(e) => { setUntil(e.target.value); setErrors((p) => ({ ...p, until: undefined })); }} /></Field>
+    </div>
+   </div>
+   <DialogFooter><Button variant="outline" onClick={onClose}>{t.cancel}</Button><Button variant="primary" onClick={submit}>{t.save}</Button></DialogFooter>
+  </DialogContent>
+ </Dialog>;
+}

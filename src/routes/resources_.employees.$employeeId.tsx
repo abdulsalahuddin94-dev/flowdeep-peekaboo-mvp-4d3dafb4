@@ -43,6 +43,9 @@ function EmployeeDetails() {
  const employee = employees.find((e) => e.id === employeeId);
  const [tab, setTab] = useState("overview"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
  const [planOpen, setPlanOpen] = useState(false); const [editMonth, setEditMonth] = useState<string | null>(null); const [tripOpen, setTripOpen] = useState(false); const [leaveOpen, setLeaveOpen] = useState(false);
+ // Recharts generates different clip IDs on server vs client — render the donut only after mount.
+ const [mounted, setMounted] = useState(false);
+ useEffect(() => setMounted(true), []);
  const projectLink = (name: string) => { const p = projects.find((v) => v.name === name); return p ? <Link to="/portfolio/$projectId" params={{ projectId: p.id }} className="text-accent hover:underline">{name}</Link> : name; };
  if (!employee) return <><Button asChild variant="outline"><Link to="/resources" search={{ tab: "people" }}><ChevronLeft className="h-4 w-4" />{t.employees}</Link></Button><h1 className="mt-6 text-xl">{t.missing}</h1></>;
  const monthly = employeeMonth(employee, selectedMonth); const vacation = vacationBalance(employee, year);
@@ -96,7 +99,7 @@ function EmployeeDetails() {
     <section className="min-w-0 space-y-5">
      <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.allocation}</h2><span className="text-xs text-muted-foreground">{monthLabel(selectedMonth)}</span></div>
      <DataTable headers={[t.project, t.role, t.allocation, t.hours, t.cost]} rows={monthly.charges.map((a) => [projectLink(a.project), a.role, `${a.percent}%`, `${(monthly.capacity * a.percent / 100).toFixed(1)}h`, money(a.amount)])} />
-     {monthly.salary > 0 && (
+     {mounted && monthly.salary > 0 && (
       <div className="space-y-3">
        <div className="text-xs text-muted-foreground">{t.salarySplit}</div>
        <div className="grid items-center gap-6 sm:grid-cols-[220px_minmax(0,1fr)]">

@@ -1831,9 +1831,9 @@ function OverviewTab({
             <div className="label-eyebrow">Risks Summary</div>
             {!showEmptyCards && <span className="num-mono text-xs text-muted-foreground">{projectRisks.length} risks</span>}
           </div>
-          <EmptyRegion id="project-overview-risks" variant="card" force={isNew} className="min-h-[220px]">
+          <EmptyRegion id="project-overview-risks" variant="card" force={isNew} className="min-h-[290px]">
             {projectRisks.length > 0 ? (
-              <ul className="max-h-[220px] space-y-1 overflow-y-auto pr-2 [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]">
+              <ul className="max-h-[290px] space-y-1 overflow-y-auto pr-2 [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]">
                 {projectRisks.map((risk) => {
                   const scoreTone = risk.score >= 15 ? "bg-rag-red/15 text-rag-red" : risk.score >= 9 ? "bg-rag-amber/15 text-rag-amber" : "bg-rag-green/15 text-rag-green";
                   return (

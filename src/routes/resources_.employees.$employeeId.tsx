@@ -55,7 +55,6 @@ function EmployeeDetails() {
  const tasks = [...scheduleTasks, ...assignmentTasks, ...requestTasks]; employee.tasks.forEach((task) => { if (!tasks.some((v) => v.task === task)) tasks.push({ task, project: "—", period: "—" }); });
  const uniqueTasks = tasks.filter((v, i) => tasks.findIndex((a) => a.task === v.task && a.project === v.project) === i);
  const profile = [[t.id, employee.id], [t.email, employee.email], [t.role, employee.role], [t.department, employee.dept], [t.type, employmentTypes.find((v) => v.id === employee.employmentTypeId)?.name ?? "—"], [t.joined, formatDateWithYear(employee.joinedOn)]];
- const allocationProjects = Array.from(new Set(employee.allocations.map((a) => a.project)));
  return <div className="min-w-0 space-y-8">
   <div className="space-y-5">
    <Button asChild variant="ghost" className="h-9 px-0 text-muted-foreground"><Link to="/resources" search={{ tab: "people" }}><ChevronLeft className="h-4 w-4 rtl:rotate-180" />{t.employees}</Link></Button>
@@ -96,7 +95,7 @@ function EmployeeDetails() {
       headers={[t.month, t.projects, t.assignedHours, t.utilization]}
       rows={months.map((m) => { const v = employeeMonth(employee, m); return [
        <span className={m === selectedMonth ? "font-medium text-accent" : undefined}>{monthLabel(m)}</span>,
-       v.allocations.length ? <span className="text-muted-foreground">{v.allocations.map((a) => `${a.project} · ${a.percent}%`).join("، ")}</span> : <span className="text-muted-foreground">—</span>,
+       v.allocations.length ? <span className="text-muted-foreground">{v.allocations.map((a) => `${a.project} · ${a.percent}%`).join(" · ")}</span> : <span className="text-muted-foreground">—</span>,
        <span className="num-mono">{v.allocatedHours.toFixed(1)}h / {v.availableCapacity}h{v.absentDays > 0 ? <span className="block text-xs text-muted-foreground">{v.absentDays}d {t.absence.toLowerCase()}</span> : null}</span>,
        <span className={`num-mono font-medium ${v.effectiveUtilization > 100 ? "text-rag-red" : "text-foreground"}`}>{v.effectiveUtilization}%</span>,
       ]; })}

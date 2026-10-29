@@ -1,3 +1,9 @@
+## 2026-10-29 — Salary distribution Card Symmetry & Radius alignment
+- Aligned Salary distribution card with the Projects & allocation table above it.
+- Root cause: `src/components/ui/table.tsx` applies `p-2` (8px on left and right), which insets the table content to 948px vs 964px. Added `mx-2` to the card container so its horizontal boundaries match the table boundaries exactly (948px).
+- Updated border radius from `rounded-xl` to `rounded-[20px]` matching the table's outer corner border-radius.
+- Verified build and pushed commit `558a970` to GitHub main.
+
 ## 2026-10-29 — Token-driven refactoring for Salary distribution Donut card
 - Replaced hardcoded `bg-[#12131A]` with DS02 semantic token `bg-card`.
 - Resolves to `#12131A` in dark mode and automatically adapts to white in light mode.

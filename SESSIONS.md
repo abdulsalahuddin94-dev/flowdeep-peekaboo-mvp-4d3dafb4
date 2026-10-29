@@ -1,3 +1,8 @@
+## 2026-10-29 — Token-driven refactoring for Salary distribution Donut card
+- Replaced hardcoded `bg-[#12131A]` with DS02 semantic token `bg-card`.
+- Resolves to `#12131A` in dark mode and automatically adapts to white in light mode.
+- Pushed commit `61c23d1` to GitHub main.
+
 ## 2026-10-29 — Salary distribution Donut card background
 - Wrapped the Salary distribution donut chart and project allocation breakdown inside a styled card container matching the full width of the Projects & allocation table above it.
 - Styled the card with background `#12131A` (matching DS02 surface and table row backgrounds), rounded borders (`rounded-xl border border-border/50`), inner padding (`p-6`), and subtle shadow.

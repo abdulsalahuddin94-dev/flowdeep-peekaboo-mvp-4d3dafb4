@@ -100,7 +100,7 @@ function EmployeeDetails() {
      <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.allocation}</h2><span className="text-xs text-muted-foreground">{monthLabel(selectedMonth)}</span></div>
      <DataTable headers={[t.project, t.role, t.allocation, t.hours, t.cost]} rows={monthly.charges.map((a) => [projectLink(a.project), a.role, `${a.percent}%`, `${(monthly.capacity * a.percent / 100).toFixed(1)}h`, money(a.amount)])} />
      {mounted && monthly.salary > 0 && (
-      <div className="rounded-xl border border-border/50 bg-[#12131A] p-6 shadow-sm">
+      <div className="rounded-xl border border-border/50 bg-card p-6 shadow-sm">
        <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">{t.salarySplit}</h3>
        <div className="grid items-center gap-8 sm:grid-cols-[220px_minmax(0,1fr)]">
         <div className="relative mx-auto h-[220px] w-[220px] sm:mx-0">

@@ -82,6 +82,10 @@ export function useEmployees() {
       updateEmployee(id, (e) => ({ trips: [...e.trips, { ...trip, id: `trip-${crypto.randomUUID()}` }] })),
     removeTrip: (id: string, tripId: string) =>
       updateEmployee(id, (e) => ({ trips: e.trips.filter((t) => t.id !== tripId) })),
+    addLeave: (id: string, leave: Omit<EmployeeLeave, "id">) =>
+      updateEmployee(id, (e) => ({ leave: [...e.leave, { ...leave, id: `leave-${crypto.randomUUID()}` }] })),
+    removeLeave: (id: string, leaveId: string) =>
+      updateEmployee(id, (e) => ({ leave: e.leave.filter((l) => l.id !== leaveId) })),
     addEmploymentType: (name: string) => save({ ...state, employmentTypes: [...state.employmentTypes, { id: `ET-${crypto.randomUUID()}`, name: name.trim(), active: true }] }),
     updateEmploymentType: (id: string, patch: Partial<Pick<EmploymentType, "name" | "active">>) => save({ ...state, employmentTypes: state.employmentTypes.map((t) => t.id === id ? { ...t, ...patch } : t) }),
     removeEmploymentType: (id: string) => { if (state.employees.some((e) => e.employmentTypeId === id)) return false; save({ ...state, employmentTypes: state.employmentTypes.filter((t) => t.id !== id) }); return true; },

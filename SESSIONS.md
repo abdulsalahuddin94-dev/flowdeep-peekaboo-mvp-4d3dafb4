@@ -1,3 +1,9 @@
+## 2026-10-29 — Leave record actions and allocation tab rework
+- Leave records now have the same actions as Business trips & training: an Add entry dialog (leave type, status, from/until dates with validation) and a per-row delete button; the employee store gained addLeave/removeLeave, and added leave immediately updates the vacation balance and absence-aware capacity.
+- Projects & allocation tab reorganized: it now leads with an Assigned projects table (project, role, period, allocation %) followed by a Monthly utilization table with one row per month — project breakdown, assigned vs available hours (with absence days) and a red utilization % when over 100%; clicking a row selects the month.
+- Removed the illogical months × projects percentage matrix and the duplicated month selector/progress block (the per-month detail stays on the Overview tab).
+- Browser verified: new layout renders, leave add updates the table and vacation balance (19d → 15d), delete buttons work; preview build OK.
+
 ## 2026-10-29 — Monthly salary & capacity planning, trips, and over-utilization
 - Add employee now collects only Full name, Role, Employment type, Department and Email; salary and capacity are planned later from the employee profile (new employees start at 0 salary / 160h monthly capacity).
 - Salary and capacity are tracked per month: the employee store keeps per-month overrides keyed by YYYY-MM with the base values as fallback, and the demo data seeds a mid-year raise and a part-time month so the pattern is visible.

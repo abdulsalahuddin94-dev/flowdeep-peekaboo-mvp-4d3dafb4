@@ -103,8 +103,8 @@ function EmployeeDetails() {
         <div className="relative h-[220px]">
          <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-           <Pie data={[...monthly.charges.map((a, i) => ({ name: a.project, value: a.amount, color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ name: t.overhead, value: monthly.overhead, color: "var(--muted)" }] : [])]} dataKey="value" nameKey="name" innerRadius={62} outerRadius={95} paddingAngle={3} stroke="none">
-            {[...monthly.charges.map((a, i) => ({ color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ color: "var(--muted)" }] : [])].map((x, i) => <Cell key={i} fill={x.color} />)}
+           <Pie data={[...monthly.charges.map((a, i) => ({ name: a.project, value: a.amount, color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ name: t.overhead, value: monthly.overhead, color: donutOverheadColor }] : [])]} dataKey="value" nameKey="name" innerRadius={62} outerRadius={95} paddingAngle={3} stroke="none">
+            {[...monthly.charges.map((a, i) => ({ color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ color: donutOverheadColor }] : [])].map((x, i) => <Cell key={i} fill={x.color} />)}
            </Pie>
           </PieChart>
          </ResponsiveContainer>
@@ -112,7 +112,7 @@ function EmployeeDetails() {
         </div>
         <ul className="space-y-2 text-sm">
          {monthly.charges.map((a, i) => <li key={a.id} className="flex items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutColors[i % donutColors.length] }} /><span className="min-w-0 flex-1 truncate text-foreground">{a.project}</span><span className="num-mono text-muted-foreground">{money(a.amount)}</span></li>)}
-         {monthly.overhead > 0 && <li className="flex items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full bg-muted" /><span className="min-w-0 flex-1 truncate text-muted-foreground">{t.overhead}</span><span className="num-mono text-muted-foreground">{money(monthly.overhead)}</span></li>}
+         {monthly.overhead > 0 && <li className="flex items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutOverheadColor }} /><span className="min-w-0 flex-1 truncate text-muted-foreground">{t.overhead}</span><span className="num-mono text-muted-foreground">{money(monthly.overhead)}</span></li>}
         </ul>
        </div>
       </div>

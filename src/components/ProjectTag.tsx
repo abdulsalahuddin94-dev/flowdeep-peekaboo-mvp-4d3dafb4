@@ -13,7 +13,7 @@ export function ProjectTag({ name, color, dimmed = false, className }: { name: s
     : undefined;
   return (
     <span
-      className={cn("inline-flex items-center whitespace-nowrap rounded-[4px] border", !color && (dimmed ? "border-border text-muted-foreground" : "border-accent/50 text-accent"), className)}
+      className={cn("inline-flex items-center whitespace-nowrap rounded-[6px] border", !color && (dimmed ? "border-border text-muted-foreground" : "border-accent/50 text-accent"), className)}
       style={style}
     >
       {name}

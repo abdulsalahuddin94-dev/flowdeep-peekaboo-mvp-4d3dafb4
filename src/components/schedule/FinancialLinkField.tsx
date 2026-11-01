@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FINANCIAL_CATALOG, findFinancialItem, type FinancialItem } from "@/lib/finance-links";
+import { dollars } from "@/lib/money";
 
 type Props = {
   costIds: string[];
@@ -31,7 +32,7 @@ function parseAmount(a: string) {
 }
 function fmtTotal(ids: string[]) {
   const sum = ids.reduce((acc, id) => acc + parseAmount(findFinancialItem(id)?.amount ?? ""), 0);
-  return `$${sum.toFixed(2)}M`;
+  return dollars(sum);
 }
 
 function Chip({ id, onRemove }: { id: string; onRemove?: () => void }) {

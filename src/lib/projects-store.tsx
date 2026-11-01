@@ -107,7 +107,7 @@ const SEED_APPROVALS: ApprovalRequest[] = [
     requestedAt: "2026-07-23",
     summary: [
       { label: "Info · Project · Name", before: "Coastal Refinery Expansion", after: "Coastal Refinery Expansion — Phase 2" },
-      { label: "Info · Project · Budget", before: "$12.40M", after: "$13.10M" },
+      { label: "Info · Project · Budget", before: "$12,400,000", after: "$13,100,000" },
       { label: "Info · Project · End date", before: "2026-12-02", after: "2027-01-15" },
       { label: "Info · Project · Departments", before: "Engineering", after: "Engineering, Procurement" },
       { label: "Detailed Design · Finish", before: "2026-09-10", after: "2026-10-02", type: "Task" },
@@ -159,7 +159,7 @@ const SEED_APPROVALS: ApprovalRequest[] = [
     requestedAt: "2026-07-16",
     summary: [
       { label: "Info · Project · Name", before: "Customer Portal v3", after: "Customer Portal v3 — Payments" },
-      { label: "Info · Project · Budget", before: "$4.80M", after: "$5.35M" },
+      { label: "Info · Project · Budget", before: "$4,800,000", after: "$5,350,000" },
       { label: "Payments Integration · Item", before: "", after: "Added", type: "Task" },
       { label: "Payments Integration · Dates", before: "", after: "2026-08-03 → 2026-09-11", type: "Task" },
       { label: "Beta Launch · Finish", before: "2026-09-25", after: "2026-10-16", type: "Milestone" },

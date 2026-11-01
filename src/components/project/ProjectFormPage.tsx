@@ -19,6 +19,7 @@ import { useCalendars, useProjects, useTags } from "@/lib/projects-store";
 import { parseLabelDate, formatLabelDate, toIsoDateLocal, type Project, type Rag } from "@/lib/mock-data";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
+import { money, toDollarInput, fromDollarInput } from "@/lib/money";
 
 type ProjectType = "capital" | "commercial";
 
@@ -95,8 +96,8 @@ function fromProject(p: Project, fallbackCalendar: string): FormState {
     startDate: startIso,
     duration: startIso && endIso ? String(diffDays(startIso, endIso)) : "",
     endDate: endIso,
-    budget: String(p.budgetTotal ?? ""),
-    revenue: p.expectedRevenue != null ? String(p.expectedRevenue) : "",
+    budget: toDollarInput(p.budgetTotal),
+    revenue: toDollarInput(p.expectedRevenue),
     tags: p.tags ?? [],
     calendarId: p.calendarId ?? fallbackCalendar,
   };
@@ -257,8 +258,8 @@ export function ProjectFormPage({ project, embedded = false }: { project?: Proje
       pmAvatar: "—",
       progress: 0,
       budgetUsed: 0,
-      budgetTotal: parseFloat(form.budget) || 0,
-      expectedRevenue: form.revenue ? parseFloat(form.revenue) || 0 : undefined,
+      budgetTotal: fromDollarInput(form.budget) || 0,
+      expectedRevenue: form.revenue ? fromDollarInput(form.revenue) || 0 : undefined,
       startDate: startDateLabel,
       endDate: endDateLabel,
       rag: "blue" as Rag,
@@ -405,13 +406,13 @@ export function ProjectFormPage({ project, embedded = false }: { project?: Proje
 
             <Section id="financials" title="Financials" subtitle="Approved budget and, for client work, expected revenue.">
               <div>
-                <Label>Budget total ($M)</Label>
-                <Input type="number" min="0" step="0.1" value={form.budget} onChange={(e) => set("budget", e.target.value)} placeholder="e.g. 2.5" />
+                <Label>Budget total ($)</Label>
+                <Input type="number" min="0" step="1" value={form.budget} onChange={(e) => set("budget", e.target.value)} placeholder="e.g. 2500000" />
               </div>
               {form.projectType === "commercial" && (
                 <div>
-                  <Label>Expected revenue ($M)</Label>
-                  <Input type="number" min="0" step="0.1" value={form.revenue} onChange={(e) => set("revenue", e.target.value)} placeholder="e.g. 3.0" />
+                  <Label>Expected revenue ($)</Label>
+                  <Input type="number" min="0" step="1" value={form.revenue} onChange={(e) => set("revenue", e.target.value)} placeholder="e.g. 3000000" />
                 </div>
               )}
             </Section>
@@ -471,9 +472,9 @@ export function ProjectFormPage({ project, embedded = false }: { project?: Proje
                   <SummaryRow l="Departments" v={form.departments.join(", ") || "—"} />
                   <SummaryRow l="Stage" v={form.stage} />
                   <SummaryRow l="Timeline" v={form.startDate && form.endDate ? `${form.startDate} → ${form.endDate}` : "—"} />
-                  <SummaryRow l="Budget" v={form.budget ? `$${form.budget}M` : "—"} />
+                  <SummaryRow l="Budget" v={form.budget ? money(fromDollarInput(form.budget)) : "—"} />
                   {form.projectType === "commercial" && (
-                    <SummaryRow l="Revenue" v={form.revenue ? `$${form.revenue}M` : "—"} />
+                    <SummaryRow l="Revenue" v={form.revenue ? money(fromDollarInput(form.revenue)) : "—"} />
                   )}
                 </dl>
                 {form.tags.length > 0 && (
@@ -582,8 +583,8 @@ function projectInfoPatch(form: FormState): Partial<Project> {
     department: form.departments,
     client: form.projectType === "capital" ? "Internal" : form.client || "Internal",
     stage: form.stage,
-    budgetTotal: parseFloat(form.budget) || 0,
-    expectedRevenue: form.revenue ? parseFloat(form.revenue) || 0 : undefined,
+    budgetTotal: fromDollarInput(form.budget) || 0,
+    expectedRevenue: form.revenue ? fromDollarInput(form.revenue) || 0 : undefined,
     tags: form.tags,
     calendarId: form.calendarId || undefined,
     ...(form.code.trim() ? { code: form.code.trim() } : {}),

@@ -266,7 +266,7 @@ function CapitalSteps({ stepKey }: { stepKey: string }) {
         <Field className="md:col-span-2" label="Mitigation strategy">
           <Textarea placeholder="Specific controls per risk." rows={3} />
         </Field>
-        <Field label="Tangible benefits"><Input placeholder="$1.2M / year saved" /></Field>
+        <Field label="Tangible benefits"><Input placeholder="$1,200,000 / year saved" /></Field>
         <Field label="Intangible benefits"><Input placeholder="Improved reporting accuracy" /></Field>
       </FormGrid>
     );
@@ -293,8 +293,8 @@ function CapitalSteps({ stepKey }: { stepKey: string }) {
         { l: "Project name", v: "ERP Upgrade Phase 2" },
         { l: "Sponsor / PM", v: "V. Mansour · John Smith" },
         { l: "Strategic pillar", v: "Digital Transformation · Tier 1" },
-        { l: "CAPEX / OPEX", v: "$2.40M / $0.80M/yr" },
-        { l: "NPV · IRR · Payback", v: "$1.82M · 18.5% · 2.4yr" },
+        { l: "CAPEX / OPEX", v: "$2,400,000 / $800,000/yr" },
+        { l: "NPV · IRR · Payback", v: "$1,820,000 · 18.5% · 2.4yr" },
         { l: "Top risk", v: "Vendor SLA breach (High)" },
         { l: "Resources", v: "6.5 FTE internal + 3 contractors" },
         { l: "Approval route", v: "PMO → Finance → CIO → ExCo" },
@@ -399,7 +399,7 @@ function CommercialSteps({ stepKey }: { stepKey: string }) {
         { l: "Client / RFP", v: "Aramco Digital · RFP-2026-014" },
         { l: "Account owner", v: "H. Tanaka" },
         { l: "Engagement model", v: "Fixed price · 26 weeks" },
-        { l: "Bid value", v: "$3.80M" },
+        { l: "Bid value", v: "$3,800,000" },
         { l: "Margin · Contingency", v: "28.4% · 8%" },
         { l: "Win probability", v: "High (60–85%) · Recommended bid" },
         { l: "Delivery lead · team", v: "K. Bauer · 11 FTE" },

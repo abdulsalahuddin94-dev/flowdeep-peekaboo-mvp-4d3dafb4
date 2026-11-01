@@ -296,7 +296,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
                   const selected = tagFilter.includes(value);
                   return (
                     <button key={value} type="button" aria-pressed={selected} onClick={() => toggleMulti(value, tagFilter, setTagFilter)} className="rounded-[4px] transition-opacity hover:opacity-100">
-                      <ProjectTag name={value} color={tagColor(value)} dimmed={!selected} className={cn("h-7 rounded-full px-3 text-xs", selected && "font-medium")} />
+                      <ProjectTag name={value} color={tagColor(value)} dimmed={!selected} className={cn("h-7 px-3 text-xs", selected && "font-medium")} />
                     </button>
                   );
                 })}
@@ -442,7 +442,7 @@ function ProjectGrid({
           {p.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {p.tags.map((tag) => {
-                return <ProjectTag key={tag} name={tag} color={colorOf(tag)} className="px-1.5 py-px text-[10px]" />;
+                return <ProjectTag key={tag} name={tag} color={colorOf(tag)} className="px-2 py-px text-[10px]" />;
               })}
             </div>
           )}

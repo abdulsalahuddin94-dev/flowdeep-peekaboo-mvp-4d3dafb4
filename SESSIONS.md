@@ -1,3 +1,7 @@
+## 2026-11-01 — Collapse all / Expand all for WBS, cost and revenue tables
+- New shared `CollapseAllToggle` (lucide ChevronsDownUp / ChevronsUpDown, like Figma's collapse-layers control) sits in the first header cell of the WBS table, the Cost Breakdown table and the Revenue Breakdown table.
+- While any row is open it collapses everything and flips to "Expand all"; the next click expands every expandable row (WBS parents, cost lines and revenue events that have actuals). It is disabled when a table has nothing to expand.
+- Browser verified: WBS collapse flips the icon, Revenue expand-all opens all events with actuals, Cost expand-all opens all 5 lines with actuals; no runtime errors, typecheck clean.
 ## 2026-11-01 — Risks count opens the filtered Risk Register
 - Organization → Risk Categories: the Risks count is now a link (disabled at 0) that opens the global Risk Register filtered to that category.
 - `/risks` accepts an optional `category` search param that seeds the Risk Register category filter; the filter stays removable from the Filter panel.

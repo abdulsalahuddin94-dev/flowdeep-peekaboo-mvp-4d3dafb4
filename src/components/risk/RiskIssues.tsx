@@ -83,7 +83,7 @@ export function useSeverity() {
 
 /* ── Risk register ────────────────────────────────────────────────────────── */
 
-export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues, initialViewId }: { project?: string; milestoneOptions?: string[]; onViewLinkedIssues?: (riskId: string) => void; initialViewId?: string | null }) {
+export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues, initialViewId, initialCategory }: { project?: string; milestoneOptions?: string[]; onViewLinkedIssues?: (riskId: string) => void; initialViewId?: string | null; initialCategory?: string }) {
   const navigate = useNavigate();
   const back = useBackParam();
   const { risks, issues, categories, addRisk, updateRisk, removeRisk, logRiskUpdate, editRiskUpdate, removeRiskUpdate, convertRiskToIssue } = useRiskRegister();
@@ -94,7 +94,7 @@ export function RiskRegisterTab({ project, milestoneOptions, onViewLinkedIssues,
 
   const [query, setQuery] = useState("");
   const [projectFilter, setProjectFilter] = useState<string[]>([]);
-  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<string[]>(initialCategory ? [initialCategory] : []);
   const [severity, setSeverity] = useState("all");
   const [status, setStatus] = useState("all");
   const [viewId, setViewId] = useState<string | null>(null);

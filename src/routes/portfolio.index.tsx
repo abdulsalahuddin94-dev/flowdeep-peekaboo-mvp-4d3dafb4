@@ -24,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { formatDateWithYear } from "@/lib/date-format";
+import { money } from "@/lib/money";
 
 export const Route = createFileRoute("/portfolio/")({
   component: PortfolioPage,
@@ -412,7 +413,7 @@ function ProjectGrid({
             <div><div className="label-eyebrow">End</div><div className="text-foreground">{formatDateWithYear(p.endDate)}</div></div>
           </div>
           <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-            <div><div className="label-eyebrow">Budget</div><div className="num-mono text-foreground">${p.budgetUsed.toFixed(1)}M / ${p.budgetTotal.toFixed(1)}M</div></div>
+            <div><div className="label-eyebrow">Budget</div><div className="num-mono text-foreground">{money(p.budgetUsed)} / {money(p.budgetTotal)}</div></div>
             <div><div className="label-eyebrow">Duration</div><div className="num-mono text-foreground">{(() => { const d = projectDurationDays(p); return d != null ? `${d}d` : "—"; })()}</div></div>
           </div>
           {p.tags.length > 0 && (
@@ -471,7 +472,7 @@ function ProjectListView({ items, onOpen, onEdit, pendingByProject }: { items: P
               <TableCell>{p.pm}</TableCell>
               <TableCell className="text-muted-foreground">{p.department.join(" · ")}</TableCell>
               <TableCell className="w-40"><div className="flex items-center gap-2"><Progress value={p.progress} className="h-1.5" /><span className="num-mono text-xs">{p.progress}%</span></div></TableCell>
-              <TableCell className="num-mono text-xs">${p.budgetUsed.toFixed(1)}/${p.budgetTotal.toFixed(1)}M</TableCell>
+              <TableCell className="num-mono text-xs">{money(p.budgetUsed)} / {money(p.budgetTotal)}</TableCell>
               <TableCell className="text-xs text-muted-foreground">{formatDateWithYear(p.endDate)}</TableCell>
               <TableCell className="text-xs">{p.risks + p.issues}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
@@ -552,7 +553,7 @@ function ProjectSlideOver({ project, onClose }: { project: Project | null; onClo
               </div>
               <div className="rounded-md border border-border bg-background/30 p-3">
                 <div className="label-eyebrow">Budget burn</div>
-                <div className="mt-1 num-mono">${project.budgetUsed.toFixed(1)}M / ${project.budgetTotal.toFixed(1)}M</div>
+                <div className="mt-1 num-mono">{money(project.budgetUsed)} / {money(project.budgetTotal)}</div>
                 <div className="mt-1 text-xs text-rag-amber">▲ +4% vs plan</div>
               </div>
             </div>

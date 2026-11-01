@@ -1,3 +1,7 @@
+## 2026-11-01 — Stage Gates done vs in-progress colors
+- Project Overview Stage Gates now separate three states: done stages are green (filled circle with check, green bar, "Done" chip), the current stage (first one not done) is lavender (outlined circle, lavender bar and label, "In progress" chip), and later stages keep the neutral look.
+- Browser verified on ERP System Upgrade (Initiation done, Planning in progress) with no runtime errors; typecheck clean.
+
 ## 2026-10-29 — Salary distribution Card Symmetry & Radius alignment
 - Aligned Salary distribution card with the Projects & allocation table above it.
 - Root cause: `src/components/ui/table.tsx` applies `p-2` (8px on left and right), which insets the table content to 948px vs 964px. Added `mx-2` to the card container so its horizontal boundaries match the table boundaries exactly (948px).

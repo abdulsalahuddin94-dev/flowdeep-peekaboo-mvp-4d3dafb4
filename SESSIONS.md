@@ -1,3 +1,6 @@
+## 2026-11-01 — Stage Gates done vs in-progress colors
+- Project Overview Stage Gates now separate three states: done stages are green (filled circle with check, green bar, "Done" chip), the current stage (first one not done) is lavender (outlined circle, lavender bar and label, "In progress" chip), and later stages keep the neutral look.
+- Browser verified on ERP System Upgrade (Initiation done, Planning in progress) with no runtime errors; typecheck clean.
 ## 2026-11-01 — Collapse all / Expand all for WBS, cost and revenue tables
 - New shared `CollapseAllToggle` (lucide ChevronsDownUp / ChevronsUpDown, like Figma's collapse-layers control) sits in the first header cell of the WBS table, the Cost Breakdown table and the Revenue Breakdown table.
 - While any row is open it collapses everything and flips to "Expand all"; the next click expands every expandable row (WBS parents, cost lines and revenue events that have actuals). It is disabled when a table has nothing to expand.

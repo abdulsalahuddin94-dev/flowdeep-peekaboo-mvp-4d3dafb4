@@ -1689,6 +1689,7 @@ function AddJobRoleDialog({ onAdd, hasSkills, onGoToSkills, existing = [] }: { o
 function RiskCategoriesTab() {
   const { categories, risks, addCategory, updateCategory, removeCategory } = useRiskRegister();
   const { isActive, setActive } = useOrgActive("risk-category");
+  const navigate = useNavigate();
   const [editing, setEditing] = useState<RiskCategory | null>(null);
   const [pendingDelete, setPendingDelete] = useState<RiskCategory | null>(null);
   const [pendingToggle, setPendingToggle] = useState<{ id: string; name: string; active: boolean } | null>(null);
@@ -1744,7 +1745,17 @@ function RiskCategoriesTab() {
               <TableRow key={c.id} className={cn("bg-table-row-bg hover:bg-table-row-hover border-0", !isActive(c.id) && "opacity-60")}>
                 <TableCell className="whitespace-nowrap font-medium text-foreground">{c.name}</TableCell>
                 <TableCell className="text-muted-foreground">{c.description || "—"}</TableCell>
-                <TableCell className="num-mono text-center">{c.used}</TableCell>
+                <TableCell className="text-center">
+                  <button
+                    type="button"
+                    disabled={c.used === 0}
+                    title={c.used > 0 ? `View ${c.name} risks in the Risk Register` : undefined}
+                    onClick={() => navigate({ to: "/risks", search: { tab: "register", category: c.name } })}
+                    className="num-mono rounded-md px-2 py-0.5 text-sm text-foreground transition hover:bg-secondary/50 hover:underline disabled:cursor-default disabled:text-muted-foreground disabled:no-underline disabled:hover:bg-transparent"
+                  >
+                    {c.used}
+                  </button>
+                </TableCell>
                 <TableCell className="text-center">
                   <RelatedProjectsCount label={c.name} projects={c.linked} />
                 </TableCell>

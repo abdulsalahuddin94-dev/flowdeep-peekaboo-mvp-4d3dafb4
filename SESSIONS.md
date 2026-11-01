@@ -1,3 +1,8 @@
+## 2026-11-01 — Risks count opens the filtered Risk Register
+- Organization → Risk Categories: the Risks count is now a link (disabled at 0) that opens the global Risk Register filtered to that category.
+- `/risks` accepts an optional `category` search param that seeds the Risk Register category filter; the filter stays removable from the Filter panel.
+- Browser verified: Vendor (1) → /risks?tab=register&category=Vendor shows the single Vendor risk with "Filter 1"; no runtime errors, typecheck clean.
+
 ## 2026-10-29 — Salary distribution Card Symmetry & Radius alignment
 - Aligned Salary distribution card with the Projects & allocation table above it.
 - Root cause: `src/components/ui/table.tsx` applies `p-2` (8px on left and right), which insets the table content to 948px vs 964px. Added `mx-2` to the card container so its horizontal boundaries match the table boundaries exactly (948px).

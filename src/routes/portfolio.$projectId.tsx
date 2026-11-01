@@ -1862,19 +1862,32 @@ function OverviewTab({
           <div className="label-eyebrow mb-4">Stage Gates</div>
           <EmptyRegion id="project-overview-gates" variant="card" force={isNew} className="min-h-[264px]">
             <ul className="space-y-4">
-              {stages.map((s) => {
+              {stages.map((s, i) => {
                 const pct = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
+                // The current stage is the first one not yet done; later stages stay neutral.
+                const current = !s.done && i === stages.findIndex((x) => !x.done);
                 return (
-                  <li key={s.n}>
+                  <li key={s.n} aria-current={current ? "step" : undefined}>
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${s.done ? "bg-accent text-accent-foreground" : "border border-border bg-secondary/40 text-muted-foreground"}`}>
-                        {s.done ? <span className="text-sm">✓</span> : <span className="num-mono text-xs">{s.n}</span>}
+                      <div
+                        className={cn(
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                          s.done && "bg-rag-green text-background",
+                          current && "border-2 border-accent bg-accent/15 text-accent",
+                          !s.done && !current && "border border-border bg-secondary/40 text-muted-foreground",
+                        )}
+                      >
+                        {s.done ? <span className="text-sm font-semibold">✓</span> : <span className="num-mono text-xs font-medium">{s.n}</span>}
                       </div>
-                      <span className={`flex-1 text-sm ${s.done ? "text-foreground" : "text-muted-foreground"}`}>{s.name}</span>
-                      <span className="num-mono text-xs text-muted-foreground">{s.completed}/{s.total}</span>
+                      <span className={cn("flex-1 text-sm", s.done && "text-foreground", current && "font-medium text-accent", !s.done && !current && "text-muted-foreground")}>
+                        {s.name}
+                        {current && <span className="ml-2 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent">In progress</span>}
+                        {s.done && <span className="ml-2 rounded-full border border-rag-green/40 bg-rag-green/10 px-2 py-0.5 text-[10px] font-medium text-rag-green">Done</span>}
+                      </span>
+                      <span className={cn("num-mono text-xs", s.done ? "text-rag-green" : current ? "text-accent" : "text-muted-foreground")}>{s.completed}/{s.total}</span>
                     </div>
                     <div className="mt-2 ml-11">
-                      <Progress value={pct} className={cn("h-1.5", s.done && "[&>div]:bg-rag-green")} />
+                      <Progress value={pct} className={cn("h-1.5", s.done && "[&>div]:bg-rag-green", current && "[&>div]:bg-accent")} />
                     </div>
                   </li>
                 );

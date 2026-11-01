@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear, formatDateWithoutYear } from "@/lib/date-format";
 import { useOrgRules } from "@/lib/org-rules";
+import { CollapseAllToggle } from "@/components/CollapseAllToggle";
 
 // ── MS Project XML import ────────────────────────────────────────────────────
 function parseMsProjectXml(xmlText: string): ScheduleItem[] {
@@ -467,6 +468,7 @@ export function ProjectSchedule({
 
   // Build tree: top-level = items with no parent matching another item's name.
   const nameSet = useMemo(() => new Set(items.map(i => i.name)), [items]);
+  const parentNames = useMemo(() => items.filter((i) => i.parent && nameSet.has(i.parent)).map((i) => i.parent as string), [items, nameSet]);
   const childrenOf = useMemo(() => {
     const m = new Map<string, ScheduleItem[]>();
     for (const it of items) {
@@ -1169,7 +1171,21 @@ export function ProjectSchedule({
             <div style={{ width: tableW }}>
               {/* Header */}
               <div className="sticky top-0 z-20 flex rounded-t-[20px] bg-[var(--table-header-bg)] text-sm font-medium text-[var(--table-header-fg)]" style={{ height: HEADER_H }}>
-                <ColHeader label="Item Name" width={nameW} onResize={(e) => startColResize("name", e)} onAutoFit={() => autoFitCol("name")} first />
+                <ColHeader
+                  label="Item Name"
+                  width={nameW}
+                  onResize={(e) => startColResize("name", e)}
+                  onAutoFit={() => autoFitCol("name")}
+                  first
+                  leading={
+                    <CollapseAllToggle
+                      anyExpanded={parentNames.some((n) => expanded.has(n))}
+                      disabled={parentNames.length === 0}
+                      onCollapseAll={() => setExpanded(new Set())}
+                      onExpandAll={() => setExpanded(new Set(items.map((i) => i.name)))}
+                    />
+                  }
+                />
                 {COLUMNS.filter(c => colVisible(c.key)).map(c => (
                   <ColHeader key={c.key} label={c.label} width={widths[c.key]} onResize={(e) => startColResize(c.key, e)} onAutoFit={() => autoFitCol(c.key)} />
                 ))}
@@ -1999,18 +2015,21 @@ function ColHeader({
   onResize,
   onAutoFit,
   first,
+  leading,
 }: {
   label: string;
   width: number;
   onResize: (e: React.PointerEvent) => void;
   onAutoFit: () => void;
   first?: boolean;
+  leading?: React.ReactNode;
 }) {
   return (
     <div
-      className="relative flex shrink-0 items-center px-2 text-xs"
+      className="relative flex shrink-0 items-center gap-1 px-2 text-xs"
       style={{ width }}
     >
+      {leading}
       <span className="whitespace-normal leading-tight">{label}</span>
       <div
         onPointerDown={onResize}

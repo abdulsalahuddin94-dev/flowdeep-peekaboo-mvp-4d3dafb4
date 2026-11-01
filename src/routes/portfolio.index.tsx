@@ -296,7 +296,7 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
                   const selected = tagFilter.includes(value);
                   return (
                     <button key={value} type="button" aria-pressed={selected} onClick={() => toggleMulti(value, tagFilter, setTagFilter)} className="rounded-[4px] transition-opacity hover:opacity-100">
-                      <ProjectTag name={value} color={tagColor(value)} dimmed={!selected} className={cn("h-7 px-3 text-xs", selected && "font-medium")} />
+                      <ProjectTag name={value} color={tagColor(value)} dimmed={!selected} className={cn("h-7 rounded-full px-3 text-xs", selected && "font-medium")} />
                     </button>
                   );
                 })}

@@ -1,3 +1,7 @@
+## 2026-11-01 — Project tag corner radius: 6px on cards, pills in Filter
+- `ProjectTag` base radius moved from 4px to 6px, so tags on the portfolio project cards read as softer rounded rectangles.
+- The Filter panel's Tags row passes `rounded-full`, so tag chips there are pills like the other filter chips; `cn`/tailwind-merge resolves the override.
+- Browser verified on /portfolio: filter chips measure 9999px radius (28px tall) and card tags 6px, with no runtime errors.
 ## 2026-11-01 — Portfolio tags vs health badges
 - Health (RAG) badges on the portfolio cards and list are pill shaped (12px); tags are rounded rectangles (10px on cards) in their own tag color, through a new shared `ProjectTag` component.
 - The Filter panel uses the same shapes: RAG chips stay pills and, when selected, take the card badge colors; Tag chips show their color dimmed and light up when selected.

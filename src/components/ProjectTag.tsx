@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Project tag: rounded rectangle in the tag's own color so it reads differently
- * from the pill-shaped health badge. `dimmed` is the unselected filter state;
- * selecting the filter (or showing it on a card) lights it up.
+ * Project tag: rounded rectangle (6px) in the tag's own color so it reads differently
+ * from the pill-shaped health badge. Filter rows pass `rounded-full` to match the
+ * other filter chips. `dimmed` is the unselected filter state; selecting the filter
+ * (or showing it on a card) lights it up.
  */
 export function ProjectTag({ name, color, dimmed = false, className }: { name: string; color?: string; dimmed?: boolean; className?: string }) {
   const style = color

@@ -1,7 +1,8 @@
 ﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { RagBadge, RagDot } from "@/components/RagBadge";
+import { RagBadge, RagDot, ragTone } from "@/components/RagBadge";
+import { ProjectTag } from "@/components/ProjectTag";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -148,6 +149,8 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
   const panelActiveCount = typeFilter.length + ragFilter.length + stageFilter.length + tagFilter.length
     + deptFilter.length + (clientFilter ? 1 : 0) + (yearFilter ? 1 : 0) + (baseFilter ? 1 : 0);
 
+  const { tags: orgTags } = useTags();
+  const tagColor = (name: string) => orgTags.find((t) => t.name === name)?.color;
   const filterChipClass = "inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors";
   const filterChipState = (selected: boolean) => selected
     ? "border-accent bg-accent-dim text-accent"
@@ -264,12 +267,19 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
             <div className="flex items-start gap-3">
               <span className="w-28 shrink-0 pt-1.5 text-xs font-medium text-foreground">RAG</span>
               <div className="flex flex-wrap gap-2">
-                {ALL_RAGS.map(({ v, l }) => <button key={v} type="button" onClick={() => toggleMulti(v, ragFilter, setRagFilter)} className={cn(filterChipClass, filterChipState(ragFilter.includes(v)))}><RagDot rag={v as Rag} />{l}</button>)}
+                {ALL_RAGS.map(({ v, l }) => {
+                  const selected = ragFilter.includes(v);
+                  const tone = ragTone[v as Rag];
+                  return (
+                    <button key={v} type="button" aria-pressed={selected} onClick={() => toggleMulti(v, ragFilter, setRagFilter)} className={cn(filterChipClass, selected ? cn(tone.bg, tone.text, tone.border, "font-medium") : filterChipState(false))}>
+                      <RagDot rag={v as Rag} />{l}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             {[
               { label: "Stage", options: ALL_STAGES as readonly string[], selected: stageFilter, toggle: (value: string) => toggleMulti(value, stageFilter, setStageFilter) },
-              { label: "Tags", options: ALL_TAGS, selected: tagFilter, toggle: (value: string) => toggleMulti(value, tagFilter, setTagFilter) },
             ].map((group) => (
               <div key={group.label} className="flex items-start gap-3">
                 <span className="w-28 shrink-0 pt-1.5 text-xs font-medium text-foreground">{group.label}</span>
@@ -278,6 +288,19 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
                 </div>
               </div>
             ))}
+            <div className="flex items-start gap-3">
+              <span className="w-28 shrink-0 pt-1.5 text-xs font-medium text-foreground">Tags</span>
+              <div className="flex flex-wrap gap-2">
+                {ALL_TAGS.map((value) => {
+                  const selected = tagFilter.includes(value);
+                  return (
+                    <button key={value} type="button" aria-pressed={selected} onClick={() => toggleMulti(value, tagFilter, setTagFilter)} className="rounded-[4px] transition-opacity hover:opacity-100">
+                      <ProjectTag name={value} color={tagColor(value)} dimmed={!selected} className={cn("h-7 px-3 text-xs", selected && "font-medium")} />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <div className="flex items-start gap-3">
               <span className="w-28 shrink-0 pt-1.5 text-xs font-medium text-foreground">Years</span>
               <div className="flex flex-wrap gap-2">{yearOptions.map((value) => <button key={value} type="button" onClick={() => setYearFilter(yearFilter === value ? "" : value)} className={cn(filterChipClass, filterChipState(yearFilter === value))}>{value}</button>)}</div>
@@ -360,7 +383,7 @@ function ProjectGrid({
           className="glass-card group flex flex-col p-4 text-left"
         >
           <div className="flex items-start justify-between gap-2">
-            <RagBadge rag={p.rag} />
+            <RagBadge rag={p.rag} pill />
             <div className="flex items-center gap-1.5">
               <PendingApprovalsChip count={pending} projectName={p.name} />
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{p.stage}</span>
@@ -418,18 +441,7 @@ function ProjectGrid({
           {p.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {p.tags.map((tag) => {
-                const c = colorOf(tag);
-                return (
-                  <span
-                    key={tag}
-                    className="rounded-full border px-1.5 py-px text-[10px]"
-                    style={c
-                      ? { color: c, borderColor: `${c}55`, backgroundColor: `${c}1f` }
-                      : undefined}
-                  >
-                    {tag}
-                  </span>
-                );
+                return <ProjectTag key={tag} name={tag} color={colorOf(tag)} className="px-1.5 py-px text-[10px]" />;
               })}
             </div>
           )}
@@ -459,7 +471,7 @@ function ProjectListView({ items, onOpen, onEdit, pendingByProject }: { items: P
         <TableBody>
           {items.map((p) => (
             <TableRow key={p.id} onClick={() => onOpen(p)} className="cursor-pointer bg-table-row-bg hover:bg-table-row-hover border-0">
-              <TableCell className="w-[120px] text-center"><div className="flex justify-center"><RagBadge rag={p.rag} /></div></TableCell>
+              <TableCell className="w-[120px] text-center"><div className="flex justify-center"><RagBadge rag={p.rag} pill /></div></TableCell>
 
               <TableCell className="font-medium text-foreground">
                 <div className="flex items-center gap-2">

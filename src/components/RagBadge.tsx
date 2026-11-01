@@ -1,7 +1,7 @@
 import type { Rag } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
-const map: Record<Rag, { label: string; dot: string; text: string; bg: string; border: string }> = {
+export const ragTone: Record<Rag, { label: string; dot: string; text: string; bg: string; border: string }> = {
   green: { label: "On Track", dot: "bg-rag-green", text: "text-rag-green", bg: "bg-rag-green/10", border: "border-rag-green/30" },
   amber: { label: "At Risk", dot: "bg-rag-amber", text: "text-rag-amber", bg: "bg-rag-amber/10", border: "border-rag-amber/30" },
   red: { label: "Off-Track", dot: "bg-rag-red pulse-dot", text: "text-rag-red", bg: "bg-rag-red/10", border: "border-rag-red/30" },
@@ -10,13 +10,14 @@ const map: Record<Rag, { label: string; dot: string; text: string; bg: string; b
 };
 
 export function RagDot({ rag, className }: { rag: Rag; className?: string }) {
-  return <span className={cn("inline-block h-2 w-2 rounded-full", map[rag].dot, className)} />;
+  return <span className={cn("inline-block h-2 w-2 rounded-full", ragTone[rag].dot, className)} />;
 }
 
-export function RagBadge({ rag, label, className }: { rag: Rag; label?: string; className?: string }) {
-  const m = map[rag];
+/** `pill` gives the fully rounded health shape used where badges sit next to (rounded-rect) tags. */
+export function RagBadge({ rag, label, className, pill = false }: { rag: Rag; label?: string; className?: string; pill?: boolean }) {
+  const m = ragTone[rag];
   return (
-    <span className={cn("inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium", m.bg, m.text, m.border, className)}>
+    <span className={cn("inline-flex items-center gap-1.5 whitespace-nowrap border px-2 py-0.5 text-xs font-medium", pill ? "rounded-full" : "rounded-md", m.bg, m.text, m.border, className)}>
       <span className={cn("h-1.5 w-1.5 rounded-full", m.dot)} />
       {label ?? m.label}
     </span>

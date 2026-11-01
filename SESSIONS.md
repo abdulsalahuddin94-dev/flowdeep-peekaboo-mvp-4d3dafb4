@@ -1,3 +1,9 @@
+## 2026-11-01 — Portfolio tags vs health badges
+- Health (RAG) badges on the portfolio cards and list are pill shaped (12px); tags are rounded rectangles (10px on cards) in their own tag color, through a new shared `ProjectTag` component.
+- The Filter panel uses the same shapes: RAG chips stay pills and, when selected, take the card badge colors; Tag chips show their color dimmed and light up when selected.
+- `RagBadge` gained an opt-in `pill` prop and exports `ragTone`, so other screens keep their current badge shape.
+- Browser verified the filter panel (selected and unselected states) and the cards with no runtime errors; typecheck clean.
+
 ## 2026-10-29 — Salary distribution Card Symmetry & Radius alignment
 - Aligned Salary distribution card with the Projects & allocation table above it.
 - Root cause: `src/components/ui/table.tsx` applies `p-2` (8px on left and right), which insets the table content to 948px vs 964px. Added `mx-2` to the card container so its horizontal boundaries match the table boundaries exactly (948px).

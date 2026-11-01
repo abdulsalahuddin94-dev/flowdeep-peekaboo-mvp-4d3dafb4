@@ -1,3 +1,9 @@
+## 2026-11-01 — Full money amounts instead of the "M" shorthand
+- Budget, cost and revenue amounts now show as full dollar values everywhere ($3,200,000 instead of $3.2M): dashboard, portfolio cards/list/timeline, project header and overview, cost and revenue breakdowns, change-request diffs, financials KPIs, tables, tooltips and chart axes, clients & vendors.
+- Amounts stay stored in millions; a new `src/lib/money.ts` formats them (`money`, `moneyAxis`) and converts amount inputs, which now take full dollars (labels say "($)", step 1) and are divided back on save.
+- Seeded money strings (financial catalog, WBS payment links, business cases, change-request examples) were rewritten as full amounts.
+- Verified in the browser: portfolio cards, project cost breakdown and financials charts render full amounts with no runtime errors; typecheck clean, 20 tests pass, preview build OK.
+
 ## 2026-10-29 — Salary distribution Card Symmetry & Radius alignment
 - Aligned Salary distribution card with the Projects & allocation table above it.
 - Root cause: `src/components/ui/table.tsx` applies `p-2` (8px on left and right), which insets the table content to 948px vs 964px. Added `mx-2` to the card container so its horizontal boundaries match the table boundaries exactly (948px).

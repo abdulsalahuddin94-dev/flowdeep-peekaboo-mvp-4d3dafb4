@@ -17,6 +17,7 @@ import { ViewAsSelect } from "@/components/ViewAsSelect";
 import { toast } from "@/lib/toast";
 import { EmptyRegion } from "@/lib/empty-preview";
 import { formatDateWithYear } from "@/lib/date-format";
+import { money } from "@/lib/money";
 
 
 export const Route = createFileRoute("/")({
@@ -251,7 +252,7 @@ function DirectorViewInner() {
         <div className="text-3xl font-medium num-mono text-foreground">
           ${s.budgetUsed.toFixed(1)}<span className="text-base text-muted-foreground">M</span>
         </div>
-        <div className="mt-1 text-xs text-muted-foreground">of ${s.budgetTotal.toFixed(0)}M · {s.budgetPct}% utilized</div>
+        <div className="mt-1 text-xs text-muted-foreground">of {money(s.budgetTotal)} · {s.budgetPct}% utilized</div>
         <Progress value={s.budgetPct} className="mt-3 h-2" />
         <div className="mt-3 flex items-center justify-between text-xs">
           <span className="text-muted-foreground">~ $4.2M / month</span>
@@ -393,8 +394,8 @@ function ExecutiveView() {
         <div className="mt-1 text-xs text-muted-foreground">{s.counts.green} green · {s.counts.amber} amber · {s.counts.red} red</div>
       </Tile>
       <Tile className="col-span-12 md:col-span-3" eyebrow="Budget Utilized">
-        <div className="text-4xl font-medium num-mono text-accent">${s.budgetUsed.toFixed(1)}M</div>
-        <div className="mt-1 text-xs text-muted-foreground">of ${s.budgetTotal.toFixed(0)}M · {s.budgetPct}%</div>
+        <div className="text-4xl font-medium num-mono text-accent">{money(s.budgetUsed)}</div>
+        <div className="mt-1 text-xs text-muted-foreground">of {money(s.budgetTotal)} · {s.budgetPct}%</div>
         <Progress value={s.budgetPct} className="mt-3 h-1.5" />
       </Tile>
       <Tile className="col-span-12 md:col-span-3" eyebrow="Avg Progress">
@@ -531,9 +532,9 @@ function FinanceView() {
     <div className="grid grid-cols-12 gap-4">
       <Tile className="col-span-12" eyebrow="Portfolio Budget Summary">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-          <Stat label="Total Budget" value={`$${s.budgetTotal.toFixed(0)}M`} />
-          <Stat label="Total Spent" value={`$${s.budgetUsed.toFixed(1)}M`} tone="accent" />
-          <Stat label="Remaining" value={`$${(s.budgetTotal - s.budgetUsed).toFixed(1)}M`} />
+          <Stat label="Total Budget" value={money(s.budgetTotal)} />
+          <Stat label="Total Spent" value={money(s.budgetUsed)} tone="accent" />
+          <Stat label="Remaining" value={money(s.budgetTotal - s.budgetUsed)} />
           <Stat label="Burn / mo" value="$4.2M" />
           <Stat label="Over Budget" value="2" tone="red" />
         </div>
@@ -712,7 +713,7 @@ function CategorySpendList() {
                 <span className="rounded bg-secondary/40 px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground">{r.classification}</span>
                 <span className="rounded bg-secondary/40 px-1.5 py-0.5 text-[10px] text-muted-foreground">{r.party}</span>
               </span>
-              <span className="num-mono text-xs text-muted-foreground">${r.actual.toFixed(2)}M / ${r.planned.toFixed(2)}M</span>
+              <span className="num-mono text-xs text-muted-foreground">{money(r.actual)} / {money(r.planned)}</span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/50">
               <div className={`h-full ${r.color}`} style={{ width: `${pct}%` }} />

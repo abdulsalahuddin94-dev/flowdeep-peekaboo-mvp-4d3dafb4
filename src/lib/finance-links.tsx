@@ -17,18 +17,18 @@ export type FinancialItem = {
 
 export const FINANCIAL_CATALOG: { cost: FinancialItem[]; revenue: FinancialItem[] } = {
   cost: [
-    { id: "FIN-C-LAB", label: "Labour — core delivery team", amount: "$1.20M", kind: "cost", classification: "opex" },
-    { id: "FIN-C-HW", label: "Hardware — servers & peripherals", amount: "$0.90M", kind: "cost", classification: "capex" },
-    { id: "FIN-C-LIC", label: "Software licenses", amount: "$0.40M", kind: "cost", classification: "opex" },
-    { id: "FIN-C-TRV", label: "Business trips", amount: "$0.10M", kind: "cost", classification: "opex" },
-    { id: "FIN-C-HOT", label: "Accommodation & hotels", amount: "$0.06M", kind: "cost", classification: "opex" },
-    { id: "FIN-C-CTG", label: "Contingency", amount: "$0.60M", kind: "cost", classification: "opex" },
+    { id: "FIN-C-LAB", label: "Labour — core delivery team", amount: "$1,200,000", kind: "cost", classification: "opex" },
+    { id: "FIN-C-HW", label: "Hardware — servers & peripherals", amount: "$900,000", kind: "cost", classification: "capex" },
+    { id: "FIN-C-LIC", label: "Software licenses", amount: "$400,000", kind: "cost", classification: "opex" },
+    { id: "FIN-C-TRV", label: "Business trips", amount: "$100,000", kind: "cost", classification: "opex" },
+    { id: "FIN-C-HOT", label: "Accommodation & hotels", amount: "$60,000", kind: "cost", classification: "opex" },
+    { id: "FIN-C-CTG", label: "Contingency", amount: "$600,000", kind: "cost", classification: "opex" },
   ],
   revenue: [
-    { id: "FIN-R-ADV", label: "Advance payment (30%)", amount: "$0.96M", kind: "revenue" },
-    { id: "FIN-R-P1", label: "Progress invoice (20%)", amount: "$0.64M", kind: "revenue" },
-    { id: "FIN-R-P2", label: "Progress invoice (25%)", amount: "$0.80M", kind: "revenue" },
-    { id: "FIN-R-FIN", label: "Final payment (25%)", amount: "$0.80M", kind: "revenue" },
+    { id: "FIN-R-ADV", label: "Advance payment (30%)", amount: "$960,000", kind: "revenue" },
+    { id: "FIN-R-P1", label: "Progress invoice (20%)", amount: "$640,000", kind: "revenue" },
+    { id: "FIN-R-P2", label: "Progress invoice (25%)", amount: "$800,000", kind: "revenue" },
+    { id: "FIN-R-FIN", label: "Final payment (25%)", amount: "$800,000", kind: "revenue" },
   ],
 };
 

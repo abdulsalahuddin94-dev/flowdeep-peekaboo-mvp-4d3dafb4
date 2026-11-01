@@ -33,6 +33,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { formatDateWithYear } from "@/lib/date-format";
+import { money, moneyAxis } from "@/lib/money";
 
 const FIN_YEAR = 2026;
 // Demo contract markup per project type so profitability differs by line.
@@ -87,7 +88,6 @@ const statusPill = (st: string) =>
   : st.startsWith("Partially") ? "border-rag-amber/60 bg-rag-amber/10 text-rag-amber"
   : st === "Overdue" ? "border-rag-red/60 bg-rag-red/10 text-rag-red"
   : "border-border/60 bg-secondary/40 text-muted-foreground";
-const money = (v: number) => `$${v.toFixed(2)}M`;
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const monthOptions = Array.from(new Set([...COST_ITEMS, ...REVENUE_ITEMS].map((x) => x.due.slice(0, 7)))).sort()
   .map((v) => ({ value: v, label: `${MONTHS[+v.slice(5, 7) - 1]}, ${v.slice(0, 4)}` }));
@@ -373,7 +373,7 @@ function FinancialsPage() {
               <div className="mb-2 flex items-center justify-between gap-3">
                 <div>
                   <div className="label-eyebrow">Profitability by Project Type</div>
-                  <div className="text-xs text-muted-foreground">Expected revenue, cost and profit · $M</div>
+                  <div className="text-xs text-muted-foreground">Expected revenue, cost and profit · USD</div>
                 </div>
                 <Legendish items={[["Revenue", "#51CAAD"], ["Cost", "#94A3B8"], ["Profit", "#D4A574"]]} />
               </div>
@@ -385,8 +385,8 @@ function FinancialsPage() {
                     <BarChart data={profitability} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                       <XAxis dataKey="name" {...axis} />
-                      <YAxis {...axis} />
-                      <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
+                      <YAxis {...axis} tickFormatter={moneyAxis} width={84} />
+                      <Tooltip {...chartTooltip} formatter={(v: number) => money(v)} />
                       <Bar dataKey="Revenue" fill="#51CAAD" radius={[3, 3, 0, 0]} />
                       <Bar dataKey="Cost" fill="#94A3B8" radius={[3, 3, 0, 0]} />
                       <Bar dataKey="Profit" fill="#D4A574" radius={[3, 3, 0, 0]} />
@@ -453,7 +453,7 @@ function FinancialsPage() {
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <div className="label-eyebrow">Actuals by Project Type</div>
-                <div className="text-xs text-muted-foreground">Payments made, revenue collected and profit realised to date · $M</div>
+                <div className="text-xs text-muted-foreground">Payments made, revenue collected and profit realised to date · USD</div>
               </div>
               <Legendish items={actualsLegend} />
             </div>
@@ -515,7 +515,7 @@ function FinancialsPage() {
               <div>
                 <div className="label-eyebrow">Cash Flow Forecast</div>
                 <div className="text-xs text-muted-foreground">
-                  Expected collections vs payments from cost and revenue events · $M · FY{displayedCashYear} · * forecast
+                  Expected collections vs payments from cost and revenue events · USD · FY{displayedCashYear} · * forecast
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -566,9 +566,9 @@ function FinancialsPage() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="label" {...axis} />
-                  <YAxis {...axis} />
+                  <YAxis {...axis} tickFormatter={moneyAxis} width={84} />
                   <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
-                  <Tooltip {...chartTooltip} formatter={(v: number) => `$${v.toFixed(2)}M`} />
+                  <Tooltip {...chartTooltip} formatter={(v: number) => money(v)} />
                   <Area type="monotone" dataKey="Inflow" stroke="var(--rag-green)" strokeWidth={2} fill="url(#cashInflowArea)" />
                   <Area type="monotone" dataKey="Outflow" stroke="var(--rag-red)" strokeWidth={2} fill="url(#cashOutflowArea)" />
                   <Line type="monotone" dataKey="Cumulative" stroke="var(--accent)" strokeWidth={2.5} dot={false} />

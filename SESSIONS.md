@@ -2,6 +2,11 @@
 - New shared `CollapseAllToggle` (lucide ChevronsDownUp / ChevronsUpDown, like Figma's collapse-layers control) sits in the first header cell of the WBS table, the Cost Breakdown table and the Revenue Breakdown table.
 - While any row is open it collapses everything and flips to "Expand all"; the next click expands every expandable row (WBS parents, cost lines and revenue events that have actuals). It is disabled when a table has nothing to expand.
 - Browser verified: WBS collapse flips the icon, Revenue expand-all opens all events with actuals, Cost expand-all opens all 5 lines with actuals; no runtime errors, typecheck clean.
+## 2026-11-01 — Full money amounts instead of the "M" shorthand
+- Budget, cost and revenue amounts now show as full dollar values everywhere ($3,200,000 instead of $3.2M): dashboard, portfolio cards/list/timeline, project header and overview, cost and revenue breakdowns, change-request diffs, financials KPIs, tables, tooltips and chart axes, clients & vendors.
+- Amounts stay stored in millions; a new `src/lib/money.ts` formats them (`money`, `moneyAxis`) and converts amount inputs, which now take full dollars (labels say "($)", step 1) and are divided back on save.
+- Seeded money strings (financial catalog, WBS payment links, business cases, change-request examples) were rewritten as full amounts.
+- Verified in the browser: portfolio cards, project cost breakdown and financials charts render full amounts with no runtime errors; typecheck clean, 20 tests pass, preview build OK.
 
 ## 2026-10-29 — Salary distribution Card Symmetry & Radius alignment
 - Aligned Salary distribution card with the Projects & allocation table above it.

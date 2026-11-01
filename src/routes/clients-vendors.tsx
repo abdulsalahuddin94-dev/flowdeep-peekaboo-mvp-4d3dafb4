@@ -28,6 +28,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/lib/toast";
 import { Plus, Search, Star, Building2, ChevronRight, FileText, Mail, Phone, X } from "@/lib/icons";
 import { clients, vendors, projects, contracts } from "@/lib/mock-data";
+import { money } from "@/lib/money";
 
 export const Route = createFileRoute("/clients-vendors")({
   component: ClientsVendorsPage,
@@ -159,7 +160,7 @@ function ClientsTab() {
                 <TableCell className="text-muted-foreground">{c.contact}</TableCell>
                 <TableCell className="text-center num-mono">{linkedCount}</TableCell>
                 <TableCell className="text-center num-mono">
-                  {linkedCount === 0 ? "—" : `$${clientRevenue(c.name).toFixed(1)}M`}
+                  {linkedCount === 0 ? "—" : money(clientRevenue(c.name))}
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <TableRowActions
@@ -279,7 +280,7 @@ function VendorsTab() {
                 </TableCell>
                 <TableCell className="text-muted-foreground">{v.category}</TableCell>
                 <TableCell className="text-center num-mono">{v.contracts}</TableCell>
-                <TableCell className="text-center num-mono">${v.spend.toFixed(1)}M</TableCell>
+                <TableCell className="text-center num-mono">{money(v.spend)}</TableCell>
                 <TableCell>
                   <span className="inline-flex items-center gap-1">
                     <Star className="h-3 w-3 fill-rag-amber text-rag-amber" />
@@ -417,7 +418,7 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
         <div className="grid grid-cols-3 divide-x divide-border border-b border-border">
           {[
             { l: "Active contracts", v: String(linked.length || vendor.contracts) },
-            { l: "Total spend",      v: `$${vendor.spend.toFixed(1)}M` },
+            { l: "Total spend",      v: money(vendor.spend) },
             { l: "Eval score",       v: `${vendor.eval.toFixed(1)} / 5.0` },
           ].map((k) => (
             <div key={k.l} className="px-4 py-3">
@@ -449,7 +450,7 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
                         </div>
                         <div className="mt-1 text-sm font-medium text-foreground">{c.project}</div>
                         <div className="mt-0.5 flex gap-3 text-xs text-muted-foreground">
-                          <span className="num-mono text-accent font-medium">${c.value}M</span>
+                          <span className="num-mono text-accent font-medium">{money(c.value)}</span>
                           <span>Ends {c.end}</span>
                         </div>
                       </div>
@@ -517,7 +518,7 @@ function VendorSheet({ vendor, onClose }: { vendor: typeof vendors[number] | nul
                       <Checkbox checked={checked} onCheckedChange={() => toggleConnect(c.id)} className="shrink-0" />
                       <span className="num-mono text-[11px] text-muted-foreground shrink-0">{c.id}</span>
                       <span className="flex-1 truncate text-sm text-foreground">{c.project}</span>
-                      <span className="num-mono text-xs text-accent shrink-0">${c.value}M</span>
+                      <span className="num-mono text-xs text-accent shrink-0">{money(c.value)}</span>
                       <Badge variant="outline" className={`shrink-0 text-[10px] py-0 ${c.status === "Active" ? "border-rag-green/40 bg-rag-green/10 text-rag-green" : "border-rag-amber/40 bg-rag-amber/10 text-rag-amber"}`}>{c.status}</Badge>
                     </label>
                   );

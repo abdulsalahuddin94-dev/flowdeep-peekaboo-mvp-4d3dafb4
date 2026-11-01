@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, AlertTriangle, ShieldAlert } from "@/lib/icons";
 import { formatDateWithYear } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
+import { money } from "@/lib/money";
 
 /** Stage-gate segments shown in the header card; kept in sync with the project page. */
 export const PLANNING_STAGES = [
@@ -98,7 +99,7 @@ export function ProjectOverviewHeader({
         <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
           <div className="text-xs text-muted-foreground">Budget</div>
           <div className="flex flex-wrap items-baseline gap-2">
-            <span className="num-mono text-sm font-medium text-foreground">${project.budgetUsed.toFixed(2)}M / ${project.budgetTotal.toFixed(1)}M</span>
+            <span className="num-mono text-sm font-medium text-foreground">{money(project.budgetUsed)} / {money(project.budgetTotal)}</span>
             <span className="text-[10px] text-muted-foreground">{budgetUsedPct}% used</span>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "@/lib/icons";
 import { EmptyRegion } from "@/lib/empty-preview";
 import { cashSeries, cashYearNavigation, type CashEvent } from "@/lib/financial-filters";
 import { projectCashYears } from "@/lib/project-cash-flow";
+import { money, moneyAxis } from "@/lib/money";
 
 const T = {
   en: { title: "Cash Flow Forecast", subtitle: "Expected collections vs payments from cost and revenue events", forecast: "forecast", previous: "Previous year", next: "Next year", navigation: "Cash flow year navigation", inflow: "Inflow", outflow: "Outflow", cumulative: "Cumulative net" },
@@ -33,7 +34,7 @@ export function ProjectCashFlowChart({ events, startDate, endDate, isNew, lang =
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <h3 className="label-eyebrow">{t.title}</h3>
-          <p className="text-xs text-muted-foreground">{t.subtitle} · $M{year && ` · FY${year}`} · * {t.forecast}</p>
+          <p className="text-xs text-muted-foreground">{t.subtitle} · USD{year && ` · FY${year}`} · * {t.forecast}</p>
         </div>
         {year && <div className="grid h-9 shrink-0 grid-cols-[36px_64px_36px] items-center" dir="ltr" aria-label={t.navigation}>
           <div>{navigation.previous && <ControlTooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" aria-label={t.previous} onClick={() => { if (navigation.previous) setSelectedYear(navigation.previous); }}><ChevronLeft className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>{t.previous}</TooltipContent></ControlTooltip>}</div>
@@ -51,9 +52,9 @@ export function ProjectCashFlowChart({ events, startDate, endDate, isNew, lang =
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" />
               <XAxis dataKey="label" {...axis} minTickGap={12} />
-              <YAxis {...axis} />
+              <YAxis {...axis} tickFormatter={moneyAxis} width={84} />
               <ReferenceLine y={0} stroke="var(--chart-axis)" />
-              <Tooltip contentStyle={{ background: "var(--chart-tooltip-bg)", border: "1px solid var(--chart-tooltip-border)", borderRadius: 8, fontSize: 12 }} labelStyle={{ color: "var(--chart-tooltip-label)" }} itemStyle={{ color: "var(--chart-tooltip-item)" }} formatter={(value: number) => `$${value.toFixed(2)}M`} />
+              <Tooltip contentStyle={{ background: "var(--chart-tooltip-bg)", border: "1px solid var(--chart-tooltip-border)", borderRadius: 8, fontSize: 12 }} labelStyle={{ color: "var(--chart-tooltip-label)" }} itemStyle={{ color: "var(--chart-tooltip-item)" }} formatter={(value: number) => money(value)} />
               <Area type="monotone" dataKey="Inflow" name={t.inflow} stroke="var(--rag-green)" strokeWidth={2} fill={`url(#${id}-in)`} />
               <Area type="monotone" dataKey="Outflow" name={t.outflow} stroke="var(--rag-red)" strokeWidth={2} fill={`url(#${id}-out)`} />
               <Line type="monotone" dataKey="Cumulative" name={t.cumulative} stroke="var(--accent)" strokeWidth={2.5} dot={false} />

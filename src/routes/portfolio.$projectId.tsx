@@ -105,6 +105,7 @@ const T = { en: { basicInfo: "Basic info" }, ar: { basicInfo: "البيانات 
 /** In-memory plan state per project, so it survives visits to Approvals / Edit project. */
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/plan-seeds";
+import { money, toDollarInput, fromDollarInput } from "@/lib/money";
 
 const PLANNING_STAGES = [
   { n: 1, name: "Initiation", state: "done" as const },
@@ -973,7 +974,7 @@ function ProjectDetail() {
           <div className="flex h-16 flex-col justify-center gap-1.5 rounded-lg bg-[var(--field-bg-filled)] px-4">
             <div className="text-xs text-muted-foreground">Budget</div>
             <div className="flex flex-wrap items-baseline gap-2">
-              <span className="num-mono text-sm font-medium text-foreground">${project.budgetUsed.toFixed(2)}M / ${project.budgetTotal.toFixed(1)}M</span>
+              <span className="num-mono text-sm font-medium text-foreground">{money(project.budgetUsed)} / {money(project.budgetTotal)}</span>
               <span className="text-[10px] text-muted-foreground">{budgetUsedPct}% used</span>
             </div>
           </div>
@@ -1398,9 +1399,9 @@ function ProjectDetail() {
                     </p>
                     ) : (<>
                     <div className="mt-1.5 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
-                      <span>Project {isBudget ? "budget" : "revenue"}: <span className="num-mono text-foreground">${issue.project.toFixed(2)}M</span></span>
-                      <span>Planned total: <span className="num-mono text-foreground">${issue.plan.toFixed(2)}M</span></span>
-                      <span>Difference: <span className="num-mono text-foreground">${issue.diff.toFixed(2)}M</span></span>
+                      <span>Project {isBudget ? "budget" : "revenue"}: <span className="num-mono text-foreground">{money(issue.project)}</span></span>
+                      <span>Planned total: <span className="num-mono text-foreground">{money(issue.plan)}</span></span>
+                      <span>Difference: <span className="num-mono text-foreground">{money(issue.diff)}</span></span>
                     </div>
                     <p className="mt-2 text-xs text-muted-foreground">
                       How to fix: adjust the planned amounts on the{" "}
@@ -1599,7 +1600,7 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
     pm:          project.pm,
     startDate:   "2026-04-01",
     endDate:     project.endDate,
-    budget:      `$${project.budgetTotal.toFixed(1)}M`,
+    budget:      money(project.budgetTotal),
     constraints: "Must comply with procurement policy. Key milestones cannot slip beyond 30 days without board approval.",
     assumptions: "Stakeholder availability confirmed. No major regulatory changes expected during delivery.",
     risks:       `${project.risks} open risks logged in Project Risks tab. Top risk: vendor delivery delay.`,
@@ -1758,7 +1759,7 @@ function OverviewTab({
   } as const;
   const r = ragMap[project.rag];
   const spentPct = Math.round((project.budgetUsed / project.budgetTotal) * 100);
-  const remaining = (project.budgetTotal - project.budgetUsed).toFixed(1);
+  const remaining = project.budgetTotal - project.budgetUsed;
 
   const stages = gateData.map((g, idx) => {
     const completed = g.items.filter((i) => i.done).length;
@@ -1800,13 +1801,13 @@ function OverviewTab({
           <EmptyRegion id="project-overview-budget" variant="card" force={isNew} className="min-h-[72px]">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Spent</span>
-              <span className="num-mono font-medium text-foreground">${project.budgetUsed.toFixed(1)}M / ${project.budgetTotal.toFixed(1)}M</span>
+              <span className="num-mono font-medium text-foreground">{money(project.budgetUsed)} / {money(project.budgetTotal)}</span>
             </div>
             <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-secondary/50">
               <div className="h-full rounded-full bg-rag-green" style={{ width: `${spentPct}%` }} />
             </div>
             <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-              <span>Remaining: ${remaining}M</span>
+              <span>Remaining: {money(remaining)}</span>
               <span className="num-mono">{spentPct}% used</span>
             </div>
           </EmptyRegion>
@@ -2512,8 +2513,8 @@ function AddActualDialog({ title, onAdd, validateAmount }: { title: string; onAd
               <DatePicker value={date} onChange={setDate} placeholder="Pick a date" />
             </div>
             <div className="grid gap-1.5">
-              <Label>Amount ($M)</Label>
-              <Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} />
+              <Label>Amount ($)</Label>
+              <Input type="number" min={0} step={1} value={amount} onChange={(e) => setAmount(e.target.value)} />
             </div>
           </div>
         </div>
@@ -2521,7 +2522,7 @@ function AddActualDialog({ title, onAdd, validateAmount }: { title: string; onAd
           <Button variant="secondary" onClick={() => setOpen(false)}>Cancel</Button>
           <Button
             onClick={() => {
-              const amt = parseFloat(amount);
+              const amt = fromDollarInput(amount);
               if (!name.trim() || !date.trim() || isNaN(amt)) { toast.error("Name, date and amount are required"); return; }
               // Actuals can never exceed the planned amount — utilization is capped at 100%.
               const err = validateAmount?.(amt);
@@ -2560,13 +2561,13 @@ function EditActualDialog({
 }) {
   const [name, setName] = useState(entry?.name ?? entry?.note ?? "");
   const [date, setDate] = useState(actualDatePickerValue(entry?.date));
-  const [amount, setAmount] = useState(entry ? String(entry.amount) : "");
+  const [amount, setAmount] = useState(entry ? toDollarInput(entry.amount) : "");
 
   useEffect(() => {
     if (!entry) return;
     setName(entry.name ?? entry.note ?? "");
     setDate(actualDatePickerValue(entry.date));
-    setAmount(String(entry.amount));
+    setAmount(toDollarInput(entry.amount));
   }, [entry]);
 
   return (
@@ -2587,8 +2588,8 @@ function EditActualDialog({
               <DatePicker value={date} onChange={setDate} placeholder="Pick a date" />
             </div>
             <div className="grid gap-1.5">
-              <Label>Amount ($M)</Label>
-              <Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} />
+              <Label>Amount ($)</Label>
+              <Input type="number" min={0} step={1} value={amount} onChange={(e) => setAmount(e.target.value)} />
             </div>
           </div>
         </div>
@@ -2596,7 +2597,7 @@ function EditActualDialog({
           <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
             onClick={() => {
-              const amt = parseFloat(amount);
+              const amt = fromDollarInput(amount);
               if (!name.trim() || !date.trim() || isNaN(amt)) { toast.error("Name, date and amount are required"); return; }
               const err = validateAmount?.(amt);
               if (err) { toast.error(err, { title: "Actual exceeds the planned amount" }); return; }
@@ -2625,14 +2626,14 @@ function EditCostRowDialog({
 }) {
   const [cat, setCat] = useState(entry?.cat ?? "");
   const [desc, setDesc] = useState(entry?.desc ?? "");
-  const [plan, setPlan] = useState(entry ? String(entry.b) : "");
+  const [plan, setPlan] = useState(entry ? toDollarInput(entry.b) : "");
   const [linkKind, setLinkKind] = useState<"fixed" | "milestone">(entry?.linkKind === "milestone" ? "milestone" : "fixed");
   const [linkRef, setLinkRef] = useState(entry?.linkRef ?? "");
 
   useEffect(() => {
     if (!entry) return;
     setCat(entry.cat ?? ""); setDesc(entry.desc ?? "");
-    setPlan(String(entry.b));
+    setPlan(toDollarInput(entry.b));
     setLinkKind(entry.linkKind === "milestone" ? "milestone" : "fixed");
     setLinkRef(entry.linkRef ?? "");
   }, [entry]);
@@ -2663,8 +2664,8 @@ function EditCostRowDialog({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
-              <Label>Planned ($M)</Label>
-              <Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} />
+              <Label>Planned ($)</Label>
+              <Input type="number" min={0} step={1} value={plan} onChange={(e) => setPlan(e.target.value)} />
             </div>
             <div className="grid gap-1.5">
               <Label>Linked to</Label>
@@ -2702,12 +2703,12 @@ function EditCostRowDialog({
           <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
             onClick={() => {
-              const p = parseFloat(plan);
+              const p = fromDollarInput(plan);
               if (isNaN(p)) { toast.error("Planned amount is required"); return; }
               // The plan must still cover everything already logged as actual (utilization caps at 100%).
               const loggedActual = (entry?.actuals ?? (entry && entry.a > 0 ? [{ amount: entry.a, date: "—" }] : [])).reduce((s, a) => s + a.amount, 0);
               if (p < loggedActual - 0.0001) {
-                toast.error(`This line already has $${loggedActual.toFixed(2)}M logged as actual. The planned amount can't be lower than that.`, { title: "Planned amount too low" });
+                toast.error(`This line already has ${money(loggedActual)} logged as actual. The planned amount can't be lower than that.`, { title: "Planned amount too low" });
                 return;
               }
               if (linkKind === "milestone" && !linkRef) { toast.error("Please pick a milestone"); return; }
@@ -2730,22 +2731,23 @@ type FinancialPlan = { cost: CostEntry[]; rev: RevEntry[] };
 /** Planned (baselined) fields only — logged actuals are bookkeeping and never need a Change Plan. */
 const COST_PLAN_FIELDS: Array<{ key: keyof CostEntry; label: string }> = [
   { key: "c", label: "Cost item" }, { key: "cat", label: "Category" }, { key: "desc", label: "Description" },
-  { key: "b", label: "Planned amount ($M)" }, { key: "classification", label: "CapEx/OpEx" }, { key: "ctype", label: "Type" },
+  { key: "b", label: "Planned amount" }, { key: "classification", label: "CapEx/OpEx" }, { key: "ctype", label: "Type" },
   { key: "linkKind", label: "Date link" }, { key: "linkRef", label: "Date / milestone" }, { key: "breakdown", label: "Breakdown" },
 ];
 const REV_PLAN_FIELDS: Array<{ key: keyof RevEntry; label: string }> = [
-  { key: "ms", label: "Milestone" }, { key: "evt", label: "Event" }, { key: "plan", label: "Planned amount ($M)" },
+  { key: "ms", label: "Milestone" }, { key: "evt", label: "Event" }, { key: "plan", label: "Planned amount" },
   { key: "date", label: "Date" }, { key: "linkKind", label: "Date link" },
 ];
-function fmtPlanValue(v: unknown): string {
+function fmtPlanValue(v: unknown, isAmount = false): string {
   if (v == null || v === "") return "—";
+  if (isAmount && typeof v === "number") return money(v);
   if (Array.isArray(v)) return v.length ? `${v.length} line${v.length === 1 ? "" : "s"}` : "—";
   if (typeof v === "object") return JSON.stringify(v);
   return String(v);
 }
 /** Basic-info edits made during Change Plan; item labels use the "Info · " section prefix. */
 function diffProjectInfo(base: Project, cur: Project) {
-  const money = (v?: number) => (v == null ? "—" : `$${v.toFixed(2)}M`);
+  const moneyOrDash = (v?: number) => (v == null ? "—" : money(v));
   const list = (v?: string[]) => (v && v.length ? v.join(", ") : "—");
   const fields: Array<{ label: string; get: (p: Project) => string }> = [
     { label: "Name", get: (p) => p.name || "—" },
@@ -2756,8 +2758,8 @@ function diffProjectInfo(base: Project, cur: Project) {
     { label: "Client", get: (p) => p.client || "—" },
     { label: "Start date", get: (p) => (p.startDate ? formatDateWithYear(p.startDate) : "—") },
     { label: "End date", get: (p) => (p.endDate ? formatDateWithYear(p.endDate) : "—") },
-    { label: "Budget", get: (p) => money(p.budgetTotal) },
-    { label: "Expected revenue", get: (p) => money(p.expectedRevenue) },
+    { label: "Budget", get: (p) => moneyOrDash(p.budgetTotal) },
+    { label: "Expected revenue", get: (p) => moneyOrDash(p.expectedRevenue) },
     { label: "Stage", get: (p) => p.stage || "—" },
     { label: "Tags", get: (p) => list(p.tags) },
     { label: "Calendar", get: (p) => p.calendarId || "—" },
@@ -2781,7 +2783,7 @@ function diffFinancialPlan(base: FinancialPlan, cur: FinancialPlan) {
       if (!b) { out.push({ item, field: "Item", oldValue: "—", newValue: "Added" }); return; }
       for (const f of fields) {
         const o = (b as any)[f.key]; const n = (e as any)[f.key];
-        if (JSON.stringify(o ?? null) !== JSON.stringify(n ?? null)) out.push({ item, field: f.label, oldValue: fmtPlanValue(o), newValue: fmtPlanValue(n) });
+        if (JSON.stringify(o ?? null) !== JSON.stringify(n ?? null)) out.push({ item, field: f.label, oldValue: fmtPlanValue(o, f.key === "b" || f.key === "plan"), newValue: fmtPlanValue(n, f.key === "b" || f.key === "plan") });
       }
     });
     baseList.forEach((e, i) => { if (!curKeys.has(keyOf(e, i))) out.push({ item: `${prefix} · ${labelOf(e)}`, field: "Item", oldValue: "Existed", newValue: "Removed" }); });
@@ -2975,9 +2977,9 @@ function FinancialsTab({
           </div>
           <div className="grid gap-3 md:grid-cols-4">
             {[
-              { l: "Total Budget", v: `$${project.budgetTotal.toFixed(1)}M` },
-              { l: "Planned cost", v: `$${costTotals.planned.toFixed(2)}M` },
-              { l: "Actual spent", v: `$${costTotals.actual.toFixed(2)}M` },
+              { l: "Total Budget", v: money(project.budgetTotal) },
+              { l: "Planned cost", v: money(costTotals.planned) },
+              { l: "Actual spent", v: money(costTotals.actual) },
               { l: "Utilization", v: `${costTotals.util}%`, c: costTotals.util > 100 ? "text-rag-red" : costTotals.util > 85 ? "text-rag-amber" : "text-rag-green" },
             ].map((k) => {
               // Utilization turns red when actual spend has exceeded the planned budget.
@@ -3079,19 +3081,19 @@ function FinancialsTab({
           <div className={`grid gap-3 ${expectedRevenue != null ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
             {[
               ...(expectedRevenue != null
-                ? [{ l: "Expected revenue", v: `$${expectedRevenue.toFixed(2)}M`, n: "Entered at project setup" }]
+                ? [{ l: "Expected revenue", v: money(expectedRevenue), n: "Entered at project setup" }]
                 : []),
               {
                 l: "Planned in revenue plan",
-                v: `$${revTotals.planned.toFixed(2)}M`,
+                v: money(revTotals.planned),
                 c: revMismatch ? "text-rag-amber" : undefined,
                 n: revMismatch
-                  ? `${revVariance > 0 ? "Over" : "Under"} expected revenue by $${Math.abs(revVariance).toFixed(2)}M`
+                  ? `${revVariance > 0 ? "Over" : "Under"} expected revenue by ${money(Math.abs(revVariance))}`
                   : expectedRevenue != null
                     ? "Matches expected revenue"
                     : undefined,
               },
-              { l: "Received", v: `$${revTotals.actual.toFixed(2)}M` },
+              { l: "Received", v: money(revTotals.actual) },
               { l: "Collected", v: `${revTotals.util}%`, c: revTotals.util >= 100 ? "text-rag-green" : "text-rag-amber" },
             ].map((k) => (
               <div key={k.l} className="glass-card p-4">
@@ -3199,8 +3201,8 @@ export function RevenuePlanTable({
         <TableRow className="hover:bg-transparent bg-transparent border-0">
           <TableHead className="w-8" />
           <TableHead>Revenue event</TableHead>
-          <TableHead className="text-right">Planned ($M)</TableHead>
-          <TableHead className="text-right">Actual ($M)</TableHead>
+          <TableHead className="text-right">Planned ($)</TableHead>
+          <TableHead className="text-right">Actual ($)</TableHead>
           <TableHead className="text-right">Collected</TableHead>
           <TableHead>Linked to</TableHead>
           <TableHead>Expected date</TableHead>
@@ -3216,7 +3218,7 @@ export function RevenuePlanTable({
           const remaining = Math.max(0, r.plan - actual);
           const overPlanMessage = (amt: number, allowed: number) =>
             amt > allowed + 0.0001
-              ? `Total payments can't exceed the planned $${r.plan.toFixed(2)}M. This payment can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
+              ? `Total payments can't exceed the planned ${money(r.plan)}. This payment can be at most ${money(allowed)} — increase the Planned amount to record more.`
               : null;
           const open = expanded.has(r.ms);
           // Status is derived from collection + expected date, so Overdue appears without a stored flag.
@@ -3243,8 +3245,8 @@ export function RevenuePlanTable({
                   )}
                 </TableCell>
                 <TableCell className="text-muted-foreground">{r.evt}</TableCell>
-                <TableCell className="num-mono text-right">${r.plan.toFixed(2)}M</TableCell>
-                <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
+                <TableCell className="num-mono text-right">{money(r.plan)}</TableCell>
+                <TableCell className="num-mono text-right">{actual > 0 ? money(actual) : "—"}</TableCell>
                 <TableCell className={`num-mono text-right ${util >= 100 ? "text-rag-green" : util > 0 ? "text-rag-amber" : "text-muted-foreground"}`}>{util}%</TableCell>
                 <TableCell className="text-xs" onClick={(ev) => ev.stopPropagation()}>
                   {linkedMs && !readOnly ? (
@@ -3287,7 +3289,7 @@ export function RevenuePlanTable({
                         <div className={cn("grid items-center border-b border-border px-5 py-3 text-xs font-medium text-foreground", readOnly ? "grid-cols-[minmax(0,1fr)_140px_140px]" : "grid-cols-[minmax(220px,1fr)_180px_150px_108px]")}>
                           <span>Actual payment</span>
                           <span>Date</span>
-                          <span className="text-right">Amount ($M)</span>
+                          <span className="text-right">Amount ($)</span>
                           {!readOnly && <span className="sr-only">Actions</span>}
                         </div>
                         {actuals.map((a, i) => (
@@ -3299,7 +3301,7 @@ export function RevenuePlanTable({
                               {a.name ?? "Actual payment"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
                             </span>
                             <span>{formatDateForDisplay(a.date)}</span>
-                            <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
+                            <span className="num-mono text-right text-foreground">{money(a.amount)}</span>
                             {!readOnly && <span className="flex justify-end">
                               {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
                               <TableRowActions
@@ -3321,8 +3323,8 @@ export function RevenuePlanTable({
           <TableRow className="bg-transparent hover:bg-transparent border-0">
             <TableCell />
             <TableCell className="text-xs uppercase tracking-wide text-muted-foreground">Total</TableCell>
-            <TableCell className="num-mono text-right font-medium">${totals.planned.toFixed(2)}M</TableCell>
-            <TableCell className="num-mono text-right font-medium">${totals.actual.toFixed(2)}M</TableCell>
+            <TableCell className="num-mono text-right font-medium">{money(totals.planned)}</TableCell>
+            <TableCell className="num-mono text-right font-medium">{money(totals.actual)}</TableCell>
             <TableCell className="num-mono text-right font-medium">{totals.util}%</TableCell>
             <TableCell colSpan={3} />
           </TableRow>
@@ -3358,7 +3360,7 @@ export function RevenuePlanTable({
         const others = rowActuals.reduce((s, a, ai) => (ai === editingActual.actualIdx ? s : s + a.amount), 0);
         const allowed = Math.max(0, row.plan - others);
         return amt > allowed + 0.0001
-          ? `Total payments can't exceed the planned $${row.plan.toFixed(2)}M. This payment can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
+          ? `Total payments can't exceed the planned ${money(row.plan)}. This payment can be at most ${money(allowed)} — increase the Planned amount to record more.`
           : null;
       }}
       onOpenChange={(o) => !o && setEditingActual(null)}
@@ -3419,8 +3421,8 @@ export function CostBreakdownTable({
           <TableHead className="w-8" />
           <TableHead>Name</TableHead>
           <TableHead>Category</TableHead>
-          <TableHead className="text-right">Planned ($M)</TableHead>
-          <TableHead className="text-right">Actual ($M)</TableHead>
+          <TableHead className="text-right">Planned ($)</TableHead>
+          <TableHead className="text-right">Actual ($)</TableHead>
           <TableHead className="text-right">Utilization</TableHead>
           <TableHead>Linked to</TableHead>
           <TableHead>Date</TableHead>
@@ -3437,7 +3439,7 @@ export function CostBreakdownTable({
           const remaining = Math.max(0, (e.b ?? 0) - actual);
           const overPlanMessage = (amt: number, allowed: number) =>
             amt > allowed + 0.0001
-              ? `Total actuals can't exceed the planned $${(e.b ?? 0).toFixed(2)}M. This actual can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
+              ? `Total actuals can't exceed the planned ${money(e.b ?? 0)}. This actual can be at most ${money(allowed)} — increase the Planned amount to record more.`
               : null;
            const open = expanded.has(idx);
           const linkedMs = e.linkKind === "milestone" && e.linkRef && milestoneNames.includes(e.linkRef) ? e.linkRef : undefined;
@@ -3477,8 +3479,8 @@ export function CostBreakdownTable({
                     )}
                   </span>
                 </TableCell>
-                <TableCell className="num-mono text-right">${e.b.toFixed(2)}M</TableCell>
-                <TableCell className="num-mono text-right">{actual > 0 ? `$${actual.toFixed(2)}M` : "—"}</TableCell>
+                <TableCell className="num-mono text-right">{money(e.b)}</TableCell>
+                <TableCell className="num-mono text-right">{actual > 0 ? money(actual) : "—"}</TableCell>
                 <TableCell className={`num-mono text-right ${util > 100 ? "text-rag-red" : util > 85 ? "text-rag-amber" : "text-rag-green"}`}>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -3529,7 +3531,7 @@ export function CostBreakdownTable({
                         <div className={cn("grid items-center border-b border-border px-5 py-3 text-xs font-medium text-foreground", readOnly ? "grid-cols-[minmax(0,1fr)_140px_140px]" : "grid-cols-[minmax(220px,1fr)_180px_150px_108px]")}>
                           <span>Actual spend</span>
                           <span>Date</span>
-                          <span className="text-right">Amount ($M)</span>
+                          <span className="text-right">Amount ($)</span>
                           {!readOnly && <span className="sr-only">Actions</span>}
                         </div>
                         {actuals.map((a, i) => (
@@ -3541,7 +3543,7 @@ export function CostBreakdownTable({
                               {a.name ?? "Actual spend"}{a.note && a.note !== a.name ? ` — ${a.note}` : ""}
                             </span>
                             <span>{formatDateForDisplay(a.date)}</span>
-                            <span className="num-mono text-right text-foreground">${a.amount.toFixed(2)}M</span>
+                            <span className="num-mono text-right text-foreground">{money(a.amount)}</span>
                             {!readOnly && <span className="flex justify-end">
                               {/* Editing/removing a logged actual is bookkeeping, not re-planning — always available. */}
                               <TableRowActions
@@ -3591,7 +3593,7 @@ export function CostBreakdownTable({
         const others = rowActuals.reduce((s, a, ai) => (ai === editingActual.actualIdx ? s : s + a.amount), 0);
         const allowed = Math.max(0, (row.b ?? 0) - others);
         return amt > allowed + 0.0001
-          ? `Total actuals can't exceed the planned $${(row.b ?? 0).toFixed(2)}M. This actual can be at most $${allowed.toFixed(2)}M — increase the Planned amount to record more.`
+          ? `Total actuals can't exceed the planned ${money(row.b ?? 0)}. This actual can be at most ${money(allowed)} — increase the Planned amount to record more.`
           : null;
       }}
       onOpenChange={(o) => !o && setEditingActual(null)}
@@ -3654,7 +3656,7 @@ function EditRevenueRowDialog({
   onSave: (patch: Partial<RevEntry>) => void;
 }) {
   const [evt, setEvt] = useState(entry?.evt ?? "");
-  const [plan, setPlan] = useState(entry ? String(entry.plan) : "");
+  const [plan, setPlan] = useState(entry ? toDollarInput(entry.plan) : "");
   const [linkKind, setLinkKind] = useState<"milestone" | "fixed">(entry?.linkKind === "milestone" ? "milestone" : "fixed");
   const [linkMs, setLinkMs] = useState(entry?.linkKind === "milestone" ? entry.ms : "");
   const [linkDate, setLinkDate] = useState(entry?.linkKind === "fixed" ? entry.date : "");
@@ -3663,7 +3665,7 @@ function EditRevenueRowDialog({
   useEffect(() => {
     if (!entry) return;
     setEvt(entry.evt);
-    setPlan(String(entry.plan));
+    setPlan(toDollarInput(entry.plan));
     setLinkKind(entry.linkKind === "milestone" ? "milestone" : "fixed");
     setLinkMs(entry.linkKind === "milestone" ? entry.ms : "");
     setLinkDate(entry.linkKind === "fixed" ? entry.date : "");
@@ -3683,8 +3685,8 @@ function EditRevenueRowDialog({
             <Input value={evt} onChange={(e) => setEvt(e.target.value)} placeholder="e.g. Progress invoice (15%)" />
           </div>
           <div>
-            <Label>Planned amount ($M)</Label>
-            <Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} placeholder="0.50" />
+            <Label>Planned amount ($)</Label>
+            <Input type="number" min={0} step={1} value={plan} onChange={(e) => setPlan(e.target.value)} placeholder="500000" />
           </div>
           <div>
             <Label>Link to</Label>
@@ -3734,14 +3736,14 @@ function EditRevenueRowDialog({
           <Button
             variant="primary"
             onClick={() => {
-              const p = parseFloat(plan);
+              const p = fromDollarInput(plan);
               if (!evt.trim()) { toast.error("Revenue event is required"); return; }
               if (isNaN(p)) { toast.error("Planned amount is required"); return; }
               // Collected can never exceed 100%, so Planned cannot drop below what is already received.
               const logged = (entry?.actuals ?? (entry?.act != null ? [{ amount: entry.act, date: entry.date }] : []))
                 .reduce((s, a) => s + a.amount, 0);
               if (p + 0.0001 < logged) {
-                toast.error(`$${logged.toFixed(2)}M is already received on this event. Planned can't be lower than that.`, { title: "Planned amount too low" });
+                toast.error(`${money(logged)} is already received on this event. Planned can't be lower than that.`, { title: "Planned amount too low" });
                 return;
               }
               if (linkKind === "fixed" && !linkDate) { toast.error("Please pick a date"); return; }
@@ -5510,7 +5512,7 @@ function CostCategoriesList({
                       </span>
                     )}
                   </span>
-                  <span className="num-mono text-xs text-muted-foreground">${r.a.toFixed(2)}M / ${r.b.toFixed(2)}M</span>
+                  <span className="num-mono text-xs text-muted-foreground">{money(r.a)} / {money(r.b)}</span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-secondary/50">
                   <div className={`h-full ${r.color}`} style={{ width: `${pct}%` }} />
@@ -5527,13 +5529,13 @@ function CostCategoriesList({
                       <div className="text-foreground">{b.name}</div>
                       {b.note && <div className="text-[11px] text-muted-foreground">{b.note}</div>}
                     </div>
-                    <span className="num-mono text-muted-foreground">${b.amount.toFixed(2)}M</span>
+                    <span className="num-mono text-muted-foreground">{money(b.amount)}</span>
                   </div>
                 ))}
                 {bd.length > 0 && (
                   <div className="flex items-center justify-between border-t border-border/30 pt-1 text-[11px] text-muted-foreground">
                     <span>Subtotal</span>
-                    <span className="num-mono">${bdTotal.toFixed(2)}M</span>
+                    <span className="num-mono">{money(bdTotal)}</span>
                   </div>
                 )}
                 {canEdit && (
@@ -5548,9 +5550,9 @@ function CostCategoriesList({
                       />
                     </div>
                     <div className="w-28">
-                      <Label className="text-[11px]">Amount ($M)</Label>
+                      <Label className="text-[11px]">Amount ($)</Label>
                       <Input
-                        type="number" min={0} step={0.01}
+                        type="number" min={0} step={1}
                         value={openIdx === idx ? newAmount : ""}
                         onChange={(e) => setNewAmount(e.target.value)}
                         className="h-8 text-xs"
@@ -5561,7 +5563,7 @@ function CostCategoriesList({
                       variant="outline"
                       className="h-8 border-accent/40 text-accent hover:bg-accent-dim"
                       onClick={() => {
-                        const amt = parseFloat(newAmount);
+                        const amt = fromDollarInput(newAmount);
                         if (!newName.trim() || isNaN(amt)) { toast.error("Item name and amount are required"); return; }
                         onUpdate(idx, { breakdown: [...bd, { name: newName.trim(), amount: amt }] });
                         setNewName(""); setNewAmount("");
@@ -5624,7 +5626,7 @@ function AddFinanceLinkDialog({
     const linkRef = linkKind === "fixed" ? linkDate : linkMs;
     if (linkKind === "fixed" && !linkDate) { toast.error("Please pick a date"); return; }
     if (linkKind === "milestone" && !linkMs) { toast.error("Please pick a milestone"); return; }
-    const amt = parseFloat(amount);
+    const amt = fromDollarInput(amount);
     if (isNaN(amt)) { toast.error("Amount is required"); return; }
 
     if (kind === "cost") {
@@ -5702,12 +5704,12 @@ function AddFinanceLinkDialog({
                   </SelectContent>
                 </Select>
               </div>
-              <div><Label>Planned amount ($M)</Label><Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.50" /></div>
+              <div><Label>Planned amount ($)</Label><Input type="number" min={0} step={1} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="500000" /></div>
             </>
           ) : (
             <>
               <div><Label>Revenue event</Label><Input value={evt} onChange={(e) => setEvt(e.target.value)} placeholder="e.g. Progress invoice (15%)" /></div>
-              <div><Label>Planned amount ($M)</Label><Input type="number" min={0} step={0.01} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.50" /></div>
+              <div><Label>Planned amount ($)</Label><Input type="number" min={0} step={1} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="500000" /></div>
               {linkKind === "fixed" && (
                 <div><Label>Label (optional)</Label><Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Advance payment" /></div>
               )}
@@ -5774,7 +5776,7 @@ function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
 
   function submit() {
     if (!cat.trim() || !budget) { toast.error("Category and budget are required"); return; }
-    const b = parseFloat(budget); const a = parseFloat(actual || "0");
+    const b = fromDollarInput(budget); const a = fromDollarInput(actual || "0");
     if (isNaN(b)) { toast.error("Budget must be a number"); return; }
     onAdd({ c: cat.trim(), b, a: isNaN(a) ? 0 : a, color: COST_COLORS[cat] ?? "bg-muted-foreground" });
     toast.done("Cost entry", "created");
@@ -5811,8 +5813,8 @@ function AddCostDialog({ onAdd }: { onAdd: (e: CostEntry) => void }) {
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div><Label>Planned amount ($M)</Label><Input type="number" min={0} step={0.01} value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="0.50" /></div>
-            <div><Label>Actual ($M)</Label><Input type="number" min={0} step={0.01} value={actual} onChange={(e) => setActual(e.target.value)} placeholder="0.00" /></div>
+            <div><Label>Planned amount ($)</Label><Input type="number" min={0} step={1} value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="500000" /></div>
+            <div><Label>Actual ($)</Label><Input type="number" min={0} step={1} value={actual} onChange={(e) => setActual(e.target.value)} placeholder="0" /></div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
@@ -5869,7 +5871,7 @@ function AddRevenueDialog({ onAdd }: { onAdd: (e: RevEntry) => void }) {
   const [plan, setPlan] = useState(""); const [date, setDate] = useState("");
   function submit() {
     if (!ms.trim() || !plan) { toast.error("Milestone and planned amount are required"); return; }
-    const p = parseFloat(plan);
+    const p = fromDollarInput(plan);
     if (isNaN(p)) { toast.error("Planned amount must be a number"); return; }
     onAdd({ ms: ms.trim(), evt: evt || "—", plan: p, date: date || "TBD", s: "blue", sl: "Planned", act: null });
     toast.done("Revenue event", "created");
@@ -5888,7 +5890,7 @@ function AddRevenueDialog({ onAdd }: { onAdd: (e: RevEntry) => void }) {
           <div><Label>Linked milestone</Label><Input value={ms} onChange={(e) => setMs(e.target.value)} placeholder="e.g. Phase 2 sign-off" /></div>
           <div><Label>Revenue event</Label><Input value={evt} onChange={(e) => setEvt(e.target.value)} placeholder="e.g. Progress invoice (15%)" /></div>
           <div className="grid grid-cols-2 gap-2">
-            <div><Label>Planned ($M)</Label><Input type="number" min={0} step={0.01} value={plan} onChange={(e) => setPlan(e.target.value)} placeholder="0.50" /></div>
+            <div><Label>Planned ($)</Label><Input type="number" min={0} step={1} value={plan} onChange={(e) => setPlan(e.target.value)} placeholder="500000" /></div>
             <div><Label>Expected date</Label><Input value={date} onChange={(e) => setDate(e.target.value)} placeholder="30 Oct" /></div>
           </div>
         </div>

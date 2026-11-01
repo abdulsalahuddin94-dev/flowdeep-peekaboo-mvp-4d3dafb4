@@ -1,3 +1,8 @@
+## 2026-11-01 — Portfolio tags vs health badges
+- Health (RAG) badges on the portfolio cards and list are pill shaped (12px); tags are rounded rectangles (10px on cards) in their own tag color, through a new shared `ProjectTag` component.
+- The Filter panel uses the same shapes: RAG chips stay pills and, when selected, take the card badge colors; Tag chips show their color dimmed and light up when selected.
+- `RagBadge` gained an opt-in `pill` prop and exports `ragTone`, so other screens keep their current badge shape.
+- Browser verified the filter panel (selected and unselected states) and the cards with no runtime errors; typecheck clean.
 ## 2026-11-01 — Stage Gates done vs in-progress colors
 - Project Overview Stage Gates now separate three states: done stages are green (filled circle with check, green bar, "Done" chip), the current stage (first one not done) is lavender (outlined circle, lavender bar and label, "In progress" chip), and later stages keep the neutral look.
 - Browser verified on ERP System Upgrade (Initiation done, Planning in progress) with no runtime errors; typecheck clean.

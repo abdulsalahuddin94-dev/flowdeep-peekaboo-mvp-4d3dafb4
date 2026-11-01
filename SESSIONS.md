@@ -1,3 +1,7 @@
+## 2026-11-01 — Project tags are pills everywhere
+- `ProjectTag` now defaults to `rounded-full`, so tags on the portfolio project cards and the Filter panel's Tags row are both fully rounded pills; the card chips got slightly more horizontal padding (px-2) so the pill reads cleanly at 10px text.
+- The Filter row no longer needs its own `rounded-full` override, and the Project form's tag chips already used the same pill shape.
+- Browser verified on /portfolio: card tags and filter tags both measure 9999px radius (19px and 28px tall), with no runtime errors.
 ## 2026-11-01 — Project tag corner radius: 6px on cards, pills in Filter
 - `ProjectTag` base radius moved from 4px to 6px, so tags on the portfolio project cards read as softer rounded rectangles.
 - The Filter panel's Tags row passes `rounded-full`, so tag chips there are pills like the other filter chips; `cn`/tailwind-merge resolves the override.

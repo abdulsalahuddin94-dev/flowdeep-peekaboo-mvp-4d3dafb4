@@ -105,6 +105,7 @@ const T = { en: { basicInfo: "Basic info" }, ar: { basicInfo: "البيانات 
 /** In-memory plan state per project, so it survives visits to Approvals / Edit project. */
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/plan-seeds";
+import { CollapseAllToggle } from "@/components/CollapseAllToggle";
 
 const PLANNING_STAGES = [
   { n: 1, name: "Initiation", state: "done" as const },
@@ -3168,6 +3169,7 @@ export function RevenuePlanTable({
   onMilestoneClick?: (name: string) => void;
 }) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const expandableRev = entries.filter((r) => (r.actuals ?? (r.act != null ? [r.act] : [])).length > 0).map((r) => r.ms);
   const toggle = (key: string) =>
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -3184,7 +3186,14 @@ export function RevenuePlanTable({
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent bg-transparent border-0">
-          <TableHead className="w-8" />
+          <TableHead className="w-8">
+            <CollapseAllToggle
+              anyExpanded={expandableRev.some((k) => expanded.has(k))}
+              disabled={expandableRev.length === 0}
+              onCollapseAll={() => setExpanded(new Set())}
+              onExpandAll={() => setExpanded(new Set(expandableRev))}
+            />
+          </TableHead>
           <TableHead>Revenue event</TableHead>
           <TableHead className="text-right">Planned ($M)</TableHead>
           <TableHead className="text-right">Actual ($M)</TableHead>
@@ -3387,6 +3396,7 @@ export function CostBreakdownTable({
   onMilestoneClick?: (name: string) => void;
 }) {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const expandableCost = entries.flatMap((e, idx) => ((e.actuals ?? (e.a > 0 ? [e.a] : [])).length > 0 ? [idx] : []));
   const toggle = (key: number) =>
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -3403,7 +3413,14 @@ export function CostBreakdownTable({
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent bg-transparent border-0">
-          <TableHead className="w-8" />
+          <TableHead className="w-8">
+            <CollapseAllToggle
+              anyExpanded={expandableCost.some((k) => expanded.has(k))}
+              disabled={expandableCost.length === 0}
+              onCollapseAll={() => setExpanded(new Set())}
+              onExpandAll={() => setExpanded(new Set(expandableCost))}
+            />
+          </TableHead>
           <TableHead>Name</TableHead>
           <TableHead>Category</TableHead>
           <TableHead className="text-right">Planned ($M)</TableHead>

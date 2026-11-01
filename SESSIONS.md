@@ -1,3 +1,8 @@
+## 2026-11-01 — Collapse all / Expand all for WBS, cost and revenue tables
+- New shared `CollapseAllToggle` (lucide ChevronsDownUp / ChevronsUpDown, like Figma's collapse-layers control) sits in the first header cell of the WBS table, the Cost Breakdown table and the Revenue Breakdown table.
+- While any row is open it collapses everything and flips to "Expand all"; the next click expands every expandable row (WBS parents, cost lines and revenue events that have actuals). It is disabled when a table has nothing to expand.
+- Browser verified: WBS collapse flips the icon, Revenue expand-all opens all events with actuals, Cost expand-all opens all 5 lines with actuals; no runtime errors, typecheck clean.
+
 ## 2026-10-29 — Salary distribution Card Symmetry & Radius alignment
 - Aligned Salary distribution card with the Projects & allocation table above it.
 - Root cause: `src/components/ui/table.tsx` applies `p-2` (8px on left and right), which insets the table content to 948px vs 964px. Added `mx-2` to the card container so its horizontal boundaries match the table boundaries exactly (948px).

@@ -3,6 +3,10 @@
 - The Filter panel uses the same shapes: RAG chips stay pills and, when selected, take the card badge colors; Tag chips show their color dimmed and light up when selected.
 - `RagBadge` gained an opt-in `pill` prop and exports `ragTone`, so other screens keep their current badge shape.
 - Browser verified the filter panel (selected and unselected states) and the cards with no runtime errors; typecheck clean.
+## 2026-11-01 — Risks count opens the filtered Risk Register
+- Organization → Risk Categories: the Risks count is now a link (disabled at 0) that opens the global Risk Register filtered to that category.
+- `/risks` accepts an optional `category` search param that seeds the Risk Register category filter; the filter stays removable from the Filter panel.
+- Browser verified: Vendor (1) → /risks?tab=register&category=Vendor shows the single Vendor risk with "Filter 1"; no runtime errors, typecheck clean.
 ## 2026-11-01 — Full money amounts instead of the "M" shorthand
 - Budget, cost and revenue amounts now show as full dollar values everywhere ($3,200,000 instead of $3.2M): dashboard, portfolio cards/list/timeline, project header and overview, cost and revenue breakdowns, change-request diffs, financials KPIs, tables, tooltips and chart axes, clients & vendors.
 - Amounts stay stored in millions; a new `src/lib/money.ts` formats them (`money`, `moneyAxis`) and converts amount inputs, which now take full dollars (labels say "($)", step 1) and are divided back on save.

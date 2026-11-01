@@ -8,8 +8,9 @@ import {
 
 export const Route = createFileRoute("/risks")({
   component: RisksPage,
-  validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { tab?: string; category?: string } => ({
     tab: typeof search.tab === "string" ? search.tab : undefined,
+    category: typeof search.category === "string" ? search.category : undefined,
   }),
   head: () => ({
     meta: [
@@ -30,7 +31,7 @@ const TAB_LABEL: Record<string, string> = {
 };
 
 function RisksPage() {
-  const { tab = "register" } = Route.useSearch();
+  const { tab = "register", category } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const [issueRiskFilter, setIssueRiskFilter] = useState<string[]>([]);
 
@@ -41,6 +42,8 @@ function RisksPage() {
       <Tabs value={tab} onValueChange={(v) => navigate({ search: { tab: v } })}>
         <TabsContent value="register" className="mt-0">
           <RiskRegisterTab
+            key={category ?? "all"}
+            initialCategory={category}
             onViewLinkedIssues={(riskId) => {
               setIssueRiskFilter([riskId]);
               navigate({ search: { tab: "issues" } });

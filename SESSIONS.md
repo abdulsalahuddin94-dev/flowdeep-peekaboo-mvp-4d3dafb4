@@ -6,6 +6,10 @@
 - New **Trips** tab: Country, City, travel start/end, trip work start/end, tickets / visa / per diem cost and a total. Travel days still reduce that month's available capacity, as business trips did before.
 - Employees store key bumped to `pmo.employees.v3` (leave/trip shapes changed), so saved demo edits reset once.
 - Browser verified /resources/employees/EMP-001 on every tab and both dialogs, no runtime errors from these changes; typecheck clean, tests updated and passing.
+## 2026-11-02 — WBS: Columns button after Chart, one role per item
+- The Project Schedule show/hide columns menu is now a labelled "Columns" button with a small chevron, placed right after the Chart button (it was an icon-only button on the left). Defaults unchanged: Item Name, Type, Timeline, Weight, % Actual, % Plan, Status (last); the rest are hidden until checked.
+- The column is now titled "Role" (one role per item). The "Build & Integration" seed drops its second role (Backend Dev), which already sits on its "Backend API" subtask.
+- Browser verified on /portfolio/p-001 Project Schedule: menu opens with the default checks, no runtime errors; typecheck clean, tests pass.
 
 ## 2026-11-02 — Partial leave
 - Added "Partial leave" type to Leave records: single date + hours (1–7h); reduces monthly available capacity by hours/8 day.

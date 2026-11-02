@@ -267,11 +267,11 @@ const COLUMNS = [
   { key: "assignee", label: "Assignee",    w: 130 },
   { key: "roles",    label: "Roles",       w: 180 },
   { key: "weight",   label: "Weight",      w: 66 },
-  { key: "status",   label: "Status",      w: 110 },
   { key: "actual",   label: "% Actual",    w: 130 },
   { key: "planned",  label: "% Plan",      w: 130 },
   { key: "dep",      label: "Depends on",  w: 110 },
   { key: "payment",  label: "Financial Link",w: 110 },
+  { key: "status",   label: "Status",      w: 110 },
 ] as const;
 type ColKey = typeof COLUMNS[number]["key"];
 type WidthKey = ColKey | "name";
@@ -353,10 +353,15 @@ export function ProjectSchedule({
 }) {
   const [scale, setScale] = useState<Scale>("week");
   const [healthHighlight, setHealthHighlight] = useState(false);
-  const [visibleCols] = useState<Set<ColKey>>(
-    // Owner + Assignee columns hidden for the MVP demo view
-    () => new Set<ColKey>(["type", "duration", "roles", "weight", "status", "actual", "planned", "dep", "payment"]),
+  const [visibleCols, setVisibleCols] = useState<Set<ColKey>>(
+    // Default view: core planning columns; the rest can be shown from the Columns menu.
+    () => new Set<ColKey>(["type", "duration", "weight", "actual", "planned", "status"]),
   );
+  const toggleCol = (k: ColKey) => setVisibleCols((prev) => {
+    const next = new Set(prev);
+    if (next.has(k)) next.delete(k); else next.add(k);
+    return next;
+  });
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(items.map(i => i.name)));
   const [leftPct, setLeftPct] = useState(48);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
@@ -1032,6 +1037,27 @@ export function ProjectSchedule({
       {/* Top action bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--p-neutral-800)] p-3">
         <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Show or hide columns" title="Columns">
+                <Columns3 className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-52">
+              <DropdownMenuLabel>Columns</DropdownMenuLabel>
+              <DropdownMenuCheckboxItem checked disabled>Item Name</DropdownMenuCheckboxItem>
+              {COLUMNS.map((c) => (
+                <DropdownMenuCheckboxItem
+                  key={c.key}
+                  checked={visibleCols.has(c.key)}
+                  onCheckedChange={() => toggleCol(c.key)}
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  {c.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           {headerSlot ?? (
             <>
               <div className="label-eyebrow">Project Schedule</div>
@@ -1347,11 +1373,6 @@ export function ProjectSchedule({
                         )}
                       </div>
                     )}
-                    {colVisible("status") && (
-                      <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.status }}>
-                        <RagBadge rag={item.rag} label={statusText[item.rag]} />
-                      </div>
-                    )}
                     {(() => {
                       const planned = computePlannedProgress(item.startDate, item.endDate);
                       const actual = item.progress ?? 0;
@@ -1454,6 +1475,11 @@ export function ProjectSchedule({
                         </div>
                       );
                     })()}
+                    {colVisible("status") && (
+                      <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.status }}>
+                        <RagBadge rag={item.rag} label={statusText[item.rag]} />
+                      </div>
+                    )}
                     {/* Dedicated hover-only burger column — never covers data cells */}
                     <div className="flex items-center justify-center" style={{ width: ROW_ACTIONS_W }}>
                       <div className="opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
@@ -2311,21 +2337,21 @@ function RolesDialog({
   const [newFte, setNewFte] = useState("1");
 
   useEffect(() => {
-    if (item) setDraft(item.roles.map((r) => ({ ...r })));
+    if (item) setDraft(item.roles.slice(0, 1).map((r) => ({ ...r })));
     setNewRole(""); setNewLevel("Mid"); setNewFte("1");
   }, [item]);
 
   const editing = !!item?.roles.length;
   const updateRow = (i: number, p: Partial<RoleReq>) => setDraft((d) => d.map((r, j) => (j === i ? { ...r, ...p } : r)));
   const addRow = () => {
-    if (!newRole.trim()) return;
+    if (!newRole.trim() || draft.length >= 1) return;
     setDraft((d) => [...d, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }]);
     setNewRole(""); setNewLevel("Mid"); setNewFte("1");
   };
   const save = () => {
-    const pending = newRole.trim() ? [...draft, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }] : draft;
+    const pending = newRole.trim() && draft.length === 0 ? [...draft, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }] : draft;
     onUpdate(pending);
-    toast.success(pending.length ? `Roles updated for ${item?.name}` : `Roles cleared for ${item?.name}`);
+    toast.success(pending.length ? `Role updated for ${item?.name}` : `Roles cleared for ${item?.name}`);
     onClose();
   };
   const levels = ["Junior", "Mid", "Senior", "Lead"] as const;
@@ -2360,8 +2386,11 @@ function RolesDialog({
               ))}
             </div>
           )}
+          {draft.length > 0 ? (
+            <p className="text-xs text-muted-foreground">One role per item. Need another role? Add a subtask under this item and assign the role there.</p>
+          ) : (
           <div className="space-y-2 border-t border-border pt-3">
-            <Label>{draft.length ? "Add another role" : "Role"}</Label>
+            <Label>Role</Label>
             <div className="grid grid-cols-[1fr_110px_80px_36px] items-center gap-2">
               <Select value={newRole} onValueChange={setNewRole}>
                 <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
@@ -2380,6 +2409,7 @@ function RolesDialog({
             </div>
             <p className="text-xs text-muted-foreground">Role · Seniority · FTE</p>
           </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>

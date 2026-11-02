@@ -29,7 +29,7 @@ import {
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Columns3, Diamond, Download, GanttChartSquare, Link2, PanelLeft, PanelLeftClose, Pencil, Plus, Trash2, TrendingUp, Upload, UserPlus, X } from "@/lib/icons";
+import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Diamond, Download, GanttChartSquare, Link2, PanelLeft, PanelLeftClose, Pencil, Plus, Trash2, TrendingUp, Upload, UserPlus, X } from "@/lib/icons";
 import { RagBadge } from "@/components/RagBadge";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -290,7 +290,7 @@ const COLUMNS = [
   { key: "duration", label: "Timeline",    w: 166 },
   { key: "owner",    label: "Owner",       w: 150 },
   { key: "assignee", label: "Assignee",    w: 130 },
-  { key: "roles",    label: "Roles",       w: 180 },
+  { key: "roles",    label: "Role",        w: 180 },
   { key: "weight",   label: "Weight",      w: 66 },
   { key: "actual",   label: "% Actual",    w: 130 },
   { key: "planned",  label: "% Plan",      w: 130 },
@@ -1047,27 +1047,6 @@ export function ProjectSchedule({
       {/* Top action bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--p-neutral-800)] p-3">
         <div className="flex items-center gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Show or hide columns" title="Columns">
-                <Columns3 className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-52">
-              <DropdownMenuLabel>Columns</DropdownMenuLabel>
-              <DropdownMenuCheckboxItem checked disabled>Item Name</DropdownMenuCheckboxItem>
-              {COLUMNS.map((c) => (
-                <DropdownMenuCheckboxItem
-                  key={c.key}
-                  checked={visibleCols.has(c.key)}
-                  onCheckedChange={() => toggleCol(c.key)}
-                  onSelect={(e) => e.preventDefault()}
-                >
-                  {c.label}
-                </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
           {headerSlot ?? (
             <>
               <div className="label-eyebrow">Project Schedule</div>
@@ -1095,6 +1074,29 @@ export function ProjectSchedule({
             <GanttChartSquare className="h-4 w-4" />
             Chart
           </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" size="sm" variant="outline" aria-label="Show or hide columns" className="h-8 gap-1 px-3 text-xs">
+                Columns
+                <ChevronDown className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              <DropdownMenuLabel>Columns</DropdownMenuLabel>
+              <DropdownMenuCheckboxItem checked disabled>Item Name</DropdownMenuCheckboxItem>
+              {COLUMNS.map((c) => (
+                <DropdownMenuCheckboxItem
+                  key={c.key}
+                  checked={visibleCols.has(c.key)}
+                  onCheckedChange={() => toggleCol(c.key)}
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  {c.label}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {ganttOpen && (
             <ToggleGroup

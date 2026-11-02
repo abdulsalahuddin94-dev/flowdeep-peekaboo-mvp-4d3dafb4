@@ -1779,33 +1779,19 @@ function HealthDonutCard({
   const grandTotal = onTrack.total + atRisk.total + offTrack.total;
 
   const data = [
-    { name: "On Track", key: "on-track", value: onTrack.total, color: HEALTH_COLORS["on-track"], breakdown: onTrack },
-    { name: "At Risk", key: "at-risk", value: atRisk.total, color: HEALTH_COLORS["at-risk"], breakdown: atRisk },
-    { name: "Off-Track", key: "off-track", value: offTrack.total, color: HEALTH_COLORS["off-track"], breakdown: offTrack },
+    { name: "On Track", key: "on-track", value: onTrack.total, color: HEALTH_COLORS["on-track"] },
+    { name: "At Risk", key: "at-risk", value: atRisk.total, color: HEALTH_COLORS["at-risk"] },
+    { name: "Off-Track", key: "off-track", value: offTrack.total, color: HEALTH_COLORS["off-track"] },
   ].filter((d) => d.value > 0);
 
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const entry = payload[0].payload;
-      const b: HealthBreakdown = entry.breakdown;
-      return (
-        <div className="rounded-md border border-border bg-popover px-3 py-2 text-xs shadow-md">
-          <div className="font-semibold text-foreground flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
-            {entry.name}: {entry.value}
-          </div>
-          <div className="mt-1 space-y-0.5 text-[11px] text-muted-foreground">
-            <div>Tasks: <span className="font-medium text-foreground">{b.tasks}</span></div>
-            <div>Milestones: <span className="font-medium text-foreground">{b.milestones}</span></div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
+  const rows = [
+    { label: "On Track", dot: "bg-rag-green", total: onTrack.total, ms: onTrack.milestones, task: onTrack.tasks },
+    { label: "At Risk", dot: "bg-rag-amber", total: atRisk.total, ms: atRisk.milestones, task: atRisk.tasks },
+    { label: "Off-Track", dot: "bg-rag-red", total: offTrack.total, ms: offTrack.milestones, task: offTrack.tasks },
+  ];
 
   return (
-    <div className="flex items-center justify-between gap-4">
+    <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-6">
       {/* Left: Donut Chart with center total */}
       <div className="relative h-[120px] w-[120px] shrink-0">
         {grandTotal === 0 ? (
@@ -1815,7 +1801,6 @@ function HealthDonutCard({
         ) : (
           <>
             <PieChart width={120} height={120}>
-              <RechartsTooltip content={<CustomTooltip />} />
               <Pie
                 data={data}
                 dataKey="value"
@@ -1839,29 +1824,21 @@ function HealthDonutCard({
         )}
       </div>
 
-      {/* Right: Numbers beside the chart */}
-      <div className="flex-1 space-y-2 text-xs">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-muted-foreground">
-            <span className="h-2 w-2 rounded-full bg-rag-green" />
-            On Track :
-          </span>
-          <span className="num-mono font-medium text-foreground">{onTrack.total}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-muted-foreground">
-            <span className="h-2 w-2 rounded-full bg-rag-amber" />
-            At Risk :
-          </span>
-          <span className="num-mono font-medium text-foreground">{atRisk.total}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-muted-foreground">
-            <span className="h-2 w-2 rounded-full bg-rag-red" />
-            Off-Track :
-          </span>
-          <span className="num-mono font-medium text-foreground">{offTrack.total}</span>
-        </div>
+      {/* Right: Numbers & Breakdown beside the chart */}
+      <div className="flex-1 min-w-0 space-y-2.5 text-xs w-full">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-center justify-between gap-3 text-muted-foreground">
+            <span className="flex items-center gap-2 text-foreground font-medium shrink-0">
+              <span className={`h-2 w-2 rounded-full ${r.dot}`} />
+              {r.label}:
+            </span>
+            <div className="flex items-center gap-3 text-xs num-mono">
+              <span>Milestones: <strong className="font-semibold text-foreground">{r.ms}</strong></span>
+              <span>Tasks: <strong className="font-semibold text-foreground">{r.task}</strong></span>
+              <span className="font-bold text-foreground min-w-[1.25rem] text-right">({r.total})</span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

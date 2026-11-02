@@ -3,8 +3,10 @@ import { resources, projects } from "@/lib/mock-data";
 
 export type EmploymentType = { id: string; name: string; active: boolean };
 export type EmployeeAllocation = { id: string; project: string; role: string; percent: number; from: string; until: string; task?: string };
-export type EmployeeLeave = { id: string; type: "Annual vacation" | "Sick leave" | "Unpaid leave" | "Partial leave"; from: string; until: string; days: number; hours?: number; status: "Approved" | "Pending" | "Rejected" };
-export type EmployeeTrip = { id: string; kind: "Business trip" | "Training"; title: string; from: string; until: string; days: number; status: "Planned" | "Completed" };
+/** "Leave" spans whole days (from–until); "Partial" is a few hours on one day (`hours`). */
+export type EmployeeLeave = { id: string; type: "Leave" | "Partial"; from: string; until: string; days: number; hours?: number; remark?: string };
+/** `from`/`until` are the travel dates; `workFrom`/`workUntil` the days worked on site. Costs in USD. */
+export type EmployeeTrip = { id: string; country: string; city: string; from: string; until: string; workFrom: string; workUntil: string; days: number; ticketsCost: number; visaCost: number; perDiemCost: number };
 /** Per-month overrides keyed by "YYYY-MM"; months without an entry fall back to the employee's base salary/capacity. */
 export type EmployeeMonthPlan = { salary?: number; capacity?: number };
 export type Employee = { id: string; name: string; role: string; dept: string; email: string; salary: number; capacity: number; util: number; employmentTypeId: string; joinedOn: string; projects: string[]; tasks: string[]; allocations: EmployeeAllocation[]; leave: EmployeeLeave[]; trips: EmployeeTrip[]; monthly: Record<string, EmployeeMonthPlan>; vacationEntitlement: number; demo: boolean };
@@ -28,8 +30,8 @@ function seedMonthly(i: number, base: number): Record<string, EmployeeMonthPlan>
 
 function seedTrips(i: number): EmployeeTrip[] {
   return [
-    { id: `trip-${i}-1`, kind: "Business trip", title: "Client site visit — Riyadh", from: "2026-05-11", until: "2026-05-14", days: 4, status: "Completed" },
-    { id: `trip-${i}-2`, kind: "Training", title: "PMP certification bootcamp", from: "2026-11-02", until: "2026-11-06", days: 5, status: "Planned" },
+    { id: `trip-${i}-1`, country: "Saudi Arabia", city: "Riyadh", from: "2026-05-10", until: "2026-05-15", workFrom: "2026-05-11", workUntil: "2026-05-14", days: 6, ticketsCost: 1200, visaCost: 150, perDiemCost: 1600 },
+    { id: `trip-${i}-2`, country: "United Arab Emirates", city: "Dubai", from: "2026-11-01", until: "2026-11-07", workFrom: "2026-11-02", workUntil: "2026-11-06", days: 7, ticketsCost: 900, visaCost: 0, perDiemCost: 2000 },
   ];
 }
 
@@ -41,13 +43,19 @@ const initialEmployees: Employee[] = resources.map((r, i) => {
     monthly: seedMonthly(i, base),
     trips: seedTrips(i),
     allocations: names.map((project, j) => ({ id: `seed-${i}-${j}`, project, role: r.role, percent: j === 0 && names.length > 1 ? Math.round(r.util * .6) : names.length > 1 ? r.util - Math.round(r.util * .6) : r.util, from: "2026-01", until: "2026-12", task: taskNames[i]?.[j] })),
-    leave: [{ id: `leave-${i}-1`, type: "Annual vacation", from: "2026-07-05", until: "2026-07-09", days: 5, status: "Approved" }, { id: `leave-${i}-2`, type: "Sick leave", from: "2026-09-14", until: "2026-09-14", days: 1, status: "Approved" }, { id: `leave-${i}-3`, type: "Annual vacation", from: "2026-12-06", until: "2026-12-10", days: 5, status: "Pending" }] };
+    leave: [
+      { id: `leave-${i}-1`, type: "Leave", from: "2026-07-05", until: "2026-07-09", days: 5, remark: "Summer vacation" },
+      { id: `leave-${i}-2`, type: "Leave", from: "2026-09-14", until: "2026-09-14", days: 1, remark: "Sick day" },
+      { id: `leave-${i}-3`, type: "Partial", from: "2026-10-20", until: "2026-10-20", days: 0.25, hours: 2, remark: "Medical appointment" },
+      { id: `leave-${i}-4`, type: "Leave", from: "2026-12-06", until: "2026-12-10", days: 5 },
+    ] };
 });
 const defaults = { employees: initialEmployees, employmentTypes: types };
 let state = defaults;
 let loaded = false;
 const listeners = new Set<() => void>();
-const storageKey = "pmo.employees.v2";
+// v3: leave lost its status (Leave / Partial + remark) and trips gained location, work dates and costs.
+const storageKey = "pmo.employees.v3";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;

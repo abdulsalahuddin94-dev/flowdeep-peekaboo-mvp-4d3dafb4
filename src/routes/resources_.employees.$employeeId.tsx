@@ -12,20 +12,22 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow } from "@/components/StyledTable";
-import { AlertTriangle, ChevronLeft, Pencil, Plus, Trash2 } from "@/lib/icons";
+import { AlertTriangle, ChevronLeft, Pencil, Plus, Search, Trash2 } from "@/lib/icons";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { dollars } from "@/lib/money";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
 import { Cell, Pie, PieChart } from "recharts";
 export const Route = createFileRoute("/resources_/employees/$employeeId")({
   component: EmployeeDetails,
-  head: ({ params }) => ({ meta: [{ title: `Employee ${params.employeeId} — Nexus PMO` }, { name: "description", content: "Employee profile, monthly salary, project cost allocation, assigned tasks, capacity and leave." }, { property: "og:title", content: `Employee ${params.employeeId} — Nexus PMO` }, { property: "og:description", content: "Read-only employee information, salary allocation, projects, tasks and vacation." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
+  head: ({ params }) => ({ meta: [{ title: `Employee ${params.employeeId} — Nexus PMO` }, { name: "description", content: "Employee profile, monthly salary, project allocation, assigned tasks, capacity, leave and trips." }, { property: "og:title", content: `Employee ${params.employeeId} — Nexus PMO` }, { property: "og:description", content: "Read-only employee information, salary allocation, projects, tasks and vacation." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
 });
 export const T = {
- en: { employees: "Employees", overview: "Overview", allocation: "Projects & allocation", tasks: "Assigned tasks", salary: "Salary & capacity", leave: "Leave & trips", type: "Employment type", capacity: "Capacity / month", utilization: "Utilization", monthly: "Monthly salary", projects: "Assigned projects", vacation: "Vacation remaining", demo: "Demo data", details: "Employee information", email: "Email", role: "Role", department: "Department", joined: "Joining date", id: "Employee ID", year: "Year", month: "Month", project: "Project", period: "Period", hours: "Hours / month", cost: "Salary charged", overhead: "Unassigned / overhead", total: "Total salary", projectCost: "Project charges", empty: "No records", entitlement: "Annual entitlement", used: "Vacation used", pending: "Vacation pending", balance: "Days remaining", from: "From", until: "Until", days: "Days", status: "Status", leaveType: "Leave type", task: "Task", date: "Assignment period", missing: "Employee not found", budget: "Monthly project cost", profile: "Profile", charges: "Project salary breakdown", setPlan: "Set plan", editMonth: "Edit month", startMonth: "Start month", planMonths: "Number of months", salaryValue: "Salary (USD)", capacityValue: "Capacity (hours)", apply: "Apply", cancel: "Cancel", save: "Save", trips: "Business trips & training", addEntry: "Add entry", kind: "Type", title: "Title", businessTrip: "Business trip", training: "Training", planned: "Planned", completed: "Completed", overUtil: "Over-utilization", overUtilDesc: "Assigned hours exceed the available capacity in", available: "Available", absence: "Absence days", monthlyUtil: "Monthly utilization by project", totalUtil: "Total", leaveRecords: "Leave records", monthSummary: "Month summary", baseSalary: "Base salary", baseCapacity: "Base capacity", assigned: "Assigned", salarySplit: "Salary distribution", planApplied: "Monthly plan applied", monthUpdated: "Month updated", tripAdded: "Entry added", tripRemoved: "Entry removed", leaveAdded: "Leave added", leaveRemoved: "Leave removed", annualVacation: "Annual vacation", sickLeave: "Sick leave", unpaidLeave: "Unpaid leave", partialLeave: "Partial leave", leaveDate: "Date", leaveHours: "Hours", assignedHours: "Assigned hours" },
- ar: { employees: "الموظفون", overview: "نظرة عامة", allocation: "المشاريع والتخصيص", tasks: "المهام المسندة", salary: "الراتب والسعة", leave: "الإجازات والرحلات", type: "نوع التوظيف", capacity: "السعة الشهرية", utilization: "الاستغلال", monthly: "الراتب الشهري", projects: "المشاريع المسندة", vacation: "رصيد الإجازات", demo: "بيانات تجريبية", details: "بيانات الموظف", email: "البريد الإلكتروني", role: "الدور", department: "القسم", joined: "تاريخ الانضمام", id: "رقم الموظف", year: "السنة", month: "الشهر", project: "المشروع", period: "الفترة", hours: "الساعات الشهرية", cost: "الراتب المحمل", overhead: "غير مخصص / مصاريف عامة", total: "إجمالي الراتب", projectCost: "تكاليف المشاريع", empty: "لا توجد سجلات", entitlement: "الاستحقاق السنوي", used: "الإجازات المستخدمة", pending: "الإجازات المعلقة", balance: "الأيام المتبقية", from: "من", until: "إلى", days: "الأيام", status: "الحالة", leaveType: "نوع الإجازة", task: "المهمة", date: "فترة التخصيص", missing: "الموظف غير موجود", budget: "تكلفة المشاريع الشهرية", profile: "الملف الشخصي", charges: "توزيع الراتب على المشاريع", setPlan: "إعداد الخطة", editMonth: "تعديل الشهر", startMonth: "شهر البداية", planMonths: "عدد الشهور", salaryValue: "الراتب (دولار)", capacityValue: "السعة (ساعات)", apply: "تطبيق", cancel: "إلغاء", save: "حفظ", trips: "رحلات العمل والتدريب", addEntry: "إضافة", kind: "النوع", title: "العنوان", businessTrip: "رحلة عمل", training: "تدريب", planned: "مخطط", completed: "مكتمل", overUtil: "تحميل زائد", overUtilDesc: "الساعات المسندة تتجاوز السعة المتاحة في", available: "المتاح", absence: "أيام الغياب", monthlyUtil: "الاستغلال الشهري حسب المشروع", totalUtil: "الإجمالي", leaveRecords: "سجل الإجازات", monthSummary: "ملخص الشهر", baseSalary: "الراتب الأساسي", baseCapacity: "السعة الأساسية", assigned: "المسند", salarySplit: "توزيع الراتب", planApplied: "تم تطبيق الخطة الشهرية", monthUpdated: "تم تحديث الشهر", tripAdded: "تمت الإضافة", tripRemoved: "تم الحذف", leaveAdded: "تمت إضافة الإجازة", leaveRemoved: "تم حذف الإجازة", annualVacation: "إجازة سنوية", sickLeave: "إجازة مرضية", unpaidLeave: "إجازة بدون أجر", partialLeave: "إذن (إجازة جزئية)", leaveDate: "التاريخ", leaveHours: "الساعات", assignedHours: "الساعات المسندة" },
+ en: { employees: "Employees", overview: "Overview", allocation: "Projects & allocation", tasks: "Assigned tasks", salary: "Salary & capacity", leave: "Leave & trips", type: "Employment type", capacity: "Capacity / month", utilization: "Utilization", monthly: "Monthly salary", projects: "Assigned projects", vacation: "Vacation remaining", demo: "Demo data", details: "Employee information", email: "Email", role: "Role", department: "Department", joined: "Joining date", id: "Employee ID", year: "Year", month: "Month", project: "Project", period: "Period", hours: "Hours / month", cost: "Salary charged", overhead: "Unassigned / overhead", total: "Total salary", projectCost: "Project charges", empty: "No records", entitlement: "Annual entitlement", used: "Vacation used", pending: "Vacation pending", balance: "Days remaining", from: "From", until: "Until", days: "Days", status: "Status", leaveType: "Leave type", task: "Task", date: "Assignment period", missing: "Employee not found", budget: "Monthly project cost", profile: "Profile", charges: "Project salary breakdown", setPlan: "Set plan", editMonth: "Edit month", startMonth: "Start month", planMonths: "Number of months", salaryValue: "Salary (USD)", capacityValue: "Capacity (hours)", apply: "Apply", cancel: "Cancel", save: "Save", trips: "Business trips & training", addEntry: "Add entry", kind: "Type", title: "Title", businessTrip: "Business trip", training: "Training", planned: "Planned", completed: "Completed", overUtil: "Over-utilization", overUtilDesc: "Assigned hours exceed the available capacity in", available: "Available", absence: "Absence days", monthlyUtil: "Monthly utilization by project", totalUtil: "Total", leaveRecords: "Leave records", monthSummary: "Month summary", baseSalary: "Base salary", baseCapacity: "Base capacity", assigned: "Assigned", salarySplit: "Salary distribution", planApplied: "Monthly plan applied", monthUpdated: "Month updated", tripAdded: "Entry added", tripRemoved: "Entry removed", leaveAdded: "Leave added", leaveRemoved: "Leave removed", annualVacation: "Annual vacation", sickLeave: "Sick leave", unpaidLeave: "Unpaid leave", partialLeave: "Partial leave", leaveDate: "Date", leaveHours: "Hours", assignedHours: "Assigned hours", salaryTab: "Salary", capacityTab: "Capacity", tripsTab: "Trips", leaveOption: "Leave", partialOption: "Partial", remark: "Remark", remarkHint: "Optional note", leaveUsed: "Leave used", country: "Country", city: "City", travelStart: "Travel start date", travelEnd: "Travel end date", workStart: "Trip work start date", workEnd: "Trip work end date", travel: "Travel", tripWork: "Trip work", tickets: "Tickets cost", visa: "Visa cost", perDiem: "Per diem cost", tripTotal: "Total cost", addTrip: "Add trip", searchTasks: "Search tasks", allProjects: "All projects", leaveAbsence: "Leave", allocated: "allocated", setCapacity: "Set capacity", editCapacity: "Edit capacity", editSalary: "Edit salary", salaryPlanApplied: "Salary plan applied", capacityPlanApplied: "Capacity plan applied", noTasks: "No tasks match these filters" },
+ ar: { employees: "الموظفون", overview: "نظرة عامة", allocation: "المشاريع والتخصيص", tasks: "المهام المسندة", salary: "الراتب والسعة", leave: "الإجازات والرحلات", type: "نوع التوظيف", capacity: "السعة الشهرية", utilization: "الاستغلال", monthly: "الراتب الشهري", projects: "المشاريع المسندة", vacation: "رصيد الإجازات", demo: "بيانات تجريبية", details: "بيانات الموظف", email: "البريد الإلكتروني", role: "الدور", department: "القسم", joined: "تاريخ الانضمام", id: "رقم الموظف", year: "السنة", month: "الشهر", project: "المشروع", period: "الفترة", hours: "الساعات الشهرية", cost: "الراتب المحمل", overhead: "غير مخصص / مصاريف عامة", total: "إجمالي الراتب", projectCost: "تكاليف المشاريع", empty: "لا توجد سجلات", entitlement: "الاستحقاق السنوي", used: "الإجازات المستخدمة", pending: "الإجازات المعلقة", balance: "الأيام المتبقية", from: "من", until: "إلى", days: "الأيام", status: "الحالة", leaveType: "نوع الإجازة", task: "المهمة", date: "فترة التخصيص", missing: "الموظف غير موجود", budget: "تكلفة المشاريع الشهرية", profile: "الملف الشخصي", charges: "توزيع الراتب على المشاريع", setPlan: "إعداد الخطة", editMonth: "تعديل الشهر", startMonth: "شهر البداية", planMonths: "عدد الشهور", salaryValue: "الراتب (دولار)", capacityValue: "السعة (ساعات)", apply: "تطبيق", cancel: "إلغاء", save: "حفظ", trips: "رحلات العمل والتدريب", addEntry: "إضافة", kind: "النوع", title: "العنوان", businessTrip: "رحلة عمل", training: "تدريب", planned: "مخطط", completed: "مكتمل", overUtil: "تحميل زائد", overUtilDesc: "الساعات المسندة تتجاوز السعة المتاحة في", available: "المتاح", absence: "أيام الغياب", monthlyUtil: "الاستغلال الشهري حسب المشروع", totalUtil: "الإجمالي", leaveRecords: "سجل الإجازات", monthSummary: "ملخص الشهر", baseSalary: "الراتب الأساسي", baseCapacity: "السعة الأساسية", assigned: "المسند", salarySplit: "توزيع الراتب", planApplied: "تم تطبيق الخطة الشهرية", monthUpdated: "تم تحديث الشهر", tripAdded: "تمت الإضافة", tripRemoved: "تم الحذف", leaveAdded: "تمت إضافة الإجازة", leaveRemoved: "تم حذف الإجازة", annualVacation: "إجازة سنوية", sickLeave: "إجازة مرضية", unpaidLeave: "إجازة بدون أجر", partialLeave: "إذن (إجازة جزئية)", leaveDate: "التاريخ", leaveHours: "الساعات", assignedHours: "الساعات المسندة", salaryTab: "الراتب", capacityTab: "السعة", tripsTab: "الرحلات", leaveOption: "إجازة", partialOption: "إذن (جزئي)", remark: "ملاحظة", remarkHint: "ملاحظة اختيارية", leaveUsed: "الإجازات المستخدمة", country: "الدولة", city: "المدينة", travelStart: "تاريخ بداية السفر", travelEnd: "تاريخ نهاية السفر", workStart: "تاريخ بداية العمل في الرحلة", workEnd: "تاريخ نهاية العمل في الرحلة", travel: "السفر", tripWork: "العمل في الرحلة", tickets: "تكلفة التذاكر", visa: "تكلفة التأشيرة", perDiem: "تكلفة البدل اليومي", tripTotal: "إجمالي التكلفة", addTrip: "إضافة رحلة", searchTasks: "ابحث في المهام", allProjects: "كل المشاريع", leaveAbsence: "إجازة", allocated: "مخصص", setCapacity: "إعداد السعة", editCapacity: "تعديل السعة", editSalary: "تعديل الراتب", salaryPlanApplied: "تم تطبيق خطة الراتب", capacityPlanApplied: "تم تطبيق خطة السعة", noTasks: "لا توجد مهام تطابق الفلاتر" },
 };
 const t = T.en;
 const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(n);
@@ -42,7 +44,8 @@ function EmployeeDetails() {
  const { employeeId } = Route.useParams(); const { employees, employmentTypes, setMonthlyPlan, setMonthOverride, addTrip, removeTrip, addLeave, removeLeave } = useEmployees(); const { projects } = useProjects(); const { resourceRequests } = useResourceRequests();
  const employee = employees.find((e) => e.id === employeeId);
  const [tab, setTab] = useState("overview"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
- const [planOpen, setPlanOpen] = useState(false); const [editMonth, setEditMonth] = useState<string | null>(null); const [tripOpen, setTripOpen] = useState(false); const [leaveOpen, setLeaveOpen] = useState(false);
+ const [planField, setPlanField] = useState<PlanField | null>(null); const [editMonth, setEditMonth] = useState<{ month: string; field: PlanField } | null>(null); const [tripOpen, setTripOpen] = useState(false); const [leaveOpen, setLeaveOpen] = useState(false);
+ const [taskQuery, setTaskQuery] = useState(""); const [taskProject, setTaskProject] = useState<string>(t.allProjects);
  // Recharts generates different clip IDs on server vs client — render the donut only after mount.
  const [mounted, setMounted] = useState(false);
  useEffect(() => setMounted(true), []);
@@ -62,6 +65,8 @@ function EmployeeDetails() {
  });
  const tasks = [...scheduleTasks, ...assignmentTasks, ...requestTasks]; employee.tasks.forEach((task) => { if (!tasks.some((v) => v.task === task)) tasks.push({ task, project: "—", period: "—" }); });
  const uniqueTasks = tasks.filter((v, i) => tasks.findIndex((a) => a.task === v.task && a.project === v.project) === i);
+ const taskProjects = Array.from(new Set(uniqueTasks.map((v) => v.project).filter((v) => v !== "—"))).sort();
+ const visibleTasks = uniqueTasks.filter((v) => (taskProject === t.allProjects || v.project === taskProject) && v.task.toLowerCase().includes(taskQuery.trim().toLowerCase()));
  const profile = [[t.id, employee.id], [t.email, employee.email], [t.role, employee.role], [t.department, employee.dept], [t.type, employmentTypes.find((v) => v.id === employee.employmentTypeId)?.name ?? "—"], [t.joined, formatDateWithYear(employee.joinedOn)]];
  return <div className="min-w-0 space-y-8">
   <div className="space-y-5">
@@ -91,7 +96,7 @@ function EmployeeDetails() {
   )}
   <Tabs value={tab} onValueChange={setTab} className="min-w-0 space-y-7">
    <div className="grid min-w-0 grid-cols-1 items-end gap-4 xl:grid-cols-[minmax(0,1fr)_auto]">
-    <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible"><TabsTrigger value="overview" className="shrink-0 px-0">{t.overview}</TabsTrigger><TabsTrigger value="allocation" className="shrink-0 px-0">{t.allocation}</TabsTrigger><TabsTrigger value="tasks" className="shrink-0 px-0">{t.tasks}</TabsTrigger><TabsTrigger value="salary" className="shrink-0 px-0">{t.salary}</TabsTrigger><TabsTrigger value="leave" className="shrink-0 px-0">{t.leave}</TabsTrigger></TabsList>
+    <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible">{([["overview", t.overview], ["allocation", t.allocation], ["tasks", t.tasks], ["salary", t.salaryTab], ["capacity", t.capacityTab], ["trips", t.tripsTab]] as const).map(([value, label]) => <TabsTrigger key={value} value={value} className="shrink-0 px-0">{label}</TabsTrigger>)}</TabsList>
     <div className="flex shrink-0 items-center gap-3 xl:pb-1"><span className="text-xs text-muted-foreground">{t.year}</span><Select value={year} onValueChange={(v) => { setYear(v); setSelectedMonth(`${v}-${selectedMonth.slice(5)}`); }}><SelectTrigger aria-label={t.year} className="w-28"><SelectValue /></SelectTrigger><SelectContent>{years.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select></div>
    </div>
    <TabsContent value="overview" className="mt-0 grid min-w-0 gap-8 xl:grid-cols-[280px_minmax(0,1fr)]">
@@ -127,65 +132,84 @@ function EmployeeDetails() {
     </section>
     <section className="min-w-0">
      <h2 className="mb-5 text-base font-semibold">{t.monthlyUtil}</h2>
-     <DataTable
-      headers={[t.month, t.projects, t.assignedHours, t.utilization]}
-      rows={months.map((m) => { const v = employeeMonth(employee, m); return [
-       <span className={m === selectedMonth ? "font-medium text-accent" : undefined}>{monthLabel(m)}</span>,
-       v.allocations.length ? <span className="text-muted-foreground">{v.allocations.map((a) => `${a.project} · ${a.percent}%`).join(" · ")}</span> : <span className="text-muted-foreground">—</span>,
-       <span className="num-mono">{v.allocatedHours.toFixed(1)}h / {v.availableCapacity}h{v.absentDays > 0 ? <span className="block text-xs text-muted-foreground">{v.absentDays}d {t.absence.toLowerCase()}</span> : null}</span>,
-       <span className={`num-mono font-medium ${v.effectiveUtilization > 100 ? "text-rag-red" : "text-foreground"}`}>{v.effectiveUtilization}%</span>,
-      ]; })}
-      onRowClick={(i) => setSelectedMonth(months[i])}
-     />
+     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+      {months.map((m) => <MonthCard key={m} month={m} values={employeeMonth(employee, m)} selected={m === selectedMonth} colorIndexOf={(project) => Math.max(0, employee.allocations.findIndex((a) => a.project === project))} onSelect={() => setSelectedMonth(m)} />)}
+     </ul>
     </section>
    </TabsContent>
-   <TabsContent value="tasks" className="mt-0"><DataTable headers={[t.task, t.project, t.date]} rows={uniqueTasks.map((v) => [v.task, projectLink(v.project), v.period])} /></TabsContent>
+   <TabsContent value="tasks" className="mt-0 space-y-5">
+    <div className="flex flex-wrap items-center gap-3">
+     <div className="relative w-full max-w-xs"><Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input aria-label={t.searchTasks} placeholder={t.searchTasks} value={taskQuery} onChange={(e) => setTaskQuery(e.target.value)} className="ps-9" /></div>
+     <Select value={taskProject} onValueChange={setTaskProject}><SelectTrigger aria-label={t.project} className="w-56"><SelectValue /></SelectTrigger><SelectContent><SelectItem value={t.allProjects}>{t.allProjects}</SelectItem>{taskProjects.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent></Select>
+     <span className="text-xs text-muted-foreground">{visibleTasks.length} / {uniqueTasks.length}</span>
+    </div>
+    {visibleTasks.length || !uniqueTasks.length
+     ? <DataTable headers={[t.task, t.project, t.date]} rows={visibleTasks.map((v) => [v.task, projectLink(v.project), v.period])} />
+     : <p className="rounded-lg border border-border py-8 text-center text-sm text-muted-foreground">{t.noTasks}</p>}
+   </TabsContent>
    <TabsContent value="salary" className="mt-0 space-y-6">
-    <div className="flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">{t.year} {year}</span><Button size="sm" variant="primary" onClick={() => setPlanOpen(true)}><Plus className="mr-1 h-4 w-4" />{t.setPlan}</Button></div>
+    <div className="flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">{t.year} {year}</span><Button size="sm" variant="primary" onClick={() => setPlanField("salary")}><Plus className="mr-1 h-4 w-4" />{t.setPlan}</Button></div>
     <DataTable
-     headers={[t.month, t.total, t.capacity, t.projectCost, t.overhead, ""]}
+     headers={[t.month, t.monthly, t.projectCost, t.overhead, ""]}
      onRowClick={(i) => { const m = months[i]; setSelectedMonth(m); setSalaryMonth(m); }}
      rows={months.map((m) => { const values = employeeMonth(employee, m); return [
       <span className={m === selectedMonth ? "font-medium text-accent" : undefined}>{monthLabel(m)}</span>,
       money(values.salary),
-      <span className="num-mono">{values.capacity}h{values.absentDays > 0 ? <span className="block text-xs text-muted-foreground">{values.availableCapacity}h {t.available.toLowerCase()} · {values.absentDays}d {t.absence.toLowerCase()}</span> : null}</span>,
       money(values.projectCost),
       money(values.overhead),
-      <Button size="icon" variant="secondary" data-ds-size="auto" aria-label={t.editMonth} title={t.editMonth} className="h-9 w-9 rounded-full border border-border/60 text-accent" onClick={(e) => { e.stopPropagation(); setEditMonth(m); }}><Pencil className="h-4 w-4" /></Button>,
+      <EditMonthButton label={t.editSalary} onClick={() => setEditMonth({ month: m, field: "salary" })} />,
      ]; })}
     />
    </TabsContent>
-   <TabsContent value="leave" className="mt-0 space-y-8">
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4"><KpiCard label={t.entitlement} value={`${vacation.entitlement}d`} /><KpiCard label={t.used} value={`${vacation.used}d`} /><KpiCard label={t.pending} value={`${vacation.pending}d`} accent="amber" /><KpiCard label={t.balance} value={`${vacation.remaining}d`} accent="teal" /></div>
+   <TabsContent value="capacity" className="mt-0 space-y-8">
+    <div className="grid grid-cols-3 gap-3"><KpiCard label={t.entitlement} value={`${vacation.entitlement}d`} /><KpiCard label={t.leaveUsed} value={`${vacation.used}d`} /><KpiCard label={t.balance} value={`${vacation.remaining}d`} accent="teal" /></div>
+    <section className="min-w-0 space-y-5">
+     <div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.capacityTab} · {year}</h2><Button size="sm" variant="primary" onClick={() => setPlanField("capacity")}><Plus className="mr-1 h-4 w-4" />{t.setCapacity}</Button></div>
+     <DataTable
+      headers={[t.month, t.capacity, t.absence, t.available, t.assignedHours, t.utilization, ""]}
+      onRowClick={(i) => setSelectedMonth(months[i])}
+      rows={months.map((m) => { const v = employeeMonth(employee, m); return [
+       <span className={m === selectedMonth ? "font-medium text-accent" : undefined}>{monthLabel(m)}</span>,
+       <span className="num-mono">{v.capacity}h</span>,
+       <span className="num-mono text-muted-foreground">{v.absentDays > 0 ? `${v.absentDays}d` : "—"}</span>,
+       <span className="num-mono">{v.availableCapacity}h</span>,
+       <span className="num-mono">{v.allocatedHours.toFixed(1)}h</span>,
+       <span className={`num-mono font-medium ${v.effectiveUtilization > 100 ? "text-rag-red" : "text-foreground"}`}>{v.effectiveUtilization}%</span>,
+       <EditMonthButton label={t.editCapacity} onClick={() => setEditMonth({ month: m, field: "capacity" })} />,
+      ]; })}
+     />
+    </section>
     <section className="min-w-0">
      <div className="mb-5 flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.leaveRecords}</h2><Button size="sm" variant="outline" onClick={() => setLeaveOpen(true)}><Plus className="mr-1 h-4 w-4" />{t.addEntry}</Button></div>
      <DataTable
-      headers={[t.leaveType, t.from, t.until, t.days, t.status, ""]}
+      headers={[t.leaveType, t.from, t.until, t.days, t.remark, ""]}
       rows={employee.leave.filter((l) => l.from.startsWith(year)).map((l) => [
-       l.type,
+       l.hours != null ? t.partialOption : t.leaveOption,
        formatDateWithYear(l.from),
        formatDateWithYear(l.until),
        l.hours != null ? `${l.hours}h` : l.days,
-       <Badge variant="outline" className={l.status === "Approved" ? "text-rag-green" : l.status === "Rejected" ? "text-rag-red" : "text-rag-amber"}>{l.status}</Badge>,
+       <span className="text-muted-foreground">{l.remark || "—"}</span>,
        <Button size="icon" variant="dangerOutline" data-ds-size="auto" aria-label={t.leaveRemoved} title={t.leaveRemoved} className="h-9 w-9 rounded-full" onClick={() => { removeLeave(employee.id, l.id); toast.success(t.leaveRemoved); }}><Trash2 className="h-4 w-4" /></Button>,
       ])}
      />
     </section>
-    <section className="min-w-0">
-     <div className="mb-5 flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.trips}</h2><Button size="sm" variant="outline" onClick={() => setTripOpen(true)}><Plus className="mr-1 h-4 w-4" />{t.addEntry}</Button></div>
-     <DataTable
-      headers={[t.kind, t.title, t.from, t.until, t.days, t.status, ""]}
-      rows={employee.trips.map((trip) => [
-       <Badge variant="outline" className={trip.kind === "Business trip" ? "text-rag-blue" : "text-accent-secondary"}>{trip.kind === "Business trip" ? t.businessTrip : t.training}</Badge>,
-       trip.title,
-       formatDateWithYear(trip.from),
-       formatDateWithYear(trip.until),
-       trip.days,
-       <Badge variant="outline" className={trip.status === "Completed" ? "text-rag-green" : "text-rag-amber"}>{trip.status === "Completed" ? t.completed : t.planned}</Badge>,
-       <Button size="icon" variant="dangerOutline" data-ds-size="auto" aria-label={t.tripRemoved} title={t.tripRemoved} className="h-9 w-9 rounded-full" onClick={() => { removeTrip(employee.id, trip.id); toast.success(t.tripRemoved); }}><Trash2 className="h-4 w-4" /></Button>,
-      ])}
-     />
-    </section>
+   </TabsContent>
+   <TabsContent value="trips" className="mt-0 space-y-5">
+    <div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.tripsTab}</h2><Button size="sm" variant="outline" onClick={() => setTripOpen(true)}><Plus className="mr-1 h-4 w-4" />{t.addTrip}</Button></div>
+    <DataTable
+     headers={[t.country, t.city, t.travel, t.tripWork, t.tickets, t.visa, t.perDiem, t.tripTotal, ""]}
+     rows={employee.trips.filter((trip) => trip.from.startsWith(year) || trip.until.startsWith(year)).map((trip) => [
+      trip.country,
+      trip.city,
+      <span className="whitespace-nowrap">{formatDateWithYear(trip.from)} → {formatDateWithYear(trip.until)}</span>,
+      <span className="whitespace-nowrap">{formatDateWithYear(trip.workFrom)} → {formatDateWithYear(trip.workUntil)}</span>,
+      <span className="num-mono">{dollars(trip.ticketsCost)}</span>,
+      <span className="num-mono">{dollars(trip.visaCost)}</span>,
+      <span className="num-mono">{dollars(trip.perDiemCost)}</span>,
+      <span className="num-mono font-medium">{dollars(trip.ticketsCost + trip.visaCost + trip.perDiemCost)}</span>,
+      <Button size="icon" variant="dangerOutline" data-ds-size="auto" aria-label={t.tripRemoved} title={t.tripRemoved} className="h-9 w-9 rounded-full" onClick={() => { removeTrip(employee.id, trip.id); toast.success(t.tripRemoved); }}><Trash2 className="h-4 w-4" /></Button>,
+     ])}
+    />
    </TabsContent>
   </Tabs>
   <Dialog open={!!salaryMonth} onOpenChange={(open) => { if (!open) setSalaryMonth(null); }}>
@@ -194,32 +218,64 @@ function EmployeeDetails() {
     <DataTable headers={[t.project, t.allocation, t.cost]} rows={[...monthly.charges.map((a) => [projectLink(a.project), `${a.percent}%`, money(a.amount)]), [t.overhead, "—", money(monthly.overhead)], [t.total, "—", money(monthly.salary)]]} />
    </DialogContent>
   </Dialog>
-  <MonthlyPlanDialog employee={employee} open={planOpen} onClose={() => setPlanOpen(false)} defaultStart={selectedMonth} onApply={(start, count, salary, capacity) => { setMonthlyPlan(employee.id, start, count, { salary, capacity }); setPlanOpen(false); toast.success(t.planApplied, { description: `${monthLabel(start)} · ${count} ${count === 1 ? "month" : "months"}` }); }} />
-  <MonthEditDialog employee={employee} month={editMonth} onClose={() => setEditMonth(null)} onSave={(m, salary, capacity) => { setMonthOverride(employee.id, m, { salary, capacity }); setEditMonth(null); toast.success(t.monthUpdated, { description: monthLabel(m) }); }} />
-  <TripDialog open={tripOpen} onClose={() => setTripOpen(false)} onAdd={(trip) => { addTrip(employee.id, trip); setTripOpen(false); toast.success(t.tripAdded, { description: trip.title }); }} />
-  <LeaveDialog open={leaveOpen} onClose={() => setLeaveOpen(false)} onAdd={(leave) => { addLeave(employee.id, leave); setLeaveOpen(false); toast.success(t.leaveAdded, { description: leave.type }); }} />
+  <MonthlyPlanDialog employee={employee} field={planField} onClose={() => setPlanField(null)} defaultStart={selectedMonth} onApply={(field, start, count, value) => { setMonthlyPlan(employee.id, start, count, { [field]: value }); setPlanField(null); toast.success(field === "salary" ? t.salaryPlanApplied : t.capacityPlanApplied, { description: `${monthLabel(start)} · ${count} ${count === 1 ? "month" : "months"}` }); }} />
+  <MonthEditDialog employee={employee} edit={editMonth} onClose={() => setEditMonth(null)} onSave={(m, field, value) => { setMonthOverride(employee.id, m, { [field]: value }); setEditMonth(null); toast.success(t.monthUpdated, { description: monthLabel(m) }); }} />
+  <TripDialog open={tripOpen} onClose={() => setTripOpen(false)} onAdd={(trip) => { addTrip(employee.id, trip); setTripOpen(false); toast.success(t.tripAdded, { description: `${trip.city}, ${trip.country}` }); }} />
+  <LeaveDialog open={leaveOpen} onClose={() => setLeaveOpen(false)} onAdd={(leave) => { addLeave(employee.id, leave); setLeaveOpen(false); toast.success(t.leaveAdded, { description: leave.type === "Partial" ? t.partialOption : t.leaveOption }); }} />
  </div>;
 }
 
-/** Bulk plan: apply one salary/capacity to a run of months (e.g. 9000 for the next 12 months). */
-function MonthlyPlanDialog({ employee, open, onClose, defaultStart, onApply }: { employee: Employee; open: boolean; onClose: () => void; defaultStart: string; onApply: (start: string, months: number, salary: number, capacity: number) => void }) {
- const [start, setStart] = useState(defaultStart); const [count, setCount] = useState("12"); const [salary, setSalary] = useState(""); const [capacity, setCapacity] = useState("");
- const [errors, setErrors] = useState<{ start?: string; salary?: string; capacity?: string }>({});
- useEffect(() => { if (open) { setStart(defaultStart); setCount("12"); setSalary(String(employee.salary || "")); setCapacity(String(employee.capacity || "")); setErrors({}); } }, [open, defaultStart, employee.salary, employee.capacity]);
+type PlanField = "salary" | "capacity";
+type MonthValues = ReturnType<typeof employeeMonth>;
+
+function EditMonthButton({ label, onClick }: { label: string; onClick: () => void }) {
+ return <Button size="icon" variant="secondary" data-ds-size="auto" aria-label={label} title={label} className="h-9 w-9 rounded-full border border-border/60 text-accent" onClick={(e) => { e.stopPropagation(); onClick(); }}><Pencil className="h-4 w-4" /></Button>;
+}
+
+/** One month of the year: utilization, assigned vs available hours, leave, and the projects behind it. */
+function MonthCard({ month, values: v, selected, colorIndexOf, onSelect }: { month: string; values: MonthValues; selected: boolean; colorIndexOf: (project: string) => number; onSelect: () => void }) {
+ const over = v.effectiveUtilization > 100;
+ return <li>
+  <button type="button" onClick={onSelect} aria-pressed={selected} className={`flex h-full w-full flex-col gap-3 rounded-xl border bg-card p-4 text-start transition-colors hover:border-accent/50 ${selected ? "border-accent" : over ? "border-rag-red/40" : "border-border"}`}>
+   <div className="flex items-baseline justify-between gap-2">
+    <span className={`text-sm font-semibold ${selected ? "text-accent" : "text-foreground"}`}>{new Date(`${month}-01T12:00:00`).toLocaleDateString("en-US", { month: "long" })}</span>
+    <span className={`num-mono text-lg font-semibold ${over ? "text-rag-red" : "text-foreground"}`}>{v.effectiveUtilization}%</span>
+   </div>
+   <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-muted/40" aria-hidden="true">
+    {v.allocations.map((a) => <div key={a.id} className={utilColors[colorIndexOf(a.project) % utilColors.length]} style={{ width: `${Math.min(100, a.percent / Math.max(100, v.utilization) * 100)}%` }} />)}
+   </div>
+   <div className="flex items-center justify-between text-xs text-muted-foreground">
+    <span className="num-mono">{v.allocatedHours.toFixed(1)}h / {v.availableCapacity}h</span>
+    {v.absentDays > 0 && <span>{v.absentDays}d {t.absence.toLowerCase()}</span>}
+   </div>
+   <ul className="space-y-1 border-t border-border/60 pt-3 text-xs">
+    {v.allocations.length ? v.allocations.map((a) => <li key={a.id} className="flex items-center justify-between gap-2"><span className="flex min-w-0 items-center gap-1.5"><span className={`h-1.5 w-1.5 shrink-0 rounded-full ${utilColors[colorIndexOf(a.project) % utilColors.length]}`} /><span className="truncate text-foreground">{a.project}</span></span><span className="num-mono shrink-0 text-muted-foreground">{a.percent}%</span></li>) : <li className="text-muted-foreground">—</li>}
+   </ul>
+  </button>
+ </li>;
+}
+
+/** Bulk plan: apply one salary or capacity value to a run of months (e.g. 9000 for the next 12 months). */
+function MonthlyPlanDialog({ employee, field, onClose, defaultStart, onApply }: { employee: Employee; field: PlanField | null; onClose: () => void; defaultStart: string; onApply: (field: PlanField, start: string, months: number, value: number) => void }) {
+ const [start, setStart] = useState(defaultStart); const [count, setCount] = useState("12"); const [value, setValue] = useState("");
+ const [errors, setErrors] = useState<{ start?: string; value?: string }>({});
+ const isSalary = field === "salary";
+ useEffect(() => { if (field) { setStart(defaultStart); setCount("12"); setValue(String((field === "salary" ? employee.salary : employee.capacity) || "")); setErrors({}); } }, [field, defaultStart, employee.salary, employee.capacity]);
  function submit() {
-  const next = { start: start ? undefined : "Start month is required.", salary: Number(salary) >= 0 && salary !== "" ? undefined : "Salary is required.", capacity: Number(capacity) > 0 ? undefined : "Capacity is required." };
+  if (!field) return;
+  const n = Number(value);
+  const next = { start: start ? undefined : "Start month is required.", value: value === "" ? (isSalary ? "Salary is required." : "Capacity is required.") : isSalary ? (n >= 0 ? undefined : "Salary can't be negative.") : (n > 0 ? undefined : "Capacity must be more than 0.") };
   setErrors(next);
   if (Object.values(next).some(Boolean)) return;
-  onApply(start, Math.max(1, Number(count) || 12), Number(salary), Number(capacity));
+  onApply(field, start, Math.max(1, Number(count) || 12), n);
  }
- return <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+ return <Dialog open={!!field} onOpenChange={(o) => { if (!o) onClose(); }}>
   <DialogContent className="max-w-md">
-   <DialogHeader><DialogTitle>{t.setPlan}</DialogTitle></DialogHeader>
+   <DialogHeader><DialogTitle>{isSalary ? t.setPlan : t.setCapacity}</DialogTitle></DialogHeader>
    <div className="grid grid-cols-2 gap-3">
     <Field label={t.startMonth} htmlFor="plan-start" required error={errors.start}><Input id="plan-start" type="month" value={start} onChange={(e) => { setStart(e.target.value); setErrors((p) => ({ ...p, start: undefined })); }} /></Field>
     <Field label={t.planMonths} htmlFor="plan-count"><Input id="plan-count" type="number" min={1} max={60} value={count} onChange={(e) => setCount(e.target.value)} /></Field>
-    <Field label={t.salaryValue} htmlFor="plan-salary" required error={errors.salary}><Input id="plan-salary" type="number" min={0} placeholder="e.g. 9000" value={salary} onChange={(e) => { setSalary(e.target.value); setErrors((p) => ({ ...p, salary: undefined })); }} /></Field>
-    <Field label={t.capacityValue} htmlFor="plan-capacity" required error={errors.capacity}><Input id="plan-capacity" type="number" min={1} placeholder="e.g. 160" value={capacity} onChange={(e) => { setCapacity(e.target.value); setErrors((p) => ({ ...p, capacity: undefined })); }} /></Field>
+    <div className="col-span-2"><Field label={isSalary ? t.salaryValue : t.capacityValue} htmlFor="plan-value" required error={errors.value}><Input id="plan-value" type="number" min={isSalary ? 0 : 1} placeholder={isSalary ? "e.g. 9000" : "e.g. 160"} value={value} onChange={(e) => { setValue(e.target.value); setErrors((p) => ({ ...p, value: undefined })); }} /></Field></div>
    </div>
    {start && <p className="text-xs text-muted-foreground">{monthLabel(start)} → {monthLabel(monthRange(start, Math.max(1, Number(count) || 12)).slice(-1)[0])}</p>}
    <DialogFooter><Button variant="outline" onClick={onClose}>{t.cancel}</Button><Button variant="primary" onClick={submit}>{t.apply}</Button></DialogFooter>
@@ -227,77 +283,84 @@ function MonthlyPlanDialog({ employee, open, onClose, defaultStart, onApply }: {
  </Dialog>;
 }
 
-/** Single-month override, e.g. a raise in one or two months. */
-function MonthEditDialog({ employee, month, onClose, onSave }: { employee: Employee; month: string | null; onClose: () => void; onSave: (month: string, salary: number, capacity: number) => void }) {
- const values = month ? employeeMonth(employee, month) : null;
- const [salary, setSalary] = useState(""); const [capacity, setCapacity] = useState("");
- useEffect(() => { if (month && values) { setSalary(String(values.salary)); setCapacity(String(values.capacity)); } }, [month]);
- return <Dialog open={!!month} onOpenChange={(o) => { if (!o) onClose(); }}>
+/** Single-month override of salary or capacity, e.g. a raise in one or two months. */
+function MonthEditDialog({ employee, edit, onClose, onSave }: { employee: Employee; edit: { month: string; field: PlanField } | null; onClose: () => void; onSave: (month: string, field: PlanField, value: number) => void }) {
+ const [value, setValue] = useState("");
+ useEffect(() => { if (edit) { const v = employeeMonth(employee, edit.month); setValue(String(edit.field === "salary" ? v.salary : v.capacity)); } }, [edit]);
+ const isSalary = edit?.field === "salary";
+ return <Dialog open={!!edit} onOpenChange={(o) => { if (!o) onClose(); }}>
   <DialogContent className="max-w-sm">
-   <DialogHeader><DialogTitle>{t.editMonth} · {month ? monthLabel(month) : ""}</DialogTitle></DialogHeader>
-   <div className="grid gap-3">
-    <Field label={t.salaryValue} htmlFor="month-salary" required><Input id="month-salary" type="number" min={0} value={salary} onChange={(e) => setSalary(e.target.value)} /></Field>
-    <Field label={t.capacityValue} htmlFor="month-capacity" required><Input id="month-capacity" type="number" min={1} value={capacity} onChange={(e) => setCapacity(e.target.value)} /></Field>
-   </div>
-   <DialogFooter><Button variant="outline" onClick={onClose}>{t.cancel}</Button><Button variant="primary" onClick={() => month && onSave(month, Number(salary) || 0, Number(capacity) || employee.capacity)}>{t.save}</Button></DialogFooter>
+   <DialogHeader><DialogTitle>{isSalary ? t.editSalary : t.editCapacity} · {edit ? monthLabel(edit.month) : ""}</DialogTitle></DialogHeader>
+   <Field label={isSalary ? t.salaryValue : t.capacityValue} htmlFor="month-value" required><Input id="month-value" type="number" min={isSalary ? 0 : 1} value={value} onChange={(e) => setValue(e.target.value)} /></Field>
+   <DialogFooter><Button variant="outline" onClick={onClose}>{t.cancel}</Button><Button variant="primary" onClick={() => edit && onSave(edit.month, edit.field, isSalary ? Number(value) || 0 : Number(value) || employee.capacity)}>{t.save}</Button></DialogFooter>
   </DialogContent>
  </Dialog>;
 }
 
+type TripErrors = Partial<Record<"country" | "city" | "from" | "until" | "workFrom" | "workUntil", string>>;
+
 function TripDialog({ open, onClose, onAdd }: { open: boolean; onClose: () => void; onAdd: (trip: Omit<EmployeeTrip, "id">) => void }) {
- const [kind, setKind] = useState<EmployeeTrip["kind"]>("Business trip"); const [title, setTitle] = useState(""); const [from, setFrom] = useState(""); const [until, setUntil] = useState("");
- const [errors, setErrors] = useState<{ title?: string; from?: string; until?: string }>({});
+ const empty = { country: "", city: "", from: "", until: "", workFrom: "", workUntil: "", ticketsCost: "", visaCost: "", perDiemCost: "" };
+ const [form, setForm] = useState(empty);
+ const [errors, setErrors] = useState<TripErrors>({});
+ useEffect(() => { if (open) { setForm(empty); setErrors({}); } }, [open]);
+ const set = (k: keyof typeof empty, v: string) => { setForm((f) => ({ ...f, [k]: v })); setErrors((e) => ({ ...e, [k]: undefined })); };
  function submit() {
-  const next = { title: title.trim() ? undefined : "Title is required.", from: from ? undefined : "Start date is required.", until: !until ? "End date is required." : from && until < from ? "End date must be on or after start date." : undefined };
+  const f = form;
+  const next: TripErrors = {
+   country: f.country.trim() ? undefined : "Country is required.",
+   city: f.city.trim() ? undefined : "City is required.",
+   from: f.from ? undefined : "Travel start date is required.",
+   until: !f.until ? "Travel end date is required." : f.from && f.until < f.from ? "Must be on or after the travel start date." : undefined,
+   workFrom: !f.workFrom ? "Work start date is required." : f.from && f.workFrom < f.from ? "Must be within the travel dates." : undefined,
+   workUntil: !f.workUntil ? "Work end date is required." : f.workFrom && f.workUntil < f.workFrom ? "Must be on or after the work start date." : f.until && f.workUntil > f.until ? "Must be within the travel dates." : undefined,
+  };
   setErrors(next);
   if (Object.values(next).some(Boolean)) return;
-  onAdd({ kind, title: title.trim(), from, until, days: daysBetween(from, until), status: "Planned" });
-  setKind("Business trip"); setTitle(""); setFrom(""); setUntil(""); setErrors({});
+  onAdd({ country: f.country.trim(), city: f.city.trim(), from: f.from, until: f.until, workFrom: f.workFrom, workUntil: f.workUntil, days: daysBetween(f.from, f.until), ticketsCost: Number(f.ticketsCost) || 0, visaCost: Number(f.visaCost) || 0, perDiemCost: Number(f.perDiemCost) || 0 });
  }
+ const date = (k: "from" | "until" | "workFrom" | "workUntil", label: string) => <Field label={label} htmlFor={`trip-${k}`} required error={errors[k]}><Input id={`trip-${k}`} type="date" value={form[k]} onChange={(e) => set(k, e.target.value)} /></Field>;
+ const cost = (k: "ticketsCost" | "visaCost" | "perDiemCost", label: string) => <Field label={`${label} (USD)`} htmlFor={`trip-${k}`}><Input id={`trip-${k}`} type="number" min={0} placeholder="0" value={form[k]} onChange={(e) => set(k, e.target.value)} /></Field>;
  return <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-  <DialogContent className="max-w-md">
-   <DialogHeader><DialogTitle>{t.addEntry} · {t.trips}</DialogTitle></DialogHeader>
-   <div className="grid gap-3">
-    <Field label={t.kind} htmlFor="trip-kind" required><Select value={kind} onValueChange={(v) => setKind(v as EmployeeTrip["kind"])}><SelectTrigger id="trip-kind"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Business trip">{t.businessTrip}</SelectItem><SelectItem value="Training">{t.training}</SelectItem></SelectContent></Select></Field>
-    <Field label={t.title} htmlFor="trip-title" required error={errors.title}><Input id="trip-title" placeholder="e.g. Client site visit" value={title} onChange={(e) => { setTitle(e.target.value); setErrors((p) => ({ ...p, title: undefined })); }} /></Field>
-    <div className="grid grid-cols-2 gap-2">
-     <Field label={t.from} htmlFor="trip-from" required error={errors.from}><Input id="trip-from" type="date" value={from} onChange={(e) => { setFrom(e.target.value); setErrors((p) => ({ ...p, from: undefined })); }} /></Field>
-     <Field label={t.until} htmlFor="trip-until" required error={errors.until}><Input id="trip-until" type="date" value={until} onChange={(e) => { setUntil(e.target.value); setErrors((p) => ({ ...p, until: undefined })); }} /></Field>
-    </div>
+  <DialogContent className="max-w-lg">
+   <DialogHeader><DialogTitle>{t.addTrip}</DialogTitle></DialogHeader>
+   <div className="grid grid-cols-2 gap-3">
+    <Field label={t.country} htmlFor="trip-country" required error={errors.country}><Input id="trip-country" placeholder="e.g. Saudi Arabia" value={form.country} onChange={(e) => set("country", e.target.value)} /></Field>
+    <Field label={t.city} htmlFor="trip-city" required error={errors.city}><Input id="trip-city" placeholder="e.g. Riyadh" value={form.city} onChange={(e) => set("city", e.target.value)} /></Field>
+    {date("from", t.travelStart)}{date("until", t.travelEnd)}
+    {date("workFrom", t.workStart)}{date("workUntil", t.workEnd)}
    </div>
+   <div className="grid grid-cols-3 gap-3">{cost("ticketsCost", t.tickets)}{cost("visaCost", t.visa)}{cost("perDiemCost", t.perDiem)}</div>
    <DialogFooter><Button variant="outline" onClick={onClose}>{t.cancel}</Button><Button variant="primary" onClick={submit}>{t.save}</Button></DialogFooter>
   </DialogContent>
  </Dialog>;
 }
 
 function LeaveDialog({ open, onClose, onAdd }: { open: boolean; onClose: () => void; onAdd: (leave: Omit<EmployeeLeave, "id">) => void }) {
- const [type, setType] = useState<EmployeeLeave["type"]>("Annual vacation"); const [status, setStatus] = useState<EmployeeLeave["status"]>("Approved"); const [from, setFrom] = useState(""); const [until, setUntil] = useState(""); const [hours, setHours] = useState("4");
+ const [type, setType] = useState<EmployeeLeave["type"]>("Leave"); const [from, setFrom] = useState(""); const [until, setUntil] = useState(""); const [hours, setHours] = useState("4"); const [remark, setRemark] = useState("");
  const [errors, setErrors] = useState<{ from?: string; until?: string; hours?: string }>({});
- const partial = type === "Partial leave";
+ useEffect(() => { if (open) { setType("Leave"); setFrom(""); setUntil(""); setHours("4"); setRemark(""); setErrors({}); } }, [open]);
+ const partial = type === "Partial";
  function submit() {
+  const note = remark.trim() || undefined;
   if (partial) {
    const h = Number(hours);
    const next = { from: from ? undefined : "Date is required.", hours: h > 0 && h < 8 ? undefined : "Hours must be between 1 and 7." };
    setErrors(next);
    if (Object.values(next).some(Boolean)) return;
-   onAdd({ type, from, until: from, days: Math.round(h / 8 * 100) / 100, hours: h, status });
-   setType("Annual vacation"); setStatus("Approved"); setFrom(""); setUntil(""); setHours("4"); setErrors({});
+   onAdd({ type, from, until: from, days: Math.round(h / 8 * 100) / 100, hours: h, remark: note });
    return;
   }
   const next = { from: from ? undefined : "Start date is required.", until: !until ? "End date is required." : from && until < from ? "End date must be on or after start date." : undefined };
   setErrors(next);
   if (Object.values(next).some(Boolean)) return;
-  onAdd({ type, from, until, days: daysBetween(from, until), status });
-  setType("Annual vacation"); setStatus("Approved"); setFrom(""); setUntil(""); setErrors({});
+  onAdd({ type, from, until, days: daysBetween(from, until), remark: note });
  }
  return <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
   <DialogContent className="max-w-md">
    <DialogHeader><DialogTitle>{t.addEntry} · {t.leaveRecords}</DialogTitle></DialogHeader>
    <div className="grid gap-3">
-    <div className="grid grid-cols-2 gap-2">
-     <Field label={t.leaveType} htmlFor="leave-type" required><Select value={type} onValueChange={(v) => setType(v as EmployeeLeave["type"])}><SelectTrigger id="leave-type"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Annual vacation">{t.annualVacation}</SelectItem><SelectItem value="Sick leave">{t.sickLeave}</SelectItem><SelectItem value="Unpaid leave">{t.unpaidLeave}</SelectItem><SelectItem value="Partial leave">{t.partialLeave}</SelectItem></SelectContent></Select></Field>
-     <Field label={t.status} htmlFor="leave-status" required><Select value={status} onValueChange={(v) => setStatus(v as EmployeeLeave["status"])}><SelectTrigger id="leave-status"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Approved">Approved</SelectItem><SelectItem value="Pending">Pending</SelectItem><SelectItem value="Rejected">Rejected</SelectItem></SelectContent></Select></Field>
-    </div>
+    <Field label={t.leaveType} htmlFor="leave-type" required><Select value={type} onValueChange={(v) => setType(v as EmployeeLeave["type"])}><SelectTrigger id="leave-type"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Leave">{t.leaveOption}</SelectItem><SelectItem value="Partial">{t.partialOption}</SelectItem></SelectContent></Select></Field>
     {partial ? <div className="grid grid-cols-2 gap-2">
      <Field label={t.leaveDate} htmlFor="leave-from" required error={errors.from}><Input id="leave-from" type="date" value={from} onChange={(e) => { setFrom(e.target.value); setErrors((p) => ({ ...p, from: undefined })); }} /></Field>
      <Field label={t.leaveHours} htmlFor="leave-hours" required error={errors.hours}><Select value={hours} onValueChange={(v) => { setHours(v); setErrors((p) => ({ ...p, hours: undefined })); }}><SelectTrigger id="leave-hours"><SelectValue /></SelectTrigger><SelectContent>{[1, 2, 3, 4, 5, 6, 7].map((h) => <SelectItem key={h} value={String(h)}>{h}h</SelectItem>)}</SelectContent></Select></Field>
@@ -305,6 +368,7 @@ function LeaveDialog({ open, onClose, onAdd }: { open: boolean; onClose: () => v
      <Field label={t.from} htmlFor="leave-from" required error={errors.from}><Input id="leave-from" type="date" value={from} onChange={(e) => { setFrom(e.target.value); setErrors((p) => ({ ...p, from: undefined })); }} /></Field>
      <Field label={t.until} htmlFor="leave-until" required error={errors.until}><Input id="leave-until" type="date" value={until} onChange={(e) => { setUntil(e.target.value); setErrors((p) => ({ ...p, until: undefined })); }} /></Field>
     </div>}
+    <Field label={t.remark} htmlFor="leave-remark"><Textarea id="leave-remark" rows={3} placeholder={t.remarkHint} value={remark} onChange={(e) => setRemark(e.target.value)} /></Field>
    </div>
    <DialogFooter><Button variant="outline" onClick={onClose}>{t.cancel}</Button><Button variant="primary" onClick={submit}>{t.save}</Button></DialogFooter>
   </DialogContent>

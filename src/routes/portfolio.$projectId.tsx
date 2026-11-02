@@ -1919,56 +1919,64 @@ function OverviewTab({
 
   return (
     <div className="space-y-4">
-      <div className="grid items-stretch gap-4 md:grid-cols-3">
-        <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Project Health</div>
-          <EmptyRegion id="project-overview-health" variant="card" force={isNew} className="min-h-[144px]">
-            <div className="flex items-start gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-full ${r.bg} ring-2 ${r.ring}`}>
-                <span className={`text-lg ${r.text}`}>✓</span>
+      <div className="grid items-stretch gap-4 lg:grid-cols-2">
+        {/* Left Column: Project Health */}
+        <div className="glass-card flex flex-col justify-between p-5">
+          <div>
+            <div className="label-eyebrow mb-4">Project Health</div>
+            <EmptyRegion id="project-overview-health" variant="card" force={isNew} className="min-h-[144px]">
+              <div className="flex items-start gap-3">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-full ${r.bg} ring-2 ${r.ring}`}>
+                  <span className={`text-lg ${r.text}`}>✓</span>
+                </div>
+                <div>
+                  <div className={`text-base font-medium ${r.text}`}>{r.label}</div>
+                  <div className="text-xs text-muted-foreground">Last updated: 2 hours ago</div>
+                </div>
               </div>
-              <div>
-                <div className={`text-base font-medium ${r.text}`}>{r.label}</div>
-                <div className="text-xs text-muted-foreground">Last updated: 2 hours ago</div>
-              </div>
-            </div>
 
-            <div className="mt-6 border-t border-border/50 pt-5">
-              <HealthDonutCard itemHealth={itemHealth} />
-            </div>
-          </EmptyRegion>
+              <div className="mt-6 border-t border-border/50 pt-5">
+                <HealthDonutCard itemHealth={itemHealth} />
+              </div>
+            </EmptyRegion>
+          </div>
         </div>
-        <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Budget Status</div>
-          <EmptyRegion id="project-overview-budget" variant="card" force={isNew} className="min-h-[72px]">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Spent</span>
-              <span className="num-mono font-medium text-foreground">{money(project.budgetUsed)} / {money(project.budgetTotal)}</span>
-            </div>
-            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-secondary/50">
-              <div className="h-full rounded-full bg-rag-green" style={{ width: `${spentPct}%` }} />
-            </div>
-            <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-              <span>Remaining: {money(remaining)}</span>
-              <span className="num-mono">{spentPct}% used</span>
-            </div>
-          </EmptyRegion>
-        </div>
-        <div className="glass-card p-5">
-          <div className="label-eyebrow mb-4">Next Milestones</div>
-          <EmptyRegion id="project-overview-milestones" variant="card" force={isNew} className="min-h-[88px]">
-            <ul className="space-y-3">
-              {milestones.map((m) => (
-                <li key={m.name} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className={`h-2 w-2 rounded-full ${m.rag === "green" ? "bg-rag-green" : "bg-rag-amber"}`} />
-                    <span className="text-sm font-medium text-foreground">{m.name}</span>
-                  </div>
-                  <span className="num-mono text-xs text-muted-foreground">{formatDateWithYear(m.date)}</span>
-                </li>
-              ))}
-            </ul>
-          </EmptyRegion>
+
+        {/* Right Column: Budget Status on top, Next Milestones below */}
+        <div className="flex flex-col gap-4">
+          <div className="glass-card flex-1 p-5">
+            <div className="label-eyebrow mb-4">Budget Status</div>
+            <EmptyRegion id="project-overview-budget" variant="card" force={isNew} className="min-h-[72px]">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Spent</span>
+                <span className="num-mono font-medium text-foreground">{money(project.budgetUsed)} / {money(project.budgetTotal)}</span>
+              </div>
+              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-secondary/50">
+                <div className="h-full rounded-full bg-rag-green" style={{ width: `${spentPct}%` }} />
+              </div>
+              <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+                <span>Remaining: {money(remaining)}</span>
+                <span className="num-mono">{spentPct}% used</span>
+              </div>
+            </EmptyRegion>
+          </div>
+
+          <div className="glass-card flex-1 p-5">
+            <div className="label-eyebrow mb-4">Next Milestones</div>
+            <EmptyRegion id="project-overview-milestones" variant="card" force={isNew} className="min-h-[88px]">
+              <ul className="space-y-3">
+                {milestones.map((m) => (
+                  <li key={m.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`h-2 w-2 rounded-full ${m.rag === "green" ? "bg-rag-green" : "bg-rag-amber"}`} />
+                      <span className="text-sm font-medium text-foreground">{m.name}</span>
+                    </div>
+                    <span className="num-mono text-xs text-muted-foreground">{formatDateWithYear(m.date)}</span>
+                  </li>
+                ))}
+              </ul>
+            </EmptyRegion>
+          </div>
         </div>
       </div>
       <div className="grid items-start gap-4 md:grid-cols-2">

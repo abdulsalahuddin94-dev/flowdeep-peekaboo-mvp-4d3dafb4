@@ -1,3 +1,9 @@
+## 2026-11-02 — Health Donut Layout: Clean Aligned Breakdown Table
+- Converted unstructured breakdown rows beside the Donut Chart into a clean tabular structure with dedicated aligned columns:
+  - Header: Status | Milestones | Tasks | Total
+  - Rows for On Track, At Risk, and Off-Track perfectly aligned vertically.
+  - Numbers styled with num-mono for crisp tabular alignment.
+
 ## 2026-11-02 — Health Donut Layout: Detailed Breakdown Beside Chart & Clean Hover
 - Fixed tooltip overlapping the center numbers (25 Items) by replacing the floating tooltip with permanent, clean breakdown counters right beside the chart.
 - Each row beside the chart now displays:

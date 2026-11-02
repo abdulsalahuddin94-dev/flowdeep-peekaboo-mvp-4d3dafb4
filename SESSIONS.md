@@ -1,3 +1,6 @@
+
+## 2026-11-02 — Partial leave
+- Added "Partial leave" type to Leave records: single date + hours (1–7h); reduces monthly available capacity by hours/8 day.
 ## 2026-11-02 — Salary & capacity: "Set monthly plan" renamed to "Set plan"
 - The employee profile's Salary & capacity tab button and its dialog title now read **Set plan** (Arabic: إعداد الخطة); the label comes from the shared `setPlan` translation key, so both places changed together.
 - Browser verified on /resources/employees/EMP-001: the tab button and the opened dialog heading both show "Set plan", no runtime errors.

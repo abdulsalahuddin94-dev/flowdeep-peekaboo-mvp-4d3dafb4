@@ -1,3 +1,6 @@
+## 2026-11-02 — Salary & capacity: "Set monthly plan" renamed to "Set plan"
+- The employee profile's Salary & capacity tab button and its dialog title now read **Set plan** (Arabic: إعداد الخطة); the label comes from the shared `setPlan` translation key, so both places changed together.
+- Browser verified on /resources/employees/EMP-001: the tab button and the opened dialog heading both show "Set plan", no runtime errors.
 ## 2026-11-01 — Project tags are pills everywhere
 - `ProjectTag` now defaults to `rounded-full`, so tags on the portfolio project cards and the Filter panel's Tags row are both fully rounded pills; the card chips got slightly more horizontal padding (px-2) so the pill reads cleanly at 10px text.
 - The Filter row no longer needs its own `rounded-full` override, and the Project form's tag chips already used the same pill shape.

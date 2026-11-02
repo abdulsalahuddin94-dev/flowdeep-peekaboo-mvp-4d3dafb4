@@ -1,22 +1,19 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Project tag: fully rounded pill in the tag's own color, matching the other
- * chips and status badges. `dimmed` is the unselected filter state; selecting the
- * filter (or showing it on a card) lights it up.
+ * Project tag: a neutral pill with a small dot in the tag's color. The color lives
+ * only in the dot because users pick any tag color, and dark ones (navy, black)
+ * would disappear as text or fill on the dark surface.
  */
-export function ProjectTag({ name, color, dimmed = false, className }: { name: string; color?: string; dimmed?: boolean; className?: string }) {
-  const style = color
-    ? dimmed
-      ? { color: `${color}99`, borderColor: `${color}33`, backgroundColor: `${color}0d` }
-      : { color, borderColor: `${color}80`, backgroundColor: `${color}26` }
-    : undefined;
+export function ProjectTag({ name, color, className }: { name: string; color?: string; className?: string }) {
   return (
-    <span
-      className={cn("inline-flex items-center whitespace-nowrap rounded-full border", !color && (dimmed ? "border-border text-muted-foreground" : "border-accent/50 text-accent"), className)}
-      style={style}
-    >
+    <span className={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-border bg-secondary/50 text-foreground", className)}>
+      <TagDot color={color} />
       {name}
     </span>
   );
+}
+
+export function TagDot({ color, className }: { color?: string; className?: string }) {
+  return <span aria-hidden="true" className={cn("inline-block h-1.5 w-1.5 shrink-0 rounded-full", !color && "bg-muted-foreground", className)} style={color ? { backgroundColor: color } : undefined} />;
 }

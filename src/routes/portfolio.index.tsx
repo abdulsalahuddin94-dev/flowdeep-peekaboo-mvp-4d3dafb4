@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RagBadge, RagDot, ragTone } from "@/components/RagBadge";
-import { ProjectTag } from "@/components/ProjectTag";
+import { ProjectTag, TagDot } from "@/components/ProjectTag";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
@@ -295,8 +295,8 @@ function AllProjectsTab({ restrict, projectList, initialView = "grid" }: { restr
                 {ALL_TAGS.map((value) => {
                   const selected = tagFilter.includes(value);
                   return (
-                    <button key={value} type="button" aria-pressed={selected} onClick={() => toggleMulti(value, tagFilter, setTagFilter)} className="rounded-[4px] transition-opacity hover:opacity-100">
-                      <ProjectTag name={value} color={tagColor(value)} dimmed={!selected} className={cn("h-7 px-3 text-xs", selected && "font-medium")} />
+                    <button key={value} type="button" aria-pressed={selected} onClick={() => toggleMulti(value, tagFilter, setTagFilter)} className={cn(filterChipClass, filterChipState(selected))}>
+                      <TagDot color={tagColor(value)} className="h-2 w-2" />{value}
                     </button>
                   );
                 })}

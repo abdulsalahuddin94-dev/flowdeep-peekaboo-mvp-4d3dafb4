@@ -233,6 +233,31 @@ export function computePlannedProgress(startDate: string, endDate: string, now: 
   return Math.round((elapsed / total) * 100);
 }
 
+export type ScheduleHealthStatus = "on-track" | "at-risk" | "off-track";
+type ItemHealth = { status: ScheduleHealthStatus; variance: number; expected: number };
+
+/**
+ * Schedule health of one WBS item: how far actual progress trails the share of its
+ * duration already elapsed, banded by the org's At Risk / Off-Track thresholds.
+ * Anything past its end date and not at 100% is Off-Track.
+ */
+export function scheduleItemHealth(
+  it: { startDate: string; endDate: string; progress?: number },
+  amberPct: number, redPct: number, today: Date,
+): ItemHealth {
+  const s = parseISO(it.startDate), e = parseISO(it.endDate);
+  if (!s || !e) return { status: "on-track", variance: 0, expected: 0 };
+  const total = Math.max(1, diffDays(e, s) + 1);
+  const elapsed = Math.max(0, Math.min(total, diffDays(today, s) + 1));
+  const expected = (elapsed / total) * 100;
+  const actual = Math.max(0, Math.min(100, it.progress ?? 0));
+  const variance = expected - actual; // positive = behind
+  let status: ScheduleHealthStatus = "on-track";
+  if ((e < today && actual < 100) || variance >= redPct) status = "off-track";
+  else if (variance >= amberPct) status = "at-risk";
+  return { status, variance, expected };
+}
+
 type Scale = "day" | "week" | "month";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -533,26 +558,11 @@ export function ProjectSchedule({
   // Schedule health follows the organization Rules & Thresholds: the gap
   // between time-expected % and actual % is banded by the configured Amber
   // (At Risk) and Red (Off-Track) progress thresholds. Overdue work is Red.
-  type HealthStatus = "on-track" | "at-risk" | "off-track";
   const orgRules = useOrgRules();
   const healthMap = useMemo(() => {
-    const m = new Map<string, { status: HealthStatus; variance: number; expected: number }>();
+    const m = new Map<string, ItemHealth>();
     const today = new Date(); today.setHours(0, 0, 0, 0);
-    const amberPct = orgRules.rag.progressAmberPct;
-    const redPct = orgRules.rag.progressRedPct;
-    for (const it of items) {
-      const s = parseISO(it.startDate), e = parseISO(it.endDate);
-      if (!s || !e) { m.set(it.name, { status: "on-track", variance: 0, expected: 0 }); continue; }
-      const total = Math.max(1, diffDays(e, s) + 1);
-      const elapsed = Math.max(0, Math.min(total, diffDays(today, s) + 1));
-      const expected = (elapsed / total) * 100;
-      const actual = Math.max(0, Math.min(100, it.progress ?? 0));
-      const variance = expected - actual; // positive = behind
-      let status: HealthStatus = "on-track";
-      if ((e < today && actual < 100) || variance >= redPct) status = "off-track";
-      else if (variance >= amberPct) status = "at-risk";
-      m.set(it.name, { status, variance, expected });
-    }
+    for (const it of items) m.set(it.name, scheduleItemHealth(it, orgRules.rag.progressAmberPct, orgRules.rag.progressRedPct, today));
     return m;
   }, [items, orgRules]);
   const atRiskSet = useMemo(() => {

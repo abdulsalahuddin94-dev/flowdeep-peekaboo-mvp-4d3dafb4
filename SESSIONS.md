@@ -1,3 +1,11 @@
+## 2026-11-02 — Health Donut Layout: Detailed Breakdown Beside Chart & Clean Hover
+- Fixed tooltip overlapping the center numbers (25 Items) by replacing the floating tooltip with permanent, clean breakdown counters right beside the chart.
+- Each row beside the chart now displays:
+  - `On Track:` Milestones: [n] | Tasks: [n] | ([Total])
+  - `At Risk:` Milestones: [n] | Tasks: [n] | ([Total])
+  - `Off-Track:` Milestones: [n] | Tasks: [n] | ([Total])
+- Center number stays clean and unobstructed at all times.
+
 ## 2026-11-02 — Unified Project Health Donut with Hover Tooltip & Beside Counters
 - Updated Overview > Project Health card to use a single unified Donut Chart displaying overall schedule items segmented by On Track, At Risk, and Off-Track.
 - Hovering over any donut slice opens a rich tooltip showing the breakdown of Tasks and Milestones for that status.

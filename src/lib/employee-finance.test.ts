@@ -32,3 +32,8 @@ test("effective utilization flags over-utilization when assigned hours exceed av
   const e = { ...employee, allocations: [{ ...employee.allocations[0], percent: 120 }] };
   assert.equal(employeeMonth(e, "2026-02").effectiveUtilization, 120);
 });
+
+test("partial leave hours reduce capacity by hours / 8 of a day", () => {
+  const m = monthlyEmployeeFinance({ ...employee, leave: [{ id: "p", type: "Partial leave", from: "2026-02-10", until: "2026-02-10", days: 0.5, hours: 4, status: "Approved" }] }, "2026-02");
+  assert.equal(m.absentDays, 0.5);
+});

@@ -3,7 +3,7 @@ import { resources, projects } from "@/lib/mock-data";
 
 export type EmploymentType = { id: string; name: string; active: boolean };
 export type EmployeeAllocation = { id: string; project: string; role: string; percent: number; from: string; until: string; task?: string };
-export type EmployeeLeave = { id: string; type: "Annual vacation" | "Sick leave" | "Unpaid leave"; from: string; until: string; days: number; status: "Approved" | "Pending" | "Rejected" };
+export type EmployeeLeave = { id: string; type: "Annual vacation" | "Sick leave" | "Unpaid leave" | "Partial leave"; from: string; until: string; days: number; hours?: number; status: "Approved" | "Pending" | "Rejected" };
 export type EmployeeTrip = { id: string; kind: "Business trip" | "Training"; title: string; from: string; until: string; days: number; status: "Planned" | "Completed" };
 /** Per-month overrides keyed by "YYYY-MM"; months without an entry fall back to the employee's base salary/capacity. */
 export type EmployeeMonthPlan = { salary?: number; capacity?: number };

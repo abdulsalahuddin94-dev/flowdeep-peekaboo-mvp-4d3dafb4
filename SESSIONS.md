@@ -1,3 +1,10 @@
+## 2026-11-02 — Portfolio Summary Cards Filter-driven, WBS % Plan/% Actual order, Health Donut Charts, Compact Money (K/M)
+- Portfolio summary cards (Not Started, On Track, At Risk, Off Track, Closed) moved directly below Search & Filters and now dynamically reflect filtered/searched projects.
+- WBS Schedule Table column order updated: `% Plan` now precedes `% Actual` in headers, defaults, and data row cells.
+- Project Health overview card: removed Progress %, Start Date, and End Date; replaced the Schedule items count table with interactive Donut Charts for Tasks and Milestones with color-coded RAG dots (green on-track, amber at-risk, red off-track) and center counts.
+- Removed read-only helper copy ("Read-only roll-up from all projects...") from Cost Breakdown and Revenue Events tables in Financials.
+- Formatted money values across the system to use "K" in thousands (e.g. $840K, $50K) and "M" in millions (e.g. $2.1M, $14.2M, $87.33M) while keeping input fields accepting regular numbers.
+
 ## 2026-11-02 — Neutral tags with color dots, Health without dot, item health counts, "Risk" rules
 - `ProjectTag` is now a neutral pill (default border, secondary background, foreground text) with a small dot in the tag color, so dark tag colors (navy, black) stay readable. Used on portfolio cards and the project form; the Filter panel's Tags row uses the regular filter chip with the dot (selected = accent like other chips). The tag picker list no longer colors the tag name.
 - Project Health badges on the portfolio cards and list (`RagBadge pill`) drop the dot; other status badges keep it.

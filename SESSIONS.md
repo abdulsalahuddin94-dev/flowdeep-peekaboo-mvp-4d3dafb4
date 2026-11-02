@@ -1,3 +1,9 @@
+## 2026-11-02 — Portfolio Overview: Stacked 2-Column Balanced Layout
+- Reorganized the top section of Project Overview (`/portfolio/$projectId`) from 3-column (`md:grid-cols-3`) to 2-column (`lg:grid-cols-2`):
+  - **Left column**: `Project Health` card with the unified donut chart and 4-column aligned status breakdown table (full height).
+  - **Right column**: Two vertically stacked cards (`Budget Status` on top and `Next Milestones` below) in a `flex flex-col gap-4` container where both cards expand with `flex-1`.
+- Completely eliminates empty dead space and creates visual balance across both columns on desktop viewports.
+
 ## 2026-11-02 — Health Donut Layout: Clean Aligned Breakdown Table
 - Converted unstructured breakdown rows beside the Donut Chart into a clean tabular structure with dedicated aligned columns:
   - Header: Status | Milestones | Tasks | Total

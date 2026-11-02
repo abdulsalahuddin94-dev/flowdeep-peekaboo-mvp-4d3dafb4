@@ -1739,43 +1739,89 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
 }
 
 
-// Schedule health items donut chart
+// Schedule health items donut chart (Unified: On Track / At Risk / Off-Track)
 const HEALTH_COLORS = {
   "on-track": "#00ab8b", // rag-green
   "at-risk": "#d9a000",  // rag-amber
   "off-track": "#e5434a", // rag-red
 };
 
+interface HealthBreakdown {
+  tasks: number;
+  milestones: number;
+  total: number;
+}
+
 function HealthDonutCard({
-  title,
-  counts,
+  itemHealth,
 }: {
-  title: string;
-  counts: { "on-track": number; "at-risk": number; "off-track": number };
+  itemHealth: { key: string; label: string; counts: { "on-track": number; "at-risk": number; "off-track": number } }[];
 }) {
-  const total = counts["on-track"] + counts["at-risk"] + counts["off-track"];
+  const taskRow = itemHealth.find((h) => h.key === "Task");
+  const msRow = itemHealth.find((h) => h.key === "Milestone");
+
+  const onTrack: HealthBreakdown = {
+    tasks: taskRow?.counts["on-track"] ?? 0,
+    milestones: msRow?.counts["on-track"] ?? 0,
+    total: (taskRow?.counts["on-track"] ?? 0) + (msRow?.counts["on-track"] ?? 0),
+  };
+  const atRisk: HealthBreakdown = {
+    tasks: taskRow?.counts["at-risk"] ?? 0,
+    milestones: msRow?.counts["at-risk"] ?? 0,
+    total: (taskRow?.counts["at-risk"] ?? 0) + (msRow?.counts["at-risk"] ?? 0),
+  };
+  const offTrack: HealthBreakdown = {
+    tasks: taskRow?.counts["off-track"] ?? 0,
+    milestones: msRow?.counts["off-track"] ?? 0,
+    total: (taskRow?.counts["off-track"] ?? 0) + (msRow?.counts["off-track"] ?? 0),
+  };
+
+  const grandTotal = onTrack.total + atRisk.total + offTrack.total;
+
   const data = [
-    { name: "On Track", key: "on-track", value: counts["on-track"], color: HEALTH_COLORS["on-track"] },
-    { name: "At Risk", key: "at-risk", value: counts["at-risk"], color: HEALTH_COLORS["at-risk"] },
-    { name: "Off-Track", key: "off-track", value: counts["off-track"], color: HEALTH_COLORS["off-track"] },
+    { name: "On Track", key: "on-track", value: onTrack.total, color: HEALTH_COLORS["on-track"], breakdown: onTrack },
+    { name: "At Risk", key: "at-risk", value: atRisk.total, color: HEALTH_COLORS["at-risk"], breakdown: atRisk },
+    { name: "Off-Track", key: "off-track", value: offTrack.total, color: HEALTH_COLORS["off-track"], breakdown: offTrack },
   ].filter((d) => d.value > 0);
 
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const entry = payload[0].payload;
+      const b: HealthBreakdown = entry.breakdown;
+      return (
+        <div className="rounded-md border border-border bg-popover px-3 py-2 text-xs shadow-md">
+          <div className="font-semibold text-foreground flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+            {entry.name}: {entry.value}
+          </div>
+          <div className="mt-1 space-y-0.5 text-[11px] text-muted-foreground">
+            <div>Tasks: <span className="font-medium text-foreground">{b.tasks}</span></div>
+            <div>Milestones: <span className="font-medium text-foreground">{b.milestones}</span></div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative h-[110px] w-[110px]">
-        {total === 0 ? (
-          <div className="flex h-full w-full items-center justify-center rounded-full border-4 border-dashed border-border/50 text-[11px] text-muted-foreground">
+    <div className="flex items-center justify-between gap-4">
+      {/* Left: Donut Chart with center total */}
+      <div className="relative h-[120px] w-[120px] shrink-0">
+        {grandTotal === 0 ? (
+          <div className="flex h-full w-full items-center justify-center rounded-full border-4 border-dashed border-border/50 text-xs text-muted-foreground">
             0
           </div>
         ) : (
           <>
-            <PieChart width={110} height={110}>
+            <PieChart width={120} height={120}>
+              <RechartsTooltip content={<CustomTooltip />} />
               <Pie
                 data={data}
                 dataKey="value"
                 nameKey="name"
-                innerRadius={34}
-                outerRadius={50}
+                innerRadius={38}
+                outerRadius={56}
                 paddingAngle={data.length > 1 ? 2 : 0}
                 stroke="none"
                 isAnimationActive={false}
@@ -1786,25 +1832,36 @@ function HealthDonutCard({
               </Pie>
             </PieChart>
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-base font-semibold tabular-nums text-foreground">{total}</span>
-              <span className="text-[10px] text-muted-foreground leading-none">{title}</span>
+              <span className="text-xl font-bold tabular-nums text-foreground">{grandTotal}</span>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">Items</span>
             </div>
           </>
         )}
       </div>
-      <div className="mt-2 flex items-center justify-center gap-2.5 text-[11px]">
-        <span className="flex items-center gap-1 font-medium text-rag-green">
-          <span className="h-2 w-2 rounded-full bg-rag-green" />
-          {counts["on-track"]}
-        </span>
-        <span className="flex items-center gap-1 font-medium text-rag-amber">
-          <span className="h-2 w-2 rounded-full bg-rag-amber" />
-          {counts["at-risk"]}
-        </span>
-        <span className="flex items-center gap-1 font-medium text-rag-red">
-          <span className="h-2 w-2 rounded-full bg-rag-red" />
-          {counts["off-track"]}
-        </span>
+
+      {/* Right: Numbers beside the chart */}
+      <div className="flex-1 space-y-2 text-xs">
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-2 text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-rag-green" />
+            On Track :
+          </span>
+          <span className="num-mono font-medium text-foreground">{onTrack.total}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-2 text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-rag-amber" />
+            At Risk :
+          </span>
+          <span className="num-mono font-medium text-foreground">{atRisk.total}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-2 text-muted-foreground">
+            <span className="h-2 w-2 rounded-full bg-rag-red" />
+            Off-Track :
+          </span>
+          <span className="num-mono font-medium text-foreground">{offTrack.total}</span>
+        </div>
       </div>
     </div>
   );
@@ -1881,9 +1938,8 @@ function OverviewTab({
               </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border/50 pt-5">
-              <HealthDonutCard title="Tasks" counts={itemHealth.find((h) => h.key === "Task")?.counts ?? { "on-track": 0, "at-risk": 0, "off-track": 0 }} />
-              <HealthDonutCard title="Milestones" counts={itemHealth.find((h) => h.key === "Milestone")?.counts ?? { "on-track": 0, "at-risk": 0, "off-track": 0 }} />
+            <div className="mt-6 border-t border-border/50 pt-5">
+              <HealthDonutCard itemHealth={itemHealth} />
             </div>
           </EmptyRegion>
         </div>

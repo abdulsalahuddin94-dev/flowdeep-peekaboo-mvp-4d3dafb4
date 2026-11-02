@@ -28,7 +28,7 @@ export function employeeMonth(employee: Employee, month: string) {
   const projectCost = Math.min(salary, charges.reduce((sum, a) => sum + a.amount, 0));
   // Leave and business trips/training reduce the hours available this month.
   const absentDays = Math.min(WORKING_DAYS_PER_MONTH,
-    employee.leave.filter((l) => l.status !== "Rejected").reduce((sum, l) => sum + overlapDays(l.from, l.until, month), 0)
+    employee.leave.filter((l) => l.status !== "Rejected").reduce((sum, l) => sum + (l.hours != null ? (l.from.startsWith(month) ? l.hours / 8 : 0) : overlapDays(l.from, l.until, month)), 0)
     + employee.trips.reduce((sum, t) => sum + overlapDays(t.from, t.until, month), 0));
   const availableCapacity = Math.round(capacity * (WORKING_DAYS_PER_MONTH - absentDays) / WORKING_DAYS_PER_MONTH * 10) / 10;
   const allocatedHours = capacity * utilization / 100;

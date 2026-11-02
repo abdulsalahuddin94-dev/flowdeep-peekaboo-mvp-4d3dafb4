@@ -1791,7 +1791,7 @@ function HealthDonutCard({
   ];
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-6">
+    <div className="flex flex-col sm:flex-row items-center gap-6">
       {/* Left: Donut Chart with center total */}
       <div className="relative h-[120px] w-[120px] shrink-0">
         {grandTotal === 0 ? (
@@ -1824,21 +1824,39 @@ function HealthDonutCard({
         )}
       </div>
 
-      {/* Right: Numbers & Breakdown beside the chart */}
-      <div className="flex-1 min-w-0 space-y-2.5 text-xs w-full">
-        {rows.map((r) => (
-          <div key={r.label} className="flex items-center justify-between gap-3 text-muted-foreground">
-            <span className="flex items-center gap-2 text-foreground font-medium shrink-0">
-              <span className={`h-2 w-2 rounded-full ${r.dot}`} />
-              {r.label}:
-            </span>
-            <div className="flex items-center gap-3 text-xs num-mono">
-              <span>Milestones: <strong className="font-semibold text-foreground">{r.ms}</strong></span>
-              <span>Tasks: <strong className="font-semibold text-foreground">{r.task}</strong></span>
-              <span className="font-bold text-foreground min-w-[1.25rem] text-right">({r.total})</span>
-            </div>
-          </div>
-        ))}
+      {/* Right: Clean structured table with aligned columns */}
+      <div className="flex-1 min-w-0 w-full overflow-hidden">
+        <table className="w-full text-xs" aria-label="Schedule health breakdown">
+          <thead>
+            <tr className="text-[11px] text-muted-foreground/70 border-b border-border/40">
+              <th className="pb-1.5 text-left font-normal">Status</th>
+              <th className="pb-1.5 text-center font-normal">Milestones</th>
+              <th className="pb-1.5 text-center font-normal">Tasks</th>
+              <th className="pb-1.5 text-right font-normal">Total</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/20">
+            {rows.map((r) => (
+              <tr key={r.label} className="group hover:bg-muted/10 transition-colors">
+                <td className="py-2 text-left whitespace-nowrap">
+                  <span className="inline-flex items-center gap-2 font-medium text-foreground">
+                    <span className={`h-2 w-2 rounded-full shrink-0 ${r.dot}`} />
+                    {r.label}
+                  </span>
+                </td>
+                <td className="py-2 text-center num-mono text-muted-foreground font-medium">
+                  {r.ms}
+                </td>
+                <td className="py-2 text-center num-mono text-muted-foreground font-medium">
+                  {r.task}
+                </td>
+                <td className="py-2 text-right num-mono font-semibold text-foreground">
+                  ({r.total})
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

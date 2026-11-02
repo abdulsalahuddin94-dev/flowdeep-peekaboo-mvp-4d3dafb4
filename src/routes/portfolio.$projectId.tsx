@@ -48,7 +48,8 @@ import { ProjectGantt } from "@/components/ProjectGantt";
 import { ActionTrackerTab } from "@/components/actions/ActionTracker";
 import { MeetingsTab } from "@/components/actions/Meetings";
 import { RecentActivityTab } from "@/components/project/RecentActivityTab";
-import { ProjectSchedule, computePlannedProgress, depLag, depLabel } from "@/components/ProjectSchedule";
+import { ProjectSchedule, computePlannedProgress, depLag, depLabel, scheduleItemHealth } from "@/components/ProjectSchedule";
+import { useOrgRules } from "@/lib/org-rules";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatDateForDisplay, formatDateWithYear } from "@/lib/date-format";
 import { logActivity, useLogListChanges } from "@/lib/activity-store";
@@ -1751,6 +1752,22 @@ function OverviewTab({
     [project.name, risks],
   );
 
+  const orgRules = useOrgRules();
+  // Item-level schedule health, counted separately from the project status: a few
+  // at-risk items don't make the whole project At Risk.
+  const itemHealth = useMemo(() => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const rows = [
+      { key: "Task", label: "Tasks", counts: { "on-track": 0, "at-risk": 0, "off-track": 0 } },
+      { key: "Milestone", label: "Milestones", counts: { "on-track": 0, "at-risk": 0, "off-track": 0 } },
+    ];
+    for (const it of schedule) {
+      const row = rows.find((r) => r.key === it.kind);
+      if (row) row.counts[scheduleItemHealth(it, orgRules.rag.progressAmberPct, orgRules.rag.progressRedPct, today).status] += 1;
+    }
+    return rows;
+  }, [schedule, orgRules]);
+
   const ragMap = {
     green: { label: "On Track", text: "text-rag-green", bg: "bg-rag-green/15", ring: "ring-rag-green/40" },
     amber: { label: "At Risk", text: "text-rag-amber", bg: "bg-rag-amber/15", ring: "ring-rag-amber/40" },
@@ -1795,6 +1812,26 @@ function OverviewTab({
               <div className="flex items-center justify-between"><span className="text-muted-foreground">Start Date:</span><span className="num-mono font-medium text-foreground">{formatDateWithYear(project.startDate)}</span></div>
               <div className="flex items-center justify-between"><span className="text-muted-foreground">End Date:</span><span className="num-mono font-medium text-foreground">{formatDateWithYear(project.endDate)}</span></div>
             </div>
+            <table className="mt-5 w-full text-xs" aria-label="Schedule items by health">
+              <thead>
+                <tr className="text-muted-foreground">
+                  <th className="pb-2 text-left font-normal">Schedule items</th>
+                  <th className="pb-2 text-right font-normal text-rag-green">On Track</th>
+                  <th className="pb-2 text-right font-normal text-rag-amber">At Risk</th>
+                  <th className="pb-2 text-right font-normal text-rag-red">Off-Track</th>
+                </tr>
+              </thead>
+              <tbody>
+                {itemHealth.map((row) => (
+                  <tr key={row.key} className="border-t border-border/60">
+                    <td className="py-1.5 text-muted-foreground">{row.label}</td>
+                    <td className="num-mono py-1.5 text-right font-medium text-foreground">{row.counts["on-track"]}</td>
+                    <td className="num-mono py-1.5 text-right font-medium text-foreground">{row.counts["at-risk"]}</td>
+                    <td className="num-mono py-1.5 text-right font-medium text-foreground">{row.counts["off-track"]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </EmptyRegion>
         </div>
         <div className="glass-card p-5">

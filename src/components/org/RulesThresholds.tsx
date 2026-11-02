@@ -130,10 +130,10 @@ export function RulesThresholdsTab() {
           </CardContent>
         </Card>
 
-        {/* 3 — Risk & Issues */}
+        {/* 3 — Risk */}
         <Card className="border-border bg-surface">
           <CardHeader className="p-5 pb-3">
-            <CardTitle className="text-base font-medium">Risk & Issues Rules</CardTitle>
+            <CardTitle className="text-base font-medium">Risk</CardTitle>
             <CardDescription>
               Probability and Impact are scored 1–5 and the risk score is Probability × Impact.
               Set the severity bands for your organization.

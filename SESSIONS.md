@@ -1,3 +1,9 @@
+## 2026-11-02 — Neutral tags with color dots, Health without dot, item health counts, "Risk" rules
+- `ProjectTag` is now a neutral pill (default border, secondary background, foreground text) with a small dot in the tag color, so dark tag colors (navy, black) stay readable. Used on portfolio cards and the project form; the Filter panel's Tags row uses the regular filter chip with the dot (selected = accent like other chips). The tag picker list no longer colors the tag name.
+- Project Health badges on the portfolio cards and list (`RagBadge pill`) drop the dot; other status badges keep it.
+- Overview > Project Health card adds a "Schedule items" table: Tasks and Milestones counted as On Track / At Risk / Off-Track by schedule health (same rule as the WBS "Schedule health" switch, now shared as `scheduleItemHealth`). The project status itself stays separate, so some at-risk items don't make the whole project At Risk.
+- Organization > Rules & Thresholds: "Risk & Issues Rules" card is now titled "Risk".
+- Browser verified /portfolio (cards, filter), /portfolio/p-001 overview, no runtime errors; typecheck clean, tests pass.
 ## 2026-11-02 — Employee profile: month cards, task filters, Salary / Capacity / Trips tabs
 - Projects & allocation: the "Monthly utilization by project" table is now 12 month cards (utilization %, project bar, assigned / available hours, absence days, projects with %). Over-utilized months get a red border; clicking a card selects the month.
 - Assigned tasks: search box + project filter with a visible / total count.

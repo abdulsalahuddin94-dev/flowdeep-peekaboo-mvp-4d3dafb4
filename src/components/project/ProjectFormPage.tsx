@@ -1,3 +1,4 @@
+import { ProjectTag, TagDot } from "@/components/ProjectTag";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
@@ -479,18 +480,9 @@ export function ProjectFormPage({ project, embedded = false }: { project?: Proje
                 </dl>
                 {form.tags.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5">
-                    {form.tags.map((t) => {
-                      const color = orgTags.find((x) => x.name === t)?.color ?? "#94A3B8";
-                      return (
-                        <span
-                          key={t}
-                          className="rounded-full border px-2 py-0.5 text-[11px]"
-                          style={{ color, borderColor: `${color}66`, backgroundColor: `${color}22` }}
-                        >
-                          {t}
-                        </span>
-                      );
-                    })}
+                    {form.tags.map((t) => (
+                      <ProjectTag key={t} name={t} color={orgTags.find((x) => x.name === t)?.color} className="px-2 py-0.5 text-[11px]" />
+                    ))}
                   </div>
                 )}
               </div>
@@ -754,9 +746,9 @@ function TagPicker({
             {shown.map((n) => (
               <span
                 key={n}
-                className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]"
-                style={{ color: colorOf(n), borderColor: `${colorOf(n)}66`, backgroundColor: `${colorOf(n)}22` }}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-secondary/50 px-2 py-0.5 text-[11px] text-foreground"
               >
+                <TagDot color={colorOf(n)} />
                 {n}
                 <X className="h-3 w-3 opacity-70 hover:opacity-100" onClick={(e) => { e.stopPropagation(); toggle(n); }} />
               </span>
@@ -780,7 +772,7 @@ function TagPicker({
             >
               <Checkbox checked={value.includes(t.name)} className="pointer-events-none rounded-[4px]" />
               <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.color }} />
-              <span className="flex-1 truncate" style={{ color: t.color }}>{t.name}</span>
+              <span className="flex-1 truncate">{t.name}</span>
             </button>
           ))}
         </div>

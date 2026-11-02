@@ -1,3 +1,11 @@
+## 2026-11-02 — Employee profile: month cards, task filters, Salary / Capacity / Trips tabs
+- Projects & allocation: the "Monthly utilization by project" table is now 12 month cards (utilization %, project bar, assigned / available hours, absence days, projects with %). Over-utilized months get a red border; clicking a card selects the month.
+- Assigned tasks: search box + project filter with a visible / total count.
+- "Salary & capacity" split into **Salary** (salary, project charges, overhead; Set plan and per-month edit change salary only) and **Capacity** (monthly capacity, absence, available, assigned, utilization; Set capacity and per-month edit change capacity only). Leave moved into Capacity: KPIs (entitlement, leave used, remaining) and Leave records.
+- Leave records: no Status; type is **Leave** (from–until) or **Partial** (one date + hours); new free-text **Remark**. Leave used = leave days + partial hours / 8.
+- New **Trips** tab: Country, City, travel start/end, trip work start/end, tickets / visa / per diem cost and a total. Travel days still reduce that month's available capacity, as business trips did before.
+- Employees store key bumped to `pmo.employees.v3` (leave/trip shapes changed), so saved demo edits reset once.
+- Browser verified /resources/employees/EMP-001 on every tab and both dialogs, no runtime errors from these changes; typecheck clean, tests updated and passing.
 
 ## 2026-11-02 — Partial leave
 - Added "Partial leave" type to Leave records: single date + hours (1–7h); reduces monthly available capacity by hours/8 day.

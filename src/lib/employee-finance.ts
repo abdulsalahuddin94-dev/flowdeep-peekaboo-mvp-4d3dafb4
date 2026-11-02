@@ -28,7 +28,7 @@ export function employeeMonth(employee: Employee, month: string) {
   const projectCost = Math.min(salary, charges.reduce((sum, a) => sum + a.amount, 0));
   // Leave and business trips/training reduce the hours available this month.
   const absentDays = Math.min(WORKING_DAYS_PER_MONTH,
-    employee.leave.filter((l) => l.status !== "Rejected").reduce((sum, l) => sum + (l.hours != null ? (l.from.startsWith(month) ? l.hours / 8 : 0) : overlapDays(l.from, l.until, month)), 0)
+    employee.leave.reduce((sum, l) => sum + (l.hours != null ? (l.from.startsWith(month) ? l.hours / 8 : 0) : overlapDays(l.from, l.until, month)), 0)
     + employee.trips.reduce((sum, t) => sum + overlapDays(t.from, t.until, month), 0));
   const availableCapacity = Math.round(capacity * (WORKING_DAYS_PER_MONTH - absentDays) / WORKING_DAYS_PER_MONTH * 10) / 10;
   const allocatedHours = capacity * utilization / 100;
@@ -36,8 +36,8 @@ export function employeeMonth(employee: Employee, month: string) {
   return { salary, capacity, allocations, charges, projectCost, overhead: Math.max(0, salary - projectCost), utilization, allocatedHours, absentDays, availableCapacity, effectiveUtilization };
 }
 
+/** Leave days taken in the year (partial leave counts as hours / 8) against the annual entitlement. */
 export function vacationBalance(employee: Employee, year: string) {
-  const used = employee.leave.filter((l) => l.type === "Annual vacation" && l.status === "Approved" && l.from.startsWith(year)).reduce((sum, l) => sum + l.days, 0);
-  const pending = employee.leave.filter((l) => l.type === "Annual vacation" && l.status === "Pending" && l.from.startsWith(year)).reduce((sum, l) => sum + l.days, 0);
-  return { entitlement: employee.vacationEntitlement, used, pending, remaining: employee.vacationEntitlement - used };
+  const used = Math.round(employee.leave.filter((l) => l.from.startsWith(year)).reduce((sum, l) => sum + (l.hours != null ? l.hours / 8 : l.days), 0) * 100) / 100;
+  return { entitlement: employee.vacationEntitlement, used, remaining: Math.round((employee.vacationEntitlement - used) * 100) / 100 };
 }

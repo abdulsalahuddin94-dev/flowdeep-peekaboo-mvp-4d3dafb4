@@ -263,7 +263,7 @@ function TripDialog({ open, onClose, onAdd }: { open: boolean; onClose: () => vo
     <div className="grid grid-cols-2 gap-2">
      <Field label={t.from} htmlFor="trip-from" required error={errors.from}><Input id="trip-from" type="date" value={from} onChange={(e) => { setFrom(e.target.value); setErrors((p) => ({ ...p, from: undefined })); }} /></Field>
      <Field label={t.until} htmlFor="trip-until" required error={errors.until}><Input id="trip-until" type="date" value={until} onChange={(e) => { setUntil(e.target.value); setErrors((p) => ({ ...p, until: undefined })); }} /></Field>
-    </div>}
+    </div>
    </div>
    <DialogFooter><Button variant="outline" onClick={onClose}>{t.cancel}</Button><Button variant="primary" onClick={submit}>{t.save}</Button></DialogFooter>
   </DialogContent>
@@ -304,7 +304,7 @@ function LeaveDialog({ open, onClose, onAdd }: { open: boolean; onClose: () => v
     </div> : <div className="grid grid-cols-2 gap-2">
      <Field label={t.from} htmlFor="leave-from" required error={errors.from}><Input id="leave-from" type="date" value={from} onChange={(e) => { setFrom(e.target.value); setErrors((p) => ({ ...p, from: undefined })); }} /></Field>
      <Field label={t.until} htmlFor="leave-until" required error={errors.until}><Input id="leave-until" type="date" value={until} onChange={(e) => { setUntil(e.target.value); setErrors((p) => ({ ...p, until: undefined })); }} /></Field>
-    </div>
+    </div>}
    </div>
    <DialogFooter><Button variant="outline" onClick={onClose}>{t.cancel}</Button><Button variant="primary" onClick={submit}>{t.save}</Button></DialogFooter>
   </DialogContent>

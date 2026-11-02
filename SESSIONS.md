@@ -1,3 +1,12 @@
+## 2026-11-02 — Unified Project Health Donut with Hover Tooltip & Beside Counters
+- Updated Overview > Project Health card to use a single unified Donut Chart displaying overall schedule items segmented by On Track, At Risk, and Off-Track.
+- Hovering over any donut slice opens a rich tooltip showing the breakdown of Tasks and Milestones for that status.
+- Beside the chart (on the right), added clear status counters with color dots:
+  - On Track : [count]
+  - At Risk : [count]
+  - Off-Track : [count]
+- Center of donut displays the grand total number of schedule items.
+
 ## 2026-11-02 — Portfolio Summary Cards Filter-driven, WBS % Plan/% Actual order, Health Donut Charts, Compact Money (K/M)
 - Portfolio summary cards (Not Started, On Track, At Risk, Off Track, Closed) moved directly below Search & Filters and now dynamically reflect filtered/searched projects.
 - WBS Schedule Table column order updated: `% Plan` now precedes `% Actual` in headers, defaults, and data row cells.

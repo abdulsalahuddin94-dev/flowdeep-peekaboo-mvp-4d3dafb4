@@ -292,8 +292,8 @@ const COLUMNS = [
   { key: "assignee", label: "Assignee",    w: 130 },
   { key: "roles",    label: "Role",        w: 180 },
   { key: "weight",   label: "Weight",      w: 66 },
-  { key: "actual",   label: "% Actual",    w: 130 },
   { key: "planned",  label: "% Plan",      w: 130 },
+  { key: "actual",   label: "% Actual",    w: 130 },
   { key: "dep",      label: "Depends on",  w: 110 },
   { key: "payment",  label: "Financial Link",w: 110 },
   { key: "status",   label: "Status",      w: 110 },
@@ -380,7 +380,7 @@ export function ProjectSchedule({
   const [healthHighlight, setHealthHighlight] = useState(false);
   const [visibleCols, setVisibleCols] = useState<Set<ColKey>>(
     // Default view: core planning columns; the rest can be shown from the Columns menu.
-    () => new Set<ColKey>(["type", "duration", "weight", "actual", "planned", "status"]),
+    () => new Set<ColKey>(["type", "duration", "weight", "planned", "actual", "status"]),
   );
   const toggleCol = (k: ColKey) => setVisibleCols((prev) => {
     const next = new Set(prev);
@@ -1393,7 +1393,25 @@ export function ProjectSchedule({
                       const delta = Math.round(actual - planned);
                       return (
                         <>
-                          {colVisible("actual") && (
+                          {colVisible("planned") && (
+                            <div
+                              className="flex items-center gap-2 px-3 overflow-hidden"
+                              style={{ width: widths.planned }}
+                              title={isGate ? "—" : `Planned ${planned}% · ${delta === 0 ? "on plan" : delta > 0 ? `${delta}% ahead` : `${Math.abs(delta)}% behind`}`}
+                            >
+                              {isGate ? (
+                                <span className="text-[11px] text-muted-foreground">—</span>
+                              ) : (
+                                <div className="flex flex-1 items-center gap-2 min-w-0">
+                                  <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-secondary/40">
+                                    <div className="absolute inset-y-0 left-0 bg-rag-blue" style={{ width: `${planned}%` }} />
+                                  </div>
+                                  <span className="num-mono w-8 shrink-0 text-right text-[10px] text-rag-blue">{planned}%</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        {colVisible("actual") && (
                             <div
                               role={canClick ? "button" : undefined}
                               tabIndex={canClick ? 0 : undefined}
@@ -1429,25 +1447,7 @@ export function ProjectSchedule({
                               )}
                             </div>
                           )}
-                          {colVisible("planned") && (
-                            <div
-                              className="flex items-center gap-2 px-3 overflow-hidden"
-                              style={{ width: widths.planned }}
-                              title={isGate ? "—" : `Planned ${planned}% · ${delta === 0 ? "on plan" : delta > 0 ? `${delta}% ahead` : `${Math.abs(delta)}% behind`}`}
-                            >
-                              {isGate ? (
-                                <span className="text-[11px] text-muted-foreground">—</span>
-                              ) : (
-                                <div className="flex flex-1 items-center gap-2 min-w-0">
-                                  <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-secondary/40">
-                                    <div className="absolute inset-y-0 left-0 bg-rag-blue" style={{ width: `${planned}%` }} />
-                                  </div>
-                                  <span className="num-mono w-8 shrink-0 text-right text-[10px] text-rag-blue">{planned}%</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </>
+                          </>
                       );
                     })()}
                     {colVisible("dep") && (

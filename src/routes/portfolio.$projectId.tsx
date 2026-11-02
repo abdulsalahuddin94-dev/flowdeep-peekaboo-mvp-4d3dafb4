@@ -1,3 +1,4 @@
+import { Cell, Pie, PieChart, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { createFileRoute, Link, useNavigate, useBlocker } from "@tanstack/react-router";
 import { useState, useMemo, useEffect, useCallback, Fragment } from "react";
 import { PageHeader } from "@/components/PageHeader";
@@ -1737,6 +1738,78 @@ function CharterTab({ project }: { project: typeof projects[number] }) {
   );
 }
 
+
+// Schedule health items donut chart
+const HEALTH_COLORS = {
+  "on-track": "#00ab8b", // rag-green
+  "at-risk": "#d9a000",  // rag-amber
+  "off-track": "#e5434a", // rag-red
+};
+
+function HealthDonutCard({
+  title,
+  counts,
+}: {
+  title: string;
+  counts: { "on-track": number; "at-risk": number; "off-track": number };
+}) {
+  const total = counts["on-track"] + counts["at-risk"] + counts["off-track"];
+  const data = [
+    { name: "On Track", key: "on-track", value: counts["on-track"], color: HEALTH_COLORS["on-track"] },
+    { name: "At Risk", key: "at-risk", value: counts["at-risk"], color: HEALTH_COLORS["at-risk"] },
+    { name: "Off-Track", key: "off-track", value: counts["off-track"], color: HEALTH_COLORS["off-track"] },
+  ].filter((d) => d.value > 0);
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative h-[110px] w-[110px]">
+        {total === 0 ? (
+          <div className="flex h-full w-full items-center justify-center rounded-full border-4 border-dashed border-border/50 text-[11px] text-muted-foreground">
+            0
+          </div>
+        ) : (
+          <>
+            <PieChart width={110} height={110}>
+              <Pie
+                data={data}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={34}
+                outerRadius={50}
+                paddingAngle={data.length > 1 ? 2 : 0}
+                stroke="none"
+                isAnimationActive={false}
+              >
+                {data.map((entry) => (
+                  <Cell key={entry.name} fill={entry.color} />
+                ))}
+              </Pie>
+            </PieChart>
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-base font-semibold tabular-nums text-foreground">{total}</span>
+              <span className="text-[10px] text-muted-foreground leading-none">{title}</span>
+            </div>
+          </>
+        )}
+      </div>
+      <div className="mt-2 flex items-center justify-center gap-2.5 text-[11px]">
+        <span className="flex items-center gap-1 font-medium text-rag-green">
+          <span className="h-2 w-2 rounded-full bg-rag-green" />
+          {counts["on-track"]}
+        </span>
+        <span className="flex items-center gap-1 font-medium text-rag-amber">
+          <span className="h-2 w-2 rounded-full bg-rag-amber" />
+          {counts["at-risk"]}
+        </span>
+        <span className="flex items-center gap-1 font-medium text-rag-red">
+          <span className="h-2 w-2 rounded-full bg-rag-red" />
+          {counts["off-track"]}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function OverviewTab({
   project, isNew, gateData, onRiskSelect, cost, revenue, schedule,
 }: {
@@ -1807,31 +1880,11 @@ function OverviewTab({
                 <div className="text-xs text-muted-foreground">Last updated: 2 hours ago</div>
               </div>
             </div>
-            <div className="mt-5 space-y-3 text-sm">
-              <div className="flex items-center justify-between"><span className="text-muted-foreground">Progress:</span><span className="num-mono font-medium text-foreground">{project.progress}%</span></div>
-              <div className="flex items-center justify-between"><span className="text-muted-foreground">Start Date:</span><span className="num-mono font-medium text-foreground">{formatDateWithYear(project.startDate)}</span></div>
-              <div className="flex items-center justify-between"><span className="text-muted-foreground">End Date:</span><span className="num-mono font-medium text-foreground">{formatDateWithYear(project.endDate)}</span></div>
+
+            <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border/50 pt-5">
+              <HealthDonutCard title="Tasks" counts={itemHealth.find((h) => h.key === "Task")?.counts ?? { "on-track": 0, "at-risk": 0, "off-track": 0 }} />
+              <HealthDonutCard title="Milestones" counts={itemHealth.find((h) => h.key === "Milestone")?.counts ?? { "on-track": 0, "at-risk": 0, "off-track": 0 }} />
             </div>
-            <table className="mt-5 w-full text-xs" aria-label="Schedule items by health">
-              <thead>
-                <tr className="text-muted-foreground">
-                  <th className="pb-2 text-left font-normal">Schedule items</th>
-                  <th className="pb-2 text-right font-normal text-rag-green">On Track</th>
-                  <th className="pb-2 text-right font-normal text-rag-amber">At Risk</th>
-                  <th className="pb-2 text-right font-normal text-rag-red">Off-Track</th>
-                </tr>
-              </thead>
-              <tbody>
-                {itemHealth.map((row) => (
-                  <tr key={row.key} className="border-t border-border/60">
-                    <td className="py-1.5 text-muted-foreground">{row.label}</td>
-                    <td className="num-mono py-1.5 text-right font-medium text-foreground">{row.counts["on-track"]}</td>
-                    <td className="num-mono py-1.5 text-right font-medium text-foreground">{row.counts["at-risk"]}</td>
-                    <td className="num-mono py-1.5 text-right font-medium text-foreground">{row.counts["off-track"]}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </EmptyRegion>
         </div>
         <div className="glass-card p-5">

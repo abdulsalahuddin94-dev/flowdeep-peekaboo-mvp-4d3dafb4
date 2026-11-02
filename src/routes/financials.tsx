@@ -635,7 +635,7 @@ function FinancialsPage() {
             { label: "CapEx / OpEx", pie: [{ color: "var(--accent)", pct: capexPct, label: "CapEx", value: money(costTot.capex) }, { color: "var(--color-role-director)", pct: 100 - capexPct, label: "OpEx", value: money(costTot.opex) }] },
           ]} />
 
-          <div className="mb-3 text-xs text-muted-foreground">Read-only roll-up from all projects. Select a line to open its project and log actuals.</div>
+          
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Project Type</TableHead><TableHead>Cost Line</TableHead><TableHead>Category</TableHead>
@@ -684,7 +684,7 @@ function FinancialsPage() {
             { label: "To be collected", value: money(revTot.planned - revTot.collected), hint: "Outstanding on these revenue events" },
             { label: "Overdue", value: money(revTot.overdue), hint: "Past due, not collected", tint: revTot.overdue > 0 ? "text-rag-red" : undefined },
           ]} />
-          <div className="mb-3 text-xs text-muted-foreground">Read-only roll-up from all projects. Select a revenue event to open its project and log collections.</div>
+          
           <Table>
             <TableHeader><TableRow className="hover:bg-transparent bg-transparent border-0">
               <TableHead>Project</TableHead><TableHead>Project Type</TableHead><TableHead>Revenue Event</TableHead><TableHead>Due</TableHead>

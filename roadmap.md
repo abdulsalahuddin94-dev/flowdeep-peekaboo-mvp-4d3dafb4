@@ -94,4 +94,4 @@
 - [x] Employee profile: replace the lavender pill back button with the standard plain back link + breadcrumb used on other record pages; verify and log.
 
 ## Current
-- [ ] Employees table: Status column with hover Delete/Edit/Activate-Deactivate, Employee Number column, department under name (2026-10-29)
+- [x] Employees table: Status column with hover Delete/Edit/Activate-Deactivate, Employee Number column, department under name (2026-10-29)

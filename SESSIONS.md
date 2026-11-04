@@ -1,3 +1,11 @@
+## 2026-11-04 — Save baseline: summary step removed, confirmation pop-up only
+- Change Plan no longer opens the "Save new baseline (vN)" review dialog with its per-section change tables; clicking Save baseline now goes straight to the DS02 confirmation pop-up — "Save a new baseline?" / "This will be the active baseline once it's approved. Current version will be the available version until approval." with Cancel / Save baseline.
+- The diff logic that dialog carried moved out of the component into module-level `computeBaselineChanges(baselineSnapshot, currentMilestones, extraChanges)`, and `buildBaselineChangeRequest()` in the route assembles the same ChangeRequest payload, so the approvals detail (Project Info / Project Schedule / Cost / Revenue tables) is unchanged — the review simply happens in the Change Requests module instead of before saving.
+- Validations still gate the pop-up: the "Fix before saving the baseline" box keeps listing every blocker first, so nothing became saveable that wasn't before.
+- The schedule tab's `setCrDialogOpen` prop became `onRequestBaselineChange`, wired to `requestSaveBaselineChange`, so its approval-gated change path runs the same validation → confirm flow.
+- Verified in the preview: edit → Save baseline → the pop-up shows only the two lines above; confirming raises "New baseline sent for approval", switches the header to "Waiting for Approval", and the request appears in Change Requests with its Project Info detail (Name: ERP System Upgrade → ERP System Upgrade II).
+- Left as-is deliberately: the first baseline on an unlocked project still saves immediately (no approval involved), so the pop-up's approval wording would not apply there.
+
 ## 2026-11-04 — Change Plan Save baseline always clickable; validation dialog lists all errors incl. "No changes".
 
 ## 2026-11-04 — Trips tab: heading moved into the pinned period slot

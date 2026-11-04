@@ -12,7 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow } from "@/components/StyledTable";
-import { AlertTriangle, Phone, Mail, IdCard, CalendarDays, Briefcase, Building2, ChevronLeft, DeleteAction, MoreHorizontal, Pencil, Plus, Search, ToggleActive, Trash2 } from "@/lib/icons";
+import { AlertTriangle, Phone, Mail, IdCard, CalendarDays, Briefcase, Building2, ChevronLeft, DeleteAction, MoreHorizontal, Pencil, Plus, Search, ToggleActive, Trash2, X } from "@/lib/icons";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -61,7 +61,7 @@ function EmployeeDetails() {
  const employee = employees.find((e) => e.id === employeeId);
  const [tab, setTab] = useState("overview"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
  // The work calendar's own period: which view and which month, driven from the shared slot under the tab line.
- const [calView, setCalView] = useState<"monthly" | "yearly">("monthly"); const [calMonth, setCalMonth] = useState(9);
+ const [calView, setCalView] = useState<"monthly" | "yearly">("monthly"); const [calMonth, setCalMonth] = useState(9); const [warnClosed, setWarnClosed] = useState(false); useEffect(() => setWarnClosed(false), [year]);
  const [planField, setPlanField] = useState<PlanField | null>(null); const [editMonth, setEditMonth] = useState<{ month: string; field: PlanField } | null>(null); const [tripOpen, setTripOpen] = useState(false); const [leaveOpen, setLeaveOpen] = useState(false);
  const [taskQuery, setTaskQuery] = useState(""); const [taskProject, setTaskProject] = useState<string>(t.allProjects); const navigate = useNavigate(); const [deleteOpen, setDeleteOpen] = useState(false); const [toggleOpen, setToggleOpen] = useState(false);
  // Recharts generates different clip IDs on server vs client — render the donut only after mount.
@@ -165,7 +165,7 @@ function EmployeeDetails() {
     {overMonths.length > 0 && !warnClosed && (
      <div role="alert" className="mb-1.5 flex min-w-0 max-w-[55%] shrink items-center gap-2 rounded-lg border border-rag-red/40 bg-rag-red/10 py-1.5 pe-1.5 ps-3">
       <AlertTriangle className="h-4 w-4 shrink-0 text-rag-red" />
-      <div className="min-w-0 truncate text-sm" title={undefined}><span className="font-medium text-rag-red">{t.overUtil}</span><span className="text-muted-foreground"> — {t.overUtilDesc} </span><span className="font-medium text-foreground">{overMonths.map(monthLabel).join(", ")}</span></div>
+      <div className="min-w-0 truncate text-sm"><span className="font-medium text-rag-red">{t.overUtil}</span><span className="text-muted-foreground"> — {t.overUtilDesc} </span><span className="font-medium text-foreground">{overMonths.map(monthLabel).join(", ")}</span></div>
       <button type="button" aria-label={pl.close} onClick={() => setWarnClosed(true)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground"><X className="h-4 w-4" /></button>
      </div>
     )}

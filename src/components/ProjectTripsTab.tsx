@@ -61,7 +61,7 @@ export function ProjectTripsTab({ project, milestones }: { project: string; mile
         })}</StyledTableBody>
       </StyledTable>}
     <TripForm open={open} onClose={() => setOpen(false)} team={team} milestones={milestones} onSave={(ids, trip) => { addProjectTrip(ids, { ...trip, project }); setOpen(false); toast.success(t.added, { description: `${trip.city} · ${ids.length} ${t.travelers.toLowerCase()}` }); }} />
-    <ConfirmDeleteDialog open={!!del} onOpenChange={(o) => { if (!o) setDel(null); }} entity="trip" onConfirm={() => { if (del) { const g = trips.find((x) => x.key === del); if (g?.trip.groupId) removeTripGroup(project, g.trip.groupId); else g?.travelers.forEach((v) => removeTripGroup(project, del)); toast.success(t.removed); } setDel(null); }} />
+    {del && <ConfirmDeleteDialog label="trip" onCancel={() => setDel(null)} onConfirm={() => { const g = trips.find((x) => x.key === del); if (g) removeTripGroup(project, g.trip.groupId ?? g.trip.id); toast.success(t.removed); setDel(null); }} />}
   </section>;
 }
 

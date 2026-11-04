@@ -99,7 +99,7 @@ export function useEmployees() {
       travelerIds.forEach((id) => updateEmployee(id, (e) => ({ trips: [...e.trips, { ...trip, groupId, id: `trip-${crypto.randomUUID()}` }] })));
     },
     removeTripGroup: (project: string, groupId: string) =>
-      state.employees.forEach((e) => { if (e.trips.some((t) => t.groupId === groupId && t.project === project)) updateEmployee(e.id, (x) => ({ trips: x.trips.filter((t) => !(t.groupId === groupId && t.project === project)) })); }),
+      state.employees.forEach((e) => { if (e.trips.some((t) => (t.groupId ?? t.id) === groupId && t.project === project)) updateEmployee(e.id, (x) => ({ trips: x.trips.filter((t) => !((t.groupId ?? t.id) === groupId && t.project === project)) })); }),
     removeTrip: (id: string, tripId: string) =>
       updateEmployee(id, (e) => ({ trips: e.trips.filter((t) => t.id !== tripId) })),
     addLeave: (id: string, leave: Omit<EmployeeLeave, "id">) =>

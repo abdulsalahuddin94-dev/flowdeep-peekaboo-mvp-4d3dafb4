@@ -1,3 +1,9 @@
+## 2026-11-04 — Employee tabs: year stepper pinned to one spot
+- The `< year >` stepper now sits at the right end of the tabs row on every employee tab instead of appearing and disappearing per tab, so the date never jumps around between screens.
+- It stays enabled on the year-scoped tabs (Projects & allocation, Salary, Capacity, Trips) and renders dimmed/disabled on Employee Info and Assigned tasks, where the year is irrelevant.
+- On Projects & allocation the stepper drives the work calendar's year (stepping to 2027 moved the calendar to October 2027), while the calendar keeps its own month stepper — one date control per screen, one fixed position across screens.
+- Verified in the preview: identical x/y on all six tabs; dimmed only on Employee Info and Assigned tasks.
+
 ## 2026-11-04 — Employee tabs: one date control per screen
 - Projects & allocation no longer shows the tab-header year: the work calendar already carries its own month/year stepper, so the two date controls were stacked one above the other and repeated the same period.
 - The calendar's stepper stays fully bounded by the available years and rolls the year itself (December steps into January of the next year), so nothing was lost by dropping the header copy; the header year remains on Salary, Capacity and Trips, which have no control of their own.

@@ -292,7 +292,6 @@ function ProjectDetail() {
   const [finLinkItem, setFinLinkItem] = useState<string | undefined>(undefined);
   const [gateData, setGateData] = useState<GateStage[]>(INITIAL_GATE_DATA);
   const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>(cached?.changeRequests ?? []);
-  const [crDialogOpen, setCrDialogOpen] = useState(false);
   const [crApprovalDialogOpen, setCrApprovalDialogOpen] = useState(false);
   const [selectedCrForApproval, setSelectedCrForApproval] = useState<string | undefined>(undefined);
   const [selectedBaselineVersion, setSelectedBaselineVersion] = useState<string>("latest");
@@ -679,13 +678,32 @@ function ProjectDetail() {
     saveProjectBaseline();
   }
 
-  /** Gated Save baseline (Change Plan): reconciles both totals before the CR review. */
+  /** Builds the change request from the plan edits — the detail lives in Change Requests, not in a pre-save review. */
+  function buildBaselineChangeRequest(): ChangeRequest {
+    const changes = computeBaselineChanges(
+      projectBaselineVersions[projectBaselineVersions.length - 1]?.snapshot as Milestone[] | undefined,
+      milestones,
+      [...infoChanges, ...(editFinSnapshot ? diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }) : [])],
+    );
+    const crId = `CR-${String(Date.now()).slice(-6)}`;
+    return {
+      id: crId,
+      summary: `${changes.length} change${changes.length === 1 ? "" : "s"} to the project plan`,
+      changes: changes.map((c) => ({ field: `${c.item} · ${c.field}`, oldValue: c.oldValue, newValue: c.newValue })),
+      reason: "—",
+      submittedBy: "Current User",
+      createdAt: new Date().toISOString().split("T")[0],
+      status: "pending",
+    };
+  }
+
+  /** Gated Save baseline (Change Plan): reconciles both totals, then asks for confirmation. */
   function requestSaveBaselineChange() {
     const issues = planChangeCount === 0
       ? [{ key: "changes" as const, title: "No changes were made to the plan yet", project: 0, plan: 0, diff: 0 }, ...baselineIssues]
       : baselineIssues;
     if (issues.length > 0) { setValidationIssues(issues); setBaselineValidationOpen(true); return; }
-    setCrDialogOpen(true);
+    setPendingCrConfirm(buildBaselineChangeRequest());
   }
 
   // Publish this project's financial links so a linked item is excluded from
@@ -1364,19 +1382,6 @@ function ProjectDetail() {
             otherPending={Math.max(0, pendingApprovalCount - (pendingCr ? 1 : 0))}
             onWithdraw={withdrawPendingChange}
           />
-          {/* CR Dialog — reviewing changes here is the only review step; decisions happen in the Approvals module. */}
-          <ChangeRequestDialog
-            open={crDialogOpen}
-            onOpenChange={setCrDialogOpen}
-            baselineSnapshot={projectBaselineVersions[projectBaselineVersions.length - 1]?.snapshot as Milestone[] | undefined}
-            currentMilestones={milestones}
-            baselineVersion={projectBaselineVersions.length}
-            extraChanges={[...infoChanges, ...(editFinSnapshot ? diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }) : [])]}
-            onSubmit={(cr) => {
-              setCrDialogOpen(false);
-              setPendingCrConfirm(cr);
-            }}
-          />
 
           {/* Save-baseline reconciliations — both totals are checked together so the user sees every mismatch in one step. */}
           <ConfirmDialog
@@ -1428,14 +1433,14 @@ function ProjectDetail() {
             </div>
           </ConfirmDialog>
 
-          {/* Baseline save confirmation — shown right after Send for approval */}
+          {/* Baseline save confirmation — the only step between "Save baseline" and sending the request. */}
           <ConfirmDialog
             open={!!pendingCrConfirm}
             onOpenChange={(o) => { if (!o) setPendingCrConfirm(null); }}
             tone="info"
             title="Save a new baseline?"
-            description={`This will be the active baseline once it's approved by the responsible. V${projectBaselineVersions.length} stays available for view.`}
-            confirmLabel="Save"
+            description="This will be the active baseline once it's approved. Current version will be the available version until approval."
+            confirmLabel="Save baseline"
             cancelLabel="Cancel"
             onConfirm={() => { if (pendingCrConfirm) submitBaselineChange(pendingCrConfirm); }}
           />
@@ -1476,7 +1481,7 @@ function ProjectDetail() {
         setProjectBaselineVersions={setProjectBaselineVersions}
         milestones={milestones}
         resourceRequests={resourceRequests}
-        setCrDialogOpen={setCrDialogOpen}
+        onRequestBaselineChange={requestSaveBaselineChange}
         projectId={project.id}
         projectName={project.name}
         onSetProgress={(name, progress) =>

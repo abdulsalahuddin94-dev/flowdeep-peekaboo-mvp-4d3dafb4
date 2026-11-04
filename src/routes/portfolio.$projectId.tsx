@@ -99,13 +99,14 @@ export const Route = createFileRoute("/portfolio/$projectId")({
 });
 
 const TABS = [
-  "Overview", "Project Schedule", "Cost Breakdown", "Revenue Breakdown", "Risk & Issues", "Action Tracker", "Meetings", "Recent Activity", "Status Reports",
+  "Overview", "Project Schedule", "Cost Breakdown", "Revenue Breakdown", "Risk & Issues", "Action Tracker", "Meetings", "Trips", "Recent Activity", "Status Reports",
 ];
 /** Tabs covered by the baseline — the only ones shown while in Change Plan. */
 const FOCUS_TABS = ["Basic info", "Project Schedule", "Cost Breakdown", "Revenue Breakdown"];
 const T = { en: { basicInfo: "Basic info" }, ar: { basicInfo: "البيانات الأساسية" } };
 /** In-memory plan state per project, so it survives visits to Approvals / Edit project. */
 import { PLAN_CACHE } from "@/lib/plan-cache";
+import { ProjectTripsTab } from "@/components/ProjectTripsTab";
 import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/plan-seeds";
 import { CollapseAllToggle } from "@/components/CollapseAllToggle";
 import { money, toDollarInput, fromDollarInput } from "@/lib/money";
@@ -1332,6 +1333,9 @@ function ProjectDetail() {
 
         <TabsContent value="Meetings" className="mt-5">
           <MeetingsTab project={project.name} />
+        </TabsContent>
+        <TabsContent value="Trips" className="mt-5">
+          <ProjectTripsTab project={project.name} milestones={milestones.filter((m) => m.kind === "Milestone").map((m) => m.name)} />
         </TabsContent>
         <TabsContent value="Recent Activity" className="mt-5">
           <RecentActivityTab project={project.name} />

@@ -96,3 +96,5 @@
 ## Current
 - [x] Employees table: Status column with hover Delete/Edit/Activate-Deactivate, Employee Number column, department under name (2026-10-29)
 - [x] Employee profile: show the Year selector only on the year-driven tabs (allocation, salary, capacity, trips) and drop the duplicate inline year labels; verify and log.
+
+- [ ] Employee profile header: match reference design (keep our badges/tags)

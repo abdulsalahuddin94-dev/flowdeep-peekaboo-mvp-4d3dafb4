@@ -118,17 +118,16 @@ export function MultiSelectField({
       <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-0">
         <div className="max-h-64 overflow-y-auto p-1">
           {options.map((o) => (
-            <button
+            <div
               key={o.value}
-              type="button"
               role="option"
               aria-selected={value.includes(o.value)}
               onClick={() => toggle(o.value)}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/60"
+              className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60"
             >
-              <Checkbox checked={value.includes(o.value)} className="pointer-events-none rounded-[4px]" />
+              <Checkbox checked={value.includes(o.value)} tabIndex={-1} className="pointer-events-none rounded-[4px]" />
               <span className="flex-1 truncate">{o.label}</span>
-            </button>
+            </div>
           ))}
         </div>
         <div className="flex items-center justify-between border-t border-border px-2 py-1.5">

@@ -293,6 +293,7 @@ function ChangeRequestReviewPage() {
         description={`${approval.title} · ${approval.projectName}`}
         submitLabel={mode === "approve" ? "Approve" : "Reject"}
         onSubmit={confirmDecision}
+        submitDisabled={mode === "approve" && conflictItems.length > 0}
       >
         <div className="rounded-md border border-border bg-secondary/20 px-4 py-3">
           <div className="text-sm font-medium text-foreground">{approval.title}</div>

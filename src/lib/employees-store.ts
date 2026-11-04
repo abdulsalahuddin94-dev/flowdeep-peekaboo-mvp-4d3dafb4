@@ -40,6 +40,7 @@ const initialEmployees: Employee[] = resources.map((r, i) => {
   if (!names.length) names.push(...r.projects);
   const base = salaries[i] ?? 10000;
   return { ...r, id: `EMP-${String(i + 1).padStart(3, "0")}`, projects: names, email: `${r.name.toLowerCase().replace(/[^a-z ]/g, "").trim().replace(/\s+/g, ".")}@company.com`, salary: base, capacity: DEFAULT_MONTHLY_CAPACITY, employmentTypeId: types[i % 3]?.id ?? "ET-1", joinedOn: "2025-01-01", tasks: taskNames[i] ?? [], vacationEntitlement: 24, demo: true,
+    employeeNumber: String(8123456 - i * 100000), active: true,
     monthly: seedMonthly(i, base),
     trips: seedTrips(i),
     allocations: names.map((project, j) => ({ id: `seed-${i}-${j}`, project, role: r.role, percent: j === 0 && names.length > 1 ? Math.round(r.util * .6) : names.length > 1 ? r.util - Math.round(r.util * .6) : r.util, from: "2026-01", until: "2026-12", task: taskNames[i]?.[j] })),

@@ -68,7 +68,8 @@ function EmployeeDetails() {
  const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
  const years = Array.from(new Set(["2025", "2026", "2027", employee.joinedOn.slice(0, 4), ...employee.allocations.flatMap((a) => [a.from.slice(0, 4), a.until.slice(0, 4)]).filter(Boolean)])).sort();
  // The year only drives the month-by-month and dated registers; identity data and the task list are not scoped to a year.
- const showYear = tab === "allocation" || tab === "salary" || tab === "capacity" || tab === "trips";
+ // The work calendar owns its own month/year stepper, so the header year would just repeat it on that tab.
+ const showYear = tab === "salary" || tab === "capacity" || tab === "trips";
 
  const overMonths = months.filter((m) => employeeMonth(employee, m).effectiveUtilization > 100);
  const requestTasks = resourceRequests.filter((r) => r.status === "Fulfilled" && r.assignedTo === employee.name && r.task).map((r) => ({ task: r.task ?? "", project: r.project, period: `${monthLabel(r.from)} → ${monthLabel(r.until)}` }));

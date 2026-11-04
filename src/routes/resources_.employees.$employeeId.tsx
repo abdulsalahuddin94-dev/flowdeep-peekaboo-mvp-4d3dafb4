@@ -68,8 +68,8 @@ function EmployeeDetails() {
  const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
  const years = Array.from(new Set(["2025", "2026", "2027", employee.joinedOn.slice(0, 4), ...employee.allocations.flatMap((a) => [a.from.slice(0, 4), a.until.slice(0, 4)]).filter(Boolean)])).sort();
  // The year only drives the month-by-month and dated registers; identity data and the task list are not scoped to a year.
- // The stepper keeps one fixed spot at the end of the tabs row on every tab — disabled where the year is irrelevant.
- const yearScoped = tab === "allocation" || tab === "salary" || tab === "capacity" || tab === "trips";
+ // The work calendar owns its own month/year stepper, so the header year would just repeat it on that tab.
+ const showYear = tab === "salary" || tab === "capacity" || tab === "trips";
 
  const overMonths = months.filter((m) => employeeMonth(employee, m).effectiveUtilization > 100);
  const requestTasks = resourceRequests.filter((r) => r.status === "Fulfilled" && r.assignedTo === employee.name && r.task).map((r) => ({ task: r.task ?? "", project: r.project, period: `${monthLabel(r.from)} → ${monthLabel(r.until)}` }));
@@ -144,13 +144,13 @@ function EmployeeDetails() {
    </div>
   )}
   <Tabs value={tab} onValueChange={setTab} className="min-w-0 space-y-7">
-   <div className="grid min-w-0 grid-cols-1 items-end gap-4 border-b border-border xl:grid-cols-[minmax(0,1fr)_auto]">
+   <div className={`grid min-w-0 grid-cols-1 items-end gap-4 border-b border-border ${showYear ? "xl:grid-cols-[minmax(0,1fr)_auto]" : ""}`}>
     <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible border-b-0">{([["overview", t.overview], ["allocation", t.allocation], ["tasks", t.tasks], ["salary", t.salaryTab], ["capacity", t.capacityTab], ["trips", t.tripsTab]] as const).map(([value, label]) => <TabsTrigger key={value} value={value} className="shrink-0 px-0">{label}</TabsTrigger>)}</TabsList>
-    {(() => { const yi = years.indexOf(year); const go = (y: string) => { setYear(y); setSelectedMonth(`${y}-${selectedMonth.slice(5)}`); }; const off = !yearScoped; return (
-      <div className={`flex h-10 shrink-0 items-center gap-2 ${off ? "pointer-events-none opacity-30" : ""}`} role="group" aria-label={t.year} aria-hidden={off || undefined}>
-      <button type="button" aria-label={t.year} disabled={off || yi <= 0} onClick={() => go(years[yi - 1])} className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"><ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden /></button>
+    {showYear && (() => { const yi = years.indexOf(year); const go = (y: string) => { setYear(y); setSelectedMonth(`${y}-${selectedMonth.slice(5)}`); }; return (
+     <div className="flex h-10 shrink-0 items-center gap-2" role="group" aria-label={t.year}>
+      <button type="button" aria-label={t.year} disabled={yi <= 0} onClick={() => go(years[yi - 1])} className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"><ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden /></button>
       <span className="min-w-12 text-center text-sm font-semibold tabular-nums">{year}</span>
-      <button type="button" aria-label={t.year} disabled={off || yi >= years.length - 1} onClick={() => go(years[yi + 1])} className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"><ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden /></button>
+      <button type="button" aria-label={t.year} disabled={yi >= years.length - 1} onClick={() => go(years[yi + 1])} className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"><ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden /></button>
      </div>
     ); })()}
 

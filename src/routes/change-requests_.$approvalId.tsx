@@ -28,6 +28,7 @@ import { CostBreakdownTable, RevenuePlanTable, type CostEntry, type Milestone, t
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
+import { deletedItemsWithLateActuals, DELETED_ITEM_CONFLICT } from "@/lib/cr-conflicts";
 
 export const Route = createFileRoute("/change-requests_/$approvalId")({
   component: ChangeRequestReviewPage,
@@ -143,8 +144,12 @@ function ChangeRequestReviewPage() {
     setDecisionOpen(true);
   }
 
+  const removedItems = sectionChanges.schedule.filter((c) => c.field === "Item" && c.after === "Removed").map((c) => c.item);
+  const conflictItems = isPending ? deletedItemsWithLateActuals(removedItems, approval.requestedAt, costEntries, revEntries) : [];
+
   function confirmDecision() {
     if (!approval) return;
+    if (mode === "approve" && conflictItems.length > 0) return;
     if (mode === "reject" && !comment.trim()) {
       setCommentError("A comment is required when rejecting.");
       return;
@@ -293,6 +298,13 @@ function ChangeRequestReviewPage() {
           <div className="text-sm font-medium text-foreground">{approval.title}</div>
           <div className="mt-1 text-xs text-muted-foreground">{approval.projectName}</div>
         </div>
+        {mode === "approve" && conflictItems.length > 0 && (
+          <div role="alert" className="rounded-md border border-rag-red/40 bg-rag-red/10 px-4 py-3">
+            <div className="text-sm font-medium text-rag-red">Approval blocked</div>
+            <p className="mt-1 text-sm text-foreground">{DELETED_ITEM_CONFLICT}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Affected items: {conflictItems.join(", ")}</p>
+          </div>
+        )}
         <Field label="Comment" htmlFor="cr-comment" required={mode === "reject"} error={commentError}>
           <Textarea
             id="cr-comment"

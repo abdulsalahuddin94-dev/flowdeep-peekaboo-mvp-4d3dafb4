@@ -165,7 +165,7 @@ function EmployeeDetails() {
    </div>
    {showPeriod && (
     <div className="flex min-h-9 items-center justify-between gap-3">
-     {tab === "allocation" ? <h2 className="text-base font-semibold">{pl.workCalendar}</h2> : <span aria-hidden />}
+     {tab === "allocation" ? <h2 className="text-base font-semibold">{pl.workCalendar}</h2> : tab === "trips" ? <h2 className="text-base font-semibold">{t.tripsTab}</h2> : <span aria-hidden />}
      <div className="flex items-center gap-4">
       {tab === "allocation" && <ViewToggle view={calView} onView={setCalView} labels={{ monthly: pl.monthly, yearly: pl.yearly }} />}
       <PeriodStepper label={periodLabel} onPrev={() => stepPeriod(-1)} onNext={() => stepPeriod(1)} prevDisabled={!canPrev} nextDisabled={!canNext} prevLabel={pl.previous} nextLabel={pl.next} />
@@ -254,8 +254,7 @@ function EmployeeDetails() {
      />
     </section>
    </TabsContent>
-   <TabsContent value="trips" className="mt-0 space-y-5">
-    <div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.tripsTab}</h2></div>
+   <TabsContent value="trips" className="mt-0 min-w-0">
     <DataTable
      headers={[t.project, t.country, t.city, t.travel, t.tripWork, t.tickets, t.visa, t.perDiem, t.tripTotal]}
      rows={employee.trips.filter((trip) => trip.from.startsWith(year) || trip.until.startsWith(year)).map((trip) => [

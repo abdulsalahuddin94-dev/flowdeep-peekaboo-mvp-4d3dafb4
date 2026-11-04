@@ -109,12 +109,23 @@ function EmployeeDetails() {
      </DropdownMenu>
     }
    />
-   <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4">
-    <Avatar className="h-16 w-16 shrink-0">{employee.avatar ? <AvatarImage src={employee.avatar} alt={employee.name} /> : null}<AvatarFallback className="bg-accent-dim text-xl font-medium text-accent">{employee.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback></Avatar>
-    <div className="min-w-0 space-y-2">
-     <div className="flex flex-wrap items-center gap-x-4 gap-y-2"><h1 className="break-words text-2xl font-semibold text-foreground">{employee.name}</h1><div className="flex flex-wrap items-center gap-2"><Badge variant={employee.active !== false ? "outline" : "secondary"} className={employee.active !== false ? "border-rag-green/50 bg-rag-green/10 text-rag-green" : "text-muted-foreground"}>{employee.active !== false ? th.active : th.inactive}</Badge>{employee.demo && <Badge variant="secondary">{t.demo}</Badge>}</div></div>
-     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground"><span>{employee.role}</span><span aria-hidden="true">·</span><span>{employee.dept}</span></div>
+   <header className="glass-card space-y-5 p-5">
+    <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-5">
+     <Avatar className="h-20 w-20 shrink-0">{employee.avatar ? <AvatarImage src={employee.avatar} alt={employee.name} /> : null}<AvatarFallback className="bg-accent-dim text-2xl font-medium text-accent">{employee.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback></Avatar>
+     <div className="min-w-0 space-y-2">
+      <h1 className="break-words text-lg font-semibold text-foreground">{employee.name}{employee.shortName ? ` - (${employee.shortName})` : ""}</h1>
+      <p className="text-sm text-muted-foreground">{employee.role}</p>
+      <div className="flex flex-wrap items-center gap-2">
+       <Badge variant="secondary" className="gap-2"><CalendarDays className="h-4 w-4" aria-hidden />{t.capacity}<span className="num-mono font-semibold text-foreground">{monthly.availableCapacity}h</span></Badge>
+       {(employee.tags ?? []).map((tag) => <Badge key={tag} variant="outline">{tag}</Badge>)}
+       {employee.demo && <Badge variant="secondary">{t.demo}</Badge>}
+      </div>
+     </div>
+     <Badge variant={employee.active !== false ? "outline" : "secondary"} className={employee.active !== false ? "border-rag-green/50 bg-rag-green/10 text-rag-green" : "text-muted-foreground"}>{employee.active !== false ? th.active : th.inactive}</Badge>
     </div>
+    <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+     {[[t.department, employee.dept], [t.id, employee.employeeNumber ? `#${employee.employeeNumber}` : "—"], [th.gender, employee.gender ?? "—"], [th.age, employee.birthDate ? `${Math.floor((Date.now() - new Date(employee.birthDate).getTime()) / 31557600000)} ${th.years}` : "—"]].map(([label, value]) => <div key={label} className="rounded-lg bg-muted/30 px-4 py-3"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 text-sm text-accent">{value}</dd></div>)}
+    </dl>
    </header>
   </div>
   <dl className="glass-card grid items-stretch p-0 sm:grid-cols-2 xl:grid-cols-5">

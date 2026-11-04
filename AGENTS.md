@@ -23,3 +23,5 @@
 - Standalone record pages share RecordPageHeader for contextual list back links or project breadcrumbs and shared form CTA labels; retain full-width DS02 form surfaces so field contrast stays consistent without narrow popup-style width caps.
 - Project record breadcrumbs include a section link carrying the project tab and riskTab selection; this returns users to the correct register rather than the project overview.
 - Reuse the action creation form in ActionAddDialog for toolbar and linked-record quick adds; keep Action details standalone to avoid stacked edit/update dialogs.
+
+- Tailwind v4 arbitrary custom properties must be written `w-[var(--x)]` or `w-(--x)`; the legacy `w-[--x]` form compiles to nothing and silently drops the style (this is what made a popover ignore its trigger width).

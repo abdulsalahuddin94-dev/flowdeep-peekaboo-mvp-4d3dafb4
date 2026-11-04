@@ -88,7 +88,7 @@ function TripForm({ open, onClose, team, milestones, onSave }: { open: boolean; 
   const cost = (k: "ticketsCost" | "visaCost" | "perDiemCost", label: string) => <Field label={`${label} (USD)`} htmlFor={`pt-${k}`}><Input id={`pt-${k}`} type="number" min={0} placeholder="0" value={f[k]} onChange={(e) => set(k, e.target.value)} /></Field>;
   const shown = team.filter((m) => m.name.toLowerCase().includes(q.toLowerCase()));
   return <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-    <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-[620px]">
+    <SheetContent side="right" className="flex flex-col gap-0 p-0">
       <SheetHeader className="border-b border-border px-6 py-5"><SheetTitle>{t.add}</SheetTitle></SheetHeader>
       <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
       <Field label={`${t.travelers}${ids.length ? ` · ${ids.length} ${t.selected}` : ""}`} required error={errors.travelers}>

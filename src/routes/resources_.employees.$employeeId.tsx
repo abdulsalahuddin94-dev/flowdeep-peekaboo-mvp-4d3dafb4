@@ -38,8 +38,8 @@ export const T = {
 const t = T.en;
 // Header labels for the employee detail page (kept out of the long base rows above).
 const H = {
-  en: { pageTitle: "Employee Details", backToEmployees: "Back to Employees", actions: "Employee actions", edit: "Edit", activate: "Activate", deactivate: "Deactivate", del: "Delete", active: "Active", inactive: "Inactive", sureToggle: "Are you sure?" },
-  ar: { pageTitle: "بيانات الموظف", backToEmployees: "العودة إلى الموظفين", actions: "إجراءات الموظف", edit: "تعديل", activate: "تنشيط", deactivate: "إلغاء التنشيط", del: "حذف", active: "نشط", inactive: "غير نشط", sureToggle: "هل أنت متأكد؟" },
+  en: { pageTitle: "Employee Details", gender: "Gender", age: "Age", years: "Years old", backToEmployees: "Back to Employees", actions: "Employee actions", edit: "Edit", activate: "Activate", deactivate: "Deactivate", del: "Delete", active: "Active", inactive: "Inactive", sureToggle: "Are you sure?" },
+  ar: { pageTitle: "بيانات الموظف", gender: "النوع", age: "العمر", years: "سنة", backToEmployees: "العودة إلى الموظفين", actions: "إجراءات الموظف", edit: "تعديل", activate: "تنشيط", deactivate: "إلغاء التنشيط", del: "حذف", active: "نشط", inactive: "غير نشط", sureToggle: "هل أنت متأكد؟" },
 };
 const th = H.en;
 const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(n);

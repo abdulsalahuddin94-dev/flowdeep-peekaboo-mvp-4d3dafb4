@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 /** One dated piece of work for the employee: a task inside a project milestone. */
 export type WorkEntry = { project: string; milestone: string; task: string; from: string; until: string };
 export type CalendarLeave = { from: string; until: string; label: string };
+/** Allocation span — supplies each project's share shown next to its name. */
+export type WorkAllocation = { project: string; percent: number; from: string; until: string };
 
 const chipColors = ["bg-accent/40 text-foreground", "bg-rag-blue/40 text-foreground", "bg-rag-green/40 text-foreground", "bg-rag-amber/40 text-foreground", "bg-accent-secondary/40 text-foreground"];
 
@@ -27,7 +29,7 @@ function Detail({ items }: { items: WorkEntry[] }) {
   </div>;
 }
 
-export function EmployeeWorkCalendar({ entries, leave, year, years, onYearChange }: { entries: WorkEntry[]; leave: CalendarLeave[]; year: string; years: string[]; onYearChange: (y: string) => void }) {
+export function EmployeeWorkCalendar({ entries, leave, allocations, year, years, onYearChange }: { entries: WorkEntry[]; leave: CalendarLeave[]; allocations: WorkAllocation[]; year: string; years: string[]; onYearChange: (y: string) => void }) {
   const [view, setView] = useState<"monthly" | "yearly">("monthly");
   const [month, setMonth] = useState(9);
   const projects = useMemo(() => Array.from(new Set(entries.map((e) => e.project))), [entries]);
@@ -45,6 +47,11 @@ export function EmployeeWorkCalendar({ entries, leave, year, years, onYearChange
   const prevDisabled = view === "yearly" ? y <= minYear : y <= minYear && month === 0;
   const nextDisabled = view === "yearly" ? y >= maxYear : y >= maxYear && month === 11;
   const periodLabel = view === "yearly" ? year : new Date(y, month, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const periodKey = view === "yearly" ? year : `${y}-${String(month + 1).padStart(2, "0")}`;
+  // The share shown beside a project name must match the period currently on screen.
+  const percentOf = (p: string) => allocations
+    .filter((a) => a.project === p && (view === "yearly" ? a.from.slice(0, 4) <= year && a.until.slice(0, 4) >= year : a.from <= periodKey && a.until >= periodKey))
+    .reduce((sum, a) => sum + a.percent, 0);
 
   const byProject = (list: WorkEntry[]) => projects.map((p) => ({ project: p, items: list.filter((e) => e.project === p) })).filter((g) => g.items.length);
 
@@ -63,7 +70,7 @@ export function EmployeeWorkCalendar({ entries, leave, year, years, onYearChange
       </div>
     </div>
     <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-      {projects.map((p) => <span key={p} className="inline-flex items-center gap-2"><span className={cn("h-3 w-3 rounded-full", color(p).split(" ")[0])} />{p}</span>)}
+      {projects.map((p) => { const pct = percentOf(p); return <span key={p} className="inline-flex items-center gap-2"><span className={cn("h-3 w-3 rounded-full", color(p).split(" ")[0])} />{p}{pct > 0 && <span className="num-mono font-semibold text-foreground">{pct}%</span>}</span>; })}
       <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-muted" />{l.leave}</span>
       <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-muted/30" />{l.weekend}</span>
     </div>

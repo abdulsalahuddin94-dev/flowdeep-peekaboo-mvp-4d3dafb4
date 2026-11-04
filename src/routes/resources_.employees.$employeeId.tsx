@@ -157,13 +157,9 @@ function EmployeeDetails() {
    <TabsContent value="overview" className="mt-0 min-w-0">
     <section className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm"><dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">{profile.map(([label, value, Ic]) => <div key={label} className="flex min-w-0 items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-primary"><Ic className="h-5 w-5" /></span><div className="min-w-0"><dt className="text-sm text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-semibold text-foreground">{value}</dd></div></div>)}</dl></section>
    </TabsContent>
-   <TabsContent value="allocation" className="mt-0 space-y-8">
-    <section className="min-w-0">
-     <h2 className="mb-5 text-base font-semibold">{t.projects}</h2>
-     <DataTable headers={[t.project, t.role, t.period, t.allocation]} rows={employee.allocations.map((a) => [projectLink(a.project), a.role, `${monthLabel(a.from)} → ${monthLabel(a.until)}`, `${a.percent}%`])} />
-    </section>
-    <EmployeeWorkCalendar entries={workEntries} leave={calendarLeave} year={year} years={years} onYearChange={setYear} />
-   </TabsContent>
+    <TabsContent value="allocation" className="mt-0">
+     <EmployeeWorkCalendar entries={workEntries} leave={calendarLeave} allocations={employee.allocations} year={year} years={years} onYearChange={setYear} />
+    </TabsContent>
    <TabsContent value="tasks" className="mt-0 space-y-5">
     <div className="flex flex-wrap items-center gap-3">
      <div className="relative w-full max-w-xs"><Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input aria-label={t.searchTasks} placeholder={t.searchTasks} value={taskQuery} onChange={(e) => setTaskQuery(e.target.value)} className="ps-9" /></div>

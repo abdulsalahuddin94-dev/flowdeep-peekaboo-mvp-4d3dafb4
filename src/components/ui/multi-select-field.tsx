@@ -1,6 +1,8 @@
 import * as React from "react";
-import { Check, ChevronDown, X } from "@/lib/icons";
+import { ChevronDown, X } from "@/lib/icons";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export interface MultiSelectOption {
@@ -113,22 +115,25 @@ export function MultiSelectField({
           <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[--radix-popover-trigger-width] p-1">
-        <div className="max-h-60 overflow-y-auto">
-          {options.map((o) => {
-            const active = value.includes(o.value);
-            return (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => toggle(o.value)}
-                className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm hover:bg-secondary/60"
-              >
-                <span>{o.label}</span>
-                {active ? <Check className="h-4 w-4 text-accent" /> : null}
-              </button>
-            );
-          })}
+      <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-0">
+        <div className="max-h-64 overflow-y-auto p-1">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              role="option"
+              aria-selected={value.includes(o.value)}
+              onClick={() => toggle(o.value)}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted/60"
+            >
+              <Checkbox checked={value.includes(o.value)} className="pointer-events-none rounded-[4px]" />
+              <span className="flex-1 truncate">{o.label}</span>
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center justify-between border-t border-border px-2 py-1.5">
+          <span className="text-[11px] text-muted-foreground">{value.length} selected</span>
+          <Button variant="ghost" size="sm" onClick={() => onChange([])} disabled={value.length === 0}>Clear all</Button>
         </div>
       </PopoverContent>
     </Popover>

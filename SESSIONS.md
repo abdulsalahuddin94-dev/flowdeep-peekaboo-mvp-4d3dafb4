@@ -1,3 +1,9 @@
+## 2026-11-04 — Add Employee image placeholder & hover delete; Employee profile breadcrumb
+- Add Employee (`/resources/employees/new`) profile picture now uses the DS02 empty-image placeholder — a grey disc with a light person silhouette (new `--avatar-placeholder-bg` / `--avatar-placeholder-fg` tokens, 116px circle) — and the trigger keeps the vuesax/linear `Export` icon in lavender beside the "Click to Upload" label.
+- Once a photo is uploaded, hovering the circle blurs and dims it (`blur(7px)` + `brightness(.45)`) and reveals a centered coral-red trash icon (`text-destructive`, Iconsax Trash) that clears the photo and restores the placeholder.
+- Employee profile (`/resources/employees/$employeeId`) drops the filled back button for the shared breadcrumb pattern: `Resources › Employees › <name>` in `text-breadcrumb-muted`, current name in `text-breadcrumb-current`; the "employee not found" case uses the plain back link too.
+- Browser-verified: disc fill `rgb(212,212,212)` with white silhouette, hover filter `blur(7px) brightness(0.45)` with delete opacity 1 and color `rgb(255,104,103)`, removal restores the placeholder, breadcrumb renders as text links (no pill).
+
 ## 2026-11-04 — Employees Table: Related Projects replaces Capacity
 - In the Resources > People table, dropped the `Capacity / mo` column and put `Related Projects` in its place.
 - The cell uses the shared `RelatedProjectsCount`, so it shows the employee's project count and opens the standard DS02 Related Projects popup with each project's name and ID.

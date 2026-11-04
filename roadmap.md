@@ -91,4 +91,4 @@
 
 - [x] Add the item type column to the Project Schedule changes table only (baseline popup and approval review).
 - [x] Profit Share donut: Top 6 + Others with all-types dialog and demo data.
-- [ ] Employee profile: replace the lavender pill back button with the standard plain back link + breadcrumb used on other record pages; verify and log.
+- [x] Employee profile: replace the lavender pill back button with the standard plain back link + breadcrumb used on other record pages; verify and log.

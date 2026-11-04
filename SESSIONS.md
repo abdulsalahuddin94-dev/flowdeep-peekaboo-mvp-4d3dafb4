@@ -1,3 +1,7 @@
+## 2026-11-04 — Employee profile: Year stepper replaces the dropdown
+- The Year selector in the employee profile tab row is now a chevron stepper (`‹ 2026 ›`) instead of a dropdown: round ghost buttons step through the available years, the current year sits centered in bold tabular numerals, and the arrows disable at the first/last year. RTL flips the chevrons.
+- Browser-verified on the Salary tab: stepping next goes 2026 → 2027 and prev twice returns to 2025; typecheck clean.
+
 ## 2026-11-04 — Employee profile: Year selector only where the year applies
 - The Year dropdown in the employee profile tab row now renders only on the tabs whose data is scoped to a year — Projects & allocation, Salary, Capacity and Trips — and is hidden on Employee Info (static identity fields) and Assigned tasks (task list is not year-filtered).
 - Removed the duplicated inline year text that repeated the selector inside the Salary toolbar ("Year 2026") and the Capacity heading ("Capacity · 2026"); the selector in the tab row is the single source.

@@ -1,3 +1,8 @@
+## 2026-11-04 — Employee profile: Year selector only where the year applies
+- The Year dropdown in the employee profile tab row now renders only on the tabs whose data is scoped to a year — Projects & allocation, Salary, Capacity and Trips — and is hidden on Employee Info (static identity fields) and Assigned tasks (task list is not year-filtered).
+- Removed the duplicated inline year text that repeated the selector inside the Salary toolbar ("Year 2026") and the Capacity heading ("Capacity · 2026"); the selector in the tab row is the single source.
+- Browser-verified: the Year control is present on the four dated tabs and absent on Employee Info and Assigned tasks; typecheck clean.
+
 ## 2026-11-04 — Employees Table: Status column, hover actions, Employee Number
 - The Employees table (`Resources → Employees`) reworked like the Organization tables: new `Employee Number` column (`#8123456` style) and the department name shown under the employee name in smaller text; the standalone Department column dropped.
 - New final `Status` column (Active / Inactive pill) that swaps on row hover to the three row actions: Edit, Activate/Deactivate and Delete — matching `TableRowActions` from Organization.

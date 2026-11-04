@@ -55,6 +55,9 @@ function EmployeeDetails() {
  const utilTone = monthly.effectiveUtilization > 100 ? "text-rag-red" : monthly.effectiveUtilization > 90 ? "text-rag-amber" : "text-accent";
  const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
  const years = Array.from(new Set(["2025", "2026", "2027", employee.joinedOn.slice(0, 4), ...employee.allocations.flatMap((a) => [a.from.slice(0, 4), a.until.slice(0, 4)]).filter(Boolean)])).sort();
+ // The year only drives the month-by-month and dated registers; identity data and the task list are not scoped to a year.
+ const showYear = tab === "allocation" || tab === "salary" || tab === "capacity" || tab === "trips";
+
  const overMonths = months.filter((m) => employeeMonth(employee, m).effectiveUtilization > 100);
  const requestTasks = resourceRequests.filter((r) => r.status === "Fulfilled" && r.assignedTo === employee.name && r.task).map((r) => ({ task: r.task ?? "", project: r.project, period: `${monthLabel(r.from)} → ${monthLabel(r.until)}` }));
  const assignmentTasks = employee.allocations.filter((a) => a.task).map((a) => ({ task: a.task ?? "", project: a.project, period: `${monthLabel(a.from)} → ${monthLabel(a.until)}` }));
@@ -101,9 +104,10 @@ function EmployeeDetails() {
    </div>
   )}
   <Tabs value={tab} onValueChange={setTab} className="min-w-0 space-y-7">
-   <div className="grid min-w-0 grid-cols-1 items-end gap-4 xl:grid-cols-[minmax(0,1fr)_auto]">
+   <div className={`grid min-w-0 grid-cols-1 items-end gap-4 ${showYear ? "xl:grid-cols-[minmax(0,1fr)_auto]" : ""}`}>
     <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible">{([["overview", t.overview], ["allocation", t.allocation], ["tasks", t.tasks], ["salary", t.salaryTab], ["capacity", t.capacityTab], ["trips", t.tripsTab]] as const).map(([value, label]) => <TabsTrigger key={value} value={value} className="shrink-0 px-0">{label}</TabsTrigger>)}</TabsList>
-    <div className="flex shrink-0 items-center gap-3 xl:pb-1"><span className="text-xs text-muted-foreground">{t.year}</span><Select value={year} onValueChange={(v) => { setYear(v); setSelectedMonth(`${v}-${selectedMonth.slice(5)}`); }}><SelectTrigger aria-label={t.year} className="w-28"><SelectValue /></SelectTrigger><SelectContent>{years.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select></div>
+    {showYear && <div className="flex shrink-0 items-center gap-3 xl:pb-1"><span className="text-xs text-muted-foreground">{t.year}</span><Select value={year} onValueChange={(v) => { setYear(v); setSelectedMonth(`${v}-${selectedMonth.slice(5)}`); }}><SelectTrigger aria-label={t.year} className="w-28"><SelectValue /></SelectTrigger><SelectContent>{years.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent></Select></div>}
+
    </div>
    <TabsContent value="overview" className="mt-0 min-w-0">
     <section className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm"><dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">{profile.map(([label, value, Ic]) => <div key={label} className="flex min-w-0 items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-primary"><Ic className="h-5 w-5" /></span><div className="min-w-0"><dt className="text-sm text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-semibold text-foreground">{value}</dd></div></div>)}</dl></section>
@@ -150,7 +154,7 @@ function EmployeeDetails() {
        </div>
       </div>
      )}
-    <div className="flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">{t.year} {year}</span><Button size="sm" variant="primary" onClick={() => setPlanField("salary")}><Plus className="mr-1 h-4 w-4" />{t.setPlan}</Button></div>
+    <div className="flex items-center justify-end gap-3"><Button size="sm" variant="primary" onClick={() => setPlanField("salary")}><Plus className="mr-1 h-4 w-4" />{t.setPlan}</Button></div>
     <DataTable
      headers={[t.month, t.monthly, t.projectCost, t.overhead, ""]}
      onRowClick={(i) => { const m = months[i]; setSelectedMonth(m); setSalaryMonth(m); }}
@@ -166,7 +170,7 @@ function EmployeeDetails() {
    <TabsContent value="capacity" className="mt-0 space-y-8">
     <div className="grid grid-cols-3 gap-3"><KpiCard label={t.entitlement} value={`${vacation.entitlement}d`} /><KpiCard label={t.leaveUsed} value={`${vacation.used}d`} /><KpiCard label={t.balance} value={`${vacation.remaining}d`} accent="teal" /></div>
     <section className="min-w-0 space-y-5">
-     <div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.capacityTab} · {year}</h2><Button size="sm" variant="primary" onClick={() => setPlanField("capacity")}><Plus className="mr-1 h-4 w-4" />{t.setCapacity}</Button></div>
+     <div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.capacityTab}</h2><Button size="sm" variant="primary" onClick={() => setPlanField("capacity")}><Plus className="mr-1 h-4 w-4" />{t.setCapacity}</Button></div>
      <DataTable
       headers={[t.month, t.capacity, t.absence, t.available, t.assignedHours, t.utilization, ""]}
       onRowClick={(i) => setSelectedMonth(months[i])}

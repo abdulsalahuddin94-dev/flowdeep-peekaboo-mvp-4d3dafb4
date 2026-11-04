@@ -9,7 +9,7 @@ export type EmployeeLeave = { id: string; type: "Leave" | "Partial"; from: strin
 export type EmployeeTrip = { id: string; country: string; city: string; from: string; until: string; workFrom: string; workUntil: string; days: number; ticketsCost: number; visaCost: number; perDiemCost: number };
 /** Per-month overrides keyed by "YYYY-MM"; months without an entry fall back to the employee's base salary/capacity. */
 export type EmployeeMonthPlan = { salary?: number; capacity?: number };
-export type Employee = { id: string; name: string; role: string; dept: string; email: string; salary: number; capacity: number; util: number; employmentTypeId: string; joinedOn: string; projects: string[]; tasks: string[]; allocations: EmployeeAllocation[]; leave: EmployeeLeave[]; trips: EmployeeTrip[]; monthly: Record<string, EmployeeMonthPlan>; vacationEntitlement: number; demo: boolean };
+export type Employee = { id: string; name: string; role: string; dept: string; email: string; salary: number; capacity: number; util: number; employmentTypeId: string; joinedOn: string; projects: string[]; tasks: string[]; allocations: EmployeeAllocation[]; leave: EmployeeLeave[]; trips: EmployeeTrip[]; monthly: Record<string, EmployeeMonthPlan>; vacationEntitlement: number; demo: boolean; shortName?: string; employeeNumber?: string; nationalId?: string; phone?: string; birthDate?: string; gender?: string; tags?: string[]; avatar?: string };
 
 /** Default monthly capacity in hours when nothing is set (≈ 40h/week). */
 export const DEFAULT_MONTHLY_CAPACITY = 160;

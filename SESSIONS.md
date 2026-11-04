@@ -2600,3 +2600,6 @@ Created `product-spec.md` â€” the master product design specification for N
 
 ## 2026-10-27 — Gantt non-working days
 - Project Gantt shades weekends (per project work calendar) and calendar holidays; legend entries added.
+
+## 2026-11-04 — Add Employee full page
+- Add Employee opens /resources/employees/new (Basic info + Employment info incl. Employment type), replacing the popup.

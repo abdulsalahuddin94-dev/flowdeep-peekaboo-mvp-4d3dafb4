@@ -52,6 +52,7 @@ export const ArrowRight = sax("ArrowRight");
 export const ArrowUpRight = sax("ArrowUp");
 export const Bell = sax("Notification");
 export const Briefcase = sax("Briefcase");
+export const IdCard = sax("Personalcard");
 export const Building2 = ({ size, isActive, ...rest }: IconProps) => (
   <Icon
     icon={isActive ? "solar:buildings-bold" : "solar:buildings-outline"}

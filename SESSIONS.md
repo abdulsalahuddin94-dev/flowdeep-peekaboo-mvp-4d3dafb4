@@ -2620,3 +2620,6 @@ Created `product-spec.md` â€” the master product design specification for N
 
 ## 2026-11-04 — Add Employee full page
 - Add Employee opens /resources/employees/new (Basic info + Employment info incl. Employment type), replacing the popup.
+
+## 2026-11-04 — Employee Info tab
+- Renamed Overview to Employee Info; info shown as icon card grid (phone, email, national ID, DOB, hiring date, etc.); removed Projects & allocation table from it; Salary distribution donut moved to Salary tab.

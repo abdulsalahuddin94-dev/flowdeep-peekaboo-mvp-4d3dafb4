@@ -1,3 +1,7 @@
+## 2026-11-04 — Side drawer surface and width rule
+- Sheet primitive now defaults to the DS02 drawer surface (`bg-drawer` = #121319 dark, white light), a 620px hard width cap, rounded dock-facing corners and a `border-border` hairline — so every drawer matches without repeating classes.
+- Add trip drawer dropped its duplicated width/surface classes; verified Add trip 620px, risk 480px, filter 380px, notifications 420px all on #121319.
+
 ## 2026-11-04 — Employee header tiles merged with KPI strip
 - Header tiles are now 8 (4 top, 4 bottom): Employee ID, Gender, Age, Monthly salary / Capacity / month, Utilization, Assigned projects, Vacation remaining. Department dropped from the tiles (still on Employee Info).
 - Removed the separate KPI strip below the header; utilization bar and 3-tone capacity/utilization colors kept inside the tiles.

@@ -1,3 +1,8 @@
+## 2026-11-04 — Employee tabs: year control anchored to the divider line
+- The tab divider moved from TabsList to the row that holds the tabs and the year control, so the line now runs the full width instead of stopping short of the year; TabsList is overridden with `border-b-0` (resolved by `cn`/tailwind-merge).
+- The year control dropped its `xl:pb-1` lift and took the same 40px height as the tab triggers, so its text sits on the same baseline as the tab labels and its bottom is flush with the line.
+- Verified in the preview: line spans to the year control's right edge, active underline stays continuous, and the line still renders on the tabs that carry no year (Employee Info, Assigned tasks).
+
 ## 2026-11-04 — Header tiles: utilization share moved beside its bar
 - The Utilization tile now renders its stacked bar and its percentage on one line (bar flexes, number stays right) instead of the number above a full-width bar, so every one of the eight header tiles carries exactly a label line plus a 20px content line.
 - Non-bar tiles switched from wrapping to truncating their value, which keeps a long figure (e.g. `160h / 153.6h`) from adding a second line and breaking the row.

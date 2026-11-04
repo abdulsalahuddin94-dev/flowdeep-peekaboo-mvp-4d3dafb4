@@ -26,6 +26,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
+import { EmployeeWorkCalendar, type WorkEntry } from "@/components/EmployeeWorkCalendar";
 export const Route = createFileRoute("/resources_/employees/$employeeId")({
   component: EmployeeDetails,
   head: ({ params }) => ({ meta: [{ title: `Employee ${params.employeeId} — Nexus PMO` }, { name: "description", content: "Employee profile, monthly salary, project allocation, assigned tasks, capacity, leave and trips." }, { property: "og:title", content: `Employee ${params.employeeId} — Nexus PMO` }, { property: "og:description", content: "Read-only employee information, salary allocation, projects, tasks and vacation." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
@@ -77,6 +78,14 @@ function EmployeeDetails() {
    const items = cached?.milestones ?? (employee.demo ? seedMilestones(p) : []);
    return items.filter((item) => item.kind === "Task" && !items.some((child) => child.parent === item.name) && item.assignee?.split(",").some((name) => name.trim() === employee.name)).map((item) => ({ task: item.name, project: p.name, period: `${formatDateWithYear(item.startDate)} → ${formatDateWithYear(item.endDate)}` }));
  });
+ const workEntries: WorkEntry[] = projects.filter((p) => employee.projects.includes(p.name)).flatMap((p) => {
+   const cached = PLAN_CACHE.get(p.id) as { milestones?: ReturnType<typeof seedMilestones> } | undefined;
+   const items = cached?.milestones ?? (employee.demo ? seedMilestones(p) : []);
+   const milestoneOf = (name?: string) => { let cur = items.find((i) => i.name === name); let top = cur; while (cur) { if (cur.kind === "Milestone") return cur.name; top = cur; cur = items.find((i) => i.name === cur?.parent); } return top?.name ?? "—"; };
+   return items.filter((item) => item.kind === "Task" && item.startDate && item.endDate && !items.some((c) => c.parent === item.name) && item.assignee?.split(",").some((n) => n.trim() === employee.name)).map((item) => ({ project: p.name, milestone: item.parent ? milestoneOf(item.parent) : "—", task: item.name, from: item.startDate, until: item.endDate }));
+ });
+ employee.allocations.forEach((a) => { if (!workEntries.some((w) => w.project === a.project)) { const [uy, um] = a.until.split("-").map(Number); workEntries.push({ project: a.project, milestone: "—", task: a.task ?? a.role, from: `${a.from}-01`, until: `${a.until}-${String(new Date(uy, um, 0).getDate()).padStart(2, "0")}` }); } });
+ const calendarLeave = employee.leave.map((v) => ({ from: v.from, until: v.until || v.from, label: v.type === "Partial" ? `${t.leaveAbsence} ${v.hours ?? ""}h` : t.leaveAbsence }));
  const tasks = [...scheduleTasks, ...assignmentTasks, ...requestTasks]; employee.tasks.forEach((task) => { if (!tasks.some((v) => v.task === task)) tasks.push({ task, project: "—", period: "—" }); });
  const uniqueTasks = tasks.filter((v, i) => tasks.findIndex((a) => a.task === v.task && a.project === v.project) === i);
  const taskProjects = Array.from(new Set(uniqueTasks.map((v) => v.project).filter((v) => v !== "—"))).sort();
@@ -143,12 +152,7 @@ function EmployeeDetails() {
      <h2 className="mb-5 text-base font-semibold">{t.projects}</h2>
      <DataTable headers={[t.project, t.role, t.period, t.allocation]} rows={employee.allocations.map((a) => [projectLink(a.project), a.role, `${monthLabel(a.from)} → ${monthLabel(a.until)}`, `${a.percent}%`])} />
     </section>
-    <section className="min-w-0">
-     <h2 className="mb-5 text-base font-semibold">{t.monthlyUtil}</h2>
-     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-      {months.map((m) => <MonthCard key={m} month={m} values={employeeMonth(employee, m)} selected={m === selectedMonth} colorIndexOf={(project) => Math.max(0, employee.allocations.findIndex((a) => a.project === project))} onSelect={() => setSelectedMonth(m)} />)}
-     </ul>
-    </section>
+    <EmployeeWorkCalendar entries={workEntries} leave={calendarLeave} year={year} years={years} onYearChange={setYear} />
    </TabsContent>
    <TabsContent value="tasks" className="mt-0 space-y-5">
     <div className="flex flex-wrap items-center gap-3">

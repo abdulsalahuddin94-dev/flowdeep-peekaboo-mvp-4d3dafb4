@@ -1,3 +1,8 @@
+## 2026-11-04 — Project Trips + employee header
+- New project Trips tab: add trips with travelers (project team), purpose, optional linked milestone, dates, per-traveler costs; delete.
+- Employee Trips tab is now view-only with Project column.
+- Employee header redesigned as a profile card (short name, role, capacity pill + tags, status, Department/Employee ID/Gender/Age tiles).
+
 ## 2026-11-04 — Employee work calendar
 - Projects & allocation: replaced Monthly utilization cards with a Monthly/Yearly work calendar showing project names per day/month; hover shows milestone + task. Leaves and weekends shaded.
 

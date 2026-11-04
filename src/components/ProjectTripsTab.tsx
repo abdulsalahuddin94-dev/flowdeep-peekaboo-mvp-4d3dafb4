@@ -104,7 +104,7 @@ function TripForm({ open, onClose, team, milestones, onSave }: { open: boolean; 
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label={t.purpose} htmlFor="pt-purpose"><Input id="pt-purpose" placeholder={t.purposeHint} value={f.purpose} onChange={(e) => set("purpose", e.target.value)} /></Field>
-        <Field label={t.milestone} htmlFor="pt-ms"><Select value={f.milestone || "__none"} onValueChange={(v) => set("milestone", v === "__none" ? "" : v)}><SelectTrigger id="pt-ms"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="__none">{t.none}</SelectItem>{milestones.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select></Field>
+        <Field label={t.milestone} htmlFor="pt-ms"><Select value={f.milestone || "__none"} onValueChange={(v) => set("milestone", v === "__none" ? "" : v)}><SelectTrigger id="pt-ms"><SelectValue>{f.milestone || t.none}</SelectValue></SelectTrigger><SelectContent><SelectItem value="__none">{t.none}</SelectItem>{milestones.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select></Field>
         <Field label={t.country} htmlFor="pt-country" required error={errors.country}><Input id="pt-country" placeholder="e.g. Saudi Arabia" value={f.country} onChange={(e) => set("country", e.target.value)} /></Field>
         <Field label={t.city} htmlFor="pt-city" required error={errors.city}><Input id="pt-city" placeholder="e.g. Riyadh" value={f.city} onChange={(e) => set("city", e.target.value)} /></Field>
         {date("from", t.travelStart)}{date("until", t.travelEnd)}

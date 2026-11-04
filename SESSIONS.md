@@ -25,3 +25,5 @@
 
 
 ## 2026-11-04 — Employee over-utilization alert moved into tab row (right), dismissible with X; resets on year change.
+
+## 2026-11-04 — Removed employee over-utilization alert and Trips hint text.

@@ -37,6 +37,20 @@ const GENDERS = ["Male", "Female"];
 type Form = { name: string; shortName: string; employeeNumber: string; nationalId: string; phone: string; email: string; birthDate: string; gender: string; dept: string; role: string; employmentTypeId: string; joinedOn: string; tags: string[]; avatar: string };
 const empty: Form = { name: "", shortName: "", employeeNumber: "", nationalId: "", phone: "", email: "", birthDate: "", gender: "", dept: "", role: "", employmentTypeId: "", joinedOn: "", tags: [], avatar: "" };
 
+/** DS02 empty-image placeholder — grey disc with a light person silhouette. */
+function AvatarPlaceholder() {
+  return (
+    <svg viewBox="0 0 100 100" className="h-full w-full" aria-hidden>
+      <clipPath id="emp-avatar-clip"><circle cx="50" cy="50" r="50" /></clipPath>
+      <circle cx="50" cy="50" r="50" fill="var(--avatar-placeholder-bg)" />
+      <g clipPath="url(#emp-avatar-clip)" fill="var(--avatar-placeholder-fg)">
+        <circle cx="50" cy="37" r="16" />
+        <path d="M50 57c-17.5 0-32 12.5-33 31h66c-1-18.5-15.5-31-33-31z" />
+      </g>
+    </svg>
+  );
+}
+
 function AddEmployeePage() {
   const t = T.en;
   const navigate = useNavigate();

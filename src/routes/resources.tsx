@@ -90,9 +90,6 @@ function ResourcesPage() {
   const avgUtilization = pool.length ? Math.round(pool.reduce((sum, r) => sum + r.util, 0) / pool.length) : 0;
   const capacityGap = MANPOWER_PLAN.reduce((sum, row) => sum + Math.max(0, row.demand - row.supply), 0);
 
-  function addToPool(entry: PoolResource) {
-    setPool((prev) => [...prev, entry]);
-  }
 
   function fulfillRequest(id: string, assignedTo: string, alloc: number) {
     const req = requests.find((r) => r.id === id);

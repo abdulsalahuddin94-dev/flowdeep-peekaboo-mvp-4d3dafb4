@@ -143,10 +143,10 @@ function EmployeeDetails() {
    </div>
   )}
   <Tabs value={tab} onValueChange={setTab} className="min-w-0 space-y-7">
-   <div className={`grid min-w-0 grid-cols-1 items-end gap-4 ${showYear ? "xl:grid-cols-[minmax(0,1fr)_auto]" : ""}`}>
-    <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible">{([["overview", t.overview], ["allocation", t.allocation], ["tasks", t.tasks], ["salary", t.salaryTab], ["capacity", t.capacityTab], ["trips", t.tripsTab]] as const).map(([value, label]) => <TabsTrigger key={value} value={value} className="shrink-0 px-0">{label}</TabsTrigger>)}</TabsList>
+   <div className={`grid min-w-0 grid-cols-1 items-end gap-4 border-b border-border ${showYear ? "xl:grid-cols-[minmax(0,1fr)_auto]" : ""}`}>
+    <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible border-b-0">{([["overview", t.overview], ["allocation", t.allocation], ["tasks", t.tasks], ["salary", t.salaryTab], ["capacity", t.capacityTab], ["trips", t.tripsTab]] as const).map(([value, label]) => <TabsTrigger key={value} value={value} className="shrink-0 px-0">{label}</TabsTrigger>)}</TabsList>
     {showYear && (() => { const yi = years.indexOf(year); const go = (y: string) => { setYear(y); setSelectedMonth(`${y}-${selectedMonth.slice(5)}`); }; return (
-     <div className="flex shrink-0 items-center gap-2 xl:pb-1" role="group" aria-label={t.year}>
+     <div className="flex h-10 shrink-0 items-center gap-2" role="group" aria-label={t.year}>
       <button type="button" aria-label={t.year} disabled={yi <= 0} onClick={() => go(years[yi - 1])} className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"><ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden /></button>
       <span className="min-w-12 text-center text-sm font-semibold tabular-nums">{year}</span>
       <button type="button" aria-label={t.year} disabled={yi >= years.length - 1} onClick={() => go(years[yi + 1])} className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"><ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden /></button>

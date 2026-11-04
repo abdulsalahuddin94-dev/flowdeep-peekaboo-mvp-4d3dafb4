@@ -8,7 +8,7 @@ import { useProjects, useResourceRequests } from "@/lib/projects-store";
 import { KpiCard } from "@/components/KpiCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow } from "@/components/StyledTable";
@@ -78,7 +78,7 @@ function EmployeeDetails() {
     <span className="text-breadcrumb-current">{employee.name}</span>
    </nav>
    <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4">
-    <Avatar className="h-16 w-16 shrink-0"><AvatarFallback className="bg-accent-dim text-xl font-medium text-accent">{employee.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback></Avatar>
+    <Avatar className="h-16 w-16 shrink-0">{employee.avatar ? <AvatarImage src={employee.avatar} alt={employee.name} /> : null}<AvatarFallback className="bg-accent-dim text-xl font-medium text-accent">{employee.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback></Avatar>
     <div className="min-w-0 space-y-2">
      <div className="flex flex-wrap items-center gap-x-4 gap-y-2"><h1 className="break-words text-2xl font-semibold text-foreground">{employee.name}</h1><div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{profile[4]?.[1]}</Badge>{employee.demo && <Badge variant="secondary">{t.demo}</Badge>}</div></div>
      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground"><span>{employee.role}</span><span aria-hidden="true">·</span><span>{employee.dept}</span></div>

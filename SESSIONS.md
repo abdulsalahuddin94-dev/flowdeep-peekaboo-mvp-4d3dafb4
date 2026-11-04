@@ -1,3 +1,7 @@
+## 2026-11-04 — Employee photos render in the Employees table and profile header
+- The Employees table (`Resources → Employees`) and the employee profile header now show the employee's uploaded photo inside the existing avatar circle; `AvatarImage` only mounts when `avatar` is set, so employees without a photo keep the initials fallback.
+- Browser-verified end-to-end: created an employee with a photo from the Add Employee page — the table avatar (32px) and the profile avatar (64px) both render the image; demo employees without a photo still show initials.
+
 ## 2026-11-04 — Add Employee image placeholder & hover delete; Employee profile breadcrumb
 - Add Employee (`/resources/employees/new`) profile picture now uses the DS02 empty-image placeholder — a grey disc with a light person silhouette (new `--avatar-placeholder-bg` / `--avatar-placeholder-fg` tokens, 116px circle) — and the trigger keeps the vuesax/linear `Export` icon in lavender beside the "Click to Upload" label.
 - Once a photo is uploaded, hovering the circle blurs and dims it (`blur(7px)` + `brightness(.45)`) and reveals a centered coral-red trash icon (`text-destructive`, Iconsax Trash) that clears the photo and restores the placeholder.

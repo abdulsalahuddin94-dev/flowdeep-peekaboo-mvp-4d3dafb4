@@ -134,7 +134,7 @@ function ResourcesPage() {
         actions={
           <>
             <Button variant="outline" size="sm"><Upload className="mr-1 h-4 w-4" />Import Excel</Button>
-            <AddResourceDialog onAdd={addToPool} />
+            <Button size="sm" variant="primary" onClick={() => navigate({ to: "/resources/employees/new" })}><Plus className="mr-1 h-4 w-4" />Add Employee</Button>
           </>
         }
       />
@@ -626,132 +626,6 @@ function DeclineDialog({
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button variant="destructive" onClick={handleDecline}>
             <XCircle className="mr-1 h-3.5 w-3.5" />Confirm decline
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ── Add Resource dialog ───────────────────────────────────────────────────────
-
-function AddResourceDialog({ onAdd }: { onAdd: (r: PoolResource) => void }) {
-  const [open, setOpen] = useState(false);
-  const [name, setName]       = useState("");
-  const [role, setRole]       = useState("");
-  const [dept, setDept]       = useState("");
-  const [email, setEmail]     = useState("");
-  const { jobRoles } = useJobRoles();
-  const { employmentTypes } = useEmployees();
-  const [employmentTypeId, setEmploymentTypeId] = useState("");
-  const [errors, setErrors] = useState<{ name?: string; role?: string; dept?: string; email?: string; employmentTypeId?: string }>({});
-
-  function handleSave() {
-    const next = {
-      employmentTypeId: employmentTypes.some((v) => v.id === employmentTypeId && v.active) ? undefined : "Employment type is required.",
-      name: name.trim() ? undefined : "Full name is required.",
-      role: role.trim() ? undefined : "Job title / Role is required.",
-      dept: dept ? undefined : "Department is required.",
-      email: !email.trim() ? "Email is required." : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? undefined : "Enter a valid email.",
-    };
-    setErrors(next);
-    if (Object.values(next).some(Boolean)) return;
-    // Salary and capacity are planned per month from the employee profile, not at creation.
-    onAdd({
-      id: `EMP-${crypto.randomUUID()}`,
-      employmentTypeId,
-      joinedOn: new Date().toISOString().slice(0, 10),
-      allocations: [], leave: [], trips: [], monthly: {}, vacationEntitlement: 0, demo: false,
-      name:     name.trim(),
-      role:     role.trim(),
-      dept,
-      util:     0,
-      capacity: DEFAULT_MONTHLY_CAPACITY,
-      projects: [],
-      email: email.trim(),
-      salary: 0,
-      tasks: [],
-    });
-    toast.success(`${name.trim()} added to employees`, {
-      description: `${role.trim()} · ${dept} · set the monthly salary & capacity from the profile`,
-    });
-    setOpen(false);
-    setName(""); setRole(""); setDept(""); setEmail(""); setEmploymentTypeId(""); setErrors({});
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="primary">
-          <Plus className="mr-1 h-4 w-4" />Add Employee
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Add employee</DialogTitle>
-        </DialogHeader>
-
-        <div className="grid gap-3">
-          <div className="grid grid-cols-2 gap-2">
-            <Field className="col-span-2" label="Full name" htmlFor="resource-name" required error={errors.name}>
-              <Input
-                id="resource-name"
-                placeholder="e.g. Alex Morgan"
-                value={name}
-                onChange={(e) => { setName(e.target.value); setErrors((p) => ({ ...p, name: undefined })); }}
-              />
-            </Field>
-            <Field className="col-span-2" label="Role" htmlFor="resource-role" required error={errors.role}>
-              <Select value={role} onValueChange={(value) => { setRole(value); setErrors((p) => ({ ...p, role: undefined })); }}>
-                <SelectTrigger id="resource-role"><SelectValue placeholder="Select a role…" /></SelectTrigger>
-                <SelectContent>
-                  {jobRoles.map((r) => <SelectItem key={r.id} value={r.title}>{r.title}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field className="col-span-2" label="Employment type" htmlFor="resource-employment-type" required error={errors.employmentTypeId}>
-              <Select value={employmentTypeId} onValueChange={(v) => { setEmploymentTypeId(v); setErrors((p) => ({ ...p, employmentTypeId: undefined })); }}><SelectTrigger id="resource-employment-type"><SelectValue placeholder="Select employment type…" /></SelectTrigger><SelectContent>{employmentTypes.filter((v) => v.active).map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent></Select>
-            </Field>
-            <Field label="Department" htmlFor="resource-department" required error={errors.dept}>
-              <Select onValueChange={(value) => { setDept(value); setErrors((p) => ({ ...p, dept: undefined })); }}>
-                <SelectTrigger id="resource-department"><SelectValue placeholder="Select…" /></SelectTrigger>
-                <SelectContent>
-                  {departments.map((d) => (
-                    <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field className="col-span-2" label="Email" htmlFor="resource-email" required error={errors.email}>
-              <Input
-                id="resource-email"
-                type="email"
-                placeholder="alex.morgan@company.com"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setErrors((p) => ({ ...p, email: undefined })); }}
-              />
-            </Field>
-          </div>
-
-          {/* Preview badge */}
-          {name && role && dept && (
-            <div className="flex items-center gap-3 rounded-md border border-accent/20 bg-accent-dim/20 p-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-dim text-sm font-medium text-accent">
-                {name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase()}
-              </div>
-              <div>
-                <div className="text-sm font-medium text-foreground">{name}</div>
-                <div className="text-xs text-muted-foreground">{role} · {dept} · 0% utilized</div>
-              </div>
-              <UserCheck className="ml-auto h-4 w-4 text-accent" />
-            </div>
-          )}
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleSave}>
-            <Plus className="mr-1 h-3.5 w-3.5" />Add employee
           </Button>
         </DialogFooter>
       </DialogContent>

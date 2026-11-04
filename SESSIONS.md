@@ -1,3 +1,6 @@
+## 2026-11-04 — Employee work calendar
+- Projects & allocation: replaced Monthly utilization cards with a Monthly/Yearly work calendar showing project names per day/month; hover shows milestone + task. Leaves and weekends shaded.
+
 ## 2026-11-04 — Employee profile header: Project-details style with kebab actions
 - The employee profile (`Resources → Employees → <employee>`) header now mirrors Project details: a single lavender `‹ Back to Employees` chevron link replaces the old `Resources › Employees › <name>` breadcrumb, and the page title is `Employee Details` in the shared `PageHeader`.
 - A rounded-square dark three-dots button (same `MoreHorizontal` rotate-90 control as Project details) sits at the top-right and opens a menu with exactly three actions: Edit (goes to `?edit=<id>`), Deactivate/Activate (DS02 toggle confirm, warning/success tone), and Delete (shared red `ConfirmDeleteDialog`). Delete removes the employee and returns to the People list.

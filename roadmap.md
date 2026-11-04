@@ -92,3 +92,6 @@
 - [x] Add the item type column to the Project Schedule changes table only (baseline popup and approval review).
 - [x] Profit Share donut: Top 6 + Others with all-types dialog and demo data.
 - [x] Employee profile: replace the lavender pill back button with the standard plain back link + breadcrumb used on other record pages; verify and log.
+
+## Current
+- [x] Employees table: Status column with hover Delete/Edit/Activate-Deactivate, Employee Number column, department under name (2026-10-29)

@@ -1,3 +1,10 @@
+## 2026-11-04 — Employees Table: Status column, hover actions, Employee Number
+- The Employees table (`Resources → Employees`) reworked like the Organization tables: new `Employee Number` column (`#8123456` style) and the department name shown under the employee name in smaller text; the standalone Department column dropped.
+- New final `Status` column (Active / Inactive pill) that swaps on row hover to the three row actions: Edit, Activate/Deactivate and Delete — matching `TableRowActions` from Organization.
+- Deactivate/Activate opens the DS02 toggle confirm popup (warning for deactivate, success for activate) and Delete opens the shared red `ConfirmDeleteDialog`; both write to the persisted employee store (localStorage v4) and inactive rows dim to `opacity-60`.
+- Edit action opens the Add Employee page in edit mode (`?edit=<id>`): fields prefill from the employee, title becomes "Edit Employee", CTA "Save Update", and saving patches the existing record (salary/capacity/allocations/leave/trips untouched).
+- Browser-verified: hover reveals the 3 actions, toggle/delete confirm dialogs render with the right copy and tones, and Edit loads Sara Al-Rashid's data into the form.
+
 ## 2026-11-04 — Employee photos render in the Employees table and profile header
 - The Employees table (`Resources → Employees`) and the employee profile header now show the employee's uploaded photo inside the existing avatar circle; `AvatarImage` only mounts when `avatar` is set, so employees without a photo keep the initials fallback.
 - Browser-verified end-to-end: created an employee with a photo from the Add Employee page — the table avatar (32px) and the profile avatar (64px) both render the image; demo employees without a photo still show initials.

@@ -9,7 +9,7 @@ export type EmployeeLeave = { id: string; type: "Leave" | "Partial"; from: strin
 export type EmployeeTrip = { id: string; country: string; city: string; from: string; until: string; workFrom: string; workUntil: string; days: number; ticketsCost: number; visaCost: number; perDiemCost: number };
 /** Per-month overrides keyed by "YYYY-MM"; months without an entry fall back to the employee's base salary/capacity. */
 export type EmployeeMonthPlan = { salary?: number; capacity?: number };
-export type Employee = { id: string; name: string; role: string; dept: string; email: string; salary: number; capacity: number; util: number; employmentTypeId: string; joinedOn: string; projects: string[]; tasks: string[]; allocations: EmployeeAllocation[]; leave: EmployeeLeave[]; trips: EmployeeTrip[]; monthly: Record<string, EmployeeMonthPlan>; vacationEntitlement: number; demo: boolean; shortName?: string; employeeNumber?: string; nationalId?: string; phone?: string; birthDate?: string; gender?: string; tags?: string[]; avatar?: string };
+export type Employee = { id: string; name: string; role: string; dept: string; email: string; salary: number; capacity: number; util: number; employmentTypeId: string; joinedOn: string; projects: string[]; tasks: string[]; allocations: EmployeeAllocation[]; leave: EmployeeLeave[]; trips: EmployeeTrip[]; monthly: Record<string, EmployeeMonthPlan>; vacationEntitlement: number; demo: boolean; shortName?: string; employeeNumber?: string; nationalId?: string; phone?: string; birthDate?: string; gender?: string; tags?: string[]; avatar?: string; /** Missing means active (legacy rows predate status). */ active?: boolean };
 
 /** Default monthly capacity in hours when nothing is set (≈ 40h/week). */
 export const DEFAULT_MONTHLY_CAPACITY = 160;
@@ -40,6 +40,7 @@ const initialEmployees: Employee[] = resources.map((r, i) => {
   if (!names.length) names.push(...r.projects);
   const base = salaries[i] ?? 10000;
   return { ...r, id: `EMP-${String(i + 1).padStart(3, "0")}`, projects: names, email: `${r.name.toLowerCase().replace(/[^a-z ]/g, "").trim().replace(/\s+/g, ".")}@company.com`, salary: base, capacity: DEFAULT_MONTHLY_CAPACITY, employmentTypeId: types[i % 3]?.id ?? "ET-1", joinedOn: "2025-01-01", tasks: taskNames[i] ?? [], vacationEntitlement: 24, demo: true,
+    employeeNumber: String(8123456 - i * 100000), active: true,
     monthly: seedMonthly(i, base),
     trips: seedTrips(i),
     allocations: names.map((project, j) => ({ id: `seed-${i}-${j}`, project, role: r.role, percent: j === 0 && names.length > 1 ? Math.round(r.util * .6) : names.length > 1 ? r.util - Math.round(r.util * .6) : r.util, from: "2026-01", until: "2026-12", task: taskNames[i]?.[j] })),
@@ -55,7 +56,8 @@ let state = defaults;
 let loaded = false;
 const listeners = new Set<() => void>();
 // v3: leave lost its status (Leave / Partial + remark) and trips gained location, work dates and costs.
-const storageKey = "pmo.employees.v3";
+// v4: employee active/inactive status and employee numbers on demo rows.
+const storageKey = "pmo.employees.v4";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;

@@ -12,6 +12,10 @@ import {
 } from "@/components/StyledTable";
 import { TablePagination, usePagination } from "@/components/TablePagination";
 import { TableRowActions } from "@/components/TableRowActions";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { ToggleActive } from "@/lib/icons";
+import { cn } from "@/lib/utils";
 import { KpiCard } from "@/components/KpiCard";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -352,6 +356,8 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
   const navigate = useNavigate();
   const { employmentTypes } = useEmployees();
   const [employmentType, setEmploymentType] = useState("all");
+  const [pendingToggle, setPendingToggle] = useState<{ id: string; name: string; active: boolean } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return pool.filter((r) => !q || r.name.toLowerCase().includes(q) || r.role.toLowerCase().includes(q) || r.tasks.some((t) => t.toLowerCase().includes(q)))
@@ -371,21 +377,25 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
       <EmptyRegion id="resources-capacity">
           <StyledTable wrapperClassName="">
             <StyledTableHeader><StyledTableHeaderRow>
-              <StyledTableHead>Employee</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Employment type</StyledTableHead>
+              <StyledTableHead>Employee</StyledTableHead><StyledTableHead>Employee Number</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Employment type</StyledTableHead>
               <StyledTableHead>Related Projects</StyledTableHead><StyledTableHead>Utilization</StyledTableHead>
-              <StyledTableHead className="w-16" />
+              <StyledTableHead className="w-32 text-center">Status</StyledTableHead>
             </StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
               {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((r) => (
-                  <StyledTableRow key={r.id} className="group cursor-pointer" onClick={() => navigate({ to: "/resources/employees/$employeeId", params: { employeeId: r.id } })}>
-                    <StyledTableCell className="font-medium text-foreground"><div className="flex items-center gap-2"><Avatar className="h-8 w-8">{r.avatar ? <AvatarImage src={r.avatar} alt={r.name} /> : null}<AvatarFallback className="bg-accent-dim text-[10px] text-accent">{r.name.split(" ").map((s) => s[0]).join("")}</AvatarFallback></Avatar>{r.name}</div></StyledTableCell>
-                    <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell className="text-muted-foreground">{r.dept}</StyledTableCell><StyledTableCell>{employmentTypes.find((v) => v.id === r.employmentTypeId)?.name ?? "—"}</StyledTableCell>
+                  <StyledTableRow key={r.id} className={cn("group cursor-pointer", r.active === false && "opacity-60")} onClick={() => navigate({ to: "/resources/employees/$employeeId", params: { employeeId: r.id } })}>
+                    <StyledTableCell className="font-medium text-foreground"><div className="flex items-center gap-2"><Avatar className="h-8 w-8">{r.avatar ? <AvatarImage src={r.avatar} alt={r.name} /> : null}<AvatarFallback className="bg-accent-dim text-[10px] text-accent">{r.name.split(" ").map((s) => s[0]).join("")}</AvatarFallback></Avatar><div className="min-w-0"><div className="truncate">{r.name}</div><div className="truncate text-xs font-normal text-muted-foreground">{r.dept}</div></div></div></StyledTableCell>
+                    <StyledTableCell className="num-mono text-muted-foreground">{r.employeeNumber ? `#${r.employeeNumber}` : "—"}</StyledTableCell>
+                    <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell>{employmentTypes.find((v) => v.id === r.employmentTypeId)?.name ?? "—"}</StyledTableCell>
                     <StyledTableCell className="text-center"><RelatedProjectsCount label={r.name} projects={r.projects.map((name) => ({ id: projects.find((p) => p.name === name)?.id ?? "", name }))} /></StyledTableCell>
                     <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(r.util, 100)} className={`h-1.5 ${r.util > 100 ? "[&>div]:bg-rag-red" : r.util > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${r.util > 100 ? "text-rag-red" : "text-foreground"}`}>{r.util}%</span></div></StyledTableCell>
                     <StyledTableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex justify-end opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                        <AssignDialog resource={r} compact onAssign={(assignment) => setPool((prev) => prev.map((x) => x.id === r.id ? { ...x, util: Math.min(x.util + assignment.percent, 200), projects: x.projects.includes(assignment.project) ? x.projects : [...x.projects, assignment.project], allocations: [...x.allocations, assignment] } : x))} />
-                      </div>
+                      <TableRowActions
+                        isActive={r.active !== false}
+                        onEdit={() => navigate({ to: "/resources/employees/new", search: { edit: r.id } })}
+                        onToggleActive={() => setPendingToggle({ id: r.id, name: r.name, active: r.active !== false })}
+                        onDelete={() => setPendingDelete({ id: r.id, name: r.name })}
+                      />
                     </StyledTableCell>
                   </StyledTableRow>
               ))}
@@ -393,6 +403,34 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
           </StyledTable>
       </EmptyRegion>
       <TablePagination {...pagination} itemLabel="employees" demoPages={1} />
+
+      <ConfirmDeleteDialog
+        description="This employee will be removed from the resources pool."
+        label={pendingDelete?.name}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (!pendingDelete) return;
+          setPool((prev) => prev.filter((x) => x.id !== pendingDelete.id));
+          toast.done("Employee", "deleted");
+          setPendingDelete(null);
+        }}
+      />
+      <ConfirmDialog
+        open={!!pendingToggle}
+        onOpenChange={(o) => !o && setPendingToggle(null)}
+        tone={pendingToggle?.active ? "warning" : "success"}
+        icon={({ className }) => <ToggleActive className={cn(className, pendingToggle?.active ? "" : "-scale-x-100")} />}
+        title={`${pendingToggle?.active ? "Deactivate" : "Activate"} "${pendingToggle?.name ?? ""}"?`}
+        description={`Are you sure you want to ${pendingToggle?.active ? "deactivate" : "activate"} this employee?`}
+        cancelLabel="Cancel"
+        confirmLabel={pendingToggle?.active ? "Deactivate" : "Activate"}
+        onConfirm={() => {
+          if (!pendingToggle) return;
+          setPool((prev) => prev.map((x) => x.id === pendingToggle.id ? { ...x, active: !pendingToggle.active } : x));
+          toast.done("Employee", pendingToggle.active ? "deactivated" : "activated");
+          setPendingToggle(null);
+        }}
+      />
     </>
   );
 }

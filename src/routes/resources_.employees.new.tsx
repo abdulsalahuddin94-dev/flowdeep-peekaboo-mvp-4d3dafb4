@@ -13,6 +13,9 @@ import { useJobRoles } from "@/lib/projects-store";
 import { useEmployees, DEFAULT_MONTHLY_CAPACITY } from "@/lib/employees-store";
 
 export const Route = createFileRoute("/resources_/employees/new")({
+  validateSearch: (search: Record<string, unknown>): { edit?: string } => ({
+    edit: typeof search.edit === "string" ? search.edit : undefined,
+  }),
   component: AddEmployeePage,
   head: () => ({
     meta: [
@@ -28,8 +31,8 @@ export const Route = createFileRoute("/resources_/employees/new")({
 });
 
 const T = {
-  en: { title: "Add Employee", back: "Back to Employees", basic: "Basic info", employment: "Employment info", save: "Save", cancel: "Cancel" },
-  ar: { title: "إضافة موظف", back: "العودة إلى الموظفين", basic: "البيانات الأساسية", employment: "بيانات التوظيف", save: "حفظ", cancel: "إلغاء" },
+  en: { title: "Add Employee", editTitle: "Edit Employee", back: "Back to Employees", basic: "Basic info", employment: "Employment info", save: "Save", saveUpdate: "Save Update", cancel: "Cancel" },
+  ar: { title: "إضافة موظف", editTitle: "تعديل بيانات الموظف", back: "العودة إلى الموظفين", basic: "البيانات الأساسية", employment: "بيانات التوظيف", save: "حفظ", saveUpdate: "حفظ التعديلات", cancel: "إلغاء" },
 };
 const TAG_OPTIONS = ["Key talent", "Remote", "Part-time", "Certified", "New hire", "Mentor"];
 const GENDERS = ["Male", "Female"];
@@ -54,9 +57,16 @@ function AvatarPlaceholder() {
 function AddEmployeePage() {
   const t = T.en;
   const navigate = useNavigate();
+  const { edit } = Route.useSearch();
   const { jobRoles } = useJobRoles();
-  const { employmentTypes, setEmployees } = useEmployees();
-  const [f, setF] = useState<Form>(empty);
+  const { employees, employmentTypes, setEmployees, updateEmployee } = useEmployees();
+  const editing = edit ? employees.find((e) => e.id === edit) : undefined;
+  const [f, setF] = useState<Form>(() => editing ? {
+    name: editing.name, shortName: editing.shortName ?? "", employeeNumber: editing.employeeNumber ?? "",
+    nationalId: editing.nationalId ?? "", phone: editing.phone ?? "", email: editing.email,
+    birthDate: editing.birthDate ?? "", gender: editing.gender ?? "", dept: editing.dept, role: editing.role,
+    employmentTypeId: editing.employmentTypeId, joinedOn: editing.joinedOn, tags: editing.tags ?? [], avatar: editing.avatar ?? "",
+  } : empty);
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const set = <K extends keyof Form>(k: K, v: Form[K]) => { setF((p) => ({ ...p, [k]: v })); setErrors((p) => ({ ...p, [k]: undefined })); };
   const back = () => navigate({ to: "/resources", search: { tab: "people" } });
@@ -85,14 +95,23 @@ function AddEmployeePage() {
     };
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
+    const fields = {
+      name: f.name.trim(), role: f.role, dept: f.dept, email: f.email.trim(),
+      employmentTypeId: f.employmentTypeId, joinedOn: f.joinedOn || new Date().toISOString().slice(0, 10),
+      shortName: f.shortName.trim(), employeeNumber: f.employeeNumber.trim(), nationalId: f.nationalId.trim() || undefined,
+      phone: f.phone.trim(), birthDate: f.birthDate, gender: f.gender, tags: f.tags, avatar: f.avatar || undefined,
+    };
+    if (editing) {
+      updateEmployee(editing.id, fields);
+      toast.success(`${fields.name} updated`);
+      back();
+      return;
+    }
     const id = `EMP-${crypto.randomUUID()}`;
     // Salary and capacity are planned per month from the employee profile, not at creation.
     setEmployees((prev) => [...prev, {
-      id, name: f.name.trim(), role: f.role, dept: f.dept, email: f.email.trim(), salary: 0, capacity: DEFAULT_MONTHLY_CAPACITY, util: 0,
-      employmentTypeId: f.employmentTypeId, joinedOn: f.joinedOn || new Date().toISOString().slice(0, 10),
+      id, ...fields, salary: 0, capacity: DEFAULT_MONTHLY_CAPACITY, util: 0,
       projects: [], tasks: [], allocations: [], leave: [], trips: [], monthly: {}, vacationEntitlement: 0, demo: false,
-      shortName: f.shortName.trim(), employeeNumber: f.employeeNumber.trim(), nationalId: f.nationalId.trim() || undefined,
-      phone: f.phone.trim(), birthDate: f.birthDate, gender: f.gender, tags: f.tags, avatar: f.avatar || undefined,
     }]);
     toast.success(`${f.name.trim()} added to employees`, { description: "Set the monthly salary & capacity from the profile" });
     back();
@@ -103,7 +122,7 @@ function AddEmployeePage() {
       <Link to="/resources" search={{ tab: "people" }} className="mb-2 inline-flex items-center gap-2 text-sm text-breadcrumb-muted transition-colors hover:text-breadcrumb-hover">
         <ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t.back}
       </Link>
-      <PageHeader title={t.title} />
+      <PageHeader title={editing ? t.editTitle : t.title} />
 
       <section className="glass-card w-full p-6">
         <h2 className="mb-4 text-base font-semibold text-foreground">{t.basic}</h2>
@@ -181,7 +200,7 @@ function AddEmployeePage() {
         </div>
         <div className="mt-7 flex items-center justify-end gap-3">
           <Button variant="secondary" onClick={back}>{t.cancel}</Button>
-          <Button variant="primary" onClick={submit}>{t.save}</Button>
+          <Button variant="primary" onClick={submit}>{editing ? t.saveUpdate : t.save}</Button>
         </div>
       </section>
     </div>

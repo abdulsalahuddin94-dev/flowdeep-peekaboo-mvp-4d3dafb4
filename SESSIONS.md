@@ -1,3 +1,8 @@
+## 2026-11-04 — Employee header tiles merged with KPI strip
+- Header tiles are now 8 (4 top, 4 bottom): Employee ID, Gender, Age, Monthly salary / Capacity / month, Utilization, Assigned projects, Vacation remaining. Department dropped from the tiles (still on Employee Info).
+- Removed the separate KPI strip below the header; utilization bar and 3-tone capacity/utilization colors kept inside the tiles.
+- Removed the "Demo data" pill from the employee header.
+
 ## 2026-11-04 — Project Trips + employee header
 - 2026-11-04 — Overlay sizing rule (small→popup, medium→side drawer, large→page); Add trip converted to right side drawer.
 - New project Trips tab: add trips with travelers (project team), purpose, optional linked milestone, dates, per-traveler costs; delete.

@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { EmptyRegion } from "@/lib/empty-preview";
 import { matchRelated, relatedProjectsGroup } from "@/components/ds/filters";
+import { RelatedProjectsCount } from "@/components/ds/RelatedProjectsDialog";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   StyledTable, StyledTableBody, StyledTableCell, StyledTableHead,
@@ -374,7 +375,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
           <StyledTable wrapperClassName="">
             <StyledTableHeader><StyledTableHeaderRow>
               <StyledTableHead>Employee</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Employment type</StyledTableHead>
-              <StyledTableHead>Capacity / mo</StyledTableHead><StyledTableHead>Utilization</StyledTableHead>
+              <StyledTableHead>Related Projects</StyledTableHead><StyledTableHead>Utilization</StyledTableHead>
               <StyledTableHead className="w-16" />
             </StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>

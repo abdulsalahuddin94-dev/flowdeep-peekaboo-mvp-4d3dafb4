@@ -1,3 +1,8 @@
+## 2026-11-04 — Employees Table: Related Projects replaces Capacity
+- In the Resources > People table, dropped the `Capacity / mo` column and put `Related Projects` in its place.
+- The cell uses the shared `RelatedProjectsCount`, so it shows the employee's project count and opens the standard DS02 Related Projects popup with each project's name and ID.
+- Monthly capacity stays on the employee's own Salary & capacity tab, where it is edited.
+
 ## 2026-11-02 — Portfolio Overview: Stacked 2-Column Balanced Layout
 - Reorganized the top section of Project Overview (`/portfolio/$projectId`) from 3-column (`md:grid-cols-3`) to 2-column (`lg:grid-cols-2`):
   - **Left column**: `Project Health` card with the unified donut chart and 4-column aligned status breakdown table (full height).

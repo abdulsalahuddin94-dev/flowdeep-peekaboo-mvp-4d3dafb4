@@ -244,6 +244,7 @@ function ProjectDetail() {
    * Project revenue ↔ planned revenue total are both validated in the same
    * step, so every mismatch is surfaced together instead of one at a time. */
   const [baselineValidationOpen, setBaselineValidationOpen] = useState(false);
+  const [validationIssues, setValidationIssues] = useState<Array<{ key: "schedule" | "budget" | "revenue" | "changes"; title: string; project: number; plan: number; diff: number }>>([]);
   const [milestones, setMilestones] = useState<Milestone[]>(() => cached?.milestones ?? (isNewProject ? [] : seedMilestones(project)));
   const baselineIssues = useMemo(() => {
     const issues: Array<{ key: "schedule" | "budget" | "revenue"; title: string; project: number; plan: number; diff: number }> = [];
@@ -674,13 +675,16 @@ function ProjectDetail() {
 
   /** Gated Save baseline (unlocked projects): reconciles both totals first. */
   function requestSaveBaseline() {
-    if (baselineIssues.length > 0) { setBaselineValidationOpen(true); return; }
+    if (baselineIssues.length > 0) { setValidationIssues(baselineIssues); setBaselineValidationOpen(true); return; }
     saveProjectBaseline();
   }
 
   /** Gated Save baseline (Change Plan): reconciles both totals before the CR review. */
   function requestSaveBaselineChange() {
-    if (baselineIssues.length > 0) { setBaselineValidationOpen(true); return; }
+    const issues = planChangeCount === 0
+      ? [{ key: "changes" as const, title: "No changes were made to the plan yet", project: 0, plan: 0, diff: 0 }, ...baselineIssues]
+      : baselineIssues;
+    if (issues.length > 0) { setValidationIssues(issues); setBaselineValidationOpen(true); return; }
     setCrDialogOpen(true);
   }
 
@@ -782,7 +786,6 @@ function ProjectDetail() {
                     size="sm"
                     onClick={requestSaveBaselineChange}
                     className="h-8 text-xs"
-                    disabled={planChangeCount === 0}
                   >
                     Save baseline
                   </Button>
@@ -884,7 +887,7 @@ function ProjectDetail() {
                     <DropdownMenuItem onClick={() => setActiveTab("Basic info")}>
                       <Pencil size={14} className="mr-2" />Edit project
                     </DropdownMenuItem>
-                    <DropdownMenuItem disabled={planChangeCount === 0} onClick={requestSaveBaselineChange}>
+                    <DropdownMenuItem onClick={requestSaveBaselineChange}>
                       <Lock size={14} className="mr-2" />Save baseline
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={requestExitEditMode}>
@@ -1383,14 +1386,14 @@ function ProjectDetail() {
             title="Fix before saving the baseline"
             description="Resolve these items before the baseline can be saved."
             cancelLabel="Cancel"
-            confirmLabel={`Go to ${baselineIssues[0]?.key === "schedule" ? "Project Schedule" : baselineIssues[0]?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown"}`}
+            confirmLabel={`Go to ${(validationIssues.find((i) => i.key !== "changes") ?? validationIssues[0])?.key === "schedule" ? "Project Schedule" : (validationIssues.find((i) => i.key !== "changes"))?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown"}`}
             onConfirm={() => {
               setBaselineValidationOpen(false);
-              setActiveTab(baselineIssues[0]?.key === "schedule" ? "Project Schedule" : baselineIssues[0]?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown");
+              setActiveTab((validationIssues.find((i) => i.key !== "changes") ?? validationIssues[0])?.key === "schedule" ? "Project Schedule" : (validationIssues.find((i) => i.key !== "changes"))?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown");
             }}
           >
             <div className="space-y-2">
-              {baselineIssues.map((issue) => {
+              {validationIssues.map((issue) => {
                 const isBudget = issue.key === "budget";
                 return (
                   <div key={issue.key} className="rounded-lg border border-border bg-muted/40 p-3">
@@ -1398,7 +1401,11 @@ function ProjectDetail() {
                       <AlertTriangle size={14} className="shrink-0 text-rag-amber" />
                       {issue.title}
                     </div>
-                    {issue.key === "schedule" ? (
+                    {issue.key === "changes" ? (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      How to fix: edit the schedule, cost, revenue or basic info before saving a new baseline.
+                    </p>
+                    ) : issue.key === "schedule" ? (
                     <p className="mt-2 text-xs text-muted-foreground">
                       How to fix: create at least one milestone or task with{" "}
                       <span className="text-foreground">Add Item</span> on the{" "}

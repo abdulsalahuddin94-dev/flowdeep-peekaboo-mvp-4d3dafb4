@@ -383,7 +383,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
                   <StyledTableRow key={r.id} className="group cursor-pointer" onClick={() => navigate({ to: "/resources/employees/$employeeId", params: { employeeId: r.id } })}>
                     <StyledTableCell className="font-medium text-foreground"><div className="flex items-center gap-2"><Avatar className="h-8 w-8"><AvatarFallback className="bg-accent-dim text-[10px] text-accent">{r.name.split(" ").map((s) => s[0]).join("")}</AvatarFallback></Avatar>{r.name}</div></StyledTableCell>
                     <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell className="text-muted-foreground">{r.dept}</StyledTableCell><StyledTableCell>{employmentTypes.find((v) => v.id === r.employmentTypeId)?.name ?? "—"}</StyledTableCell>
-                    <StyledTableCell className="num-mono">{r.capacity}h</StyledTableCell>
+                    <StyledTableCell className="text-center"><RelatedProjectsCount label={r.name} projects={r.projects.map((name) => ({ id: projects.find((p) => p.name === name)?.id ?? "", name }))} /></StyledTableCell>
                     <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(r.util, 100)} className={`h-1.5 ${r.util > 100 ? "[&>div]:bg-rag-red" : r.util > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${r.util > 100 ? "text-rag-red" : "text-foreground"}`}>{r.util}%</span></div></StyledTableCell>
                     <StyledTableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">

@@ -118,25 +118,24 @@ function EmployeeDetails() {
       <div className="flex flex-wrap items-center gap-2">
        <Badge variant="secondary" className="gap-2"><CalendarDays className="h-4 w-4" aria-hidden />{t.capacity}<span className="num-mono font-semibold text-foreground">{monthly.availableCapacity}h</span></Badge>
        {(employee.tags ?? []).map((tag) => <Badge key={tag} variant="outline">{tag}</Badge>)}
-       {employee.demo && <Badge variant="secondary">{t.demo}</Badge>}
       </div>
      </div>
      <Badge variant={employee.active !== false ? "outline" : "secondary"} className={employee.active !== false ? "border-rag-green/50 bg-rag-green/10 text-rag-green" : "text-muted-foreground"}>{employee.active !== false ? th.active : th.inactive}</Badge>
     </div>
     <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-     {[[t.department, employee.dept], [t.id, employee.employeeNumber ? `#${employee.employeeNumber}` : "—"], [th.gender, employee.gender ?? "—"], [th.age, employee.birthDate ? `${Math.floor((Date.now() - new Date(employee.birthDate).getTime()) / 31557600000)} ${th.years}` : "—"]].map(([label, value]) => <div key={label} className="rounded-lg bg-muted/30 px-4 py-3"><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 text-sm text-accent">{value}</dd></div>)}
+     {[
+      { label: t.id, value: employee.employeeNumber ? `#${employee.employeeNumber}` : "—", tone: "text-accent", bar: false },
+      { label: th.gender, value: employee.gender ?? "—", tone: "text-accent", bar: false },
+      { label: th.age, value: employee.birthDate ? `${Math.floor((Date.now() - new Date(employee.birthDate).getTime()) / 31557600000)} ${th.years}` : "—", tone: "text-accent", bar: false },
+      { label: t.monthly, value: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(monthly.salary), tone: "text-accent", bar: false },
+      { label: t.capacity, value: `${monthly.availableCapacity}h / ${monthly.allocatedHours.toFixed(1)}h`, tone: utilTone, bar: false },
+      { label: t.utilization, value: `${monthly.effectiveUtilization}%`, tone: utilTone, bar: true },
+      { label: t.projects, value: String(employee.projects.length), tone: "text-accent", bar: false },
+      { label: t.vacation, value: `${vacation.remaining}d`, tone: "text-accent", bar: false },
+     ].map((card) => <div key={card.label} className="rounded-lg bg-muted/30 px-4 py-3"><dt className="text-xs text-muted-foreground">{card.label}</dt><dd className={`mt-1 break-words text-sm font-semibold tabular-nums ${card.tone}`}>{card.value}</dd>{card.bar && <div className="mt-2 flex h-1.5 w-full overflow-hidden rounded-full bg-muted/40">{monthly.charges.map((a, j) => <div key={a.id} className={utilColors[j % utilColors.length]} style={{ width: `${a.percent / Math.max(100, monthly.utilization) * 100}%` }} />)}</div>}</div>)}
     </dl>
    </header>
   </div>
-  <dl className="glass-card grid items-stretch p-0 sm:grid-cols-2 xl:grid-cols-5">
-   {[
-    { label: t.monthly, value: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(monthly.salary), tone: "text-foreground", bar: false },
-    { label: t.capacity, value: `${monthly.availableCapacity}h / ${monthly.allocatedHours.toFixed(1)}h`, tone: utilTone, bar: false },
-    { label: t.utilization, value: `${monthly.effectiveUtilization}%`, tone: utilTone, bar: true },
-    { label: t.projects, value: String(employee.projects.length), tone: "text-foreground", bar: false },
-    { label: t.vacation, value: `${vacation.remaining}d`, tone: "text-foreground", bar: false },
-   ].map((card, i) => <div key={card.label} className={`flex min-w-0 flex-col justify-center border-border px-5 py-4 ${i < 4 ? "border-b xl:border-b-0 xl:border-e" : ""}`}><dt className="label-eyebrow">{card.label}</dt><dd className={`mt-2 break-words text-2xl font-semibold tabular-nums ${card.tone}`}>{card.value}</dd>{card.bar && <div className="mt-2 flex h-1.5 w-full overflow-hidden rounded-full bg-muted/40">{monthly.charges.map((a, j) => <div key={a.id} className={utilColors[j % utilColors.length]} style={{ width: `${a.percent / Math.max(100, monthly.utilization) * 100}%` }} />)}</div>}</div>)}
-  </dl>
   {overMonths.length > 0 && (
    <div className="flex items-start gap-3 rounded-lg border border-rag-red/40 bg-rag-red/10 px-4 py-3">
     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rag-red" />

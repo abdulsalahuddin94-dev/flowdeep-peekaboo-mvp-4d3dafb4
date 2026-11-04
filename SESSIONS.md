@@ -2623,3 +2623,6 @@ Created `product-spec.md` â€” the master product design specification for N
 
 ## 2026-11-04 — Employee Info tab
 - Renamed Overview to Employee Info; info shown as icon card grid (phone, email, national ID, DOB, hiring date, etc.); removed Projects & allocation table from it; Salary distribution donut moved to Salary tab.
+
+## 2026-11-04 — Employee demo profile data
+- Demo employees now include phone, national ID, birth date, gender, short name, tags and varied hiring dates (store key v5).

@@ -44,7 +44,7 @@ const H = {
 };
 const th = H.en;
 // Labels for the single period slot that sits under the tab line on every tab that carries one.
-const PL = { en: { workCalendar: "Work calendar", monthly: "Monthly", yearly: "Yearly", previous: "Previous", next: "Next" }, ar: { workCalendar: "تقويم العمل", monthly: "شهري", yearly: "سنوي", previous: "السابق", next: "التالي" } };
+const PL = { en: { workCalendar: "Work calendar", monthly: "Monthly", yearly: "Yearly", previous: "Previous", next: "Next", close: "Dismiss" }, ar: { workCalendar: "تقويم العمل", monthly: "شهري", yearly: "سنوي", previous: "السابق", next: "التالي", close: "إغلاق" } };
 const pl = PL.en;
 const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(n);
 const monthLabel = (month: string) => new Date(`${month}-01T12:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
@@ -160,8 +160,15 @@ function EmployeeDetails() {
    </header>
   </div>
   <Tabs value={tab} onValueChange={setTab} className="min-w-0 space-y-7">
-   <div className="grid min-w-0 grid-cols-1 items-end gap-4 border-b border-border">
+   <div className="flex min-w-0 items-end justify-between gap-4 border-b border-border">
     <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible border-b-0">{([["overview", t.overview], ["allocation", t.allocation], ["tasks", t.tasks], ["salary", t.salaryTab], ["capacity", t.capacityTab], ["trips", t.tripsTab]] as const).map(([value, label]) => <TabsTrigger key={value} value={value} className="shrink-0 px-0">{label}</TabsTrigger>)}</TabsList>
+    {overMonths.length > 0 && !warnClosed && (
+     <div role="alert" className="mb-1.5 flex min-w-0 max-w-[55%] shrink items-center gap-2 rounded-lg border border-rag-red/40 bg-rag-red/10 py-1.5 pe-1.5 ps-3">
+      <AlertTriangle className="h-4 w-4 shrink-0 text-rag-red" />
+      <div className="min-w-0 truncate text-sm" title={undefined}><span className="font-medium text-rag-red">{t.overUtil}</span><span className="text-muted-foreground"> — {t.overUtilDesc} </span><span className="font-medium text-foreground">{overMonths.map(monthLabel).join(", ")}</span></div>
+      <button type="button" aria-label={pl.close} onClick={() => setWarnClosed(true)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground"><X className="h-4 w-4" /></button>
+     </div>
+    )}
    </div>
    {showPeriod && (
     <div className="flex min-h-9 items-center justify-between gap-3">
@@ -172,48 +179,6 @@ function EmployeeDetails() {
      </div>
     </div>
    )}
-   {overMonths.length > 0 && (
-    <div className="flex items-start gap-3 rounded-lg border border-rag-red/40 bg-rag-red/10 px-4 py-3">
-     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rag-red" />
-     <div className="text-sm"><span className="font-medium text-rag-red">{t.overUtil}</span><span className="text-muted-foreground"> — {t.overUtilDesc} </span><span className="font-medium text-foreground">{overMonths.map(monthLabel).join(", ")}</span><span className="text-muted-foreground">.</span></div>
-    </div>
-   )}
-   <TabsContent value="overview" className="mt-0 min-w-0">
-    <section className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm"><dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">{profile.map(([label, value, Ic]) => <div key={label} className="flex min-w-0 items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-primary"><Ic className="h-5 w-5" /></span><div className="min-w-0"><dt className="text-sm text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-semibold text-foreground">{value}</dd></div></div>)}</dl></section>
-   </TabsContent>
-    <TabsContent value="allocation" className="mt-0">
-     <EmployeeWorkCalendar entries={workEntries} leave={calendarLeave} allocations={employee.allocations} year={year} view={calView} month={calMonth} />
-    </TabsContent>
-   <TabsContent value="tasks" className="mt-0 space-y-5">
-    <div className="flex flex-wrap items-center gap-3">
-     <div className="relative w-full max-w-xs"><Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input aria-label={t.searchTasks} placeholder={t.searchTasks} value={taskQuery} onChange={(e) => setTaskQuery(e.target.value)} className="ps-9" /></div>
-     <Select value={taskProject} onValueChange={setTaskProject}><SelectTrigger aria-label={t.project} className="w-56"><SelectValue /></SelectTrigger><SelectContent><SelectItem value={t.allProjects}>{t.allProjects}</SelectItem>{taskProjects.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent></Select>
-     <span className="text-xs text-muted-foreground">{visibleTasks.length} / {uniqueTasks.length}</span>
-    </div>
-    {visibleTasks.length || !uniqueTasks.length
-     ? <DataTable headers={[t.task, t.project, t.date]} rows={visibleTasks.map((v) => [v.task, projectLink(v.project), v.period])} />
-     : <p className="rounded-lg border border-border py-8 text-center text-sm text-muted-foreground">{t.noTasks}</p>}
-   </TabsContent>
-   <TabsContent value="salary" className="mt-0 space-y-6">
-     {mounted && monthly.salary > 0 && (
-      <div className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm">
-       <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">{t.salarySplit}</h3>
-       <div className="grid items-center gap-8 sm:grid-cols-[220px_minmax(0,1fr)]">
-        <div className="relative mx-auto h-[220px] w-[220px] sm:mx-0">
-         <PieChart width={220} height={220}>
-          <Pie data={[...monthly.charges.map((a, i) => ({ name: a.project, value: a.amount, color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ name: t.overhead, value: monthly.overhead, color: donutOverheadColor }] : [])]} dataKey="value" nameKey="name" innerRadius={62} outerRadius={95} paddingAngle={3} stroke="none" isAnimationActive={false}>
-           {[...monthly.charges.map((a, i) => ({ color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ color: donutOverheadColor }] : [])].map((x, i) => <Cell key={i} fill={x.color} />)}
-          </Pie>
-         </PieChart>
-         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><span className="text-xs text-muted-foreground">{t.total}</span><span className="text-lg font-semibold tabular-nums text-foreground">{money(monthly.salary)}</span></div>
-        </div>
-        <ul className="space-y-3 text-sm">
-         {monthly.charges.map((a, i) => <li key={a.id} className="flex items-center justify-between gap-4"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutColors[i % donutColors.length] }} /><span className="truncate text-foreground">{a.project}</span></div><span className="num-mono shrink-0 text-muted-foreground">{money(a.amount)}</span></li>)}
-         {monthly.overhead > 0 && <li className="flex items-center justify-between gap-4"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutOverheadColor }} /><span className="truncate text-muted-foreground">{t.overhead}</span></div><span className="num-mono shrink-0 text-muted-foreground">{money(monthly.overhead)}</span></li>}
-        </ul>
-       </div>
-      </div>
-     )}
     <div className="flex items-center justify-end gap-3"><Button size="sm" variant="primary" onClick={() => setPlanField("salary")}><Plus className="mr-1 h-4 w-4" />{t.setPlan}</Button></div>
     <DataTable
      headers={[t.month, t.monthly, t.projectCost, t.overhead, ""]}

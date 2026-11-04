@@ -159,24 +159,25 @@ function EmployeeDetails() {
     </dl>
    </header>
   </div>
-  {overMonths.length > 0 && (
-   <div className="flex items-start gap-3 rounded-lg border border-rag-red/40 bg-rag-red/10 px-4 py-3">
-    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rag-red" />
-    <div className="text-sm"><span className="font-medium text-rag-red">{t.overUtil}</span><span className="text-muted-foreground"> — {t.overUtilDesc} </span><span className="font-medium text-foreground">{overMonths.map(monthLabel).join(", ")}</span><span className="text-muted-foreground">.</span></div>
-   </div>
-  )}
   <Tabs value={tab} onValueChange={setTab} className="min-w-0 space-y-7">
-   <div className={`grid min-w-0 grid-cols-1 items-end gap-4 border-b border-border ${showYear ? "xl:grid-cols-[minmax(0,1fr)_auto]" : ""}`}>
+   <div className="grid min-w-0 grid-cols-1 items-end gap-4 border-b border-border">
     <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible border-b-0">{([["overview", t.overview], ["allocation", t.allocation], ["tasks", t.tasks], ["salary", t.salaryTab], ["capacity", t.capacityTab], ["trips", t.tripsTab]] as const).map(([value, label]) => <TabsTrigger key={value} value={value} className="shrink-0 px-0">{label}</TabsTrigger>)}</TabsList>
-    {showYear && (() => { const yi = years.indexOf(year); const go = (y: string) => { setYear(y); setSelectedMonth(`${y}-${selectedMonth.slice(5)}`); }; return (
-     <div className="flex h-10 shrink-0 items-center gap-2" role="group" aria-label={t.year}>
-      <button type="button" aria-label={t.year} disabled={yi <= 0} onClick={() => go(years[yi - 1])} className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"><ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden /></button>
-      <span className="min-w-12 text-center text-sm font-semibold tabular-nums">{year}</span>
-      <button type="button" aria-label={t.year} disabled={yi >= years.length - 1} onClick={() => go(years[yi + 1])} className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"><ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden /></button>
-     </div>
-    ); })()}
-
    </div>
+   {showPeriod && (
+    <div className="flex min-h-9 items-center justify-between gap-3">
+     {tab === "allocation" ? <h2 className="text-base font-semibold">{pl.workCalendar}</h2> : <span aria-hidden />}
+     <div className="flex items-center gap-4">
+      {tab === "allocation" && <ViewToggle view={calView} onView={setCalView} labels={{ monthly: pl.monthly, yearly: pl.yearly }} />}
+      <PeriodStepper label={periodLabel} onPrev={() => stepPeriod(-1)} onNext={() => stepPeriod(1)} prevDisabled={!canPrev} nextDisabled={!canNext} prevLabel={pl.previous} nextLabel={pl.next} />
+     </div>
+    </div>
+   )}
+   {overMonths.length > 0 && (
+    <div className="flex items-start gap-3 rounded-lg border border-rag-red/40 bg-rag-red/10 px-4 py-3">
+     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rag-red" />
+     <div className="text-sm"><span className="font-medium text-rag-red">{t.overUtil}</span><span className="text-muted-foreground"> — {t.overUtilDesc} </span><span className="font-medium text-foreground">{overMonths.map(monthLabel).join(", ")}</span><span className="text-muted-foreground">.</span></div>
+    </div>
+   )}
    <TabsContent value="overview" className="mt-0 min-w-0">
     <section className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm"><dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">{profile.map(([label, value, Ic]) => <div key={label} className="flex min-w-0 items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-primary"><Ic className="h-5 w-5" /></span><div className="min-w-0"><dt className="text-sm text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-semibold text-foreground">{value}</dd></div></div>)}</dl></section>
    </TabsContent>

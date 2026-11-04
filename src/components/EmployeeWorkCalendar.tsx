@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "@/lib/icons";
+// ============= Full file contents =============
+
+import { useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -29,24 +30,14 @@ function Detail({ items }: { items: WorkEntry[] }) {
   </div>;
 }
 
-export function EmployeeWorkCalendar({ entries, leave, allocations, year, years, onYearChange }: { entries: WorkEntry[]; leave: CalendarLeave[]; allocations: WorkAllocation[]; year: string; years: string[]; onYearChange: (y: string) => void }) {
-  const [view, setView] = useState<"monthly" | "yearly">("monthly");
-  const [month, setMonth] = useState(9);
+/**
+ * Period controls (title, Monthly/Yearly, month/year stepper) live in the page's fixed slot above this
+ * section rather than here, so the date navigator never moves between tabs.
+ */
+export function EmployeeWorkCalendar({ entries, leave, allocations, view, month, year }: { entries: WorkEntry[]; leave: CalendarLeave[]; allocations: WorkAllocation[]; view: "monthly" | "yearly"; month: number; year: string }) {
   const projects = useMemo(() => Array.from(new Set(entries.map((e) => e.project))), [entries]);
   const color = (p: string) => chipColors[Math.max(0, projects.indexOf(p)) % chipColors.length];
   const y = Number(year);
-  const minYear = Number(years[0]); const maxYear = Number(years[years.length - 1]);
-
-  const step = (dir: 1 | -1) => {
-    if (view === "yearly") { const n = y + dir; if (n >= minYear && n <= maxYear) onYearChange(String(n)); return; }
-    let m = month + dir; let ny = y;
-    if (m < 0) { m = 11; ny -= 1; } if (m > 11) { m = 0; ny += 1; }
-    if (ny < minYear || ny > maxYear) return;
-    setMonth(m); if (ny !== y) onYearChange(String(ny));
-  };
-  const prevDisabled = view === "yearly" ? y <= minYear : y <= minYear && month === 0;
-  const nextDisabled = view === "yearly" ? y >= maxYear : y >= maxYear && month === 11;
-  const periodLabel = view === "yearly" ? year : new Date(y, month, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
   const periodKey = view === "yearly" ? year : `${y}-${String(month + 1).padStart(2, "0")}`;
   // The share shown beside a project name must match the period currently on screen.
   const percentOf = (p: string) => allocations
@@ -56,19 +47,6 @@ export function EmployeeWorkCalendar({ entries, leave, allocations, year, years,
   const byProject = (list: WorkEntry[]) => projects.map((p) => ({ project: p, items: list.filter((e) => e.project === p) })).filter((g) => g.items.length);
 
   return <section className="min-w-0 space-y-4">
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <h2 className="text-base font-semibold">{l.title}</h2>
-      <div className="flex items-center gap-4">
-        <div className="inline-flex h-9 rounded-lg border border-border p-0.5" role="tablist">
-          {(["monthly", "yearly"] as const).map((v) => <button key={v} type="button" role="tab" aria-selected={view === v} onClick={() => setView(v)} className={cn("rounded-md px-3 text-sm transition-colors", view === v ? "bg-accent/20 text-accent" : "text-muted-foreground hover:text-foreground")}>{l[v]}</button>)}
-        </div>
-        <div className="flex items-center gap-2">
-          <button type="button" aria-label="Previous" disabled={prevDisabled} onClick={() => step(-1)} className="text-accent disabled:opacity-30"><ChevronLeft className="h-4 w-4 rtl:rotate-180" /></button>
-          <span className="min-w-28 text-center text-sm font-semibold">{periodLabel}</span>
-          <button type="button" aria-label="Next" disabled={nextDisabled} onClick={() => step(1)} className="text-accent disabled:opacity-30"><ChevronRight className="h-4 w-4 rtl:rotate-180" /></button>
-        </div>
-      </div>
-    </div>
     <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
       {projects.map((p) => { const pct = percentOf(p); return <span key={p} className="inline-flex items-center gap-2"><span className={cn("h-3 w-3 rounded-full", color(p).split(" ")[0])} />{p}{pct > 0 && <span className="num-mono font-semibold text-foreground">{pct}%</span>}</span>; })}
       <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-muted" />{l.leave}</span>

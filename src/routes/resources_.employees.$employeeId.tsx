@@ -12,7 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow } from "@/components/StyledTable";
-import { AlertTriangle, Phone, Mail, IdCard, CalendarDays, Briefcase, Building2, ChevronLeft, ChevronRight, DeleteAction, MoreHorizontal, Pencil, Plus, Search, ToggleActive, Trash2 } from "@/lib/icons";
+import { AlertTriangle, Phone, Mail, IdCard, CalendarDays, Briefcase, Building2, ChevronLeft, DeleteAction, MoreHorizontal, Pencil, Plus, Search, ToggleActive, Trash2 } from "@/lib/icons";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
 import { EmployeeWorkCalendar, type WorkEntry } from "@/components/EmployeeWorkCalendar";
+import { PeriodStepper, ViewToggle } from "@/components/PeriodStepper";
 export const Route = createFileRoute("/resources_/employees/$employeeId")({
   component: EmployeeDetails,
   head: ({ params }) => ({ meta: [{ title: `Employee ${params.employeeId} — Nexus PMO` }, { name: "description", content: "Employee profile, monthly salary, project allocation, assigned tasks, capacity, leave and trips." }, { property: "og:title", content: `Employee ${params.employeeId} — Nexus PMO` }, { property: "og:description", content: "Read-only employee information, salary allocation, projects, tasks and vacation." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
@@ -42,6 +43,9 @@ const H = {
   ar: { pageTitle: "بيانات الموظف", gender: "النوع", age: "العمر", years: "سنة", backToEmployees: "العودة إلى الموظفين", actions: "إجراءات الموظف", edit: "تعديل", activate: "تنشيط", deactivate: "إلغاء التنشيط", del: "حذف", active: "نشط", inactive: "غير نشط", sureToggle: "هل أنت متأكد؟" },
 };
 const th = H.en;
+// Labels for the single period slot that sits under the tab line on every tab that carries one.
+const PL = { en: { workCalendar: "Work calendar", monthly: "Monthly", yearly: "Yearly", previous: "Previous", next: "Next" }, ar: { workCalendar: "تقويم العمل", monthly: "شهري", yearly: "سنوي", previous: "السابق", next: "التالي" } };
+const pl = PL.en;
 const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(n);
 const monthLabel = (month: string) => new Date(`${month}-01T12:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 const daysBetween = (from: string, until: string) => Math.max(1, Math.round((new Date(`${until}T00:00:00Z`).getTime() - new Date(`${from}T00:00:00Z`).getTime()) / 86400000) + 1);
@@ -56,6 +60,8 @@ function EmployeeDetails() {
  const { employeeId } = Route.useParams(); const { employees, employmentTypes, setMonthlyPlan, setMonthOverride, addTrip, removeTrip, addLeave, removeLeave, setEmployees, updateEmployee } = useEmployees(); const { projects } = useProjects(); const { resourceRequests } = useResourceRequests();
  const employee = employees.find((e) => e.id === employeeId);
  const [tab, setTab] = useState("overview"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
+ // The work calendar's own period: which view and which month, driven from the shared slot under the tab line.
+ const [calView, setCalView] = useState<"monthly" | "yearly">("monthly"); const [calMonth, setCalMonth] = useState(9);
  const [planField, setPlanField] = useState<PlanField | null>(null); const [editMonth, setEditMonth] = useState<{ month: string; field: PlanField } | null>(null); const [tripOpen, setTripOpen] = useState(false); const [leaveOpen, setLeaveOpen] = useState(false);
  const [taskQuery, setTaskQuery] = useState(""); const [taskProject, setTaskProject] = useState<string>(t.allProjects); const navigate = useNavigate(); const [deleteOpen, setDeleteOpen] = useState(false); const [toggleOpen, setToggleOpen] = useState(false);
  // Recharts generates different clip IDs on server vs client — render the donut only after mount.
@@ -67,9 +73,25 @@ function EmployeeDetails() {
  const utilTone = monthly.effectiveUtilization > 100 ? "text-rag-red" : monthly.effectiveUtilization > 90 ? "text-rag-amber" : "text-accent";
  const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
  const years = Array.from(new Set(["2025", "2026", "2027", employee.joinedOn.slice(0, 4), ...employee.allocations.flatMap((a) => [a.from.slice(0, 4), a.until.slice(0, 4)]).filter(Boolean)])).sort();
- // The year only drives the month-by-month and dated registers; identity data and the task list are not scoped to a year.
- // The work calendar owns its own month/year stepper, so the header year would just repeat it on that tab.
- const showYear = tab === "salary" || tab === "capacity" || tab === "trips";
+ // One period control, pinned to the same slot under the tab line: a month stepper on the work calendar, a year stepper on the dated registers.
+ const showPeriod = tab === "allocation" || tab === "salary" || tab === "capacity" || tab === "trips";
+ const yi = years.indexOf(year);
+ const isCalMonth = tab === "allocation" && calView === "monthly";
+ const periodLabel = isCalMonth ? new Date(Number(year), calMonth, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : year;
+ const canPrev = isCalMonth ? yi > 0 || calMonth > 0 : yi > 0;
+ const canNext = isCalMonth ? yi < years.length - 1 || calMonth < 11 : yi < years.length - 1;
+ const stepPeriod = (dir: 1 | -1) => {
+  if (isCalMonth) {
+   const ny = yi + Math.floor((calMonth + dir) / 12);
+   if (ny < 0 || ny >= years.length) return;
+   setCalMonth((calMonth + dir + 12) % 12);
+   if (years[ny] !== year) setYear(years[ny]);
+   return;
+  }
+  const n = yi + dir;
+  if (n < 0 || n >= years.length) return;
+  setYear(years[n]); setSelectedMonth(`${years[n]}-${selectedMonth.slice(5)}`);
+ };
 
  const overMonths = months.filter((m) => employeeMonth(employee, m).effectiveUtilization > 100);
  const requestTasks = resourceRequests.filter((r) => r.status === "Fulfilled" && r.assignedTo === employee.name && r.task).map((r) => ({ task: r.task ?? "", project: r.project, period: `${monthLabel(r.from)} → ${monthLabel(r.until)}` }));
@@ -137,29 +159,30 @@ function EmployeeDetails() {
     </dl>
    </header>
   </div>
-  {overMonths.length > 0 && (
-   <div className="flex items-start gap-3 rounded-lg border border-rag-red/40 bg-rag-red/10 px-4 py-3">
-    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rag-red" />
-    <div className="text-sm"><span className="font-medium text-rag-red">{t.overUtil}</span><span className="text-muted-foreground"> — {t.overUtilDesc} </span><span className="font-medium text-foreground">{overMonths.map(monthLabel).join(", ")}</span><span className="text-muted-foreground">.</span></div>
-   </div>
-  )}
   <Tabs value={tab} onValueChange={setTab} className="min-w-0 space-y-7">
-   <div className={`grid min-w-0 grid-cols-1 items-end gap-4 border-b border-border ${showYear ? "xl:grid-cols-[minmax(0,1fr)_auto]" : ""}`}>
+   <div className="grid min-w-0 grid-cols-1 items-end gap-4 border-b border-border">
     <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible border-b-0">{([["overview", t.overview], ["allocation", t.allocation], ["tasks", t.tasks], ["salary", t.salaryTab], ["capacity", t.capacityTab], ["trips", t.tripsTab]] as const).map(([value, label]) => <TabsTrigger key={value} value={value} className="shrink-0 px-0">{label}</TabsTrigger>)}</TabsList>
-    {showYear && (() => { const yi = years.indexOf(year); const go = (y: string) => { setYear(y); setSelectedMonth(`${y}-${selectedMonth.slice(5)}`); }; return (
-     <div className="flex h-10 shrink-0 items-center gap-2" role="group" aria-label={t.year}>
-      <button type="button" aria-label={t.year} disabled={yi <= 0} onClick={() => go(years[yi - 1])} className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"><ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden /></button>
-      <span className="min-w-12 text-center text-sm font-semibold tabular-nums">{year}</span>
-      <button type="button" aria-label={t.year} disabled={yi >= years.length - 1} onClick={() => go(years[yi + 1])} className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"><ChevronRight className="h-4 w-4 rtl:rotate-180" aria-hidden /></button>
-     </div>
-    ); })()}
-
    </div>
+   {showPeriod && (
+    <div className="flex min-h-9 items-center justify-between gap-3">
+     {tab === "allocation" ? <h2 className="text-base font-semibold">{pl.workCalendar}</h2> : <span aria-hidden />}
+     <div className="flex items-center gap-4">
+      {tab === "allocation" && <ViewToggle view={calView} onView={setCalView} labels={{ monthly: pl.monthly, yearly: pl.yearly }} />}
+      <PeriodStepper label={periodLabel} onPrev={() => stepPeriod(-1)} onNext={() => stepPeriod(1)} prevDisabled={!canPrev} nextDisabled={!canNext} prevLabel={pl.previous} nextLabel={pl.next} />
+     </div>
+    </div>
+   )}
+   {overMonths.length > 0 && (
+    <div className="flex items-start gap-3 rounded-lg border border-rag-red/40 bg-rag-red/10 px-4 py-3">
+     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rag-red" />
+     <div className="text-sm"><span className="font-medium text-rag-red">{t.overUtil}</span><span className="text-muted-foreground"> — {t.overUtilDesc} </span><span className="font-medium text-foreground">{overMonths.map(monthLabel).join(", ")}</span><span className="text-muted-foreground">.</span></div>
+    </div>
+   )}
    <TabsContent value="overview" className="mt-0 min-w-0">
     <section className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm"><dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">{profile.map(([label, value, Ic]) => <div key={label} className="flex min-w-0 items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-primary"><Ic className="h-5 w-5" /></span><div className="min-w-0"><dt className="text-sm text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-semibold text-foreground">{value}</dd></div></div>)}</dl></section>
    </TabsContent>
     <TabsContent value="allocation" className="mt-0">
-     <EmployeeWorkCalendar entries={workEntries} leave={calendarLeave} allocations={employee.allocations} year={year} years={years} onYearChange={setYear} />
+     <EmployeeWorkCalendar entries={workEntries} leave={calendarLeave} allocations={employee.allocations} year={year} view={calView} month={calMonth} />
     </TabsContent>
    <TabsContent value="tasks" className="mt-0 space-y-5">
     <div className="flex flex-wrap items-center gap-3">

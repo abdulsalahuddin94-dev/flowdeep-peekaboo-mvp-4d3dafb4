@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export type WorkEntry = { project: string; milestone: string; task: string; from: string; until: string };
 export type CalendarLeave = { from: string; until: string; label: string };
 
-const chipColors = ["bg-accent/25 text-foreground", "bg-rag-blue/25 text-foreground", "bg-rag-green/25 text-foreground", "bg-rag-amber/25 text-foreground", "bg-accent-secondary/25 text-foreground"];
+const chipColors = ["bg-accent/40 text-foreground", "bg-rag-blue/40 text-foreground", "bg-rag-green/40 text-foreground", "bg-rag-amber/40 text-foreground", "bg-accent-secondary/40 text-foreground"];
 
 const L = {
   en: { monthly: "Monthly", yearly: "Yearly", title: "Work calendar", leave: "Leave", weekend: "Weekend", milestone: "Milestone", task: "Task", project: "Project", empty: "No project work in this period", more: "more" },

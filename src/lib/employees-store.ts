@@ -39,8 +39,11 @@ const initialEmployees: Employee[] = resources.map((r, i) => {
   const names = (projectIds[i] ?? []).map((id) => projects.find((p) => p.id === id)?.name).filter((n): n is string => !!n);
   if (!names.length) names.push(...r.projects);
   const base = salaries[i] ?? 10000;
-  return { ...r, id: `EMP-${String(i + 1).padStart(3, "0")}`, projects: names, email: `${r.name.toLowerCase().replace(/[^a-z ]/g, "").trim().replace(/\s+/g, ".")}@company.com`, salary: base, capacity: DEFAULT_MONTHLY_CAPACITY, employmentTypeId: types[i % 3]?.id ?? "ET-1", joinedOn: "2025-01-01", tasks: taskNames[i] ?? [], vacationEntitlement: 24, demo: true,
+  return { ...r, id: `EMP-${String(i + 1).padStart(3, "0")}`, projects: names, email: `${r.name.toLowerCase().replace(/[^a-z ]/g, "").trim().replace(/\s+/g, ".")}@company.com`, salary: base, capacity: DEFAULT_MONTHLY_CAPACITY, employmentTypeId: types[i % 3]?.id ?? "ET-1", joinedOn: `${2019 + i % 6}-${String((i * 4) % 12 + 1).padStart(2, "0")}-${String((i * 9) % 27 + 1).padStart(2, "0")}`, tasks: taskNames[i] ?? [], vacationEntitlement: 24, demo: true,
     employeeNumber: String(8123456 - i * 100000), active: true,
+    shortName: r.name.split(" ")[0], phone: `+966 5${(i + 1) % 10} ${String(312 + i * 47).padStart(3, "0")} ${String(4821 + i * 613).slice(-4)}`,
+    nationalId: String(1087654321 - i * 1234567), birthDate: `${1984 + (i * 3) % 14}-${String((i * 5) % 12 + 1).padStart(2, "0")}-${String((i * 7) % 27 + 1).padStart(2, "0")}`,
+    gender: i % 3 === 1 ? "Female" : "Male", tags: [["Senior", "Certified"], ["Remote"], ["Certified"], ["Field"], ["Senior"], ["Part-time"], ["Remote", "Certified"], []][i] ?? [],
     monthly: seedMonthly(i, base),
     trips: seedTrips(i),
     allocations: names.map((project, j) => ({ id: `seed-${i}-${j}`, project, role: r.role, percent: j === 0 && names.length > 1 ? Math.round(r.util * .6) : names.length > 1 ? r.util - Math.round(r.util * .6) : r.util, from: "2026-01", until: "2026-12", task: taskNames[i]?.[j] })),
@@ -56,8 +59,8 @@ let state = defaults;
 let loaded = false;
 const listeners = new Set<() => void>();
 // v3: leave lost its status (Leave / Partial + remark) and trips gained location, work dates and costs.
-// v4: employee active/inactive status and employee numbers on demo rows.
-const storageKey = "pmo.employees.v4";
+// v5: demo rows carry full profile data (phone, national ID, birth date, gender, tags).
+const storageKey = "pmo.employees.v5";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;

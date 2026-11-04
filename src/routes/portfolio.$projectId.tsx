@@ -292,7 +292,6 @@ function ProjectDetail() {
   const [finLinkItem, setFinLinkItem] = useState<string | undefined>(undefined);
   const [gateData, setGateData] = useState<GateStage[]>(INITIAL_GATE_DATA);
   const [changeRequests, setChangeRequests] = useState<ChangeRequest[]>(cached?.changeRequests ?? []);
-  const [crDialogOpen, setCrDialogOpen] = useState(false);
   const [crApprovalDialogOpen, setCrApprovalDialogOpen] = useState(false);
   const [selectedCrForApproval, setSelectedCrForApproval] = useState<string | undefined>(undefined);
   const [selectedBaselineVersion, setSelectedBaselineVersion] = useState<string>("latest");
@@ -679,13 +678,32 @@ function ProjectDetail() {
     saveProjectBaseline();
   }
 
-  /** Gated Save baseline (Change Plan): reconciles both totals before the CR review. */
+  /** Builds the change request from the plan edits — the detail lives in Change Requests, not in a pre-save review. */
+  function buildBaselineChangeRequest(): ChangeRequest {
+    const changes = computeBaselineChanges(
+      projectBaselineVersions[projectBaselineVersions.length - 1]?.snapshot as Milestone[] | undefined,
+      milestones,
+      [...infoChanges, ...(editFinSnapshot ? diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }) : [])],
+    );
+    const crId = `CR-${String(Date.now()).slice(-6)}`;
+    return {
+      id: crId,
+      summary: `${changes.length} change${changes.length === 1 ? "" : "s"} to the project plan`,
+      changes: changes.map((c) => ({ field: `${c.item} · ${c.field}`, oldValue: c.oldValue, newValue: c.newValue })),
+      reason: "—",
+      submittedBy: "Current User",
+      createdAt: new Date().toISOString().split("T")[0],
+      status: "pending",
+    };
+  }
+
+  /** Gated Save baseline (Change Plan): reconciles both totals, then asks for confirmation. */
   function requestSaveBaselineChange() {
     const issues = planChangeCount === 0
       ? [{ key: "changes" as const, title: "No changes were made to the plan yet", project: 0, plan: 0, diff: 0 }, ...baselineIssues]
       : baselineIssues;
     if (issues.length > 0) { setValidationIssues(issues); setBaselineValidationOpen(true); return; }
-    setCrDialogOpen(true);
+    setPendingCrConfirm(buildBaselineChangeRequest());
   }
 
   // Publish this project's financial links so a linked item is excluded from
@@ -1364,19 +1382,6 @@ function ProjectDetail() {
             otherPending={Math.max(0, pendingApprovalCount - (pendingCr ? 1 : 0))}
             onWithdraw={withdrawPendingChange}
           />
-          {/* CR Dialog — reviewing changes here is the only review step; decisions happen in the Approvals module. */}
-          <ChangeRequestDialog
-            open={crDialogOpen}
-            onOpenChange={setCrDialogOpen}
-            baselineSnapshot={projectBaselineVersions[projectBaselineVersions.length - 1]?.snapshot as Milestone[] | undefined}
-            currentMilestones={milestones}
-            baselineVersion={projectBaselineVersions.length}
-            extraChanges={[...infoChanges, ...(editFinSnapshot ? diffFinancialPlan(editFinSnapshot, { cost: costEntries, rev: revEntries }) : [])]}
-            onSubmit={(cr) => {
-              setCrDialogOpen(false);
-              setPendingCrConfirm(cr);
-            }}
-          />
 
           {/* Save-baseline reconciliations — both totals are checked together so the user sees every mismatch in one step. */}
           <ConfirmDialog
@@ -1428,14 +1433,14 @@ function ProjectDetail() {
             </div>
           </ConfirmDialog>
 
-          {/* Baseline save confirmation — shown right after Send for approval */}
+          {/* Baseline save confirmation — the only step between "Save baseline" and sending the request. */}
           <ConfirmDialog
             open={!!pendingCrConfirm}
             onOpenChange={(o) => { if (!o) setPendingCrConfirm(null); }}
             tone="info"
             title="Save a new baseline?"
-            description={`This will be the active baseline once it's approved by the responsible. V${projectBaselineVersions.length} stays available for view.`}
-            confirmLabel="Save"
+            description="This will be the active baseline once it's approved. Current version will be the available version until approval."
+            confirmLabel="Save baseline"
             cancelLabel="Cancel"
             onConfirm={() => { if (pendingCrConfirm) submitBaselineChange(pendingCrConfirm); }}
           />
@@ -1476,7 +1481,7 @@ function ProjectDetail() {
         setProjectBaselineVersions={setProjectBaselineVersions}
         milestones={milestones}
         resourceRequests={resourceRequests}
-        setCrDialogOpen={setCrDialogOpen}
+        onRequestBaselineChange={requestSaveBaselineChange}
         projectId={project.id}
         projectName={project.name}
         onSetProgress={(name, progress) =>
@@ -2234,7 +2239,7 @@ const SEED_PACKAGES: TenderPackage[] = [
 function ProgressUpdateDialog({
   open, onOpenChange, items, onSetProgress, onRequestApproval, onApprove, onRejectApproval, initialTaskName, scopeMilestone,
   projectBaseline, setProjectBaseline, projectBaselineVersions, setProjectBaselineVersions,
-  milestones, resourceRequests, setCrDialogOpen, projectId, projectName,
+  milestones, resourceRequests, onRequestBaselineChange, projectId, projectName,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -2251,7 +2256,7 @@ function ProgressUpdateDialog({
   setProjectBaselineVersions: React.Dispatch<React.SetStateAction<Array<{ version: number; createdAt: string; snapshot: Milestone[] }>>>;
   milestones: Milestone[];
   resourceRequests: ResourceRequest[];
-  setCrDialogOpen: (v: boolean) => void;
+  onRequestBaselineChange: () => void;
   projectId: string;
   projectName: string;
 }) {
@@ -2435,7 +2440,7 @@ function ProgressUpdateDialog({
 
   function requestChangeRequest() {
     if (!projectBaseline || !projectBaseline.isLocked) return;
-    setCrDialogOpen(true);
+    onRequestBaselineChange();
   }
 
   return (
@@ -6482,24 +6487,12 @@ interface ChangeRequest {
   approvalId?: string;
 }
 
-function ChangeRequestDialog({
-  open,
-  onOpenChange,
-  baselineSnapshot,
-  currentMilestones,
-  baselineVersion,
-  onSubmit,
-  extraChanges = [],
-}: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  baselineSnapshot?: Milestone[];
-  currentMilestones: Milestone[];
-  baselineVersion: number;
-  extraChanges?: Array<{ item: string; field: string; oldValue: string; newValue: string }>;
-  onSubmit: (cr: ChangeRequest) => void;
-}) {
-  const changes = useMemo(() => {
+/** Diffs the current plan against the last saved baseline; feeds the submitted change request. */
+function computeBaselineChanges(
+  baselineSnapshot: Milestone[] | undefined,
+  currentMilestones: Milestone[],
+  extraChanges: Array<{ item: string; field: string; oldValue: string; newValue: string }>,
+): Array<{ item: string; field: string; oldValue: string; newValue: string }> {
     const out: Array<{ item: string; field: string; oldValue: string; newValue: string }> = [];
     if (!baselineSnapshot) return extraChanges;
     const baseByName = new Map(baselineSnapshot.map((m) => [m.name, m]));
@@ -6560,106 +6553,6 @@ function ChangeRequestDialog({
       }
     }
     return [...out, ...extraChanges];
-  }, [baselineSnapshot, currentMilestones, extraChanges]);
-
-  function handleSubmit() {
-    if (changes.length === 0) {
-      toast.error("No changes detected — edit the schedule first");
-      return;
-    }
-    const crId = `CR-${String(Date.now()).slice(-6)}`;
-    const cr: ChangeRequest = {
-      id: crId,
-      summary: `${changes.length} change${changes.length === 1 ? "" : "s"} to the project plan`,
-      changes: changes.map((c) => ({ field: `${c.item} · ${c.field}`, oldValue: c.oldValue, newValue: c.newValue })),
-      reason: "—",
-      submittedBy: "Current User",
-      createdAt: new Date().toISOString().split("T")[0],
-      status: "pending",
-    };
-    onSubmit(cr);
-  }
-
-  const grouped = useMemo(() => {
-    const m = new Map<string, Array<{ field: string; oldValue: string; newValue: string }>>();
-    for (const c of changes) {
-      if (!m.has(c.item)) m.set(c.item, []);
-      m.get(c.item)?.push({ field: c.field, oldValue: c.oldValue, newValue: c.newValue });
-    }
-    return Array.from(m.entries());
-  }, [changes]);
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-3xl overflow-x-hidden">
-        <DialogHeader>
-          <DialogTitle>
-            Save new baseline (v{baselineVersion + 1})
-            {changes.length > 0 && (
-              <Badge variant="outline" className="ml-2 border-rag-amber/40 bg-rag-amber/10 text-rag-amber text-[10px]">
-                {changes.length} change{changes.length === 1 ? "" : "s"} · {grouped.length} item{grouped.length === 1 ? "" : "s"}
-              </Badge>
-            )}
-          </DialogTitle>
-          <DialogDescription>
-            Summary of edits vs Current Version (v{baselineVersion}). Confirm to send for approval.
-          </DialogDescription>
-        </DialogHeader>
-
-        {(() => {
-          const itemKinds = new Map<string, string>([...(baselineSnapshot ?? []), ...currentMilestones].map((m) => [m.name, m.kind]));
-          const allSections = [
-            { key: "info", label: "Project Info", match: (i: string) => i.startsWith("Info · "), strip: "Info · " },
-            { key: "schedule", label: "Project Schedule", match: (i: string) => !i.startsWith("Cost · ") && !i.startsWith("Revenue · ") && !i.startsWith("Info · "), strip: "" },
-            { key: "cost", label: "Cost Breakdown", match: (i: string) => i.startsWith("Cost · "), strip: "Cost · " },
-            { key: "revenue", label: "Revenue Breakdown", match: (i: string) => i.startsWith("Revenue · "), strip: "Revenue · " },
-          ];
-          const sections = allSections.filter((s) => s.key !== "info" || changes.some((c) => s.match(c.item)));
-          const firstWith = sections.find((s) => grouped.some(([i]) => s.match(i)))?.key ?? "schedule";
-          return (
-            <Tabs defaultValue={firstWith} className="w-full min-w-0">
-              <TabsList className="w-full">
-                {sections.map((s) => {
-                  const n = changes.filter((c) => s.match(c.item)).length;
-                  return (
-                    <TabsTrigger key={s.key} value={s.key} className="flex-1 gap-2">
-                      {s.label}
-                      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-[10px] text-muted-foreground">{n}</span>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-              {sections.map((s) => {
-                const list = changes.filter((c) => s.match(c.item)).map((c) => {
-                  const name = s.strip ? c.item.slice(s.strip.length) : c.item;
-                  return {
-                    item: name,
-                    field: c.field, before: c.oldValue, after: c.newValue,
-                    type: s.key === "schedule" ? itemKinds.get(name) : undefined,
-                  };
-                });
-                return (
-                  <TabsContent key={s.key} value={s.key}>
-                    <PlanChangesTable changes={list} label={s.label} compact showType={s.key === "schedule"} />
-                  </TabsContent>
-                );
-              })}
-            </Tabs>
-          );
-        })()}
-
-        <DialogFooter>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button variant="primary"
-            onClick={handleSubmit}
-            disabled={changes.length === 0}
-          >
-            Save baseline
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
 }
 
 /** Read-only view of the submitted change request, with Withdraw for the requester. */

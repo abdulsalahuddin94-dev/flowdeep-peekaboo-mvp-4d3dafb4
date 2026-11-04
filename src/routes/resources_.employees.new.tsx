@@ -124,8 +124,8 @@ function AddEmployeePage() {
       <section className="glass-card mt-6 w-full p-6">
         <h2 className="mb-4 text-base font-semibold text-foreground">{t.employment}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Unit" htmlFor="emp-unit" error={errors.dept}>
-            <Select value={f.dept} onValueChange={(v) => set("dept", v)}><SelectTrigger id="emp-unit"><SelectValue placeholder="Select unit" /></SelectTrigger><SelectContent>{departments.map((d) => <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>)}</SelectContent></Select>
+          <Field label="Department" htmlFor="emp-unit" error={errors.dept}>
+            <Select value={f.dept} onValueChange={(v) => set("dept", v)}><SelectTrigger id="emp-unit"><SelectValue placeholder="Select department" /></SelectTrigger><SelectContent>{departments.map((d) => <SelectItem key={d.name} value={d.name}>{d.name}</SelectItem>)}</SelectContent></Select>
           </Field>
           <Field label="Job role" htmlFor="emp-role" error={errors.role}>
             <Select value={f.role} onValueChange={(v) => set("role", v)}><SelectTrigger id="emp-role"><SelectValue placeholder="Select job role" /></SelectTrigger><SelectContent>{jobRoles.map((r) => <SelectItem key={r.id} value={r.title}>{r.title}</SelectItem>)}</SelectContent></Select>

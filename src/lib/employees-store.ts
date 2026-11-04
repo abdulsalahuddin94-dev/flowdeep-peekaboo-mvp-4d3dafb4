@@ -6,7 +6,7 @@ export type EmployeeAllocation = { id: string; project: string; role: string; pe
 /** "Leave" spans whole days (from–until); "Partial" is a few hours on one day (`hours`). */
 export type EmployeeLeave = { id: string; type: "Leave" | "Partial"; from: string; until: string; days: number; hours?: number; remark?: string };
 /** `from`/`until` are the travel dates; `workFrom`/`workUntil` the days worked on site. Costs in USD. */
-export type EmployeeTrip = { id: string; country: string; city: string; from: string; until: string; workFrom: string; workUntil: string; days: number; ticketsCost: number; visaCost: number; perDiemCost: number };
+export type EmployeeTrip = { id: string; country: string; city: string; from: string; until: string; workFrom: string; workUntil: string; days: number; ticketsCost: number; visaCost: number; perDiemCost: number; /** Trips are planned from a project; the employee profile shows them read-only. */ project?: string; milestone?: string; purpose?: string; groupId?: string };
 /** Per-month overrides keyed by "YYYY-MM"; months without an entry fall back to the employee's base salary/capacity. */
 export type EmployeeMonthPlan = { salary?: number; capacity?: number };
 export type Employee = { id: string; name: string; role: string; dept: string; email: string; salary: number; capacity: number; util: number; employmentTypeId: string; joinedOn: string; projects: string[]; tasks: string[]; allocations: EmployeeAllocation[]; leave: EmployeeLeave[]; trips: EmployeeTrip[]; monthly: Record<string, EmployeeMonthPlan>; vacationEntitlement: number; demo: boolean; shortName?: string; employeeNumber?: string; nationalId?: string; phone?: string; birthDate?: string; gender?: string; tags?: string[]; avatar?: string; /** Missing means active (legacy rows predate status). */ active?: boolean };
@@ -28,10 +28,10 @@ function seedMonthly(i: number, base: number): Record<string, EmployeeMonthPlan>
   return plan;
 }
 
-function seedTrips(i: number): EmployeeTrip[] {
+function seedTrips(i: number, project?: string): EmployeeTrip[] {
   return [
-    { id: `trip-${i}-1`, country: "Saudi Arabia", city: "Riyadh", from: "2026-05-10", until: "2026-05-15", workFrom: "2026-05-11", workUntil: "2026-05-14", days: 6, ticketsCost: 1200, visaCost: 150, perDiemCost: 1600 },
-    { id: `trip-${i}-2`, country: "United Arab Emirates", city: "Dubai", from: "2026-11-01", until: "2026-11-07", workFrom: "2026-11-02", workUntil: "2026-11-06", days: 7, ticketsCost: 900, visaCost: 0, perDiemCost: 2000 },
+    { id: `trip-${i}-1`, country: "Saudi Arabia", city: "Riyadh", from: "2026-05-10", until: "2026-05-15", workFrom: "2026-05-11", workUntil: "2026-05-14", days: 6, ticketsCost: 1200, visaCost: 150, perDiemCost: 1600, project, purpose: "Client requirements workshop", groupId: "seed-trip-riyadh" },
+    { id: `trip-${i}-2`, country: "United Arab Emirates", city: "Dubai", from: "2026-11-01", until: "2026-11-07", workFrom: "2026-11-02", workUntil: "2026-11-06", days: 7, ticketsCost: 900, visaCost: 0, perDiemCost: 2000, project, purpose: "On-site go-live support", groupId: "seed-trip-dubai" },
   ];
 }
 
@@ -45,7 +45,7 @@ const initialEmployees: Employee[] = resources.map((r, i) => {
     nationalId: String(1087654321 - i * 1234567), birthDate: `${1984 + (i * 3) % 14}-${String((i * 5) % 12 + 1).padStart(2, "0")}-${String((i * 7) % 27 + 1).padStart(2, "0")}`,
     gender: i % 3 === 1 ? "Female" : "Male", tags: [["Senior", "Certified"], ["Remote"], ["Certified"], ["Field"], ["Senior"], ["Part-time"], ["Remote", "Certified"], []][i] ?? [],
     monthly: seedMonthly(i, base),
-    trips: seedTrips(i),
+    trips: seedTrips(i, names[0]),
     allocations: names.map((project, j) => ({ id: `seed-${i}-${j}`, project, role: r.role, percent: j === 0 && names.length > 1 ? Math.round(r.util * .6) : names.length > 1 ? r.util - Math.round(r.util * .6) : r.util, from: "2026-01", until: "2026-12", task: taskNames[i]?.[j] })),
     leave: [
       { id: `leave-${i}-1`, type: "Leave", from: "2026-07-05", until: "2026-07-09", days: 5, remark: "Summer vacation" },
@@ -60,7 +60,7 @@ let loaded = false;
 const listeners = new Set<() => void>();
 // v3: leave lost its status (Leave / Partial + remark) and trips gained location, work dates and costs.
 // v5: demo rows carry full profile data (phone, national ID, birth date, gender, tags).
-const storageKey = "pmo.employees.v5";
+const storageKey = "pmo.employees.v6";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;
@@ -93,6 +93,13 @@ export function useEmployees() {
       updateEmployee(id, (e) => ({ monthly: { ...e.monthly, [month]: { ...e.monthly[month], ...plan } } })),
     addTrip: (id: string, trip: Omit<EmployeeTrip, "id">) =>
       updateEmployee(id, (e) => ({ trips: [...e.trips, { ...trip, id: `trip-${crypto.randomUUID()}` }] })),
+    /** One project trip creates a linked record on each traveler so capacity and history stay per employee. */
+    addProjectTrip: (travelerIds: string[], trip: Omit<EmployeeTrip, "id" | "groupId">) => {
+      const groupId = `tripgrp-${crypto.randomUUID()}`;
+      travelerIds.forEach((id) => updateEmployee(id, (e) => ({ trips: [...e.trips, { ...trip, groupId, id: `trip-${crypto.randomUUID()}` }] })));
+    },
+    removeTripGroup: (project: string, groupId: string) =>
+      employeesSnapshot().forEach((e) => { if (e.trips.some((t) => t.groupId === groupId && t.project === project)) updateEmployee(e.id, (x) => ({ trips: x.trips.filter((t) => !(t.groupId === groupId && t.project === project)) })); }),
     removeTrip: (id: string, tripId: string) =>
       updateEmployee(id, (e) => ({ trips: e.trips.filter((t) => t.id !== tripId) })),
     addLeave: (id: string, leave: Omit<EmployeeLeave, "id">) =>

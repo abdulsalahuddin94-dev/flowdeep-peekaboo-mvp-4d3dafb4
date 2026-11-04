@@ -92,7 +92,7 @@ function TripForm({ open, onClose, team, milestones, onSave }: { open: boolean; 
   return <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
     <SheetContent side="right" className="flex flex-col gap-0 p-0">
       <SheetHeader className="border-b border-border px-6 py-5"><SheetTitle>{t.add}</SheetTitle></SheetHeader>
-      <div className="flex-1 divide-y divide-border overflow-y-auto">
+      <div className="flex flex-1 flex-col justify-between divide-y divide-border overflow-y-auto">
         {section(t.travelers, <Field error={errors.travelers}>
           <MultiSelectField id="pt-travelers" options={options} value={ids} invalid={!!errors.travelers} placeholder={t.searchPeople} onChange={(v) => { setIds(v); setErrors((e) => ({ ...e, travelers: undefined })); }} />
         </Field>)}

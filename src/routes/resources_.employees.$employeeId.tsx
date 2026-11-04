@@ -165,7 +165,7 @@ function EmployeeDetails() {
     {overMonths.length > 0 && !warnClosed && (
      <div role="alert" className="mb-1.5 flex min-w-0 max-w-[55%] shrink items-center gap-2 rounded-lg border border-rag-red/40 bg-rag-red/10 py-1.5 pe-1.5 ps-3">
       <AlertTriangle className="h-4 w-4 shrink-0 text-rag-red" />
-      <div className="min-w-0 truncate text-sm"><span className="font-medium text-rag-red">{t.overUtil}</span><span className="text-muted-foreground"> — {t.overUtilDesc} </span><span className="font-medium text-foreground">{overMonths.map(monthLabel).join(", ")}</span></div>
+      <div className="min-w-0 truncate text-sm"><span className="font-medium text-rag-red">{t.overUtil}</span><span className="text-muted-foreground"> — </span><span className="font-medium text-foreground">{overMonths.map(monthLabel).join(", ")}</span></div>
       <button type="button" aria-label={pl.close} onClick={() => setWarnClosed(true)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted/50 hover:text-foreground"><X className="h-4 w-4" /></button>
      </div>
     )}

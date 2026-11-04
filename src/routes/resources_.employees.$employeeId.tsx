@@ -50,7 +50,7 @@ function EmployeeDetails() {
  const [mounted, setMounted] = useState(false);
  useEffect(() => setMounted(true), []);
  const projectLink = (name: string) => { const p = projects.find((v) => v.name === name); return p ? <Link to="/portfolio/$projectId" params={{ projectId: p.id }} className="text-accent hover:underline">{name}</Link> : name; };
- if (!employee) return <><Button asChild variant="outline"><Link to="/resources" search={{ tab: "people" }}><ChevronLeft className="h-4 w-4" />{t.employees}</Link></Button><h1 className="mt-6 text-xl">{t.missing}</h1></>;
+ if (!employee) return <><Link to="/resources" search={{ tab: "people" }} className="mb-2 inline-flex items-center gap-2 text-sm text-breadcrumb-muted transition-colors hover:text-breadcrumb-hover"><ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t.employees}</Link><h1 className="mt-6 text-xl">{t.missing}</h1></>;
  const monthly = employeeMonth(employee, selectedMonth); const vacation = vacationBalance(employee, year);
  const utilTone = monthly.effectiveUtilization > 100 ? "text-rag-red" : monthly.effectiveUtilization > 90 ? "text-rag-amber" : "text-accent";
  const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
@@ -70,7 +70,13 @@ function EmployeeDetails() {
  const profile = [[t.id, employee.id], [t.email, employee.email], [t.role, employee.role], [t.department, employee.dept], [t.type, employmentTypes.find((v) => v.id === employee.employmentTypeId)?.name ?? "—"], [t.joined, formatDateWithYear(employee.joinedOn)]];
  return <div className="min-w-0 space-y-8">
   <div className="space-y-5">
-   <Button asChild variant="ghost" className="h-9 px-0 text-muted-foreground"><Link to="/resources" search={{ tab: "people" }}><ChevronLeft className="h-4 w-4 rtl:rotate-180" />{t.employees}</Link></Button>
+   <nav aria-label={t.breadcrumb} className="flex flex-wrap items-center gap-2 text-sm text-breadcrumb-muted">
+    <Link to="/resources" className="inline-flex items-center gap-2 transition-colors hover:text-breadcrumb-hover">{t.resources}</Link>
+    <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden />
+    <Link to="/resources" search={{ tab: "people" }} className="inline-flex items-center gap-2 transition-colors hover:text-breadcrumb-hover">{t.employees}</Link>
+    <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden />
+    <span className="text-breadcrumb-current">{employee.name}</span>
+   </nav>
    <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4">
     <Avatar className="h-16 w-16 shrink-0"><AvatarFallback className="bg-accent-dim text-xl font-medium text-accent">{employee.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback></Avatar>
     <div className="min-w-0 space-y-2">

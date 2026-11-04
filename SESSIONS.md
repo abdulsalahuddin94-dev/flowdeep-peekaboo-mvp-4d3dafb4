@@ -1,3 +1,8 @@
+## 2026-11-04 — Employee tabs: one date control per screen
+- Projects & allocation no longer shows the tab-header year: the work calendar already carries its own month/year stepper, so the two date controls were stacked one above the other and repeated the same period.
+- The calendar's stepper stays fully bounded by the available years and rolls the year itself (December steps into January of the next year), so nothing was lost by dropping the header copy; the header year remains on Salary, Capacity and Trips, which have no control of their own.
+- Verified in the preview: allocation shows only `October 2026`; three forward steps land on `January 2027` and Salary/Capacity/Trips follow to 2027; those three tabs keep their single header year.
+
 ## 2026-11-04 — Employee tabs: year control anchored to the divider line
 - The tab divider moved from TabsList to the row that holds the tabs and the year control, so the line now runs the full width instead of stopping short of the year; TabsList is overridden with `border-b-0` (resolved by `cn`/tailwind-merge).
 - The year control dropped its `xl:pb-1` lift and took the same 40px height as the tab triggers, so its text sits on the same baseline as the tab labels and its bottom is flush with the line.

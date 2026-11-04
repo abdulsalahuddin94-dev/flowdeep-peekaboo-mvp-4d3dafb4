@@ -88,7 +88,7 @@ function TripForm({ open, onClose, team, milestones, onSave }: { open: boolean; 
   const cost = (k: "ticketsCost" | "visaCost" | "perDiemCost", label: string) => <Field label={`${label} (USD)`} htmlFor={`pt-${k}`}><Input id={`pt-${k}`} type="number" min={0} placeholder="0" value={f[k]} onChange={(e) => set(k, e.target.value)} /></Field>;
   const options = team.map((m) => ({ value: m.id, label: m.name }));
   const perTraveler = (Number(f.ticketsCost) || 0) + (Number(f.visaCost) || 0) + (Number(f.perDiemCost) || 0);
-  const section = (title: string, body: React.ReactNode) => <section className="px-6 py-4"><h3 className="mb-3 text-sm font-semibold">{title}</h3>{body}</section>;
+  const section = (title: string, body: ReactNode) => <section className="px-6 py-4"><h3 className="mb-3 text-sm font-semibold">{title}</h3>{body}</section>;
   return <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
     <SheetContent side="right" className="flex flex-col gap-0 p-0">
       <SheetHeader className="border-b border-border px-6 py-5"><SheetTitle>{t.add}</SheetTitle></SheetHeader>

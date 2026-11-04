@@ -256,7 +256,6 @@ function EmployeeDetails() {
   </Dialog>
   <MonthlyPlanDialog employee={employee} field={planField} onClose={() => setPlanField(null)} defaultStart={selectedMonth} onApply={(field, start, count, value) => { setMonthlyPlan(employee.id, start, count, { [field]: value }); setPlanField(null); toast.success(field === "salary" ? t.salaryPlanApplied : t.capacityPlanApplied, { description: `${monthLabel(start)} · ${count} ${count === 1 ? "month" : "months"}` }); }} />
   <MonthEditDialog employee={employee} edit={editMonth} onClose={() => setEditMonth(null)} onSave={(m, field, value) => { setMonthOverride(employee.id, m, { [field]: value }); setEditMonth(null); toast.success(t.monthUpdated, { description: monthLabel(m) }); }} />
-  <TripDialog open={tripOpen} onClose={() => setTripOpen(false)} onAdd={(trip) => { addTrip(employee.id, trip); setTripOpen(false); toast.success(t.tripAdded, { description: `${trip.city}, ${trip.country}` }); }} />
   <LeaveDialog open={leaveOpen} onClose={() => setLeaveOpen(false)} onAdd={(leave) => { addLeave(employee.id, leave); setLeaveOpen(false); toast.success(t.leaveAdded, { description: leave.type === "Partial" ? t.partialOption : t.leaveOption }); }} />
   <ConfirmDialog
    open={toggleOpen}

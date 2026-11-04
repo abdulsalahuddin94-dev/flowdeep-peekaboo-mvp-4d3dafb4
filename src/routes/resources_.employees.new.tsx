@@ -95,13 +95,27 @@ function AddEmployeePage() {
         <h2 className="mb-4 text-base font-semibold text-foreground">{t.basic}</h2>
         <Field label="Profile picture" optional>
           <div className="flex items-center gap-5">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary text-xl font-medium text-muted-foreground">
-              {f.avatar ? <img src={f.avatar} alt="Profile preview" className="h-full w-full object-cover" /> : (f.name.split(" ").map((s) => s[0]).join("").slice(0, 2) || "?")}
+            <div className="group relative h-[116px] w-[116px] shrink-0 overflow-hidden rounded-full">
+              {f.avatar ? (
+                <img src={f.avatar} alt="Profile preview" className="h-full w-full object-cover transition-all duration-300 group-hover:scale-110 group-hover:blur-[7px] group-hover:brightness-[.45]" />
+              ) : (
+                <AvatarPlaceholder />
+              )}
+              {f.avatar ? (
+                <button
+                  type="button"
+                  onClick={() => set("avatar", "")}
+                  aria-label="Remove profile picture"
+                  className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 focus-visible:opacity-100 group-hover:opacity-100"
+                >
+                  <Trash2 className="h-8 w-8 text-destructive" />
+                </button>
+              ) : null}
             </div>
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">JPG or PNG, max file size 5 MB</p>
-              <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-md border border-border bg-secondary px-3 text-sm text-foreground hover:bg-secondary/70">
-                <Upload className="h-4 w-4" />Click to upload
+            <div className="space-y-2.5">
+              <p className="text-xs text-muted-foreground">JPG or PNG, Max file size 5 MB</p>
+              <label className="inline-flex h-10 cursor-pointer items-center gap-2.5 rounded-lg bg-secondary px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary/80">
+                <Upload className="h-4 w-4 text-primary" />Click to Upload
                 <input type="file" accept="image/png,image/jpeg" className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
               </label>
             </div>

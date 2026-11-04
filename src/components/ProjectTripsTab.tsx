@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow } from "@/components/StyledTable";
 import { EmptyState } from "@/components/ds/EmptyState";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
@@ -87,9 +87,10 @@ function TripForm({ open, onClose, team, milestones, onSave }: { open: boolean; 
   const date = (k: "from" | "until" | "workFrom" | "workUntil", label: string) => <Field label={label} htmlFor={`pt-${k}`} required error={errors[k]}><Input id={`pt-${k}`} type="date" value={f[k]} onChange={(e) => set(k, e.target.value)} /></Field>;
   const cost = (k: "ticketsCost" | "visaCost" | "perDiemCost", label: string) => <Field label={`${label} (USD)`} htmlFor={`pt-${k}`}><Input id={`pt-${k}`} type="number" min={0} placeholder="0" value={f[k]} onChange={(e) => set(k, e.target.value)} /></Field>;
   const shown = team.filter((m) => m.name.toLowerCase().includes(q.toLowerCase()));
-  return <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-    <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-      <DialogHeader><DialogTitle>{t.add}</DialogTitle></DialogHeader>
+  return <Sheet open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+    <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-[620px]">
+      <SheetHeader className="border-b border-border px-6 py-5"><SheetTitle>{t.add}</SheetTitle></SheetHeader>
+      <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
       <Field label={`${t.travelers}${ids.length ? ` · ${ids.length} ${t.selected}` : ""}`} required error={errors.travelers}>
         <div className="space-y-2 rounded-lg border border-border p-2">
           <div className="relative"><Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input aria-label={t.searchPeople} placeholder={t.searchPeople} value={q} onChange={(e) => setQ(e.target.value)} className="ps-9" /></div>
@@ -111,7 +112,8 @@ function TripForm({ open, onClose, team, milestones, onSave }: { open: boolean; 
         {date("workFrom", t.workStart)}{date("workUntil", t.workEnd)}
       </div>
       <div className="grid grid-cols-3 gap-3">{cost("ticketsCost", t.tickets)}{cost("visaCost", t.visa)}{cost("perDiemCost", t.perDiem)}</div>
-      <DialogFooter><Button variant="outline" onClick={onClose}>{t.cancel}</Button><Button variant="primary" onClick={submit}>{t.save}</Button></DialogFooter>
-    </DialogContent>
-  </Dialog>;
+      </div>
+      <div className="flex justify-end gap-3 border-t border-border px-6 py-4"><Button variant="outline" onClick={onClose}>{t.cancel}</Button><Button variant="primary" onClick={submit}>{t.save}</Button></div>
+    </SheetContent>
+  </Sheet>;
 }

@@ -1,4 +1,5 @@
 ## 2026-11-04 — Project Trips + employee header
+- 2026-11-04 — Overlay sizing rule (small→popup, medium→side drawer, large→page); Add trip converted to right side drawer.
 - New project Trips tab: add trips with travelers (project team), purpose, optional linked milestone, dates, per-traveler costs; delete.
 - Employee Trips tab is now view-only with Project column.
 - Employee header redesigned as a profile card (short name, role, capacity pill + tags, status, Department/Employee ID/Gender/Age tiles).

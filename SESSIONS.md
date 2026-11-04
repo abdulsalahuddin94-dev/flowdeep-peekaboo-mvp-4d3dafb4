@@ -1,3 +1,5 @@
+## 2026-11-04 — Change Plan Save baseline always clickable; validation dialog lists all errors incl. "No changes".
+
 ## 2026-11-04 — Trips tab: heading moved into the pinned period slot
 - Trips now reads like Projects & allocation: the `Trips` heading renders in the shared slot row under the tab line (left) beside the year stepper (right), and the duplicate heading inside the tab body was removed, which is what left a full-width empty band above the table.
 - Tab body is now just the trips table (`min-w-0`, no extra heading row), so the table starts directly under the slot row.

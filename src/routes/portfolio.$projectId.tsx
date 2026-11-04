@@ -1386,10 +1386,10 @@ function ProjectDetail() {
             title="Fix before saving the baseline"
             description="Resolve these items before the baseline can be saved."
             cancelLabel="Cancel"
-            confirmLabel={`Go to ${(validationIssues.find((i) => i.key !== "changes") ?? validationIssues[0])?.key === "schedule" ? "Project Schedule" : (validationIssues.find((i) => i.key !== "changes"))?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown"}`}
+            confirmLabel={`Go to ${(validationIssues.find((i) => i.key !== "changes")?.key ?? "schedule") === "schedule" ? "Project Schedule" : (validationIssues.find((i) => i.key !== "changes"))?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown"}`}
             onConfirm={() => {
               setBaselineValidationOpen(false);
-              setActiveTab((validationIssues.find((i) => i.key !== "changes") ?? validationIssues[0])?.key === "schedule" ? "Project Schedule" : (validationIssues.find((i) => i.key !== "changes"))?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown");
+              setActiveTab((validationIssues.find((i) => i.key !== "changes")?.key ?? "schedule") === "schedule" ? "Project Schedule" : (validationIssues.find((i) => i.key !== "changes"))?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown");
             }}
           >
             <div className="space-y-2">

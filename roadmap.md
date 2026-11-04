@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Add trip drawer: Travelers as the shared multi-select dropdown at field width, body re-sectioned and spread across the drawer height.
 - [x] Employees: drop Capacity/Salary from Add employee; monthly per-month salary & capacity with bulk 12-month plan and per-month override from the profile.
 - [x] Employee profile: Business trips & Training plan section affecting available capacity; monthly project utilization % table; over-utilization alert.
 - [x] WBS role requests land on the Requests page with task name and full period; verify and log all of the above.

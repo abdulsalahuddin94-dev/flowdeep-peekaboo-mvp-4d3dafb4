@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 /** One dated piece of work for the employee: a task inside a project milestone. */
 export type WorkEntry = { project: string; milestone: string; task: string; from: string; until: string };
 export type CalendarLeave = { from: string; until: string; label: string };
+/** Allocation span — supplies each project's share shown next to its name. */
+export type WorkAllocation = { project: string; percent: number; from: string; until: string };
 
 const chipColors = ["bg-accent/40 text-foreground", "bg-rag-blue/40 text-foreground", "bg-rag-green/40 text-foreground", "bg-rag-amber/40 text-foreground", "bg-accent-secondary/40 text-foreground"];
 

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { useEmployees, monthRange, type Employee, type EmployeeTrip, type EmployeeLeave } from "@/lib/employees-store";
 import { PLAN_CACHE } from "@/lib/plan-cache";
@@ -12,7 +12,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow } from "@/components/StyledTable";
-import { AlertTriangle, Phone, Mail, IdCard, CalendarDays, Briefcase, Building2, ChevronLeft, ChevronRight, Pencil, Plus, Search, Trash2 } from "@/lib/icons";
+import { AlertTriangle, Phone, Mail, IdCard, CalendarDays, Briefcase, Building2, ChevronLeft, ChevronRight, DeleteAction, MoreHorizontal, Pencil, Plus, Search, ToggleActive, Trash2 } from "@/lib/icons";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,11 @@ import { dollars } from "@/lib/money";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
 import { Cell, Pie, PieChart } from "recharts";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { PageHeader } from "@/components/PageHeader";
+import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/resources_/employees/$employeeId")({
   component: EmployeeDetails,
   head: ({ params }) => ({ meta: [{ title: `Employee ${params.employeeId} — Nexus PMO` }, { name: "description", content: "Employee profile, monthly salary, project allocation, assigned tasks, capacity, leave and trips." }, { property: "og:title", content: `Employee ${params.employeeId} — Nexus PMO` }, { property: "og:description", content: "Read-only employee information, salary allocation, projects, tasks and vacation." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
@@ -30,6 +35,12 @@ export const T = {
  ar: { employees: "الموظفون", overview: "بيانات الموظف", allocation: "المشاريع والتخصيص", tasks: "المهام المسندة", salary: "الراتب والسعة", leave: "الإجازات والرحلات", type: "نوع التوظيف", capacity: "السعة الشهرية", utilization: "الاستغلال", monthly: "الراتب الشهري", projects: "المشاريع المسندة", vacation: "رصيد الإجازات", demo: "بيانات تجريبية", details: "بيانات الموظف", email: "البريد الإلكتروني", role: "الدور", department: "القسم", joined: "تاريخ التعيين", phone: "رقم الهاتف", nationalId: "رقم الهوية", birth: "تاريخ الميلاد", id: "رقم الموظف", year: "السنة", month: "الشهر", project: "المشروع", period: "الفترة", hours: "الساعات الشهرية", cost: "الراتب المحمل", overhead: "غير مخصص / مصاريف عامة", total: "إجمالي الراتب", projectCost: "تكاليف المشاريع", empty: "لا توجد سجلات", entitlement: "الاستحقاق السنوي", used: "الإجازات المستخدمة", pending: "الإجازات المعلقة", balance: "الأيام المتبقية", from: "من", until: "إلى", days: "الأيام", status: "الحالة", leaveType: "نوع الإجازة", task: "المهمة", date: "فترة التخصيص", missing: "الموظف غير موجود", budget: "تكلفة المشاريع الشهرية", profile: "الملف الشخصي", charges: "توزيع الراتب على المشاريع", setPlan: "إعداد الخطة", editMonth: "تعديل الشهر", startMonth: "شهر البداية", planMonths: "عدد الشهور", salaryValue: "الراتب (دولار)", capacityValue: "السعة (ساعات)", apply: "تطبيق", cancel: "إلغاء", save: "حفظ", trips: "رحلات العمل والتدريب", addEntry: "إضافة", kind: "النوع", title: "العنوان", businessTrip: "رحلة عمل", training: "تدريب", planned: "مخطط", completed: "مكتمل", overUtil: "تحميل زائد", overUtilDesc: "الساعات المسندة تتجاوز السعة المتاحة في", available: "المتاح", absence: "أيام الغياب", monthlyUtil: "الاستغلال الشهري حسب المشروع", totalUtil: "الإجمالي", leaveRecords: "سجل الإجازات", monthSummary: "ملخص الشهر", baseSalary: "الراتب الأساسي", baseCapacity: "السعة الأساسية", assigned: "المسند", salarySplit: "توزيع الراتب", planApplied: "تم تطبيق الخطة الشهرية", monthUpdated: "تم تحديث الشهر", tripAdded: "تمت الإضافة", tripRemoved: "تم الحذف", leaveAdded: "تمت إضافة الإجازة", leaveRemoved: "تم حذف الإجازة", annualVacation: "إجازة سنوية", sickLeave: "إجازة مرضية", unpaidLeave: "إجازة بدون أجر", partialLeave: "إذن (إجازة جزئية)", leaveDate: "التاريخ", leaveHours: "الساعات", assignedHours: "الساعات المسندة", salaryTab: "الراتب", capacityTab: "السعة", tripsTab: "الرحلات", leaveOption: "إجازة", partialOption: "إذن (جزئي)", remark: "ملاحظة", remarkHint: "ملاحظة اختيارية", leaveUsed: "الإجازات المستخدمة", country: "الدولة", city: "المدينة", travelStart: "تاريخ بداية السفر", travelEnd: "تاريخ نهاية السفر", workStart: "تاريخ بداية العمل في الرحلة", workEnd: "تاريخ نهاية العمل في الرحلة", travel: "السفر", tripWork: "العمل في الرحلة", tickets: "تكلفة التذاكر", visa: "تكلفة التأشيرة", perDiem: "تكلفة البدل اليومي", tripTotal: "إجمالي التكلفة", addTrip: "إضافة رحلة", searchTasks: "ابحث في المهام", allProjects: "كل المشاريع", leaveAbsence: "إجازة", allocated: "مخصص", setCapacity: "إعداد السعة", editCapacity: "تعديل السعة", editSalary: "تعديل الراتب", salaryPlanApplied: "تم تطبيق خطة الراتب", capacityPlanApplied: "تم تطبيق خطة السعة", noTasks: "لا توجد مهام تطابق الفلاتر", resources: "الموارد", breadcrumb: "مسار التنقل" },
 };
 const t = T.en;
+// Header labels for the employee detail page (kept out of the long base rows above).
+const H = {
+  en: { pageTitle: "Employee Details", backToEmployees: "Back to Employees", actions: "Employee actions", edit: "Edit", activate: "Activate", deactivate: "Deactivate", del: "Delete", active: "Active", inactive: "Inactive", sureToggle: "Are you sure?" },
+  ar: { pageTitle: "بيانات الموظف", backToEmployees: "العودة إلى الموظفين", actions: "إجراءات الموظف", edit: "تعديل", activate: "تنشيط", deactivate: "إلغاء التنشيط", del: "حذف", active: "نشط", inactive: "غير نشط", sureToggle: "هل أنت متأكد؟" },
+};
+const th = H.en;
 const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(n);
 const monthLabel = (month: string) => new Date(`${month}-01T12:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 const daysBetween = (from: string, until: string) => Math.max(1, Math.round((new Date(`${until}T00:00:00Z`).getTime() - new Date(`${from}T00:00:00Z`).getTime()) / 86400000) + 1);
@@ -41,11 +52,11 @@ function DataTable({ headers, rows, onRowClick }: { headers: ReactNode[]; rows: 
   return <StyledTable className="[&_th]:whitespace-normal [&_th]:text-xs [&_td]:py-4"><StyledTableHeader><StyledTableHeaderRow>{headers.map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader><StyledTableBody>{rows.length ? rows.map((row, i) => <StyledTableRow key={i} onClick={onRowClick ? () => onRowClick(i) : undefined} className={onRowClick ? "cursor-pointer" : undefined}>{row.map((value, j) => <StyledTableCell key={j} className="whitespace-normal break-words text-sm">{value}</StyledTableCell>)}</StyledTableRow>) : <StyledTableRow><StyledTableCell colSpan={headers.length} className="py-8 text-center text-muted-foreground">{t.empty}</StyledTableCell></StyledTableRow>}</StyledTableBody></StyledTable>;
 }
 function EmployeeDetails() {
- const { employeeId } = Route.useParams(); const { employees, employmentTypes, setMonthlyPlan, setMonthOverride, addTrip, removeTrip, addLeave, removeLeave } = useEmployees(); const { projects } = useProjects(); const { resourceRequests } = useResourceRequests();
+ const { employeeId } = Route.useParams(); const { employees, employmentTypes, setMonthlyPlan, setMonthOverride, addTrip, removeTrip, addLeave, removeLeave, setEmployees, updateEmployee } = useEmployees(); const { projects } = useProjects(); const { resourceRequests } = useResourceRequests();
  const employee = employees.find((e) => e.id === employeeId);
  const [tab, setTab] = useState("overview"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
  const [planField, setPlanField] = useState<PlanField | null>(null); const [editMonth, setEditMonth] = useState<{ month: string; field: PlanField } | null>(null); const [tripOpen, setTripOpen] = useState(false); const [leaveOpen, setLeaveOpen] = useState(false);
- const [taskQuery, setTaskQuery] = useState(""); const [taskProject, setTaskProject] = useState<string>(t.allProjects);
+ const [taskQuery, setTaskQuery] = useState(""); const [taskProject, setTaskProject] = useState<string>(t.allProjects); const navigate = useNavigate(); const [deleteOpen, setDeleteOpen] = useState(false); const [toggleOpen, setToggleOpen] = useState(false);
  // Recharts generates different clip IDs on server vs client — render the donut only after mount.
  const [mounted, setMounted] = useState(false);
  useEffect(() => setMounted(true), []);
@@ -72,18 +83,27 @@ function EmployeeDetails() {
  const visibleTasks = uniqueTasks.filter((v) => (taskProject === t.allProjects || v.project === taskProject) && v.task.toLowerCase().includes(taskQuery.trim().toLowerCase()));
  const profile: [string, string, typeof Phone][] = [[t.phone, employee.phone || "—", Phone], [t.email, employee.email, Mail], [t.nationalId, employee.nationalId || "—", IdCard], [t.birth, employee.birthDate ? formatDateWithYear(employee.birthDate) : "—", CalendarDays], [t.joined, formatDateWithYear(employee.joinedOn), CalendarDays], [t.id, employee.employeeNumber || employee.id, IdCard], [t.role, employee.role, Briefcase], [t.department, employee.dept, Building2], [t.type, employmentTypes.find((v) => v.id === employee.employmentTypeId)?.name ?? "—", Briefcase]];
  return <div className="min-w-0 space-y-8">
-  <div className="space-y-5">
-   <nav aria-label={t.breadcrumb} className="flex flex-wrap items-center gap-2 text-sm text-breadcrumb-muted">
-    <Link to="/resources" className="inline-flex items-center gap-2 transition-colors hover:text-breadcrumb-hover">{t.resources}</Link>
-    <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden />
-    <Link to="/resources" search={{ tab: "people" }} className="inline-flex items-center gap-2 transition-colors hover:text-breadcrumb-hover">{t.employees}</Link>
-    <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" aria-hidden />
-    <span className="text-breadcrumb-current">{employee.name}</span>
-   </nav>
+  <div className="space-y-3">
+   <Link to="/resources" search={{ tab: "people" }} className="inline-flex items-center text-sm text-breadcrumb-current transition-colors hover:text-breadcrumb-hover"><ChevronLeft className="mr-1 h-3 w-3 rtl:rotate-180" aria-hidden />{th.backToEmployees}</Link>
+   <PageHeader
+    title={th.pageTitle}
+    actions={
+     <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+       <Button size="icon" variant="outline" aria-label={th.actions} className="h-9 w-9 rounded-lg border-border"><MoreHorizontal size={16} className="rotate-90" /></Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+       <DropdownMenuItem onClick={() => navigate({ to: "/resources/employees/new", search: { edit: employee.id } })}><Pencil size={14} className="mr-2" />{th.edit}</DropdownMenuItem>
+       <DropdownMenuItem onClick={() => setToggleOpen(true)}><ToggleActive size={14} className="mr-2" />{employee.active !== false ? th.deactivate : th.activate}</DropdownMenuItem>
+       <DropdownMenuItem className="text-rag-red focus:text-rag-red" onClick={() => setDeleteOpen(true)}><DeleteAction size={14} className="mr-2" />{th.del}</DropdownMenuItem>
+      </DropdownMenuContent>
+     </DropdownMenu>
+    }
+   />
    <header className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4">
     <Avatar className="h-16 w-16 shrink-0">{employee.avatar ? <AvatarImage src={employee.avatar} alt={employee.name} /> : null}<AvatarFallback className="bg-accent-dim text-xl font-medium text-accent">{employee.name.split(" ").map((n) => n[0]).join("")}</AvatarFallback></Avatar>
     <div className="min-w-0 space-y-2">
-     <div className="flex flex-wrap items-center gap-x-4 gap-y-2"><h1 className="break-words text-2xl font-semibold text-foreground">{employee.name}</h1><div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{profile[4]?.[1]}</Badge>{employee.demo && <Badge variant="secondary">{t.demo}</Badge>}</div></div>
+     <div className="flex flex-wrap items-center gap-x-4 gap-y-2"><h1 className="break-words text-2xl font-semibold text-foreground">{employee.name}</h1><div className="flex flex-wrap items-center gap-2"><Badge variant={employee.active !== false ? "outline" : "secondary"} className={employee.active !== false ? "border-rag-green/50 bg-rag-green/10 text-rag-green" : "text-muted-foreground"}>{employee.active !== false ? th.active : th.inactive}</Badge>{employee.demo && <Badge variant="secondary">{t.demo}</Badge>}</div></div>
      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground"><span>{employee.role}</span><span aria-hidden="true">·</span><span>{employee.dept}</span></div>
     </div>
    </header>
@@ -234,6 +254,23 @@ function EmployeeDetails() {
   <MonthEditDialog employee={employee} edit={editMonth} onClose={() => setEditMonth(null)} onSave={(m, field, value) => { setMonthOverride(employee.id, m, { [field]: value }); setEditMonth(null); toast.success(t.monthUpdated, { description: monthLabel(m) }); }} />
   <TripDialog open={tripOpen} onClose={() => setTripOpen(false)} onAdd={(trip) => { addTrip(employee.id, trip); setTripOpen(false); toast.success(t.tripAdded, { description: `${trip.city}, ${trip.country}` }); }} />
   <LeaveDialog open={leaveOpen} onClose={() => setLeaveOpen(false)} onAdd={(leave) => { addLeave(employee.id, leave); setLeaveOpen(false); toast.success(t.leaveAdded, { description: leave.type === "Partial" ? t.partialOption : t.leaveOption }); }} />
+  <ConfirmDialog
+   open={toggleOpen}
+   onOpenChange={setToggleOpen}
+   tone={employee.active !== false ? "warning" : "success"}
+   icon={({ className }) => <ToggleActive className={cn(className, employee.active !== false ? "" : "-scale-x-100")} />}
+   title={`${employee.active !== false ? th.deactivate : th.activate} "${employee.name}"?`}
+   description={th.sureToggle}
+   cancelLabel={t.cancel}
+   confirmLabel={employee.active !== false ? th.deactivate : th.activate}
+   onConfirm={() => { updateEmployee(employee.id, { active: employee.active === false }); toast.done("Employee", employee.active !== false ? "deactivated" : "activated"); setToggleOpen(false); }}
+  />
+  <ConfirmDeleteDialog
+   label={deleteOpen ? employee.name : undefined}
+   description="This employee will be removed from the resources pool."
+   onCancel={() => setDeleteOpen(false)}
+   onConfirm={() => { setEmployees((prev) => prev.filter((x) => x.id !== employee.id)); toast.done("Employee", "deleted"); setDeleteOpen(false); navigate({ to: "/resources", search: { tab: "people" } }); }}
+  />
  </div>;
 }
 

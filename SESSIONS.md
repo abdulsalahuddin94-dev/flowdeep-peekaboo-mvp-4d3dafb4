@@ -1,3 +1,9 @@
+## 2026-11-04 — Employee profile header: Project-details style with kebab actions
+- The employee profile (`Resources → Employees → <employee>`) header now mirrors Project details: a single lavender `‹ Back to Employees` chevron link replaces the old `Resources › Employees › <name>` breadcrumb, and the page title is `Employee Details` in the shared `PageHeader`.
+- A rounded-square dark three-dots button (same `MoreHorizontal` rotate-90 control as Project details) sits at the top-right and opens a menu with exactly three actions: Edit (goes to `?edit=<id>`), Deactivate/Activate (DS02 toggle confirm, warning/success tone), and Delete (shared red `ConfirmDeleteDialog`). Delete removes the employee and returns to the People list.
+- The identity row keeps our data — circular avatar, name, `role · department` subtitle — and now shows a green `Active` / muted `Inactive` pill (was the hiring-date badge), matching the reference status pill.
+- Browser-verified: back link, title and Active pill render; the menu shows exactly Edit/Deactivate/Delete; both confirm dialogs open with the right copy and tones; Edit loads `?edit=EMP-001`; the back link returns to People. Typecheck clean.
+
 ## 2026-11-04 — Employee profile: Year stepper replaces the dropdown
 - The Year selector in the employee profile tab row is now a chevron stepper (`‹ 2026 ›`) instead of a dropdown: round ghost buttons step through the available years, the current year sits centered in bold tabular numerals, and the arrows disable at the first/last year. RTL flips the chevrons.
 - Browser-verified on the Salary tab: stepping next goes 2026 → 2027 and prev twice returns to 2025; typecheck clean.

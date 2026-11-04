@@ -1290,6 +1290,10 @@
   --field-chip-bg:       var(--p-neutral-100);
   --field-chip-fg:       var(--p-neutral-800);
 
+  /* Image placeholder disc — grey disc with a light silhouette (Figma avatar empty state). */
+  --avatar-placeholder-bg: var(--p-neutral-300);
+  --avatar-placeholder-fg: var(--p-white);
+
   /* Search inputs didn't have a light counterpart - fell back to the dark :root value. */
   --search-field-bg:          var(--p-neutral-50);
   --search-field-border:      var(--p-neutral-300);

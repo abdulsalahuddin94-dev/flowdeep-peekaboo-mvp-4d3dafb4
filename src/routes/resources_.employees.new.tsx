@@ -6,7 +6,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ChevronLeft, ChevronDown, Upload } from "@/lib/icons";
+import { ChevronLeft, ChevronDown, Trash2, Upload } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 import { departments } from "@/lib/mock-data";
 import { useJobRoles } from "@/lib/projects-store";

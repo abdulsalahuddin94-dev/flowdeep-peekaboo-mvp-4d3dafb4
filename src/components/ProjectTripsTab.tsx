@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useEmployees, type EmployeeTrip } from "@/lib/employees-store";
 import { Button } from "@/components/ui/button";

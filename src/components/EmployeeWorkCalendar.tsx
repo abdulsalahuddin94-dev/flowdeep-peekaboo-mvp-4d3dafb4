@@ -51,13 +51,13 @@ export function EmployeeWorkCalendar({ entries, leave, allocations, view, month,
   const byProject = (list: WorkEntry[]) => projects.map((p) => ({ project: p, items: list.filter((e) => e.project === p) })).filter((g) => g.items.length);
 
   return <section className="min-w-0 space-y-4">
-    <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+    {view === "monthly" && <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
       {projects.map((p) => { const pct = percentOf(p); return <span key={p} className="inline-flex items-center gap-2"><span className={cn("h-3 w-3 rounded-full", color(p).split(" ")[0])} />{p}{pct > 0 && <span className="num-mono font-semibold text-foreground">{pct}%</span>}</span>; })}
       <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-muted" />{l.leave}</span>
       <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-muted/30" />{l.weekend}</span>
-    </div>
+    </div>}
     <TooltipProvider delayDuration={100}>
-      {view === "monthly" ? <MonthGrid y={y} month={month} entries={entries} leave={leave} color={color} byProject={byProject} /> : <YearGrid y={y} entries={entries} projects={projects} color={color} />}
+      {view === "monthly" ? <MonthGrid y={y} month={month} entries={entries} leave={leave} color={color} byProject={byProject} /> : <YearGrid y={y} entries={entries} projects={projects} barColor={barColor} monthStats={monthStats} />}
     </TooltipProvider>
   </section>;
 }

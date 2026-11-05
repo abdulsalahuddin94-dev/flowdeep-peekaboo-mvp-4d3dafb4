@@ -87,23 +87,34 @@ function MonthGrid({ y, month, entries, leave, color, byProject }: { y: number; 
   </div>;
 }
 
-function YearGrid({ y, entries, projects, color }: { y: number; entries: WorkEntry[]; projects: string[]; color: (p: string) => string }) {
-  const months = Array.from({ length: 12 }, (_, m) => ({ m, start: iso(new Date(y, m, 1)), end: iso(new Date(y, m + 1, 0)) }));
-  const rows = projects.filter((p) => entries.some((e) => e.project === p && e.from <= `${y}-12-31` && e.until >= `${y}-01-01`));
-  if (!rows.length) return <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">{l.empty}</div>;
-  return <div className="overflow-x-auto rounded-xl border border-border bg-card p-4">
-    <div className="grid min-w-[900px] grid-cols-[180px_repeat(12,minmax(0,1fr))] border-s border-t border-border">
-      <div className="border-b border-e border-border px-2 py-2 text-sm text-muted-foreground">{l.project}</div>
-      {months.map(({ m }) => <div key={m} className="border-b border-e border-border px-2 py-2 text-sm text-muted-foreground">{new Date(y, m, 1).toLocaleDateString("en-US", { month: "short" })}</div>)}
-      {rows.map((p) => <div key={p} className="contents">
-        <div className="truncate border-b border-e border-border px-2 py-3 text-sm font-medium">{p}</div>
-        {months.map(({ m, start, end }) => {
-          const items = entries.filter((e) => e.project === p && e.from <= end && e.until >= start);
-          return <div key={m} className="border-b border-e border-border p-1.5">
-            {items.length > 0 && <Tooltip><TooltipTrigger asChild><div className={cn("cursor-default truncate rounded-md px-2 py-1 text-center text-xs font-medium", color(p))}>{p}</div></TooltipTrigger><TooltipContent><Detail items={items} /></TooltipContent></Tooltip>}
-          </div>;
-        })}
-      </div>)}
-    </div>
+function YearGrid({ y, entries, projects, barColor, monthStats }: { y: number; entries: WorkEntry[]; projects: string[]; barColor: (p: string) => string; monthStats: (month: string) => MonthStats }) {
+  const hasWork = entries.some((e) => e.from <= `${y}-12-31` && e.until >= `${y}-01-01`);
+  if (!hasWork) return <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">{l.empty}</div>;
+  return <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    {Array.from({ length: 12 }, (_, m) => {
+      const stats = monthStats(`${y}-${String(m + 1).padStart(2, "0")}`);
+      const over = stats.effectiveUtilization > 100;
+      const shares = projects.map((p) => ({ project: p, percent: stats.allocations.filter((a) => a.project === p).reduce((sum, a) => sum + a.percent, 0) })).filter((s) => s.percent > 0);
+      const scale = Math.max(100, shares.reduce((sum, s) => sum + s.percent, 0));
+      return <div key={m} className={cn("space-y-3 rounded-xl border bg-card p-4", over ? "border-rag-red/50" : "border-border")}>
+        <div className="flex items-center justify-between">
+          <span className="font-medium">{new Date(y, m, 1).toLocaleDateString("en-US", { month: "long" })}</span>
+          <span className={cn("num-mono font-semibold", over && "text-rag-red")}>{stats.effectiveUtilization}%</span>
+        </div>
+        <div className="flex h-1.5 overflow-hidden rounded-full bg-muted">
+          {shares.map((s) => <div key={s.project} className={barColor(s.project)} style={{ width: `${s.percent / scale * 100}%` }} />)}
+        </div>
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span className="num-mono">{stats.allocatedHours.toFixed(1)}h / {stats.availableCapacity}h</span>
+          {stats.absentDays > 0 && <span className="num-mono">{stats.absentDays}d {l.absenceDays}</span>}
+        </div>
+        {shares.length > 0 && <div className="space-y-2 border-t border-border pt-3">
+          {shares.map((s) => <div key={s.project} className="flex items-center justify-between gap-2 text-sm">
+            <span className="inline-flex min-w-0 items-center gap-2"><span className={cn("h-2 w-2 shrink-0 rounded-full", barColor(s.project))} /><span className="truncate">{s.project}</span></span>
+            <span className="num-mono text-muted-foreground">{s.percent}%</span>
+          </div>)}
+        </div>}
+      </div>;
+    })}
   </div>;
 }

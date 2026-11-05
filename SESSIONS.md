@@ -1,3 +1,9 @@
+## 2026-11-05 — Temporary baseline-popup gallery removed
+
+- Deleted `src/routes/validations-preview.tsx`: the nine Save-baseline popups it collected were transferred to Figma, and nothing in the app linked to the route (no sidebar entry, no button, no `Link`), so removal changes no user-facing surface.
+- Kept the pattern: a hidden static route that mirrors the real confirm-dialog card and lists every popup of a module side by side, rebuilt on request for other modules and deleted the same way.
+- `src/routeTree.gen.ts` regenerated on its own; the route file was the only thing removed.
+
 - 2026-11-05: Baseline save checks now also block circular dependencies and schedule items outside project start/end dates (portfolio.$projectId.tsx, lib/schedule-validation.ts + test).
 ## 2026-11-04 — Save baseline: summary step removed, confirmation pop-up only
 - Change Plan no longer opens the "Save new baseline (vN)" review dialog with its per-section change tables; clicking Save baseline now goes straight to the DS02 confirmation pop-up — "Save a new baseline?" / "This will be the active baseline once it's approved. Current version will be the available version until approval." with Cancel / Save baseline.

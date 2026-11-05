@@ -19,7 +19,6 @@ import { Route as MeetingsRouteImport } from './routes/meetings'
 import { Route as OrganizationRouteImport } from './routes/organization'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as RisksRouteImport } from './routes/risks'
-import { Route as ValidationsPreviewRouteImport } from './routes/validations-preview'
 import { Route as ActionsActionIdRouteImport } from './routes/actions_.$actionId'
 import { Route as ActionsNewRouteImport } from './routes/actions_.new'
 import { Route as ChangeRequestsApprovalIdRouteImport } from './routes/change-requests_.$approvalId'
@@ -84,11 +83,6 @@ const ResourcesRoute = ResourcesRouteImport.update({
 const RisksRoute = RisksRouteImport.update({
   id: '/risks',
   path: '/risks',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ValidationsPreviewRoute = ValidationsPreviewRouteImport.update({
-  id: '/validations-preview',
-  path: '/validations-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ActionsActionIdRoute = ActionsActionIdRouteImport.update({
@@ -180,7 +174,6 @@ export interface FileRoutesByFullPath {
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
   '/risks': typeof RisksRoute
-  '/validations-preview': typeof ValidationsPreviewRoute
   '/actions/$actionId': typeof ActionsActionIdRoute
   '/actions/new': typeof ActionsNewRoute
   '/change-requests/$approvalId': typeof ChangeRequestsApprovalIdRoute
@@ -208,7 +201,6 @@ export interface FileRoutesByTo {
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
   '/risks': typeof RisksRoute
-  '/validations-preview': typeof ValidationsPreviewRoute
   '/actions/$actionId': typeof ActionsActionIdRoute
   '/actions/new': typeof ActionsNewRoute
   '/change-requests/$approvalId': typeof ChangeRequestsApprovalIdRoute
@@ -237,7 +229,6 @@ export interface FileRoutesById {
   '/organization': typeof OrganizationRoute
   '/resources': typeof ResourcesRoute
   '/risks': typeof RisksRoute
-  '/validations-preview': typeof ValidationsPreviewRoute
   '/actions_/$actionId': typeof ActionsActionIdRoute
   '/actions_/new': typeof ActionsNewRoute
   '/change-requests_/$approvalId': typeof ChangeRequestsApprovalIdRoute
@@ -267,7 +258,6 @@ export interface FileRouteTypes {
     | '/organization'
     | '/resources'
     | '/risks'
-    | '/validations-preview'
     | '/actions/$actionId'
     | '/actions/new'
     | '/change-requests/$approvalId'
@@ -295,7 +285,6 @@ export interface FileRouteTypes {
     | '/organization'
     | '/resources'
     | '/risks'
-    | '/validations-preview'
     | '/actions/$actionId'
     | '/actions/new'
     | '/change-requests/$approvalId'
@@ -323,7 +312,6 @@ export interface FileRouteTypes {
     | '/organization'
     | '/resources'
     | '/risks'
-    | '/validations-preview'
     | '/actions_/$actionId'
     | '/actions_/new'
     | '/change-requests_/$approvalId'
@@ -352,7 +340,6 @@ export interface RootRouteChildren {
   OrganizationRoute: typeof OrganizationRoute
   ResourcesRoute: typeof ResourcesRoute
   RisksRoute: typeof RisksRoute
-  ValidationsPreviewRoute: typeof ValidationsPreviewRoute
   ActionsActionIdRoute: typeof ActionsActionIdRoute
   ActionsNewRoute: typeof ActionsNewRoute
   ChangeRequestsApprovalIdRoute: typeof ChangeRequestsApprovalIdRoute
@@ -440,13 +427,6 @@ declare module '@tanstack/react-router' {
       path: '/risks'
       fullPath: '/risks'
       preLoaderRoute: typeof RisksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/validations-preview': {
-      id: '/validations-preview'
-      path: '/validations-preview'
-      fullPath: '/validations-preview'
-      preLoaderRoute: typeof ValidationsPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/actions_/$actionId': {
@@ -568,7 +548,6 @@ const rootRouteChildren: RootRouteChildren = {
   OrganizationRoute: OrganizationRoute,
   ResourcesRoute: ResourcesRoute,
   RisksRoute: RisksRoute,
-  ValidationsPreviewRoute: ValidationsPreviewRoute,
   ActionsActionIdRoute: ActionsActionIdRoute,
   ActionsNewRoute: ActionsNewRoute,
   ChangeRequestsApprovalIdRoute: ChangeRequestsApprovalIdRoute,

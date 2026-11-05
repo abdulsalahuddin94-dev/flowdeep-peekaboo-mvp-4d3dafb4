@@ -176,7 +176,7 @@ function EmployeeDetails() {
     <section className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm"><dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">{profile.map(([label, value, Ic]) => <div key={label} className="flex min-w-0 items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-primary"><Ic className="h-5 w-5" /></span><div className="min-w-0"><dt className="text-sm text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-semibold text-foreground">{value}</dd></div></div>)}</dl></section>
    </TabsContent>
     <TabsContent value="allocation" className="mt-0">
-     <EmployeeWorkCalendar entries={workEntries} leave={calendarLeave} allocations={employee.allocations} year={year} view={calView} month={calMonth} />
+     <EmployeeWorkCalendar entries={workEntries} leave={calendarLeave} allocations={employee.allocations} year={year} view={calView} month={calMonth} monthStats={(m) => employeeMonth(employee, m)} />
     </TabsContent>
    <TabsContent value="tasks" className="mt-0 space-y-5">
     <div className="flex flex-wrap items-center gap-3">

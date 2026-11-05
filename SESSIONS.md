@@ -1,3 +1,9 @@
+## 2026-11-05 — Work calendar Yearly view restored to month cards
+
+- `src/components/EmployeeWorkCalendar.tsx`: replaced the project×month chip table in the Yearly view with the previous 12-card grid — each card shows the month name, utilization % (red with a red-tinted border when over 100%), a stacked per-project bar, allocated vs available hours, absence days, and the per-project percentage split.
+- Added a `MonthStats` type and a `monthStats(monthKey)` prop so the cards reuse the same `employeeMonth` figures as the Salary/Capacity tabs; the route (`src/routes/resources_.employees.$employeeId.tsx`) passes `(m) => employeeMonth(employee, m)`.
+- The project/leave/weekend legend now renders only in the Monthly view; the yearly empty state is unchanged.
+
 ## 2026-11-05 — Temporary baseline-popup gallery removed
 
 - Deleted `src/routes/validations-preview.tsx`: the nine Save-baseline popups it collected were transferred to Figma, and nothing in the app linked to the route (no sidebar entry, no button, no `Link`), so removal changes no user-facing surface.

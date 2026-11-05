@@ -37,9 +37,10 @@ function Detail({ items }: { items: WorkEntry[] }) {
  * Period controls (title, Monthly/Yearly, month/year stepper) live in the page's fixed slot above this
  * section rather than here, so the date navigator never moves between tabs.
  */
-export function EmployeeWorkCalendar({ entries, leave, allocations, view, month, year }: { entries: WorkEntry[]; leave: CalendarLeave[]; allocations: WorkAllocation[]; view: "monthly" | "yearly"; month: number; year: string }) {
+export function EmployeeWorkCalendar({ entries, leave, allocations, view, month, year, monthStats }: { entries: WorkEntry[]; leave: CalendarLeave[]; allocations: WorkAllocation[]; view: "monthly" | "yearly"; month: number; year: string; monthStats: (month: string) => MonthStats }) {
   const projects = useMemo(() => Array.from(new Set(entries.map((e) => e.project))), [entries]);
   const color = (p: string) => chipColors[Math.max(0, projects.indexOf(p)) % chipColors.length];
+  const barColor = (p: string) => barColors[Math.max(0, projects.indexOf(p)) % barColors.length];
   const y = Number(year);
   const periodKey = view === "yearly" ? year : `${y}-${String(month + 1).padStart(2, "0")}`;
   // The share shown beside a project name must match the period currently on screen.

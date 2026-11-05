@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, it } from "node:test";
+import { strict as assert } from "node:assert";
 import { findCircularItems, findItemsOutsideProject } from "./schedule-validation";
 
 describe("baseline schedule validations", () => {
@@ -9,7 +10,7 @@ describe("baseline schedule validations", () => {
       { name: "C", startDate: "", endDate: "", dependencies: [{ predecessor: "B" }] },
       { name: "D", startDate: "", endDate: "", dependencies: [{ predecessor: "A" }] },
     ];
-    expect(findCircularItems(items)).toEqual(["A", "B", "C"]);
+    assert.deepEqual(findCircularItems(items), ["A", "B", "C"]);
   });
 
   it("flags items before project start or after project end", () => {
@@ -18,6 +19,6 @@ describe("baseline schedule validations", () => {
       { name: "Inside", startDate: "2026-02-01", endDate: "2026-05-01" },
       { name: "Late", startDate: "2026-05-01", endDate: "2026-07-01" },
     ];
-    expect(findItemsOutsideProject(items, "2026-02-01", "2026-06-30")).toEqual(["Early", "Late"]);
+    assert.deepEqual(findItemsOutsideProject(items, "2026-02-01", "2026-06-30"), ["Early", "Late"]);
   });
 });

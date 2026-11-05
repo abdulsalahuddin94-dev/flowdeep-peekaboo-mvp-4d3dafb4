@@ -44,3 +44,4 @@
 
 ## 2026-11-04 — Removed employee over-utilization alert and Trips hint text.
 - 2026-11-04: Change Request approval blocked when a deleted schedule item received actuals after submission (src/lib/cr-conflicts.ts).
+- 2026-11-05: Added temporary /validations-preview page with all Save baseline validation popups for Figma handoff (to be deleted).

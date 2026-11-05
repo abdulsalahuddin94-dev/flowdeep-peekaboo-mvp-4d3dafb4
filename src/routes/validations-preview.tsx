@@ -65,11 +65,11 @@ const Amounts = ({ kind, a, b, d }: { kind: string; a: string; b: string; d: str
 );
 
 const NoChanges = () => <Issue title="No changes were made to the plan yet"><Fix>edit the schedule, cost, revenue or basic info before saving a new baseline.</Fix></Issue>;
-const NoSchedule = () => <Issue title="The schedule has no items"><Fix>create at least one milestone or task with <T>Add Item</T> on the <T>Project Schedule</T> tab.</Fix></Issue>;
-const Budget = () => <Issue title="Total planned cost doesn't match the budget"><Amounts kind="budget" a="$2.4M" b="$2.1M" d="$300K" /><Fix>adjust the planned amounts on the <T>Cost Breakdown</T> tab.</Fix></Issue>;
-const Revenue = () => <Issue title="Total revenue events don't match expected revenue"><Amounts kind="revenue" a="$3.2M" b="$2.8M" d="$400K" /><Fix>adjust the planned amounts on the <T>Revenue Breakdown</T> tab.</Fix></Issue>;
-const Circular = () => <Issue title="Circular dependencies found"><p className="mt-1.5 text-xs text-muted-foreground">Items: <T>Design review, Build phase, UAT</T></p><Fix>remove one of the dependencies that loops back to an earlier item on the <T>Project Schedule</T> tab.</Fix></Issue>;
-const Dates = () => <Issue title="Items fall outside the project dates"><p className="mt-1.5 text-xs text-muted-foreground">Items: <T>Kickoff, Go-live</T></p><Fix>move these items inside 2026-01-15 – 2026-06-15 on the <T>Project Schedule</T> tab.</Fix></Issue>;
+const NoSchedule = () => <Issue title="The project schedule has no items yet"><Fix>create at least one milestone or task with <T>Add Item</T> on the <T>Project Schedule</T> tab.</Fix></Issue>;
+const Budget = () => <Issue title="Project budget doesn't equal the planned cost total"><Amounts kind="budget" a="$2.4M" b="$2.1M" d="$300K" /><Fix>adjust the planned amounts on the <T>Cost Breakdown</T> tab.</Fix></Issue>;
+const Revenue = () => <Issue title="Project revenue doesn't equal the planned revenue total"><Amounts kind="revenue" a="$3.2M" b="$2.8M" d="$400K" /><Fix>adjust the planned amounts on the <T>Revenue Breakdown</T> tab.</Fix></Issue>;
+const Circular = () => <Issue title="Schedule has circular dependencies"><p className="mt-1.5 text-xs text-muted-foreground">Items: <T>Design review, Build phase, UAT</T></p><Fix>remove one of the dependencies that loops back to an earlier item on the <T>Project Schedule</T> tab.</Fix></Issue>;
+const Dates = () => <Issue title="Some items fall outside the project's start and end dates"><p className="mt-1.5 text-xs text-muted-foreground">Items: <T>Kickoff, Go-live</T></p><Fix>move these items inside 2026-01-15 – 2026-06-15 on the <T>Project Schedule</T> tab.</Fix></Issue>;
 
 const FIX = { tone: "warning" as const, title: "Fix before saving the baseline", description: "Resolve these items before the baseline can be saved." };
 

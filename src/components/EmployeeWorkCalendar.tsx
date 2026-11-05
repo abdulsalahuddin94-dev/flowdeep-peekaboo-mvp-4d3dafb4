@@ -9,12 +9,15 @@ export type WorkEntry = { project: string; milestone: string; task: string; from
 export type CalendarLeave = { from: string; until: string; label: string };
 /** Allocation span — supplies each project's share shown next to its name. */
 export type WorkAllocation = { project: string; percent: number; from: string; until: string };
+/** Per-month figures the yearly cards render (structurally matches employeeMonth's return). */
+export type MonthStats = { effectiveUtilization: number; allocatedHours: number; availableCapacity: number; absentDays: number; allocations: { project: string; percent: number }[] };
 
 const chipColors = ["bg-accent/40 text-foreground", "bg-rag-blue/40 text-foreground", "bg-rag-green/40 text-foreground", "bg-rag-amber/40 text-foreground", "bg-accent-secondary/40 text-foreground"];
+const barColors = ["bg-accent", "bg-rag-blue", "bg-rag-green", "bg-rag-amber", "bg-accent-secondary"];
 
 const L = {
-  en: { monthly: "Monthly", yearly: "Yearly", title: "Work calendar", leave: "Leave", weekend: "Weekend", milestone: "Milestone", task: "Task", project: "Project", empty: "No project work in this period", more: "more" },
-  ar: { monthly: "شهري", yearly: "سنوي", title: "تقويم العمل", leave: "إجازة", weekend: "عطلة نهاية الأسبوع", milestone: "المرحلة", task: "المهمة", project: "المشروع", empty: "لا يوجد عمل على المشاريع في هذه الفترة", more: "أخرى" },
+  en: { monthly: "Monthly", yearly: "Yearly", title: "Work calendar", leave: "Leave", weekend: "Weekend", milestone: "Milestone", task: "Task", project: "Project", empty: "No project work in this period", more: "more", absenceDays: "absence days" },
+  ar: { monthly: "شهري", yearly: "سنوي", title: "تقويم العمل", leave: "إجازة", weekend: "عطلة نهاية الأسبوع", milestone: "المرحلة", task: "المهمة", project: "المشروع", empty: "لا يوجد عمل على المشاريع في هذه الفترة", more: "أخرى", absenceDays: "أيام غياب" },
 };
 const l = L.en;
 const weekDays = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];

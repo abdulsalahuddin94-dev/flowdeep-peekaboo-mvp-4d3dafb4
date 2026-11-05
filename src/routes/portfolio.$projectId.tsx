@@ -33,6 +33,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronLeft, FileText, MessageSquare, Paperclip, Download, UserPlus, ChevronDown, ChevronRight, ChevronUp, Send, CheckCircle2, XCircle, X, Plus, AlertTriangle, ShieldAlert, Upload, FileUp, Pencil, MoreHorizontal, DeleteAction, ArrowUpRight, Clock, Check, Calendar, ClipboardCheck, Lock, Link2 } from "@/lib/icons";
 import type { Rag, Project } from "@/lib/mock-data";
+import { findCircularItems, findItemsOutsideProject } from "@/lib/schedule-validation";
 import { projects, vendors as vendorList, resources as resourcePool, parseLabelDate, projectDurationDays } from "@/lib/mock-data";
 import { useProjects, useNotifications, useRfps, useResourceRequests, useCalendars, useJobRoles, useApprovals, type RfpEntry, type ResourceRequest } from "@/lib/projects-store";
 import { FINANCIAL_CATALOG, findFinancialItem, useFinanceLinks } from "@/lib/finance-links";
@@ -244,14 +245,18 @@ function ProjectDetail() {
    * Project revenue ↔ planned revenue total are both validated in the same
    * step, so every mismatch is surfaced together instead of one at a time. */
   const [baselineValidationOpen, setBaselineValidationOpen] = useState(false);
-  const [validationIssues, setValidationIssues] = useState<Array<{ key: "schedule" | "budget" | "revenue" | "changes"; title: string; project: number; plan: number; diff: number }>>([]);
+  const [validationIssues, setValidationIssues] = useState<Array<{ key: "schedule" | "budget" | "revenue" | "changes" | "circular" | "dates"; title: string; project: number; plan: number; diff: number; items?: string[] }>>([]);
   const [milestones, setMilestones] = useState<Milestone[]>(() => cached?.milestones ?? (isNewProject ? [] : seedMilestones(project)));
   const baselineIssues = useMemo(() => {
-    const issues: Array<{ key: "schedule" | "budget" | "revenue"; title: string; project: number; plan: number; diff: number }> = [];
+    const issues: Array<{ key: "schedule" | "budget" | "revenue" | "circular" | "dates"; title: string; project: number; plan: number; diff: number; items?: string[] }> = [];
     const EPS = 0.0001;
     if (milestones.length === 0) {
       issues.push({ key: "schedule", title: "The project schedule has no items yet", project: 0, plan: 0, diff: 0 });
     }
+    const loop = findCircularItems(milestones as any);
+    if (loop.length) issues.push({ key: "circular", title: "Schedule has circular dependencies", project: 0, plan: 0, diff: 0, items: loop });
+    const outside = findItemsOutsideProject(milestones, project.startDate, project.endDate);
+    if (outside.length) issues.push({ key: "dates", title: "Some items fall outside the project's start and end dates", project: 0, plan: 0, diff: 0, items: outside });
     const planCostTotal = costEntries.reduce((s, e) => s + e.b, 0);
     if (Math.abs(project.budgetTotal - planCostTotal) > EPS) {
       issues.push({
@@ -276,7 +281,7 @@ function ProjectDetail() {
       }
     }
     return issues;
-  }, [milestones, costEntries, revEntries, isInternalProject, project.budgetTotal, project.expectedRevenue]);
+  }, [milestones, costEntries, revEntries, isInternalProject, project.budgetTotal, project.expectedRevenue, project.startDate, project.endDate]);
   const [reports, setReports] = useState<StatusReport[]>(() => isNewProject ? [] : [
     { week: 18, by: project.pm, when: "3 days ago", rag: project.rag, text: "Integration layer testing delayed by 1 week. Fallback plan in review with IT Director. No impact on go-live yet." },
     { week: 17, by: project.pm, when: "10 days ago", rag: "amber", text: "Vendor SOW reviewed. Two open RAID items remain; mitigations scheduled this sprint." },
@@ -1391,10 +1396,10 @@ function ProjectDetail() {
             title="Fix before saving the baseline"
             description="Resolve these items before the baseline can be saved."
             cancelLabel="Cancel"
-            confirmLabel={`Go to ${(validationIssues.find((i) => i.key !== "changes")?.key ?? "schedule") === "schedule" ? "Project Schedule" : (validationIssues.find((i) => i.key !== "changes"))?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown"}`}
+            confirmLabel={`Go to ${["schedule", "circular", "dates"].includes(validationIssues.find((i) => i.key !== "changes")?.key ?? "schedule") ? "Project Schedule" : (validationIssues.find((i) => i.key !== "changes"))?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown"}`}
             onConfirm={() => {
               setBaselineValidationOpen(false);
-              setActiveTab((validationIssues.find((i) => i.key !== "changes")?.key ?? "schedule") === "schedule" ? "Project Schedule" : (validationIssues.find((i) => i.key !== "changes"))?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown");
+              setActiveTab(["schedule", "circular", "dates"].includes(validationIssues.find((i) => i.key !== "changes")?.key ?? "schedule") ? "Project Schedule" : (validationIssues.find((i) => i.key !== "changes"))?.key === "revenue" ? "Revenue Breakdown" : "Cost Breakdown");
             }}
           >
             <div className="space-y-2">
@@ -1410,7 +1415,17 @@ function ProjectDetail() {
                     <p className="mt-2 text-xs text-muted-foreground">
                       How to fix: edit the schedule, cost, revenue or basic info before saving a new baseline.
                     </p>
-                    ) : issue.key === "schedule" ? (
+                    ) : issue.key === "circular" || issue.key === "dates" ? (<>
+                    <p className="mt-1.5 text-xs text-muted-foreground">
+                      Items: <span className="text-foreground">{(issue.items ?? []).join(", ")}</span>
+                    </p>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      How to fix: {issue.key === "circular"
+                        ? "remove one of the dependencies that loops back to an earlier item"
+                        : `move these items inside ${project.startDate} – ${project.endDate}`} on the{" "}
+                      <span className="text-foreground">Project Schedule</span> tab.
+                    </p>
+                    </>) : issue.key === "schedule" ? (
                     <p className="mt-2 text-xs text-muted-foreground">
                       How to fix: create at least one milestone or task with{" "}
                       <span className="text-foreground">Add Item</span> on the{" "}

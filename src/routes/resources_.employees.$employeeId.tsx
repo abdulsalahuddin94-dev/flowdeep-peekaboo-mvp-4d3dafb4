@@ -27,6 +27,7 @@ import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
 import { EmployeeWorkCalendar, type WorkEntry } from "@/components/EmployeeWorkCalendar";
+import { PageToolbar } from "@/components/ds/PageToolbar";
 import { PeriodStepper, ViewToggle } from "@/components/PeriodStepper";
 export const Route = createFileRoute("/resources_/employees/$employeeId")({
   component: EmployeeDetails,
@@ -179,11 +180,7 @@ function EmployeeDetails() {
      <EmployeeWorkCalendar entries={workEntries} leave={calendarLeave} allocations={employee.allocations} year={year} view={calView} month={calMonth} monthStats={(m) => employeeMonth(employee, m)} />
     </TabsContent>
    <TabsContent value="tasks" className="mt-0 space-y-5">
-    <div className="flex flex-wrap items-center gap-3">
-     <div className="relative w-full max-w-xs"><Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input aria-label={t.searchTasks} placeholder={t.searchTasks} value={taskQuery} onChange={(e) => setTaskQuery(e.target.value)} className="ps-9" /></div>
-     <Select value={taskProject} onValueChange={setTaskProject}><SelectTrigger aria-label={t.project} className="w-56"><SelectValue /></SelectTrigger><SelectContent><SelectItem value={t.allProjects}>{t.allProjects}</SelectItem>{taskProjects.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent></Select>
-     <span className="text-xs text-muted-foreground">{visibleTasks.length} / {uniqueTasks.length}</span>
-    </div>
+    <PageToolbar query={taskQuery} onQueryChange={setTaskQuery} placeholder={t.searchTasks} filterGroups={[{ key: "project", label: t.project, value: taskProject, onChange: setTaskProject, options: [{ value: t.allProjects, label: t.allProjects }, ...taskProjects.map((p) => ({ value: p, label: p }))] }]} />
     {visibleTasks.length || !uniqueTasks.length
      ? <DataTable headers={[t.task, t.project, t.date]} rows={visibleTasks.map((v) => [v.task, projectLink(v.project), v.period])} />
      : <p className="rounded-lg border border-border py-8 text-center text-sm text-muted-foreground">{t.noTasks}</p>}

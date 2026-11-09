@@ -51,7 +51,7 @@ export function ProjectTeamTab({ project, pm, items, lang = "en" }: { project: s
         <h3 className="text-base font-medium text-foreground">{t.team}</h3>
         <Button variant="primary" onClick={() => setOpen(true)}><Plus className="h-4 w-4" />{t.request}</Button>
       </div>
-      {!team.length ? <EmptyState art="team" title={t.emptyT} description={t.emptyD} ctaLabel={t.request} onCta={() => setOpen(true)} /> : (
+      {!team.length ? <EmptyState art="role" title={t.emptyT} description={t.emptyD} ctaLabel={t.request} onCta={() => setOpen(true)} /> : (
         <StyledTable>
           <StyledTableHeader><StyledTableHeaderRow>{[t.member, t.role, t.employment, t.tasks, t.status].map((h) => <StyledTableHead key={h}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader>
           <StyledTableBody>

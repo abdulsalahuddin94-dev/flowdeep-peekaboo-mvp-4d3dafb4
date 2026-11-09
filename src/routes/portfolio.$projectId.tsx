@@ -100,7 +100,7 @@ export const Route = createFileRoute("/portfolio/$projectId")({
 });
 
 const TABS = [
-  "Overview", "Project Schedule", "Cost Breakdown", "Revenue Breakdown", "Risk & Issues", "Action Tracker", "Meetings", "Trips", "Recent Activity", "Status Reports",
+  "Overview", "Project Schedule", "Cost Breakdown", "Revenue Breakdown", "Team", "Risk & Issues", "Action Tracker", "Meetings", "Trips", "Recent Activity", "Status Reports",
 ];
 /** Tabs covered by the baseline — the only ones shown while in Change Plan. */
 const FOCUS_TABS = ["Basic info", "Project Schedule", "Cost Breakdown", "Revenue Breakdown"];
@@ -108,6 +108,7 @@ const T = { en: { basicInfo: "Basic info" }, ar: { basicInfo: "البيانات 
 /** In-memory plan state per project, so it survives visits to Approvals / Edit project. */
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { ProjectTripsTab } from "@/components/ProjectTripsTab";
+import { ProjectTeamTab, projectTeam } from "@/components/ProjectTeamTab";
 import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/plan-seeds";
 import { CollapseAllToggle } from "@/components/CollapseAllToggle";
 import { money, toDollarInput, fromDollarInput } from "@/lib/money";
@@ -1138,6 +1139,7 @@ function ProjectDetail() {
               return computeDerivedSchedule(milestones, resourceRequests);
             }, [milestones, resourceRequests, isViewingCurrent, selectedBaselineVersion, projectBaselineVersions])}
             resourceList={resourcePool}
+            teamMembers={projectTeam(project.name, resourceRequests)}
             restricted={!isEditingAllowed}
             jobRoles={jobRoles.map((r) => r.title)}
             onProgressClick={(name, kind) => {
@@ -1168,14 +1170,17 @@ function ProjectDetail() {
                 return;
               }
               const prevAssignee = milestones.find((m) => m.name === name)?.assignee;
+              const taskItem = milestones.find((m) => m.name === name);
               const id = addResourceRequest({
                 project: project.name,
                 task: name,
+                scope: "task",
                 role: role.role,
                 skill: role.skill,
                 fte: role.fte,
-                from: new Date().toISOString().slice(0, 7),
-                until: new Date().toISOString().slice(0, 7),
+                employment: role.fte >= 1 ? "Full time" : "Part time",
+                from: (taskItem?.startDate ?? new Date().toISOString()).slice(0, 7),
+                until: (taskItem?.endDate ?? new Date().toISOString()).slice(0, 7),
                 priority: "Medium",
                 submittedBy: project.pm,
                 notes: `Requested from schedule task "${name}"`,
@@ -1188,7 +1193,7 @@ function ProjectDetail() {
                 ),
               );
               toast.success("Skill request sent to Resources", {
-                description: `${role.skill} ${role.role} · ${role.fte} FTE`,
+                description: `${role.skill} ${role.role} · ${role.fte >= 1 ? "Full time" : "Part time"}`,
                 action: {
                   label: "Undo",
                   onClick: () => {
@@ -1359,6 +1364,9 @@ function ProjectDetail() {
 
         <TabsContent value="Meetings" className="mt-5">
           <MeetingsTab project={project.name} />
+        </TabsContent>
+        <TabsContent value="Team" className="mt-5">
+          <ProjectTeamTab project={project.name} pm={project.pm} items={milestones} />
         </TabsContent>
         <TabsContent value="Trips" className="mt-5">
           <ProjectTripsTab project={project.name} milestones={milestones.filter((m) => m.kind === "Milestone").map((m) => m.name)} />

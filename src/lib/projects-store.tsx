@@ -295,6 +295,10 @@ export type RfpEntry = {
   status: string; bidders: number; due: string; project?: string;
 };
 
+export type Employment = "Full time" | "Part time";
+export const EMPLOYMENT_PERCENT: Record<Employment, number> = { "Full time": 100, "Part time": 50 };
+export function employmentFromFte(fte: number): Employment { return fte >= 1 ? "Full time" : "Part time"; }
+
 export type ResourceRequest = {
   id: string; project: string; role: string;
   skill: "Junior" | "Mid" | "Senior" | "Lead";
@@ -304,6 +308,10 @@ export type ResourceRequest = {
   submittedBy: string; date: string; notes: string;
   /** WBS task the requested person will be assigned to. */
   task?: string;
+  /** Team requests staff the project; task requests staff one WBS item. Dates follow the task. */
+  scope?: "team" | "task";
+  /** Full time = 100% of capacity, Part time = 50%. */
+  employment?: Employment;
   assignedTo?: string; declineReason?: string;
   /** Outcome details captured when the request is fulfilled or declined. */
   allocation?: number; utilBefore?: number; utilAfter?: number;
@@ -328,6 +336,8 @@ export const SEED_RESOURCE_REQUESTS: ResourceRequest[] = [
   { id: "RR-003", task: "UAT Execution", project: "Smart Grid Pilot",            role: "QA Engineer",       skill: "Mid",    fte: 1.0, from: "2026-07", until: "2026-09", priority: "Medium",   status: "Pending",   submittedBy: "Priya Iyer",     date: "5d ago",  notes: "" },
   { id: "RR-004", task: "Data Pipeline Build", project: "AI Forecasting Engine",       role: "Data Engineer",     skill: "Mid",    fte: 1.5, from: "2026-06", until: "2026-11", priority: "Medium",   status: "Pending",   submittedBy: "Diego Ortiz",    date: "6d ago",  notes: "Python + Spark stack preferred" },
   { id: "RR-005", task: "Penetration Testing", project: "Security Hardening 2026",     role: "Security Lead",     skill: "Senior", fte: 0.5, from: "2026-08", until: "2026-08", priority: "Critical", status: "Fulfilled", submittedBy: "Mei Chen",       date: "1w ago",  notes: "Pen-test cert required", assignedTo: "Mei Chen", allocation: 50, utilBefore: 68, utilAfter: 118, decidedOn: "2026-09-15" },
+  { id: "RR-007", scope: "team", employment: "Full time", project: "ERP System Upgrade", role: "Business Analyst", skill: "Senior", fte: 1, from: "2025-04", until: "2025-04", priority: "High", status: "Fulfilled", submittedBy: "Sara Al-Rashid", date: "3w ago", notes: "", assignedTo: "Sara Al-Rashid", allocation: 100, decidedOn: "2025-04-01" },
+  { id: "RR-008", scope: "team", employment: "Part time", project: "ERP System Upgrade", role: "Business Analyst", skill: "Mid", fte: 0.5, from: "2025-04", until: "2025-04", priority: "Medium", status: "Fulfilled", submittedBy: "Sara Al-Rashid", date: "3w ago", notes: "", assignedTo: "John Smith", allocation: 50, decidedOn: "2025-04-01" },
   { id: "RR-006", task: "Change Readiness", project: "Warehouse Robotics",          role: "Change Manager",    skill: "Mid",    fte: 0.5, from: "2026-09", until: "2026-09", priority: "Low",      status: "Declined",  submittedBy: "Priya Iyer",     date: "1w ago",  notes: "", declineReason: "No available change managers this quarter — recommend external consultant" },
 ];
 

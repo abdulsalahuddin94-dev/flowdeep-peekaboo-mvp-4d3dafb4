@@ -1,3 +1,8 @@
+## 2026-11-09 — Team-based staffing
+- Added project Team tab (team from fulfilled requests, Working now / Not working now from task dates, request list) and Request role dialog (Full time / Part time).
+- WBS Add role now picks a team member (name + role) or requests a new role dated by the task.
+- Resource requests carry scope (Team/Task) and employment; Fulfill defaults to 100% / 50%.
+
 ## 2026-11-05 — Work calendar Yearly view restored to month cards
 
 - `src/components/EmployeeWorkCalendar.tsx`: replaced the project×month chip table in the Yearly view with the previous 12-card grid — each card shows the month name, utilization % (red with a red-tinted border when over 100%), a stacked per-project bar, allocated vs available hours, absence days, and the per-project percentage split.

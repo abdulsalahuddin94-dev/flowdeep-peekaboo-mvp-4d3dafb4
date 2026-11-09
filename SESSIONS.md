@@ -3,6 +3,11 @@
 - WBS Add role now picks a team member (name + role) or requests a new role dated by the task.
 - Resource requests carry scope (Team/Task) and employment; Fulfill defaults to 100% / 50%.
 
+## 2026-11-09 — Resources data aligned with Team-based staffing
+- Fulfill dialog: removed the free Allocation slider; allocation is fixed by the request (Full time 100% / Part time 50%), utilization preview uses the peak over the request period. Removed the unused direct-assign dialog.
+- Demo data: request seeds carry scope/employment with valid FTE (1 / 0.5); employee allocations reseeded as 100%/50% periods matching fulfilled requests; list utilization derived from allocations (storage v7).
+- Utilization Heatmap now shows real monthly allocation % per year; Manpower Planning and Skill Demand are derived from requests and employees (`src/lib/resource-demand.ts`), with tests.
+
 ## 2026-11-05 — Work calendar Yearly view restored to month cards
 
 - `src/components/EmployeeWorkCalendar.tsx`: replaced the project×month chip table in the Yearly view with the previous 12-card grid — each card shows the month name, utilization % (red with a red-tinted border when over 100%), a stacked per-project bar, allocated vs available hours, absence days, and the per-project percentage split.

@@ -34,7 +34,8 @@ import type { ResourceRequest } from "@/lib/projects-store";
 import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
-import { useEmployees, DEFAULT_MONTHLY_CAPACITY, type Employee, type EmployeeAllocation } from "@/lib/employees-store";
+import { useEmployees, type Employee, currentUtilization, periodUtilization, allocationPercent, monthRange } from "@/lib/employees-store";
+import { buildManpowerPlan, buildSkillDemand } from "@/lib/resource-demand";
 
 export const Route = createFileRoute("/resources")({
   component: ResourcesPage,
@@ -68,21 +69,6 @@ const RES_TAB_LABELS: Record<string, string> = {
   planning: "Manpower Planning", skills: "Skill Demand",
 };
 
-const SKILL_DEMAND = [
-  { skill: "Cloud Architecture", department: "Engineering", demand: "High" as Priority, available: 12, required: 16, duration: "6 months" },
-  { skill: "Industrial Control Systems", department: "Operations", demand: "Critical" as Priority, available: 4, required: 9, duration: "9 months" },
-  { skill: "Data Engineering", department: "Data & Analytics", demand: "Medium" as Priority, available: 9, required: 11, duration: "4 months" },
-  { skill: "Cyber Security", department: "Technology", demand: "Critical" as Priority, available: 3, required: 7, duration: "12 months" },
-  { skill: "Project Management", department: "PMO", demand: "Medium" as Priority, available: 22, required: 24, duration: "Ongoing" },
-  { skill: "Procurement / Contracts", department: "Procurement", demand: "Low" as Priority, available: 6, required: 6, duration: "3 months" },
-];
-
-const MANPOWER_PLAN = [
-  { role: "Solution Architect", department: "Engineering", demand: 4, supply: 2, action: "Hire 2 / partner" },
-  { role: "QA Engineer", department: "Technology", demand: 8, supply: 6, action: "Hire 1 / subcontract 1" },
-  { role: "Field Engineer", department: "Operations", demand: 6, supply: 7, action: "Capacity available" },
-  { role: "Security Lead", department: "Technology", demand: 2, supply: 1, action: "Critical hire" },
-];
 
 function ResourcesPage() {
   const { tab = "requests" } = Route.useSearch();
@@ -91,30 +77,37 @@ function ResourcesPage() {
   const { resourceRequests: requests, updateResourceRequest } = useResourceRequests();
 
   const pendingCount = requests.filter((r) => r.status === "Pending").length;
-  const avgUtilization = pool.length ? Math.round(pool.reduce((sum, r) => sum + r.util, 0) / pool.length) : 0;
-  const capacityGap = MANPOWER_PLAN.reduce((sum, row) => sum + Math.max(0, row.demand - row.supply), 0);
+  const avgUtilization = pool.length ? Math.round(pool.reduce((sum, r) => sum + currentUtilization(r.allocations), 0) / pool.length) : 0;
+  const manpower = useMemo(() => buildManpowerPlan(requests, pool), [requests, pool]);
+  const skillDemand = useMemo(() => buildSkillDemand(requests, pool), [requests, pool]);
+  const capacityGap = manpower.reduce((sum, row) => sum + Math.max(0, row.demand - row.supply), 0);
 
 
-  function fulfillRequest(id: string, assignedTo: string, alloc: number) {
+  /** Allocation is fixed by the request's employment (Full time 100% / Part time 50%) over the task/team period. */
+  function fulfillRequest(id: string, assignedTo: string) {
     const req = requests.find((r) => r.id === id);
     const person = pool.find((p) => p.name === assignedTo);
-    const utilBefore = person?.util;
-    const utilAfter = utilBefore == null ? undefined : Math.min(utilBefore + alloc, 200);
+    if (!req) return;
+    const alloc = EMPLOYMENT_PERCENT[req.employment ?? employmentFromFte(req.fte)];
+    const utilBefore = person ? periodUtilization(person.allocations, req.from, req.until).peak : undefined;
+    const utilAfter = utilBefore == null ? undefined : utilBefore + alloc;
     if (person) {
-      setPool((prev) => prev.map((p) => (p.name === assignedTo ? {
-        ...p,
-        util: utilAfter ?? p.util,
-        projects: req && !p.projects.includes(req.project) ? [...p.projects, req.project] : p.projects,
-        tasks: req?.task && !p.tasks.includes(req.task) ? [...p.tasks, req.task] : p.tasks,
-        allocations: req ? [...p.allocations, { id: req.id, project: req.project, role: req.role, percent: alloc, from: req.from, until: req.until, task: req.task }] : p.allocations,
-      } : p)));
+      setPool((prev) => prev.map((p) => {
+        if (p.name !== assignedTo) return p;
+        const allocations = [...p.allocations, { id: req.id, project: req.project, role: req.role, percent: alloc, from: req.from, until: req.until, task: req.task }];
+        return {
+          ...p, allocations, util: currentUtilization(allocations),
+          projects: !p.projects.includes(req.project) ? [...p.projects, req.project] : p.projects,
+          tasks: req.task && !p.tasks.includes(req.task) ? [...p.tasks, req.task] : p.tasks,
+        };
+      }));
     }
     updateResourceRequest(id, {
       status: "Fulfilled", assignedTo, allocation: alloc,
       utilBefore, utilAfter, decidedOn: new Date().toISOString().slice(0, 10),
     });
-    toast.success(`${req?.role} assigned to ${req?.project}`, {
-      description: `${assignedTo} · ${alloc}% allocation · ${req?.from} → ${req?.until}`,
+    toast.success(`${req.role} assigned to ${req.project}`, {
+      description: `${assignedTo} · ${req.employment ?? employmentFromFte(req.fte)} (${alloc}%) · ${req.from} → ${req.until}`,
     });
   }
 
@@ -160,10 +153,10 @@ function ResourcesPage() {
           <HeatmapView pool={pool} />
         </TabsContent>
         <TabsContent value="planning" className="mt-0">
-          <PlanningTable />
+          <PlanningTable rows={manpower} />
         </TabsContent>
         <TabsContent value="skills" className="mt-0">
-          <SkillsTable />
+          <SkillsTable rows={skillDemand} />
         </TabsContent>
       </Tabs>
     </div>
@@ -173,7 +166,7 @@ function ResourcesPage() {
 function RequestsTable({ requests, pool, onFulfill, onDecline }: {
   requests: ResourceRequest[];
   pool: PoolResource[];
-  onFulfill: (id: string, assignedTo: string, alloc: number) => void;
+  onFulfill: (id: string, assignedTo: string) => void;
   onDecline: (id: string, reason: string) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -389,7 +382,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
                     <StyledTableCell className="num-mono text-muted-foreground">{r.employeeNumber ? `#${r.employeeNumber}` : "—"}</StyledTableCell>
                     <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell>{employmentTypes.find((v) => v.id === r.employmentTypeId)?.name ?? "—"}</StyledTableCell>
                     <StyledTableCell className="text-center"><RelatedProjectsCount label={r.name} projects={r.projects.map((name) => ({ id: projects.find((p) => p.name === name)?.id ?? "", name }))} /></StyledTableCell>
-                    <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(r.util, 100)} className={`h-1.5 ${r.util > 100 ? "[&>div]:bg-rag-red" : r.util > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${r.util > 100 ? "text-rag-red" : "text-foreground"}`}>{r.util}%</span></div></StyledTableCell>
+                    {(() => { const u = currentUtilization(r.allocations); return <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(u, 100)} className={`h-1.5 ${u > 100 ? "[&>div]:bg-rag-red" : u > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${u > 100 ? "text-rag-red" : "text-foreground"}`}>{u}%</span></div></StyledTableCell>; })()}
                     <StyledTableCell onClick={(e) => e.stopPropagation()}>
                       <TableRowActions
                         isActive={r.active !== false}
@@ -436,18 +429,18 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
   );
 }
 
-function SkillsTable() {
+function SkillsTable({ rows }: { rows: ReturnType<typeof buildSkillDemand> }) {
   const [query, setQuery] = useState("");
   const [demand, setDemand] = useState("all");
   const [department, setDepartment] = useState("all");
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return SKILL_DEMAND.filter((row) => !q || row.skill.toLowerCase().includes(q) || row.department.toLowerCase().includes(q))
+    return rows.filter((row) => !q || row.skill.toLowerCase().includes(q) || row.department.toLowerCase().includes(q))
       .filter((row) => demand === "all" || row.demand === demand)
       .filter((row) => department === "all" || row.department === department);
-  }, [demand, department, query]);
+  }, [demand, department, query, rows]);
   const pagination = usePagination(filtered, 10);
-  const skillDepartments = Array.from(new Set(SKILL_DEMAND.map((row) => row.department)));
+  const skillDepartments = Array.from(new Set(rows.map((row) => row.department)));
 
   return <>
     <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search skill or department…" filterGroups={[
@@ -455,29 +448,29 @@ function SkillsTable() {
       { key: "department", label: "Department", value: department, onChange: setDepartment, options: [{ value: "all", label: "All departments" }, ...skillDepartments.map((v) => ({ value: v, label: v }))] },
     ]} />
       <StyledTable wrapperClassName=""><StyledTableHeader><StyledTableHeaderRow>
-        <StyledTableHead>Skill name</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Available</StyledTableHead><StyledTableHead>Required</StyledTableHead><StyledTableHead>Gap</StyledTableHead><StyledTableHead>Project duration</StyledTableHead><StyledTableHead className="text-center">Demand</StyledTableHead>
+        <StyledTableHead>Skill name</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Available (FTE)</StyledTableHead><StyledTableHead>Required (FTE)</StyledTableHead><StyledTableHead>Gap</StyledTableHead><StyledTableHead>Demand period</StyledTableHead><StyledTableHead className="text-center">Demand</StyledTableHead>
       </StyledTableHeaderRow></StyledTableHeader><StyledTableBody>
         {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((row) => <StyledTableRow key={row.skill} className="group">
-          <StyledTableCell className="font-medium text-foreground">{row.skill}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.department}</StyledTableCell><StyledTableCell className="num-mono">{row.available}</StyledTableCell><StyledTableCell className="num-mono">{row.required}</StyledTableCell><StyledTableCell className={`num-mono ${row.required > row.available ? "text-rag-red" : "text-rag-green"}`}>{row.available - row.required}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.duration}</StyledTableCell><StyledTableCell className="text-center"><Badge variant="outline" className={PRIORITY_STYLE[row.demand]}>{row.demand}</Badge></StyledTableCell>
+          <StyledTableCell className="font-medium text-foreground">{row.skill}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.department}</StyledTableCell><StyledTableCell className="num-mono">{row.available}</StyledTableCell><StyledTableCell className="num-mono">{row.required}</StyledTableCell><StyledTableCell className={`num-mono ${row.required > row.available ? "text-rag-red" : "text-rag-green"}`}>{Math.round((row.available - row.required) * 10) / 10}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.duration}</StyledTableCell><StyledTableCell className="text-center"><Badge variant="outline" className={PRIORITY_STYLE[row.demand]}>{row.demand}</Badge></StyledTableCell>
         </StyledTableRow>)}
       </StyledTableBody></StyledTable>
     <TablePagination {...pagination} itemLabel="skills" demoPages={1} />
   </>;
 }
 
-function PlanningTable() {
+function PlanningTable({ rows }: { rows: ReturnType<typeof buildManpowerPlan> }) {
   const [query, setQuery] = useState("");
   const [gapFilter, setGapFilter] = useState("all");
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return MANPOWER_PLAN.filter((row) => !q || row.role.toLowerCase().includes(q) || row.department.toLowerCase().includes(q))
+    return rows.filter((row) => !q || row.role.toLowerCase().includes(q) || row.department.toLowerCase().includes(q))
       .filter((row) => gapFilter === "all" || (gapFilter === "gap" ? row.demand > row.supply : row.demand <= row.supply));
-  }, [gapFilter, query]);
+  }, [gapFilter, query, rows]);
   const pagination = usePagination(filtered, 10);
   return <>
     <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search role or department…" filterGroups={[{ key: "gap", label: "Capacity", value: gapFilter, onChange: setGapFilter, options: [{ value: "all", label: "All roles" }, { value: "gap", label: "Capacity gap" }, { value: "covered", label: "Capacity covered" }] }]} />
-    <StyledTable wrapperClassName=""><StyledTableHeader><StyledTableHeaderRow><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Demand (FTE)</StyledTableHead><StyledTableHead>Supply</StyledTableHead><StyledTableHead>Gap</StyledTableHead><StyledTableHead>Recommended action</StyledTableHead><StyledTableHead className="text-center">Status</StyledTableHead></StyledTableHeaderRow></StyledTableHeader><StyledTableBody>
-      {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((row) => { const gap = row.demand - row.supply; return <StyledTableRow key={row.role} className="group"><StyledTableCell className="font-medium text-foreground">{row.role}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.department}</StyledTableCell><StyledTableCell className="num-mono">{row.demand}</StyledTableCell><StyledTableCell className="num-mono">{row.supply}</StyledTableCell><StyledTableCell className={`num-mono ${gap > 0 ? "text-rag-red" : "text-rag-green"}`}>{gap > 0 ? `+${gap}` : gap}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.action}</StyledTableCell><StyledTableCell className="text-center"><Badge variant="outline" className={gap > 0 ? "border-rag-red/40 bg-rag-red/10 text-rag-red" : "border-rag-green/40 bg-rag-green/10 text-rag-green"}>{gap > 0 ? "Action needed" : "Covered"}</Badge></StyledTableCell></StyledTableRow>; })}
+    <StyledTable wrapperClassName=""><StyledTableHeader><StyledTableHeaderRow><StyledTableHead>Role</StyledTableHead><StyledTableHead>Department</StyledTableHead><StyledTableHead>Demand (FTE)</StyledTableHead><StyledTableHead>Supply (FTE)</StyledTableHead><StyledTableHead>Gap</StyledTableHead><StyledTableHead>Recommended action</StyledTableHead><StyledTableHead className="text-center">Status</StyledTableHead></StyledTableHeaderRow></StyledTableHeader><StyledTableBody>
+      {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((row) => { const gap = Math.round((row.demand - row.supply) * 10) / 10; return <StyledTableRow key={row.role} className="group"><StyledTableCell className="font-medium text-foreground">{row.role}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.department}</StyledTableCell><StyledTableCell className="num-mono">{row.demand}</StyledTableCell><StyledTableCell className="num-mono">{row.supply}</StyledTableCell><StyledTableCell className={`num-mono ${gap > 0 ? "text-rag-red" : "text-rag-green"}`}>{gap > 0 ? `+${gap}` : gap}</StyledTableCell><StyledTableCell className="text-muted-foreground">{row.action}</StyledTableCell><StyledTableCell className="text-center"><Badge variant="outline" className={gap > 0 ? "border-rag-red/40 bg-rag-red/10 text-rag-red" : "border-rag-green/40 bg-rag-green/10 text-rag-green"}>{gap > 0 ? "Action needed" : "Covered"}</Badge></StyledTableCell></StyledTableRow>; })}
     </StyledTableBody></StyledTable><TablePagination {...pagination} itemLabel="roles" demoPages={1} />
   </>;
 }
@@ -497,23 +490,26 @@ function FulfillDialog({
 }: {
   req: ResourceRequest;
   pool: PoolResource[];
-  onFulfill: (id: string, assignedTo: string, alloc: number) => void;
+  onFulfill: (id: string, assignedTo: string) => void;
   compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [personName, setPersonName] = useState("");
-  const [alloc, setAlloc] = useState(EMPLOYMENT_PERCENT[req.employment ?? employmentFromFte(req.fte)]);
   const [personError, setPersonError] = useState("");
+  const employment = req.employment ?? employmentFromFte(req.fte);
+  const alloc = EMPLOYMENT_PERCENT[employment];
+  const periodOf = (r: PoolResource) => periodUtilization(r.allocations, req.from, req.until).peak;
+  const tone = (v: number) => v > 100 ? "text-rag-red" : v > 80 ? "text-rag-amber" : "text-rag-green";
 
   const selectedPerson = pool.find((r) => r.name === personName);
-  const projected = selectedPerson ? Math.min(selectedPerson.util + alloc, 200) : null;
-  const projColor = projected == null ? "" : projected > 100 ? "text-rag-red" : projected > 80 ? "text-rag-amber" : "text-rag-green";
+  const before = selectedPerson ? periodOf(selectedPerson) : null;
+  const projected = before == null ? null : before + alloc;
 
   function handleSave() {
     if (!personName) { setPersonError("Select a person to assign."); return; }
-    onFulfill(req.id, personName, alloc);
+    onFulfill(req.id, personName);
     setOpen(false);
-    setPersonName(""); setAlloc(50);
+    setPersonName("");
   }
 
   return (
@@ -528,77 +524,59 @@ function FulfillDialog({
           <DialogTitle>Fulfill resource request</DialogTitle>
         </DialogHeader>
 
-        {/* Request summary */}
         <div className="rounded-md border border-border bg-secondary/30 p-3 text-sm">
           <div className="font-medium text-foreground">{req.role} <span className="text-muted-foreground text-xs">({req.skill})</span></div>
           <div className="mt-0.5 text-xs text-muted-foreground">
-            {req.project} · {req.employment ?? employmentFromFte(req.fte)} · {req.from} → {req.until}
+            {req.project} · {req.scope === "team" ? "Team" : "Task"} · {req.from} → {req.until}
           </div>
           {req.notes && <div className="mt-1 text-xs italic text-muted-foreground">"{req.notes}"</div>}
         </div>
 
         <div className="grid gap-3">
-          {/* Person picker */}
           <Field label="Assign person" htmlFor="fulfill-person" required error={personError}>
             <Select onValueChange={(value) => { setPersonName(value); setPersonError(""); }}>
               <SelectTrigger id="fulfill-person"><SelectValue placeholder="Select from resource pool…" /></SelectTrigger>
               <SelectContent>
-                {pool.map((r) => (
+                {pool.filter((r) => r.active !== false).map((r) => { const u = periodOf(r); return (
                   <SelectItem key={r.name} value={r.name}>
                     <span className="flex items-center gap-2">
                       <span>{r.name}</span>
                       <span className="text-xs text-muted-foreground">— {r.role}</span>
-                      <span className={`num-mono text-xs ml-auto ${r.util > 100 ? "text-rag-red" : r.util > 80 ? "text-rag-amber" : "text-rag-green"}`}>
-                        {r.util}%
-                      </span>
+                      <span className={`num-mono text-xs ml-auto ${tone(u)}`}>{u}%</span>
                     </span>
                   </SelectItem>
-                ))}
+                ); })}
               </SelectContent>
             </Select>
           </Field>
 
-          {/* Utilization preview */}
-          {selectedPerson && (
+          <div className="flex items-center justify-between rounded-md border border-border bg-background/30 px-3 py-2 text-sm">
+            <span className="text-muted-foreground">Allocation on this project</span>
+            <span className="font-medium text-foreground">{employment} · <span className="num-mono">{alloc}%</span></span>
+          </div>
+
+          {selectedPerson && before != null && projected != null && (
             <div className="rounded-md border border-border bg-background/30 p-3 text-xs space-y-2">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Current utilization</span>
-                <span className={`num-mono font-medium ${selectedPerson.util > 100 ? "text-rag-red" : selectedPerson.util > 80 ? "text-rag-amber" : "text-rag-green"}`}>
-                  {selectedPerson.util}%
-                </span>
+                <span className="text-muted-foreground">Peak utilization in this period</span>
+                <span className={`num-mono font-medium ${tone(before)}`}>{before}%</span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary/50">
-                <div className="h-full rounded-full bg-accent/40" style={{ width: `${Math.min(selectedPerson.util, 100)}%` }} />
+                <div className="h-full rounded-full bg-accent/40" style={{ width: `${Math.min(before, 100)}%` }} />
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">After this assignment</span>
-                <span className={`num-mono font-medium ${projColor}`}>{projected}%</span>
+                <span className={`num-mono font-medium ${tone(projected)}`}>{projected}%</span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary/50">
-                <div className={`h-full rounded-full ${(projected ?? 0) > 100 ? "bg-rag-red" : (projected ?? 0) > 80 ? "bg-rag-amber" : "bg-accent"}`}
-                  style={{ width: `${Math.min(projected ?? 0, 100)}%` }} />
+                <div className={`h-full rounded-full ${projected > 100 ? "bg-rag-red" : projected > 80 ? "bg-rag-amber" : "bg-accent"}`}
+                  style={{ width: `${Math.min(projected, 100)}%` }} />
               </div>
-              {(projected ?? 0) > 100 && (
+              {projected > 100 && (
                 <p className="text-rag-red">⚠ This will over-allocate {selectedPerson.name}</p>
               )}
             </div>
           )}
-
-          {/* Allocation slider */}
-          <div>
-            <div className="mb-1.5 flex justify-between">
-              <Label>Allocation on this project</Label>
-              <span className={`num-mono text-sm font-medium ${projColor || "text-foreground"}`}>{alloc}%</span>
-            </div>
-            <input
-              type="range" min={10} max={100} step={5} value={alloc}
-              onChange={(e) => setAlloc(Number(e.target.value))}
-              className="w-full cursor-pointer accent-teal-400"
-            />
-            <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5">
-              <span>10%</span><span>50%</span><span>100%</span>
-            </div>
-          </div>
         </div>
 
         <DialogFooter>
@@ -669,135 +647,41 @@ function DeclineDialog({
   );
 }
 
-// ── Direct-assign dialog (from People tab) ────────────────────────────────────
-
-function AssignDialog({ resource, onAssign, compact = false }: { resource: PoolResource; onAssign?: (assignment: EmployeeAllocation) => void; compact?: boolean }) {
-  const [open, setOpen] = useState(false);
-  const [projectId, setProjectId] = useState("");
-  const [role, setRole] = useState(resource.role);
-  const [alloc, setAlloc] = useState(50);
-  const [from, setFrom] = useState("");
-  const [until, setUntil] = useState("");
-  const [projectError, setProjectError] = useState("");
-
-  const projected = Math.min(resource.util + alloc, 200);
-  const projColor = projected > 100 ? "text-rag-red" : projected > 80 ? "text-rag-amber" : "text-rag-green";
-
-  function handleSave() {
-    if (!projectId) { setProjectError("Project is required."); return; }
-    const proj = projects.find((p) => p.id === projectId);
-    const projectName = proj?.name ?? projectId;
-    onAssign?.({ id: crypto.randomUUID(), project: projectName, role, percent: alloc, from: from || new Date().toISOString().slice(0, 7), until: until || "2027-12" });
-    toast.success(`${resource.name} assigned to ${projectName} at ${alloc}%`);
-    setOpen(false);
-    setProjectId(""); setRole(resource.role); setAlloc(50); setFrom(""); setUntil("");
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size={compact ? "icon" : "sm"} variant="secondary" data-ds-size={compact ? "auto" : undefined} aria-label="Assign to project" title="Assign to project" className={compact ? "h-9 w-9 rounded-full border border-border/60 text-accent-secondary" : undefined}><UserCheck className="h-4 w-4" />{compact ? null : "Assign"}</Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Assign {resource.name} to project</DialogTitle>
-        </DialogHeader>
-
-        {/* Utilization preview */}
-        <div className="rounded-md border border-border bg-secondary/30 p-3 space-y-2 text-xs">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Current utilization</span>
-            <span className={`num-mono font-medium ${resource.util > 100 ? "text-rag-red" : resource.util > 80 ? "text-rag-amber" : "text-rag-green"}`}>{resource.util}%</span>
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-background/50">
-            <div className="h-full rounded-full bg-accent/30" style={{ width: `${Math.min(resource.util, 100)}%` }} />
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">After assignment</span>
-            <span className={`num-mono font-medium ${projColor}`}>{projected}%</span>
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-background/50">
-            <div className={`h-full rounded-full ${projected > 100 ? "bg-rag-red" : projected > 80 ? "bg-rag-amber" : "bg-accent"}`} style={{ width: `${Math.min(projected, 100)}%` }} />
-          </div>
-          {projected > 100 && <p className="text-rag-red">⚠ This will over-allocate {resource.name}</p>}
-        </div>
-
-        <div className="grid gap-3">
-          <Field label="Project" htmlFor="assignment-project" required error={projectError}>
-            <Select onValueChange={(value) => { setProjectId(value); setProjectError(""); }}>
-              <SelectTrigger id="assignment-project"><SelectValue placeholder="Select project…" /></SelectTrigger>
-              <SelectContent>
-                {projects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    <span className="flex items-center gap-2">
-                      {p.name}
-                      <Badge variant="outline" className="ml-1 border-border bg-secondary/40 text-[10px]">{p.stage}</Badge>
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-          <div>
-            <Label>Role on this project</Label>
-            <Input value={role} onChange={(e) => setRole(e.target.value)} placeholder="e.g. Solution Architect" />
-          </div>
-          <div>
-            <div className="mb-1.5 flex justify-between">
-              <Label>Allocation</Label>
-              <span className={`num-mono text-sm font-medium ${projColor}`}>{alloc}%</span>
-            </div>
-            <input
-              type="range" min={10} max={100} step={5} value={alloc}
-              onChange={(e) => setAlloc(Number(e.target.value))}
-              className="w-full cursor-pointer accent-teal-400"
-            />
-            <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5">
-              <span>10%</span><span>50%</span><span>100%</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div><Label>From</Label><Input type="month" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
-            <div><Label>Until</Label><Input type="month" value={until} onChange={(e) => setUntil(e.target.value)} /></div>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleSave}>Confirm assignment</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 // ── Utilization heatmap ───────────────────────────────────────────────────────
 
+/** Monthly allocation % per employee for the selected year, from the same allocations the profile uses. */
 function Heatmap({ pool }: { pool: PoolResource[] }) {
+  const [year, setYear] = useState(new Date().getFullYear());
+  const months = monthRange(`${year}-01`, 12);
   return (
     <>
-      <div className="label-eyebrow mb-3">Team utilization · next 8 weeks</div>
-      <div className="ml-32 mb-1 grid grid-cols-8 gap-1 text-[10px] text-muted-foreground">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="text-center">W{21 + i}</div>
-        ))}
+      <div className="mb-3 flex items-center justify-between">
+        <div className="label-eyebrow">Team utilization · {year}</div>
+        <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
+          <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+          <SelectContent>{[2025, 2026, 2027].map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
+        </Select>
+      </div>
+      <div className="ml-32 mb-1 grid grid-cols-12 gap-1 text-[10px] text-muted-foreground">
+        {months.map((m) => <div key={m} className="text-center">{new Date(`${m}-01T00:00:00Z`).toLocaleString("en", { month: "short", timeZone: "UTC" })}</div>)}
       </div>
       <div className="space-y-1">
-        {pool.map((r, idx) => (
-          <div key={r.name} className="flex items-center gap-2">
+        {pool.map((r) => (
+          <div key={r.id} className="flex items-center gap-2">
             <div className="w-32 truncate text-xs text-muted-foreground">{r.name}</div>
-            <div className="flex flex-1 gap-1">
-              {Array.from({ length: 8 }).map((_, i) => {
-                const v = (r.util + idx * 4 + i * 9) % 130;
-                const bg = v > 100 ? "bg-rag-red" : v > 80 ? "bg-orange-500" : v > 60 ? "bg-rag-amber" : "bg-rag-green/50";
-                return <div key={i} className={`h-6 flex-1 rounded ${bg}`} title={`${v}%`} />;
+            <div className="grid flex-1 grid-cols-12 gap-1">
+              {months.map((m) => {
+                const v = allocationPercent(r.allocations, m);
+                const bg = v > 100 ? "bg-rag-red" : v > 80 ? "bg-orange-500" : v > 60 ? "bg-rag-amber" : v > 0 ? "bg-rag-green/50" : "bg-secondary/40";
+                return <div key={m} className={`flex h-6 items-center justify-center rounded text-[10px] num-mono text-foreground ${bg}`} aria-label={`${r.name} ${m}: ${v}%`}>{v > 0 ? `${v}%` : ""}</div>;
               })}
             </div>
           </div>
         ))}
       </div>
       <div className="mt-4 flex items-center gap-3 text-[11px] text-muted-foreground">
-        <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-rag-green/50" />&lt;60%</span>
+        <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-secondary/40" />Not allocated</span>
+        <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-rag-green/50" />&le;60%</span>
         <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-rag-amber" />60–80%</span>
         <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-orange-500" />80–100%</span>
         <span className="inline-flex items-center gap-1"><span className="h-3 w-3 rounded bg-rag-red" />Over</span>

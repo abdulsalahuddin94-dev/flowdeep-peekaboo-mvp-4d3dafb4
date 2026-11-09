@@ -8,6 +8,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow } from "@/components/StyledTable";
 import { EmptyState } from "@/components/ds/EmptyState";
 import { Pill } from "@/components/Pill";
+import { Link } from "@tanstack/react-router";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useEmployees } from "@/lib/employees-store";
 import { Plus } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 
@@ -42,34 +45,44 @@ export function ProjectTeamTab({ project, pm, items, lang = "en" }: { project: s
   const t = T[lang];
   const { resourceRequests, addResourceRequest } = useResourceRequests();
   const [open, setOpen] = useState(false);
+  const { employees } = useEmployees();
   const team = useMemo(() => projectTeam(project, resourceRequests), [project, resourceRequests]);
   const reqs = resourceRequests.filter((r) => r.project === project);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-medium text-foreground">{t.team}</h3>
+        <h3 className="flex items-center gap-2 text-base font-medium text-foreground">{t.team}<span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-accent-dim px-3 text-xs num-mono text-accent">{team.length}</span></h3>
         <Button variant="primary" onClick={() => setOpen(true)}><Plus className="h-4 w-4" />{t.request}</Button>
       </div>
       {!team.length ? <EmptyState art="role" title={t.emptyT} description={t.emptyD} ctaLabel={t.request} onCta={() => setOpen(true)} /> : (
-        <StyledTable>
-          <StyledTableHeader><StyledTableHeaderRow>{[t.member, t.role, t.employment, t.tasks, t.status].map((h) => <StyledTableHead key={h}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader>
-          <StyledTableBody>
-            {team.map((m) => {
-              const working = isWorkingNow(m.name, items);
-              const tasks = items.filter((i) => i.assignee === m.name).length;
-              return (
-                <StyledTableRow key={m.name}>
-                  <StyledTableCell className="font-medium text-foreground">{m.name}</StyledTableCell>
-                  <StyledTableCell>{m.role}</StyledTableCell>
-                  <StyledTableCell>{m.employment}</StyledTableCell>
-                  <StyledTableCell className="num-mono">{tasks}</StyledTableCell>
-                  <StyledTableCell><Pill label={working ? t.working : t.idle} tone={working ? "border-rag-green/40 text-rag-green" : "border-border text-muted-foreground"} /></StyledTableCell>
-                </StyledTableRow>
-              );
-            })}
-          </StyledTableBody>
-        </StyledTable>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {team.map((m) => {
+            const working = isWorkingNow(m.name, items);
+            const tasks = items.filter((i) => i.assignee === m.name).length;
+            const emp = employees.find((e) => e.name === m.name);
+            const body = (
+              <>
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12 shrink-0">{emp?.avatar ? <AvatarImage src={emp.avatar} alt={m.name} /> : null}<AvatarFallback className="bg-accent-dim text-sm font-medium text-accent">{m.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}</AvatarFallback></Avatar>
+                  <div className="min-w-0">
+                    <div className="truncate font-medium text-foreground">{m.name}</div>
+                    <div className="truncate text-xs text-muted-foreground">{m.role}</div>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{m.employment}</span>
+                  <span><span className="num-mono text-foreground">{tasks}</span> {t.tasks}</span>
+                </div>
+                <div className="mt-3"><Pill label={working ? t.working : t.idle} tone={working ? "border-rag-green/40 text-rag-green" : "border-border text-muted-foreground"} /></div>
+              </>
+            );
+            const cls = "block rounded-lg border border-border bg-card p-4 text-start transition-colors";
+            return emp ? (
+              <Link key={m.name} to="/resources/employees/$employeeId" params={{ employeeId: emp.id }} className={`${cls} hover:border-primary/60`}>{body}</Link>
+            ) : <div key={m.name} className={cls}>{body}</div>;
+          })}
+        </div>
       )}
 
       {reqs.length > 0 && (

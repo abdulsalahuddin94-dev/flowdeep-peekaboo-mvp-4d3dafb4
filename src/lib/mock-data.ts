@@ -342,6 +342,10 @@ export const resources = [
   { name: "Liam Walker", role: "Finance Analyst", dept: "Finance", util: 55, capacity: 40, projects: ["Cost Opt"] },
   { name: "Hana Tanaka", role: "Procurement Lead", dept: "Operations", util: 78, capacity: 40, projects: ["Modernization"] },
   { name: "Diego Ortiz", role: "BI Engineer", dept: "IT", util: 64, capacity: 40, projects: ["Self-Service BI"] },
+  { name: "Nadia Farouk", role: "QA Engineer", dept: "IT", util: 0, capacity: 40, projects: [] },
+  { name: "Khalid Mansour", role: "Data Engineer", dept: "IT", util: 0, capacity: 40, projects: [] },
+  { name: "Laila Hassan", role: "Change Manager", dept: "PMO", util: 0, capacity: 40, projects: [] },
+  { name: "Youssef Amin", role: "Integration Developer", dept: "IT", util: 0, capacity: 40, projects: [] },
 ];
 
 export const contracts = [

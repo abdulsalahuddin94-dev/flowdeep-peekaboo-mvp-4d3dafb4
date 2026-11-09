@@ -341,6 +341,7 @@ export function ProjectSchedule({
   headerSlot,
   restricted = false,
   jobRoles,
+  teamMembers = [],
   highlightItem,
   onHighlightDone,
   calendar,
@@ -364,6 +365,8 @@ export function ProjectSchedule({
    * in the inline RolesCell editor. Falls back to a default catalog otherwise.
    */
   jobRoles?: string[];
+  /** Project team (fulfilled requests) offered first when adding a role to an item. */
+  teamMembers?: Array<{ name: string; role: string; employment: "Full time" | "Part time" }>;
   /**
    * When true, only Progress Update and Assignee edits are allowed.
    * All other edits are launched from the row actions menu and remain subject
@@ -1962,7 +1965,9 @@ export function ProjectSchedule({
       <RolesDialog
         item={rolesFor ? items.find((i) => i.name === rolesFor) ?? null : null}
         onClose={() => setRolesFor(null)}
-        onUpdate={(roles) => { if (rolesFor) patch(rolesFor, { roles }); }}
+        teamMembers={teamMembers}
+        onPickMember={(m) => { if (rolesFor) patch(rolesFor, { assignee: m.name, roles: [{ role: m.role, skill: "Mid", fte: m.employment === "Full time" ? 1 : 0.5 }] }); }}
+        onRequestRole={(role) => { if (rolesFor) { patch(rolesFor, { roles: [role] }); onRequestSkill?.(rolesFor, role); } }}
         roleOptions={jobRoles && jobRoles.length ? jobRoles : ROLE_OPTIONS}
       />
     </div>
@@ -2331,101 +2336,110 @@ function DateCell({
 }
 
 // ── Assignee cell: name pill / Waiting / request skill popover ──────────────
-// ── RolesDialog: add / edit the roles a WBS item needs (opened from the row menu) ──
+// ── RolesDialog: pick a team member (name + role) or request a new role for this item ──
 function RolesDialog({
   item,
   onClose,
-  onUpdate,
+  onPickMember,
+  onRequestRole,
+  teamMembers = [],
   roleOptions = ROLE_OPTIONS,
 }: {
   item: ScheduleItem | null;
   onClose: () => void;
-  onUpdate: (roles: RoleReq[]) => void;
+  onPickMember: (m: { name: string; role: string; employment: "Full time" | "Part time" }) => void;
+  onRequestRole: (role: RoleReq) => void;
+  teamMembers?: Array<{ name: string; role: string; employment: "Full time" | "Part time" }>;
   roleOptions?: readonly string[];
 }) {
-  const [draft, setDraft] = useState<RoleReq[]>([]);
+  const [mode, setMode] = useState<"team" | "request">("team");
+  const [member, setMember] = useState("");
   const [newRole, setNewRole] = useState("");
   const [newLevel, setNewLevel] = useState<RoleReq["skill"]>("Mid");
-  const [newFte, setNewFte] = useState("1");
+  const [employment, setEmployment] = useState<"Full time" | "Part time">("Full time");
 
   useEffect(() => {
-    if (item) setDraft(item.roles.slice(0, 1).map((r) => ({ ...r })));
-    setNewRole(""); setNewLevel("Mid"); setNewFte("1");
-  }, [item]);
+    setMode(teamMembers.length ? "team" : "request");
+    setMember(item?.assignee && teamMembers.some((m) => m.name === item.assignee) ? item.assignee : "");
+    setNewRole(""); setNewLevel("Mid"); setEmployment("Full time");
+  }, [item, teamMembers]);
 
-  const editing = !!item?.roles.length;
-  const updateRow = (i: number, p: Partial<RoleReq>) => setDraft((d) => d.map((r, j) => (j === i ? { ...r, ...p } : r)));
-  const addRow = () => {
-    if (!newRole.trim() || draft.length >= 1) return;
-    setDraft((d) => [...d, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }]);
-    setNewRole(""); setNewLevel("Mid"); setNewFte("1");
-  };
+  const levels = ["Junior", "Mid", "Senior", "Lead"] as const;
+  const canSave = mode === "team" ? !!member : !!newRole;
   const save = () => {
-    const pending = newRole.trim() && draft.length === 0 ? [...draft, { role: newRole.trim(), skill: newLevel, fte: parseFloat(newFte) || 1 }] : draft;
-    onUpdate(pending);
-    toast.success(pending.length ? `Role updated for ${item?.name}` : `Roles cleared for ${item?.name}`);
+    if (mode === "team") {
+      const m = teamMembers.find((x) => x.name === member);
+      if (!m) return;
+      onPickMember(m);
+      toast.success(`${m.name} assigned to ${item?.name}`);
+    } else {
+      onRequestRole({ role: newRole, skill: newLevel, fte: employment === "Full time" ? 1 : 0.5 });
+    }
     onClose();
   };
-  const levels = ["Junior", "Mid", "Senior", "Lead"] as const;
 
   return (
     <Dialog open={!!item} onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{editing ? "Edit role" : "Add role"}</DialogTitle>
+          <DialogTitle>{item?.roles.length || item?.assignee ? "Edit role" : "Add role"}</DialogTitle>
           <DialogDescription>{item?.name}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          {draft.length > 0 && (
+          {mode === "team" ? (
             <div className="space-y-2">
-              {draft.map((r, i) => (
-                <div key={`${r.role}-${i}`} className="grid grid-cols-[1fr_110px_80px_36px] items-center gap-2">
-                  <Select value={r.role} onValueChange={(v) => updateRow(i, { role: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Array.from(new Set([r.role, ...roleOptions])).map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <Select value={r.skill} onValueChange={(v) => updateRow(i, { skill: v as RoleReq["skill"] })}>
+              <Label>Team member</Label>
+              <Select value={member} onValueChange={setMember}>
+                <SelectTrigger><SelectValue placeholder="Select from the project team" /></SelectTrigger>
+                <SelectContent>
+                  {teamMembers.map((m) => (
+                    <SelectItem key={m.name} value={m.name}>
+                      <span className="text-foreground">{m.name}</span>
+                      <span className="ms-2 text-xs text-muted-foreground">{m.role} · {m.employment}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="link" className="h-auto p-0 text-xs" onClick={() => setMode("request")}>
+                <Plus className="h-3.5 w-3.5" /> Role not in the team? Request new role
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <Select value={newRole} onValueChange={setNewRole}>
+                  <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
+                  <SelectContent>{roleOptions.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Seniority</Label>
+                  <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>{levels.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
                   </Select>
-                  <Input type="number" min={0.1} step={0.1} value={r.fte} onChange={(e) => updateRow(i, { fte: parseFloat(e.target.value) || 0 })} className="num-mono" aria-label="FTE" />
-                  <Button variant="ghost" size="icon" className="h-9 w-9" aria-label={`Remove ${r.role}`} onClick={() => setDraft((d) => d.filter((_, j) => j !== i))}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
-              ))}
+                <div className="space-y-2">
+                  <Label>Employment</Label>
+                  <Select value={employment} onValueChange={(v) => setEmployment(v as "Full time" | "Part time")}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{(["Full time", "Part time"] as const).map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">The request follows this item's start and end dates. Once fulfilled, the employee joins the project team.</p>
+              {teamMembers.length > 0 && (
+                <Button variant="link" className="h-auto p-0 text-xs" onClick={() => setMode("team")}>Pick from the team instead</Button>
+              )}
             </div>
           )}
-          {draft.length > 0 ? (
-            <p className="text-xs text-muted-foreground">One role per item. Need another role? Add a subtask under this item and assign the role there.</p>
-          ) : (
-          <div className="space-y-2 border-t border-border pt-3">
-            <Label>Role</Label>
-            <div className="grid grid-cols-[1fr_110px_80px_36px] items-center gap-2">
-              <Select value={newRole} onValueChange={setNewRole}>
-                <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
-                <SelectContent>
-                  {roleOptions.filter((o) => !draft.some((r) => r.role === o)).map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{levels.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
-              </Select>
-              <Input type="number" min={0.1} step={0.1} value={newFte} onChange={(e) => setNewFte(e.target.value)} className="num-mono" aria-label="FTE" />
-              <Button variant="outline" size="icon" className="h-9 w-9" aria-label="Add role" disabled={!newRole.trim()} onClick={addRow}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">Role · Seniority · FTE</p>
-          </div>
-          )}
+          <p className="text-xs text-muted-foreground">One role per item. Need another role? Add a subtask under this item and assign the role there.</p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button variant="primary" onClick={save}>Save</Button>
+          <Button variant="primary" disabled={!canSave} onClick={save}>{mode === "team" ? "Assign" : "Send request"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

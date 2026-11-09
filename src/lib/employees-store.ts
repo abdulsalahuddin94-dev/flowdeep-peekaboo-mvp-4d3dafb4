@@ -26,6 +26,10 @@ const seedAllocs: SeedAlloc[][] = [
   [["p-015", 50, "2026-01", "2026-12", "Budget Review"], ["p-001", 50, "2025-06", "2026-06"]],
   [["p-014", 100, "2026-04", "2027-03", "Vendor Evaluation"], ["p-001", 50, "2025-04", "2026-12"]],
   [["Self-Service BI", 50, "2026-03", "2026-12", "Source Mapping"], ["p-001", 50, "2025-09", "2026-12"]],
+  [["p-001", 100, "2025-07", "2026-12", "System Testing"]],
+  [["p-001", 100, "2025-05", "2026-12", "Data Migration"]],
+  [["p-001", 50, "2025-08", "2026-12"]],
+  [["p-001", 100, "2025-06", "2026-12", "Interfaces Build"]],
 ];
 const salaries = [14500, 12800, 13200, 9800, 13900, 8700, 9200, 11000, 9500, 11800, 10400, 12200];
 const types: EmploymentType[] = ["In source", "Out source", "Offshore"].map((name, i) => ({ id: `ET-${i + 1}`, name, active: true }));

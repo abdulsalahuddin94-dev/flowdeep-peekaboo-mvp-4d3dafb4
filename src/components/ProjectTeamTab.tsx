@@ -41,7 +41,7 @@ const T = {
   ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", type: "النوع", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", working: "يعمل الآن", idle: "لا يعمل الآن", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب دورًا، وبعد تنفيذه من الموارد ينضم الموظف للفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", teamScope: "فريق" },
 };
 
-export function ProjectTeamTab({ project, pm, items, lang = "en" }: { project: string; pm: string; items: Item[]; lang?: "en" | "ar" }) {
+export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar" }) {
   const t = T[lang];
   const { resourceRequests, addResourceRequest } = useResourceRequests();
   const [open, setOpen] = useState(false);
@@ -79,7 +79,7 @@ export function ProjectTeamTab({ project, pm, items, lang = "en" }: { project: s
             );
             const cls = "block rounded-lg border border-border bg-card p-4 text-start transition-colors";
             return emp ? (
-              <Link key={m.name} to="/resources/employees/$employeeId" params={{ employeeId: emp.id }} className={`${cls} hover:border-primary/60`}>{body}</Link>
+              <Link key={m.name} to="/resources/employees/$employeeId" params={{ employeeId: emp.id }} search={{ from: "team", projectId }} className={`${cls} hover:border-primary/60`}>{body}</Link>
             ) : <div key={m.name} className={cls}>{body}</div>;
           })}
         </div>

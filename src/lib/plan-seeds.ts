@@ -1,8 +1,9 @@
 import type { CostEntry, Milestone, RevEntry } from "@/routes/portfolio.$projectId";
 
 /** Demo schedule seed shared by the project page and the Change Request review page. */
-export function seedMilestones(project: { pm: string; endDate: string }): Milestone[] {
+export function seedMilestones(project: { pm: string; endDate: string; name?: string }): Milestone[] {
   return [
+    ...(project.name === "ERP System Upgrade" ? erpActiveWork() : []),
     // ── Phase 1: Discovery — completed, all green, all assigned ──────────────
     { name: "Discovery & Requirements", kind: "Task", startDate: "2025-04-15", endDate: "2025-05-16", owner: "Sara Al-Rashid", rag: "amber", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "Package Cost", packageId: "PKG-DSC", amount: "$80,000" }, progress: 20, parent: "Discovery Sign-off", weightScore: 8 },
     { name: "Stakeholder workshops", kind: "Task", startDate: "2025-04-15", endDate: "2025-04-25", owner: "Sara Al-Rashid", rag: "amber", dep: "—", roles: [{ role: "Business Analyst", skill: "Senior", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 40, parent: "Discovery & Requirements", assignee: "Sara Al-Rashid", weightScore: 5 },
@@ -64,5 +65,24 @@ export function initialRevEntries(project: { endDate: string }, isNew: boolean):
       actuals: [{ amount: 0.20, date: "04 Jul", note: "Partial settlement" }] },
     { ms: "UAT Sign-off",       evt: "Progress invoice (25%)", plan: 0.80, date: project.endDate, s: "blue",  sl: "Planned",  act: null, linkKind: "milestone" },
     { ms: "Go-live",            evt: "Final payment (25%)",    plan: 0.80, date: "14 Dec",        s: "blue",  sl: "Planned",  act: null, linkKind: "fixed" },
+  ];
+}
+
+/** ERP demo: an in-flight phase so every team member has a current task ("Working now"). */
+function erpActiveWork(): Milestone[] {
+  return [
+    { name: "Stabilisation & Optimisation", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [], payment: { kind: "None", amount: "" }, progress: 45, weightScore: 3 },
+    { name: "Process optimisation", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Business Analyst", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 20, parent: "Stabilisation & Optimisation", assignee: "Sara Al-Rashid", weightScore: 2 },
+    { name: "Change backlog grooming", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Business Analyst", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 25, parent: "Stabilisation & Optimisation", assignee: "John Smith", weightScore: 2 },
+    { name: "Access review", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Security Lead", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 30, parent: "Stabilisation & Optimisation", assignee: "Mei Chen", weightScore: 2 },
+    { name: "Site device rollout", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Field Engineer", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 35, parent: "Stabilisation & Optimisation", assignee: "Omar Haddad", weightScore: 2 },
+    { name: "Performance tuning", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Tech Lead", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 40, parent: "Stabilisation & Optimisation", assignee: "Priya Iyer", weightScore: 2 },
+    { name: "Finance module reconciliation", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Finance Analyst", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 45, parent: "Stabilisation & Optimisation", assignee: "Liam Walker", weightScore: 2 },
+    { name: "Procurement workflow rollout", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Procurement Lead", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 50, parent: "Stabilisation & Optimisation", assignee: "Hana Tanaka", weightScore: 2 },
+    { name: "Operational dashboards", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "BI Engineer", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 55, parent: "Stabilisation & Optimisation", assignee: "Diego Ortiz", weightScore: 2 },
+    { name: "Regression testing", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "QA Engineer", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 60, parent: "Stabilisation & Optimisation", assignee: "Nadia Farouk", weightScore: 2 },
+    { name: "Data quality fixes", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Data Engineer", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 65, parent: "Stabilisation & Optimisation", assignee: "Khalid Mansour", weightScore: 2 },
+    { name: "User adoption program", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Change Manager", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 70, parent: "Stabilisation & Optimisation", assignee: "Laila Hassan", weightScore: 2 },
+    { name: "Interface stabilisation", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [{ role: "Integration Developer", skill: "Mid", fte: 1 }], payment: { kind: "None", amount: "" }, progress: 75, parent: "Stabilisation & Optimisation", assignee: "Youssef Amin", weightScore: 2 },
   ];
 }

@@ -20,14 +20,18 @@ type SeedAlloc = [string, 100 | 50, string, string, string?];
 const seedAllocs: SeedAlloc[][] = [
   [["p-001", 100, "2025-04", "2026-12", "Solution Design"], ["p-003", 50, "2027-01", "2027-06", "Integration Blueprint"]],
   [["p-002", 50, "2026-01", "2026-12", "Site Mobilisation"], ["p-001", 50, "2025-04", "2026-12"], ["p-016", 50, "2026-10", "2027-03"]],
-  [["p-010", 50, "2026-02", "2026-12"], ["p-010", 50, "2026-08", "2026-08", "Penetration Testing"]],
-  [["p-008", 50, "2026-01", "2026-12", "Field Survey"], ["p-012", 50, "2026-05", "2026-10", "Commissioning"]],
-  [["p-009", 100, "2026-01", "2026-12", "Model Training"], ["p-005", 50, "2026-06", "2026-11"]],
-  [["p-015", 50, "2026-01", "2026-12", "Budget Review"]],
-  [["p-014", 100, "2026-04", "2027-03", "Vendor Evaluation"]],
-  [["Self-Service BI", 50, "2026-03", "2026-12", "Source Mapping"]],
+  [["p-010", 50, "2026-02", "2026-12"], ["p-010", 50, "2026-08", "2026-08", "Penetration Testing"], ["p-001", 50, "2025-06", "2026-12"]],
+  [["p-008", 50, "2026-01", "2026-12", "Field Survey"], ["p-012", 50, "2026-05", "2026-10", "Commissioning"], ["p-001", 50, "2025-06", "2026-12"]],
+  [["p-009", 100, "2026-01", "2026-12", "Model Training"], ["p-005", 50, "2026-06", "2026-11"], ["p-001", 50, "2025-09", "2026-12"]],
+  [["p-015", 50, "2026-01", "2026-12", "Budget Review"], ["p-001", 50, "2025-06", "2026-06"]],
+  [["p-014", 100, "2026-04", "2027-03", "Vendor Evaluation"], ["p-001", 50, "2025-04", "2026-12"]],
+  [["Self-Service BI", 50, "2026-03", "2026-12", "Source Mapping"], ["p-001", 50, "2025-09", "2026-12"]],
+  [["p-001", 100, "2025-07", "2026-12", "System Testing"]],
+  [["p-001", 100, "2025-05", "2026-12", "Data Migration"]],
+  [["p-001", 50, "2025-08", "2026-12"]],
+  [["p-001", 100, "2025-06", "2026-12", "Interfaces Build"]],
 ];
-const salaries = [14500, 12800, 13200, 9800, 13900, 8700, 9200, 11000];
+const salaries = [14500, 12800, 13200, 9800, 13900, 8700, 9200, 11000, 9500, 11800, 10400, 12200];
 const types: EmploymentType[] = ["In source", "Out source", "Offshore"].map((name, i) => ({ id: `ET-${i + 1}`, name, active: true }));
 
 /** Demo monthly plans: a mid-year raise and a part-time month so per-month values are visible. */
@@ -72,7 +76,8 @@ const listeners = new Set<() => void>();
 // v3: leave lost its status (Leave / Partial + remark) and trips gained location, work dates and costs.
 // v5: demo rows carry full profile data (phone, national ID, birth date, gender, tags).
 // v7: allocations are only Full time (100%) / Part time (50%) from fulfilled requests; util derived from them.
-const storageKey = "pmo.employees.v7";
+// v8: ERP System Upgrade carries a 12-person demo team.
+const storageKey = "pmo.employees.v8";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;

@@ -1366,7 +1366,7 @@ function ProjectDetail() {
           <MeetingsTab project={project.name} />
         </TabsContent>
         <TabsContent value="Team" className="mt-5">
-          <ProjectTeamTab project={project.name} pm={project.pm} items={milestones} />
+          <ProjectTeamTab project={project.name} projectId={project.id} pm={project.pm} items={milestones} />
         </TabsContent>
         <TabsContent value="Trips" className="mt-5">
           <ProjectTripsTab project={project.name} milestones={milestones.filter((m) => m.kind === "Milestone").map((m) => m.name)} />

@@ -29,8 +29,13 @@ import { cn } from "@/lib/utils";
 import { EmployeeWorkCalendar, type WorkEntry } from "@/components/EmployeeWorkCalendar";
 import { PageToolbar } from "@/components/ds/PageToolbar";
 import { PeriodStepper, ViewToggle } from "@/components/PeriodStepper";
+import { employeeBackTarget } from "@/lib/employee-back";
 export const Route = createFileRoute("/resources_/employees/$employeeId")({
   component: EmployeeDetails,
+  validateSearch: (search: Record<string, unknown>): { from?: string; projectId?: string } => ({
+    from: typeof search.from === "string" ? search.from : undefined,
+    projectId: typeof search.projectId === "string" ? search.projectId : undefined,
+  }),
   head: ({ params }) => ({ meta: [{ title: `Employee ${params.employeeId} — Nexus PMO` }, { name: "description", content: "Employee profile, monthly salary, project allocation, assigned tasks, capacity, leave and trips." }, { property: "og:title", content: `Employee ${params.employeeId} — Nexus PMO` }, { property: "og:description", content: "Read-only employee information, salary allocation, projects, tasks and vacation." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
 });
 export const T = {
@@ -40,8 +45,8 @@ export const T = {
 const t = T.en;
 // Header labels for the employee detail page (kept out of the long base rows above).
 const H = {
-  en: { pageTitle: "Employee Details", gender: "Gender", age: "Age", years: "Years old", backToEmployees: "Back to Employees", actions: "Employee actions", edit: "Edit", activate: "Activate", deactivate: "Deactivate", del: "Delete", active: "Active", inactive: "Inactive", sureToggle: "Are you sure?" },
-  ar: { pageTitle: "بيانات الموظف", gender: "النوع", age: "العمر", years: "سنة", backToEmployees: "العودة إلى الموظفين", actions: "إجراءات الموظف", edit: "تعديل", activate: "تنشيط", deactivate: "إلغاء التنشيط", del: "حذف", active: "نشط", inactive: "غير نشط", sureToggle: "هل أنت متأكد؟" },
+  en: { pageTitle: "Employee Details", gender: "Gender", age: "Age", years: "Years old", backToEmployees: "Back to Employees", backToTeam: "Back to team", actions: "Employee actions", edit: "Edit", activate: "Activate", deactivate: "Deactivate", del: "Delete", active: "Active", inactive: "Inactive", sureToggle: "Are you sure?" },
+  ar: { pageTitle: "بيانات الموظف", gender: "النوع", age: "العمر", years: "سنة", backToEmployees: "العودة إلى الموظفين", backToTeam: "العودة إلى الفريق", actions: "إجراءات الموظف", edit: "تعديل", activate: "تنشيط", deactivate: "إلغاء التنشيط", del: "حذف", active: "نشط", inactive: "غير نشط", sureToggle: "هل أنت متأكد؟" },
 };
 const th = H.en;
 // Labels for the single period slot that sits under the tab line on every tab that carries one.

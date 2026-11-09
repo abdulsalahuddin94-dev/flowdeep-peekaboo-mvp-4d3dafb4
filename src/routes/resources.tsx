@@ -29,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { projects, departments } from "@/lib/mock-data";
-import { useResourceRequests, useJobRoles } from "@/lib/projects-store";
+import { useResourceRequests, useJobRoles, EMPLOYMENT_PERCENT, employmentFromFte } from "@/lib/projects-store";
 import type { ResourceRequest } from "@/lib/projects-store";
 import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck } from "@/lib/icons";
 import { toast } from "@/lib/toast";
@@ -203,12 +203,12 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
         <StyledTable wrapperClassName="">
           <StyledTableHeader><StyledTableHeaderRow>
             <StyledTableHead>Role / Skill</StyledTableHead><StyledTableHead>Task</StyledTableHead><StyledTableHead>Project</StyledTableHead>
-            <StyledTableHead>FTE</StyledTableHead><StyledTableHead>Period</StyledTableHead>
+            <StyledTableHead>Type</StyledTableHead><StyledTableHead>Employment</StyledTableHead><StyledTableHead>Period</StyledTableHead>
             <StyledTableHead>Priority</StyledTableHead><StyledTableHead>Submitted by</StyledTableHead>
             <StyledTableHead className="w-44 text-center">Status</StyledTableHead>
           </StyledTableHeaderRow></StyledTableHeader>
           <StyledTableBody>
-            {pagination.pageItems.length === 0 ? <EmptyRow colSpan={8} /> : pagination.pageItems.map((req) => (
+            {pagination.pageItems.length === 0 ? <EmptyRow colSpan={9} /> : pagination.pageItems.map((req) => (
                 <StyledTableRow
                   key={req.id}
                   className="group cursor-pointer"
@@ -217,7 +217,8 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
                   <StyledTableCell><div className="font-medium text-foreground">{req.role}</div><div className="text-xs text-muted-foreground">{req.skill}</div></StyledTableCell>
                   <StyledTableCell>{req.task ?? <span className="text-muted-foreground">—</span>}</StyledTableCell>
                   <StyledTableCell>{req.project}</StyledTableCell>
-                  <StyledTableCell className="num-mono">{req.fte}</StyledTableCell>
+                  <StyledTableCell>{req.scope === "team" ? "Team" : "Task"}</StyledTableCell>
+                  <StyledTableCell>{req.employment ?? employmentFromFte(req.fte)}</StyledTableCell>
                   <StyledTableCell className="num-mono text-xs text-muted-foreground">{req.from} → {req.until}</StyledTableCell>
                   <StyledTableCell><Badge variant="outline" className={PRIORITY_STYLE[req.priority]}>{req.priority}</Badge></StyledTableCell>
                   <StyledTableCell><div>{req.submittedBy}</div><div className="text-xs text-muted-foreground">{/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date}</div></StyledTableCell>
@@ -283,7 +284,7 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Request</h4>
                 <DrawerRow label="Project" value={req.project} />
                 <DrawerRow label="Task" value={req.task ?? "—"} />
-                <DrawerRow label="FTE" value={req.fte} valueClass="num-mono" />
+                <DrawerRow label="Employment" value={req.employment ?? employmentFromFte(req.fte)} />
                 <DrawerRow label="Period" value={`${req.from} → ${req.until}`} valueClass="num-mono" />
                 <DrawerRow label="Submitted by" value={req.submittedBy} />
                 <DrawerRow label="Submitted" value={/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date} />
@@ -501,7 +502,7 @@ function FulfillDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [personName, setPersonName] = useState("");
-  const [alloc, setAlloc] = useState(50);
+  const [alloc, setAlloc] = useState(EMPLOYMENT_PERCENT[req.employment ?? employmentFromFte(req.fte)]);
   const [personError, setPersonError] = useState("");
 
   const selectedPerson = pool.find((r) => r.name === personName);
@@ -531,7 +532,7 @@ function FulfillDialog({
         <div className="rounded-md border border-border bg-secondary/30 p-3 text-sm">
           <div className="font-medium text-foreground">{req.role} <span className="text-muted-foreground text-xs">({req.skill})</span></div>
           <div className="mt-0.5 text-xs text-muted-foreground">
-            {req.project} · {req.fte} FTE · {req.from} → {req.until}
+            {req.project} · {req.employment ?? employmentFromFte(req.fte)} · {req.from} → {req.until}
           </div>
           {req.notes && <div className="mt-1 text-xs italic text-muted-foreground">"{req.notes}"</div>}
         </div>

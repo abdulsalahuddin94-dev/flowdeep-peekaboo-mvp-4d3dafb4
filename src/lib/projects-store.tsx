@@ -295,6 +295,10 @@ export type RfpEntry = {
   status: string; bidders: number; due: string; project?: string;
 };
 
+export type Employment = "Full time" | "Part time";
+export const EMPLOYMENT_PERCENT: Record<Employment, number> = { "Full time": 100, "Part time": 50 };
+export function employmentFromFte(fte: number): Employment { return fte >= 1 ? "Full time" : "Part time"; }
+
 export type ResourceRequest = {
   id: string; project: string; role: string;
   skill: "Junior" | "Mid" | "Senior" | "Lead";
@@ -304,6 +308,10 @@ export type ResourceRequest = {
   submittedBy: string; date: string; notes: string;
   /** WBS task the requested person will be assigned to. */
   task?: string;
+  /** Team requests staff the project; task requests staff one WBS item. Dates follow the task. */
+  scope?: "team" | "task";
+  /** Full time = 100% of capacity, Part time = 50%. */
+  employment?: Employment;
   assignedTo?: string; declineReason?: string;
   /** Outcome details captured when the request is fulfilled or declined. */
   allocation?: number; utilBefore?: number; utilAfter?: number;

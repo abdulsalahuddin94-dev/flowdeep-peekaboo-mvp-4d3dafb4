@@ -14,8 +14,19 @@ export type Employee = { id: string; name: string; role: string; dept: string; e
 /** Default monthly capacity in hours when nothing is set (≈ 40h/week). */
 export const DEFAULT_MONTHLY_CAPACITY = 160;
 
-const projectIds = [["p-001", "p-003"], ["p-002", "p-016"], ["p-010"], ["p-008", "p-012"], ["p-009", "p-005"], ["p-015"], ["p-014"], []];
-const taskNames = [["Solution Design", "Integration Blueprint"], ["Site Mobilisation"], ["Penetration Testing"], ["Field Survey", "Commissioning"], ["Model Training"], ["Budget Review"], ["Vendor Evaluation"], ["Source Mapping"]];
+/** Demo allocations follow fulfilled resource requests: Full time = 100%, Part time = 50%, dated by the task/team period.
+ *  [project id or name, percent, from, until, task?] */
+type SeedAlloc = [string, 100 | 50, string, string, string?];
+const seedAllocs: SeedAlloc[][] = [
+  [["p-001", 100, "2025-04", "2026-12", "Solution Design"], ["p-003", 50, "2027-01", "2027-06", "Integration Blueprint"]],
+  [["p-002", 50, "2026-01", "2026-12", "Site Mobilisation"], ["p-001", 50, "2025-04", "2026-12"], ["p-016", 50, "2026-10", "2027-03"]],
+  [["p-010", 50, "2026-02", "2026-12"], ["p-010", 50, "2026-08", "2026-08", "Penetration Testing"]],
+  [["p-008", 50, "2026-01", "2026-12", "Field Survey"], ["p-012", 50, "2026-05", "2026-10", "Commissioning"]],
+  [["p-009", 100, "2026-01", "2026-12", "Model Training"], ["p-005", 50, "2026-06", "2026-11"]],
+  [["p-015", 50, "2026-01", "2026-12", "Budget Review"]],
+  [["p-014", 100, "2026-04", "2027-03", "Vendor Evaluation"]],
+  [["Self-Service BI", 50, "2026-03", "2026-12", "Source Mapping"]],
+];
 const salaries = [14500, 12800, 13200, 9800, 13900, 8700, 9200, 11000];
 const types: EmploymentType[] = ["In source", "Out source", "Offshore"].map((name, i) => ({ id: `ET-${i + 1}`, name, active: true }));
 
@@ -36,17 +47,17 @@ function seedTrips(i: number, project?: string): EmployeeTrip[] {
 }
 
 const initialEmployees: Employee[] = resources.map((r, i) => {
-  const names = (projectIds[i] ?? []).map((id) => projects.find((p) => p.id === id)?.name).filter((n): n is string => !!n);
-  if (!names.length) names.push(...r.projects);
+  const allocations: EmployeeAllocation[] = (seedAllocs[i] ?? []).map(([ref, percent, from, until, task], j) => ({ id: `seed-${i}-${j}`, project: projects.find((p) => p.id === ref)?.name ?? ref, role: r.role, percent, from, until, task }));
+  const names = Array.from(new Set(allocations.map((a) => a.project)));
   const base = salaries[i] ?? 10000;
-  return { ...r, id: `EMP-${String(i + 1).padStart(3, "0")}`, projects: names, email: `${r.name.toLowerCase().replace(/[^a-z ]/g, "").trim().replace(/\s+/g, ".")}@company.com`, salary: base, capacity: DEFAULT_MONTHLY_CAPACITY, employmentTypeId: types[i % 3]?.id ?? "ET-1", joinedOn: `${2019 + i % 6}-${String((i * 4) % 12 + 1).padStart(2, "0")}-${String((i * 9) % 27 + 1).padStart(2, "0")}`, tasks: taskNames[i] ?? [], vacationEntitlement: 24, demo: true,
+  return { ...r, id: `EMP-${String(i + 1).padStart(3, "0")}`, projects: names, email: `${r.name.toLowerCase().replace(/[^a-z ]/g, "").trim().replace(/\s+/g, ".")}@company.com`, salary: base, capacity: DEFAULT_MONTHLY_CAPACITY, employmentTypeId: types[i % 3]?.id ?? "ET-1", joinedOn: `${2019 + i % 6}-${String((i * 4) % 12 + 1).padStart(2, "0")}-${String((i * 9) % 27 + 1).padStart(2, "0")}`, tasks: allocations.flatMap((a) => a.task ? [a.task] : []), util: currentUtilization(allocations), vacationEntitlement: 24, demo: true,
     employeeNumber: String(8123456 - i * 100000), active: true,
     shortName: r.name.split(" ")[0], phone: `+966 5${(i + 1) % 10} ${String(312 + i * 47).padStart(3, "0")} ${String(4821 + i * 613).slice(-4)}`,
     nationalId: String(1087654321 - i * 1234567), birthDate: `${1984 + (i * 3) % 14}-${String((i * 5) % 12 + 1).padStart(2, "0")}-${String((i * 7) % 27 + 1).padStart(2, "0")}`,
     gender: i % 3 === 1 ? "Female" : "Male", tags: [["Senior", "Certified"], ["Remote"], ["Certified"], ["Field"], ["Senior"], ["Part-time"], ["Remote", "Certified"], []][i] ?? [],
     monthly: seedMonthly(i, base),
     trips: seedTrips(i, names[0]),
-    allocations: names.map((project, j) => ({ id: `seed-${i}-${j}`, project, role: r.role, percent: j === 0 && names.length > 1 ? Math.round(r.util * .6) : names.length > 1 ? r.util - Math.round(r.util * .6) : r.util, from: "2026-01", until: "2026-12", task: taskNames[i]?.[j] })),
+    allocations,
     leave: [
       { id: `leave-${i}-1`, type: "Leave", from: "2026-07-05", until: "2026-07-09", days: 5, remark: "Summer vacation" },
       { id: `leave-${i}-2`, type: "Leave", from: "2026-09-14", until: "2026-09-14", days: 1, remark: "Sick day" },
@@ -60,7 +71,8 @@ let loaded = false;
 const listeners = new Set<() => void>();
 // v3: leave lost its status (Leave / Partial + remark) and trips gained location, work dates and costs.
 // v5: demo rows carry full profile data (phone, national ID, birth date, gender, tags).
-const storageKey = "pmo.employees.v6";
+// v7: allocations are only Full time (100%) / Part time (50%) from fulfilled requests; util derived from them.
+const storageKey = "pmo.employees.v7";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;
@@ -77,6 +89,24 @@ export function monthRange(startMonth: string, count: number): string[] {
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
   });
 }
+
+/** Sum of allocation percentages active in a "YYYY-MM" month. */
+export function allocationPercent(allocations: EmployeeAllocation[], month: string): number {
+  return allocations.filter((a) => (!a.from || a.from <= month) && (!a.until || a.until >= month)).reduce((sum, a) => sum + a.percent, 0);
+}
+/** Inclusive "YYYY-MM" months between two months. */
+export function monthsBetween(from: string, until: string): string[] {
+  const [fy, fm] = from.split("-").map(Number); const [uy, um] = until.split("-").map(Number);
+  return monthRange(from, (uy - fy) * 12 + (um - fm) + 1);
+}
+/** Peak and average allocation over a period, so a request's impact is judged across its whole task window. */
+export function periodUtilization(allocations: EmployeeAllocation[], from: string, until: string, extra = 0) {
+  const values = monthsBetween(from, until).map((m) => allocationPercent(allocations, m) + extra);
+  return { peak: Math.max(0, ...values), average: values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0 };
+}
+export function currentMonth(): string { return new Date().toISOString().slice(0, 7); }
+/** Utilization shown in lists = allocation % in the current month, derived, never stored by hand. */
+export function currentUtilization(allocations: EmployeeAllocation[]): number { return allocationPercent(allocations, currentMonth()); }
 
 export function useEmployees() {
   const data = useSyncExternalStore(subscribe, () => state, () => defaults);

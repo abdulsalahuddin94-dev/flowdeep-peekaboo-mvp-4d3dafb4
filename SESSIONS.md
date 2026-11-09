@@ -72,3 +72,4 @@
 ## 2026-11-09 — Project Team cards
 - Team tab shows members as cards with avatar (uploaded photo or initials), member count pill, and click-through to the employee profile.
 - Demo data: added 4 employees and 10 fulfilled team requests so ERP System Upgrade has a 12-member team (allocations mirror requests, 100%/50%).
+- ERP demo plan: added a current "Stabilisation & Optimisation" phase (Oct–Dec 2026) with one active task per team member so Team cards show Working now.

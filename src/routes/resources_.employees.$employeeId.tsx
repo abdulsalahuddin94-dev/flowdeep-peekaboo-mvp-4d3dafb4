@@ -63,7 +63,7 @@ function DataTable({ headers, rows, onRowClick }: { headers: ReactNode[]; rows: 
   return <StyledTable className="[&_th]:whitespace-normal [&_th]:text-xs [&_td]:py-4"><StyledTableHeader><StyledTableHeaderRow>{headers.map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader><StyledTableBody>{rows.length ? rows.map((row, i) => <StyledTableRow key={i} onClick={onRowClick ? () => onRowClick(i) : undefined} className={onRowClick ? "cursor-pointer" : undefined}>{row.map((value, j) => <StyledTableCell key={j} className="whitespace-normal break-words text-sm">{value}</StyledTableCell>)}</StyledTableRow>) : <StyledTableRow><StyledTableCell colSpan={headers.length} className="py-8 text-center text-muted-foreground">{t.empty}</StyledTableCell></StyledTableRow>}</StyledTableBody></StyledTable>;
 }
 function EmployeeDetails() {
- const { employeeId } = Route.useParams(); const { employees, employmentTypes, setMonthlyPlan, setMonthOverride, addTrip, removeTrip, addLeave, removeLeave, setEmployees, updateEmployee } = useEmployees(); const { projects } = useProjects(); const { resourceRequests } = useResourceRequests();
+ const { employeeId } = Route.useParams(); const search = Route.useSearch(); const back = employeeBackTarget(search); const { employees, employmentTypes, setMonthlyPlan, setMonthOverride, addTrip, removeTrip, addLeave, removeLeave, setEmployees, updateEmployee } = useEmployees(); const { projects } = useProjects(); const { resourceRequests } = useResourceRequests();
  const employee = employees.find((e) => e.id === employeeId);
  const [tab, setTab] = useState("overview"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
  // The work calendar's own period: which view and which month, driven from the shared slot under the tab line.
@@ -122,7 +122,7 @@ function EmployeeDetails() {
  const profile: [string, string, typeof Phone][] = [[t.phone, employee.phone || "—", Phone], [t.email, employee.email, Mail], [t.nationalId, employee.nationalId || "—", IdCard], [t.birth, employee.birthDate ? formatDateWithYear(employee.birthDate) : "—", CalendarDays], [t.joined, formatDateWithYear(employee.joinedOn), CalendarDays], [t.id, employee.employeeNumber || employee.id, IdCard], [t.role, employee.role, Briefcase], [t.department, employee.dept, Building2], [t.type, employmentTypes.find((v) => v.id === employee.employmentTypeId)?.name ?? "—", Briefcase]];
  return <div className="min-w-0 space-y-8">
   <div className="space-y-3">
-   <Link to="/resources" search={{ tab: "people" }} className="inline-flex items-center text-sm text-breadcrumb-current transition-colors hover:text-breadcrumb-hover"><ChevronLeft className="mr-1 h-3 w-3 rtl:rotate-180" aria-hidden />{th.backToEmployees}</Link>
+   {back.kind === "team" ? <Link to="/portfolio/$projectId" params={{ projectId: back.projectId }} search={{ tab: "Team" }} className="inline-flex items-center text-sm text-breadcrumb-current transition-colors hover:text-breadcrumb-hover"><ChevronLeft className="mr-1 h-3 w-3 rtl:rotate-180" aria-hidden />{th.backToTeam}</Link> : <Link to="/resources" search={{ tab: "people" }} className="inline-flex items-center text-sm text-breadcrumb-current transition-colors hover:text-breadcrumb-hover"><ChevronLeft className="mr-1 h-3 w-3 rtl:rotate-180" aria-hidden />{th.backToEmployees}</Link>}
    <PageHeader
     title={th.pageTitle}
     actions={

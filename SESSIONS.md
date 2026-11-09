@@ -68,3 +68,6 @@
 - 2026-11-04: Change Request approval blocked when a deleted schedule item received actuals after submission (src/lib/cr-conflicts.ts).
 - 2026-11-05: Added temporary /validations-preview page with all Save baseline validation popups for Figma handoff (to be deleted).
 - 2026-11-09: Employee profile Assigned tasks tab now uses the shared PageToolbar (search + Filter drawer) instead of an inline search + project dropdown.
+
+## 2026-11-09 — Project Team cards
+- Team tab shows members as cards with avatar (uploaded photo or initials), member count pill, and click-through to the employee profile.

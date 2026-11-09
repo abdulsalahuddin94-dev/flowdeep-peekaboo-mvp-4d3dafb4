@@ -25,3 +25,5 @@
 - Reuse the action creation form in ActionAddDialog for toolbar and linked-record quick adds; keep Action details standalone to avoid stacked edit/update dialogs.
 
 - Tailwind v4 arbitrary custom properties must be written `w-[var(--x)]` or `w-(--x)`; the legacy `w-[--x]` form compiles to nothing and silently drops the style (this is what made a popover ignore its trigger width).
+
+- Project Team membership is derived from fulfilled resource requests (team or task scope), not stored separately, so Resources fulfilment and the Team tab never drift.

@@ -1117,6 +1117,10 @@
 }
 *::-webkit-scrollbar-corner { background: transparent; }
 
+/* Unlayered opt-out for containers that show their own scroll affordances (tab arrows). */
+.no-scrollbar { scrollbar-width: none; scrollbar-color: transparent transparent; }
+.no-scrollbar::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
 .ds02-sidebar *::-webkit-scrollbar-thumb {
   background: var(--sidebar-scrollbar-thumb);
   background-clip: padding-box;

@@ -43,7 +43,7 @@ export function ScrollableTabs({ children, className }: { children: ReactNode; c
           </button>
         </>
       )}
-      <div ref={ref} onScroll={update} className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div ref={ref} onScroll={update} className="no-scrollbar overflow-x-auto">
         {children}
       </div>
       {canR && (

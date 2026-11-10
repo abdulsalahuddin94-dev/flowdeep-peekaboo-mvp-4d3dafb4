@@ -10,6 +10,7 @@ import { EmptyRegion, useEmptyPreview } from "@/lib/empty-preview";
 
 import { RagBadge } from "@/components/RagBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollableTabs } from "@/components/ds/ScrollableTabs";
 import { RiskRegisterTab, IssuesLogTab } from "@/components/risk/RiskIssues";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -1085,13 +1086,13 @@ function ProjectDetail() {
         </div>
       )}
       <Tabs value={activeTab} onValueChange={(t) => setActiveTab(t)}>
-        <div>
-        <TabsList className="overflow-x-auto whitespace-nowrap">
+        <ScrollableTabs>
+        <TabsList className="min-w-full w-max whitespace-nowrap">
           {(focusMode ? FOCUS_TABS : TABS).filter((t) => t !== "Revenue Breakdown" || !isInternalProject).map((t) => (
             <TabsTrigger key={t} value={t}>{t === "Basic info" ? T.en.basicInfo : t}</TabsTrigger>
           ))}
         </TabsList>
-        </div>
+        </ScrollableTabs>
 
         {focusMode && <TabsContent value="Basic info" forceMount className="mt-5 data-[state=inactive]:hidden">
           <ProjectFormPage project={project} embedded />

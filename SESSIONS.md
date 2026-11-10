@@ -1,3 +1,6 @@
+## 2026-11-10 — Tab strip scrollbar hidden, arrows are the only affordance
+- Added unlayered `.no-scrollbar` (styles.css) because the global unlayered `* { scrollbar-width: thin }` beat Tailwind's layered `[scrollbar-width:none]` utility; `ScrollableTabs` now uses it, so the tab row shows only edge fades + arrow buttons.
+
 ## 2026-11-09 — Employee profile back link honors the Team tab
 - Team cards carry `from=team&projectId`, so Employee Details shows "Back to team" and returns to that project's Team tab; arriving from the Employees list still shows "Back to Employees" (`src/lib/employee-back.ts`, `src/routes/resources_.employees.$employeeId.tsx`, `src/components/ProjectTeamTab.tsx`, `src/routes/portfolio.$projectId.tsx`).
 

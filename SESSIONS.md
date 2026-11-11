@@ -1,3 +1,8 @@
+## 2026-11-11 — Employees list gains project and job role filters
+- Resources → Employees filter drawer now carries **Project name** and **Job role** multi-select groups (`projectNameGroup` / `jobRoleGroup` in `src/components/ds/filters.ts`, applied through `matchAnySelected`: empty selection = all, otherwise any selected value matches).
+- Job role options come from the Organization Job roles lookup plus any role still carried by an employee, so retired/renamed roles stay filterable; project options come from the portfolio project names.
+- Seed fix: one employee allocation referenced the literal "Self-Service BI" instead of project `p-021`, leaving that employee's Related Projects unlinked (store key bumped to `pmo.employees.v10`). Tests: `src/lib/employee-list-filters.test.ts`.
+
 ## 2026-11-11 — Employment types gain optional description
 - `EmploymentType.description?` in employees-store; Add/Edit dialog has an optional textarea, the list shows a muted Description column ("—" when empty), and search matches description too — matching the other Organization lookup lists. Seeded types carry demo descriptions (store key bumped to `pmo.employees.v9`).
 

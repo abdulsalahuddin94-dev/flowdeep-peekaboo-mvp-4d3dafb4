@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { EmptyRegion } from "@/lib/empty-preview";
-import { matchRelated, relatedProjectsGroup } from "@/components/ds/filters";
+import { jobRoleGroup, matchAnySelected, matchRelated, projectNameGroup, relatedProjectsGroup } from "@/components/ds/filters";
 import { RelatedProjectsCount } from "@/components/ds/RelatedProjectsDialog";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
@@ -350,6 +350,22 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
   const navigate = useNavigate();
   const { employmentTypes } = useEmployees();
   const [employmentType, setEmploymentType] = useState("all");
+  const [projectNames, setProjectNames] = useState<string[]>([]);
+  const [jobRolesSelected, setJobRolesSelected] = useState<string[]>([]);
+  const { jobRoles } = useJobRoles();
+  const projectOptions = useMemo(
+    () => Array.from(new Set(projects.map((p) => p.name))).sort((a, b) => a.localeCompare(b)),
+    [],
+  );
+  /** Lookup roles first, plus any role still carried by an employee so renamed/retired roles stay reachable. */
+  const roleOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const title of [...jobRoles.map((r) => r.title), ...pool.map((e) => e.role)]) {
+      const key = title.trim().toLowerCase();
+      if (key && !seen.has(key)) seen.set(key, title);
+    }
+    return Array.from(seen.values()).sort((a, b) => a.localeCompare(b));
+  }, [jobRoles, pool]);
   const [pendingToggle, setPendingToggle] = useState<{ id: string; name: string; active: boolean } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
   const filtered = useMemo(() => {
@@ -357,14 +373,18 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
     return pool.filter((r) => !q || r.name.toLowerCase().includes(q) || r.role.toLowerCase().includes(q) || r.tasks.some((t) => t.toLowerCase().includes(q)))
       .filter((r) => department === "all" || r.dept === department)
       .filter((r) => matchRelated(related, r.projects.length))
-      .filter((r) => employmentType === "all" || r.employmentTypeId === employmentType);
-  }, [department, pool, query, related, employmentType]);
+      .filter((r) => employmentType === "all" || r.employmentTypeId === employmentType)
+      .filter((r) => matchAnySelected(projectNames, r.projects))
+      .filter((r) => matchAnySelected(jobRolesSelected, [r.role]));
+  }, [department, jobRolesSelected, pool, projectNames, query, related, employmentType]);
   const pagination = usePagination(filtered, 10);
 
   return (
     <>
       <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search employee, role or task…" filterGroups={[
         relatedProjectsGroup(related, setRelated),
+        projectNameGroup(projectNames, setProjectNames, projectOptions),
+        jobRoleGroup(jobRolesSelected, setJobRolesSelected, roleOptions),
         { key: "employment-type", label: "Employment type", value: employmentType, onChange: setEmploymentType, options: [{ value: "all", label: "All employment types" }, ...employmentTypes.map((v) => ({ value: v.id, label: v.name }))] },
         { key: "department", label: "Department", value: department, onChange: setDepartment, options: [{ value: "all", label: "All departments" }, ...departments.map((d) => ({ value: d.name, label: d.name }))] },
       ]} />

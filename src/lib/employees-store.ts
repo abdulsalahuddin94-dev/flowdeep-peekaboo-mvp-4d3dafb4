@@ -25,7 +25,7 @@ const seedAllocs: SeedAlloc[][] = [
   [["p-009", 100, "2026-01", "2026-12", "Model Training"], ["p-005", 50, "2026-06", "2026-11"], ["p-001", 50, "2025-09", "2026-12"]],
   [["p-015", 50, "2026-01", "2026-12", "Budget Review"], ["p-001", 50, "2025-06", "2026-06"]],
   [["p-014", 100, "2026-04", "2027-03", "Vendor Evaluation"], ["p-001", 50, "2025-04", "2026-12"]],
-  [["Self-Service BI", 50, "2026-03", "2026-12", "Source Mapping"], ["p-001", 50, "2025-09", "2026-12"]],
+  [["p-021", 50, "2026-03", "2026-12", "Source Mapping"], ["p-001", 50, "2025-09", "2026-12"]],
   [["p-001", 100, "2025-07", "2026-12", "System Testing"]],
   [["p-001", 100, "2025-05", "2026-12", "Data Migration"]],
   [["p-001", 50, "2025-08", "2026-12"]],
@@ -82,7 +82,7 @@ const listeners = new Set<() => void>();
 // v7: allocations are only Full time (100%) / Part time (50%) from fulfilled requests; util derived from them.
 // v8: ERP System Upgrade carries a 12-person demo team.
 // v9: employment types carry demo descriptions.
-const storageKey = "pmo.employees.v9";
+const storageKey = "pmo.employees.v10";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;

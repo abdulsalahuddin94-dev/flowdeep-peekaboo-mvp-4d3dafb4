@@ -37,8 +37,6 @@ const types: EmploymentType[] = [
   { id: "ET-2", name: "Out source", description: "Contracted staff supplied by an external staffing partner.", active: true },
   { id: "ET-3", name: "Offshore", description: "Team members working remotely from an offshore delivery center.", active: true },
 ];
-/** Backfill demo descriptions for the seeded types when older saved data predates the field. */
-const seedDescriptions: Record<string, string> = Object.fromEntries(types.map((t) => [t.id, t.description ?? ""]));
 
 /** Demo monthly plans: a mid-year raise and a part-time month so per-month values are visible. */
 function seedMonthly(i: number, base: number): Record<string, EmployeeMonthPlan> {
@@ -83,7 +81,8 @@ const listeners = new Set<() => void>();
 // v5: demo rows carry full profile data (phone, national ID, birth date, gender, tags).
 // v7: allocations are only Full time (100%) / Part time (50%) from fulfilled requests; util derived from them.
 // v8: ERP System Upgrade carries a 12-person demo team.
-const storageKey = "pmo.employees.v8";
+// v9: employment types carry demo descriptions.
+const storageKey = "pmo.employees.v9";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { resources, projects } from "@/lib/mock-data";
 
-export type EmploymentType = { id: string; name: string; active: boolean };
+export type EmploymentType = { id: string; name: string; description?: string; active: boolean };
 export type EmployeeAllocation = { id: string; project: string; role: string; percent: number; from: string; until: string; task?: string };
 /** "Leave" spans whole days (from–until); "Partial" is a few hours on one day (`hours`). */
 export type EmployeeLeave = { id: string; type: "Leave" | "Partial"; from: string; until: string; days: number; hours?: number; remark?: string };
@@ -141,8 +141,8 @@ export function useEmployees() {
       updateEmployee(id, (e) => ({ leave: [...e.leave, { ...leave, id: `leave-${crypto.randomUUID()}` }] })),
     removeLeave: (id: string, leaveId: string) =>
       updateEmployee(id, (e) => ({ leave: e.leave.filter((l) => l.id !== leaveId) })),
-    addEmploymentType: (name: string) => save({ ...state, employmentTypes: [...state.employmentTypes, { id: `ET-${crypto.randomUUID()}`, name: name.trim(), active: true }] }),
-    updateEmploymentType: (id: string, patch: Partial<Pick<EmploymentType, "name" | "active">>) => save({ ...state, employmentTypes: state.employmentTypes.map((t) => t.id === id ? { ...t, ...patch } : t) }),
+    addEmploymentType: (name: string, description = "") => save({ ...state, employmentTypes: [...state.employmentTypes, { id: `ET-${crypto.randomUUID()}`, name: name.trim(), description: description.trim(), active: true }] }),
+    updateEmploymentType: (id: string, patch: Partial<Pick<EmploymentType, "name" | "description" | "active">>) => save({ ...state, employmentTypes: state.employmentTypes.map((t) => t.id === id ? { ...t, ...patch } : t) }),
     removeEmploymentType: (id: string) => { if (state.employees.some((e) => e.employmentTypeId === id)) return false; save({ ...state, employmentTypes: state.employmentTypes.filter((t) => t.id !== id) }); return true; },
   };
 }

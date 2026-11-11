@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useResourceRequests, useJobRoles, employmentFromFte, type Employment, type ResourceRequest } from "@/lib/projects-store";
+import { useResourceRequests, useJobRoles, employmentFromFte, requestQuantity, requestAssignees, type Employment, type ResourceRequest } from "@/lib/projects-store";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,15 +17,17 @@ import { toast } from "@/lib/toast";
 export type TeamMember = { name: string; role: string; employment: Employment };
 type Item = { name: string; kind: string; startDate: string; endDate: string; assignee?: string; progress?: number };
 
-/** Team = people placed on the project by fulfilled requests (team or task). */
+/** Team = people placed on the project by fulfilled requests (team or task). Partially filled requests already count their assignees. */
 export function projectTeam(project: string, requests: ResourceRequest[]): TeamMember[] {
   const map = new Map<string, TeamMember>();
   for (const r of requests) {
-    if (r.project !== project || r.status !== "Fulfilled" || !r.assignedTo) continue;
+    if (r.project !== project || r.status === "Declined") continue;
     const employment = r.employment ?? employmentFromFte(r.fte);
-    const prev = map.get(r.assignedTo);
-    if (!prev) map.set(r.assignedTo, { name: r.assignedTo, role: r.role, employment });
-    else if (employment === "Full time") prev.employment = "Full time";
+    for (const name of requestAssignees(r)) {
+      const prev = map.get(name);
+      if (!prev) map.set(name, { name, role: r.role, employment });
+      else if (employment === "Full time") prev.employment = "Full time";
+    }
   }
   return [...map.values()];
 }

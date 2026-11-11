@@ -3,6 +3,7 @@ import { useResourceRequests, useJobRoles, employmentFromFte, requestQuantity, r
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -41,8 +42,8 @@ export function isWorkingNow(name: string, items: Item[], today = new Date()) {
 }
 
 const T = {
-  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", type: "Type", seniority: "Seniority", priority: "Priority", notes: "Notes", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request a role. Once Resources fulfills it, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", teamScope: "Team", headcount: "Employees needed", filled: "filled" },
-  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", type: "النوع", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب دورًا، وبعد تنفيذه من الموارد ينضم الموظف للفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", teamScope: "فريق", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم" },
+  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", type: "Type", seniority: "Seniority", priority: "Priority", notes: "Notes", coverage: "Request for", fullProject: "Full project", forTask: "Specific task", period: "Period of time", selectTask: "Select a task", startD: "Start date", endD: "End date", periodCol: "Period", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request a role. Once Resources fulfills it, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", teamScope: "Team", headcount: "Employees needed", filled: "filled" },
+  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", type: "النوع", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", coverage: "الطلب لـ", fullProject: "المشروع كامل", forTask: "مهمة محددة", period: "فترة زمنية", selectTask: "اختر مهمة", startD: "تاريخ البداية", endD: "تاريخ النهاية", periodCol: "الفترة", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب دورًا، وبعد تنفيذه من الموارد ينضم الموظف للفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", teamScope: "فريق", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم" },
 };
 
 export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar" }) {
@@ -99,7 +100,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
                 <StyledTableRow key={r.id}>
                   <StyledTableCell><div className="font-medium text-foreground">{r.role}{requestQuantity(r) > 1 ? <span className="num-mono text-muted-foreground"> × {requestQuantity(r)}</span> : null}</div><div className="text-xs text-muted-foreground">{r.skill}{requestQuantity(r) > 1 ? ` · ${requestAssignees(r).length} / ${requestQuantity(r)} ${t.filled}` : ""}</div></StyledTableCell>
                   <StyledTableCell>{r.scope === "team" ? t.teamScope : t.task}</StyledTableCell>
-                  <StyledTableCell>{r.task ?? "—"}</StyledTableCell>
+                  <StyledTableCell><div>{r.task ?? "—"}</div>{!r.task && r.from && r.from.length > 7 ? <div className="text-xs num-mono text-muted-foreground">{r.from} → {r.until}</div> : null}</StyledTableCell>
                   <StyledTableCell>{r.employment ?? employmentFromFte(r.fte)}</StyledTableCell>
                   <StyledTableCell>{r.priority}</StyledTableCell>
                   <StyledTableCell><div className="max-w-72 break-words text-xs text-muted-foreground">{r.notes || "—"}</div></StyledTableCell>
@@ -111,26 +112,36 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
         </div>
       )}
 
-      <RequestRoleDialog open={open} onOpenChange={setOpen} lang={lang} onSubmit={(v) => {
+      <RequestRoleDialog open={open} onOpenChange={setOpen} lang={lang} tasks={items.filter((i) => i.kind === "Task").map((i) => i.name)} onSubmit={(v) => {
+        const task = v.coverage === "task" ? items.find((i) => i.name === v.task) : undefined;
+        const starts = items.map((i) => i.startDate).sort(), ends = items.map((i) => i.endDate).sort();
         const month = new Date().toISOString().slice(0, 7);
-        addResourceRequest({ project, scope: "team", role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, quantity: v.quantity, from: month, until: month, priority: v.priority, submittedBy: pm, notes: v.notes });
+        const [from, until] = task ? [task.startDate, task.endDate]
+          : v.coverage === "period" ? [v.start, v.end]
+          : [starts[0] ?? month, ends[ends.length - 1] ?? month];
+        addResourceRequest({ project, scope: task ? "task" : "team", task: task?.name, role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, quantity: v.quantity, from: from.slice(0, 10), until: until.slice(0, 10), priority: v.priority, submittedBy: pm, notes: v.notes });
         toast.success("Role request sent to Resources");
       }} />
     </div>
   );
 }
 
-export type RoleRequestValue = { role: string; skill: ResourceRequest["skill"]; employment: Employment; priority: ResourceRequest["priority"]; notes: string; quantity: number };
+export type RoleRequestValue = { role: string; skill: ResourceRequest["skill"]; employment: Employment; priority: ResourceRequest["priority"]; notes: string; quantity: number; coverage: "project" | "task" | "period"; task: string; start: string; end: string };
 
-export function RequestRoleDialog({ open, onOpenChange, onSubmit, lang = "en", description }: { open: boolean; onOpenChange: (o: boolean) => void; onSubmit: (v: RoleRequestValue) => void; lang?: "en" | "ar"; description?: string }) {
+export function RequestRoleDialog({ open, onOpenChange, onSubmit, lang = "en", description, tasks }: { open: boolean; onOpenChange: (o: boolean) => void; onSubmit: (v: RoleRequestValue) => void; lang?: "en" | "ar"; description?: string; tasks?: string[] }) {
   const t = T[lang];
   const { jobRoles } = useJobRoles();
-  const [v, setV] = useState<RoleRequestValue>({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "", quantity: 1 });
+  const [v, setV] = useState<RoleRequestValue>({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "", quantity: 1, coverage: "project", task: "", start: "", end: "" });
   const [err, setErr] = useState("");
+  const [covErr, setCovErr] = useState("");
   const submit = () => {
     if (!v.role) { setErr("Select a role."); return; }
+    if (tasks && v.coverage === "task" && !v.task) { setCovErr("Select a task."); return; }
+    if (tasks && v.coverage === "period" && (!v.start || !v.end)) { setCovErr("Pick start and end dates."); return; }
+    if (tasks && v.coverage === "period" && v.end < v.start) { setCovErr("End date must be after start date."); return; }
+    setCovErr("");
     onSubmit(v); onOpenChange(false); setErr("");
-    setV({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "", quantity: 1 });
+    setV({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "", quantity: 1, coverage: "project", task: "", start: "", end: "" });
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -143,6 +154,38 @@ export function RequestRoleDialog({ open, onOpenChange, onSubmit, lang = "en", d
               <SelectContent>{jobRoles.map((r) => <SelectItem key={r.title} value={r.title}>{r.title}</SelectItem>)}</SelectContent>
             </Select>
           </Field>
+          {tasks && (
+            <>
+              <Field label={t.coverage} error={covErr && v.coverage === "project" ? covErr : undefined}>
+                <Select value={v.coverage} onValueChange={(c) => { setV({ ...v, coverage: c as RoleRequestValue["coverage"] }); setCovErr(""); }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="project">{t.fullProject}</SelectItem>
+                    <SelectItem value="task">{t.forTask}</SelectItem>
+                    <SelectItem value="period">{t.period}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+              {v.coverage === "task" && (
+                <Field label={t.task} required error={covErr || undefined}>
+                  <Select value={v.task} onValueChange={(task) => { setV({ ...v, task }); setCovErr(""); }}>
+                    <SelectTrigger><SelectValue placeholder={t.selectTask} /></SelectTrigger>
+                    <SelectContent>{tasks.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Field>
+              )}
+              {v.coverage === "period" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label={t.startD} required error={covErr || undefined}>
+                    <DatePicker value={v.start} onChange={(start) => { setV({ ...v, start }); setCovErr(""); }} max={v.end || undefined} placeholder={t.startD} />
+                  </Field>
+                  <Field label={t.endD} required>
+                    <DatePicker value={v.end} onChange={(end) => { setV({ ...v, end }); setCovErr(""); }} min={v.start || undefined} placeholder={t.endD} />
+                  </Field>
+                </div>
+              )}
+            </>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <Field label={t.seniority}>
               <Select value={v.skill} onValueChange={(skill) => setV({ ...v, skill: skill as RoleRequestValue["skill"] })}>

@@ -105,3 +105,6 @@
 
 ## 2026-11-10 — Project tabs overflow (temporary)
 - Project detail tab row: hidden scrollbar, edge fades and left/right arrow buttons via new ScrollableTabs.
+
+## 2026-11-11 — Request role coverage
+- Team tab Request role dialog: "Request for" Full project / Specific task (task dropdown) / Period of time (start & end dates); dates saved on the request.

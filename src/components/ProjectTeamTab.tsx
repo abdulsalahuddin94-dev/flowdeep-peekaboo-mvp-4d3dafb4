@@ -14,7 +14,7 @@ import { StatusPill } from "@/components/TableRowActions";
 import { Link } from "@tanstack/react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEmployees } from "@/lib/employees-store";
-import { Plus, Users, ClipboardText } from "@/lib/icons";
+import { Plus, Users, ClipboardCheck } from "@/lib/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/lib/toast";
 
@@ -61,7 +61,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
       <Tabs defaultValue="team" className="space-y-6">
         <TabsList className="grid h-11 w-full grid-cols-2 gap-0 rounded-lg border border-border bg-[var(--field-bg-filled)] p-1">
           <TabsTrigger value="team" className="h-9 gap-2 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent"><Users size={15} />{t.team}</TabsTrigger>
-          <TabsTrigger value="requests" className="h-9 gap-2 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent"><ClipboardText size={15} />{t.requests}</TabsTrigger>
+          <TabsTrigger value="requests" className="h-9 gap-2 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent"><ClipboardCheck size={15} />{t.requests}</TabsTrigger>
         </TabsList>
         <TabsContent value="team" className="mt-0 space-y-6">
       <div className="flex items-center justify-between">

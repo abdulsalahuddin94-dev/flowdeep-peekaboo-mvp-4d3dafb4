@@ -68,7 +68,7 @@ export function initialRevEntries(project: { endDate: string }, isNew: boolean):
   ];
 }
 
-/** ERP demo: an in-flight phase so every team member has a current task ("Working now"). */
+/** ERP demo: an in-flight phase so every team member has a current task ("Active"). */
 function erpActiveWork(): Milestone[] {
   return [
     { name: "Stabilisation & Optimisation", kind: "Task", startDate: "2026-10-19", endDate: "2026-12-11", owner: "Sara Al-Rashid", rag: "green", dep: "—", roles: [], payment: { kind: "None", amount: "" }, progress: 45, weightScore: 3 },

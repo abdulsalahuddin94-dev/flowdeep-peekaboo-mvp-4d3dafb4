@@ -28,7 +28,7 @@ test("partially filled multi-headcount request already adds its assignees to the
   ]);
 });
 
-test("member is not working once their tasks have ended", () => {
+test("member is inactive once their tasks have ended", () => {
   const items = [{ name: "T", kind: "Task", startDate: "2026-01-01", endDate: "2026-02-01", assignee: "Ann", progress: 50 }];
   assert.equal(isWorkingNow("Ann", items, new Date("2026-01-15")), true);
   assert.equal(isWorkingNow("Ann", items, new Date("2026-03-01")), false);

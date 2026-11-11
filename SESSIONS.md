@@ -1,3 +1,7 @@
+## 2026-11-11 — Team card status reads Active / Inactive
+- Project Team cards now use the shared `StatusPill` (green Active / amber Inactive) instead of the custom "Working now" / "Not working now" outline pill, so the Team tab matches the status wording and styling used in the Employees, Clients & Vendors and Organization lists. Arabic labels follow the employee profile ("نشط" / "غير نشط").
+- Same derived rule underneath: a member is Active while they hold a task in progress (task dates + progress), Inactive otherwise (`isWorkingNow` unchanged).
+
 ## 2026-11-11 — Role requests carry a headcount (employees needed)
 - `ResourceRequest.quantity?` (default 1) + `assignees?: string[]`; helpers `requestQuantity` / `requestAssignees` in projects-store. Request role dialog (Team tab) gains an "Employees needed" number field (1–99).
 - Fulfill assigns one person per action and appends to `assignees`; the request stays **Pending** until all seats are filled (statuses unchanged), showing "n / N filled" in the Team tab requests table, Resources requests table, Fulfill dialog and request drawer. Already-assigned people are excluded from the Fulfill dropdown.

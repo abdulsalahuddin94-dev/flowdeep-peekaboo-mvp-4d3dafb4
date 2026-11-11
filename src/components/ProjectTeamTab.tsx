@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogD
 import { StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow } from "@/components/StyledTable";
 import { EmptyState } from "@/components/ds/EmptyState";
 import { Pill } from "@/components/Pill";
+import { StatusPill } from "@/components/TableRowActions";
 import { Link } from "@tanstack/react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEmployees } from "@/lib/employees-store";
@@ -40,8 +41,8 @@ export function isWorkingNow(name: string, items: Item[], today = new Date()) {
 }
 
 const T = {
-  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", type: "Type", seniority: "Seniority", priority: "Priority", notes: "Notes", working: "Working now", idle: "Not working now", emptyT: "No team members yet", emptyD: "Request a role. Once Resources fulfills it, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", teamScope: "Team", headcount: "Employees needed", filled: "filled" },
-  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", type: "النوع", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", working: "يعمل الآن", idle: "لا يعمل الآن", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب دورًا، وبعد تنفيذه من الموارد ينضم الموظف للفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", teamScope: "فريق", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم" },
+  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", type: "Type", seniority: "Seniority", priority: "Priority", notes: "Notes", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request a role. Once Resources fulfills it, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", teamScope: "Team", headcount: "Employees needed", filled: "filled" },
+  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", type: "النوع", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب دورًا، وبعد تنفيذه من الموارد ينضم الموظف للفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", teamScope: "فريق", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم" },
 };
 
 export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar" }) {
@@ -77,7 +78,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
                   <span>{m.employment}</span>
                   <span><span className="num-mono text-foreground">{tasks}</span> {t.tasks}</span>
                 </div>
-                <div className="mt-3"><Pill label={working ? t.working : t.idle} tone={working ? "border-rag-green/40 text-rag-green" : "border-border text-muted-foreground"} /></div>
+                <div className="mt-3"><StatusPill isActive={working} label={working ? t.active : t.inactive} /></div>
               </>
             );
             const cls = "block rounded-lg border border-border bg-card p-4 text-start transition-colors";

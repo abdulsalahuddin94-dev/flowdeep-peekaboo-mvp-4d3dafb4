@@ -39,8 +39,8 @@ export function isWorkingNow(name: string, items: Item[], today = new Date()) {
 }
 
 const T = {
-  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", type: "Type", seniority: "Seniority", priority: "Priority", notes: "Notes", working: "Working now", idle: "Not working now", emptyT: "No team members yet", emptyD: "Request a role. Once Resources fulfills it, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", teamScope: "Team" },
-  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", type: "النوع", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", working: "يعمل الآن", idle: "لا يعمل الآن", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب دورًا، وبعد تنفيذه من الموارد ينضم الموظف للفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", teamScope: "فريق" },
+  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", type: "Type", seniority: "Seniority", priority: "Priority", notes: "Notes", working: "Working now", idle: "Not working now", emptyT: "No team members yet", emptyD: "Request a role. Once Resources fulfills it, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", teamScope: "Team", headcount: "Employees needed", filled: "filled" },
+  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", type: "النوع", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", working: "يعمل الآن", idle: "لا يعمل الآن", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب دورًا، وبعد تنفيذه من الموارد ينضم الموظف للفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", teamScope: "فريق", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم" },
 };
 
 export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar" }) {
@@ -95,7 +95,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
             <StyledTableBody>
               {reqs.map((r) => (
                 <StyledTableRow key={r.id}>
-                  <StyledTableCell><div className="font-medium text-foreground">{r.role}</div><div className="text-xs text-muted-foreground">{r.skill}</div></StyledTableCell>
+                  <StyledTableCell><div className="font-medium text-foreground">{r.role}{requestQuantity(r) > 1 ? <span className="num-mono text-muted-foreground"> × {requestQuantity(r)}</span> : null}</div><div className="text-xs text-muted-foreground">{r.skill}{requestQuantity(r) > 1 ? ` · ${requestAssignees(r).length} / ${requestQuantity(r)} ${t.filled}` : ""}</div></StyledTableCell>
                   <StyledTableCell>{r.scope === "team" ? t.teamScope : t.task}</StyledTableCell>
                   <StyledTableCell>{r.task ?? "—"}</StyledTableCell>
                   <StyledTableCell>{r.employment ?? employmentFromFte(r.fte)}</StyledTableCell>
@@ -110,7 +110,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
 
       <RequestRoleDialog open={open} onOpenChange={setOpen} lang={lang} onSubmit={(v) => {
         const month = new Date().toISOString().slice(0, 7);
-        addResourceRequest({ project, scope: "team", role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, from: month, until: month, priority: v.priority, submittedBy: pm, notes: v.notes });
+        addResourceRequest({ project, scope: "team", role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, quantity: v.quantity, from: month, until: month, priority: v.priority, submittedBy: pm, notes: v.notes });
         toast.success("Role request sent to Resources");
       }} />
     </div>

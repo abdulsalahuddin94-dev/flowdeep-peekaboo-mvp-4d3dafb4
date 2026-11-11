@@ -82,7 +82,7 @@ const listeners = new Set<() => void>();
 // v7: allocations are only Full time (100%) / Part time (50%) from fulfilled requests; util derived from them.
 // v8: ERP System Upgrade carries a 12-person demo team.
 // v9: employment types carry demo descriptions.
-const storageKey = "pmo.employees.v9";
+const storageKey = "pmo.employees.v10";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;

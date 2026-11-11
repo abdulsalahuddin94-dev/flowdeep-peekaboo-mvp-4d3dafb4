@@ -74,6 +74,34 @@ export function skillsGroup(value: string[], onChange: (v: string[]) => void, sk
   };
 }
 
+/** Employees list: any-of project filter (empty selection = every project). */
+export function projectNameGroup(value: string[], onChange: (v: string[]) => void, names: string[]): MultiFilterGroup {
+  return {
+    key: "project",
+    label: "Project name",
+    value,
+    onChange,
+    mode: "multi",
+    options: [{ value: "all", label: "All projects" }, ...names.map((n) => ({ value: n, label: n }))],
+  };
+}
+
+/** Employees list: any-of job role filter; options come from the Job roles lookup plus any role still in use. */
+export function jobRoleGroup(value: string[], onChange: (v: string[]) => void, roles: string[]): MultiFilterGroup {
+  return {
+    key: "job-role",
+    label: "Job role",
+    value,
+    onChange,
+    mode: "multi",
+    options: [{ value: "all", label: "All job roles" }, ...roles.map((r) => ({ value: r, label: r }))],
+  };
+}
+
+/** Any-of predicate: an empty selection passes everything, otherwise at least one value must match. */
+export const matchAnySelected = (selected: string[], values: string[]) =>
+  selected.length === 0 || values.some((v) => selected.includes(v));
+
 /** Shared predicates so filtering behaves identically in every module. */
 export const matchRelated = (filter: string, count: number) =>
   filter === "all" || (filter === "with" ? count > 0 : count === 0);

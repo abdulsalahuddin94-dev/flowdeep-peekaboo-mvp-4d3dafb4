@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { EmptyRegion } from "@/lib/empty-preview";
-import { matchRelated, relatedProjectsGroup } from "@/components/ds/filters";
+import { jobRoleGroup, matchAnySelected, matchRelated, projectNameGroup, relatedProjectsGroup } from "@/components/ds/filters";
 import { RelatedProjectsCount } from "@/components/ds/RelatedProjectsDialog";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {

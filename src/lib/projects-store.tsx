@@ -316,6 +316,11 @@ export function requestQuantity(r: Pick<ResourceRequest, "quantity">): number { 
 export function requestAssignees(r: Pick<ResourceRequest, "assignees" | "assignedTo">): string[] {
   return r.assignees ?? (r.assignedTo ? [r.assignedTo] : []);
 }
+/** What a request was raised for: the whole project, one WBS task, or a date period. */
+export function requestCoverage(r: Pick<ResourceRequest, "coverage" | "scope" | "task">): "project" | "task" | "period" {
+  if (r.coverage) return r.coverage;
+  return r.scope === "task" || r.task ? "task" : "project";
+}
 
 export type ResourceRequest = {
   id: string; project: string; role: string;
@@ -328,6 +333,8 @@ export type ResourceRequest = {
   task?: string;
   /** Team requests staff the project; task requests staff one WBS item. Dates follow the task. */
   scope?: "team" | "task";
+  /** What the request was raised for. Absent on older requests: derived from scope/task. */
+  coverage?: "project" | "task" | "period";
   /** Full time = 100% of capacity, Part time = 50%. */
   employment?: Employment;
   /** How many employees this role request asks for (default 1). */

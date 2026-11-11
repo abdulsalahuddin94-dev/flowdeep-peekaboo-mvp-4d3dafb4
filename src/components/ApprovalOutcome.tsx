@@ -42,6 +42,9 @@ export function ApprovalOutcomeBanner({
           : "Awaiting approval in Change Requests"
         )}
       </div>
+      {request.status === "approved" && request.baselineVersion != null && (
+        <div className="mt-1 text-[11px] font-medium text-foreground">New baseline: V{request.baselineVersion}</div>
+      )}
       {decided.length > 0 && (
         <ul className="mt-1.5 space-y-1">
           {decided.map((a) => (

@@ -1,3 +1,6 @@
+## 2026-11-11 — Approved change requests show new baseline version
+- `ApprovalRequest.baselineVersion` set on approval (first = V5 after demo V4); outcome banner shows "New baseline: V5". Milestone gates unaffected. Test: `src/lib/nextBaselineVersion.test.ts`.
+
 ## 2026-11-10 — Tab strip scrollbar hidden, arrows are the only affordance
 - Added unlayered `.no-scrollbar` (styles.css) because the global unlayered `* { scrollbar-width: thin }` beat Tailwind's layered `[scrollbar-width:none]` utility; `ScrollableTabs` now uses it, so the tab row shows only edge fades + arrow buttons.
 

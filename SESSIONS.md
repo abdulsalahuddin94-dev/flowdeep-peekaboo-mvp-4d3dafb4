@@ -1,3 +1,6 @@
+## 2026-11-11 — Employment types gain optional description
+- `EmploymentType.description?` in employees-store; Add/Edit dialog has an optional textarea, the list shows a muted Description column ("—" when empty), and search matches description too — matching the other Organization lookup lists.
+
 ## 2026-11-11 — Approved change requests show new baseline version
 - `ApprovalRequest.baselineVersion` set on approval (first = V5 after demo V4); outcome banner shows "New baseline: V5". Milestone gates unaffected. Test: `src/lib/nextBaselineVersion.test.ts`.
 

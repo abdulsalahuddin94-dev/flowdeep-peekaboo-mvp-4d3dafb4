@@ -1,3 +1,5 @@
+## 2026-11-11 — Team tab split into Team / Requests sub-tabs (Risk & Issues style segmented control)
+
 ## 2026-11-11 — Employees carry a seniority level
 - `Employee.seniority?` (Junior / Mid / Senior / Lead — the same four levels resource requests use) is now part of the employee record, with `SENIORITY_LEVELS` exported from `src/lib/employees-store.ts` so the form and the request dialog can't drift apart.
 - Add / Edit Employee (Employment info section) gains an optional **Seniority** select directly after Job role; the value saves with the other fields and prefills when editing.

@@ -18,6 +18,16 @@ test("only fulfilled requests add the employee to the team", () => {
   assert.deepEqual(team, [{ name: "Ann", role: "QA", employment: "Part time" }]);
 });
 
+test("partially filled multi-headcount request already adds its assignees to the team", () => {
+  const team = projectTeam("P", [
+    { ...base, id: "1", project: "P", role: "QA", status: "Pending", quantity: 3, assignees: ["Ann", "Bob"], employment: "Full time" },
+  ]);
+  assert.deepEqual(team, [
+    { name: "Ann", role: "QA", employment: "Full time" },
+    { name: "Bob", role: "QA", employment: "Full time" },
+  ]);
+});
+
 test("member is not working once their tasks have ended", () => {
   const items = [{ name: "T", kind: "Task", startDate: "2026-01-01", endDate: "2026-02-01", assignee: "Ann", progress: 50 }];
   assert.equal(isWorkingNow("Ann", items, new Date("2026-01-15")), true);

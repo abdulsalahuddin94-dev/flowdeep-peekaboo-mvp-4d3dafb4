@@ -33,3 +33,12 @@ test("member is inactive once their tasks have ended", () => {
   assert.equal(isWorkingNow("Ann", items, new Date("2026-01-15")), true);
   assert.equal(isWorkingNow("Ann", items, new Date("2026-03-01")), false);
 });
+
+test("Request for column reads task, project or period", () => {
+  const taskReq: ResourceRequest = { ...base, id: "1", project: "P", role: "QA", status: "Pending", scope: "task", task: "T" };
+  const projectReq: ResourceRequest = { ...base, id: "2", project: "P", role: "QA", status: "Pending", scope: "team" };
+  const periodReq: ResourceRequest = { ...base, id: "3", project: "P", role: "QA", status: "Pending", scope: "team", coverage: "period", from: "2026-01-01", until: "2026-03-01" };
+  assert.equal(requestCoverage(taskReq), "task");
+  assert.equal(requestCoverage(projectReq), "project");
+  assert.equal(requestCoverage(periodReq), "period");
+});

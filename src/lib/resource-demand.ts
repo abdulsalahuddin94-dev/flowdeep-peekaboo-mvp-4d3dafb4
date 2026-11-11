@@ -1,4 +1,4 @@
-import { EMPLOYMENT_PERCENT, employmentFromFte, type ResourceRequest } from "./projects-store";
+import { EMPLOYMENT_PERCENT, employmentFromFte, requestQuantity, requestAssignees, type ResourceRequest } from "./projects-store";
 import { currentUtilization, type Employee } from "./employees-store";
 
 type Priority = ResourceRequest["priority"];

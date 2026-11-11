@@ -29,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { projects, departments } from "@/lib/mock-data";
-import { useResourceRequests, useJobRoles, EMPLOYMENT_PERCENT, employmentFromFte } from "@/lib/projects-store";
+import { useResourceRequests, useJobRoles, EMPLOYMENT_PERCENT, employmentFromFte, requestQuantity, requestAssignees } from "@/lib/projects-store";
 import type { ResourceRequest } from "@/lib/projects-store";
 import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck } from "@/lib/icons";
 import { toast } from "@/lib/toast";
@@ -554,6 +554,7 @@ function FulfillDialog({
           <div className="font-medium text-foreground">{req.role} <span className="text-muted-foreground text-xs">({req.skill})</span></div>
           <div className="mt-0.5 text-xs text-muted-foreground">
             {req.project} · {req.scope === "team" ? "Team" : "Task"} · {req.from} → {req.until}
+            {requestQuantity(req) > 1 && <span className="num-mono"> · {requestAssignees(req).length} of {requestQuantity(req)} filled</span>}
           </div>
           {req.notes && <div className="mt-1 text-xs italic text-muted-foreground">"{req.notes}"</div>}
         </div>
@@ -563,7 +564,7 @@ function FulfillDialog({
             <Select onValueChange={(value) => { setPersonName(value); setPersonError(""); }}>
               <SelectTrigger id="fulfill-person"><SelectValue placeholder="Select from resource pool…" /></SelectTrigger>
               <SelectContent>
-                {pool.filter((r) => r.active !== false).map((r) => { const u = periodOf(r); return (
+                {pool.filter((r) => r.active !== false && !requestAssignees(req).includes(r.name)).map((r) => { const u = periodOf(r); return (
                   <SelectItem key={r.name} value={r.name}>
                     <span className="flex items-center gap-2">
                       <span>{r.name}</span>

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useResourceRequests, useJobRoles, employmentFromFte, requestQuantity, requestAssignees, type Employment, type ResourceRequest } from "@/lib/projects-store";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -117,17 +118,17 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
   );
 }
 
-export type RoleRequestValue = { role: string; skill: ResourceRequest["skill"]; employment: Employment; priority: ResourceRequest["priority"]; notes: string };
+export type RoleRequestValue = { role: string; skill: ResourceRequest["skill"]; employment: Employment; priority: ResourceRequest["priority"]; notes: string; quantity: number };
 
 export function RequestRoleDialog({ open, onOpenChange, onSubmit, lang = "en", description }: { open: boolean; onOpenChange: (o: boolean) => void; onSubmit: (v: RoleRequestValue) => void; lang?: "en" | "ar"; description?: string }) {
   const t = T[lang];
   const { jobRoles } = useJobRoles();
-  const [v, setV] = useState<RoleRequestValue>({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "" });
+  const [v, setV] = useState<RoleRequestValue>({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "", quantity: 1 });
   const [err, setErr] = useState("");
   const submit = () => {
     if (!v.role) { setErr("Select a role."); return; }
     onSubmit(v); onOpenChange(false); setErr("");
-    setV({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "" });
+    setV({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "", quantity: 1 });
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -154,12 +155,17 @@ export function RequestRoleDialog({ open, onOpenChange, onSubmit, lang = "en", d
               </Select>
             </Field>
           </div>
-          <Field label={t.priority}>
-            <Select value={v.priority} onValueChange={(p) => setV({ ...v, priority: p as RoleRequestValue["priority"] })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{(["Critical", "High", "Medium", "Low"] as const).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-            </Select>
-          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t.priority}>
+              <Select value={v.priority} onValueChange={(p) => setV({ ...v, priority: p as RoleRequestValue["priority"] })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{(["Critical", "High", "Medium", "Low"] as const).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              </Select>
+            </Field>
+            <Field label={t.headcount}>
+              <Input type="number" min={1} max={99} value={v.quantity} onChange={(e) => setV({ ...v, quantity: Math.max(1, Math.min(99, Math.floor(Number(e.target.value) || 1))) })} />
+            </Field>
+          </div>
           <Field label={t.notes} optional>
             <Textarea value={v.notes} onChange={(e) => setV({ ...v, notes: e.target.value })} />
           </Field>

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { projectTeam, isWorkingNow } from "./ProjectTeamTab";
-import { EMPLOYMENT_PERCENT } from "@/lib/projects-store";
+import { EMPLOYMENT_PERCENT, requestCoverage, type ResourceRequest } from "@/lib/projects-store";
 
 const base = { skill: "Mid" as const, fte: 1, from: "", until: "", priority: "Low" as const, submittedBy: "", date: "", notes: "" };
 
@@ -32,4 +32,13 @@ test("member is inactive once their tasks have ended", () => {
   const items = [{ name: "T", kind: "Task", startDate: "2026-01-01", endDate: "2026-02-01", assignee: "Ann", progress: 50 }];
   assert.equal(isWorkingNow("Ann", items, new Date("2026-01-15")), true);
   assert.equal(isWorkingNow("Ann", items, new Date("2026-03-01")), false);
+});
+
+test("Request for column reads task, project or period", () => {
+  const taskReq: ResourceRequest = { ...base, id: "1", project: "P", role: "QA", status: "Pending", scope: "task", task: "T" };
+  const projectReq: ResourceRequest = { ...base, id: "2", project: "P", role: "QA", status: "Pending", scope: "team" };
+  const periodReq: ResourceRequest = { ...base, id: "3", project: "P", role: "QA", status: "Pending", scope: "team", coverage: "period", from: "2026-01-01", until: "2026-03-01" };
+  assert.equal(requestCoverage(taskReq), "task");
+  assert.equal(requestCoverage(projectReq), "project");
+  assert.equal(requestCoverage(periodReq), "period");
 });

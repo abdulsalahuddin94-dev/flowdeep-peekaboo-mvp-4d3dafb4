@@ -29,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { projects, departments } from "@/lib/mock-data";
-import { useResourceRequests, useJobRoles, EMPLOYMENT_PERCENT, employmentFromFte, requestQuantity, requestAssignees } from "@/lib/projects-store";
+import { useResourceRequests, useJobRoles, EMPLOYMENT_PERCENT, employmentFromFte, requestQuantity, requestAssignees, requestCoverage } from "@/lib/projects-store";
 import type { ResourceRequest } from "@/lib/projects-store";
 import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck } from "@/lib/icons";
 import { toast } from "@/lib/toast";
@@ -57,6 +57,8 @@ export const Route = createFileRoute("/resources")({
 type Priority = "Critical" | "High" | "Medium" | "Low";
 type PoolResource = Employee;
 
+/** Column labels for what a request covers. */
+const COVERAGE_LABEL = { project: "Project", task: "Task", period: "Period" } as const;
 const PRIORITY_STYLE: Record<Priority, string> = {
   Critical: "border-rag-red/40 bg-rag-red/10 text-rag-red",
   High: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
@@ -201,7 +203,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
         <StyledTable wrapperClassName="">
           <StyledTableHeader><StyledTableHeaderRow>
             <StyledTableHead>Role / Skill</StyledTableHead><StyledTableHead>Task</StyledTableHead><StyledTableHead>Project</StyledTableHead>
-            <StyledTableHead>Type</StyledTableHead><StyledTableHead>Employment</StyledTableHead><StyledTableHead>Period</StyledTableHead>
+            <StyledTableHead>Request for</StyledTableHead><StyledTableHead>Employment</StyledTableHead><StyledTableHead>Period</StyledTableHead>
             <StyledTableHead>Priority</StyledTableHead><StyledTableHead>Submitted by</StyledTableHead>
             <StyledTableHead className="w-44 text-center">Status</StyledTableHead>
           </StyledTableHeaderRow></StyledTableHeader>
@@ -215,7 +217,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
                   <StyledTableCell><div className="font-medium text-foreground">{req.role}{requestQuantity(req) > 1 ? <span className="num-mono text-muted-foreground"> × {requestQuantity(req)}</span> : null}</div><div className="text-xs text-muted-foreground">{req.skill}{requestQuantity(req) > 1 ? ` · ${requestAssignees(req).length} / ${requestQuantity(req)} filled` : ""}</div></StyledTableCell>
                   <StyledTableCell>{req.task ?? <span className="text-muted-foreground">—</span>}</StyledTableCell>
                   <StyledTableCell>{req.project}</StyledTableCell>
-                  <StyledTableCell>{req.scope === "team" ? "Team" : "Task"}</StyledTableCell>
+                  <StyledTableCell>{COVERAGE_LABEL[requestCoverage(req)]}</StyledTableCell>
                   <StyledTableCell>{req.employment ?? employmentFromFte(req.fte)}</StyledTableCell>
                   <StyledTableCell className="num-mono text-xs text-muted-foreground">{req.from} → {req.until}</StyledTableCell>
                   <StyledTableCell><Badge variant="outline" className={PRIORITY_STYLE[req.priority]}>{req.priority}</Badge></StyledTableCell>
@@ -553,7 +555,7 @@ function FulfillDialog({
         <div className="rounded-md border border-border bg-secondary/30 p-3 text-sm">
           <div className="font-medium text-foreground">{req.role} <span className="text-muted-foreground text-xs">({req.skill})</span></div>
           <div className="mt-0.5 text-xs text-muted-foreground">
-            {req.project} · {req.scope === "team" ? "Team" : "Task"} · {req.from} → {req.until}
+            {req.project} · {COVERAGE_LABEL[requestCoverage(req)]} · {req.from} → {req.until}
             {requestQuantity(req) > 1 && <span className="num-mono"> · {requestAssignees(req).length} of {requestQuantity(req)} filled</span>}
           </div>
           {req.notes && <div className="mt-1 text-xs italic text-muted-foreground">"{req.notes}"</div>}

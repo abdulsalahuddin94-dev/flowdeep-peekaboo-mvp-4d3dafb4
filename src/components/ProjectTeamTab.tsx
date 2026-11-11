@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useResourceRequests, useJobRoles, employmentFromFte, requestQuantity, requestAssignees, type Employment, type ResourceRequest } from "@/lib/projects-store";
+import { useResourceRequests, useJobRoles, employmentFromFte, requestQuantity, requestAssignees, requestCoverage, type Employment, type ResourceRequest } from "@/lib/projects-store";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -42,12 +42,13 @@ export function isWorkingNow(name: string, items: Item[], today = new Date()) {
 }
 
 const T = {
-  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", type: "Type", seniority: "Seniority", priority: "Priority", notes: "Notes", coverage: "Request for", fullProject: "Full project", forTask: "Specific task", period: "Period of time", selectTask: "Select a task", startD: "Start date", endD: "End date", periodCol: "Period", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request a role. Once Resources fulfills it, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", teamScope: "Team", headcount: "Employees needed", filled: "filled" },
-  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", type: "النوع", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", coverage: "الطلب لـ", fullProject: "المشروع كامل", forTask: "مهمة محددة", period: "فترة زمنية", selectTask: "اختر مهمة", startD: "تاريخ البداية", endD: "تاريخ النهاية", periodCol: "الفترة", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب دورًا، وبعد تنفيذه من الموارد ينضم الموظف للفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", teamScope: "فريق", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم" },
+  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", seniority: "Seniority", priority: "Priority", notes: "Notes", coverage: "Request for", fullProject: "Full project", forTask: "Specific task", period: "Period of time", selectTask: "Select a task", startD: "Start date", endD: "End date", periodCol: "Period", project: "Project", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request a role. Once Resources fulfills it, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", headcount: "Employees needed", filled: "filled" },
+  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", coverage: "الطلب لـ", fullProject: "المشروع كامل", forTask: "مهمة محددة", period: "فترة زمنية", selectTask: "اختر مهمة", startD: "تاريخ البداية", endD: "تاريخ النهاية", periodCol: "الفترة", project: "المشروع", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب دورًا، وبعد تنفيذه من الموارد ينضم الموظف للفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم" },
 };
 
 export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar" }) {
   const t = T[lang];
+  const covLabel = { project: t.project, task: t.task, period: t.periodCol };
   const { resourceRequests, addResourceRequest } = useResourceRequests();
   const [open, setOpen] = useState(false);
   const { employees } = useEmployees();
@@ -94,12 +95,12 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
         <div className="space-y-3">
           <h3 className="text-base font-medium text-foreground">{t.requests}</h3>
           <StyledTable>
-            <StyledTableHeader><StyledTableHeaderRow>{[t.role, t.type, t.task, t.employment, t.priority, t.notes, t.status].map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader>
+            <StyledTableHeader><StyledTableHeaderRow>{[t.role, t.coverage, t.task, t.employment, t.priority, t.notes, t.status].map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
               {reqs.map((r) => (
                 <StyledTableRow key={r.id}>
                   <StyledTableCell><div className="font-medium text-foreground">{r.role}{requestQuantity(r) > 1 ? <span className="num-mono text-muted-foreground"> × {requestQuantity(r)}</span> : null}</div><div className="text-xs text-muted-foreground">{r.skill}{requestQuantity(r) > 1 ? ` · ${requestAssignees(r).length} / ${requestQuantity(r)} ${t.filled}` : ""}</div></StyledTableCell>
-                  <StyledTableCell>{r.scope === "team" ? t.teamScope : t.task}</StyledTableCell>
+                  <StyledTableCell>{covLabel[requestCoverage(r)]}</StyledTableCell>
                   <StyledTableCell><div>{r.task ?? "—"}</div>{!r.task && r.from && r.from.length > 7 ? <div className="text-xs num-mono text-muted-foreground">{r.from} → {r.until}</div> : null}</StyledTableCell>
                   <StyledTableCell>{r.employment ?? employmentFromFte(r.fte)}</StyledTableCell>
                   <StyledTableCell>{r.priority}</StyledTableCell>
@@ -119,7 +120,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
         const [from, until] = task ? [task.startDate, task.endDate]
           : v.coverage === "period" ? [v.start, v.end]
           : [starts[0] ?? month, ends[ends.length - 1] ?? month];
-        addResourceRequest({ project, scope: task ? "task" : "team", task: task?.name, role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, quantity: v.quantity, from: from.slice(0, 10), until: until.slice(0, 10), priority: v.priority, submittedBy: pm, notes: v.notes });
+        addResourceRequest({ project, scope: task ? "task" : "team", coverage: v.coverage, task: task?.name, role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, quantity: v.quantity, from: from.slice(0, 10), until: until.slice(0, 10), priority: v.priority, submittedBy: pm, notes: v.notes });
         toast.success("Role request sent to Resources");
       }} />
     </div>

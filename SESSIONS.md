@@ -1,3 +1,13 @@
+## 2026-11-11 — Employment types list opens its employees
+- The Employees count in Organization → Employment Types is now a clickable number: it opens a centered popup titled with the type name and lists that type's employees (avatar or initials, name, role, chevron), scrollable past 8 rows; a type with no employees shows a plain muted 0 and stays inert.
+- Clicking a name in the popup closes it and opens that employee's profile (`/resources/employees/$employeeId`), the same destination used by the Employees table, Team cards and trip travelers.
+- Popup subtitle (employee count) stays screen-reader only per the DS02 rule that popup subtitles are hidden globally.
+
+## 2026-11-11 — Requests table column Type renamed to Request for
+- The project Team tab's Requests table header now reads **Request for** (same label as the dialog field) instead of Type, and its values read **Project / Task / Period** instead of Team / Task, matching the three options the request dialog offers. Arabic: الطلب لـ with المشروع / مهمة / الفترة.
+- Same wording applied to the Resources → Requests table header and the Fulfill dialog summary line, so both registers agree.
+- `ResourceRequest.coverage?: "project" | "task" | "period"` records what the request was raised for (the dialog passes it through); `requestCoverage()` derives it for older rows from scope/task, so period requests are distinguishable from full-project ones. Test in `src/components/project-team.test.ts`.
+
 ## 2026-11-11 — Team requests table gains a Notes column
 - The project Team tab's Requests table now shows the note typed in **Request role** (Role / Type / Task / Employment / Priority / **Notes** / Status), muted text that wraps up to 288px and "—" when empty, so the note is readable where the request was raised instead of only inside Resources (request drawer + Fulfill dialog).
 

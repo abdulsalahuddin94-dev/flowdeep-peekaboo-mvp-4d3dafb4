@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronDown, Trash2, Upload } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 import { departments } from "@/lib/mock-data";
 import { useJobRoles } from "@/lib/projects-store";
-import { useEmployees, DEFAULT_MONTHLY_CAPACITY } from "@/lib/employees-store";
+import { useEmployees, DEFAULT_MONTHLY_CAPACITY, SENIORITY_LEVELS } from "@/lib/employees-store";
 
 export const Route = createFileRoute("/resources_/employees/new")({
   validateSearch: (search: Record<string, unknown>): { edit?: string } => ({
@@ -37,8 +37,8 @@ const T = {
 const TAG_OPTIONS = ["Key talent", "Remote", "Part-time", "Certified", "New hire", "Mentor"];
 const GENDERS = ["Male", "Female"];
 
-type Form = { name: string; shortName: string; employeeNumber: string; nationalId: string; phone: string; email: string; birthDate: string; gender: string; dept: string; role: string; employmentTypeId: string; joinedOn: string; tags: string[]; avatar: string };
-const empty: Form = { name: "", shortName: "", employeeNumber: "", nationalId: "", phone: "", email: "", birthDate: "", gender: "", dept: "", role: "", employmentTypeId: "", joinedOn: "", tags: [], avatar: "" };
+type Form = { name: string; shortName: string; employeeNumber: string; nationalId: string; phone: string; email: string; birthDate: string; gender: string; dept: string; role: string; seniority: string; employmentTypeId: string; joinedOn: string; tags: string[]; avatar: string };
+const empty: Form = { name: "", shortName: "", employeeNumber: "", nationalId: "", phone: "", email: "", birthDate: "", gender: "", dept: "", role: "", seniority: "", employmentTypeId: "", joinedOn: "", tags: [], avatar: "" };
 
 /** DS02 empty-image placeholder — grey disc with a light person silhouette. */
 function AvatarPlaceholder() {
@@ -64,7 +64,7 @@ function AddEmployeePage() {
   const [f, setF] = useState<Form>(() => editing ? {
     name: editing.name, shortName: editing.shortName ?? "", employeeNumber: editing.employeeNumber ?? "",
     nationalId: editing.nationalId ?? "", phone: editing.phone ?? "", email: editing.email,
-    birthDate: editing.birthDate ?? "", gender: editing.gender ?? "", dept: editing.dept, role: editing.role,
+    birthDate: editing.birthDate ?? "", gender: editing.gender ?? "", dept: editing.dept, role: editing.role, seniority: editing.seniority ?? "",
     employmentTypeId: editing.employmentTypeId, joinedOn: editing.joinedOn, tags: editing.tags ?? [], avatar: editing.avatar ?? "",
   } : empty);
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
@@ -96,7 +96,7 @@ function AddEmployeePage() {
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
     const fields = {
-      name: f.name.trim(), role: f.role, dept: f.dept, email: f.email.trim(),
+      name: f.name.trim(), role: f.role, seniority: f.seniority || undefined, dept: f.dept, email: f.email.trim(),
       employmentTypeId: f.employmentTypeId, joinedOn: f.joinedOn || new Date().toISOString().slice(0, 10),
       shortName: f.shortName.trim(), employeeNumber: f.employeeNumber.trim(), nationalId: f.nationalId.trim() || undefined,
       phone: f.phone.trim(), birthDate: f.birthDate, gender: f.gender, tags: f.tags, avatar: f.avatar || undefined,
@@ -176,6 +176,9 @@ function AddEmployeePage() {
           </Field>
           <Field label="Job role" htmlFor="emp-role" error={errors.role}>
             <Select value={f.role} onValueChange={(v) => set("role", v)}><SelectTrigger id="emp-role"><SelectValue placeholder="Select job role" /></SelectTrigger><SelectContent>{jobRoles.map((r) => <SelectItem key={r.id} value={r.title}>{r.title}</SelectItem>)}</SelectContent></Select>
+          </Field>
+          <Field label="Seniority" htmlFor="emp-seniority" optional hint="Same levels as resource requests">
+            <Select value={f.seniority} onValueChange={(v) => set("seniority", v)}><SelectTrigger id="emp-seniority"><SelectValue placeholder="Select seniority" /></SelectTrigger><SelectContent>{SENIORITY_LEVELS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select>
           </Field>
           <Field label="Employment type" htmlFor="emp-type" error={errors.employmentTypeId} hint="Maintained in Organization → Employment types">
             <Select value={f.employmentTypeId} onValueChange={(v) => set("employmentTypeId", v)}><SelectTrigger id="emp-type"><SelectValue placeholder="Select employment type" /></SelectTrigger><SelectContent>{employmentTypes.filter((v) => v.active).map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent></Select>

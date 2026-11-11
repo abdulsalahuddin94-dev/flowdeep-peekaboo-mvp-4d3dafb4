@@ -9,10 +9,13 @@ export type EmployeeLeave = { id: string; type: "Leave" | "Partial"; from: strin
 export type EmployeeTrip = { id: string; country: string; city: string; from: string; until: string; workFrom: string; workUntil: string; days: number; ticketsCost: number; visaCost: number; perDiemCost: number; /** Trips are planned from a project; the employee profile shows them read-only. */ project?: string; milestone?: string; purpose?: string; groupId?: string };
 /** Per-month overrides keyed by "YYYY-MM"; months without an entry fall back to the employee's base salary/capacity. */
 export type EmployeeMonthPlan = { salary?: number; capacity?: number };
-export type Employee = { id: string; name: string; role: string; dept: string; email: string; salary: number; capacity: number; util: number; employmentTypeId: string; joinedOn: string; projects: string[]; tasks: string[]; allocations: EmployeeAllocation[]; leave: EmployeeLeave[]; trips: EmployeeTrip[]; monthly: Record<string, EmployeeMonthPlan>; vacationEntitlement: number; demo: boolean; shortName?: string; employeeNumber?: string; nationalId?: string; phone?: string; birthDate?: string; gender?: string; tags?: string[]; avatar?: string; /** Missing means active (legacy rows predate status). */ active?: boolean };
+export type Employee = { id: string; name: string; role: string; /** Junior / Mid / Senior / Lead — the same levels resource requests use. */ seniority?: string; dept: string; email: string; salary: number; capacity: number; util: number; employmentTypeId: string; joinedOn: string; projects: string[]; tasks: string[]; allocations: EmployeeAllocation[]; leave: EmployeeLeave[]; trips: EmployeeTrip[]; monthly: Record<string, EmployeeMonthPlan>; vacationEntitlement: number; demo: boolean; shortName?: string; employeeNumber?: string; nationalId?: string; phone?: string; birthDate?: string; gender?: string; tags?: string[]; avatar?: string; /** Missing means active (legacy rows predate status). */ active?: boolean };
 
 /** Default monthly capacity in hours when nothing is set (≈ 40h/week). */
 export const DEFAULT_MONTHLY_CAPACITY = 160;
+
+/** Seniority levels, kept identical to the ones on resource requests. */
+export const SENIORITY_LEVELS = ["Junior", "Mid", "Senior", "Lead"] as const;
 
 /** Demo allocations follow fulfilled resource requests: Full time = 100%, Part time = 50%, dated by the task/team period.
  *  [project id or name, percent, from, until, task?] */
@@ -59,7 +62,7 @@ const initialEmployees: Employee[] = resources.map((r, i) => {
   const names = Array.from(new Set(allocations.map((a) => a.project)));
   const base = salaries[i] ?? 10000;
   return { ...r, id: `EMP-${String(i + 1).padStart(3, "0")}`, projects: names, email: `${r.name.toLowerCase().replace(/[^a-z ]/g, "").trim().replace(/\s+/g, ".")}@company.com`, salary: base, capacity: DEFAULT_MONTHLY_CAPACITY, employmentTypeId: types[i % 3]?.id ?? "ET-1", joinedOn: `${2019 + i % 6}-${String((i * 4) % 12 + 1).padStart(2, "0")}-${String((i * 9) % 27 + 1).padStart(2, "0")}`, tasks: allocations.flatMap((a) => a.task ? [a.task] : []), util: currentUtilization(allocations), vacationEntitlement: 24, demo: true,
-    employeeNumber: String(8123456 - i * 100000), active: true,
+    employeeNumber: String(8123456 - i * 100000), active: true, seniority: SENIORITY_LEVELS[i % SENIORITY_LEVELS.length],
     shortName: r.name.split(" ")[0], phone: `+966 5${(i + 1) % 10} ${String(312 + i * 47).padStart(3, "0")} ${String(4821 + i * 613).slice(-4)}`,
     nationalId: String(1087654321 - i * 1234567), birthDate: `${1984 + (i * 3) % 14}-${String((i * 5) % 12 + 1).padStart(2, "0")}-${String((i * 7) % 27 + 1).padStart(2, "0")}`,
     gender: i % 3 === 1 ? "Female" : "Male", tags: [["Senior", "Certified"], ["Remote"], ["Certified"], ["Field"], ["Senior"], ["Part-time"], ["Remote", "Certified"], []][i] ?? [],
@@ -74,6 +77,8 @@ const initialEmployees: Employee[] = resources.map((r, i) => {
     ] };
 });
 const defaults = { employees: initialEmployees, employmentTypes: types };
+/** Demo seed rows, kept exported so tests can assert against them. */
+export const SEED_EMPLOYEES = initialEmployees;
 let state = defaults;
 let loaded = false;
 const listeners = new Set<() => void>();
@@ -82,7 +87,9 @@ const listeners = new Set<() => void>();
 // v7: allocations are only Full time (100%) / Part time (50%) from fulfilled requests; util derived from them.
 // v8: ERP System Upgrade carries a 12-person demo team.
 // v9: employment types carry demo descriptions.
-const storageKey = "pmo.employees.v10";
+// v10: seed allocations reference project ids instead of literal names.
+// v11: employees carry a seniority level (Junior / Mid / Senior / Lead).
+const storageKey = "pmo.employees.v11";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;

@@ -1,3 +1,9 @@
+## 2026-11-11 — Employees carry a seniority level
+- `Employee.seniority?` (Junior / Mid / Senior / Lead — the same four levels resource requests use) is now part of the employee record, with `SENIORITY_LEVELS` exported from `src/lib/employees-store.ts` so the form and the request dialog can't drift apart.
+- Add / Edit Employee (Employment info section) gains an optional **Seniority** select directly after Job role; the value saves with the other fields and prefills when editing.
+- The employee profile's Employee Info rows show **Seniority** between Role and Department (Arabic: الخبرة). Demo employees are seeded with a level, so storage key bumped to `pmo.employees.v11`.
+- Tests in `src/lib/employee-seniority.test.ts`: the levels list, and every demo employee holding a valid level.
+
 ## 2026-11-11 — Employment types list opens its employees
 - The Employees count in Organization → Employment Types is now a clickable number: it opens a centered popup titled with the type name and lists that type's employees (avatar or initials, name, role, chevron), scrollable past 8 rows; a type with no employees shows a plain muted 0 and stays inert.
 - Clicking a name in the popup closes it and opens that employee's profile (`/resources/employees/$employeeId`), the same destination used by the Employees table, Team cards and trip travelers.

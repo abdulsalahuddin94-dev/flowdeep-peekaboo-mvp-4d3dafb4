@@ -29,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { projects, departments } from "@/lib/mock-data";
-import { useResourceRequests, useJobRoles, EMPLOYMENT_PERCENT, employmentFromFte, requestQuantity, requestAssignees } from "@/lib/projects-store";
+import { useResourceRequests, useJobRoles, EMPLOYMENT_PERCENT, employmentFromFte, requestQuantity, requestAssignees, requestCoverage } from "@/lib/projects-store";
 import type { ResourceRequest } from "@/lib/projects-store";
 import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck } from "@/lib/icons";
 import { toast } from "@/lib/toast";
@@ -57,6 +57,8 @@ export const Route = createFileRoute("/resources")({
 type Priority = "Critical" | "High" | "Medium" | "Low";
 type PoolResource = Employee;
 
+/** Column labels for what a request covers. */
+const COVERAGE_LABEL = { project: "Project", task: "Task", period: "Period" } as const;
 const PRIORITY_STYLE: Record<Priority, string> = {
   Critical: "border-rag-red/40 bg-rag-red/10 text-rag-red",
   High: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",

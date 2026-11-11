@@ -102,12 +102,17 @@ function ResourcesPage() {
         };
       }));
     }
+    const assignees = [...requestAssignees(req), assignedTo];
+    const qty = requestQuantity(req);
+    const complete = assignees.length >= qty;
     updateResourceRequest(id, {
-      status: "Fulfilled", assignedTo, allocation: alloc,
+      status: complete ? "Fulfilled" : "Pending", assignedTo, assignees, allocation: alloc,
       utilBefore, utilAfter, decidedOn: new Date().toISOString().slice(0, 10),
     });
     toast.success(`${req.role} assigned to ${req.project}`, {
-      description: `${assignedTo} · ${req.employment ?? employmentFromFte(req.fte)} (${alloc}%) · ${req.from} → ${req.until}`,
+      description: qty > 1
+        ? `${assignedTo} · ${assignees.length} of ${qty} filled${complete ? " — request fulfilled" : ""}`
+        : `${assignedTo} · ${req.employment ?? employmentFromFte(req.fte)} (${alloc}%) · ${req.from} → ${req.until}`,
     });
   }
 
@@ -207,7 +212,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
                   className="group cursor-pointer"
                   onClick={() => setOpenId(req.id)}
                 >
-                  <StyledTableCell><div className="font-medium text-foreground">{req.role}</div><div className="text-xs text-muted-foreground">{req.skill}</div></StyledTableCell>
+                  <StyledTableCell><div className="font-medium text-foreground">{req.role}{requestQuantity(req) > 1 ? <span className="num-mono text-muted-foreground"> × {requestQuantity(req)}</span> : null}</div><div className="text-xs text-muted-foreground">{req.skill}{requestQuantity(req) > 1 ? ` · ${requestAssignees(req).length} / ${requestQuantity(req)} filled` : ""}</div></StyledTableCell>
                   <StyledTableCell>{req.task ?? <span className="text-muted-foreground">—</span>}</StyledTableCell>
                   <StyledTableCell>{req.project}</StyledTableCell>
                   <StyledTableCell>{req.scope === "team" ? "Team" : "Task"}</StyledTableCell>
@@ -278,6 +283,7 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
                 <DrawerRow label="Project" value={req.project} />
                 <DrawerRow label="Task" value={req.task ?? "—"} />
                 <DrawerRow label="Employment" value={req.employment ?? employmentFromFte(req.fte)} />
+                {requestQuantity(req) > 1 && <DrawerRow label="Employees needed" value={`${requestAssignees(req).length} / ${requestQuantity(req)} filled`} valueClass="num-mono" />}
                 <DrawerRow label="Period" value={`${req.from} → ${req.until}`} valueClass="num-mono" />
                 <DrawerRow label="Submitted by" value={req.submittedBy} />
                 <DrawerRow label="Submitted" value={/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date} />
@@ -304,7 +310,7 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
 
                 {req.status === "Fulfilled" && (
                   <>
-                    <DrawerRow label="Assigned person" value={req.assignedTo ?? "—"} />
+                    <DrawerRow label={requestQuantity(req) > 1 ? "Assigned people" : "Assigned person"} value={requestAssignees(req).join(", ") || "—"} />
                     {req.allocation != null && (
                       <DrawerRow label="Allocation on this project" value={`${req.allocation}%`} valueClass="num-mono" />
                     )}

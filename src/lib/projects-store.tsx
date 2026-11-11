@@ -40,7 +40,17 @@ export type ApprovalRequest = {
   approvers: ApprovalApprover[];
   status: ApprovalDecision;
   reminders: number;
+  /** Baseline version an approved change request created (e.g. 5 → "New baseline: V5"). */
+  baselineVersion?: number;
 };
+
+/** Demo projects start on V4, so the first approved change request creates V5. */
+export function nextBaselineVersion(approvals: ApprovalRequest[], projectId: string) {
+  const prior = approvals
+    .filter((a) => a.projectId === projectId && a.type === "change-request" && a.status === "approved")
+    .map((a) => a.baselineVersion ?? 0);
+  return Math.max(4, ...prior) + 1;
+}
 
 // Demo request spanning all three plan sections, sized to exercise paging on the review page.
 const AP_1035_DEMO_CHANGES: ApprovalRequest["summary"] = [
@@ -176,6 +186,7 @@ const SEED_APPROVALS: ApprovalRequest[] = [
     ],
     status: "approved",
     reminders: 0,
+    baselineVersion: 5,
   },
   {
     id: "AP-1024",
@@ -468,7 +479,10 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       ]).map((ap) => ap.id === approverId
         ? { ...ap, decision, decidedAt: new Date().toISOString().split("T")[0], comment }
         : ap);
-      return { ...a, approvers, status: decision };
+      const baselineVersion = decision === "approved" && a.type === "change-request"
+        ? nextBaselineVersion(prev, a.projectId)
+        : a.baselineVersion;
+      return { ...a, approvers, status: decision, baselineVersion };
     }));
     // Calendar edits are already applied org-wide. A project that rejects the
     // update keeps working on a frozen copy of the previous calendar.

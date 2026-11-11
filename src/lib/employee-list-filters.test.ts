@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { jobRoleGroup, matchAnySelected, projectNameGroup } from "./filters";
+import { jobRoleGroup, matchAnySelected, projectNameGroup } from "../components/ds/filters";
 
 test("empty project or job role selection keeps every employee", () => {
   assert.equal(matchAnySelected([], ["ERP System Upgrade"]), true);

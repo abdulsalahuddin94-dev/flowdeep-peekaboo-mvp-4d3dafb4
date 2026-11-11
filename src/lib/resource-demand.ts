@@ -16,8 +16,11 @@ export function buildManpowerPlan(requests: ResourceRequest[], pool: Employee[])
   const map = new Map<string, { demand: number; supply: number; pending: number }>();
   requests.filter((r) => r.status !== "Declined").forEach((r) => {
     const row = map.get(r.role) ?? { demand: 0, supply: 0, pending: 0 };
-    row.demand += requestFte(r);
-    if (r.status === "Fulfilled") row.supply += requestFte(r); else row.pending += 1;
+    const qty = requestQuantity(r);
+    const filled = Math.min(requestAssignees(r).length, qty);
+    row.demand += requestFte(r) * qty;
+    row.supply += requestFte(r) * filled;
+    row.pending += qty - filled;
     map.set(r.role, row);
   });
   return Array.from(map, ([role, v]) => ({
@@ -30,10 +33,12 @@ export function buildManpowerPlan(requests: ResourceRequest[], pool: Employee[])
 export function buildSkillDemand(requests: ResourceRequest[], pool: Employee[]) {
   const map = new Map<string, { role: string; required: number; priority: Priority; from: string; until: string }>();
   requests.filter((r) => r.status === "Pending").forEach((r) => {
+    const remaining = requestQuantity(r) - Math.min(requestAssignees(r).length, requestQuantity(r));
+    if (remaining <= 0) return;
     const key = `${r.role} (${r.skill})`;
     const row = map.get(key);
-    if (!row) { map.set(key, { role: r.role, required: requestFte(r), priority: r.priority, from: r.from, until: r.until }); return; }
-    row.required += requestFte(r);
+    if (!row) { map.set(key, { role: r.role, required: requestFte(r) * remaining, priority: r.priority, from: r.from, until: r.until }); return; }
+    row.required += requestFte(r) * remaining;
     if (RANK[r.priority] > RANK[row.priority]) row.priority = r.priority;
     if (r.from < row.from) row.from = r.from;
     if (r.until > row.until) row.until = r.until;

@@ -32,7 +32,11 @@ const seedAllocs: SeedAlloc[][] = [
   [["p-001", 100, "2025-06", "2026-12", "Interfaces Build"]],
 ];
 const salaries = [14500, 12800, 13200, 9800, 13900, 8700, 9200, 11000, 9500, 11800, 10400, 12200];
-const types: EmploymentType[] = ["In source", "Out source", "Offshore"].map((name, i) => ({ id: `ET-${i + 1}`, name, active: true }));
+const types: EmploymentType[] = [
+  { id: "ET-1", name: "In source", description: "Full-time employees hired directly on the company payroll.", active: true },
+  { id: "ET-2", name: "Out source", description: "Contracted staff supplied by an external staffing partner.", active: true },
+  { id: "ET-3", name: "Offshore", description: "Team members working remotely from an offshore delivery center.", active: true },
+];
 
 /** Demo monthly plans: a mid-year raise and a part-time month so per-month values are visible. */
 function seedMonthly(i: number, base: number): Record<string, EmployeeMonthPlan> {
@@ -77,7 +81,8 @@ const listeners = new Set<() => void>();
 // v5: demo rows carry full profile data (phone, national ID, birth date, gender, tags).
 // v7: allocations are only Full time (100%) / Part time (50%) from fulfilled requests; util derived from them.
 // v8: ERP System Upgrade carries a 12-person demo team.
-const storageKey = "pmo.employees.v8";
+// v9: employment types carry demo descriptions.
+const storageKey = "pmo.employees.v9";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;

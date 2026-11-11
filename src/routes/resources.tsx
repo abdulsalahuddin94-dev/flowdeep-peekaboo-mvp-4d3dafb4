@@ -383,6 +383,8 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
     <>
       <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search employee, role or task…" filterGroups={[
         relatedProjectsGroup(related, setRelated),
+        projectNameGroup(projectNames, setProjectNames, projectOptions),
+        jobRoleGroup(jobRolesSelected, setJobRolesSelected, roleOptions),
         { key: "employment-type", label: "Employment type", value: employmentType, onChange: setEmploymentType, options: [{ value: "all", label: "All employment types" }, ...employmentTypes.map((v) => ({ value: v.id, label: v.name }))] },
         { key: "department", label: "Department", value: department, onChange: setDepartment, options: [{ value: "all", label: "All departments" }, ...departments.map((d) => ({ value: d.name, label: d.name }))] },
       ]} />

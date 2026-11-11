@@ -29,7 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { projects, departments } from "@/lib/mock-data";
-import { useResourceRequests, useJobRoles, EMPLOYMENT_PERCENT, employmentFromFte } from "@/lib/projects-store";
+import { useResourceRequests, useJobRoles, EMPLOYMENT_PERCENT, employmentFromFte, requestQuantity, requestAssignees } from "@/lib/projects-store";
 import type { ResourceRequest } from "@/lib/projects-store";
 import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck } from "@/lib/icons";
 import { toast } from "@/lib/toast";
@@ -102,12 +102,17 @@ function ResourcesPage() {
         };
       }));
     }
+    const assignees = [...requestAssignees(req), assignedTo];
+    const qty = requestQuantity(req);
+    const complete = assignees.length >= qty;
     updateResourceRequest(id, {
-      status: "Fulfilled", assignedTo, allocation: alloc,
+      status: complete ? "Fulfilled" : "Pending", assignedTo, assignees, allocation: alloc,
       utilBefore, utilAfter, decidedOn: new Date().toISOString().slice(0, 10),
     });
     toast.success(`${req.role} assigned to ${req.project}`, {
-      description: `${assignedTo} · ${req.employment ?? employmentFromFte(req.fte)} (${alloc}%) · ${req.from} → ${req.until}`,
+      description: qty > 1
+        ? `${assignedTo} · ${assignees.length} of ${qty} filled${complete ? " — request fulfilled" : ""}`
+        : `${assignedTo} · ${req.employment ?? employmentFromFte(req.fte)} (${alloc}%) · ${req.from} → ${req.until}`,
     });
   }
 
@@ -207,7 +212,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
                   className="group cursor-pointer"
                   onClick={() => setOpenId(req.id)}
                 >
-                  <StyledTableCell><div className="font-medium text-foreground">{req.role}</div><div className="text-xs text-muted-foreground">{req.skill}</div></StyledTableCell>
+                  <StyledTableCell><div className="font-medium text-foreground">{req.role}{requestQuantity(req) > 1 ? <span className="num-mono text-muted-foreground"> × {requestQuantity(req)}</span> : null}</div><div className="text-xs text-muted-foreground">{req.skill}{requestQuantity(req) > 1 ? ` · ${requestAssignees(req).length} / ${requestQuantity(req)} filled` : ""}</div></StyledTableCell>
                   <StyledTableCell>{req.task ?? <span className="text-muted-foreground">—</span>}</StyledTableCell>
                   <StyledTableCell>{req.project}</StyledTableCell>
                   <StyledTableCell>{req.scope === "team" ? "Team" : "Task"}</StyledTableCell>
@@ -278,6 +283,7 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
                 <DrawerRow label="Project" value={req.project} />
                 <DrawerRow label="Task" value={req.task ?? "—"} />
                 <DrawerRow label="Employment" value={req.employment ?? employmentFromFte(req.fte)} />
+                {requestQuantity(req) > 1 && <DrawerRow label="Employees needed" value={`${requestAssignees(req).length} / ${requestQuantity(req)} filled`} valueClass="num-mono" />}
                 <DrawerRow label="Period" value={`${req.from} → ${req.until}`} valueClass="num-mono" />
                 <DrawerRow label="Submitted by" value={req.submittedBy} />
                 <DrawerRow label="Submitted" value={/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date} />
@@ -304,7 +310,7 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
 
                 {req.status === "Fulfilled" && (
                   <>
-                    <DrawerRow label="Assigned person" value={req.assignedTo ?? "—"} />
+                    <DrawerRow label={requestQuantity(req) > 1 ? "Assigned people" : "Assigned person"} value={requestAssignees(req).join(", ") || "—"} />
                     {req.allocation != null && (
                       <DrawerRow label="Allocation on this project" value={`${req.allocation}%`} valueClass="num-mono" />
                     )}
@@ -548,6 +554,7 @@ function FulfillDialog({
           <div className="font-medium text-foreground">{req.role} <span className="text-muted-foreground text-xs">({req.skill})</span></div>
           <div className="mt-0.5 text-xs text-muted-foreground">
             {req.project} · {req.scope === "team" ? "Team" : "Task"} · {req.from} → {req.until}
+            {requestQuantity(req) > 1 && <span className="num-mono"> · {requestAssignees(req).length} of {requestQuantity(req)} filled</span>}
           </div>
           {req.notes && <div className="mt-1 text-xs italic text-muted-foreground">"{req.notes}"</div>}
         </div>
@@ -557,7 +564,7 @@ function FulfillDialog({
             <Select onValueChange={(value) => { setPersonName(value); setPersonError(""); }}>
               <SelectTrigger id="fulfill-person"><SelectValue placeholder="Select from resource pool…" /></SelectTrigger>
               <SelectContent>
-                {pool.filter((r) => r.active !== false).map((r) => { const u = periodOf(r); return (
+                {pool.filter((r) => r.active !== false && !requestAssignees(req).includes(r.name)).map((r) => { const u = periodOf(r); return (
                   <SelectItem key={r.name} value={r.name}>
                     <span className="flex items-center gap-2">
                       <span>{r.name}</span>

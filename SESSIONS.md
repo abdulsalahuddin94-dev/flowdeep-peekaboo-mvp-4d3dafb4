@@ -1,3 +1,8 @@
+## 2026-11-11 — Role requests carry a headcount (employees needed)
+- `ResourceRequest.quantity?` (default 1) + `assignees?: string[]`; helpers `requestQuantity` / `requestAssignees` in projects-store. Request role dialog (Team tab) gains an "Employees needed" number field (1–99).
+- Fulfill assigns one person per action and appends to `assignees`; the request stays **Pending** until all seats are filled (statuses unchanged), showing "n / N filled" in the Team tab requests table, Resources requests table, Fulfill dialog and request drawer. Already-assigned people are excluded from the Fulfill dropdown.
+- `projectTeam` counts assignees of partially filled requests too, so filled seats join the Team immediately. Manpower Planning demand = FTE × quantity, supply = FTE × filled seats; Skill Demand counts only remaining seats. Seed: RR-030 (Smart Grid Pilot, 3 × QA Engineer). Tests: `src/lib/resource-demand.test.ts`, `src/components/project-team.test.ts`.
+
 ## 2026-11-11 — Employees list gains project and job role filters
 - Resources → Employees filter drawer now carries **Project name** and **Job role** multi-select groups (`projectNameGroup` / `jobRoleGroup` in `src/components/ds/filters.ts`, applied through `matchAnySelected`: empty selection = all, otherwise any selected value matches).
 - Job role options come from the Organization Job roles lookup plus any role still carried by an employee, so retired/renamed roles stay filterable; project options come from the portfolio project names.

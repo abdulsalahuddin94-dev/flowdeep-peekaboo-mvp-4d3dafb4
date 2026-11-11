@@ -310,6 +310,13 @@ export type Employment = "Full time" | "Part time";
 export const EMPLOYMENT_PERCENT: Record<Employment, number> = { "Full time": 100, "Part time": 50 };
 export function employmentFromFte(fte: number): Employment { return fte >= 1 ? "Full time" : "Part time"; }
 
+/** Headcount a request asks for (defaults to 1). */
+export function requestQuantity(r: Pick<ResourceRequest, "quantity">): number { return Math.max(1, r.quantity ?? 1); }
+/** People already assigned to a request (falls back to the single assignedTo). */
+export function requestAssignees(r: Pick<ResourceRequest, "assignees" | "assignedTo">): string[] {
+  return r.assignees ?? (r.assignedTo ? [r.assignedTo] : []);
+}
+
 export type ResourceRequest = {
   id: string; project: string; role: string;
   skill: "Junior" | "Mid" | "Senior" | "Lead";
@@ -323,6 +330,10 @@ export type ResourceRequest = {
   scope?: "team" | "task";
   /** Full time = 100% of capacity, Part time = 50%. */
   employment?: Employment;
+  /** How many employees this role request asks for (default 1). */
+  quantity?: number;
+  /** People assigned so far; request is Fulfilled once this reaches quantity. */
+  assignees?: string[];
   assignedTo?: string; declineReason?: string;
   /** Outcome details captured when the request is fulfilled or declined. */
   allocation?: number; utilBefore?: number; utilAfter?: number;
@@ -360,6 +371,7 @@ export const SEED_RESOURCE_REQUESTS: ResourceRequest[] = [
   { id: "RR-28", scope: "team", employment: "Part time", project: "ERP System Upgrade", role: "Change Manager", skill: "Mid", fte: 0.5, from: "2025-08", until: "2026-12", priority: "Medium", status: "Fulfilled", submittedBy: "Sara Al-Rashid", date: "2w ago", notes: "", assignedTo: "Laila Hassan", allocation: 50, utilBefore: 0, utilAfter: 50, decidedOn: "2025-08-01" },
   { id: "RR-29", scope: "team", employment: "Full time", project: "ERP System Upgrade", role: "Integration Developer", skill: "Mid", fte: 1, from: "2025-06", until: "2026-12", priority: "Medium", status: "Fulfilled", submittedBy: "Sara Al-Rashid", date: "2w ago", notes: "", assignedTo: "Youssef Amin", allocation: 100, utilBefore: 0, utilAfter: 100, decidedOn: "2025-06-01" },
   { id: "RR-006", task: "Change Readiness", project: "Warehouse Robotics",          role: "Change Manager",    scope: "task", employment: "Part time", skill: "Mid",    fte: 0.5, from: "2026-09", until: "2026-09", priority: "Low",      status: "Declined",  submittedBy: "Priya Iyer",     date: "1w ago",  notes: "", declineReason: "No available change managers this quarter — recommend external consultant" },
+  { id: "RR-030", scope: "team", employment: "Full time", project: "Smart Grid Pilot", role: "QA Engineer", skill: "Mid", fte: 1, quantity: 3, from: "2026-11", until: "2027-03", priority: "High", status: "Pending", submittedBy: "Priya Iyer", date: "1d ago", notes: "Need a QA pod for the field pilot rollout" },
 ];
 
 // ── Context ───────────────────────────────────────────────────────────────────

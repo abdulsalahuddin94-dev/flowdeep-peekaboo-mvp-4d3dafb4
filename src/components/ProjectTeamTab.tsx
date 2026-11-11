@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { useResourceRequests, useJobRoles, employmentFromFte, type Employment, type ResourceRequest } from "@/lib/projects-store";
+import { useResourceRequests, useJobRoles, employmentFromFte, requestQuantity, requestAssignees, type Employment, type ResourceRequest } from "@/lib/projects-store";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -17,15 +18,17 @@ import { toast } from "@/lib/toast";
 export type TeamMember = { name: string; role: string; employment: Employment };
 type Item = { name: string; kind: string; startDate: string; endDate: string; assignee?: string; progress?: number };
 
-/** Team = people placed on the project by fulfilled requests (team or task). */
+/** Team = people placed on the project by fulfilled requests (team or task). Partially filled requests already count their assignees. */
 export function projectTeam(project: string, requests: ResourceRequest[]): TeamMember[] {
   const map = new Map<string, TeamMember>();
   for (const r of requests) {
-    if (r.project !== project || r.status !== "Fulfilled" || !r.assignedTo) continue;
+    if (r.project !== project || r.status === "Declined") continue;
     const employment = r.employment ?? employmentFromFte(r.fte);
-    const prev = map.get(r.assignedTo);
-    if (!prev) map.set(r.assignedTo, { name: r.assignedTo, role: r.role, employment });
-    else if (employment === "Full time") prev.employment = "Full time";
+    for (const name of requestAssignees(r)) {
+      const prev = map.get(name);
+      if (!prev) map.set(name, { name, role: r.role, employment });
+      else if (employment === "Full time") prev.employment = "Full time";
+    }
   }
   return [...map.values()];
 }
@@ -37,8 +40,8 @@ export function isWorkingNow(name: string, items: Item[], today = new Date()) {
 }
 
 const T = {
-  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", type: "Type", seniority: "Seniority", priority: "Priority", notes: "Notes", working: "Working now", idle: "Not working now", emptyT: "No team members yet", emptyD: "Request a role. Once Resources fulfills it, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", teamScope: "Team" },
-  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", type: "النوع", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", working: "يعمل الآن", idle: "لا يعمل الآن", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب دورًا، وبعد تنفيذه من الموارد ينضم الموظف للفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", teamScope: "فريق" },
+  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", type: "Type", seniority: "Seniority", priority: "Priority", notes: "Notes", working: "Working now", idle: "Not working now", emptyT: "No team members yet", emptyD: "Request a role. Once Resources fulfills it, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", teamScope: "Team", headcount: "Employees needed", filled: "filled" },
+  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", type: "النوع", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", working: "يعمل الآن", idle: "لا يعمل الآن", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب دورًا، وبعد تنفيذه من الموارد ينضم الموظف للفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", teamScope: "فريق", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم" },
 };
 
 export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar" }) {
@@ -93,7 +96,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
             <StyledTableBody>
               {reqs.map((r) => (
                 <StyledTableRow key={r.id}>
-                  <StyledTableCell><div className="font-medium text-foreground">{r.role}</div><div className="text-xs text-muted-foreground">{r.skill}</div></StyledTableCell>
+                  <StyledTableCell><div className="font-medium text-foreground">{r.role}{requestQuantity(r) > 1 ? <span className="num-mono text-muted-foreground"> × {requestQuantity(r)}</span> : null}</div><div className="text-xs text-muted-foreground">{r.skill}{requestQuantity(r) > 1 ? ` · ${requestAssignees(r).length} / ${requestQuantity(r)} ${t.filled}` : ""}</div></StyledTableCell>
                   <StyledTableCell>{r.scope === "team" ? t.teamScope : t.task}</StyledTableCell>
                   <StyledTableCell>{r.task ?? "—"}</StyledTableCell>
                   <StyledTableCell>{r.employment ?? employmentFromFte(r.fte)}</StyledTableCell>
@@ -108,24 +111,24 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
 
       <RequestRoleDialog open={open} onOpenChange={setOpen} lang={lang} onSubmit={(v) => {
         const month = new Date().toISOString().slice(0, 7);
-        addResourceRequest({ project, scope: "team", role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, from: month, until: month, priority: v.priority, submittedBy: pm, notes: v.notes });
+        addResourceRequest({ project, scope: "team", role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, quantity: v.quantity, from: month, until: month, priority: v.priority, submittedBy: pm, notes: v.notes });
         toast.success("Role request sent to Resources");
       }} />
     </div>
   );
 }
 
-export type RoleRequestValue = { role: string; skill: ResourceRequest["skill"]; employment: Employment; priority: ResourceRequest["priority"]; notes: string };
+export type RoleRequestValue = { role: string; skill: ResourceRequest["skill"]; employment: Employment; priority: ResourceRequest["priority"]; notes: string; quantity: number };
 
 export function RequestRoleDialog({ open, onOpenChange, onSubmit, lang = "en", description }: { open: boolean; onOpenChange: (o: boolean) => void; onSubmit: (v: RoleRequestValue) => void; lang?: "en" | "ar"; description?: string }) {
   const t = T[lang];
   const { jobRoles } = useJobRoles();
-  const [v, setV] = useState<RoleRequestValue>({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "" });
+  const [v, setV] = useState<RoleRequestValue>({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "", quantity: 1 });
   const [err, setErr] = useState("");
   const submit = () => {
     if (!v.role) { setErr("Select a role."); return; }
     onSubmit(v); onOpenChange(false); setErr("");
-    setV({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "" });
+    setV({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "", quantity: 1 });
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -152,12 +155,17 @@ export function RequestRoleDialog({ open, onOpenChange, onSubmit, lang = "en", d
               </Select>
             </Field>
           </div>
-          <Field label={t.priority}>
-            <Select value={v.priority} onValueChange={(p) => setV({ ...v, priority: p as RoleRequestValue["priority"] })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{(["Critical", "High", "Medium", "Low"] as const).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-            </Select>
-          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t.priority}>
+              <Select value={v.priority} onValueChange={(p) => setV({ ...v, priority: p as RoleRequestValue["priority"] })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{(["Critical", "High", "Medium", "Low"] as const).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              </Select>
+            </Field>
+            <Field label={t.headcount}>
+              <Input type="number" min={1} max={99} value={v.quantity} onChange={(e) => setV({ ...v, quantity: Math.max(1, Math.min(99, Math.floor(Number(e.target.value) || 1))) })} />
+            </Field>
+          </div>
           <Field label={t.notes} optional>
             <Textarea value={v.notes} onChange={(e) => setV({ ...v, notes: e.target.value })} />
           </Field>

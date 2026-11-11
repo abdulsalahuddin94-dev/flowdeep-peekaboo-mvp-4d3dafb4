@@ -1,20 +1,34 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { requestFte } from "./resource-demand";
-import { periodUtilization } from "./employees-store";
+import { buildManpowerPlan, buildSkillDemand } from "./resource-demand";
 import type { ResourceRequest } from "./projects-store";
 
-const req = (employment: "Full time" | "Part time") => ({ employment, fte: 9 } as unknown as ResourceRequest);
+const base = { skill: "Mid" as const, fte: 1, from: "2026-01", until: "2026-06", priority: "Medium" as const, submittedBy: "", date: "", notes: "" };
 
-test("Full time request counts as 1 FTE and Part time as 0.5", () => {
-  assert.equal(requestFte(req("Full time")), 1);
-  assert.equal(requestFte(req("Part time")), 0.5);
+test("manpower demand multiplies by headcount; supply counts filled seats only", () => {
+  const requests: ResourceRequest[] = [
+    { ...base, id: "1", project: "P", role: "QA Engineer", status: "Pending", employment: "Full time", quantity: 3, assignees: ["Ann"] },
+  ];
+  const [row] = buildManpowerPlan(requests, []);
+  assert.equal(row.demand, 3);
+  assert.equal(row.supply, 1);
+  assert.equal(row.action, "Fulfill 2 pending requests");
 });
 
-test("two Part time projects in the same month total 100% and average across the period", () => {
-  const allocs = [
-    { id: "a", project: "A", role: "x", percent: 50, from: "2026-01", until: "2026-12" },
-    { id: "b", project: "B", role: "x", percent: 50, from: "2026-01", until: "2026-06" },
+test("skill demand counts only the remaining seats of a pending request", () => {
+  const requests: ResourceRequest[] = [
+    { ...base, id: "1", project: "P", role: "QA Engineer", status: "Pending", employment: "Part time", quantity: 4, assignees: ["Ann", "Bob"] },
   ];
-  assert.deepEqual(periodUtilization(allocs, "2026-01", "2026-12"), { peak: 100, average: 75 });
+  const [row] = buildSkillDemand(requests, []);
+  assert.equal(row.required, 1); // 2 remaining seats × 0.5 FTE
+});
+
+test("single-seat requests behave as before", () => {
+  const requests: ResourceRequest[] = [
+    { ...base, id: "1", project: "P", role: "QA Engineer", status: "Fulfilled", employment: "Full time", assignedTo: "Ann" },
+  ];
+  const [row] = buildManpowerPlan(requests, []);
+  assert.equal(row.demand, 1);
+  assert.equal(row.supply, 1);
+  assert.equal(row.action, "Capacity covered");
 });

@@ -1,3 +1,6 @@
+## 2026-11-11 — Team requests table gains a Notes column
+- The project Team tab's Requests table now shows the note typed in **Request role** (Role / Type / Task / Employment / Priority / **Notes** / Status), muted text that wraps up to 288px and "—" when empty, so the note is readable where the request was raised instead of only inside Resources (request drawer + Fulfill dialog).
+
 ## 2026-11-11 — Team card status reads Active / Inactive
 - Project Team cards now use the shared `StatusPill` (green Active / amber Inactive) instead of the custom "Working now" / "Not working now" outline pill, so the Team tab matches the status wording and styling used in the Employees, Clients & Vendors and Organization lists. Arabic labels follow the employee profile ("نشط" / "غير نشط").
 - Same derived rule underneath: a member is Active while they hold a task in progress (task dates + progress), Inactive otherwise (`isWorkingNow` unchanged).

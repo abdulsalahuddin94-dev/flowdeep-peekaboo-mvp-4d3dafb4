@@ -93,7 +93,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
         <div className="space-y-3">
           <h3 className="text-base font-medium text-foreground">{t.requests}</h3>
           <StyledTable>
-            <StyledTableHeader><StyledTableHeaderRow>{[t.role, t.type, t.task, t.employment, t.priority, t.status].map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader>
+            <StyledTableHeader><StyledTableHeaderRow>{[t.role, t.type, t.task, t.employment, t.priority, t.notes, t.status].map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
               {reqs.map((r) => (
                 <StyledTableRow key={r.id}>
@@ -102,6 +102,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
                   <StyledTableCell>{r.task ?? "—"}</StyledTableCell>
                   <StyledTableCell>{r.employment ?? employmentFromFte(r.fte)}</StyledTableCell>
                   <StyledTableCell>{r.priority}</StyledTableCell>
+                  <StyledTableCell><div className="max-w-72 break-words text-xs text-muted-foreground">{r.notes || "—"}</div></StyledTableCell>
                   <StyledTableCell><Pill label={r.status} tone={r.status === "Fulfilled" ? "border-rag-green/40 text-rag-green" : r.status === "Declined" ? "border-rag-red/40 text-rag-red" : "border-rag-amber/40 text-rag-amber"} /></StyledTableCell>
                 </StyledTableRow>
               ))}

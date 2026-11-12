@@ -570,7 +570,7 @@ function FulfillDialog({
           <CheckCircle2 className={compact ? "h-4 w-4" : "mr-1 h-3.5 w-3.5"} />{compact ? null : "Fulfill"}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md min-w-0">
         <DialogHeader>
           <DialogTitle>Fulfill resource request</DialogTitle>
         </DialogHeader>
@@ -579,12 +579,11 @@ function FulfillDialog({
           <div className="font-medium text-foreground">{req.role} <span className="text-muted-foreground text-xs">({req.skill})</span></div>
           <div className="mt-0.5 text-xs text-muted-foreground">
             {req.project} · {COVERAGE_LABEL[requestCoverage(req)]} · {req.from} → {req.until}
-            {requestQuantity(req) > 1 && <span className="num-mono"> · {requestAssignees(req).length} of {requestQuantity(req)} filled</span>}
           </div>
           {req.notes && <div className="mt-1 text-xs italic text-muted-foreground">"{req.notes}"</div>}
         </div>
 
-        <div className="grid gap-3">
+        <div className="grid min-w-0 grid-cols-1 gap-3">
           <Field label={remaining > 1 ? `Assign people (up to ${remaining})` : "Assign person"} htmlFor="fulfill-person" required error={personError}>
             {remaining > 1 ? (
             <MultiSelectField
@@ -611,7 +610,7 @@ function FulfillDialog({
           </Field>
 
           {names.length > 1 && (
-            <div className="flex items-center gap-1">
+            <div className="flex min-w-0 items-center gap-1">
               <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0" aria-label="Scroll left" onClick={() => scrollCarousel(-1)}><ChevronLeft className="h-4 w-4 rtl:rotate-180" /></Button>
               <div ref={carouselRef} className="no-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto scroll-smooth">
                 {names.map((n) => { const active = n === focused?.name; const p = pool.find((r) => r.name === n); const over100 = p ? periodOf(p) + alloc > 100 : false; return (

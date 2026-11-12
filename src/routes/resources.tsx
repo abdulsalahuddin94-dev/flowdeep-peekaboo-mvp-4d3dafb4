@@ -326,7 +326,7 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
                 <DrawerRow label="Task" value={req.task ?? "—"} />
                 <DrawerRow label="Employment" value={req.employment ?? employmentFromFte(req.fte)} />
                 {requestQuantity(req) > 1 && <DrawerRow label="Employees needed" value={`${requestAssignees(req).length} / ${requestQuantity(req)} filled`} valueClass="num-mono" />}
-                <DrawerRow label="Period" value={<><div>{req.from}</div><div>{req.until}</div></>} valueClass="num-mono" />
+                <DrawerRow label="Period" value={`${req.from} → ${req.until}`} valueClass="num-mono" />
                 <DrawerRow label="Submitted On" value={req.submittedBy} />
                 <DrawerRow label="Submitted" value={/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date} />
                 {req.notes && (

@@ -1,7 +1,7 @@
 ## 2026-11-12 — Requests period dates stacked, "Submitted On" label
-- Requests table Period column and request drawer Period row now show `from` and `until` on separate lines (arrow removed); the table cell is `whitespace-nowrap` so a date never breaks at its hyphen.
+- Requests table Period column shows `from` and `until` on separate lines (arrow removed); the table cell is `whitespace-nowrap` so a date never breaks at its hyphen. The request drawer keeps the single-line `from → until` format.
 - Label rename only, values untouched: table header and drawer row `Submitted by` → `Submitted On`. The drawer keeps its separate `Submitted` date row.
-- Verified in preview: header reads `Submitted On`, Period cell is 75px wide with `2026-12` / `2027-04` on two clean lines, drawer shows the same two-line period.
+- Verified in preview: header reads `Submitted On`, Period cell is 75px wide with `2026-12` / `2027-04` on two clean lines, drawer shows `2026-12 → 2027-04` on one line.
 
 ## 2026-11-12 — Requests: quantity label, single/multi Fulfill picker, selection carousel, big demo pool
 - Requests table second line shows `4x Mid` (no "0 / 4 filled"); Fulfill summary drops the filled count too.

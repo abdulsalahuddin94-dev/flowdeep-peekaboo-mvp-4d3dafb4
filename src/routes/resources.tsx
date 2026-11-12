@@ -219,7 +219,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
                   <StyledTableCell>{req.project}</StyledTableCell>
                   <StyledTableCell>{COVERAGE_LABEL[requestCoverage(req)]}</StyledTableCell>
                   <StyledTableCell>{req.employment ?? employmentFromFte(req.fte)}</StyledTableCell>
-                  <StyledTableCell className="num-mono text-xs text-muted-foreground">{req.from} → {req.until}</StyledTableCell>
+                  <StyledTableCell className="num-mono text-xs text-muted-foreground"><div>{req.from}</div><div>{req.until}</div></StyledTableCell>
                   <StyledTableCell><Badge variant="outline" className={PRIORITY_STYLE[req.priority]}>{req.priority}</Badge></StyledTableCell>
                   <StyledTableCell><div>{req.submittedBy}</div><div className="text-xs text-muted-foreground">{/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date}</div></StyledTableCell>
                   <StyledTableCell onClick={(e) => e.stopPropagation()}>
@@ -326,7 +326,7 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
                 <DrawerRow label="Task" value={req.task ?? "—"} />
                 <DrawerRow label="Employment" value={req.employment ?? employmentFromFte(req.fte)} />
                 {requestQuantity(req) > 1 && <DrawerRow label="Employees needed" value={`${requestAssignees(req).length} / ${requestQuantity(req)} filled`} valueClass="num-mono" />}
-                <DrawerRow label="Period" value={`${req.from} → ${req.until}`} valueClass="num-mono" />
+                <DrawerRow label="Period" value={<><div>{req.from}</div><div>{req.until}</div></>} valueClass="num-mono" />
                 <DrawerRow label="Submitted by" value={req.submittedBy} />
                 <DrawerRow label="Submitted" value={/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date} />
                 {req.notes && (

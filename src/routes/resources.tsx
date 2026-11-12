@@ -86,7 +86,38 @@ function ResourcesPage() {
 
 
   /** Allocation is fixed by the request's employment (Full time 100% / Part time 50%) over the task/team period. */
-  function fulfillRequest(id: string, assignedTo: string) {
+  function fulfillRequest(id: string, names: string[]) {
+    const req = requests.find((r) => r.id === id);
+    if (!req || names.length === 0) return;
+    const alloc = EMPLOYMENT_PERCENT[req.employment ?? employmentFromFte(req.fte)];
+    const utilByPerson = { ...(req.utilByPerson ?? {}) };
+    for (const n of names) {
+      const person = pool.find((p) => p.name === n);
+      if (person) { const b = periodUtilization(person.allocations, req.from, req.until).peak; utilByPerson[n] = { before: b, after: b + alloc }; }
+    }
+    setPool((prev) => prev.map((p) => {
+      if (!names.includes(p.name)) return p;
+      const allocations = [...p.allocations, { id: req.id, project: req.project, role: req.role, percent: alloc, from: req.from, until: req.until, task: req.task }];
+      return {
+        ...p, allocations, util: currentUtilization(allocations),
+        projects: !p.projects.includes(req.project) ? [...p.projects, req.project] : p.projects,
+        tasks: req.task && !p.tasks.includes(req.task) ? [...p.tasks, req.task] : p.tasks,
+      };
+    }));
+    const assignees = [...requestAssignees(req), ...names];
+    const qty = requestQuantity(req);
+    const complete = assignees.length >= qty;
+    const last = names[names.length - 1];
+    updateResourceRequest(id, {
+      status: complete ? "Fulfilled" : "Pending", assignedTo: last, assignees, allocation: alloc, utilByPerson,
+      utilBefore: utilByPerson[last]?.before, utilAfter: utilByPerson[last]?.after, decidedOn: new Date().toISOString().slice(0, 10),
+    });
+    toast.success(`${req.role} assigned to ${req.project}`, {
+      description: `${names.join(", ")} · ${assignees.length} of ${qty} filled${complete ? " — request fulfilled" : ""}`,
+    });
+  }
+
+  function _legacyFulfill(id: string, assignedTo: string) {
     const req = requests.find((r) => r.id === id);
     const person = pool.find((p) => p.name === assignedTo);
     if (!req) return;
@@ -173,7 +204,7 @@ function ResourcesPage() {
 function RequestsTable({ requests, pool, onFulfill, onDecline }: {
   requests: ResourceRequest[];
   pool: PoolResource[];
-  onFulfill: (id: string, assignedTo: string) => void;
+  onFulfill: (id: string, names: string[]) => void;
   onDecline: (id: string, reason: string) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -518,7 +549,7 @@ function FulfillDialog({
 }: {
   req: ResourceRequest;
   pool: PoolResource[];
-  onFulfill: (id: string, assignedTo: string) => void;
+  onFulfill: (id: string, names: string[]) => void;
   compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);

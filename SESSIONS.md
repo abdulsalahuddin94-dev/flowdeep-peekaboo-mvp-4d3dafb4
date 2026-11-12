@@ -1,3 +1,9 @@
+## 2026-11-12 — Requests: quantity label, single/multi Fulfill picker, selection carousel, big demo pool
+- Requests table second line shows `4x Mid` (no "0 / 4 filled"); Fulfill summary drops the filled count too.
+- Fulfill uses a normal searchable dropdown when one person remains; multi-select only when more are needed.
+- Options read `Name - Sr PM 60%` (`employeeShortTitle`); selected people show as a left/right scrollable pill carousel, clicking one switches the utilization card.
+- ~96 demo employees across 12 specialisms (storage v13).
+
 ## 2026-11-12 — Multi-person Fulfill
 - Fulfill dialog: multiselect assign, candidates filtered to the request's job role, capped at remaining headcount; each option shows period utilization before → after; over-allocation warns but allows.
 - Request drawer: new "Assigned (N/M)" section with progress bar, avatar/name/role/utilization per person, each opening the employee profile; per-person utilization stored in `utilByPerson`.

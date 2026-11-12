@@ -549,6 +549,7 @@ function FulfillDialog({
   const remaining = Math.max(1, requestQuantity(req) - requestAssignees(req).length);
   const sameRole = (r: PoolResource) => r.role.trim().toLowerCase() === req.role.trim().toLowerCase();
   const candidates = pool.filter((r) => r.active !== false && sameRole(r) && !requestAssignees(req).includes(r.name));
+  const focused = pool.find((r) => r.name === names[names.length - 1]);
   const over = names.filter((n) => { const p = pool.find((r) => r.name === n); return p && periodOf(p) + alloc > 100; });
 
   function handleSave() {
@@ -601,8 +602,26 @@ function FulfillDialog({
             <span className="text-muted-foreground">Allocation on this project</span>
             <span className="font-medium text-foreground">{employment} · <span className="num-mono">{alloc}%</span></span>
           </div>
-          <p className="text-xs text-muted-foreground">Each option shows peak utilization in this period → after this assignment.</p>
-          {over.length > 0 && <p className="text-xs text-rag-red">⚠ This will over-allocate {over.join(", ")}</p>}
+          {focused && (() => { const before = periodOf(focused); const projected = before + alloc; return (
+            <div className="rounded-md border border-border bg-background/30 p-3 text-xs space-y-2">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Peak utilization in this period{names.length > 1 ? ` · ${focused.name}` : ""}</span>
+                <span className={`num-mono font-medium ${tone(before)}`}>{before}%</span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary/50">
+                <div className="h-full rounded-full bg-accent/40" style={{ width: `${Math.min(before, 100)}%` }} />
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">After this assignment</span>
+                <span className={`num-mono font-medium ${tone(projected)}`}>{projected}%</span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary/50">
+                <div className={`h-full rounded-full ${projected > 100 ? "bg-rag-red" : projected > 80 ? "bg-rag-amber" : "bg-accent"}`} style={{ width: `${Math.min(projected, 100)}%` }} />
+              </div>
+              {projected > 100 && <p className="text-rag-red">⚠ This will over-allocate {focused.name}</p>}
+            </div>
+          ); })()}
+          {over.filter((n) => n !== focused?.name).length > 0 && <p className="text-xs text-rag-red">⚠ Also over-allocated: {over.filter((n) => n !== focused?.name).join(", ")}</p>}
         </div>
 
         <DialogFooter>

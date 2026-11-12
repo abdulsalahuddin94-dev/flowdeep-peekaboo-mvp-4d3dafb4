@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { EmptyRegion } from "@/lib/empty-preview";
@@ -32,10 +32,10 @@ import { MultiSelectField } from "@/components/ui/multi-select-field";
 import { projects, departments } from "@/lib/mock-data";
 import { useResourceRequests, useJobRoles, EMPLOYMENT_PERCENT, employmentFromFte, requestQuantity, requestAssignees, requestCoverage } from "@/lib/projects-store";
 import type { ResourceRequest } from "@/lib/projects-store";
-import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck } from "@/lib/icons";
+import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck, ChevronLeft, ChevronRight } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
-import { useEmployees, type Employee, currentUtilization, periodUtilization, allocationPercent, monthRange } from "@/lib/employees-store";
+import { useEmployees, type Employee, currentUtilization, periodUtilization, allocationPercent, monthRange, employeeShortTitle } from "@/lib/employees-store";
 import { buildManpowerPlan, buildSkillDemand } from "@/lib/resource-demand";
 
 export const Route = createFileRoute("/resources")({
@@ -554,7 +554,6 @@ function FulfillDialog({
   const focused = pool.find((r) => r.name === (focusName && names.includes(focusName) ? focusName : names[names.length - 1]));
   const optionLabel = (r: PoolResource) => `${r.name} - ${employeeShortTitle(r)}`;
   const scrollCarousel = (dir: 1 | -1) => carouselRef.current?.scrollBy({ left: dir * 160, behavior: "smooth" });
-  const over = names.filter((n) => { const p = pool.find((r) => r.name === n); return p && periodOf(p) + alloc > 100; });
 
   function handleSave() {
     if (names.length === 0) { setPersonError("Select at least one person to assign."); return; }
@@ -614,7 +613,7 @@ function FulfillDialog({
           {names.length > 1 && (
             <div className="flex items-center gap-1">
               <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0" aria-label="Scroll left" onClick={() => scrollCarousel(-1)}><ChevronLeft className="h-4 w-4 rtl:rotate-180" /></Button>
-              <div ref={carouselRef} className="tabs-scroll-hidden flex min-w-0 flex-1 gap-2 overflow-x-auto scroll-smooth">
+              <div ref={carouselRef} className="no-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto scroll-smooth">
                 {names.map((n) => { const active = n === focused?.name; const p = pool.find((r) => r.name === n); const over100 = p ? periodOf(p) + alloc > 100 : false; return (
                   <button key={n} type="button" onClick={() => setFocusName(n)} aria-pressed={active}
                     className={`h-7 shrink-0 whitespace-nowrap rounded-full border px-3 text-xs transition-colors ${active ? "border-primary bg-primary/15 text-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}>

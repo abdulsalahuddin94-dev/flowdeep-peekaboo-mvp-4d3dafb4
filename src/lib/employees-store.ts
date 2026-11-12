@@ -83,6 +83,25 @@ const FRONTEND_DEMO = ["Rana Saleh", "Tariq Nasser", "Mona Adel", "Kareem Fawzy"
   return { id: `EMP-${String(i + 1).padStart(3, "0")}`, name, role: "Frontend Developer", seniority: SENIORITY_LEVELS[k % SENIORITY_LEVELS.length], dept: "Engineering", email: `${name.toLowerCase().replace(/\s+/g, ".")}@company.com`, salary: 11000 + k * 500, capacity: DEFAULT_MONTHLY_CAPACITY, util: currentUtilization(allocations), employmentTypeId: types[k % 3]?.id ?? "ET-1", joinedOn: `${2021 + k % 4}-0${k + 2}-15`, projects: allocations.map((a) => a.project), tasks: [], allocations, leave: [], trips: [], monthly: {}, vacationEntitlement: 24, demo: true, employeeNumber: String(7200000 + k * 1111), active: true, shortName: name.split(" ")[0], gender: k % 2 ? "Male" : "Female", tags: [] };
 });
 initialEmployees.push(...FRONTEND_DEMO);
+/** Large demo pool across many specialisms so role-filtered pickers show realistic volume. */
+const POOL_ROLES: [string, string][] = [["Project Manager", "PMO"], ["Frontend Developer", "Engineering"], ["Backend Developer", "Engineering"], ["UX Designer", "Design"], ["QA Engineer", "Engineering"], ["Business Analyst", "PMO"], ["Data Engineer", "Data"], ["DevOps Engineer", "Engineering"], ["Solution Architect", "Engineering"], ["Security Lead", "Security"], ["Change Manager", "PMO"], ["BI Engineer", "Data"]];
+const FIRST = ["Omar", "Layla", "Youssef", "Nour", "Hassan", "Dina", "Ali", "Farah", "Khaled", "Hana", "Ziad", "Reem", "Amir", "Yasmin", "Samir", "Lina", "Adam", "Maya"];
+const LAST = ["Haddad", "Mansour", "Khalil", "Saad", "Farouk", "Aziz", "Hamdan", "Najjar", "Rizk", "Shams", "Taha", "Zaki"];
+POOL_ROLES.forEach(([role, dept], ri) => {
+  for (let k = 0; k < 8; k++) {
+    const n = ri * 8 + k; const i = initialEmployees.length; const name = `${FIRST[(n * 7) % FIRST.length]} ${LAST[(n * 5 + ri) % LAST.length]}`;
+    const percent = k % 4 === 0 ? 100 : k % 4 === 1 ? 50 : 0;
+    const allocations: EmployeeAllocation[] = percent ? [{ id: `seed-pool-${n}`, project: "Customer Portal v3", role, percent, from: "2026-09", until: "2027-03" }] : [];
+    initialEmployees.push({ id: `EMP-${String(i + 1).padStart(3, "0")}`, name, role, seniority: SENIORITY_LEVELS[(n + ri) % SENIORITY_LEVELS.length], dept, email: `${name.toLowerCase().replace(/\s+/g, ".")}${n}@company.com`, salary: 9000 + (n % 6) * 1000, capacity: DEFAULT_MONTHLY_CAPACITY, util: currentUtilization(allocations), employmentTypeId: types[n % 3]?.id ?? "ET-1", joinedOn: `${2019 + n % 6}-0${(n % 9) + 1}-10`, projects: allocations.map((a) => a.project), tasks: [], allocations, leave: [], trips: [], monthly: {}, vacationEntitlement: 24, demo: true, employeeNumber: String(7300000 + n * 37), active: true, shortName: name.split(" ")[0], gender: n % 2 ? "Male" : "Female", tags: [] });
+  }
+});
+const SENIORITY_SHORT: Record<string, string> = { Junior: "Jr", Mid: "Mid", Senior: "Sr", Lead: "Lead" };
+/** Compact "Sr PM" style title: seniority abbreviation + role initials. */
+export function employeeShortTitle(e: Pick<Employee, "role" | "seniority">): string {
+  const words = e.role.trim().split(/\s+/);
+  const role = words.length > 1 ? words.map((w) => (/^[A-Z]{2,}$/.test(w) ? w : w[0].toUpperCase())).join("") : e.role;
+  return [e.seniority ? SENIORITY_SHORT[e.seniority] ?? e.seniority : "", role].filter(Boolean).join(" ");
+}
 const defaults = { employees: initialEmployees, employmentTypes: types };
 /** Demo seed rows, kept exported so tests can assert against them. */
 export const SEED_EMPLOYEES = initialEmployees;
@@ -96,8 +115,9 @@ const listeners = new Set<() => void>();
 // v9: employment types carry demo descriptions.
 // v10: seed allocations reference project ids instead of literal names.
 // v11: employees carry a seniority level (Junior / Mid / Senior / Lead).
+// v13: ~100 demo employees across 12 specialisms.
 // v12: five demo Frontend Developers for the multi-person request example.
-const storageKey = "pmo.employees.v12";
+const storageKey = "pmo.employees.v13";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;

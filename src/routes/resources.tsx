@@ -28,6 +28,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { MultiSelectField } from "@/components/ui/multi-select-field";
 import { projects, departments } from "@/lib/mock-data";
 import { useResourceRequests, useJobRoles, EMPLOYMENT_PERCENT, employmentFromFte, requestQuantity, requestAssignees, requestCoverage } from "@/lib/projects-store";
 import type { ResourceRequest } from "@/lib/projects-store";
@@ -86,35 +87,34 @@ function ResourcesPage() {
 
 
   /** Allocation is fixed by the request's employment (Full time 100% / Part time 50%) over the task/team period. */
-  function fulfillRequest(id: string, assignedTo: string) {
+  function fulfillRequest(id: string, names: string[]) {
     const req = requests.find((r) => r.id === id);
-    const person = pool.find((p) => p.name === assignedTo);
-    if (!req) return;
+    if (!req || names.length === 0) return;
     const alloc = EMPLOYMENT_PERCENT[req.employment ?? employmentFromFte(req.fte)];
-    const utilBefore = person ? periodUtilization(person.allocations, req.from, req.until).peak : undefined;
-    const utilAfter = utilBefore == null ? undefined : utilBefore + alloc;
-    if (person) {
-      setPool((prev) => prev.map((p) => {
-        if (p.name !== assignedTo) return p;
-        const allocations = [...p.allocations, { id: req.id, project: req.project, role: req.role, percent: alloc, from: req.from, until: req.until, task: req.task }];
-        return {
-          ...p, allocations, util: currentUtilization(allocations),
-          projects: !p.projects.includes(req.project) ? [...p.projects, req.project] : p.projects,
-          tasks: req.task && !p.tasks.includes(req.task) ? [...p.tasks, req.task] : p.tasks,
-        };
-      }));
+    const utilByPerson = { ...(req.utilByPerson ?? {}) };
+    for (const n of names) {
+      const person = pool.find((p) => p.name === n);
+      if (person) { const b = periodUtilization(person.allocations, req.from, req.until).peak; utilByPerson[n] = { before: b, after: b + alloc }; }
     }
-    const assignees = [...requestAssignees(req), assignedTo];
+    setPool((prev) => prev.map((p) => {
+      if (!names.includes(p.name)) return p;
+      const allocations = [...p.allocations, { id: req.id, project: req.project, role: req.role, percent: alloc, from: req.from, until: req.until, task: req.task }];
+      return {
+        ...p, allocations, util: currentUtilization(allocations),
+        projects: !p.projects.includes(req.project) ? [...p.projects, req.project] : p.projects,
+        tasks: req.task && !p.tasks.includes(req.task) ? [...p.tasks, req.task] : p.tasks,
+      };
+    }));
+    const assignees = [...requestAssignees(req), ...names];
     const qty = requestQuantity(req);
     const complete = assignees.length >= qty;
+    const last = names[names.length - 1];
     updateResourceRequest(id, {
-      status: complete ? "Fulfilled" : "Pending", assignedTo, assignees, allocation: alloc,
-      utilBefore, utilAfter, decidedOn: new Date().toISOString().slice(0, 10),
+      status: complete ? "Fulfilled" : "Pending", assignedTo: last, assignees, allocation: alloc, utilByPerson,
+      utilBefore: utilByPerson[last]?.before, utilAfter: utilByPerson[last]?.after, decidedOn: new Date().toISOString().slice(0, 10),
     });
     toast.success(`${req.role} assigned to ${req.project}`, {
-      description: qty > 1
-        ? `${assignedTo} · ${assignees.length} of ${qty} filled${complete ? " — request fulfilled" : ""}`
-        : `${assignedTo} · ${req.employment ?? employmentFromFte(req.fte)} (${alloc}%) · ${req.from} → ${req.until}`,
+      description: `${names.join(", ")} · ${assignees.length} of ${qty} filled${complete ? " — request fulfilled" : ""}`,
     });
   }
 
@@ -173,7 +173,7 @@ function ResourcesPage() {
 function RequestsTable({ requests, pool, onFulfill, onDecline }: {
   requests: ResourceRequest[];
   pool: PoolResource[];
-  onFulfill: (id: string, assignedTo: string) => void;
+  onFulfill: (id: string, names: string[]) => void;
   onDecline: (id: string, reason: string) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -262,6 +262,46 @@ function DrawerRow({ label, value, valueClass = "" }: { label: string; value: Re
   );
 }
 
+/** Assigned people with fill progress; each opens the employee profile. */
+function AssignedSection({ req }: { req: ResourceRequest }) {
+  const { employees } = useEmployees();
+  const navigate = useNavigate();
+  const names = requestAssignees(req);
+  const qty = Math.max(requestQuantity(req), names.length);
+  const tone = (v: number) => v > 100 ? "text-rag-red" : v > 80 ? "text-rag-amber" : "text-rag-green";
+  return (
+    <section className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-xs font-semibold text-muted-foreground">Assigned</h4>
+        <span className="num-mono text-xs text-muted-foreground">{names.length} / {qty}</span>
+      </div>
+      <Progress value={(names.length / qty) * 100} className="h-1.5" />
+      <ul className="space-y-1">
+        {names.map((n) => {
+          const emp = employees.find((e) => e.name === n);
+          const u = req.utilByPerson?.[n] ?? (n === req.assignedTo && req.utilAfter != null ? { before: req.utilBefore ?? 0, after: req.utilAfter } : undefined);
+          return (
+            <li key={n}>
+              <button type="button" disabled={!emp} onClick={() => emp && navigate({ to: "/resources/employees/$employeeId", params: { employeeId: emp.id } })}
+                className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-start hover:bg-muted/60 disabled:cursor-default">
+                <Avatar className="h-8 w-8">
+                  {emp?.avatar && <AvatarImage src={emp.avatar} alt={n} />}
+                  <AvatarFallback className="text-xs">{n.split(" ").map((x) => x[0]).join("").slice(0, 2)}</AvatarFallback>
+                </Avatar>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm text-foreground">{n}</span>
+                  <span className="block truncate text-xs text-muted-foreground">{emp?.role ?? req.role}</span>
+                </span>
+                {u && <span className={`num-mono text-xs ${tone(u.after)}`}>{u.after}%</span>}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 /** Request detail drawer: full request data plus the recorded decision outcome. */
 function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: () => void }) {
   return (
@@ -294,10 +334,12 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
                 )}
               </section>
 
+              {requestAssignees(req).length > 0 && <AssignedSection req={req} />}
+
               <section className="space-y-2">
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Outcome</h4>
                 {req.status === "Pending" && (
-                  <p className="text-sm text-muted-foreground">No decision taken yet. Fulfill or decline this request from the requests list.</p>
+                  <p className="text-sm text-muted-foreground">{requestAssignees(req).length > 0 ? "Partially filled. Assign the remaining people" : "No decision taken yet. Fulfill or decline"}{requestAssignees(req).length > 0 ? " from the requests list." : ""} this request from the requests list.</p>
                 )}
 
                 {req.status === "Declined" && (
@@ -312,34 +354,10 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
 
                 {req.status === "Fulfilled" && (
                   <>
-                    <DrawerRow label={requestQuantity(req) > 1 ? "Assigned people" : "Assigned person"} value={requestAssignees(req).join(", ") || "—"} />
                     {req.allocation != null && (
                       <DrawerRow label="Allocation on this project" value={`${req.allocation}%`} valueClass="num-mono" />
                     )}
                     {req.decidedOn && <DrawerRow label="Assigned on" value={formatDateWithYear(req.decidedOn)} />}
-                    {req.utilAfter != null && (
-                      <div className="space-y-2 rounded-md border border-border bg-background/30 p-3 text-xs">
-                        {req.utilBefore != null && (
-                          <>
-                            <div className="flex justify-between">
-                              <span className="text-muted-foreground">Utilization before assignment</span>
-                              <span className="num-mono font-medium text-foreground">{req.utilBefore}%</span>
-                            </div>
-                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary/50">
-                              <div className="h-full rounded-full bg-accent/40" style={{ width: `${Math.min(req.utilBefore, 100)}%` }} />
-                            </div>
-                          </>
-                        )}
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Current utilization after this assignment</span>
-                          <span className={`num-mono font-medium ${req.utilAfter > 100 ? "text-rag-red" : req.utilAfter > 80 ? "text-rag-amber" : "text-rag-green"}`}>{req.utilAfter}%</span>
-                        </div>
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary/50">
-                          <div className={`h-full rounded-full ${req.utilAfter > 100 ? "bg-rag-red" : req.utilAfter > 80 ? "bg-rag-amber" : "bg-accent"}`} style={{ width: `${Math.min(req.utilAfter, 100)}%` }} />
-                        </div>
-                        {req.utilAfter > 100 && <p className="text-rag-red">⚠ {req.assignedTo} is over-allocated</p>}
-                      </div>
-                    )}
                   </>
                 )}
               </section>
@@ -518,26 +536,26 @@ function FulfillDialog({
 }: {
   req: ResourceRequest;
   pool: PoolResource[];
-  onFulfill: (id: string, assignedTo: string) => void;
+  onFulfill: (id: string, names: string[]) => void;
   compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [personName, setPersonName] = useState("");
+  const [names, setNames] = useState<string[]>([]);
   const [personError, setPersonError] = useState("");
   const employment = req.employment ?? employmentFromFte(req.fte);
   const alloc = EMPLOYMENT_PERCENT[employment];
   const periodOf = (r: PoolResource) => periodUtilization(r.allocations, req.from, req.until).peak;
   const tone = (v: number) => v > 100 ? "text-rag-red" : v > 80 ? "text-rag-amber" : "text-rag-green";
-
-  const selectedPerson = pool.find((r) => r.name === personName);
-  const before = selectedPerson ? periodOf(selectedPerson) : null;
-  const projected = before == null ? null : before + alloc;
+  const remaining = Math.max(1, requestQuantity(req) - requestAssignees(req).length);
+  const sameRole = (r: PoolResource) => r.role.trim().toLowerCase() === req.role.trim().toLowerCase();
+  const candidates = pool.filter((r) => r.active !== false && sameRole(r) && !requestAssignees(req).includes(r.name));
+  const over = names.filter((n) => { const p = pool.find((r) => r.name === n); return p && periodOf(p) + alloc > 100; });
 
   function handleSave() {
-    if (!personName) { setPersonError("Select a person to assign."); return; }
-    onFulfill(req.id, personName);
+    if (names.length === 0) { setPersonError("Select at least one person to assign."); return; }
+    onFulfill(req.id, names);
     setOpen(false);
-    setPersonName("");
+    setNames([]);
   }
 
   return (
@@ -562,50 +580,29 @@ function FulfillDialog({
         </div>
 
         <div className="grid gap-3">
-          <Field label="Assign person" htmlFor="fulfill-person" required error={personError}>
-            <Select onValueChange={(value) => { setPersonName(value); setPersonError(""); }}>
-              <SelectTrigger id="fulfill-person"><SelectValue placeholder="Select from resource pool…" /></SelectTrigger>
-              <SelectContent>
-                {pool.filter((r) => r.active !== false && !requestAssignees(req).includes(r.name)).map((r) => { const u = periodOf(r); return (
-                  <SelectItem key={r.name} value={r.name}>
-                    <span className="flex items-center gap-2">
-                      <span>{r.name}</span>
-                      <span className="text-xs text-muted-foreground">— {r.role}</span>
-                      <span className={`num-mono text-xs ml-auto ${tone(u)}`}>{u}%</span>
-                    </span>
-                  </SelectItem>
-                ); })}
-              </SelectContent>
-            </Select>
+          <Field label={remaining > 1 ? `Assign people (up to ${remaining})` : "Assign person"} htmlFor="fulfill-person" required error={personError}>
+            <MultiSelectField
+              id="fulfill-person"
+              max={remaining}
+              value={names}
+              onChange={(v) => { setNames(v); setPersonError(""); }}
+              placeholder={`Select ${req.role}s from resource pool…`}
+              emptyText={`No available employees with the ${req.role} role.`}
+              options={candidates.map((r) => ({ value: r.name, label: r.name }))}
+              renderOptionMeta={(o) => { const p = pool.find((r) => r.name === o.value); if (!p) return null; const b = periodOf(p); const a = b + alloc; return (
+                <span className="num-mono flex shrink-0 items-center gap-1 text-xs">
+                  <span className={tone(b)}>{b}%</span><span className="text-muted-foreground">→</span><span className={tone(a)}>{a}%</span>
+                </span>
+              ); }}
+            />
           </Field>
 
           <div className="flex items-center justify-between rounded-md border border-border bg-background/30 px-3 py-2 text-sm">
             <span className="text-muted-foreground">Allocation on this project</span>
             <span className="font-medium text-foreground">{employment} · <span className="num-mono">{alloc}%</span></span>
           </div>
-
-          {selectedPerson && before != null && projected != null && (
-            <div className="rounded-md border border-border bg-background/30 p-3 text-xs space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Peak utilization in this period</span>
-                <span className={`num-mono font-medium ${tone(before)}`}>{before}%</span>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary/50">
-                <div className="h-full rounded-full bg-accent/40" style={{ width: `${Math.min(before, 100)}%` }} />
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">After this assignment</span>
-                <span className={`num-mono font-medium ${tone(projected)}`}>{projected}%</span>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary/50">
-                <div className={`h-full rounded-full ${projected > 100 ? "bg-rag-red" : projected > 80 ? "bg-rag-amber" : "bg-accent"}`}
-                  style={{ width: `${Math.min(projected, 100)}%` }} />
-              </div>
-              {projected > 100 && (
-                <p className="text-rag-red">⚠ This will over-allocate {selectedPerson.name}</p>
-              )}
-            </div>
-          )}
+          <p className="text-xs text-muted-foreground">Each option shows peak utilization in this period → after this assignment.</p>
+          {over.length > 0 && <p className="text-xs text-rag-red">⚠ This will over-allocate {over.join(", ")}</p>}
         </div>
 
         <DialogFooter>

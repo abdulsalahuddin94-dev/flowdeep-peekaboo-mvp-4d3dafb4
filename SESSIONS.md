@@ -1,3 +1,8 @@
+## 2026-11-12 — Multi-person Fulfill
+- Fulfill dialog: multiselect assign, candidates filtered to the request's job role, capped at remaining headcount; each option shows period utilization before → after; over-allocation warns but allows.
+- Request drawer: new "Assigned (N/M)" section with progress bar, avatar/name/role/utilization per person, each opening the employee profile; per-person utilization stored in `utilByPerson`.
+- MultiSelectField gained optional `max`, `renderOptionMeta`, `emptyText`.
+
 ## 2026-11-11 — Team tab split into Team / Requests sub-tabs (Risk & Issues style segmented control)
 
 ## 2026-11-11 — Employees carry a seniority level

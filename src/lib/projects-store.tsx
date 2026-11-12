@@ -344,6 +344,8 @@ export type ResourceRequest = {
   assignedTo?: string; declineReason?: string;
   /** Outcome details captured when the request is fulfilled or declined. */
   allocation?: number; utilBefore?: number; utilAfter?: number;
+  /** Per-assignee peak utilization before/after their assignment. */
+  utilByPerson?: Record<string, { before: number; after: number }>;
   decidedBy?: string; decidedOn?: string;
 };
 

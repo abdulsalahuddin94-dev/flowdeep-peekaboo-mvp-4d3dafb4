@@ -21,6 +21,11 @@ interface MultiSelectFieldProps {
   maxVisible?: number;
   id?: string;
   className?: string;
+  /** Upper bound on selections; unchecked options disable once reached. */
+  max?: number;
+  /** Extra content rendered at the end of each dropdown option. */
+  renderOptionMeta?: (o: MultiSelectOption) => React.ReactNode;
+  emptyText?: string;
 }
 
 /** DS02 multiple-selection field — chips with per-chip remove, "+N" overflow and clear-all. */
@@ -34,6 +39,9 @@ export function MultiSelectField({
   maxVisible = 5,
   id,
   className,
+  max,
+  renderOptionMeta,
+  emptyText,
 }: MultiSelectFieldProps) {
   const [open, setOpen] = React.useState(false);
   const selected = options.filter((o) => value.includes(o.value));
@@ -41,6 +49,7 @@ export function MultiSelectField({
   const overflow = selected.length - visible.length;
 
   function toggle(v: string) {
+    if (!value.includes(v) && max != null && value.length >= max) return;
     onChange(value.includes(v) ? value.filter((x) => x !== v) : [...value, v]);
   }
 
@@ -117,21 +126,27 @@ export function MultiSelectField({
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-0">
         <div className="max-h-64 overflow-y-auto p-1">
-          {options.map((o) => (
+          {options.length === 0 && emptyText ? <p className="px-2 py-3 text-center text-xs text-muted-foreground">{emptyText}</p> : null}
+          {options.map((o) => {
+            const blocked = !value.includes(o.value) && max != null && value.length >= max;
+            return (
             <div
               key={o.value}
               role="option"
               aria-selected={value.includes(o.value)}
+              aria-disabled={blocked || undefined}
               onClick={() => toggle(o.value)}
-              className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60"
+              className={cn("flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm", blocked ? "cursor-not-allowed opacity-40" : "cursor-pointer hover:bg-muted/60")}
             >
               <Checkbox checked={value.includes(o.value)} tabIndex={-1} className="pointer-events-none rounded-[4px]" />
               <span className="flex-1 truncate">{o.label}</span>
+              {renderOptionMeta?.(o)}
             </div>
-          ))}
+            );
+          })}
         </div>
         <div className="flex items-center justify-between border-t border-border px-2 py-1.5">
-          <span className="text-[11px] text-muted-foreground">{value.length} selected</span>
+          <span className="text-[11px] text-muted-foreground">{max != null ? `${value.length} / ${max} selected` : `${value.length} selected`}</span>
           <Button variant="ghost" size="sm" onClick={() => onChange([])} disabled={value.length === 0}>Clear all</Button>
         </div>
       </PopoverContent>

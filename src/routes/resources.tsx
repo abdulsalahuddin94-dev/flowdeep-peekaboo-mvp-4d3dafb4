@@ -204,7 +204,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
           <StyledTableHeader><StyledTableHeaderRow>
             <StyledTableHead>Role / Skill</StyledTableHead><StyledTableHead>Task</StyledTableHead><StyledTableHead>Project</StyledTableHead>
             <StyledTableHead>Request for</StyledTableHead><StyledTableHead>Employment</StyledTableHead><StyledTableHead>Period</StyledTableHead>
-            <StyledTableHead>Priority</StyledTableHead><StyledTableHead>Submitted by</StyledTableHead>
+            <StyledTableHead>Priority</StyledTableHead><StyledTableHead>Submitted On</StyledTableHead>
             <StyledTableHead className="w-44 text-center">Status</StyledTableHead>
           </StyledTableHeaderRow></StyledTableHeader>
           <StyledTableBody>
@@ -219,7 +219,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
                   <StyledTableCell>{req.project}</StyledTableCell>
                   <StyledTableCell>{COVERAGE_LABEL[requestCoverage(req)]}</StyledTableCell>
                   <StyledTableCell>{req.employment ?? employmentFromFte(req.fte)}</StyledTableCell>
-                  <StyledTableCell className="num-mono text-xs text-muted-foreground"><div>{req.from}</div><div>{req.until}</div></StyledTableCell>
+                  <StyledTableCell className="num-mono whitespace-nowrap text-xs text-muted-foreground"><div>{req.from}</div><div>{req.until}</div></StyledTableCell>
                   <StyledTableCell><Badge variant="outline" className={PRIORITY_STYLE[req.priority]}>{req.priority}</Badge></StyledTableCell>
                   <StyledTableCell><div>{req.submittedBy}</div><div className="text-xs text-muted-foreground">{/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date}</div></StyledTableCell>
                   <StyledTableCell onClick={(e) => e.stopPropagation()}>
@@ -327,7 +327,7 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
                 <DrawerRow label="Employment" value={req.employment ?? employmentFromFte(req.fte)} />
                 {requestQuantity(req) > 1 && <DrawerRow label="Employees needed" value={`${requestAssignees(req).length} / ${requestQuantity(req)} filled`} valueClass="num-mono" />}
                 <DrawerRow label="Period" value={<><div>{req.from}</div><div>{req.until}</div></>} valueClass="num-mono" />
-                <DrawerRow label="Submitted by" value={req.submittedBy} />
+                <DrawerRow label="Submitted On" value={req.submittedBy} />
                 <DrawerRow label="Submitted" value={/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date} />
                 {req.notes && (
                   <p className="rounded-md border border-border bg-secondary/30 p-3 text-xs italic text-muted-foreground">"{req.notes}"</p>

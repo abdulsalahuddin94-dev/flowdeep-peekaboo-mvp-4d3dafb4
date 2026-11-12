@@ -76,6 +76,13 @@ const initialEmployees: Employee[] = resources.map((r, i) => {
       { id: `leave-${i}-4`, type: "Leave", from: "2026-12-06", until: "2026-12-10", days: 5 },
     ] };
 });
+/** Demo Frontend Developer pool so a multi-person request can be filled in one go. */
+const FRONTEND_DEMO = ["Rana Saleh", "Tariq Nasser", "Mona Adel", "Kareem Fawzy", "Salma Ibrahim"].map((name, k): Employee => {
+  const i = initialEmployees.length + k;
+  const allocations: EmployeeAllocation[] = k === 0 ? [{ id: `seed-fe-${k}`, project: "Customer Portal v3", role: "Frontend Developer", percent: 100, from: "2026-09", until: "2027-02" }] : k === 1 ? [{ id: `seed-fe-${k}`, project: "Customer Portal v3", role: "Frontend Developer", percent: 50, from: "2026-10", until: "2027-01" }] : [];
+  return { id: `EMP-${String(i + 1).padStart(3, "0")}`, name, role: "Frontend Developer", seniority: SENIORITY_LEVELS[k % SENIORITY_LEVELS.length], dept: "Engineering", email: `${name.toLowerCase().replace(/\s+/g, ".")}@company.com`, salary: 11000 + k * 500, capacity: DEFAULT_MONTHLY_CAPACITY, util: currentUtilization(allocations), employmentTypeId: types[k % 3]?.id ?? "ET-1", joinedOn: `${2021 + k % 4}-0${k + 2}-15`, projects: allocations.map((a) => a.project), tasks: [], allocations, leave: [], trips: [], monthly: {}, vacationEntitlement: 24, demo: true, employeeNumber: String(7200000 + k * 1111), active: true, shortName: name.split(" ")[0], gender: k % 2 ? "Male" : "Female", tags: [] };
+});
+initialEmployees.push(...FRONTEND_DEMO);
 const defaults = { employees: initialEmployees, employmentTypes: types };
 /** Demo seed rows, kept exported so tests can assert against them. */
 export const SEED_EMPLOYEES = initialEmployees;
@@ -89,7 +96,8 @@ const listeners = new Set<() => void>();
 // v9: employment types carry demo descriptions.
 // v10: seed allocations reference project ids instead of literal names.
 // v11: employees carry a seniority level (Junior / Mid / Senior / Lead).
-const storageKey = "pmo.employees.v11";
+// v12: five demo Frontend Developers for the multi-person request example.
+const storageKey = "pmo.employees.v12";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;

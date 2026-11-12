@@ -362,6 +362,7 @@ const SEED_NOTIFS: Notification[] = [
 const SEED_RFPS: RfpEntry[] = initialRfps.map((r) => ({ ...r }));
 
 export const SEED_RESOURCE_REQUESTS: ResourceRequest[] = [
+  { id: "RR-031", scope: "team", employment: "Full time", project: "Customer Portal v3", role: "Frontend Developer", skill: "Mid", fte: 1, quantity: 4, from: "2026-12", until: "2027-04", priority: "High", status: "Pending", submittedBy: "Mei Chen", date: "Today", notes: "Squad for the new self-service portal UI" },
   { id: "RR-001", task: "Solution Design", project: "ERP System Upgrade",         role: "Solution Architect", scope: "task", employment: "Full time", skill: "Senior", fte: 1, from: "2026-06", until: "2026-09", priority: "Critical", status: "Pending",   submittedBy: "Sara Al-Rashid", date: "2d ago",  notes: "Must have SAP ECC or S/4HANA experience" },
   { id: "RR-002", task: "Site Mobilisation", project: "Coastal Refinery Expansion",  role: "Field Engineer",    scope: "task", employment: "Full time", skill: "Senior", fte: 1, from: "2026-07", until: "2026-12", priority: "High",     status: "Pending",   submittedBy: "John Smith",     date: "3d ago",  notes: "" },
   { id: "RR-003", task: "UAT Execution", project: "Smart Grid Pilot",            role: "QA Engineer",       scope: "task", employment: "Full time", skill: "Mid",    fte: 1, from: "2026-07", until: "2026-09", priority: "Medium",   status: "Pending",   submittedBy: "Priya Iyer",     date: "5d ago",  notes: "" },

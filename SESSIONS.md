@@ -2,6 +2,7 @@
 - Fulfill dialog: multiselect assign, candidates filtered to the request's job role, capped at remaining headcount; each option shows period utilization before → after; over-allocation warns but allows.
 - Request drawer: new "Assigned (N/M)" section with progress bar, avatar/name/role/utilization per person, each opening the employee profile; per-person utilization stored in `utilByPerson`.
 - Fulfill dialog: restored the Peak utilization / After this assignment card; it follows the most recently selected person.
+- Demo: RR-031 asks for 4 Full time Frontend Developers on Customer Portal v3; five demo Frontend Developers added (two already partly allocated); employees storage v12.
 - MultiSelectField gained optional `max`, `renderOptionMeta`, `emptyText`.
 
 ## 2026-11-11 — Team tab split into Team / Requests sub-tabs (Risk & Issues style segmented control)

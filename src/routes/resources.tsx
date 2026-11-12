@@ -585,6 +585,7 @@ function FulfillDialog({
             <MultiSelectField
               id="fulfill-person"
               max={remaining}
+              maxVisible={3}
               value={names}
               onChange={(v) => { setNames(v); setPersonError(""); }}
               placeholder={`Select ${req.role}s from resource pool…`}

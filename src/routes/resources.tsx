@@ -214,7 +214,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
                   className="group cursor-pointer"
                   onClick={() => setOpenId(req.id)}
                 >
-                  <StyledTableCell><div className="font-medium text-foreground">{req.role}{requestQuantity(req) > 1 ? <span className="num-mono text-muted-foreground"> × {requestQuantity(req)}</span> : null}</div><div className="text-xs text-muted-foreground">{req.skill}{requestQuantity(req) > 1 ? ` · ${requestAssignees(req).length} / ${requestQuantity(req)} filled` : ""}</div></StyledTableCell>
+                  <StyledTableCell><div className="font-medium text-foreground">{req.role}</div><div className="text-xs text-muted-foreground">{requestQuantity(req) > 1 ? <span className="num-mono">{requestQuantity(req)}x </span> : null}{req.skill}</div></StyledTableCell>
                   <StyledTableCell>{req.task ?? <span className="text-muted-foreground">—</span>}</StyledTableCell>
                   <StyledTableCell>{req.project}</StyledTableCell>
                   <StyledTableCell>{COVERAGE_LABEL[requestCoverage(req)]}</StyledTableCell>
@@ -549,7 +549,11 @@ function FulfillDialog({
   const remaining = Math.max(1, requestQuantity(req) - requestAssignees(req).length);
   const sameRole = (r: PoolResource) => r.role.trim().toLowerCase() === req.role.trim().toLowerCase();
   const candidates = pool.filter((r) => r.active !== false && sameRole(r) && !requestAssignees(req).includes(r.name));
-  const focused = pool.find((r) => r.name === names[names.length - 1]);
+  const [focusName, setFocusName] = useState<string | null>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const focused = pool.find((r) => r.name === (focusName && names.includes(focusName) ? focusName : names[names.length - 1]));
+  const optionLabel = (r: PoolResource) => `${r.name} - ${employeeShortTitle(r)}`;
+  const scrollCarousel = (dir: 1 | -1) => carouselRef.current?.scrollBy({ left: dir * 160, behavior: "smooth" });
   const over = names.filter((n) => { const p = pool.find((r) => r.name === n); return p && periodOf(p) + alloc > 100; });
 
   function handleSave() {
@@ -557,6 +561,7 @@ function FulfillDialog({
     onFulfill(req.id, names);
     setOpen(false);
     setNames([]);
+    setFocusName(null);
   }
 
   return (
@@ -582,23 +587,44 @@ function FulfillDialog({
 
         <div className="grid gap-3">
           <Field label={remaining > 1 ? `Assign people (up to ${remaining})` : "Assign person"} htmlFor="fulfill-person" required error={personError}>
+            {remaining > 1 ? (
             <MultiSelectField
               id="fulfill-person"
               max={remaining}
               maxVisible={3}
               value={names}
-              onChange={(v) => { setNames(v); setPersonError(""); }}
+              onChange={(v) => { setNames(v); setPersonError(""); if (v.length > names.length) setFocusName(v[v.length - 1]); }}
               placeholder={`Select ${req.role}s from resource pool…`}
               emptyText={`No available employees with the ${req.role} role.`}
-              options={candidates.map((r) => ({ value: r.name, label: r.name }))}
-              renderOptionMeta={(o) => { const p = pool.find((r) => r.name === o.value); if (!p) return null; const b = periodOf(p); const a = b + alloc; return (
-                <span className="num-mono flex shrink-0 items-center gap-1 text-xs">
-                  <span className={tone(b)}>{b}%</span><span className="text-muted-foreground">→</span><span className={tone(a)}>{a}%</span>
-                </span>
-              ); }}
+              options={candidates.map((r) => ({ value: r.name, label: optionLabel(r) }))}
+              renderOptionMeta={(o) => { const p = pool.find((r) => r.name === o.value); return p ? <span className={`num-mono shrink-0 text-xs ${tone(periodOf(p))}`}>{periodOf(p)}%</span> : null; }}
             />
+            ) : (
+            <Select value={names[0] ?? ""} onValueChange={(v) => { setNames([v]); setFocusName(v); setPersonError(""); }}>
+              <SelectTrigger id="fulfill-person"><SelectValue placeholder={`Select a ${req.role} from resource pool…`} /></SelectTrigger>
+              <SelectContent>
+                {candidates.length === 0 ? <div className="px-3 py-2 text-sm text-muted-foreground">No available employees with the {req.role} role.</div> : candidates.map((r) => (
+                  <SelectItem key={r.name} value={r.name}>{optionLabel(r)} <span className={`num-mono ${tone(periodOf(r))}`}>{periodOf(r)}%</span></SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            )}
           </Field>
 
+          {names.length > 1 && (
+            <div className="flex items-center gap-1">
+              <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0" aria-label="Scroll left" onClick={() => scrollCarousel(-1)}><ChevronLeft className="h-4 w-4 rtl:rotate-180" /></Button>
+              <div ref={carouselRef} className="tabs-scroll-hidden flex min-w-0 flex-1 gap-2 overflow-x-auto scroll-smooth">
+                {names.map((n) => { const active = n === focused?.name; const p = pool.find((r) => r.name === n); const over100 = p ? periodOf(p) + alloc > 100 : false; return (
+                  <button key={n} type="button" onClick={() => setFocusName(n)} aria-pressed={active}
+                    className={`h-7 shrink-0 whitespace-nowrap rounded-full border px-3 text-xs transition-colors ${active ? "border-primary bg-primary/15 text-foreground" : "border-border text-muted-foreground hover:text-foreground"}`}>
+                    {n}{over100 && <span className="ms-1 text-rag-red">⚠</span>}
+                  </button>
+                ); })}
+              </div>
+              <Button type="button" size="icon" variant="ghost" className="h-8 w-8 shrink-0" aria-label="Scroll right" onClick={() => scrollCarousel(1)}><ChevronRight className="h-4 w-4 rtl:rotate-180" /></Button>
+            </div>
+          )}
           <div className="flex items-center justify-between rounded-md border border-border bg-background/30 px-3 py-2 text-sm">
             <span className="text-muted-foreground">Allocation on this project</span>
             <span className="font-medium text-foreground">{employment} · <span className="num-mono">{alloc}%</span></span>
@@ -606,7 +632,7 @@ function FulfillDialog({
           {focused && (() => { const before = periodOf(focused); const projected = before + alloc; return (
             <div className="rounded-md border border-border bg-background/30 p-3 text-xs space-y-2">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Peak utilization in this period{names.length > 1 ? ` · ${focused.name}` : ""}</span>
+                <span className="text-muted-foreground">Peak utilization in this period</span>
                 <span className={`num-mono font-medium ${tone(before)}`}>{before}%</span>
               </div>
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary/50">
@@ -622,7 +648,6 @@ function FulfillDialog({
               {projected > 100 && <p className="text-rag-red">⚠ This will over-allocate {focused.name}</p>}
             </div>
           ); })()}
-          {over.filter((n) => n !== focused?.name).length > 0 && <p className="text-xs text-rag-red">⚠ Also over-allocated: {over.filter((n) => n !== focused?.name).join(", ")}</p>}
         </div>
 
         <DialogFooter>

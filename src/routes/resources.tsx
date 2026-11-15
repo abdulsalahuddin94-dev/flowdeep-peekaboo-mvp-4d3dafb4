@@ -408,7 +408,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
   return (
     <>
       <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search employee, role or task…" filterGroups={[
-        relatedProjectsGroup(related, setRelated),
+        relatedProjectsGroup(related, setRelated, "Assigned Projects"),
         projectNameGroup(projectNames, setProjectNames, projectOptions),
         jobRoleGroup(jobRolesSelected, setJobRolesSelected, roleOptions),
         { key: "employment-type", label: "Employment type", value: employmentType, onChange: setEmploymentType, options: [{ value: "all", label: "All employment types" }, ...employmentTypes.map((v) => ({ value: v.id, label: v.name }))] },
@@ -418,7 +418,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
           <StyledTable wrapperClassName="">
             <StyledTableHeader><StyledTableHeaderRow>
               <StyledTableHead>Employee</StyledTableHead><StyledTableHead>Employee Number</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Employment type</StyledTableHead>
-              <StyledTableHead>Related Projects</StyledTableHead><StyledTableHead>Utilization</StyledTableHead>
+              <StyledTableHead>Assigned Projects</StyledTableHead><StyledTableHead>Utilization</StyledTableHead>
               <StyledTableHead className="w-32 text-center">Status</StyledTableHead>
             </StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
@@ -427,7 +427,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
                     <StyledTableCell className="font-medium text-foreground"><div className="flex items-center gap-2"><Avatar className="h-8 w-8">{r.avatar ? <AvatarImage src={r.avatar} alt={r.name} /> : null}<AvatarFallback className="bg-accent-dim text-[10px] text-accent">{r.name.split(" ").map((s) => s[0]).join("")}</AvatarFallback></Avatar><div className="min-w-0"><div className="truncate">{r.name}</div><div className="truncate text-xs font-normal text-muted-foreground">{r.dept}</div></div></div></StyledTableCell>
                     <StyledTableCell className="num-mono text-muted-foreground">{r.employeeNumber ? `#${r.employeeNumber}` : "—"}</StyledTableCell>
                     <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell>{employmentTypes.find((v) => v.id === r.employmentTypeId)?.name ?? "—"}</StyledTableCell>
-                    <StyledTableCell className="text-center"><RelatedProjectsCount label={r.name} projects={r.projects.map((name) => ({ id: projects.find((p) => p.name === name)?.id ?? "", name }))} /></StyledTableCell>
+                    <StyledTableCell className="text-center"><RelatedProjectsCount label={r.name} caption="Assigned Projects" projects={r.projects.map((name) => ({ id: projects.find((p) => p.name === name)?.id ?? "", name }))} /></StyledTableCell>
                     {(() => { const u = currentUtilization(r.allocations); return <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(u, 100)} className={`h-1.5 ${u > 100 ? "[&>div]:bg-rag-red" : u > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${u > 100 ? "text-rag-red" : "text-foreground"}`}>{u}%</span></div></StyledTableCell>; })()}
                     <StyledTableCell onClick={(e) => e.stopPropagation()}>
                       <TableRowActions

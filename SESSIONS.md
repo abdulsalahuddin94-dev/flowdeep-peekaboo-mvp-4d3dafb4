@@ -1,3 +1,7 @@
+## 2026-11-15 — Employee Details: clarified monthly vs yearly utilization
+- Renamed the two header metrics to **Monthly utilization** and **Yearly average** (Arabic: الاستغلال الشهري / متوسط السنة).
+- Added the applicable period beneath each value: the selected month (for example `Oct 2026`) and the selected year (`2026`), making the two percentages distinguishable at a glance. Calculations and color thresholds are unchanged.
+
 ## 2026-11-15 — Employee Details: "Vacation remaining" replaced by "Average utilization"
 - The header metric grid's last card now shows the year's **Average utilization** instead of the vacation balance, so the card keeps its slot and the grid stays 4 × 2.
 - `averageUtilization()` in `src/lib/employee-finance.ts` is the mean of each month's effective utilization across the months the employee was already hired — months before joining are excluded, idle months inside the year count as 0. Tone follows the same >100 red / >90 amber thresholds as the monthly card.

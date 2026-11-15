@@ -1,3 +1,8 @@
+## 2026-11-15 — Employee tabs, capacity working days, WBS Role+Assignee, Team card actions, editable pending requests
+- Employee Details: Salary and Capacity tabs now sit right after Employee Info; Absence days column removed from the Capacity table; Set capacity popup adds "Working days in month" (default 20) used to prorate absence.
+- WBS: Assignee column merged into Role (role on top, name below); Add/Edit role in the row menu is always available without Change Plan, like Progress update.
+- Project Team: task count opens a popup of that member's tasks; new card button assigns the member to another task; Pending requests (no one assigned yet) can be edited or deleted.
+
 ## 2026-11-15 — Employee Details: removed header capacity and certification badges
 - Removed the **Capacity / month** badge and the **Certified** tag from the employee header, leaving the remaining tags such as **Senior** in place.
 - Monthly capacity remains available in the header metrics grid and Capacity tab; underlying employee data is unchanged.

@@ -42,3 +42,10 @@ test("Request for column reads task, project or period", () => {
   assert.equal(requestCoverage(projectReq), "project");
   assert.equal(requestCoverage(periodReq), "period");
 });
+
+test("Team empty state waits on Resources while a request is open", () => {
+  assert.equal(teamEmptyVariant([]), "none");
+  assert.equal(teamEmptyVariant([{ ...base, id: "1", project: "P", role: "QA", status: "Pending" }]), "waiting");
+  assert.equal(teamEmptyVariant([{ ...base, id: "1", project: "P", role: "QA", status: "Fulfilled", assignedTo: "Ann" }]), "none");
+  assert.equal(teamEmptyVariant([{ ...base, id: "1", project: "P", role: "QA", status: "Declined" }]), "none");
+});

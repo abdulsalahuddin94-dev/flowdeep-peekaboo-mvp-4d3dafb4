@@ -1157,7 +1157,7 @@ function ProjectDetail() {
               // Only Progress Update and Assignee changes/swaps are allowed
               // without opening the Change Plan flow. Everything else needs approval.
               const keys = Object.keys(patch);
-              const isAssigneeOnly = keys.length > 0 && keys.every((k) => k === "assignee");
+              const isAssigneeOnly = keys.length > 0 && keys.every((k) => k === "assignee" || k === "roles");
               const isProgressOnly = keys.length > 0 && keys.every((k) => k === "progress" || k === "approvalStatus");
               if (!isEditingAllowed && !isAssigneeOnly && !isProgressOnly) {
                 toast.error("Locked — click 'Change Plan' to edit");
@@ -1166,10 +1166,6 @@ function ProjectDetail() {
               setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, ...patch } as Milestone : m)));
             }}
             onRequestSkill={(name, role) => {
-              if (!isEditingAllowed) {
-                toast.error("📖 View Only — Click 'Change Plan' to edit");
-                return;
-              }
               const prevAssignee = milestones.find((m) => m.name === name)?.assignee;
               const taskItem = milestones.find((m) => m.name === name);
               const id = addResourceRequest({
@@ -1367,7 +1363,7 @@ function ProjectDetail() {
           <MeetingsTab project={project.name} />
         </TabsContent>
         <TabsContent value="Team" className="mt-5">
-          <ProjectTeamTab project={project.name} projectId={project.id} pm={project.pm} items={milestones} />
+          <ProjectTeamTab project={project.name} projectId={project.id} pm={project.pm} items={milestones} onAssignTask={(task, m) => setMilestones((prev) => prev.map((x) => x.name === task ? { ...x, assignee: m.name, roles: [{ role: m.role, skill: "Mid", fte: m.employment === "Full time" ? 1 : 0.5 }] } as Milestone : x))} />
         </TabsContent>
         <TabsContent value="Trips" className="mt-5">
           <ProjectTripsTab project={project.name} milestones={milestones.filter((m) => m.kind === "Milestone").map((m) => m.name)} />

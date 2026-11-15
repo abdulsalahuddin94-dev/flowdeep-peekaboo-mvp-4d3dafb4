@@ -103,3 +103,5 @@
 - [x] Employee profile header: match reference design (keep our badges/tags)
 - [x] Requests tables: Type column renamed to Request for with Project / Task / Period values; verified and logged.
 - [x] Employment types: clicking the Employees count opens a popup with those employees' names; clicking a name opens that employee's profile. Verified and logged.
+
+- [x] WBS Role column: name above role, headcount number removed; Team card assign button uses the secondary variant. Verified and logged.

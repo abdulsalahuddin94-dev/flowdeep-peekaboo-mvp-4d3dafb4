@@ -27,13 +27,14 @@ export function employeeMonth(employee: Employee, month: string) {
   const charges = allocations.map((a) => ({ ...a, amount: Math.round(salary * a.percent / denominator * 100) / 100 }));
   const projectCost = Math.min(salary, charges.reduce((sum, a) => sum + a.amount, 0));
   // Leave and business trips/training reduce the hours available this month.
-  const absentDays = Math.min(WORKING_DAYS_PER_MONTH,
+  const workingDays = override.workingDays ?? WORKING_DAYS_PER_MONTH;
+  const absentDays = Math.min(workingDays,
     employee.leave.reduce((sum, l) => sum + (l.hours != null ? (l.from.startsWith(month) ? l.hours / 8 : 0) : overlapDays(l.from, l.until, month)), 0)
     + employee.trips.reduce((sum, t) => sum + overlapDays(t.from, t.until, month), 0));
-  const availableCapacity = Math.round(capacity * (WORKING_DAYS_PER_MONTH - absentDays) / WORKING_DAYS_PER_MONTH * 10) / 10;
+  const availableCapacity = Math.round(capacity * (workingDays - absentDays) / workingDays * 10) / 10;
   const allocatedHours = capacity * utilization / 100;
   const effectiveUtilization = availableCapacity > 0 ? Math.round(allocatedHours / availableCapacity * 100) : (allocatedHours > 0 ? 999 : 0);
-  return { salary, capacity, allocations, charges, projectCost, overhead: Math.max(0, salary - projectCost), utilization, allocatedHours, absentDays, availableCapacity, effectiveUtilization };
+  return { salary, capacity, workingDays, allocations, charges, projectCost, overhead: Math.max(0, salary - projectCost), utilization, allocatedHours, absentDays, availableCapacity, effectiveUtilization };
 }
 
 /** Leave days taken in the year (partial leave counts as hours / 8) against the annual entitlement. */

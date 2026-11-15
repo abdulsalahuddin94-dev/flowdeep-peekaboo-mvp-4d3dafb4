@@ -41,3 +41,14 @@ export function vacationBalance(employee: Employee, year: string) {
   const used = Math.round(employee.leave.filter((l) => l.from.startsWith(year)).reduce((sum, l) => sum + (l.hours != null ? l.hours / 8 : l.days), 0) * 100) / 100;
   return { entitlement: employee.vacationEntitlement, used, remaining: Math.round((employee.vacationEntitlement - used) * 100) / 100 };
 }
+
+/**
+ * Mean monthly utilization across a year, averaged only over the months the employee
+ * was already hired — months before joining are not idle time, they are not employment.
+ */
+export function averageUtilization(employee: Employee, year: string) {
+  const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
+  const active = months.filter((m) => m >= employee.joinedOn.slice(0, 7));
+  if (!active.length) return 0;
+  return Math.round(active.reduce((sum, m) => sum + employeeMonth(employee, m).effectiveUtilization, 0) / active.length);
+}

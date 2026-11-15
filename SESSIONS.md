@@ -1,3 +1,9 @@
+## 2026-11-15 — Team tab: designed empty states for both sub-tabs
+- Team sub-tab now has two conditions. Nothing asked for yet → `people` art, "No team members yet". Requests open but nobody assigned → `clock` art, "Waiting on Resources" with the pending count, plus a "View requests" button that jumps to the Requests sub-tab.
+- Requests sub-tab gets its own copy and `note` art: "No requests yet" / "Ask Resources for people — for the whole project, a specific task, or a period of time." It previously reused the Team description and `role` art.
+- `teamEmptyVariant()` in `ProjectTeamTab.tsx` picks the variant; the sub-tab `Tabs` is now controlled (`value`/`onValueChange`) so the empty state can switch sub-tabs. Catalogued as `project-team-members` / `project-team-waiting` / `project-team-requests` in `src/lib/empty-states.ts`.
+- Verified in preview: p-003 (no requests) shows the two distinct empty states; p-004 shows "Waiting on Resources — 2 requests are with Resources…" and "View requests" switches to the Requests sub-tab; p-005 (declined request only) shows "No team members yet".
+
 ## 2026-11-12 — Requests period dates stacked, "Submitted On" label
 - Requests table Period column shows `from` and `until` on separate lines (arrow removed); the table cell is `whitespace-nowrap` so a date never breaks at its hyphen. The request drawer keeps the single-line `from → until` format.
 - Label rename only, values untouched: table header and drawer row `Submitted by` → `Submitted On`. The drawer keeps its separate `Submitted` date row.

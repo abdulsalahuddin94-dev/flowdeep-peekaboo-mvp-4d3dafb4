@@ -36,6 +36,11 @@ export function projectTeam(project: string, requests: ResourceRequest[]): TeamM
   return [...map.values()];
 }
 
+/** Empty Team sub-tab: nothing asked for yet, or asked and still with Resources. */
+export function teamEmptyVariant(reqs: ResourceRequest[]): "none" | "waiting" {
+  return reqs.some((r) => r.status !== "Fulfilled" && r.status !== "Declined") ? "waiting" : "none";
+}
+
 export function isWorkingNow(name: string, items: Item[], today = new Date()) {
   const t = today.getTime();
   return items.some((i) => i.kind === "Task" && i.assignee === name && (i.progress ?? 0) < 100
@@ -43,8 +48,8 @@ export function isWorkingNow(name: string, items: Item[], today = new Date()) {
 }
 
 const T = {
-  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", seniority: "Seniority", priority: "Priority", notes: "Notes", coverage: "Request for", fullProject: "Full project", forTask: "Specific task", period: "Period of time", selectTask: "Select a task", startD: "Start date", endD: "End date", periodCol: "Period", project: "Project", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request a role. Once Resources fulfills it, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", headcount: "Employees needed", filled: "filled", noReqT: "No requests yet" },
-  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", coverage: "الطلب لـ", fullProject: "المشروع كامل", forTask: "مهمة محددة", period: "فترة زمنية", selectTask: "اختر مهمة", startD: "تاريخ البداية", endD: "تاريخ النهاية", periodCol: "الفترة", project: "المشروع", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب دورًا، وبعد تنفيذه من الموارد ينضم الموظف للفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم", noReqT: "لا توجد طلبات بعد" },
+  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", seniority: "Seniority", priority: "Priority", notes: "Notes", coverage: "Request for", fullProject: "Full project", forTask: "Specific task", period: "Period of time", selectTask: "Select a task", startD: "Start date", endD: "End date", periodCol: "Period", project: "Project", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request the roles you need. Once Resources fulfills a request, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", headcount: "Employees needed", filled: "filled", noReqT: "No requests yet", reqEmptyD: "Ask Resources for people — for the whole project, a specific task, or a period of time.", waitingT: "Waiting on Resources", waitingD: (n: number) => n === 1 ? "1 request is with Resources. The employee joins the team as soon as it is fulfilled." : `${n} requests are with Resources. Each employee joins the team as soon as their request is fulfilled.`, viewReq: "View requests" },
+  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", coverage: "الطلب لـ", fullProject: "المشروع كامل", forTask: "مهمة محددة", period: "فترة زمنية", selectTask: "اختر مهمة", startD: "تاريخ البداية", endD: "تاريخ النهاية", periodCol: "الفترة", project: "المشروع", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب الأدوار التي تحتاجها. وبعد تنفيذ الطلب من الموارد، ينضم الموظف إلى الفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم", noReqT: "لا توجد طلبات بعد", reqEmptyD: "اطلب من الموارد موظفين — للمشروع كامل، أو لمهمة محددة، أو لفترة زمنية.", waitingT: "في انتظار الموارد", waitingD: (n: number) => `لديك ${n} ${n === 1 ? "طلب" : "طلبات"} لدى الموارد. ينضم كل موظف إلى الفريق فور تنفيذ طلبه.`, viewReq: "عرض الطلبات" },
 };
 
 export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar" }) {
@@ -55,10 +60,13 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
   const { employees } = useEmployees();
   const team = useMemo(() => projectTeam(project, resourceRequests), [project, resourceRequests]);
   const reqs = resourceRequests.filter((r) => r.project === project);
+  const [tab, setTab] = useState("team");
+  const pending = reqs.filter((r) => r.status !== "Fulfilled" && r.status !== "Declined").length;
+  const waiting = !team.length && pending > 0;
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="team" className="space-y-6">
+      <Tabs value={tab} onValueChange={setTab} className="space-y-6">
         <TabsList className="grid h-11 w-full grid-cols-2 gap-0 rounded-lg border border-border bg-[var(--field-bg-filled)] p-1">
           <TabsTrigger value="team" className="h-9 gap-2 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent"><Users size={15} />{t.team}</TabsTrigger>
           <TabsTrigger value="requests" className="h-9 gap-2 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent"><ClipboardCheck size={15} />{t.requests}</TabsTrigger>
@@ -68,7 +76,14 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
         <h3 className="flex items-center gap-2 text-base font-medium text-foreground">{t.team}<span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-accent-dim px-3 text-xs num-mono text-accent">{team.length}</span></h3>
         <Button variant="primary" onClick={() => setOpen(true)}><Plus className="h-4 w-4" />{t.request}</Button>
       </div>
-      {!team.length ? <EmptyState art="role" title={t.emptyT} description={t.emptyD} ctaLabel={t.request} onCta={() => setOpen(true)} /> : (
+      {!team.length ? <EmptyState
+        art={waiting ? "clock" : "people"}
+        title={waiting ? t.waitingT : t.emptyT}
+        description={waiting ? t.waitingD(pending) : t.emptyD}
+        ctaLabel={t.request}
+        onCta={() => setOpen(true)}
+        actions={waiting ? <Button variant="outline" onClick={() => setTab("requests")}>{t.viewReq}</Button> : undefined}
+      /> : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {team.map((m) => {
             const working = isWorkingNow(m.name, items);
@@ -104,7 +119,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
         <h3 className="flex items-center gap-2 text-base font-medium text-foreground">{t.requests}<span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-accent-dim px-3 text-xs num-mono text-accent">{reqs.length}</span></h3>
         <Button variant="primary" onClick={() => setOpen(true)}><Plus className="h-4 w-4" />{t.request}</Button>
       </div>
-      {!reqs.length ? <EmptyState art="role" title={t.noReqT} description={t.emptyD} ctaLabel={t.request} onCta={() => setOpen(true)} /> : (
+      {!reqs.length ? <EmptyState art="note" title={t.noReqT} description={t.reqEmptyD} ctaLabel={t.request} onCta={() => setOpen(true)} /> : (
         <div className="space-y-3">
           <StyledTable>
             <StyledTableHeader><StyledTableHeaderRow>{[t.role, t.coverage, t.task, t.employment, t.priority, t.notes, t.status].map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader>

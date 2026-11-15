@@ -1,3 +1,9 @@
+## 2026-11-15 — Employee Details: "Vacation remaining" replaced by "Average utilization"
+- The header metric grid's last card now shows the year's **Average utilization** instead of the vacation balance, so the card keeps its slot and the grid stays 4 × 2.
+- `averageUtilization()` in `src/lib/employee-finance.ts` is the mean of each month's effective utilization across the months the employee was already hired — months before joining are excluded, idle months inside the year count as 0. Tone follows the same >100 red / >90 amber thresholds as the monthly card.
+- EN/AR labels added (`Average utilization` / `متوسط الاستغلال`); the now-unused `Vacation remaining` key was dropped from both dictionaries. Vacation data itself is untouched and still lives on the Capacity tab (Annual entitlement / Leave used / Days remaining + Leave records).
+- Verified in preview on EMP-001: header reads `Average utilization 112%`, no `Vacation remaining` anywhere; Capacity tab still shows `Annual entitlement` and `Leave records`. Tests: `src/lib/employee-finance.test.ts` 10 pass.
+
 ## 2026-11-15 — Employees: "Related Projects" renamed to "Assigned Projects"
 - Employees table column header, its Filter-drawer group, and the count popup caption now read "Assigned Projects", matching the employee profile's existing "Assigned projects" section.
 - `relatedProjectsGroup()` in `src/components/ds/filters.ts` takes an optional `label` (default still "Related Projects"), so Organization, Clients & Vendors and Meeting Types keep their master-data wording.

@@ -17,6 +17,8 @@ import { useEmployees } from "@/lib/employees-store";
 import { Plus, Users, ClipboardCheck } from "@/lib/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/lib/toast";
+import { TableRowActions } from "@/components/TableRowActions";
+import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 
 export type TeamMember = { name: string; role: string; employment: Employment };
 type Item = { name: string; kind: string; startDate: string; endDate: string; assignee?: string; progress?: number };
@@ -48,15 +50,27 @@ export function isWorkingNow(name: string, items: Item[], today = new Date()) {
 }
 
 const T = {
-  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", seniority: "Seniority", priority: "Priority", notes: "Notes", coverage: "Request for", fullProject: "Full project", forTask: "Specific task", period: "Period of time", selectTask: "Select a task", startD: "Start date", endD: "End date", periodCol: "Period", project: "Project", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request the roles you need. Once Resources fulfills a request, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", headcount: "Employees needed", filled: "filled", noReqT: "No requests yet", reqEmptyD: "Ask Resources for people — for the whole project, a specific task, or a period of time.", waitingT: "Waiting on Resources", waitingD: (n: number) => n === 1 ? "1 request is with Resources. The employee joins the team as soon as it is fulfilled." : `${n} requests are with Resources. Each employee joins the team as soon as their request is fulfilled.`, viewReq: "View requests" },
-  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", coverage: "الطلب لـ", fullProject: "المشروع كامل", forTask: "مهمة محددة", period: "فترة زمنية", selectTask: "اختر مهمة", startD: "تاريخ البداية", endD: "تاريخ النهاية", periodCol: "الفترة", project: "المشروع", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب الأدوار التي تحتاجها. وبعد تنفيذ الطلب من الموارد، ينضم الموظف إلى الفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم", noReqT: "لا توجد طلبات بعد", reqEmptyD: "اطلب من الموارد موظفين — للمشروع كامل، أو لمهمة محددة، أو لفترة زمنية.", waitingT: "في انتظار الموارد", waitingD: (n: number) => `لديك ${n} ${n === 1 ? "طلب" : "طلبات"} لدى الموارد. ينضم كل موظف إلى الفريق فور تنفيذ طلبه.`, viewReq: "عرض الطلبات" },
+  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", seniority: "Seniority", priority: "Priority", notes: "Notes", coverage: "Request for", fullProject: "Full project", forTask: "Specific task", period: "Period of time", selectTask: "Select a task", startD: "Start date", endD: "End date", periodCol: "Period", project: "Project", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request the roles you need. Once Resources fulfills a request, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", headcount: "Employees needed", filled: "filled", noReqT: "No requests yet", reqEmptyD: "Ask Resources for people — for the whole project, a specific task, or a period of time.", waitingT: "Waiting on Resources", waitingD: (n: number) => n === 1 ? "1 request is with Resources. The employee joins the team as soon as it is fulfilled." : `${n} requests are with Resources. Each employee joins the team as soon as their request is fulfilled.`, viewReq: "View requests", tasksOf: (n: string) => `${n} · Tasks`, noTasksYet: "No tasks assigned in this project yet.", assignTask: "Assign to task", assignDesc: (n: string) => `Pick a task in this project to assign to ${n}.`, pickTask: "Select a task", assign: "Assign", assigned: "Task assigned", noFreeTasks: "All tasks already have this assignee.", progress: "Progress", dates: "Dates", editReq: "Edit request", save: "Save changes", actions: "Actions", reqUpdated: "Request updated", reqDeleted: "Request deleted", replaces: (n: string) => `Currently assigned to ${n}; it will be reassigned.` },
+  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", coverage: "الطلب لـ", fullProject: "المشروع كامل", forTask: "مهمة محددة", period: "فترة زمنية", selectTask: "اختر مهمة", startD: "تاريخ البداية", endD: "تاريخ النهاية", periodCol: "الفترة", project: "المشروع", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب الأدوار التي تحتاجها. وبعد تنفيذ الطلب من الموارد، ينضم الموظف إلى الفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم", noReqT: "لا توجد طلبات بعد", reqEmptyD: "اطلب من الموارد موظفين — للمشروع كامل، أو لمهمة محددة، أو لفترة زمنية.", waitingT: "في انتظار الموارد", waitingD: (n: number) => `لديك ${n} ${n === 1 ? "طلب" : "طلبات"} لدى الموارد. ينضم كل موظف إلى الفريق فور تنفيذ طلبه.`, viewReq: "عرض الطلبات", tasksOf: (n: string) => `${n} · المهام`, noTasksYet: "لا توجد مهام مسندة في هذا المشروع بعد.", assignTask: "إسناد مهمة", assignDesc: (n: string) => `اختر مهمة في هذا المشروع لإسنادها إلى ${n}.`, pickTask: "اختر مهمة", assign: "إسناد", assigned: "تم إسناد المهمة", noFreeTasks: "كل المهام مسندة بالفعل لهذا الموظف.", progress: "التقدم", dates: "التواريخ", editReq: "تعديل الطلب", save: "حفظ التغييرات", actions: "الإجراءات", reqUpdated: "تم تحديث الطلب", reqDeleted: "تم حذف الطلب", replaces: (n: string) => `مسندة حاليًا إلى ${n}؛ سيتم إعادة إسنادها.` },
 };
 
-export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar" }) {
+export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onAssignTask }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar"; /** Assigning staff to a task is not a plan change, so it works outside Change Plan. */ onAssignTask?: (task: string, member: TeamMember) => void }) {
   const t = T[lang];
   const covLabel = { project: t.project, task: t.task, period: t.periodCol };
-  const { resourceRequests, addResourceRequest } = useResourceRequests();
+  const { resourceRequests, addResourceRequest, updateResourceRequest, removeResourceRequest } = useResourceRequests();
   const [open, setOpen] = useState(false);
+  const [tasksFor, setTasksFor] = useState<TeamMember | null>(null);
+  const [assignFor, setAssignFor] = useState<TeamMember | null>(null);
+  const [editing, setEditing] = useState<ResourceRequest | null>(null);
+  const [deleting, setDeleting] = useState<ResourceRequest | null>(null);
+  const isPending = (r: ResourceRequest) => r.status !== "Fulfilled" && r.status !== "Declined" && requestAssignees(r).length === 0;
+  const rangeFor = (v: RoleRequestValue) => {
+    const task = v.coverage === "task" ? items.find((i) => i.name === v.task) : undefined;
+    const starts = items.map((i) => i.startDate).sort(), ends = items.map((i) => i.endDate).sort();
+    const month = new Date().toISOString().slice(0, 7);
+    const [from, until] = task ? [task.startDate, task.endDate] : v.coverage === "period" ? [v.start, v.end] : [starts[0] ?? month, ends[ends.length - 1] ?? month];
+    return { task, from: from.slice(0, 10), until: until.slice(0, 10) };
+  };
   const { employees } = useEmployees();
   const team = useMemo(() => projectTeam(project, resourceRequests), [project, resourceRequests]);
   const reqs = resourceRequests.filter((r) => r.project === project);
@@ -98,17 +112,21 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
                     <div className="truncate text-xs text-muted-foreground">{m.role}</div>
                   </div>
                 </div>
-                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{m.employment}</span>
-                  <span><span className="num-mono text-foreground">{tasks}</span> {t.tasks}</span>
-                </div>
-                <div className="mt-3"><StatusPill isActive={working} label={working ? t.active : t.inactive} /></div>
+                <div className="mt-4 text-xs text-muted-foreground">{m.employment}</div>
               </>
             );
-            const cls = "block rounded-lg border border-border bg-card p-4 text-start transition-colors";
-            return emp ? (
-              <Link key={m.name} to="/resources/employees/$employeeId" params={{ employeeId: emp.id }} search={{ from: "team", projectId }} className={`${cls} hover:border-primary/60`}>{body}</Link>
-            ) : <div key={m.name} className={cls}>{body}</div>;
+            return (
+              <div key={m.name} className="flex flex-col rounded-lg border border-border bg-card p-4 text-start transition-colors hover:border-primary/60">
+                {emp ? <Link to="/resources/employees/$employeeId" params={{ employeeId: emp.id }} search={{ from: "team", projectId }} className="block">{body}</Link> : <div>{body}</div>}
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <StatusPill isActive={working} label={working ? t.active : t.inactive} />
+                  <div className="flex items-center gap-1">
+                    <button type="button" onClick={() => setTasksFor(m)} className="rounded-md px-2 py-1 text-xs text-muted-foreground underline-offset-2 hover:text-accent hover:underline"><span className="num-mono text-foreground">{tasks}</span> {t.tasks}</button>
+                    {onAssignTask && <Button size="icon" variant="outline" className="h-8 w-8" aria-label={t.assignTask} title={t.assignTask} onClick={() => setAssignFor(m)}><Plus className="h-4 w-4" /></Button>}
+                  </div>
+                </div>
+              </div>
+            );
           })}
         </div>
       )}
@@ -122,7 +140,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
       {!reqs.length ? <EmptyState art="note" title={t.noReqT} description={t.reqEmptyD} ctaLabel={t.request} onCta={() => setOpen(true)} /> : (
         <div className="space-y-3">
           <StyledTable>
-            <StyledTableHeader><StyledTableHeaderRow>{[t.role, t.coverage, t.task, t.employment, t.priority, t.notes, t.status].map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader>
+            <StyledTableHeader><StyledTableHeaderRow>{[t.role, t.coverage, t.task, t.employment, t.priority, t.notes, t.status, ""].map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
               {reqs.map((r) => (
                 <StyledTableRow key={r.id}>
@@ -133,6 +151,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
                   <StyledTableCell>{r.priority}</StyledTableCell>
                   <StyledTableCell><div className="max-w-72 break-words text-xs text-muted-foreground">{r.notes || "—"}</div></StyledTableCell>
                   <StyledTableCell><Pill label={r.status} tone={r.status === "Fulfilled" ? "border-rag-green/40 text-rag-green" : r.status === "Declined" ? "border-rag-red/40 text-rag-red" : "border-rag-amber/40 text-rag-amber"} /></StyledTableCell>
+                  <StyledTableCell className="w-24">{isPending(r) ? <TableRowActions alwaysVisible editLabel={t.editReq} onEdit={() => setEditing(r)} onDelete={() => setDeleting(r)} /> : null}</StyledTableCell>
                 </StyledTableRow>
               ))}
             </StyledTableBody>
@@ -142,6 +161,17 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
         </TabsContent>
       </Tabs>
 
+      <MemberTasksDialog member={tasksFor} items={items} t={t} onClose={() => setTasksFor(null)} />
+      <AssignTaskDialog member={assignFor} items={items} t={t} onClose={() => setAssignFor(null)} onAssign={(task) => { if (assignFor) { onAssignTask?.(task, assignFor); toast.success(t.assigned, { description: `${task} → ${assignFor.name}` }); } setAssignFor(null); }} />
+      <RequestRoleDialog key={editing?.id ?? "edit"} open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }} lang={lang} title={t.editReq} submitLabel={t.save}
+        initial={editing ? { role: editing.role, skill: editing.skill, employment: editing.employment ?? employmentFromFte(editing.fte), priority: editing.priority, notes: editing.notes ?? "", quantity: requestQuantity(editing), coverage: requestCoverage(editing), task: editing.task ?? "", start: requestCoverage(editing) === "period" ? editing.from : "", end: requestCoverage(editing) === "period" ? editing.until : "" } : undefined}
+        tasks={items.filter((i) => i.kind === "Task").map((i) => i.name)} onSubmit={(v) => {
+          if (!editing) return;
+          const { task, from, until } = rangeFor(v);
+          updateResourceRequest(editing.id, { scope: task ? "task" : "team", coverage: v.coverage, task: task?.name, role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, quantity: v.quantity, from, until, priority: v.priority, notes: v.notes });
+          toast.success(t.reqUpdated);
+        }} />
+      <ConfirmDeleteDialog label={deleting ? `${deleting.role}${requestQuantity(deleting) > 1 ? ` × ${requestQuantity(deleting)}` : ""}` : undefined} onCancel={() => setDeleting(null)} onConfirm={() => { if (deleting) { removeResourceRequest(deleting.id); toast.success(t.reqDeleted); } setDeleting(null); }} />
       <RequestRoleDialog open={open} onOpenChange={setOpen} lang={lang} tasks={items.filter((i) => i.kind === "Task").map((i) => i.name)} onSubmit={(v) => {
         const task = v.coverage === "task" ? items.find((i) => i.name === v.task) : undefined;
         const starts = items.map((i) => i.startDate).sort(), ends = items.map((i) => i.endDate).sort();
@@ -158,10 +188,10 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en" }: {
 
 export type RoleRequestValue = { role: string; skill: ResourceRequest["skill"]; employment: Employment; priority: ResourceRequest["priority"]; notes: string; quantity: number; coverage: "project" | "task" | "period"; task: string; start: string; end: string };
 
-export function RequestRoleDialog({ open, onOpenChange, onSubmit, lang = "en", description, tasks }: { open: boolean; onOpenChange: (o: boolean) => void; onSubmit: (v: RoleRequestValue) => void; lang?: "en" | "ar"; description?: string; tasks?: string[] }) {
+export function RequestRoleDialog({ open, onOpenChange, onSubmit, lang = "en", description, tasks, initial, title, submitLabel }: { open: boolean; onOpenChange: (o: boolean) => void; onSubmit: (v: RoleRequestValue) => void; lang?: "en" | "ar"; description?: string; tasks?: string[]; initial?: RoleRequestValue; title?: string; submitLabel?: string }) {
   const t = T[lang];
   const { jobRoles } = useJobRoles();
-  const [v, setV] = useState<RoleRequestValue>({ role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "", quantity: 1, coverage: "project", task: "", start: "", end: "" });
+  const [v, setV] = useState<RoleRequestValue>(initial ?? { role: "", skill: "Mid", employment: "Full time", priority: "Medium", notes: "", quantity: 1, coverage: "project", task: "", start: "", end: "" });
   const [err, setErr] = useState("");
   const [covErr, setCovErr] = useState("");
   const submit = () => {
@@ -176,7 +206,7 @@ export function RequestRoleDialog({ open, onOpenChange, onSubmit, lang = "en", d
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader><DialogTitle>{t.request}</DialogTitle><DialogDescription>{description ?? t.dlgDesc}</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle>{title ?? t.request}</DialogTitle><DialogDescription>{description ?? t.dlgDesc}</DialogDescription></DialogHeader>
         <div className="space-y-4">
           <Field label={t.role} required error={err}>
             <Select value={v.role} onValueChange={(role) => { setV({ ...v, role }); setErr(""); }}>
@@ -247,7 +277,59 @@ export function RequestRoleDialog({ open, onOpenChange, onSubmit, lang = "en", d
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t.cancel}</Button>
-          <Button variant="primary" onClick={submit}>{t.submit}</Button>
+          <Button variant="primary" onClick={submit}>{submitLabel ?? t.submit}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type TeamT = (typeof T)["en"];
+
+/** Tasks a team member holds in this project, opened from the card's task count. */
+function MemberTasksDialog({ member, items, t, onClose }: { member: TeamMember | null; items: Item[]; t: TeamT; onClose: () => void }) {
+  const tasks = member ? items.filter((i) => i.assignee === member.name) : [];
+  return (
+    <Dialog open={!!member} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader><DialogTitle>{member ? t.tasksOf(member.name) : ""}</DialogTitle><DialogDescription>{member?.role}</DialogDescription></DialogHeader>
+        {!tasks.length ? <p className="py-6 text-center text-sm text-muted-foreground">{t.noTasksYet}</p> : (
+          <ul className="max-h-96 divide-y divide-border overflow-y-auto rounded-lg border border-border">
+            {tasks.map((i) => (
+              <li key={i.name} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0"><div className="truncate text-sm font-medium text-foreground">{i.name}</div><div className="text-xs num-mono text-muted-foreground">{i.startDate.slice(0, 10)} → {i.endDate.slice(0, 10)}</div></div>
+                <span className="shrink-0 text-xs num-mono text-foreground">{i.progress ?? 0}%</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Quick-assign a team member to another task in this project. */
+function AssignTaskDialog({ member, items, t, onClose, onAssign }: { member: TeamMember | null; items: Item[]; t: TeamT; onClose: () => void; onAssign: (task: string) => void }) {
+  const [task, setTask] = useState("");
+  const [err, setErr] = useState("");
+  const options = member ? items.filter((i) => i.kind === "Task" && i.assignee !== member.name) : [];
+  const current = items.find((i) => i.name === task)?.assignee;
+  return (
+    <Dialog open={!!member} onOpenChange={(o) => { if (!o) { onClose(); setTask(""); setErr(""); } }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader><DialogTitle>{t.assignTask}</DialogTitle><DialogDescription>{member ? t.assignDesc(member.name) : ""}</DialogDescription></DialogHeader>
+        {!options.length ? <p className="py-4 text-sm text-muted-foreground">{t.noFreeTasks}</p> : (
+          <Field label={t.task} required error={err || undefined}>
+            <Select value={task} onValueChange={(v) => { setTask(v); setErr(""); }}>
+              <SelectTrigger><SelectValue placeholder={t.pickTask} /></SelectTrigger>
+              <SelectContent>{options.map((i) => <SelectItem key={i.name} value={i.name}>{i.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </Field>
+        )}
+        {current && current.toLowerCase() !== "waiting" && <p className="text-xs text-rag-amber">{t.replaces(current)}</p>}
+        <DialogFooter>
+          <Button variant="outline" onClick={() => { onClose(); setTask(""); }}>{t.cancel}</Button>
+          <Button variant="primary" disabled={!options.length} onClick={() => { if (!task) { setErr(t.pickTask); return; } onAssign(task); setTask(""); }}>{t.assign}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

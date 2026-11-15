@@ -404,6 +404,7 @@ type AppContextValue = {
   resourceRequests: ResourceRequest[];
   addResourceRequest: (r: Omit<ResourceRequest, "id" | "date" | "status">) => string;
   updateResourceRequest: (id: string, patch: Partial<ResourceRequest>) => void;
+  removeResourceRequest: (id: string) => void;
   // Tags
   tags: (OrgTag & { usage: number })[];
   addTag: (tag: OrgTag, projectIds: string[]) => void;
@@ -691,13 +692,16 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   function updateResourceRequest(id: string, patch: Partial<ResourceRequest>) {
     setResourceRequests((prev) => prev.map((r) => r.id === id ? { ...r, ...patch } : r));
   }
+  function removeResourceRequest(id: string) {
+    setResourceRequests((prev) => prev.filter((r) => r.id !== id));
+  }
 
   return (
     <AppContext.Provider value={{
       projects, addProject, updateProject, removeProject,
       notifications, unreadCount, addNotification, markAllRead,
       rfps, addRfp,
-      resourceRequests, addResourceRequest, updateResourceRequest,
+      resourceRequests, addResourceRequest, updateResourceRequest, removeResourceRequest,
       tags, addTag, updateTag, removeTag,
       calendars, addCalendar, updateCalendar, removeCalendar,
       jobRoles, addJobRole, updateJobRole, removeJobRole,
@@ -732,8 +736,8 @@ export function useRfps() {
 }
 
 export function useResourceRequests() {
-  const { resourceRequests, addResourceRequest, updateResourceRequest } = useAppContext();
-  return { resourceRequests, addResourceRequest, updateResourceRequest };
+  const { resourceRequests, addResourceRequest, updateResourceRequest, removeResourceRequest } = useAppContext();
+  return { resourceRequests, addResourceRequest, updateResourceRequest, removeResourceRequest };
 }
 
 export function useTags() {

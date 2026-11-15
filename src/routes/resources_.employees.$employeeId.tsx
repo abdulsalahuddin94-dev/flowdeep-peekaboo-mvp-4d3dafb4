@@ -148,8 +148,7 @@ function EmployeeDetails() {
       <h1 className="break-words text-lg font-semibold text-foreground">{employee.name}{employee.shortName ? ` - (${employee.shortName})` : ""}</h1>
       <p className="text-sm text-muted-foreground">{employee.role}</p>
       <div className="flex flex-wrap items-center gap-2">
-       <Badge variant="secondary" className="gap-2"><CalendarDays className="h-4 w-4" aria-hidden />{t.capacity}<span className="num-mono font-semibold text-foreground">{monthly.availableCapacity}h</span></Badge>
-       {(employee.tags ?? []).map((tag) => <Badge key={tag} variant="outline">{tag}</Badge>)}
+       {(employee.tags ?? []).filter((tag) => tag !== "Certified").map((tag) => <Badge key={tag} variant="outline">{tag}</Badge>)}
       </div>
      </div>
      <Badge variant={employee.active !== false ? "outline" : "secondary"} className={employee.active !== false ? "border-rag-green/50 bg-rag-green/10 text-rag-green" : "text-muted-foreground"}>{employee.active !== false ? th.active : th.inactive}</Badge>

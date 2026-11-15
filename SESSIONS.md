@@ -1,3 +1,7 @@
+## 2026-11-15 — Employee Details: removed header capacity and certification badges
+- Removed the **Capacity / month** badge and the **Certified** tag from the employee header, leaving the remaining tags such as **Senior** in place.
+- Monthly capacity remains available in the header metrics grid and Capacity tab; underlying employee data is unchanged.
+
 ## 2026-11-15 — Employee Details: clarified monthly vs yearly utilization
 - Renamed the two header metrics to **Utilization for this month** and **Yearly average utilization** (Arabic: الاستغلال لهذا الشهر / متوسط الاستغلال السنوي), following the supplied reference.
 - Kept the cards compact without secondary period lines. Calculations and color thresholds are unchanged.

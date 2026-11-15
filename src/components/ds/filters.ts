@@ -7,10 +7,10 @@ import type { FilterGroup, MultiFilterGroup } from "@/components/ds/PageToolbar"
  * choices, so each group keeps an explicit "all" reset value.
  */
 
-export function relatedProjectsGroup(value: string, onChange: (v: string) => void): FilterGroup {
+export function relatedProjectsGroup(value: string, onChange: (v: string) => void, label = "Related Projects"): FilterGroup {
   return {
     key: "related",
-    label: "Related Projects",
+    label,
     value,
     onChange,
     options: [

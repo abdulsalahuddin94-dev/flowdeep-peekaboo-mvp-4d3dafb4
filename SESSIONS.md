@@ -1,3 +1,8 @@
+## 2026-11-15 — Employees: "Related Projects" renamed to "Assigned Projects"
+- Employees table column header, its Filter-drawer group, and the count popup caption now read "Assigned Projects", matching the employee profile's existing "Assigned projects" section.
+- `relatedProjectsGroup()` in `src/components/ds/filters.ts` takes an optional `label` (default still "Related Projects"), so Organization, Clients & Vendors and Meeting Types keep their master-data wording.
+- Verified in preview: header reads `Assigned Projects`, drawer group is `Assigned Projects` with no `Related Projects` left on the page, popup shows `Sara Al-Rashid (Assigned Projects)`.
+
 ## 2026-11-15 — Team tab: designed empty states for both sub-tabs
 - Team sub-tab now has two conditions. Nothing asked for yet → `people` art, "No team members yet". Requests open but nobody assigned → `clock` art, "Waiting on Resources" with the pending count, plus a "View requests" button that jumps to the Requests sub-tab.
 - Requests sub-tab gets its own copy and `note` art: "No requests yet" / "Ask Resources for people — for the whole project, a specific task, or a period of time." It previously reused the Team description and `role` art.

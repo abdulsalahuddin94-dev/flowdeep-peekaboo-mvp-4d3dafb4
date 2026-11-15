@@ -122,7 +122,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onA
                   <StatusPill isActive={working} label={working ? t.active : t.inactive} />
                   <div className="flex items-center gap-1">
                     <button type="button" onClick={() => setTasksFor(m)} className="rounded-md px-2 py-1 text-xs text-muted-foreground underline-offset-2 hover:text-accent hover:underline"><span className="num-mono text-foreground">{tasks}</span> {t.tasks}</button>
-                    {onAssignTask && <Button size="icon" variant="outline" className="h-8 w-8" aria-label={t.assignTask} title={t.assignTask} onClick={() => setAssignFor(m)}><Plus className="h-4 w-4" /></Button>}
+                    {onAssignTask && <Button size="icon" variant="secondary" className="h-8 w-8" aria-label={t.assignTask} title={t.assignTask} onClick={() => setAssignFor(m)}><Plus className="h-4 w-4" /></Button>}
                   </div>
                 </div>
               </div>

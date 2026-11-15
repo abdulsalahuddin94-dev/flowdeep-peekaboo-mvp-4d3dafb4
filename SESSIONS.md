@@ -1,3 +1,7 @@
+## 2026-11-15 — Team Requests: actions replace the status pill on hover
+- The Requests table's Status column is now the last column and hosts the row actions: at rest it shows the status pill, on row hover the pill steps aside for Edit/Delete (shared `TableRowActions` `statusNode` pattern, same as Organization).
+- Fulfilled and Declined rows keep the pill only — hovering them shows no actions.
+
 ## 2026-11-15 — Employee tabs, capacity working days, WBS Role+Assignee, Team card actions, editable pending requests
 - Employee Details: Salary and Capacity tabs now sit right after Employee Info; Absence days column removed from the Capacity table; Set capacity popup adds "Working days in month" (default 20) used to prorate absence.
 - WBS: Assignee column merged into Role (name on top, role below, no headcount number since one role per function); Add/Edit role in the row menu is always available without Change Plan, like Progress update.

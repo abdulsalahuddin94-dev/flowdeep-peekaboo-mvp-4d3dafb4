@@ -289,7 +289,6 @@ const COLUMNS = [
   { key: "type",     label: "Type",        w: 90 },
   { key: "duration", label: "Timeline",    w: 166 },
   { key: "owner",    label: "Owner",       w: 150 },
-  { key: "assignee", label: "Assignee",    w: 130 },
   { key: "roles",    label: "Role",        w: 180 },
   { key: "weight",   label: "Weight",      w: 66 },
   { key: "planned",  label: "% Plan",      w: 130 },
@@ -688,19 +687,13 @@ export function ProjectSchedule({
           break;
         }
         case "owner": txt = item.owner; break;
-        case "assignee": {
-          const a = item.assignee?.trim();
-          if (!a) { txt = "Request skill"; extra = 14 + 4 + 16 + 2; } // icon + gap + px-2*2 + border
-          else if (a.toLowerCase() === "waiting") { txt = "Waiting"; extra = 16 + 2; }
-          else { txt = a; extra = 6 + 6 + 16 + 2; } // dot + gap + padding + border
-          break;
-        }
         case "status": txt = statusText[item.rag]; extra = 6 + 6 + 16 + 2; break; // dot + gap + px-2*2 + border
         case "actual": txt = `${item.progress ?? 0}%`; extra = 60; break;
         case "planned": txt = `${computePlannedProgress(item.startDate, item.endDate)}%`; extra = 60; break;
         case "dep": txt = String(item.dependencies?.length ?? 0); break;
         case "roles":
-          txt = item.roles.length ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ") : "—";
+          // Role sits above the assignee name; fit whichever line is wider.
+          txt = [item.roles.length ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ") : "—", item.assignee ?? ""].sort((x, y) => measureText(y) - measureText(x))[0];
           extra = 24;
           break;
         case "weight":
@@ -1339,27 +1332,6 @@ export function ProjectSchedule({
                         )}
                       </div>
                     )}
-                    {colVisible("assignee") && (
-                      <div className="flex items-center px-3 overflow-hidden" style={{ width: widths.assignee }}>
-                        <AssigneeCell
-                          item={item}
-                          editable={assigneeEditable}
-                          onCommit={(v) => patch(item.name, { assignee: v || undefined })}
-                          onRequestSkill={(role) => onRequestSkill?.(item.name, role)}
-                          onSwap={(otherName) => {
-                            const other = items.find(i => i.name === otherName);
-                            if (!other) return;
-                            const a = item.assignee;
-                            const b = other.assignee;
-                            patch(item.name, { assignee: b });
-                            patch(other.name, { assignee: a });
-                            toast.success(`Swapped ${a ?? "—"} ↔ ${b ?? "—"}`);
-                          }}
-                          siblings={items.filter(i => i.parent && i.parent === item.parent && i.name !== item.name && !!i.assignee && i.assignee.toLowerCase() !== "waiting").map(i => i.name)}
-                          resourceList={resourceList}
-                        />
-                      </div>
-                    )}
                     {colVisible("roles") && (
                       <div className="flex items-center gap-1 overflow-hidden px-3" style={{ width: widths.roles }}>
                         {(() => {
@@ -1371,10 +1343,12 @@ export function ProjectSchedule({
                           const label = item.roles.length
                             ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ")
                             : (assigneeRole ?? "");
-                          return label ? (
-                            <span className="truncate text-[11px] text-foreground/80" title={label}>{label}</span>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
+                          return (
+                            <div className="flex min-w-0 flex-col leading-tight">
+                              <span className={`truncate text-[11px] ${label ? "text-foreground/80" : "text-muted-foreground"}`} title={label || undefined}>{label || "—"}</span>
+                              {isWaiting ? <span className="text-[10px] text-rag-amber">Waiting</span>
+                                : a ? <span className="truncate text-[10px] text-muted-foreground" title={a}>{a}</span> : null}
+                            </div>
                           );
                         })()}
                       </div>
@@ -1515,9 +1489,10 @@ export function ProjectSchedule({
                                 <PlanActionMenuItem restricted={restricted} onSelect={() => onEditItem?.(item.name)}>
                                   <Pencil className="h-4 w-4" /> Edit
                                 </PlanActionMenuItem>
-                                <PlanActionMenuItem restricted={restricted} onSelect={() => setRolesFor(item.name)}>
-                                  <UserPlus className="h-4 w-4" /> {item.roles.length ? "Edit role" : "Add role"}
-                                </PlanActionMenuItem>
+                                {/* Staffing is not a plan change, so role edits stay available outside Change Plan like Progress update. */}
+                                <DropdownMenuItem onSelect={() => setRolesFor(item.name)}>
+                                  <UserPlus className="h-4 w-4" /> {item.roles.length || item.assignee ? "Edit role" : "Add role"}
+                                </DropdownMenuItem>
                                 <PlanActionMenuItem restricted={restricted} onSelect={() => onAddDependencyClick?.(item.name)}>
                                   <Link2 className="h-4 w-4" /> Add dependency
                                 </PlanActionMenuItem>

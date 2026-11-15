@@ -140,9 +140,11 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onA
       {!reqs.length ? <EmptyState art="note" title={t.noReqT} description={t.reqEmptyD} ctaLabel={t.request} onCta={() => setOpen(true)} /> : (
         <div className="space-y-3">
           <StyledTable>
-            <StyledTableHeader><StyledTableHeaderRow>{[t.role, t.coverage, t.task, t.employment, t.priority, t.notes, t.status, ""].map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader>
+            <StyledTableHeader><StyledTableHeaderRow>{[t.role, t.coverage, t.task, t.employment, t.priority, t.notes, t.status].map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
-              {reqs.map((r) => (
+              {reqs.map((r) => {
+                const statusPill = <Pill label={r.status} tone={r.status === "Fulfilled" ? "border-rag-green/40 text-rag-green" : r.status === "Declined" ? "border-rag-red/40 text-rag-red" : "border-rag-amber/40 text-rag-amber"} />;
+                return (
                 <StyledTableRow key={r.id}>
                   <StyledTableCell><div className="font-medium text-foreground">{r.role}{requestQuantity(r) > 1 ? <span className="num-mono text-muted-foreground"> × {requestQuantity(r)}</span> : null}</div><div className="text-xs text-muted-foreground">{r.skill}{requestQuantity(r) > 1 ? ` · ${requestAssignees(r).length} / ${requestQuantity(r)} ${t.filled}` : ""}</div></StyledTableCell>
                   <StyledTableCell>{covLabel[requestCoverage(r)]}</StyledTableCell>
@@ -150,10 +152,12 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onA
                   <StyledTableCell>{r.employment ?? employmentFromFte(r.fte)}</StyledTableCell>
                   <StyledTableCell>{r.priority}</StyledTableCell>
                   <StyledTableCell><div className="max-w-72 break-words text-xs text-muted-foreground">{r.notes || "—"}</div></StyledTableCell>
-                  <StyledTableCell><Pill label={r.status} tone={r.status === "Fulfilled" ? "border-rag-green/40 text-rag-green" : r.status === "Declined" ? "border-rag-red/40 text-rag-red" : "border-rag-amber/40 text-rag-amber"} /></StyledTableCell>
-                  <StyledTableCell className="w-24">{isPending(r) ? <TableRowActions alwaysVisible editLabel={t.editReq} onEdit={() => setEditing(r)} onDelete={() => setDeleting(r)} /> : null}</StyledTableCell>
+                  {/* Status is the last column and steps aside for Edit/Delete on row hover
+                      (DS02 row-actions pattern). Fulfilled/Declined rows keep the pill only. */}
+                  <StyledTableCell className="w-36">{isPending(r) ? <TableRowActions statusNode={statusPill} editLabel={t.editReq} onEdit={() => setEditing(r)} onDelete={() => setDeleting(r)} /> : statusPill}</StyledTableCell>
                 </StyledTableRow>
-              ))}
+                );
+              })}
             </StyledTableBody>
           </StyledTable>
         </div>

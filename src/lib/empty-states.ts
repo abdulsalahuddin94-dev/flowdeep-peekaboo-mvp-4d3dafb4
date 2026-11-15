@@ -35,6 +35,9 @@ export const EMPTY_STATES: EmptyStateEntry[] = [
   { id: "project-overview-health", module: "Portfolio", page: "Overview — Project Health", path: "/portfolio/", art: "shield", title: "No health update yet", description: "Submit a status update to establish project health." },
   { id: "project-overview-milestones", module: "Portfolio", page: "Overview — Next Milestones", path: "/portfolio/", art: "calendar", title: "No upcoming milestones", description: "The next scheduled milestones will appear here." },
   { id: "project-overview-budget", module: "Portfolio", page: "Overview — Budget Status", path: "/portfolio/", art: "coins", title: "No budget data yet", description: "Add planned costs to start tracking the budget." },
+  { id: "project-team-members", module: "Portfolio", page: "Team — Members", path: "/portfolio/", art: "people", title: "No team members yet", description: "Request the roles you need. Once Resources fulfills a request, the employee joins the team.", ctaLabel: "Request role" },
+  { id: "project-team-waiting", module: "Portfolio", page: "Team — Waiting on Resources", path: "/portfolio/", art: "clock", title: "Waiting on Resources", description: "Your open requests are with Resources. Each employee joins the team as soon as their request is fulfilled.", ctaLabel: "Request role" },
+  { id: "project-team-requests", module: "Portfolio", page: "Team — Requests", path: "/portfolio/", art: "note", title: "No requests yet", description: "Ask Resources for people — for the whole project, a specific task, or a period of time.", ctaLabel: "Request role" },
 
 
   // Resources

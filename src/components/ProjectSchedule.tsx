@@ -692,8 +692,8 @@ export function ProjectSchedule({
         case "planned": txt = `${computePlannedProgress(item.startDate, item.endDate)}%`; extra = 60; break;
         case "dep": txt = String(item.dependencies?.length ?? 0); break;
         case "roles":
-          // Role sits above the assignee name; fit whichever line is wider.
-          txt = [item.roles.length ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ") : "—", item.assignee ?? ""].sort((x, y) => measureText(y) - measureText(x))[0];
+          // Assignee name sits above the role label; fit whichever line is wider.
+          txt = [item.assignee?.trim() || "—", item.roles.length ? item.roles.map(r => r.role).join(", ") : "—"].sort((x, y) => measureText(y) - measureText(x))[0];
           extra = 24;
           break;
         case "weight":
@@ -1340,14 +1340,16 @@ export function ProjectSchedule({
                           const assigneeRole = a && !isWaiting
                             ? resourceList.find(r => r.name.toLowerCase() === a.toLowerCase())?.role
                             : undefined;
-                          const label = item.roles.length
-                            ? item.roles.map(r => `${r.role} (${r.fte})`).join(", ")
+                          const roleLabel = item.roles.length
+                            ? item.roles.map(r => r.role).join(", ")
                             : (assigneeRole ?? "");
                           return (
                             <div className="flex min-w-0 flex-col leading-tight">
-                              <span className={`truncate text-[11px] ${label ? "text-foreground/80" : "text-muted-foreground"}`} title={label || undefined}>{label || "—"}</span>
-                              {isWaiting ? <span className="text-[10px] text-rag-amber">Waiting</span>
-                                : a ? <span className="truncate text-[10px] text-muted-foreground" title={a}>{a}</span> : null}
+                              {isWaiting
+                                ? <span className="truncate text-[11px] text-rag-amber">Waiting</span>
+                                : a ? <span className="truncate text-[11px] text-foreground/80" title={a}>{a}</span>
+                                  : <span className="truncate text-[11px] text-muted-foreground">—</span>}
+                              {roleLabel ? <span className="truncate text-[10px] text-muted-foreground" title={roleLabel}>{roleLabel}</span> : null}
                             </div>
                           );
                         })()}

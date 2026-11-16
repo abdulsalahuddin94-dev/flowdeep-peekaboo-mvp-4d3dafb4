@@ -6,6 +6,12 @@ test("empty project or job role selection keeps every employee", () => {
   assert.equal(matchAnySelected([], ["ERP System Upgrade"]), true);
   assert.equal(matchAnySelected([], ["Solution Architect"]), true);
 });
+test("Requests Project and Role filters both match the requested project and role", () => {
+  const matches = (project: string, role: string) => matchAnySelected(["Customer Portal v3"], [project]) && matchAnySelected(["Frontend Developer"], [role]);
+  assert.equal(matches("Customer Portal v3", "Frontend Developer"), true);
+  assert.equal(matches("ERP System Upgrade", "Frontend Developer"), false);
+  assert.equal(matches("Customer Portal v3", "QA Engineer"), false);
+});
 
 test("project filter keeps employees on any selected project", () => {
   const selected = ["ERP System Upgrade", "Security Hardening 2026"];

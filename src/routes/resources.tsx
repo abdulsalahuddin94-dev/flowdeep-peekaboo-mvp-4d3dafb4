@@ -185,13 +185,19 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [priority, setPriority] = useState("all");
+  const [projectFilter, setProjectFilter] = useState<string[]>([]);
+  const [roleFilter, setRoleFilter] = useState<string[]>([]);
+  const filterText = { en: { project: "Project", role: "Role" }, ar: { project: "المشروع", role: "الدور الوظيفي" } }.en;
+  const projectOptions = [...new Set(requests.map((r) => r.project))].sort();
+  const roleOptions = [...new Set(requests.map((r) => r.role))].sort();
   const [openId, setOpenId] = useState<string | null>(null);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return requests.filter((r) => (!q || r.role.toLowerCase().includes(q) || (r.task ?? "").toLowerCase().includes(q) || r.skill.toLowerCase().includes(q) || r.project.toLowerCase().includes(q)))
       .filter((r) => status === "all" || r.status === status)
-      .filter((r) => priority === "all" || r.priority === priority);
-  }, [priority, query, requests, status]);
+      .filter((r) => priority === "all" || r.priority === priority)
+      .filter((r) => matchAnySelected(projectFilter, [r.project]) && matchAnySelected(roleFilter, [r.role]));
+  }, [priority, query, requests, status, projectFilter, roleFilter]);
   const pagination = usePagination(filtered, 10);
   const selected = requests.find((r) => r.id === openId) ?? null;
 
@@ -205,6 +211,8 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
         { key: "priority", label: "Priority", value: priority, onChange: setPriority, options: [
           { value: "all", label: "All priorities" }, ...(["Critical", "High", "Medium", "Low"] as Priority[]).map((v) => ({ value: v, label: v })),
         ] },
+        { key: "project", label: filterText.project, mode: "multi", searchable: true, showAll: true, value: projectFilter, onChange: setProjectFilter, options: projectOptions.map((name) => ({ value: name, label: name })) },
+        { key: "role", label: filterText.role, mode: "multi", searchable: true, showAll: true, value: roleFilter, onChange: setRoleFilter, options: roleOptions.map((name) => ({ value: name, label: name })) },
       ]} />
         <StyledTable wrapperClassName="">
           <StyledTableHeader><StyledTableHeaderRow>

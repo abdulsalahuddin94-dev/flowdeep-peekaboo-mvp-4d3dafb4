@@ -1,3 +1,6 @@
+## 2026-11-16 — Requests Project and Role filters
+- Added searchable multi-select Project and Role to the Resources Requests drawer shown by the user; both combine with Status, Priority and search. Employment Types filters remain available separately. Added a combined request-filter test.
+
 ## 2026-11-16 — Employment Types filters
 - Added searchable multi-select Role; combined Project and Role selections must match the same linked employee. Added role and combined-filter tests.
 - Added Has employees (All / With employees / Without employees) and searchable multi-project filters in the shared drawer. Project filtering derives type membership from employees' assigned projects and allocations; counts remain the total linked employees. Added four filter logic tests.

@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { matchesEmploymentTypeEmployees } from "./employment-type-filters";
 
 const employees = [
-  { employmentTypeId: "ET-1", projects: ["ERP System Upgrade"], allocations: [] },
-  { employmentTypeId: "ET-2", projects: [], allocations: [{ project: "Customer Portal v3" }] },
+  { employmentTypeId: "ET-1", role: "Solution Architect", projects: ["ERP System Upgrade"], allocations: [] },
+  { employmentTypeId: "ET-2", role: "Frontend Developer", projects: [], allocations: [{ project: "Customer Portal v3" }] },
 ];
 test("has employees excludes unused employment types", () => {
   assert.equal(matchesEmploymentTypeEmployees("ET-1", employees, "with", []), true);
@@ -22,4 +22,13 @@ test("project filter finds types through assigned projects or allocations", () =
 test("filters combine and empty selection includes unused types", () => {
   assert.equal(matchesEmploymentTypeEmployees("ET-3", employees, "all", []), true);
   assert.equal(matchesEmploymentTypeEmployees("ET-1", employees, "without", ["ERP System Upgrade"]), false);
+});
+test("role filter accepts any selected role and rejects other roles", () => {
+  assert.equal(matchesEmploymentTypeEmployees("ET-2", employees, "all", [], ["Frontend Developer", "QA Engineer"]), true);
+  assert.equal(matchesEmploymentTypeEmployees("ET-1", employees, "all", [], ["Frontend Developer"]), false);
+});
+test("project and role must match the same linked employee", () => {
+  const linked = [...employees, { employmentTypeId: "ET-1", role: "QA Engineer", projects: ["Customer Portal v3"], allocations: [] }];
+  assert.equal(matchesEmploymentTypeEmployees("ET-1", linked, "with", ["ERP System Upgrade"], ["QA Engineer"]), false);
+  assert.equal(matchesEmploymentTypeEmployees("ET-1", linked, "with", ["Customer Portal v3"], ["QA Engineer"]), true);
 });

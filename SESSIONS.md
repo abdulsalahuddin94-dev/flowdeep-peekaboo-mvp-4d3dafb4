@@ -1,4 +1,5 @@
 ## 2026-11-16 — Employment Types filters
+- Added searchable multi-select Role; combined Project and Role selections must match the same linked employee. Added role and combined-filter tests.
 - Added Has employees (All / With employees / Without employees) and searchable multi-project filters in the shared drawer. Project filtering derives type membership from employees' assigned projects and allocations; counts remain the total linked employees. Added four filter logic tests.
 
 ## 2026-11-16 — Requests Period display

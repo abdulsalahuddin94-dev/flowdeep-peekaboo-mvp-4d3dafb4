@@ -1,3 +1,6 @@
+## 2026-11-16 — Requests Has employees filter
+- Added the supplied searchable checkbox design (All / With employees / Without employees) to Requests. Presence is derived from assigned people, including partially fulfilled Pending requests and legacy single assignments, independently of Status. Added three logic tests; no records or statuses changed.
+
 ## 2026-11-16 — Requests Project and Role filters
 - Added searchable multi-select Project and Role to the Resources Requests drawer shown by the user; both combine with Status, Priority and search. Employment Types filters remain available separately. Added a combined request-filter test.
 

@@ -6,7 +6,7 @@ const T = {
   ar: { start: "البداية", end: "النهاية", duration: "المدة" },
 };
 
-export function RequestPeriod({ from, until, durationHours, lang = "en" }: { from: string; until: string; durationHours?: number; lang?: "en" | "ar" }) {
+export function RequestPeriod({ from, until, durationHours, lang = "en", inline = false }: { from: string; until: string; durationHours?: number; lang?: "en" | "ar"; inline?: boolean }) {
   const period = requestPeriod(from, until, durationHours);
   const t = T[lang];
   return (
@@ -14,7 +14,7 @@ export function RequestPeriod({ from, until, durationHours, lang = "en" }: { fro
       <Tooltip>
         <TooltipTrigger asChild>
           <span tabIndex={0} className="inline-block whitespace-nowrap num-mono text-xs text-muted-foreground" dir="ltr">
-            {period.lines.map((line, i) => <span className="block" key={i}>{line || "—"}</span>)}
+            {inline ? period.lines.join(period.duration && period.lines[1] === period.duration ? " · " : " → ") : period.lines.map((line, i) => <span className="block" key={i}>{line || "—"}</span>)}
           </span>
         </TooltipTrigger>
         <TooltipContent className="whitespace-normal text-left">

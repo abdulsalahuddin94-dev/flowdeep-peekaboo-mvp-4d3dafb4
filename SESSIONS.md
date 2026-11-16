@@ -1,4 +1,5 @@
 ## 2026-11-16 — Requests Period display
+- Swept request details, Fulfill, Team Requests and employee request-task references to reuse precise period display; drawer retains its inline arrow. New WBS and Team requests preserve actual dates separately from staffing buckets. No settled records or allocation calculations changed.
 - Added precise demo display values to Solution Design (5h 30m), Site Mobilisation (11h), and UAT Execution (43h across two dates) so the new behavior is visible on the first Requests page; staffing allocation buckets are unchanged.
 - Same-day precise periods show one ISO date and hours/minutes; different-day periods show stacked actual dates with exact values and available duration in the shared hover tooltip.
 - Legacy month-only ranges remain unchanged; date-only data does not invent hours. Added tests for 5h 30m, 11h, midnight crossing, and 16/40/43 recorded work hours.

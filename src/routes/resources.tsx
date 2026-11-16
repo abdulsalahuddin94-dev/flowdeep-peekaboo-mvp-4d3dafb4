@@ -332,7 +332,7 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
                 <DrawerRow label="Task" value={req.task ?? "—"} />
                 <DrawerRow label="Employment" value={req.employment ?? employmentFromFte(req.fte)} />
                 {requestQuantity(req) > 1 && <DrawerRow label="Employees needed" value={`${requestAssignees(req).length} / ${requestQuantity(req)} filled`} valueClass="num-mono" />}
-                <DrawerRow label="Period" value={`${req.from} → ${req.until}`} valueClass="num-mono" />
+                <DrawerRow label="Period" value={<RequestPeriod from={req.periodStart ?? req.from} until={req.periodEnd ?? req.until} durationHours={req.durationHours} inline />} valueClass="num-mono" />
                 <DrawerRow label="Submitted On" value={req.submittedBy} />
                 <DrawerRow label="Submitted" value={/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date} />
                 {req.notes && (
@@ -588,7 +588,7 @@ function FulfillDialog({
         <div className="rounded-md border border-border bg-secondary/30 p-3 text-sm">
           <div className="font-medium text-foreground">{req.role} <span className="text-muted-foreground text-xs">({req.skill})</span></div>
           <div className="mt-0.5 text-xs text-muted-foreground">
-            {req.project} · {COVERAGE_LABEL[requestCoverage(req)]} · {req.from} → {req.until}
+            {req.project} · {COVERAGE_LABEL[requestCoverage(req)]} · <RequestPeriod from={req.periodStart ?? req.from} until={req.periodEnd ?? req.until} durationHours={req.durationHours} inline />
           </div>
           {req.notes && <div className="mt-1 text-xs italic text-muted-foreground">"{req.notes}"</div>}
         </div>

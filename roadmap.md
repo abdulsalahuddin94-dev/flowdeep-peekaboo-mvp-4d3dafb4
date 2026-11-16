@@ -97,7 +97,7 @@
 - [x] Employee profile: replace the lavender pill back button with the standard plain back link + breadcrumb used on other record pages; verify and log.
 
 ## Current
-- [ ] Explain the “Filter by has employees design is missing” comment from the supplied screenshot; no implementation requested.
+- [x] Explain the “Filter by has employees design is missing” comment from the supplied screenshot; it concerns Employment Types with/without linked employees, not Requests. No implementation requested.
 - [x] Employees table: Status column with hover Delete/Edit/Activate-Deactivate, Employee Number column, department under name (2026-10-29)
 - [x] Employee profile: show the Year selector only on the year-driven tabs (allocation, salary, capacity, trips) and drop the duplicate inline year labels; verify and log.
 

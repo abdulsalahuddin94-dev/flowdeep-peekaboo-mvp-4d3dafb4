@@ -17,6 +17,7 @@
 - Approval Current financial tables reuse the project CostBreakdownTable and RevenuePlanTable in explicit read-only mode; expansion stays available while all bookkeeping and plan mutations are hidden.
 
 - Keep employees and employment-type lookups in one persisted browser store with stable IDs, so list/detail navigation and lookup renames retain identity. Employee assignments stay read-only on the profile; allocations retain their project, period and task for monthly salary attribution.
+- Employees filters reuse PageToolbar multi-groups with opt-in search and All-row visibility, so short searchable lists match the employee design without changing other modules.
 - Salary and capacity are monthly values: the employee store keeps per-month overrides keyed by YYYY-MM over base salary/capacity, edited from the profile (bulk plan + single-month override), never collected at employee creation. Leave and business-trip/training days prorate the month's available capacity over 22 working days, and over-utilization is derived from assigned hours vs available capacity.
 
 - Employee detail navigation and panels share one Tabs root so selection and accessibility stay synchronized; keep layout changes independent of employee financial calculations.

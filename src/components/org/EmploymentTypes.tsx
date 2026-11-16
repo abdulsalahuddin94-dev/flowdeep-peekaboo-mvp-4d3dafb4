@@ -43,7 +43,7 @@ export function EmploymentTypesTab() {
   const [error, setError] = useState("");
   const count = (id: string) => employees.filter((e) => e.employmentTypeId === id).length;
   const projectNames = [...new Set([...projects.map((p) => p.name), ...employees.flatMap((e) => [...e.projects, ...e.allocations.map((a) => a.project)])])].sort();
-  const roles = [...new Set([...jobRoles, ...employees.map((e) => e.role)])].sort();
+  const roles = [...new Set([...jobRoles.map((r) => r.title), ...employees.map((e) => e.role)])].sort();
   const pager = usePagination(employmentTypes.filter((v) => (v.name.toLowerCase().includes(query.toLowerCase()) || (v.description ?? "").toLowerCase().includes(query.toLowerCase())) && matchStatus(status, v.active) && matchesEmploymentTypeEmployees(v.id, employees, presence, selectedProjects, selectedRoles)));
   const blocked = confirmation?.kind === "delete" && count(confirmation.entry.id) > 0;
   function submit() { const value = name.trim(); if (!value || employmentTypes.some((v) => v.id !== editing?.id && v.name.trim().toLowerCase() === value.toLowerCase())) { setError(t.required); return; } if (editing) updateEmploymentType(editing.id, { name: value, description: desc.trim() }); else addEmploymentType(value, desc); setOpen(false); }

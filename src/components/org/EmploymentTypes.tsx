@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useProjects } from "@/lib/projects-store";
+import { matchesEmploymentTypeEmployees } from "@/lib/employment-type-filters";
 import { Link } from "@tanstack/react-router";
 import { useEmployees, type EmploymentType } from "@/lib/employees-store";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
@@ -17,11 +19,20 @@ import { statusGroup, matchStatus } from "@/components/ds/filters";
 import { ChevronRight, Plus } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 export const T = {
+  
   en: { add: "Add employment type", edit: "Edit employment type", name: "Name", description: "Description", search: "Search employment types…", employees: "Employees", peopleOf: "employees", status: "Status", cancel: "Cancel", save: "Save changes", required: "Enter a unique employment type name.", delete: "Delete employment type?", blocked: "This type is assigned to employees. Deactivate it instead.", remove: "Delete", deactivate: "Deactivate", activate: "Activate", confirm: "Confirm", toggle: "Change availability?", hint: "Existing employees keep their employment type.", removeHint: "This unused employment type will be removed." },
   ar: { add: "إضافة نوع توظيف", edit: "تعديل نوع التوظيف", name: "الاسم", description: "الوصف", search: "ابحث عن أنواع التوظيف…", employees: "الموظفون", peopleOf: "موظف", status: "الحالة", cancel: "إلغاء", save: "حفظ التغييرات", required: "أدخل اسم نوع توظيف غير مكرر.", delete: "حذف نوع التوظيف؟", blocked: "هذا النوع مرتبط بموظفين. يمكنك تعطيله بدلاً من حذفه.", remove: "حذف", deactivate: "تعطيل", activate: "تفعيل", confirm: "تأكيد", toggle: "تغيير الإتاحة؟", hint: "يحتفظ الموظفون الحاليون بنوع التوظيف.", removeHint: "سيتم حذف نوع التوظيف غير المستخدم." },
 };
 const t = T.en;
+const FILTER_T = {
+  en: { presence: "Has employees", all: "All", with: "With employees", without: "Without employees", project: "Project" },
+  ar: { presence: "وجود موظفين", all: "الكل", with: "بها موظفون", without: "بدون موظفين", project: "المشروع" },
+};
 export function EmploymentTypesTab() {
+  const { projects } = useProjects();
+  const [presence, setPresence] = useState("all");
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const f = FILTER_T.en;
   const { employees, employmentTypes, addEmploymentType, updateEmploymentType, removeEmploymentType } = useEmployees();
   const [query, setQuery] = useState(""); const [status, setStatus] = useState("all");
   const [editing, setEditing] = useState<EmploymentType | null>(null); const [open, setOpen] = useState(false); const [name, setName] = useState(""); const [desc, setDesc] = useState("");
@@ -30,11 +41,12 @@ export function EmploymentTypesTab() {
   const listed = listing ? employees.filter((e) => e.employmentTypeId === listing.id) : [];
   const [error, setError] = useState("");
   const count = (id: string) => employees.filter((e) => e.employmentTypeId === id).length;
-  const pager = usePagination(employmentTypes.filter((v) => (v.name.toLowerCase().includes(query.toLowerCase()) || (v.description ?? "").toLowerCase().includes(query.toLowerCase())) && matchStatus(status, v.active)));
+  const projectNames = [...new Set([...projects.map((p) => p.name), ...employees.flatMap((e) => [...e.projects, ...e.allocations.map((a) => a.project)])])].sort();
+  const pager = usePagination(employmentTypes.filter((v) => (v.name.toLowerCase().includes(query.toLowerCase()) || (v.description ?? "").toLowerCase().includes(query.toLowerCase())) && matchStatus(status, v.active) && matchesEmploymentTypeEmployees(v.id, employees, presence, selectedProjects)));
   const blocked = confirmation?.kind === "delete" && count(confirmation.entry.id) > 0;
   function submit() { const value = name.trim(); if (!value || employmentTypes.some((v) => v.id !== editing?.id && v.name.trim().toLowerCase() === value.toLowerCase())) { setError(t.required); return; } if (editing) updateEmploymentType(editing.id, { name: value, description: desc.trim() }); else addEmploymentType(value, desc); setOpen(false); }
   return <>
-    <PageToolbar query={query} onQueryChange={setQuery} placeholder={t.search} filterGroups={[statusGroup(status, setStatus)]} cta={<Button variant="primary" onClick={() => { setEditing(null); setName(""); setDesc(""); setError(""); setOpen(true); }}><Plus className="mr-1 h-4 w-4" />{t.add}</Button>} />
+    <PageToolbar query={query} onQueryChange={setQuery} placeholder={t.search} filterGroups={[statusGroup(status, setStatus), { key: "employees", label: f.presence, value: presence, onChange: setPresence, options: [{ value: "all", label: f.all }, { value: "with", label: f.with }, { value: "without", label: f.without }] }, { key: "project", label: f.project, mode: "multi", searchable: true, showAll: true, value: selectedProjects, onChange: setSelectedProjects, options: projectNames.map((name) => ({ value: name, label: name })) }]} cta={<Button variant="primary" onClick={() => { setEditing(null); setName(""); setDesc(""); setError(""); setOpen(true); }}><Plus className="mr-1 h-4 w-4" />{t.add}</Button>} />
     <Table><TableHeader><TableRow><TableHead>{t.name}</TableHead><TableHead>{t.description}</TableHead><TableHead>{t.employees}</TableHead><TableHead className="w-40 text-center">{t.status}</TableHead></TableRow></TableHeader><TableBody>
       {!pager.pageItems.length && <EmptyRow colSpan={4} />}{pager.pageItems.map((v) => <TableRow key={v.id} className="group bg-table-row-bg hover:bg-table-row-hover"><TableCell>{v.name}</TableCell><TableCell className="w-72 text-muted-foreground">{v.description || "—"}</TableCell><TableCell>{count(v.id) ? <button type="button" onClick={() => setListing(v)} className="num-mono font-medium text-foreground underline-offset-4 hover:text-accent hover:underline">{count(v.id)}</button> : <span className="num-mono text-muted-foreground">0</span>}</TableCell><TableCell><TableRowActions isActive={v.active} onEdit={() => { setEditing(v); setName(v.name); setDesc(v.description ?? ""); setError(""); setOpen(true); }} onDelete={() => setConfirmation({ entry: v, kind: "delete" })} onToggleActive={() => setConfirmation({ entry: v, kind: "toggle" })} /></TableCell></TableRow>)}
     </TableBody></Table><TablePagination {...pager} itemLabel="employment types" demoPages={0} />

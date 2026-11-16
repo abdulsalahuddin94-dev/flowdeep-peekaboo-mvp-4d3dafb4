@@ -1,3 +1,6 @@
+## 2026-11-16 — Employment Types filters
+- Added Has employees (All / With employees / Without employees) and searchable multi-project filters in the shared drawer. Project filtering derives type membership from employees' assigned projects and allocations; counts remain the total linked employees. Added four filter logic tests.
+
 ## 2026-11-16 — Requests Period display
 - Swept request details, Fulfill, Team Requests and employee request-task references to reuse precise period display; drawer retains its inline arrow. New WBS and Team requests preserve actual dates separately from staffing buckets. No settled records or allocation calculations changed.
 - Added precise demo display values to Solution Design (5h 30m), Site Mobilisation (11h), and UAT Execution (43h across two dates) so the new behavior is visible on the first Requests page; staffing allocation buckets are unchanged.

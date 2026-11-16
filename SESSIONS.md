@@ -1,3 +1,7 @@
+## 2026-11-16 — Requests Period display
+- Same-day precise periods show one ISO date and hours/minutes; different-day periods show stacked actual dates with exact values and available duration in the shared hover tooltip.
+- Legacy month-only ranges remain unchanged; date-only data does not invent hours. Added tests for 5h 30m, 11h, midnight crossing, and 16/40/43 recorded work hours.
+
 ## 2026-11-16 — Employees filter drawer matches supplied designs
 - Six groups in order: Assigned Projects, Job role, Seniority level, Employment type, Department, Status; removed the duplicate project-presence filter.
 - All groups support multiple selections; the first five are searchable with an All reset. Status offers plain Active/Inactive checkboxes without search. Shared Apply/Cancel draft behavior retained.

@@ -225,7 +225,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
                   <StyledTableCell>{req.project}</StyledTableCell>
                   <StyledTableCell>{COVERAGE_LABEL[requestCoverage(req)]}</StyledTableCell>
                   <StyledTableCell>{req.employment ?? employmentFromFte(req.fte)}</StyledTableCell>
-                  <StyledTableCell><RequestPeriod from={req.from} until={req.until} /></StyledTableCell>
+                  <StyledTableCell><RequestPeriod from={req.periodStart ?? req.from} until={req.periodEnd ?? req.until} durationHours={req.durationHours} /></StyledTableCell>
                   <StyledTableCell><Badge variant="outline" className={PRIORITY_STYLE[req.priority]}>{req.priority}</Badge></StyledTableCell>
                   <StyledTableCell><div>{req.submittedBy}</div><div className="text-xs text-muted-foreground">{/^\d{4}-\d{2}-\d{2}$/.test(req.date) ? formatDateWithYear(req.date) : req.date}</div></StyledTableCell>
                   <StyledTableCell onClick={(e) => e.stopPropagation()}>

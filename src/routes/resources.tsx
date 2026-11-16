@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { RequestPeriod } from "@/components/RequestPeriod";
+import { matchesRequestEmployees } from "@/lib/request-employee-filter";
 import { PageToolbar, EmptyRow } from "@/components/ds/PageToolbar";
 import { EmptyRegion } from "@/lib/empty-preview";
 import { jobRoleGroup, matchAnySelected, matchRelated, projectNameGroup, relatedProjectsGroup } from "@/components/ds/filters";
@@ -187,7 +188,8 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
   const [priority, setPriority] = useState("all");
   const [projectFilter, setProjectFilter] = useState<string[]>([]);
   const [roleFilter, setRoleFilter] = useState<string[]>([]);
-  const filterText = { en: { project: "Project", role: "Role" }, ar: { project: "المشروع", role: "الدور الوظيفي" } }.en;
+  const [employeeFilter, setEmployeeFilter] = useState<string[]>([]);
+  const filterText = { en: { project: "Project", role: "Role", employees: "Has employees", all: "All", with: "With employees", without: "Without employees" }, ar: { project: "المشروع", role: "الدور الوظيفي", employees: "وجود موظفين", all: "الكل", with: "بها موظفون", without: "بدون موظفين" } }.en;
   const projectOptions = [...new Set(requests.map((r) => r.project))].sort();
   const roleOptions = [...new Set(requests.map((r) => r.role))].sort();
   const [openId, setOpenId] = useState<string | null>(null);
@@ -196,8 +198,9 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
     return requests.filter((r) => (!q || r.role.toLowerCase().includes(q) || (r.task ?? "").toLowerCase().includes(q) || r.skill.toLowerCase().includes(q) || r.project.toLowerCase().includes(q)))
       .filter((r) => status === "all" || r.status === status)
       .filter((r) => priority === "all" || r.priority === priority)
-      .filter((r) => matchAnySelected(projectFilter, [r.project]) && matchAnySelected(roleFilter, [r.role]));
-  }, [priority, query, requests, status, projectFilter, roleFilter]);
+      .filter((r) => matchAnySelected(projectFilter, [r.project]) && matchAnySelected(roleFilter, [r.role]))
+      .filter((r) => matchesRequestEmployees(r, employeeFilter));
+  }, [priority, query, requests, status, projectFilter, roleFilter, employeeFilter]);
   const pagination = usePagination(filtered, 10);
   const selected = requests.find((r) => r.id === openId) ?? null;
 
@@ -213,6 +216,7 @@ function RequestsTable({ requests, pool, onFulfill, onDecline }: {
         ] },
         { key: "project", label: filterText.project, mode: "multi", searchable: true, showAll: true, value: projectFilter, onChange: setProjectFilter, options: projectOptions.map((name) => ({ value: name, label: name })) },
         { key: "role", label: filterText.role, mode: "multi", searchable: true, showAll: true, value: roleFilter, onChange: setRoleFilter, options: roleOptions.map((name) => ({ value: name, label: name })) },
+        { key: "employees", label: filterText.employees, mode: "multi", searchable: true, showAll: true, value: employeeFilter, onChange: setEmployeeFilter, options: [{ value: "all", label: filterText.all }, { value: "with", label: filterText.with }, { value: "without", label: filterText.without }] },
       ]} />
         <StyledTable wrapperClassName="">
           <StyledTableHeader><StyledTableHeaderRow>

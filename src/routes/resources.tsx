@@ -35,7 +35,7 @@ import type { ResourceRequest } from "@/lib/projects-store";
 import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck, ChevronLeft, ChevronRight } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
-import { useEmployees, type Employee, currentUtilization, periodUtilization, allocationPercent, monthRange, employeeShortTitle } from "@/lib/employees-store";
+import { useEmployees, type Employee, SENIORITY_LEVELS, currentUtilization, periodUtilization, allocationPercent, monthRange, employeeShortTitle } from "@/lib/employees-store";
 import { buildManpowerPlan, buildSkillDemand } from "@/lib/resource-demand";
 
 export const Route = createFileRoute("/resources")({
@@ -57,6 +57,11 @@ export const Route = createFileRoute("/resources")({
 
 type Priority = "Critical" | "High" | "Medium" | "Low";
 type PoolResource = Employee;
+
+const EMPLOYEE_FILTER_T = {
+  en: { projects: "Assigned Projects", role: "Job role", seniority: "Seniority level", employment: "Employment type", department: "Department", status: "Status", allProjects: "All projects", allRoles: "All job roles", allLevels: "All levels", allEmployment: "All employment types", allDepartments: "All departments", allStatuses: "All statuses", active: "Active", inactive: "Inactive" },
+  ar: { projects: "المشاريع المسندة", role: "الدور الوظيفي", seniority: "مستوى الخبرة", employment: "نوع التوظيف", department: "القسم", status: "الحالة", allProjects: "كل المشاريع", allRoles: "كل الأدوار الوظيفية", allLevels: "كل المستويات", allEmployment: "كل أنواع التوظيف", allDepartments: "كل الأقسام", allStatuses: "كل الحالات", active: "نشط", inactive: "غير نشط" },
+};
 
 /** Column labels for what a request covers. */
 const COVERAGE_LABEL = { project: "Project", task: "Task", period: "Period" } as const;
@@ -370,12 +375,14 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
 }
 
 function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update: PoolResource[] | ((prev: PoolResource[]) => PoolResource[])) => void }) {
+  const t = EMPLOYEE_FILTER_T.en;
   const [query, setQuery] = useState("");
-  const [department, setDepartment] = useState("all");
-  const [related, setRelated] = useState("all");
+  const [department, setDepartment] = useState<string[]>([]);
+  const [seniority, setSeniority] = useState<string[]>([]);
+  const [statuses, setStatuses] = useState<string[]>([]);
   const navigate = useNavigate();
   const { employmentTypes } = useEmployees();
-  const [employmentType, setEmploymentType] = useState("all");
+  const [employmentType, setEmploymentType] = useState<string[]>([]);
   const [projectNames, setProjectNames] = useState<string[]>([]);
   const [jobRolesSelected, setJobRolesSelected] = useState<string[]>([]);
   const { jobRoles } = useJobRoles();
@@ -397,22 +404,24 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return pool.filter((r) => !q || r.name.toLowerCase().includes(q) || r.role.toLowerCase().includes(q) || r.tasks.some((t) => t.toLowerCase().includes(q)))
-      .filter((r) => department === "all" || r.dept === department)
-      .filter((r) => matchRelated(related, r.projects.length))
-      .filter((r) => employmentType === "all" || r.employmentTypeId === employmentType)
+      .filter((r) => matchAnySelected(department, [r.dept]))
+      .filter((r) => matchAnySelected(seniority, [r.seniority ?? ""]))
+      .filter((r) => matchAnySelected(statuses, [r.active === false ? "inactive" : "active"]))
+      .filter((r) => matchAnySelected(employmentType, [r.employmentTypeId]))
       .filter((r) => matchAnySelected(projectNames, r.projects))
       .filter((r) => matchAnySelected(jobRolesSelected, [r.role]));
-  }, [department, jobRolesSelected, pool, projectNames, query, related, employmentType]);
+  }, [department, jobRolesSelected, pool, projectNames, query, seniority, statuses, employmentType]);
   const pagination = usePagination(filtered, 10);
 
   return (
     <>
       <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search employee, role or task…" filterGroups={[
-        relatedProjectsGroup(related, setRelated, "Assigned Projects"),
-        projectNameGroup(projectNames, setProjectNames, projectOptions),
-        jobRoleGroup(jobRolesSelected, setJobRolesSelected, roleOptions),
-        { key: "employment-type", label: "Employment type", value: employmentType, onChange: setEmploymentType, options: [{ value: "all", label: "All employment types" }, ...employmentTypes.map((v) => ({ value: v.id, label: v.name }))] },
-        { key: "department", label: "Department", value: department, onChange: setDepartment, options: [{ value: "all", label: "All departments" }, ...departments.map((d) => ({ value: d.name, label: d.name }))] },
+        { ...projectNameGroup(projectNames, setProjectNames, projectOptions), label: t.projects, searchable: true, showAll: true },
+        { ...jobRoleGroup(jobRolesSelected, setJobRolesSelected, roleOptions), label: t.role, searchable: true, showAll: true },
+        { key: "seniority", label: t.seniority, value: seniority, onChange: setSeniority, mode: "multi", searchable: true, showAll: true, options: [{ value: "all", label: t.allLevels }, ...SENIORITY_LEVELS.map((v) => ({ value: v, label: v }))] },
+        { key: "employment-type", label: t.employment, value: employmentType, onChange: setEmploymentType, mode: "multi", searchable: true, showAll: true, options: [{ value: "all", label: t.allEmployment }, ...employmentTypes.map((v) => ({ value: v.id, label: v.name }))] },
+        { key: "department", label: t.department, value: department, onChange: setDepartment, mode: "multi", searchable: true, showAll: true, options: [{ value: "all", label: t.allDepartments }, ...Array.from(new Set([...departments.map((d) => d.name), ...pool.map((e) => e.dept)])).map((name) => ({ value: name, label: name }))] },
+        { key: "status", label: t.status, value: statuses, onChange: setStatuses, mode: "multi", searchable: false, options: [{ value: "all", label: t.allStatuses }, { value: "active", label: t.active }, { value: "inactive", label: t.inactive }] },
       ]} />
       <EmptyRegion id="resources-capacity">
           <StyledTable wrapperClassName="">

@@ -1,3 +1,8 @@
+## 2026-11-16 — Employees filter drawer matches supplied designs
+- Six groups in order: Assigned Projects, Job role, Seniority level, Employment type, Department, Status; removed the duplicate project-presence filter.
+- All groups support multiple selections; the first five are searchable with an All reset. Status offers plain Active/Inactive checkboxes without search. Shared Apply/Cancel draft behavior retained.
+- Added employee filter tests and scoped PageToolbar options so other module filters keep their existing behavior.
+
 ## 2026-11-15 — Team Requests: actions replace the status pill on hover
 - The Requests table's Status column is now the last column and hosts the row actions: at rest it shows the status pill, on row hover the pill steps aside for Edit/Delete (shared `TableRowActions` `statusNode` pattern, same as Organization).
 - Fulfilled and Declined rows keep the pill only — hovering them shows no actions.

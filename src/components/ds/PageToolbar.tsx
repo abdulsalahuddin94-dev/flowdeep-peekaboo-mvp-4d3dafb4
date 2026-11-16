@@ -32,6 +32,8 @@ export type MultiFilterGroup = {
   onChange: (v: string[]) => void;
   options: { value: string; label: string }[];
   mode: "multi";
+  searchable?: boolean;
+  showAll?: boolean;
 };
 
 export type DateRangeValue = { from: string; to: string };
@@ -169,10 +171,12 @@ export function PageToolbar({
     if (!activePanel || isDateRangeGroup(activePanel)) return [];
     const opts = activePanel.options;
     const firstIsAll = /^all\b/i.test(opts[0]?.label ?? "");
-    return firstIsAll && opts.length <= 3 ? opts.slice(1) : opts;
+    return firstIsAll && opts.length <= 3 && !(isMultiGroup(activePanel) && activePanel.showAll) ? opts.slice(1) : opts;
   })();
   /** Long lists (e.g. Skills) get a search box to narrow them down. */
-  const showPanelSearch = panelOptionsAll.length > 6;
+  const showPanelSearch = activePanel && isMultiGroup(activePanel) && activePanel.searchable !== undefined
+    ? activePanel.searchable
+    : panelOptionsAll.length > 6;
   const panelOptions = showPanelSearch && panelQuery.trim()
     ? panelOptionsAll.filter((o) => o.label.toLowerCase().includes(panelQuery.trim().toLowerCase()))
     : panelOptionsAll;

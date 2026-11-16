@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { RequestPeriod } from "@/components/RequestPeriod";
 import { useEffect, useState, type ReactNode } from "react";
 import { useEmployees, monthRange, type Employee, type EmployeeTrip, type EmployeeLeave } from "@/lib/employees-store";
 import { PLAN_CACHE } from "@/lib/plan-cache";
@@ -103,7 +104,7 @@ function EmployeeDetails() {
  };
 
  const overMonths = months.filter((m) => employeeMonth(employee, m).effectiveUtilization > 100);
- const requestTasks = resourceRequests.filter((r) => r.status === "Fulfilled" && r.assignedTo === employee.name && r.task).map((r) => ({ task: r.task ?? "", project: r.project, period: `${monthLabel(r.from)} → ${monthLabel(r.until)}` }));
+ const requestTasks = resourceRequests.filter((r) => r.status === "Fulfilled" && r.assignedTo === employee.name && r.task).map((r) => ({ task: r.task ?? "", project: r.project, period: r.periodStart ? <RequestPeriod from={r.periodStart} until={r.periodEnd ?? r.until} durationHours={r.durationHours} /> : `${monthLabel(r.from)} → ${monthLabel(r.until)}` }));
  const assignmentTasks = employee.allocations.filter((a) => a.task).map((a) => ({ task: a.task ?? "", project: a.project, period: `${monthLabel(a.from)} → ${monthLabel(a.until)}` }));
  const scheduleTasks = projects.filter((p) => employee.projects.includes(p.name)).flatMap((p) => {
    const cached = PLAN_CACHE.get(p.id) as { milestones?: ReturnType<typeof seedMilestones> } | undefined;

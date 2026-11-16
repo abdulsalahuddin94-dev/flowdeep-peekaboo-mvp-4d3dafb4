@@ -326,6 +326,8 @@ export type ResourceRequest = {
   id: string; project: string; role: string;
   skill: "Junior" | "Mid" | "Senior" | "Lead";
   fte: number; from: string; until: string;
+  /** Precise task-period details for display; monthly staffing buckets remain from/until. */
+  periodStart?: string; periodEnd?: string; durationHours?: number;
   priority: "Critical" | "High" | "Medium" | "Low";
   status: "Pending" | "Fulfilled" | "Declined";
   submittedBy: string; date: string; notes: string;
@@ -363,9 +365,9 @@ const SEED_RFPS: RfpEntry[] = initialRfps.map((r) => ({ ...r }));
 
 export const SEED_RESOURCE_REQUESTS: ResourceRequest[] = [
   { id: "RR-031", scope: "team", employment: "Full time", project: "Customer Portal v3", role: "Frontend Developer", skill: "Mid", fte: 1, quantity: 4, from: "2026-12", until: "2027-04", priority: "High", status: "Pending", submittedBy: "Mei Chen", date: "Today", notes: "Squad for the new self-service portal UI" },
-  { id: "RR-001", task: "Solution Design", project: "ERP System Upgrade",         role: "Solution Architect", scope: "task", employment: "Full time", skill: "Senior", fte: 1, from: "2026-06", until: "2026-09", priority: "Critical", status: "Pending",   submittedBy: "Sara Al-Rashid", date: "2d ago",  notes: "Must have SAP ECC or S/4HANA experience" },
-  { id: "RR-002", task: "Site Mobilisation", project: "Coastal Refinery Expansion",  role: "Field Engineer",    scope: "task", employment: "Full time", skill: "Senior", fte: 1, from: "2026-07", until: "2026-12", priority: "High",     status: "Pending",   submittedBy: "John Smith",     date: "3d ago",  notes: "" },
-  { id: "RR-003", task: "UAT Execution", project: "Smart Grid Pilot",            role: "QA Engineer",       scope: "task", employment: "Full time", skill: "Mid",    fte: 1, from: "2026-07", until: "2026-09", priority: "Medium",   status: "Pending",   submittedBy: "Priya Iyer",     date: "5d ago",  notes: "" },
+  { id: "RR-001", task: "Solution Design", project: "ERP System Upgrade",         role: "Solution Architect", scope: "task", employment: "Full time", skill: "Senior", fte: 1, from: "2026-06", until: "2026-09", periodStart: "2026-07-05T09:00:00", periodEnd: "2026-07-05T14:30:00", durationHours: 5.5, priority: "Critical", status: "Pending",   submittedBy: "Sara Al-Rashid", date: "2d ago",  notes: "Must have SAP ECC or S/4HANA experience" },
+  { id: "RR-002", task: "Site Mobilisation", project: "Coastal Refinery Expansion",  role: "Field Engineer",    scope: "task", employment: "Full time", skill: "Senior", fte: 1, from: "2026-07", until: "2026-12", periodStart: "2026-07-05T08:00:00", periodEnd: "2026-07-05T19:00:00", durationHours: 11, priority: "High",     status: "Pending",   submittedBy: "John Smith",     date: "3d ago",  notes: "" },
+  { id: "RR-003", task: "UAT Execution", project: "Smart Grid Pilot",            role: "QA Engineer",       scope: "task", employment: "Full time", skill: "Mid",    fte: 1, from: "2026-07", until: "2026-09", periodStart: "2026-07-05T09:00:00", periodEnd: "2026-07-12T12:00:00", durationHours: 43, priority: "Medium",   status: "Pending",   submittedBy: "Priya Iyer",     date: "5d ago",  notes: "" },
   { id: "RR-004", task: "Data Pipeline Build", project: "AI Forecasting Engine",       role: "Data Engineer",     scope: "task", employment: "Part time", skill: "Mid",    fte: 0.5, from: "2026-06", until: "2026-11", priority: "Medium",   status: "Pending",   submittedBy: "Diego Ortiz",    date: "6d ago",  notes: "Python + Spark stack preferred" },
   { id: "RR-005", task: "Penetration Testing", project: "Security Hardening 2026",     role: "Security Lead",     scope: "task", employment: "Part time", skill: "Senior", fte: 0.5, from: "2026-08", until: "2026-08", priority: "Critical", status: "Fulfilled", submittedBy: "Mei Chen",       date: "1w ago",  notes: "Pen-test cert required", assignedTo: "Mei Chen", allocation: 50, utilBefore: 50, utilAfter: 100, decidedOn: "2026-09-15" },
   { id: "RR-007", scope: "team", employment: "Full time", project: "ERP System Upgrade", role: "Business Analyst", skill: "Senior", fte: 1, from: "2025-04", until: "2026-12", priority: "High", status: "Fulfilled", submittedBy: "Sara Al-Rashid", date: "3w ago", notes: "", assignedTo: "Sara Al-Rashid", allocation: 100, utilBefore: 0, utilAfter: 100, decidedOn: "2025-04-01" },

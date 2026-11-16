@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { RequestPeriod } from "@/components/RequestPeriod";
 import { useResourceRequests, useJobRoles, employmentFromFte, requestQuantity, requestAssignees, requestCoverage, type Employment, type ResourceRequest } from "@/lib/projects-store";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -69,7 +70,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onA
     const starts = items.map((i) => i.startDate).sort(), ends = items.map((i) => i.endDate).sort();
     const month = new Date().toISOString().slice(0, 7);
     const [from, until] = task ? [task.startDate, task.endDate] : v.coverage === "period" ? [v.start, v.end] : [starts[0] ?? month, ends[ends.length - 1] ?? month];
-    return { task, from: from.slice(0, 10), until: until.slice(0, 10) };
+    return { task, from: from.slice(0, 10), until: until.slice(0, 10), periodStart: from, periodEnd: until };
   };
   const { employees } = useEmployees();
   const team = useMemo(() => projectTeam(project, resourceRequests), [project, resourceRequests]);
@@ -148,7 +149,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onA
                 <StyledTableRow key={r.id}>
                   <StyledTableCell><div className="font-medium text-foreground">{r.role}{requestQuantity(r) > 1 ? <span className="num-mono text-muted-foreground"> × {requestQuantity(r)}</span> : null}</div><div className="text-xs text-muted-foreground">{r.skill}{requestQuantity(r) > 1 ? ` · ${requestAssignees(r).length} / ${requestQuantity(r)} ${t.filled}` : ""}</div></StyledTableCell>
                   <StyledTableCell>{covLabel[requestCoverage(r)]}</StyledTableCell>
-                  <StyledTableCell><div>{r.task ?? "—"}</div>{!r.task && r.from && r.from.length > 7 ? <div className="text-xs num-mono text-muted-foreground">{r.from} → {r.until}</div> : null}</StyledTableCell>
+                  <StyledTableCell><div>{r.task ?? "—"}</div>{(r.periodStart || (!r.task && r.from.length > 7)) ? <RequestPeriod from={r.periodStart ?? r.from} until={r.periodEnd ?? r.until} durationHours={r.durationHours} lang={lang} /> : null}</StyledTableCell>
                   <StyledTableCell>{r.employment ?? employmentFromFte(r.fte)}</StyledTableCell>
                   <StyledTableCell>{r.priority}</StyledTableCell>
                   <StyledTableCell><div className="max-w-72 break-words text-xs text-muted-foreground">{r.notes || "—"}</div></StyledTableCell>
@@ -171,8 +172,8 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onA
         initial={editing ? { role: editing.role, skill: editing.skill, employment: editing.employment ?? employmentFromFte(editing.fte), priority: editing.priority, notes: editing.notes ?? "", quantity: requestQuantity(editing), coverage: requestCoverage(editing), task: editing.task ?? "", start: requestCoverage(editing) === "period" ? editing.from : "", end: requestCoverage(editing) === "period" ? editing.until : "" } : undefined}
         tasks={items.filter((i) => i.kind === "Task").map((i) => i.name)} onSubmit={(v) => {
           if (!editing) return;
-          const { task, from, until } = rangeFor(v);
-          updateResourceRequest(editing.id, { scope: task ? "task" : "team", coverage: v.coverage, task: task?.name, role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, quantity: v.quantity, from, until, priority: v.priority, notes: v.notes });
+          const { task, from, until, periodStart, periodEnd } = rangeFor(v);
+          updateResourceRequest(editing.id, { scope: task ? "task" : "team", coverage: v.coverage, task: task?.name, role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, quantity: v.quantity, from, until, periodStart, periodEnd, durationHours: undefined, priority: v.priority, notes: v.notes });
           toast.success(t.reqUpdated);
         }} />
       <ConfirmDeleteDialog label={deleting ? `${deleting.role}${requestQuantity(deleting) > 1 ? ` × ${requestQuantity(deleting)}` : ""}` : undefined} onCancel={() => setDeleting(null)} onConfirm={() => { if (deleting) { removeResourceRequest(deleting.id); toast.success(t.reqDeleted); } setDeleting(null); }} />
@@ -183,7 +184,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onA
         const [from, until] = task ? [task.startDate, task.endDate]
           : v.coverage === "period" ? [v.start, v.end]
           : [starts[0] ?? month, ends[ends.length - 1] ?? month];
-        addResourceRequest({ project, scope: task ? "task" : "team", coverage: v.coverage, task: task?.name, role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, quantity: v.quantity, from: from.slice(0, 10), until: until.slice(0, 10), priority: v.priority, submittedBy: pm, notes: v.notes });
+        addResourceRequest({ project, scope: task ? "task" : "team", coverage: v.coverage, task: task?.name, role: v.role, skill: v.skill, employment: v.employment, fte: v.employment === "Full time" ? 1 : 0.5, quantity: v.quantity, from: from.slice(0, 10), until: until.slice(0, 10), periodStart: from, periodEnd: until, priority: v.priority, submittedBy: pm, notes: v.notes });
         toast.success("Role request sent to Resources");
       }} />
     </div>

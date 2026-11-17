@@ -22,7 +22,7 @@ import { TableRowActions } from "@/components/TableRowActions";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { MultiSelectField } from "@/components/ui/multi-select-field";
 
-export type TeamMember = { name: string; role: string; employment: Employment; /** Allocation window from task/period requests; undefined = whole project. */ window?: { from: string; until: string } };
+export type TeamMember = { name: string; role: string; employment: Employment; /** Allocation window from task/period requests; undefined = whole project. */ window?: { from: string; until: string }; /** Joined only for specific tasks — no extra task assignment. */ taskOnly?: boolean };
 const dayFrom = (d: string) => (d.length === 7 ? `${d}-01` : d.slice(0, 10));
 const dayUntil = (d: string) => (d.length === 7 ? `${d}-31` : d.slice(0, 10));
 /** Tasks whose dates fall outside the member's allocation window — a soft, non-blocking warning. */
@@ -42,9 +42,11 @@ export function projectTeam(project: string, requests: ResourceRequest[]): TeamM
     for (const name of requestAssignees(r)) {
       const prev = map.get(name);
       const w = requestCoverage(r) === "project" ? undefined : { from: dayFrom(r.periodStart ?? r.from), until: dayUntil(r.periodEnd ?? r.until) };
-      if (!prev) map.set(name, { name, role: r.role, employment, window: w });
+      const taskOnly = requestCoverage(r) === "task";
+      if (!prev) map.set(name, { name, role: r.role, employment, window: w, taskOnly });
       else {
         if (employment === "Full time") prev.employment = "Full time";
+        prev.taskOnly = prev.taskOnly && taskOnly;
         prev.window = !prev.window || !w ? undefined : { from: w.from < prev.window.from ? w.from : prev.window.from, until: w.until > prev.window.until ? w.until : prev.window.until };
       }
     }
@@ -136,7 +138,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onA
                   <StatusPill isActive={working} label={working ? t.active : t.inactive} />
                   <div className="flex items-center gap-1">
                     <button type="button" onClick={() => setTasksFor(m)} className="rounded-md px-2 py-1 text-xs text-muted-foreground underline-offset-2 hover:text-accent hover:underline"><span className="num-mono text-foreground">{tasks}</span> {t.tasks}</button>
-                    {onAssignTask && <Button size="icon" variant="secondary" className="h-8 w-8" aria-label={t.assignTask} title={t.assignTask} onClick={() => setAssignFor(m)}><Plus className="h-4 w-4" /></Button>}
+                    {onAssignTask && !m.taskOnly && <Button size="icon" variant="secondary" className="h-8 w-8" aria-label={t.assignTask} title={t.assignTask} onClick={() => setAssignFor(m)}><Plus className="h-4 w-4" /></Button>}
                   </div>
                 </div>
               </div>

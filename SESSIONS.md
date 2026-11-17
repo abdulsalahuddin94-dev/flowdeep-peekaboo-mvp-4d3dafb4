@@ -1,3 +1,6 @@
+## 2026-11-17 — Capacity column renamed to Available Capacity
+- The employee Capacity tab column header now reads "Available Capacity" instead of "Available" (Arabic: "السعة المتاحة"), matching the Suggested wording. Header cell wraps normally, so the longer label does not clip or shift the hour values underneath. Verified in the preview on EMP-001.
+
 ## 2026-11-17 — WBS requests reuse the Team role-request popup
 - "Role not in the team? Request new role" now opens the shared Team Request role popup instead of the old reduced WBS form. Request for is locked to Specific task, Task is locked to the item that opened it, and Employees needed is locked to 1; role, seniority, employment, priority and notes remain editable.
 - Added "Pick from the team instead" below Notes to return to the team-member picker. Submitted requests keep the task's exact dates and the entered priority/notes, and appear in Team → Requests and Resources. Added explicit disabled-select display text so locked values show their labels.

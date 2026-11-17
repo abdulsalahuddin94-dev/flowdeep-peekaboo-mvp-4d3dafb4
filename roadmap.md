@@ -108,3 +108,4 @@
 - [x] Employment types: clicking the Employees count opens a popup with those employees' names; clicking a name opens that employee's profile. Verified and logged.
 
 - [x] WBS Role column: name above role, headcount number removed; Team card assign button uses the secondary variant. Verified and logged.
+- [x] Assign to task: remove the "Currently assigned to …; it will be reassigned." hint; verify the dialog and log.

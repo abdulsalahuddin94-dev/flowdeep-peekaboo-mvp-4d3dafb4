@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/lib/toast";
 import { TableRowActions } from "@/components/TableRowActions";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { MultiSelectField } from "@/components/ui/multi-select-field";
 
 export type TeamMember = { name: string; role: string; employment: Employment };
 type Item = { name: string; kind: string; startDate: string; endDate: string; assignee?: string; progress?: number };
@@ -51,11 +52,11 @@ export function isWorkingNow(name: string, items: Item[], today = new Date()) {
 }
 
 const T = {
-  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", seniority: "Seniority", priority: "Priority", notes: "Notes", coverage: "Request for", fullProject: "Full project", forTask: "Specific task", period: "Period of time", selectTask: "Select a task", startD: "Start date", endD: "End date", periodCol: "Period", project: "Project", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request the roles you need. Once Resources fulfills a request, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", headcount: "Employees needed", filled: "filled", noReqT: "No requests yet", reqEmptyD: "Ask Resources for people — for the whole project, a specific task, or a period of time.", waitingT: "Waiting on Resources", waitingD: (n: number) => n === 1 ? "1 request is with Resources. The employee joins the team as soon as it is fulfilled." : `${n} requests are with Resources. Each employee joins the team as soon as their request is fulfilled.`, viewReq: "View requests", tasksOf: (n: string) => `${n} · Tasks`, noTasksYet: "No tasks assigned in this project yet.", assignTask: "Assign to task", assignDesc: (n: string) => `Pick a task in this project to assign to ${n}.`, pickTask: "Select a task", assign: "Assign", assigned: "Task assigned", noFreeTasks: "All tasks already have this assignee.", progress: "Progress", dates: "Dates", editReq: "Edit request", save: "Save changes", actions: "Actions", reqUpdated: "Request updated", reqDeleted: "Request deleted", replaces: (n: string) => `Currently assigned to ${n}; it will be reassigned.` },
-  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", coverage: "الطلب لـ", fullProject: "المشروع كامل", forTask: "مهمة محددة", period: "فترة زمنية", selectTask: "اختر مهمة", startD: "تاريخ البداية", endD: "تاريخ النهاية", periodCol: "الفترة", project: "المشروع", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب الأدوار التي تحتاجها. وبعد تنفيذ الطلب من الموارد، ينضم الموظف إلى الفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم", noReqT: "لا توجد طلبات بعد", reqEmptyD: "اطلب من الموارد موظفين — للمشروع كامل، أو لمهمة محددة، أو لفترة زمنية.", waitingT: "في انتظار الموارد", waitingD: (n: number) => `لديك ${n} ${n === 1 ? "طلب" : "طلبات"} لدى الموارد. ينضم كل موظف إلى الفريق فور تنفيذ طلبه.`, viewReq: "عرض الطلبات", tasksOf: (n: string) => `${n} · المهام`, noTasksYet: "لا توجد مهام مسندة في هذا المشروع بعد.", assignTask: "إسناد مهمة", assignDesc: (n: string) => `اختر مهمة في هذا المشروع لإسنادها إلى ${n}.`, pickTask: "اختر مهمة", assign: "إسناد", assigned: "تم إسناد المهمة", noFreeTasks: "كل المهام مسندة بالفعل لهذا الموظف.", progress: "التقدم", dates: "التواريخ", editReq: "تعديل الطلب", save: "حفظ التغييرات", actions: "الإجراءات", reqUpdated: "تم تحديث الطلب", reqDeleted: "تم حذف الطلب", replaces: (n: string) => `مسندة حاليًا إلى ${n}؛ سيتم إعادة إسنادها.` },
+  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", seniority: "Seniority", priority: "Priority", notes: "Notes", coverage: "Request for", fullProject: "Full project", forTask: "Specific task", period: "Period of time", selectTask: "Select a task", startD: "Start date", endD: "End date", periodCol: "Period", project: "Project", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request the roles you need. Once Resources fulfills a request, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", headcount: "Employees needed", filled: "filled", noReqT: "No requests yet", reqEmptyD: "Ask Resources for people — for the whole project, a specific task, or a period of time.", waitingT: "Waiting on Resources", waitingD: (n: number) => n === 1 ? "1 request is with Resources. The employee joins the team as soon as it is fulfilled." : `${n} requests are with Resources. Each employee joins the team as soon as their request is fulfilled.`, viewReq: "View requests", tasksOf: (n: string) => `${n} · Tasks`, noTasksYet: "No tasks assigned in this project yet.", assignTask: "Assign to task", assignDesc: (n: string) => `Pick one or more tasks in this project to assign to ${n}.`, pickTask: "Select tasks", assign: "Assign", assigned: (n: number): string => n === 1 ? "Task assigned" : "Tasks assigned", noFreeTasks: "All tasks already have this assignee.", progress: "Progress", dates: "Dates", editReq: "Edit request", save: "Save changes", actions: "Actions", reqUpdated: "Request updated", reqDeleted: "Request deleted", replaces: (n: string) => `Currently assigned to ${n}; it will be reassigned.` },
+  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", coverage: "الطلب لـ", fullProject: "المشروع كامل", forTask: "مهمة محددة", period: "فترة زمنية", selectTask: "اختر مهمة", startD: "تاريخ البداية", endD: "تاريخ النهاية", periodCol: "الفترة", project: "المشروع", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب الأدوار التي تحتاجها. وبعد تنفيذ الطلب من الموارد، ينضم الموظف إلى الفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم", noReqT: "لا توجد طلبات بعد", reqEmptyD: "اطلب من الموارد موظفين — للمشروع كامل، أو لمهمة محددة، أو لفترة زمنية.", waitingT: "في انتظار الموارد", waitingD: (n: number) => `لديك ${n} ${n === 1 ? "طلب" : "طلبات"} لدى الموارد. ينضم كل موظف إلى الفريق فور تنفيذ طلبه.`, viewReq: "عرض الطلبات", tasksOf: (n: string) => `${n} · المهام`, noTasksYet: "لا توجد مهام مسندة في هذا المشروع بعد.", assignTask: "إسناد مهمة", assignDesc: (n: string) => `اختر مهمة أو أكثر في هذا المشروع لإسنادها إلى ${n}.`, pickTask: "اختر المهام", assign: "إسناد", assigned: (n: number): string => n === 1 ? "تم إسناد المهمة" : "تم إسناد المهام", noFreeTasks: "كل المهام مسندة بالفعل لهذا الموظف.", progress: "التقدم", dates: "التواريخ", editReq: "تعديل الطلب", save: "حفظ التغييرات", actions: "الإجراءات", reqUpdated: "تم تحديث الطلب", reqDeleted: "تم حذف الطلب", replaces: (n: string) => `مسندة حاليًا إلى ${n}؛ سيتم إعادة إسنادها.` },
 };
 
-export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onAssignTask }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar"; /** Assigning staff to a task is not a plan change, so it works outside Change Plan. */ onAssignTask?: (task: string, member: TeamMember) => void }) {
+export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onAssignTask }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar"; /** Assigning staff to tasks is not a plan change, so it works outside Change Plan. */ onAssignTask?: (tasks: string[], member: TeamMember) => void }) {
   const t = T[lang];
   const covLabel = { project: t.project, task: t.task, period: t.periodCol };
   const { resourceRequests, addResourceRequest, updateResourceRequest, removeResourceRequest } = useResourceRequests();
@@ -167,7 +168,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onA
       </Tabs>
 
       <MemberTasksDialog member={tasksFor} items={items} t={t} onClose={() => setTasksFor(null)} />
-      <AssignTaskDialog member={assignFor} items={items} t={t} onClose={() => setAssignFor(null)} onAssign={(task) => { if (assignFor) { onAssignTask?.(task, assignFor); toast.success(t.assigned, { description: `${task} → ${assignFor.name}` }); } setAssignFor(null); }} />
+      <AssignTaskDialog member={assignFor} items={items} t={t} onClose={() => setAssignFor(null)} onAssign={(tasks) => { if (assignFor) { onAssignTask?.(tasks, assignFor); toast.success(t.assigned(tasks.length), { description: `${tasks.join(", ")} → ${assignFor.name}` }); } setAssignFor(null); }} />
       <RequestRoleDialog key={editing?.id ?? "edit"} open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }} lang={lang} title={t.editReq} submitLabel={t.save}
         initial={editing ? { role: editing.role, skill: editing.skill, employment: editing.employment ?? employmentFromFte(editing.fte), priority: editing.priority, notes: editing.notes ?? "", quantity: requestQuantity(editing), coverage: requestCoverage(editing), task: editing.task ?? "", start: requestCoverage(editing) === "period" ? editing.from : "", end: requestCoverage(editing) === "period" ? editing.until : "" } : undefined}
         tasks={items.filter((i) => i.kind === "Task").map((i) => i.name)} onSubmit={(v) => {
@@ -313,28 +314,33 @@ function MemberTasksDialog({ member, items, t, onClose }: { member: TeamMember |
   );
 }
 
-/** Quick-assign a team member to another task in this project. */
-function AssignTaskDialog({ member, items, t, onClose, onAssign }: { member: TeamMember | null; items: Item[]; t: TeamT; onClose: () => void; onAssign: (task: string) => void }) {
-  const [task, setTask] = useState("");
+/** Quick-assign a team member to one or more tasks in this project. */
+function AssignTaskDialog({ member, items, t, onClose, onAssign }: { member: TeamMember | null; items: Item[]; t: TeamT; onClose: () => void; onAssign: (tasks: string[]) => void }) {
+  const [tasks, setTasks] = useState<string[]>([]);
   const [err, setErr] = useState("");
   const options = member ? items.filter((i) => i.kind === "Task" && i.assignee !== member.name) : [];
-  const current = items.find((i) => i.name === task)?.assignee;
+  const reassigned = items.filter((i) => tasks.includes(i.name) && i.assignee && i.assignee.toLowerCase() !== "waiting");
+  const close = () => { onClose(); setTasks([]); setErr(""); };
   return (
-    <Dialog open={!!member} onOpenChange={(o) => { if (!o) { onClose(); setTask(""); setErr(""); } }}>
+    <Dialog open={!!member} onOpenChange={(o) => { if (!o) close(); }}>
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>{t.assignTask}</DialogTitle><DialogDescription>{member ? t.assignDesc(member.name) : ""}</DialogDescription></DialogHeader>
         {!options.length ? <p className="py-4 text-sm text-muted-foreground">{t.noFreeTasks}</p> : (
-          <Field label={t.task} required error={err || undefined}>
-            <Select value={task} onValueChange={(v) => { setTask(v); setErr(""); }}>
-              <SelectTrigger><SelectValue placeholder={t.pickTask} /></SelectTrigger>
-              <SelectContent>{options.map((i) => <SelectItem key={i.name} value={i.name}>{i.name}</SelectItem>)}</SelectContent>
-            </Select>
+          <Field label={t.tasks} required error={err || undefined}>
+            <MultiSelectField
+              options={options.map((i) => ({ value: i.name, label: i.name }))}
+              value={tasks}
+              onChange={(value) => { setTasks(value); setErr(""); }}
+              placeholder={t.pickTask}
+              invalid={!!err}
+              maxVisible={1}
+            />
           </Field>
         )}
-        {current && current.toLowerCase() !== "waiting" && <p className="text-xs text-rag-amber">{t.replaces(current)}</p>}
+        {reassigned.length > 0 && <div className="space-y-1 text-xs text-rag-amber">{reassigned.map((i) => <p key={i.name}>{i.name}: {t.replaces(i.assignee!)}</p>)}</div>}
         <DialogFooter>
-          <Button variant="outline" onClick={() => { onClose(); setTask(""); }}>{t.cancel}</Button>
-          <Button variant="primary" disabled={!options.length} onClick={() => { if (!task) { setErr(t.pickTask); return; } onAssign(task); setTask(""); }}>{t.assign}</Button>
+          <Button variant="outline" onClick={close}>{t.cancel}</Button>
+          <Button variant="primary" disabled={!options.length} onClick={() => { if (!tasks.length) { setErr(t.pickTask); return; } onAssign(tasks); setTasks([]); }}>{t.assign}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

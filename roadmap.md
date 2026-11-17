@@ -97,6 +97,7 @@
 - [x] Employee profile: replace the lavender pill back button with the standard plain back link + breadcrumb used on other record pages; verify and log.
 
 ## Current
+- [x] Team card Assign to task: allow selecting and assigning multiple tasks to the same member in one action; verify and log.
 - [x] Employment Types: add and verify Has employees, Project and Role filters in the shared drawer.
 - [x] Explain the “Filter by has employees design is missing” comment from the supplied screenshot; it concerns Employment Types with/without linked employees, not Requests. No implementation requested.
 - [x] Employees table: Status column with hover Delete/Edit/Activate-Deactivate, Employee Number column, department under name (2026-10-29)

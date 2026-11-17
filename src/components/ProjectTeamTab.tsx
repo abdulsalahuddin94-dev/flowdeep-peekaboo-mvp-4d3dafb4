@@ -1,3 +1,4 @@
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useMemo, useState } from "react";
 import { RequestPeriod } from "@/components/RequestPeriod";
 import { useResourceRequests, useJobRoles, employmentFromFte, requestQuantity, requestAssignees, requestCoverage, type Employment, type ResourceRequest } from "@/lib/projects-store";
@@ -360,21 +361,20 @@ function AssignTaskDialog({ member, items, t, onClose, onAssign }: { member: Tea
         </DialogFooter>
       </DialogContent>
     </Dialog>
-    <Dialog open={!!pending} onOpenChange={(o) => { if (!o) setPending(null); }}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-rag-amber"><AlertTriangle className="h-4 w-4 shrink-0" />{t.outT}</DialogTitle>
-          <DialogDescription>{member?.window ? t.outD(member.name, member.window.from, member.window.until) : ""}</DialogDescription>
-        </DialogHeader>
-        <ul className="space-y-1 rounded-lg border border-border bg-card p-3 text-sm">
-          {outside.map((i) => <li key={i.name} className="text-foreground">{i.name} <span className="text-muted-foreground">· {i.startDate.slice(0, 10)} → {i.endDate.slice(0, 10)}</span></li>)}
-        </ul>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setPending(null)}>{t.cancel}</Button>
-          <Button variant="primary" onClick={confirmAssign}>{t.assignAnyway}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ConfirmDialog
+      open={!!pending}
+      onOpenChange={(o) => { if (!o) setPending(null); }}
+      tone="warning"
+      title={t.outT}
+      description={member?.window ? t.outD(member.name, member.window.from, member.window.until) : ""}
+      cancelLabel={t.cancel}
+      confirmLabel={t.assignAnyway}
+      onConfirm={confirmAssign}
+    >
+      <ul className="space-y-1 rounded-lg border border-border bg-card p-3 text-sm">
+        {outside.map((i) => <li key={i.name} className="text-foreground">{i.name} <span className="text-muted-foreground">· {i.startDate.slice(0, 10)} → {i.endDate.slice(0, 10)}</span></li>)}
+      </ul>
+    </ConfirmDialog>
     </>
   );
 }

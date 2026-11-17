@@ -218,3 +218,4 @@
 ## 2026-11-17 — Team assign: soft warning when task dates fall outside the member allocation period (non-blocking, "Assign anyway").
 
 ## 2026-11-17 — Team demo: Sara full project, Mei Chen period (Oct–Nov 2026), Omar Haddad specific task; task-only members have no + assign button.
+- 2026-11-17: Allocation-period warning now uses shared DS02 ConfirmDialog (warning tone).

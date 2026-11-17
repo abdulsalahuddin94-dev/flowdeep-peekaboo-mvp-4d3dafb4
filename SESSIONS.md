@@ -1,3 +1,6 @@
+## 2026-11-17 — Team multi-task assignment
+- Team card Assign to task now uses the shared multi-select field, assigns every selected task to the same member in one schedule update, and shows reassignment warnings for all selected tasks with current assignees. English and Arabic copy supports singular and plural results.
+
 ## 2026-11-16 — Requests Has employees filter
 - Added the supplied searchable checkbox design (All / With employees / Without employees) to Requests. Presence is derived from assigned people, including partially fulfilled Pending requests and legacy single assignments, independently of Status. Added three logic tests; no records or statuses changed.
 

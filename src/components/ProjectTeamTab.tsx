@@ -304,7 +304,6 @@ function MemberTasksDialog({ member, items, t, onClose }: { member: TeamMember |
             {tasks.map((i) => (
               <li key={i.name} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0"><div className="truncate text-sm font-medium text-foreground">{i.name}</div><div className="text-xs num-mono text-muted-foreground">{i.startDate.slice(0, 10)} → {i.endDate.slice(0, 10)}</div></div>
-                <span className="shrink-0 text-xs num-mono text-foreground">{i.progress ?? 0}%</span>
               </li>
             ))}
           </ul>

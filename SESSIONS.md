@@ -208,3 +208,5 @@
 
 ## 2026-11-11 — Request role coverage
 - Team tab Request role dialog: "Request for" Full project / Specific task (task dropdown) / Period of time (start & end dates); dates saved on the request.
+
+## 2026-11-17 — Team assign: soft warning when task dates fall outside the member allocation period (non-blocking, "Assign anyway").

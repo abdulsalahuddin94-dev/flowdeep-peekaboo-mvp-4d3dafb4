@@ -15,14 +15,22 @@ import { StatusPill } from "@/components/TableRowActions";
 import { Link } from "@tanstack/react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEmployees } from "@/lib/employees-store";
-import { Plus, Users, ClipboardCheck } from "@/lib/icons";
+import { Plus, Users, ClipboardCheck, AlertTriangle } from "@/lib/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/lib/toast";
 import { TableRowActions } from "@/components/TableRowActions";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { MultiSelectField } from "@/components/ui/multi-select-field";
 
-export type TeamMember = { name: string; role: string; employment: Employment };
+export type TeamMember = { name: string; role: string; employment: Employment; /** Allocation window from task/period requests; undefined = whole project. */ window?: { from: string; until: string } };
+const dayFrom = (d: string) => (d.length === 7 ? `${d}-01` : d.slice(0, 10));
+const dayUntil = (d: string) => (d.length === 7 ? `${d}-31` : d.slice(0, 10));
+/** Tasks whose dates fall outside the member's allocation window — a soft, non-blocking warning. */
+export function tasksOutsideWindow(member: TeamMember, tasks: Item[]): Item[] {
+  const w = member.window;
+  if (!w) return [];
+  return tasks.filter((i) => i.startDate.slice(0, 10) < w.from || i.endDate.slice(0, 10) > w.until);
+}
 type Item = { name: string; kind: string; startDate: string; endDate: string; assignee?: string; progress?: number };
 
 /** Team = people placed on the project by fulfilled requests (team or task). Partially filled requests already count their assignees. */
@@ -33,8 +41,12 @@ export function projectTeam(project: string, requests: ResourceRequest[]): TeamM
     const employment = r.employment ?? employmentFromFte(r.fte);
     for (const name of requestAssignees(r)) {
       const prev = map.get(name);
-      if (!prev) map.set(name, { name, role: r.role, employment });
-      else if (employment === "Full time") prev.employment = "Full time";
+      const w = requestCoverage(r) === "project" ? undefined : { from: dayFrom(r.periodStart ?? r.from), until: dayUntil(r.periodEnd ?? r.until) };
+      if (!prev) map.set(name, { name, role: r.role, employment, window: w });
+      else {
+        if (employment === "Full time") prev.employment = "Full time";
+        prev.window = !prev.window || !w ? undefined : { from: w.from < prev.window.from ? w.from : prev.window.from, until: w.until > prev.window.until ? w.until : prev.window.until };
+      }
     }
   }
   return [...map.values()];
@@ -52,8 +64,8 @@ export function isWorkingNow(name: string, items: Item[], today = new Date()) {
 }
 
 const T = {
-  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", seniority: "Seniority", priority: "Priority", notes: "Notes", coverage: "Request for", fullProject: "Full project", forTask: "Specific task", period: "Period of time", selectTask: "Select a task", startD: "Start date", endD: "End date", periodCol: "Period", project: "Project", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request the roles you need. Once Resources fulfills a request, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", headcount: "Employees needed", filled: "filled", noReqT: "No requests yet", reqEmptyD: "Ask Resources for people — for the whole project, a specific task, or a period of time.", waitingT: "Waiting on Resources", waitingD: (n: number) => n === 1 ? "1 request is with Resources. The employee joins the team as soon as it is fulfilled." : `${n} requests are with Resources. Each employee joins the team as soon as their request is fulfilled.`, viewReq: "View requests", tasksOf: (n: string) => `${n} · Tasks`, noTasksYet: "No tasks assigned in this project yet.", assignTask: "Assign to task", assignDesc: (n: string) => `Pick one or more tasks in this project to assign to ${n}.`, pickTask: "Select tasks", assign: "Assign", assigned: (n: number): string => n === 1 ? "Task assigned" : "Tasks assigned", noFreeTasks: "All tasks already have this assignee.", progress: "Progress", dates: "Dates", editReq: "Edit request", save: "Save changes", actions: "Actions", reqUpdated: "Request updated", reqDeleted: "Request deleted" },
-  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", coverage: "الطلب لـ", fullProject: "المشروع كامل", forTask: "مهمة محددة", period: "فترة زمنية", selectTask: "اختر مهمة", startD: "تاريخ البداية", endD: "تاريخ النهاية", periodCol: "الفترة", project: "المشروع", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب الأدوار التي تحتاجها. وبعد تنفيذ الطلب من الموارد، ينضم الموظف إلى الفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم", noReqT: "لا توجد طلبات بعد", reqEmptyD: "اطلب من الموارد موظفين — للمشروع كامل، أو لمهمة محددة، أو لفترة زمنية.", waitingT: "في انتظار الموارد", waitingD: (n: number) => `لديك ${n} ${n === 1 ? "طلب" : "طلبات"} لدى الموارد. ينضم كل موظف إلى الفريق فور تنفيذ طلبه.`, viewReq: "عرض الطلبات", tasksOf: (n: string) => `${n} · المهام`, noTasksYet: "لا توجد مهام مسندة في هذا المشروع بعد.", assignTask: "إسناد مهمة", assignDesc: (n: string) => `اختر مهمة أو أكثر في هذا المشروع لإسنادها إلى ${n}.`, pickTask: "اختر المهام", assign: "إسناد", assigned: (n: number): string => n === 1 ? "تم إسناد المهمة" : "تم إسناد المهام", noFreeTasks: "كل المهام مسندة بالفعل لهذا الموظف.", progress: "التقدم", dates: "التواريخ", editReq: "تعديل الطلب", save: "حفظ التغييرات", actions: "الإجراءات", reqUpdated: "تم تحديث الطلب", reqDeleted: "تم حذف الطلب" },
+  en: { team: "Team", requests: "Requests", request: "Request role", member: "Member", role: "Role", employment: "Employment", tasks: "Tasks", status: "Status", seniority: "Seniority", priority: "Priority", notes: "Notes", coverage: "Request for", fullProject: "Full project", forTask: "Specific task", period: "Period of time", selectTask: "Select a task", startD: "Start date", endD: "End date", periodCol: "Period", project: "Project", active: "Active", inactive: "Inactive", emptyT: "No team members yet", emptyD: "Request the roles you need. Once Resources fulfills a request, the employee joins the team.", submit: "Send request", cancel: "Cancel", dlgDesc: "Resources will assign an employee for this role.", task: "Task", headcount: "Employees needed", filled: "filled", noReqT: "No requests yet", reqEmptyD: "Ask Resources for people — for the whole project, a specific task, or a period of time.", waitingT: "Waiting on Resources", waitingD: (n: number) => n === 1 ? "1 request is with Resources. The employee joins the team as soon as it is fulfilled." : `${n} requests are with Resources. Each employee joins the team as soon as their request is fulfilled.`, viewReq: "View requests", tasksOf: (n: string) => `${n} · Tasks`, noTasksYet: "No tasks assigned in this project yet.", assignTask: "Assign to task", assignDesc: (n: string) => `Pick one or more tasks in this project to assign to ${n}.`, pickTask: "Select tasks", assign: "Assign", assigned: (n: number): string => n === 1 ? "Task assigned" : "Tasks assigned", noFreeTasks: "All tasks already have this assignee.", progress: "Progress", dates: "Dates", editReq: "Edit request", save: "Save changes", actions: "Actions", reqUpdated: "Request updated", reqDeleted: "Request deleted", outT: "Outside allocation period", outD: (n: string, f: string, u: string) => `${n} is allocated to this project from ${f} to ${u}. These tasks start or end outside that period:`, assignAnyway: "Assign anyway" },
+  ar: { team: "الفريق", requests: "الطلبات", request: "طلب دور", member: "العضو", role: "الدور", employment: "نوع الدوام", tasks: "المهام", status: "الحالة", seniority: "الخبرة", priority: "الأولوية", notes: "ملاحظات", coverage: "الطلب لـ", fullProject: "المشروع كامل", forTask: "مهمة محددة", period: "فترة زمنية", selectTask: "اختر مهمة", startD: "تاريخ البداية", endD: "تاريخ النهاية", periodCol: "الفترة", project: "المشروع", active: "نشط", inactive: "غير نشط", emptyT: "لا يوجد أعضاء بعد", emptyD: "اطلب الأدوار التي تحتاجها. وبعد تنفيذ الطلب من الموارد، ينضم الموظف إلى الفريق.", submit: "إرسال الطلب", cancel: "إلغاء", dlgDesc: "ستقوم الموارد بتعيين موظف لهذا الدور.", task: "مهمة", headcount: "عدد الموظفين المطلوب", filled: "تم تعيينهم", noReqT: "لا توجد طلبات بعد", reqEmptyD: "اطلب من الموارد موظفين — للمشروع كامل، أو لمهمة محددة، أو لفترة زمنية.", waitingT: "في انتظار الموارد", waitingD: (n: number) => `لديك ${n} ${n === 1 ? "طلب" : "طلبات"} لدى الموارد. ينضم كل موظف إلى الفريق فور تنفيذ طلبه.`, viewReq: "عرض الطلبات", tasksOf: (n: string) => `${n} · المهام`, noTasksYet: "لا توجد مهام مسندة في هذا المشروع بعد.", assignTask: "إسناد مهمة", assignDesc: (n: string) => `اختر مهمة أو أكثر في هذا المشروع لإسنادها إلى ${n}.`, pickTask: "اختر المهام", assign: "إسناد", assigned: (n: number): string => n === 1 ? "تم إسناد المهمة" : "تم إسناد المهام", noFreeTasks: "كل المهام مسندة بالفعل لهذا الموظف.", progress: "التقدم", dates: "التواريخ", editReq: "تعديل الطلب", save: "حفظ التغييرات", actions: "الإجراءات", reqUpdated: "تم تحديث الطلب", reqDeleted: "تم حذف الطلب", outT: "خارج فترة التخصيص", outD: (n: string, f: string, u: string) => `${n} مخصص لهذا المشروع من ${f} إلى ${u}. هذه المهام تبدأ أو تنتهي خارج هذه الفترة:`, assignAnyway: "إسناد على أي حال" },
 };
 
 export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onAssignTask }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar"; /** Assigning staff to tasks is not a plan change, so it works outside Change Plan. */ onAssignTask?: (tasks: string[], member: TeamMember) => void }) {
@@ -319,6 +331,7 @@ function AssignTaskDialog({ member, items, t, onClose, onAssign }: { member: Tea
   const [err, setErr] = useState("");
   const options = member ? items.filter((i) => i.kind === "Task" && i.assignee !== member.name) : [];
   const close = () => { onClose(); setTasks([]); setErr(""); };
+  const outside = member ? tasksOutsideWindow(member, options.filter((i) => tasks.includes(i.name))) : [];
   return (
     <Dialog open={!!member} onOpenChange={(o) => { if (!o) close(); }}>
       <DialogContent className="max-w-md">
@@ -335,9 +348,16 @@ function AssignTaskDialog({ member, items, t, onClose, onAssign }: { member: Tea
             />
           </Field>
         )}
+        {member?.window && outside.length > 0 && (
+          <div role="alert" className="rounded-lg border border-rag-amber/40 bg-rag-amber/10 p-3 text-sm">
+            <div className="flex items-center gap-2 font-medium text-rag-amber"><AlertTriangle className="h-4 w-4 shrink-0" />{t.outT}</div>
+            <p className="mt-1 text-muted-foreground">{t.outD(member.name, member.window.from, member.window.until)}</p>
+            <ul className="mt-1.5 space-y-0.5">{outside.map((i) => <li key={i.name} className="text-foreground">{i.name} <span className="text-muted-foreground">· {i.startDate.slice(0, 10)} → {i.endDate.slice(0, 10)}</span></li>)}</ul>
+          </div>
+        )}
         <DialogFooter>
           <Button variant="outline" onClick={close}>{t.cancel}</Button>
-          <Button variant="primary" disabled={!options.length} onClick={() => { if (!tasks.length) { setErr(t.pickTask); return; } onAssign(tasks); setTasks([]); }}>{t.assign}</Button>
+          <Button variant="primary" disabled={!options.length} onClick={() => { if (!tasks.length) { setErr(t.pickTask); return; } onAssign(tasks); setTasks([]); }}>{outside.length ? t.assignAnyway : t.assign}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -289,7 +289,7 @@ const COLUMNS = [
   { key: "type",     label: "Type",        w: 90 },
   { key: "duration", label: "Timeline",    w: 166 },
   { key: "owner",    label: "Owner",       w: 150 },
-  { key: "roles",    label: "Role",        w: 180 },
+  { key: "roles",    label: "Assignee",        w: 180 },
   { key: "weight",   label: "Weight",      w: 66 },
   { key: "planned",  label: "% Plan",      w: 130 },
   { key: "actual",   label: "% Actual",    w: 130 },
@@ -1493,7 +1493,7 @@ export function ProjectSchedule({
                                 </PlanActionMenuItem>
                                 {/* Staffing is not a plan change, so role edits stay available outside Change Plan like Progress update. */}
                                 <DropdownMenuItem onSelect={() => setRolesFor(item.name)}>
-                                  <UserPlus className="h-4 w-4" /> {item.roles.length || item.assignee ? "Edit role" : "Add role"}
+                                  <UserPlus className="h-4 w-4" /> {item.roles.length || item.assignee ? "Edit Assignee" : "Add Assignee"}
                                 </DropdownMenuItem>
                                 <PlanActionMenuItem restricted={restricted} onSelect={() => onAddDependencyClick?.(item.name)}>
                                   <Link2 className="h-4 w-4" /> Add dependency
@@ -2359,7 +2359,7 @@ function RolesDialog({
     <Dialog open={!!item} onOpenChange={(o) => { if (!o) onClose(); }}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{item?.roles.length || item?.assignee ? "Edit role" : "Add role"}</DialogTitle>
+          <DialogTitle>{item?.roles.length || item?.assignee ? "Edit Assignee" : "Add Assignee"}</DialogTitle>
           <DialogDescription>{item?.name}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -2384,9 +2384,9 @@ function RolesDialog({
           ) : (
             <div className="space-y-3">
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label>Assignee</Label>
                 <Select value={newRole} onValueChange={setNewRole}>
-                  <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select an assignee" /></SelectTrigger>
                   <SelectContent>{roleOptions.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
                 </Select>
               </div>

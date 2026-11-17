@@ -1,3 +1,9 @@
+## 2026-11-17 — Assignee naming in the WBS schedule
+- Renamed the staffing affordance from role to assignee: the row action menu now reads "Add Assignee" / "Edit Assignee", the dialog title matches, the schedule column header is "Assignee" (also in the Columns show/hide menu), and the request-mode field label reads "Assignee" with placeholder "Select an assignee". Helper copy about requesting a role is unchanged. Verified in the preview: menu item, dialog title, Columns menu entry and header all show the new wording, with no leftover "Role" header.
+
+## 2026-11-17 — Allocation-period warning moved to its own popup
+- The out-of-window notice in "Assign to task" no longer sits inline in the dialog. Clicking Assign with an out-of-period task now closes the picker and opens a separate confirmation popup listing the affected tasks and dates, with Cancel and "Assign anyway"; assigning proceeds unchanged. Verified in the preview on Mei Chen (allocated 2026-10-01 → 2026-11-30) with "Stabilisation & Optimisation" (ends 2026-12-11): the popup appeared, "Assign anyway" assigned the task and the card count rose from 3 to 4.
+
 ## 2026-11-17 — Team tasks popup: progress percentage removed
 - Dropped the right-hand progress percentage from every row of the "Member · Tasks" popup; rows now show only the task name and its planned date range. Task progress data itself is untouched and still shows elsewhere.
 

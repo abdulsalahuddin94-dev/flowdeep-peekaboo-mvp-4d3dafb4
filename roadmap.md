@@ -109,3 +109,5 @@
 
 - [x] WBS Role column: name above role, headcount number removed; Team card assign button uses the secondary variant. Verified and logged.
 - [x] Assign to task: remove the "Currently assigned to …; it will be reassigned." hint; verify the dialog and log.
+- [x] Rename Add role / Edit role to Add Assignee / Edit Assignee in the WBS menu, dialog title, table column and popup field; verify and log.
+- [x] Assign to task: allocation-period warning shown as a separate confirmation popup after Assign, with Cancel / Assign anyway; verify and log.

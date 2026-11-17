@@ -15,7 +15,7 @@ test("only fulfilled requests add the employee to the team", () => {
     { ...base, id: "1", project: "P", role: "QA", status: "Fulfilled", assignedTo: "Ann", employment: "Part time" },
     { ...base, id: "2", project: "P", role: "Dev", status: "Pending" },
   ]);
-  assert.deepEqual(team, [{ name: "Ann", role: "QA", employment: "Part time" }]);
+  assert.deepEqual(team, [{ name: "Ann", role: "QA", employment: "Part time", taskOnly: false, window: undefined }]);
 });
 
 test("partially filled multi-headcount request already adds its assignees to the team", () => {
@@ -23,8 +23,8 @@ test("partially filled multi-headcount request already adds its assignees to the
     { ...base, id: "1", project: "P", role: "QA", status: "Pending", quantity: 3, assignees: ["Ann", "Bob"], employment: "Full time" },
   ]);
   assert.deepEqual(team, [
-    { name: "Ann", role: "QA", employment: "Full time" },
-    { name: "Bob", role: "QA", employment: "Full time" },
+    { name: "Ann", role: "QA", employment: "Full time", taskOnly: false, window: undefined },
+    { name: "Bob", role: "QA", employment: "Full time", taskOnly: false, window: undefined },
   ]);
 });
 

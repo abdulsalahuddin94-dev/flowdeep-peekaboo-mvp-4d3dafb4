@@ -331,11 +331,15 @@ function MemberTasksDialog({ member, items, t, onClose }: { member: TeamMember |
 function AssignTaskDialog({ member, items, t, onClose, onAssign }: { member: TeamMember | null; items: Item[]; t: TeamT; onClose: () => void; onAssign: (tasks: string[]) => void }) {
   const [tasks, setTasks] = useState<string[]>([]);
   const [err, setErr] = useState("");
+  const [pending, setPending] = useState<string[] | null>(null);
   const options = member ? items.filter((i) => i.kind === "Task" && i.assignee !== member.name) : [];
-  const close = () => { onClose(); setTasks([]); setErr(""); };
-  const outside = member ? tasksOutsideWindow(member, options.filter((i) => tasks.includes(i.name))) : [];
+  const close = () => { onClose(); setTasks([]); setErr(""); setPending(null); };
+  /* Soft, non-blocking check: surfaced only after Assign, so picking tasks stays uninterrupted. */
+  const outside = member?.window && pending ? tasksOutsideWindow(member, options.filter((i) => pending.includes(i.name))) : [];
+  const confirmAssign = () => { if (!pending) return; onAssign(pending); setTasks([]); setPending(null); };
   return (
-    <Dialog open={!!member} onOpenChange={(o) => { if (!o) close(); }}>
+    <>
+    <Dialog open={!!member && !pending} onOpenChange={(o) => { if (!o) close(); }}>
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>{t.assignTask}</DialogTitle><DialogDescription>{member ? t.assignDesc(member.name) : ""}</DialogDescription></DialogHeader>
         {!options.length ? <p className="py-4 text-sm text-muted-foreground">{t.noFreeTasks}</p> : (
@@ -350,18 +354,27 @@ function AssignTaskDialog({ member, items, t, onClose, onAssign }: { member: Tea
             />
           </Field>
         )}
-        {member?.window && outside.length > 0 && (
-          <div role="alert" className="rounded-lg border border-rag-amber/40 bg-rag-amber/10 p-3 text-sm">
-            <div className="flex items-center gap-2 font-medium text-rag-amber"><AlertTriangle className="h-4 w-4 shrink-0" />{t.outT}</div>
-            <p className="mt-1 text-muted-foreground">{t.outD(member.name, member.window.from, member.window.until)}</p>
-            <ul className="mt-1.5 space-y-0.5">{outside.map((i) => <li key={i.name} className="text-foreground">{i.name} <span className="text-muted-foreground">· {i.startDate.slice(0, 10)} → {i.endDate.slice(0, 10)}</span></li>)}</ul>
-          </div>
-        )}
         <DialogFooter>
           <Button variant="outline" onClick={close}>{t.cancel}</Button>
-          <Button variant="primary" disabled={!options.length} onClick={() => { if (!tasks.length) { setErr(t.pickTask); return; } onAssign(tasks); setTasks([]); }}>{outside.length ? t.assignAnyway : t.assign}</Button>
+          <Button variant="primary" disabled={!options.length} onClick={() => { if (!tasks.length) { setErr(t.pickTask); return; } const bad = member ? tasksOutsideWindow(member, options.filter((i) => tasks.includes(i.name))) : []; if (bad.length) { setPending(tasks); return; } onAssign(tasks); setTasks([]); }}>{t.assign}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <Dialog open={!!pending} onOpenChange={(o) => { if (!o) setPending(null); }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-rag-amber"><AlertTriangle className="h-4 w-4 shrink-0" />{t.outT}</DialogTitle>
+          <DialogDescription>{member?.window ? t.outD(member.name, member.window.from, member.window.until) : ""}</DialogDescription>
+        </DialogHeader>
+        <ul className="space-y-1 rounded-lg border border-border bg-card p-3 text-sm">
+          {outside.map((i) => <li key={i.name} className="text-foreground">{i.name} <span className="text-muted-foreground">· {i.startDate.slice(0, 10)} → {i.endDate.slice(0, 10)}</span></li>)}
+        </ul>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setPending(null)}>{t.cancel}</Button>
+          <Button variant="primary" onClick={confirmAssign}>{t.assignAnyway}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

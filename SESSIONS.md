@@ -1,5 +1,8 @@
+## 2026-11-17 — Removed Assign to task reassignment hint
+- Dropped the amber "Currently assigned to …; it will be reassigned." line from the Assign to task dialog; the dialog now shows only the Tasks multi-select and Cancel/Assign. Reassignment still happens silently on Assign.
+
 ## 2026-11-17 — Team multi-task assignment
-- Team card Assign to task now uses the shared multi-select field, assigns every selected task to the same member in one schedule update, and shows reassignment warnings for all selected tasks with current assignees. English and Arabic copy supports singular and plural results.
+- Team card Assign to task now uses the shared multi-select field and assigns every selected task to the same member in one schedule update. English and Arabic copy supports singular and plural results.
 
 ## 2026-11-16 — Requests Has employees filter
 - Added the supplied searchable checkbox design (All / With employees / Without employees) to Requests. Presence is derived from assigned people, including partially fulfilled Pending requests and legacy single assignments, independently of Status. Added three logic tests; no records or statuses changed.

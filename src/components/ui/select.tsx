@@ -49,6 +49,8 @@ function nodeText(node: React.ReactNode): string {
 
 interface SelectProps {
   value?: string;
+  /** Explicit trigger text for controlled or disabled selects whose options are not mounted. */
+  displayValue?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
   disabled?: boolean;
@@ -61,6 +63,7 @@ interface SelectProps {
 
 const Select = ({
   value,
+  displayValue,
   defaultValue,
   onValueChange,
   disabled,
@@ -127,7 +130,7 @@ const Select = ({
     setOpen,
     query,
     setQuery,
-    label: current !== undefined ? (labels[current] ?? current) : "",
+    label: displayValue ?? (current !== undefined ? (labels[current] ?? current) : ""),
     registerLabel,
     disabled,
     searchable,

@@ -1,3 +1,8 @@
+## 2026-11-17 — WBS requests reuse the Team role-request popup
+- "Role not in the team? Request new role" now opens the shared Team Request role popup instead of the old reduced WBS form. Request for is locked to Specific task, Task is locked to the item that opened it, and Employees needed is locked to 1; role, seniority, employment, priority and notes remain editable.
+- Added "Pick from the team instead" below Notes to return to the team-member picker. Submitted requests keep the task's exact dates and the entered priority/notes, and appear in Team → Requests and Resources. Added explicit disabled-select display text so locked values show their labels.
+- Verified in the preview on Site device rollout: all three fixed fields were disabled, the return link worked, and a Business Analyst request with notes saved and appeared in Requests. Added a default-value test; full suite passes.
+
 ## 2026-11-17 — Assignee naming in the WBS schedule
 - Renamed the staffing affordance from role to assignee: the row action menu now reads "Add Assignee" / "Edit Assignee", the dialog title matches, the schedule column header is "Assignee" (also in the Columns show/hide menu), and the request-mode field label reads "Assignee" with placeholder "Select an assignee". Helper copy about requesting a role is unchanged. Verified in the preview: menu item, dialog title, Columns menu entry and header all show the new wording, with no leftover "Role" header.
 

@@ -37,6 +37,7 @@ import { toast } from "@/lib/toast";
 import { formatDateWithYear, formatDateWithoutYear } from "@/lib/date-format";
 import { useOrgRules } from "@/lib/org-rules";
 import { CollapseAllToggle } from "@/components/CollapseAllToggle";
+import { RequestRoleDialog, type RoleRequestValue } from "@/components/ProjectTeamTab";
 
 // ── MS Project XML import ────────────────────────────────────────────────────
 function parseMsProjectXml(xmlText: string): ScheduleItem[] {
@@ -348,7 +349,7 @@ export function ProjectSchedule({
   items: ScheduleItem[];
   AddItemSlot?: React.ReactNode;
   onItemPatch?: (name: string, patch: Partial<ScheduleItem>) => void;
-  onRequestSkill?: (itemName: string, role: RoleReq) => void;
+  onRequestSkill?: (itemName: string, role: RoleRequestValue) => void;
   onImport?: (items: ScheduleItem[], mode: "replace" | "append") => void;
   onAddSubtask?: (parentName: string) => void;
   onEditItem?: (name: string) => void;
@@ -1944,8 +1945,7 @@ export function ProjectSchedule({
         onClose={() => setRolesFor(null)}
         teamMembers={teamMembers}
         onPickMember={(m) => { if (rolesFor) patch(rolesFor, { assignee: m.name, roles: [{ role: m.role, skill: "Mid", fte: m.employment === "Full time" ? 1 : 0.5 }] }); }}
-        onRequestRole={(role) => { if (rolesFor) { patch(rolesFor, { roles: [role] }); onRequestSkill?.(rolesFor, role); } }}
-        roleOptions={jobRoles && jobRoles.length ? jobRoles : ROLE_OPTIONS}
+        onRequestRole={(value) => { if (rolesFor) { patch(rolesFor, { roles: [{ role: value.role, skill: value.skill, fte: value.employment === "Full time" ? 1 : 0.5 }] }); onRequestSkill?.(rolesFor, value); } }}
       />
     </div>
   );
@@ -2320,50 +2320,38 @@ function RolesDialog({
   onPickMember,
   onRequestRole,
   teamMembers = [],
-  roleOptions = ROLE_OPTIONS,
 }: {
   item: ScheduleItem | null;
   onClose: () => void;
   onPickMember: (m: { name: string; role: string; employment: "Full time" | "Part time" }) => void;
-  onRequestRole: (role: RoleReq) => void;
+  onRequestRole: (value: RoleRequestValue) => void;
   teamMembers?: Array<{ name: string; role: string; employment: "Full time" | "Part time" }>;
-  roleOptions?: readonly string[];
 }) {
   const [mode, setMode] = useState<"team" | "request">("team");
   const [member, setMember] = useState("");
-  const [newRole, setNewRole] = useState("");
-  const [newLevel, setNewLevel] = useState<RoleReq["skill"]>("Mid");
-  const [employment, setEmployment] = useState<"Full time" | "Part time">("Full time");
 
   useEffect(() => {
     setMode(teamMembers.length ? "team" : "request");
     setMember(item?.assignee && teamMembers.some((m) => m.name === item.assignee) ? item.assignee : "");
-    setNewRole(""); setNewLevel("Mid"); setEmployment("Full time");
   }, [item, teamMembers]);
 
-  const levels = ["Junior", "Mid", "Senior", "Lead"] as const;
-  const canSave = mode === "team" ? !!member : !!newRole;
   const save = () => {
-    if (mode === "team") {
-      const m = teamMembers.find((x) => x.name === member);
-      if (!m) return;
-      onPickMember(m);
-      toast.success(`${m.name} assigned to ${item?.name}`);
-    } else {
-      onRequestRole({ role: newRole, skill: newLevel, fte: employment === "Full time" ? 1 : 0.5 });
-    }
+    const m = teamMembers.find((x) => x.name === member);
+    if (!m) return;
+    onPickMember(m);
+    toast.success(`${m.name} assigned to ${item?.name}`);
     onClose();
   };
 
   return (
-    <Dialog open={!!item} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{item?.roles.length || item?.assignee ? "Edit Assignee" : "Add Assignee"}</DialogTitle>
-          <DialogDescription>{item?.name}</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          {mode === "team" ? (
+    <>
+      <Dialog open={!!item && mode === "team"} onOpenChange={(o) => { if (!o) onClose(); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{item?.roles.length || item?.assignee ? "Edit Assignee" : "Add Assignee"}</DialogTitle>
+            <DialogDescription>{item?.name}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label>Team member</Label>
               <Select value={member} onValueChange={setMember}>
@@ -2381,45 +2369,24 @@ function RolesDialog({
                 <Plus className="h-3.5 w-3.5" /> Role not in the team? Request new role
               </Button>
             </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label>Assignee</Label>
-                <Select value={newRole} onValueChange={setNewRole}>
-                  <SelectTrigger><SelectValue placeholder="Select an assignee" /></SelectTrigger>
-                  <SelectContent>{roleOptions.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>Seniority</Label>
-                  <Select value={newLevel} onValueChange={(v) => setNewLevel(v as RoleReq["skill"])}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{levels.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Employment</Label>
-                  <Select value={employment} onValueChange={(v) => setEmployment(v as "Full time" | "Part time")}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{(["Full time", "Part time"] as const).map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">The request follows this item's start and end dates. Once fulfilled, the employee joins the project team.</p>
-              {teamMembers.length > 0 && (
-                <Button variant="link" className="h-auto p-0 text-xs" onClick={() => setMode("team")}>Pick from the team instead</Button>
-              )}
-            </div>
-          )}
-          <p className="text-xs text-muted-foreground">One role per item. Need another role? Add a subtask under this item and assign the role there.</p>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button variant="primary" disabled={!canSave} onClick={save}>{mode === "team" ? "Assign" : "Send request"}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            <p className="text-xs text-muted-foreground">One role per item. Need another role? Add a subtask under this item and assign the role there.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button variant="primary" disabled={!member} onClick={save}>Assign</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <RequestRoleDialog
+        key={item?.name ?? "request"}
+        open={!!item && mode === "request"}
+        onOpenChange={(o) => { if (!o) onClose(); }}
+        tasks={item ? [item.name] : []}
+        fixedTask={item?.name}
+        onPickTeam={teamMembers.length ? () => setMode("team") : undefined}
+        onSubmit={(value) => { onRequestRole(value); onClose(); }}
+      />
+    </>
   );
 }
 

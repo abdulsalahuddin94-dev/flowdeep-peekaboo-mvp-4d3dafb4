@@ -1174,15 +1174,17 @@ function ProjectDetail() {
                 scope: "task",
                 role: role.role,
                 skill: role.skill,
-                fte: role.fte,
-                employment: role.fte >= 1 ? "Full time" : "Part time",
+                fte: role.employment === "Full time" ? 1 : 0.5,
+                employment: role.employment,
+                coverage: "task",
+                quantity: role.quantity,
                 from: (taskItem?.startDate ?? new Date().toISOString()).slice(0, 7),
                 until: (taskItem?.endDate ?? new Date().toISOString()).slice(0, 7),
                 periodStart: taskItem?.startDate,
                 periodEnd: taskItem?.endDate,
-                priority: "Medium",
+                priority: role.priority,
                 submittedBy: project.pm,
-                notes: `Requested from schedule task "${name}"`,
+                notes: role.notes,
               });
               setMilestones((prev) =>
                 prev.map((m) =>
@@ -1192,7 +1194,7 @@ function ProjectDetail() {
                 ),
               );
               toast.success("Skill request sent to Resources", {
-                description: `${role.skill} ${role.role} · ${role.fte >= 1 ? "Full time" : "Part time"}`,
+                description: `${role.skill} ${role.role} · ${role.employment}`,
                 action: {
                   label: "Undo",
                   onClick: () => {

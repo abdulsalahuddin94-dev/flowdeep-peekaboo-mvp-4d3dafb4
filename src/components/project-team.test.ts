@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { projectTeam, isWorkingNow, teamEmptyVariant } from "./ProjectTeamTab";
+import { projectTeam, isWorkingNow, teamEmptyVariant, taskRoleRequestDefaults } from "./ProjectTeamTab";
 import { EMPLOYMENT_PERCENT, requestCoverage, type ResourceRequest } from "@/lib/projects-store";
 
 const base = { skill: "Mid" as const, fte: 1, from: "", until: "", priority: "Low" as const, submittedBy: "", date: "", notes: "" };
@@ -8,6 +8,13 @@ const base = { skill: "Mid" as const, fte: 1, from: "", until: "", priority: "Lo
 test("Full time is 100% and Part time is 50%", () => {
   assert.equal(EMPLOYMENT_PERCENT["Full time"], 100);
   assert.equal(EMPLOYMENT_PERCENT["Part time"], 50);
+});
+
+test("WBS role requests default to one employee for the opening task", () => {
+  const value = taskRoleRequestDefaults("Site device rollout");
+  assert.equal(value.coverage, "task");
+  assert.equal(value.task, "Site device rollout");
+  assert.equal(value.quantity, 1);
 });
 
 test("only fulfilled requests add the employee to the team", () => {

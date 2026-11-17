@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/lib/toast";
 import { TableRowActions } from "@/components/TableRowActions";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { MultiSelectField } from "@/components/ui/multi-select-field";
 
 export type TeamMember = { name: string; role: string; employment: Employment };
 type Item = { name: string; kind: string; startDate: string; endDate: string; assignee?: string; progress?: number };

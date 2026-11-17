@@ -1,3 +1,6 @@
+## 2026-11-17 — Team tasks popup: progress percentage removed
+- Dropped the right-hand progress percentage from every row of the "Member · Tasks" popup; rows now show only the task name and its planned date range. Task progress data itself is untouched and still shows elsewhere.
+
 ## 2026-11-17 — Removed Assign to task reassignment hint
 - Dropped the amber "Currently assigned to …; it will be reassigned." line from the Assign to task dialog; the dialog now shows only the Tasks multi-select and Cancel/Assign. Reassignment still happens silently on Assign.
 

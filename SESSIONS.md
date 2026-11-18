@@ -1,3 +1,7 @@
+## 2026-11-18 — Delete leave confirmation
+- Employee Details → Capacity → Leave records: the row trash button no longer deletes immediately. It opens the shared DS02 danger ConfirmDialog titled "Delete this leave record?" with the record's type, from/until dates and days (or hours) listed, plus Cancel / Delete. Only Delete removes the entry and shows "Leave removed". Arabic copy added for the new title and description.
+- Verified in the preview on EMP-001: dialog shows the record details, Cancel keeps all 4 rows, Delete leaves 3.
+
 ## 2026-11-18 — Employee Details empty states
 - Added shared DS02 empty states for Employee Info, Salary, Capacity, Leave records, Projects & allocation, Assigned tasks and Trips. Real empty data shows the appropriate state and actions; the topbar empty-state preview can also review every tab without changing employee data.
 

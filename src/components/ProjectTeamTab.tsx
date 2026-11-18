@@ -380,8 +380,8 @@ function AssignTaskDialog({ member, items, t, onClose, onAssign }: { member: Tea
       confirmLabel={t.assignAnyway}
       onConfirm={confirmAssign}
     >
-      <ul className="space-y-1 rounded-lg border border-border bg-card p-3 text-sm">
-        {outside.map((i) => <li key={i.name} className="text-foreground">{i.name} <span className="whitespace-nowrap text-muted-foreground">· {formatDateWithYear(i.startDate)} → {formatDateWithYear(i.endDate)}</span></li>)}
+      <ul className="divide-y divide-border rounded-lg border border-border bg-card text-start text-sm">
+        {outside.map((i) => <li key={i.name} className="flex flex-col gap-0.5 px-3 py-2"><span className="font-medium text-foreground">{i.name}</span><span className="whitespace-nowrap text-xs text-muted-foreground">{formatDateWithYear(i.startDate)} → {formatDateWithYear(i.endDate)}</span></li>)}
       </ul>
     </ConfirmDialog>
     </>

@@ -280,29 +280,40 @@ function DrawerRow({ label, value, valueClass = "" }: { label: string; value: Re
   );
 }
 
-/** Assigned people with fill progress; each opens the employee profile. */
+/** Assigned people for a request; hovering or focusing a person swaps the allocation summary to them. */
 function AssignedSection({ req }: { req: ResourceRequest }) {
   const { employees } = useEmployees();
   const navigate = useNavigate();
   const names = requestAssignees(req);
   const qty = Math.max(requestQuantity(req), names.length);
+  const [active, setActive] = useState(names[0]);
   const tone = (v: number) => v > 100 ? "text-rag-red" : v > 80 ? "text-rag-amber" : "text-rag-green";
+  const bar = (v: number) => v > 100 ? "bg-rag-red" : v > 80 ? "bg-rag-amber" : "bg-rag-green";
+  const share = (req.employment ?? employmentFromFte(req.fte)) === "Part time" ? 50 : 100;
+  const utilOf = (n: string) => req.utilByPerson?.[n] ?? (n === req.assignedTo && req.utilAfter != null ? { before: req.utilBefore ?? 0, after: req.utilAfter } : undefined);
+  const cur = names.includes(active) ? active : names[0];
+  const u = cur ? utilOf(cur) : undefined;
+  const total = u?.after ?? share;
   return (
-    <section className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h4 className="text-xs font-semibold text-muted-foreground">Assigned</h4>
-        <span className="num-mono text-xs text-muted-foreground">{names.length} / {qty}</span>
-      </div>
-      <Progress value={(names.length / qty) * 100} className="h-1.5" />
+    <div className="space-y-3">
+      {qty > 1 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Assigned</span><span className="num-mono">{names.length} / {qty}</span>
+          </div>
+          <Progress value={(names.length / qty) * 100} className="h-1.5" />
+        </div>
+      )}
       <ul className="space-y-1">
         {names.map((n) => {
           const emp = employees.find((e) => e.name === n);
-          const u = req.utilByPerson?.[n] ?? (n === req.assignedTo && req.utilAfter != null ? { before: req.utilBefore ?? 0, after: req.utilAfter } : undefined);
+          const pu = utilOf(n);
           return (
             <li key={n}>
-              <button type="button" disabled={!emp} onClick={() => emp && navigate({ to: "/resources/employees/$employeeId", params: { employeeId: emp.id } })}
-                className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-start hover:bg-muted/60 disabled:cursor-default">
-                <Avatar className="h-8 w-8">
+              <button type="button" onMouseEnter={() => setActive(n)} onFocus={() => setActive(n)}
+                onClick={() => emp && navigate({ to: "/resources/employees/$employeeId", params: { employeeId: emp.id } })}
+                className={`flex w-full items-center gap-3 rounded-md px-2 py-2 text-start transition-colors hover:bg-muted/60 ${n === cur && names.length > 1 ? "bg-muted/60" : ""}`}>
+                <Avatar className="h-9 w-9">
                   {emp?.avatar && <AvatarImage src={emp.avatar} alt={n} />}
                   <AvatarFallback className="text-xs">{n.split(" ").map((x) => x[0]).join("").slice(0, 2)}</AvatarFallback>
                 </Avatar>
@@ -310,13 +321,28 @@ function AssignedSection({ req }: { req: ResourceRequest }) {
                   <span className="block truncate text-sm text-foreground">{n}</span>
                   <span className="block truncate text-xs text-muted-foreground">{emp?.role ?? req.role}</span>
                 </span>
-                {u && <span className={`num-mono text-xs ${tone(u.after)}`}>{u.after}%</span>}
+                {pu && <span className={`num-mono text-sm ${tone(pu.after)}`}>{pu.after}%</span>}
               </button>
             </li>
           );
         })}
       </ul>
-    </section>
+      {req.decidedOn && <DrawerRow label="Assigned on" value={formatDateWithYear(req.decidedOn)} />}
+      {cur && (
+        <div className="space-y-3 rounded-lg border border-border p-4">
+          {names.length > 1 && <div className="text-xs text-muted-foreground">{cur}</div>}
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-sm"><span className="text-muted-foreground">Allocation on this project</span><span className="num-mono text-rag-green">{share}%</span></div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-rag-green" style={{ width: `${share}%` }} /></div>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-sm"><span className="text-muted-foreground">Total utilization</span><span className={`num-mono ${tone(total)}`}>{total}%</span></div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-muted"><div className={`h-full rounded-full ${bar(total)}`} style={{ width: `${Math.min(total, 100)}%` }} /></div>
+          </div>
+          {total > 100 && <p className="text-sm text-rag-red">{cur} is over-allocated by {total - 100}% in this period</p>}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -352,8 +378,6 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
                 )}
               </section>
 
-              {requestAssignees(req).length > 0 && <AssignedSection req={req} />}
-
               <section className="space-y-2">
                 <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Outcome</h4>
                 {req.status === "Pending" && (
@@ -370,14 +394,7 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
                   </>
                 )}
 
-                {req.status === "Fulfilled" && (
-                  <>
-                    {req.allocation != null && (
-                      <DrawerRow label="Allocation on this project" value={`${req.allocation}%`} valueClass="num-mono" />
-                    )}
-                    {req.decidedOn && <DrawerRow label="Assigned on" value={formatDateWithYear(req.decidedOn)} />}
-                  </>
-                )}
+                {req.status !== "Declined" && requestAssignees(req).length > 0 && <AssignedSection key={req.id} req={req} />}
               </section>
             </div>
           </>

@@ -1,3 +1,6 @@
+## 2026-11-18 — Request drawer Outcome redesign
+- Outcome lists assigned people; hover/focus swaps allocation card (project share from Full/Part time, total utilization, over-allocation note). Removed duplicate Assigned section and allocation row.
+
 ## 2026-11-17 — Capacity column renamed to Available Capacity
 - The employee Capacity tab column header now reads "Available Capacity" instead of "Available" (Arabic: "السعة المتاحة"), matching the Suggested wording. Header cell wraps normally, so the longer label does not clip or shift the hour values underneath. Verified in the preview on EMP-001.
 

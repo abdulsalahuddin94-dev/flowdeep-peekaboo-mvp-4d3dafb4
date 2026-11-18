@@ -454,7 +454,7 @@ function ResourceView() {
               <Avatar className="h-7 w-7"><AvatarFallback className="bg-accent-dim text-[10px] text-accent">{r.submittedBy.split(" ").map((x) => x[0]).join("")}</AvatarFallback></Avatar>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-foreground">{r.role} <span className="text-muted-foreground">· {r.skill} · {r.fte} FTE</span></div>
-                <div className="text-xs text-muted-foreground">{r.project} · {r.from} → {r.until}</div>
+                <div className="text-xs text-muted-foreground">{r.project} · {formatDateWithYear(r.from)} → {formatDateWithYear(r.until)}</div>
               </div>
               <span className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-medium ${
                 r.priority === "Critical" ? "bg-rag-red/10 text-rag-red" :

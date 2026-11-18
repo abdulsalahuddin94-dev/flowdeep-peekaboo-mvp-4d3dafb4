@@ -1,3 +1,5 @@
+## 2026-11-18 — Dashboard open requests also use DS date format
+
 ## 2026-11-18 — Team assign dialogs use DS date format (dd MMM, yyyy)
 
 ## 2026-11-18 — Seniority hidden from Employee Info

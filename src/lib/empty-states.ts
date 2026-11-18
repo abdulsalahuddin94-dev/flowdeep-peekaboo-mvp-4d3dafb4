@@ -43,6 +43,13 @@ export const EMPTY_STATES: EmptyStateEntry[] = [
   // Resources
   { id: "resources-capacity", module: "Resources", page: "Capacity", path: "/resources", art: "people", title: "No Resources added yet", description: "Start by adding the first resource", ctaLabel: "Add Resource" },
   { id: "resources-requests", module: "Resources", page: "Requests", path: "/resources", art: "role", title: "No Resource Requests yet", description: "Requests raised from project schedules land here" },
+  { id: "employee-info", module: "Resources", page: "Employee Details — Employee Info", path: "/resources/employees/", art: "people", title: "No employee information yet", description: "Employee details will appear here once they are added." },
+  { id: "employee-salary", module: "Resources", page: "Employee Details — Salary", path: "/resources/employees/", art: "coins", title: "No salary data yet", description: "Set a monthly salary plan to see salary distribution and project charges.", ctaLabel: "Set plan" },
+  { id: "employee-capacity", module: "Resources", page: "Employee Details — Capacity", path: "/resources/employees/", art: "charts", title: "No capacity data yet", description: "Set a monthly capacity plan to track availability and utilization.", ctaLabel: "Set capacity" },
+  { id: "employee-leave", module: "Resources", page: "Employee Details — Leave records", path: "/resources/employees/", art: "calendar", title: "No leave records yet", description: "Add annual, sick, unpaid or partial leave for this employee.", ctaLabel: "Add entry" },
+  { id: "employee-allocation", module: "Resources", page: "Employee Details — Projects & allocation", path: "/resources/employees/", art: "calendar", title: "No project allocations yet", description: "Assigned project work for this period will appear here." },
+  { id: "employee-tasks", module: "Resources", page: "Employee Details — Assigned tasks", path: "/resources/employees/", art: "note", title: "No tasks assigned yet", description: "Tasks assigned to this employee will appear here." },
+  { id: "employee-trips", module: "Resources", page: "Employee Details — Trips", path: "/resources/employees/", art: "map", title: "No trips yet", description: "Business trips and training for this year will appear here." },
 
   // Clients & Vendors
   { id: "clients", module: "Clients & Vendors", page: "Clients", path: "/clients-vendors", art: "handshake", title: "No Clients added yet", description: "Start by adding the first client", ctaLabel: "Add Client" },

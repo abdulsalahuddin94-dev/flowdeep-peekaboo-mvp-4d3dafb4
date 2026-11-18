@@ -1,3 +1,6 @@
+## 2026-11-18 — Employee Details empty states
+- Added shared DS02 empty states for Employee Info, Salary, Capacity, Leave records, Projects & allocation, Assigned tasks and Trips. Real empty data shows the appropriate state and actions; the topbar empty-state preview can also review every tab without changing employee data.
+
 ## 2026-11-18 — Employee Capacity split into inner tabs
 - Employee Details → Capacity now keeps the year selector and annual leave KPIs above two DS02 inner tabs: Capacity and Leave records. The monthly capacity table and leave register retain their existing actions and calculations.
 

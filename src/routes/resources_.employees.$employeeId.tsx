@@ -31,6 +31,8 @@ import { EmployeeWorkCalendar, type WorkEntry } from "@/components/EmployeeWorkC
 import { PageToolbar } from "@/components/ds/PageToolbar";
 import { PeriodStepper, ViewToggle } from "@/components/PeriodStepper";
 import { employeeBackTarget } from "@/lib/employee-back";
+import { EmptyState } from "@/components/ds/EmptyState";
+import { EmptyRegion, useEmptyPreview } from "@/lib/empty-preview";
 export const Route = createFileRoute("/resources_/employees/$employeeId")({
   component: EmployeeDetails,
   validateSearch: (search: Record<string, unknown>): { from?: string; projectId?: string } => ({
@@ -53,6 +55,11 @@ const th = H.en;
 // Labels for the single period slot that sits under the tab line on every tab that carries one.
 const PL = { en: { workCalendar: "Work calendar", monthly: "Monthly", yearly: "Yearly", previous: "Previous", next: "Next", close: "Dismiss" }, ar: { workCalendar: "تقويم العمل", monthly: "شهري", yearly: "سنوي", previous: "السابق", next: "التالي", close: "إغلاق" } };
 const pl = PL.en;
+const E = {
+ en: { infoT: "No employee information yet", infoD: "Employee details will appear here once they are added.", salaryT: "No salary data yet", salaryD: "Set a monthly salary plan to see salary distribution and project charges.", capacityT: "No capacity data yet", capacityD: "Set a monthly capacity plan to track availability and utilization.", leaveT: "No leave records yet", leaveD: "Add annual, sick, unpaid or partial leave for this employee.", allocationT: "No project allocations yet", allocationD: "Assigned project work for this period will appear here.", tasksT: "No tasks assigned yet", tasksD: "Tasks assigned to this employee will appear here.", taskSearchD: "Try a different search term or clear your filters.", tripsT: "No trips yet", tripsD: "Business trips and training for this year will appear here." },
+ ar: { infoT: "لا توجد بيانات للموظف بعد", infoD: "ستظهر بيانات الموظف هنا بعد إضافتها.", salaryT: "لا توجد بيانات راتب بعد", salaryD: "أعد خطة الراتب الشهرية لعرض توزيع الراتب وتكاليف المشاريع.", capacityT: "لا توجد بيانات سعة بعد", capacityD: "أعد خطة السعة الشهرية لمتابعة السعة المتاحة والاستغلال.", leaveT: "لا توجد سجلات إجازات بعد", leaveD: "أضف إجازة سنوية أو مرضية أو بدون أجر أو إذنًا جزئيًا لهذا الموظف.", allocationT: "لا يوجد تخصيص على المشاريع بعد", allocationD: "سيظهر هنا العمل المسند على المشاريع خلال هذه الفترة.", tasksT: "لا توجد مهام مسندة بعد", tasksD: "ستظهر هنا المهام المسندة إلى هذا الموظف.", taskSearchD: "جرّب كلمة بحث مختلفة أو امسح عوامل التصفية.", tripsT: "لا توجد رحلات بعد", tripsD: "ستظهر هنا رحلات العمل والتدريب لهذا العام." },
+};
+const te = E.en;
 const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(n);
 const monthLabel = (month: string) => new Date(`${month}-01T12:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 const daysBetween = (from: string, until: string) => Math.max(1, Math.round((new Date(`${until}T00:00:00Z`).getTime() - new Date(`${from}T00:00:00Z`).getTime()) / 86400000) + 1);
@@ -66,6 +73,7 @@ function DataTable({ headers, rows, onRowClick }: { headers: ReactNode[]; rows: 
 function EmployeeDetails() {
  const { employeeId } = Route.useParams(); const search = Route.useSearch(); const back = employeeBackTarget(search); const { employees, employmentTypes, setMonthlyPlan, setMonthOverride, addTrip, removeTrip, addLeave, removeLeave, setEmployees, updateEmployee } = useEmployees(); const { projects } = useProjects(); const { resourceRequests } = useResourceRequests();
  const employee = employees.find((e) => e.id === employeeId);
+ const { enabled: emptyPreview } = useEmptyPreview();
  const [tab, setTab] = useState("overview"); const [capacityView, setCapacityView] = useState("capacity"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
  // The work calendar's own period: which view and which month, driven from the shared slot under the tab line.
  const [calView, setCalView] = useState<"monthly" | "yearly">("monthly"); const [calMonth, setCalMonth] = useState(9); const [warnClosed, setWarnClosed] = useState(false); useEffect(() => setWarnClosed(false), [year]);
@@ -124,6 +132,15 @@ function EmployeeDetails() {
  const taskProjects = Array.from(new Set(uniqueTasks.map((v) => v.project).filter((v) => v !== "—"))).sort();
  const visibleTasks = uniqueTasks.filter((v) => (taskProject === t.allProjects || v.project === taskProject) && v.task.toLowerCase().includes(taskQuery.trim().toLowerCase()));
  const profile: [string, string, typeof Phone][] = [[t.phone, employee.phone || "—", Phone], [t.email, employee.email, Mail], [t.nationalId, employee.nationalId || "—", IdCard], [t.birth, employee.birthDate ? formatDateWithYear(employee.birthDate) : "—", CalendarDays], [t.joined, formatDateWithYear(employee.joinedOn), CalendarDays], [t.id, employee.employeeNumber || employee.id, IdCard], [t.role, employee.role, Briefcase], [t.seniority, employee.seniority || "—", Briefcase], [t.department, employee.dept, Building2], [t.type, employmentTypes.find((v) => v.id === employee.employmentTypeId)?.name ?? "—", Briefcase]];
+ const hasEmployeeInfo = profile.some(([, value]) => value.trim() !== "" && value !== "—");
+ const hasSalaryData = months.some((m) => employeeMonth(employee, m).salary > 0);
+ const hasCapacityData = months.some((m) => employeeMonth(employee, m).capacity > 0);
+ const leaveRecords = employee.leave.filter((l) => l.from.startsWith(year));
+ const allocationMonth = `${year}-${String(calMonth + 1).padStart(2, "0")}`;
+ const allocationStart = calView === "yearly" ? `${year}-01-01` : `${allocationMonth}-01`;
+ const allocationEnd = calView === "yearly" ? `${year}-12-31` : `${allocationMonth}-31`;
+ const hasAllocation = workEntries.some((entry) => entry.from <= allocationEnd && entry.until >= allocationStart);
+ const yearTrips = employee.trips.filter((trip) => trip.from.startsWith(year) || trip.until.startsWith(year));
  return <div className="min-w-0 space-y-8">
   <div className="space-y-3">
    {back.kind === "team" ? <Link to="/portfolio/$projectId" params={{ projectId: back.projectId }} search={{ tab: "Team" }} className="inline-flex items-center text-sm text-breadcrumb-current transition-colors hover:text-breadcrumb-hover"><ChevronLeft className="mr-1 h-3 w-3 rtl:rotate-180" aria-hidden />{th.backToTeam}</Link> : <Link to="/resources" search={{ tab: "people" }} className="inline-flex items-center text-sm text-breadcrumb-current transition-colors hover:text-breadcrumb-hover"><ChevronLeft className="mr-1 h-3 w-3 rtl:rotate-180" aria-hidden />{th.backToEmployees}</Link>}
@@ -182,18 +199,19 @@ function EmployeeDetails() {
     </div>
    )}
    <TabsContent value="overview" className="mt-0 min-w-0">
-    <section className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm"><dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">{profile.map(([label, value, Ic]) => <div key={label} className="flex min-w-0 items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-primary"><Ic className="h-5 w-5" /></span><div className="min-w-0"><dt className="text-sm text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-semibold text-foreground">{value}</dd></div></div>)}</dl></section>
+    <EmptyRegion id="employee-info">{hasEmployeeInfo ? <section className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm"><dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">{profile.map(([label, value, Ic]) => <div key={label} className="flex min-w-0 items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-primary"><Ic className="h-5 w-5" /></span><div className="min-w-0"><dt className="text-sm text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-semibold text-foreground">{value}</dd></div></div>)}</dl></section> : <EmptyState art="people" title={te.infoT} description={te.infoD} />}</EmptyRegion>
    </TabsContent>
     <TabsContent value="allocation" className="mt-0">
-     <EmployeeWorkCalendar entries={workEntries} leave={calendarLeave} allocations={employee.allocations} year={year} view={calView} month={calMonth} monthStats={(m) => employeeMonth(employee, m)} />
+     <EmptyRegion id="employee-allocation">{hasAllocation ? <EmployeeWorkCalendar entries={workEntries} leave={calendarLeave} allocations={employee.allocations} year={year} view={calView} month={calMonth} monthStats={(m) => employeeMonth(employee, m)} /> : <EmptyState art="calendar" title={te.allocationT} description={te.allocationD} />}</EmptyRegion>
     </TabsContent>
    <TabsContent value="tasks" className="mt-0 space-y-5">
     <PageToolbar query={taskQuery} onQueryChange={setTaskQuery} placeholder={t.searchTasks} filterGroups={[{ key: "project", label: t.project, value: taskProject, onChange: setTaskProject, options: [{ value: t.allProjects, label: t.allProjects }, ...taskProjects.map((p) => ({ value: p, label: p }))] }]} />
-    {visibleTasks.length || !uniqueTasks.length
+    <EmptyRegion id="employee-tasks">{visibleTasks.length
      ? <DataTable headers={[t.task, t.project, t.date]} rows={visibleTasks.map((v) => [v.task, projectLink(v.project), v.period])} />
-     : <p className="rounded-lg border border-border py-8 text-center text-sm text-muted-foreground">{t.noTasks}</p>}
+     : uniqueTasks.length ? <EmptyState art="search" title={t.noTasks} description={te.taskSearchD} /> : <EmptyState art="note" title={te.tasksT} description={te.tasksD} />}</EmptyRegion>
    </TabsContent>
    <TabsContent value="salary" className="mt-0 space-y-6">
+    <EmptyRegion id="employee-salary">{hasSalaryData ? <>
      {mounted && monthly.salary > 0 && (
       <div className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm">
        <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">{t.salarySplit}</h3>
@@ -225,6 +243,7 @@ function EmployeeDetails() {
       <EditMonthButton label={t.editSalary} onClick={() => setEditMonth({ month: m, field: "salary" })} />,
      ]; })}
     />
+    </> : <EmptyState art="coins" title={te.salaryT} description={te.salaryD} ctaLabel={t.setPlan} onCta={() => setPlanField("salary")} />}</EmptyRegion>
    </TabsContent>
    <TabsContent value="capacity" className="mt-0 space-y-8">
     <div className="grid grid-cols-3 gap-3"><KpiCard label={t.entitlement} value={`${vacation.entitlement}d`} /><KpiCard label={t.leaveUsed} value={`${vacation.used}d`} /><KpiCard label={t.balance} value={`${vacation.remaining}d`} accent="teal" /></div>
@@ -235,8 +254,8 @@ function EmployeeDetails() {
      </TabsList>
      <TabsContent value="capacity" className="mt-0">
       <section className="min-w-0 space-y-5">
-       <div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.capacityTab}</h2><Button size="sm" variant="primary" onClick={() => setPlanField("capacity")}><Plus className="mr-1 h-4 w-4" />{t.setCapacity}</Button></div>
-       <DataTable
+       <div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.capacityTab}</h2>{!emptyPreview && hasCapacityData && <Button size="sm" variant="primary" onClick={() => setPlanField("capacity")}><Plus className="mr-1 h-4 w-4" />{t.setCapacity}</Button>}</div>
+       <EmptyRegion id="employee-capacity">{hasCapacityData ? <DataTable
         headers={[t.month, t.capacity, t.available, t.assignedHours, t.utilization, ""]}
         onRowClick={(i) => setSelectedMonth(months[i])}
         rows={months.map((m) => { const v = employeeMonth(employee, m); return [
@@ -247,15 +266,15 @@ function EmployeeDetails() {
          <span className={`num-mono font-medium ${v.effectiveUtilization > 100 ? "text-rag-red" : "text-foreground"}`}>{v.effectiveUtilization}%</span>,
          <EditMonthButton label={t.editCapacity} onClick={() => setEditMonth({ month: m, field: "capacity" })} />,
         ]; })}
-       />
+       /> : <EmptyState art="charts" title={te.capacityT} description={te.capacityD} ctaLabel={t.setCapacity} onCta={() => setPlanField("capacity")} />}</EmptyRegion>
       </section>
      </TabsContent>
      <TabsContent value="leave" className="mt-0">
       <section className="min-w-0">
-       <div className="mb-5 flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.leaveRecords}</h2><Button size="sm" variant="outline" onClick={() => setLeaveOpen(true)}><Plus className="mr-1 h-4 w-4" />{t.addEntry}</Button></div>
-       <DataTable
+       <div className="mb-5 flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.leaveRecords}</h2>{!emptyPreview && leaveRecords.length > 0 && <Button size="sm" variant="outline" onClick={() => setLeaveOpen(true)}><Plus className="mr-1 h-4 w-4" />{t.addEntry}</Button>}</div>
+       <EmptyRegion id="employee-leave">{leaveRecords.length ? <DataTable
         headers={[t.leaveType, t.from, t.until, t.days, t.remark, ""]}
-        rows={employee.leave.filter((l) => l.from.startsWith(year)).map((l) => [
+        rows={leaveRecords.map((l) => [
          l.hours != null ? t.partialOption : t.leaveOption,
          formatDateWithYear(l.from),
          formatDateWithYear(l.until),
@@ -263,15 +282,15 @@ function EmployeeDetails() {
          <span className="text-muted-foreground">{l.remark || "—"}</span>,
          <Button size="icon" variant="dangerOutline" data-ds-size="auto" aria-label={t.leaveRemoved} title={t.leaveRemoved} className="h-9 w-9 rounded-full" onClick={() => { removeLeave(employee.id, l.id); toast.success(t.leaveRemoved); }}><Trash2 className="h-4 w-4" /></Button>,
         ])}
-       />
+       /> : <EmptyState art="calendar" title={te.leaveT} description={te.leaveD} ctaLabel={t.addEntry} onCta={() => setLeaveOpen(true)} />}</EmptyRegion>
       </section>
      </TabsContent>
     </Tabs>
    </TabsContent>
    <TabsContent value="trips" className="mt-0 min-w-0">
-    <DataTable
+    <EmptyRegion id="employee-trips">{yearTrips.length ? <DataTable
      headers={[t.project, t.country, t.city, t.travel, t.tripWork, t.tickets, t.visa, t.perDiem, t.tripTotal]}
-     rows={employee.trips.filter((trip) => trip.from.startsWith(year) || trip.until.startsWith(year)).map((trip) => [
+     rows={yearTrips.map((trip) => [
       trip.project ? projectLink(trip.project) : "—",
       trip.country,
       trip.city,
@@ -282,7 +301,7 @@ function EmployeeDetails() {
       <span className="num-mono">{dollars(trip.perDiemCost)}</span>,
       <span className="num-mono font-medium">{dollars(trip.ticketsCost + trip.visaCost + trip.perDiemCost)}</span>
      ])}
-    />
+    /> : <EmptyState art="map" title={te.tripsT} description={te.tripsD} />}</EmptyRegion>
    </TabsContent>
   </Tabs>
   <Dialog open={!!salaryMonth} onOpenChange={(open) => { if (!open) setSalaryMonth(null); }}>

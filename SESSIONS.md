@@ -1,3 +1,6 @@
+## 2026-11-18 — Employee Capacity split into inner tabs
+- Employee Details → Capacity now keeps the year selector and annual leave KPIs above two DS02 inner tabs: Capacity and Leave records. The monthly capacity table and leave register retain their existing actions and calculations.
+
 ## 2026-11-18 — Request drawer Outcome redesign
 - Outcome lists assigned people; hover/focus swaps allocation card (project share from Full/Part time, total utilization, over-allocation note). Removed duplicate Assigned section and allocation row.
 

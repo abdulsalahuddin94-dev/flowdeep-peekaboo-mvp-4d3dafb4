@@ -66,7 +66,7 @@ function DataTable({ headers, rows, onRowClick }: { headers: ReactNode[]; rows: 
 function EmployeeDetails() {
  const { employeeId } = Route.useParams(); const search = Route.useSearch(); const back = employeeBackTarget(search); const { employees, employmentTypes, setMonthlyPlan, setMonthOverride, addTrip, removeTrip, addLeave, removeLeave, setEmployees, updateEmployee } = useEmployees(); const { projects } = useProjects(); const { resourceRequests } = useResourceRequests();
  const employee = employees.find((e) => e.id === employeeId);
- const [tab, setTab] = useState("overview"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
+ const [tab, setTab] = useState("overview"); const [capacityView, setCapacityView] = useState("capacity"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
  // The work calendar's own period: which view and which month, driven from the shared slot under the tab line.
  const [calView, setCalView] = useState<"monthly" | "yearly">("monthly"); const [calMonth, setCalMonth] = useState(9); const [warnClosed, setWarnClosed] = useState(false); useEffect(() => setWarnClosed(false), [year]);
  const [planField, setPlanField] = useState<PlanField | null>(null); const [editMonth, setEditMonth] = useState<{ month: string; field: PlanField } | null>(null); const [tripOpen, setTripOpen] = useState(false); const [leaveOpen, setLeaveOpen] = useState(false);
@@ -228,35 +228,45 @@ function EmployeeDetails() {
    </TabsContent>
    <TabsContent value="capacity" className="mt-0 space-y-8">
     <div className="grid grid-cols-3 gap-3"><KpiCard label={t.entitlement} value={`${vacation.entitlement}d`} /><KpiCard label={t.leaveUsed} value={`${vacation.used}d`} /><KpiCard label={t.balance} value={`${vacation.remaining}d`} accent="teal" /></div>
-    <section className="min-w-0 space-y-5">
-     <div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.capacityTab}</h2><Button size="sm" variant="primary" onClick={() => setPlanField("capacity")}><Plus className="mr-1 h-4 w-4" />{t.setCapacity}</Button></div>
-     <DataTable
-      headers={[t.month, t.capacity, t.available, t.assignedHours, t.utilization, ""]}
-      onRowClick={(i) => setSelectedMonth(months[i])}
-      rows={months.map((m) => { const v = employeeMonth(employee, m); return [
-       <span className={m === selectedMonth ? "font-medium text-accent" : undefined}>{monthLabel(m)}</span>,
-       <span className="num-mono">{v.capacity}h</span>,
-       <span className="num-mono">{v.availableCapacity}h</span>,
-       <span className="num-mono">{v.allocatedHours.toFixed(1)}h</span>,
-       <span className={`num-mono font-medium ${v.effectiveUtilization > 100 ? "text-rag-red" : "text-foreground"}`}>{v.effectiveUtilization}%</span>,
-       <EditMonthButton label={t.editCapacity} onClick={() => setEditMonth({ month: m, field: "capacity" })} />,
-      ]; })}
-     />
-    </section>
-    <section className="min-w-0">
-     <div className="mb-5 flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.leaveRecords}</h2><Button size="sm" variant="outline" onClick={() => setLeaveOpen(true)}><Plus className="mr-1 h-4 w-4" />{t.addEntry}</Button></div>
-     <DataTable
-      headers={[t.leaveType, t.from, t.until, t.days, t.remark, ""]}
-      rows={employee.leave.filter((l) => l.from.startsWith(year)).map((l) => [
-       l.hours != null ? t.partialOption : t.leaveOption,
-       formatDateWithYear(l.from),
-       formatDateWithYear(l.until),
-       l.hours != null ? `${l.hours}h` : l.days,
-       <span className="text-muted-foreground">{l.remark || "—"}</span>,
-       <Button size="icon" variant="dangerOutline" data-ds-size="auto" aria-label={t.leaveRemoved} title={t.leaveRemoved} className="h-9 w-9 rounded-full" onClick={() => { removeLeave(employee.id, l.id); toast.success(t.leaveRemoved); }}><Trash2 className="h-4 w-4" /></Button>,
-      ])}
-     />
-    </section>
+    <Tabs value={capacityView} onValueChange={setCapacityView} className="space-y-6">
+     <TabsList className="grid h-11 w-full grid-cols-2 gap-0 rounded-lg border border-border bg-[var(--field-bg-filled)] p-1">
+      <TabsTrigger value="capacity" className="h-9 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent">{t.capacityTab}</TabsTrigger>
+      <TabsTrigger value="leave" className="h-9 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent">{t.leaveRecords}</TabsTrigger>
+     </TabsList>
+     <TabsContent value="capacity" className="mt-0">
+      <section className="min-w-0 space-y-5">
+       <div className="flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.capacityTab}</h2><Button size="sm" variant="primary" onClick={() => setPlanField("capacity")}><Plus className="mr-1 h-4 w-4" />{t.setCapacity}</Button></div>
+       <DataTable
+        headers={[t.month, t.capacity, t.available, t.assignedHours, t.utilization, ""]}
+        onRowClick={(i) => setSelectedMonth(months[i])}
+        rows={months.map((m) => { const v = employeeMonth(employee, m); return [
+         <span className={m === selectedMonth ? "font-medium text-accent" : undefined}>{monthLabel(m)}</span>,
+         <span className="num-mono">{v.capacity}h</span>,
+         <span className="num-mono">{v.availableCapacity}h</span>,
+         <span className="num-mono">{v.allocatedHours.toFixed(1)}h</span>,
+         <span className={`num-mono font-medium ${v.effectiveUtilization > 100 ? "text-rag-red" : "text-foreground"}`}>{v.effectiveUtilization}%</span>,
+         <EditMonthButton label={t.editCapacity} onClick={() => setEditMonth({ month: m, field: "capacity" })} />,
+        ]; })}
+       />
+      </section>
+     </TabsContent>
+     <TabsContent value="leave" className="mt-0">
+      <section className="min-w-0">
+       <div className="mb-5 flex items-center justify-between gap-3"><h2 className="text-base font-semibold">{t.leaveRecords}</h2><Button size="sm" variant="outline" onClick={() => setLeaveOpen(true)}><Plus className="mr-1 h-4 w-4" />{t.addEntry}</Button></div>
+       <DataTable
+        headers={[t.leaveType, t.from, t.until, t.days, t.remark, ""]}
+        rows={employee.leave.filter((l) => l.from.startsWith(year)).map((l) => [
+         l.hours != null ? t.partialOption : t.leaveOption,
+         formatDateWithYear(l.from),
+         formatDateWithYear(l.until),
+         l.hours != null ? `${l.hours}h` : l.days,
+         <span className="text-muted-foreground">{l.remark || "—"}</span>,
+         <Button size="icon" variant="dangerOutline" data-ds-size="auto" aria-label={t.leaveRemoved} title={t.leaveRemoved} className="h-9 w-9 rounded-full" onClick={() => { removeLeave(employee.id, l.id); toast.success(t.leaveRemoved); }}><Trash2 className="h-4 w-4" /></Button>,
+        ])}
+       />
+      </section>
+     </TabsContent>
+    </Tabs>
    </TabsContent>
    <TabsContent value="trips" className="mt-0 min-w-0">
     <DataTable

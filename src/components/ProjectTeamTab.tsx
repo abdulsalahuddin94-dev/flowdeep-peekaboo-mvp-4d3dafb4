@@ -1,3 +1,4 @@
+import { formatDateWithYear } from "@/lib/date-format";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useMemo, useState } from "react";
 import { RequestPeriod } from "@/components/RequestPeriod";
@@ -326,7 +327,7 @@ function MemberTasksDialog({ member, items, t, onClose }: { member: TeamMember |
           <ul className="max-h-96 divide-y divide-border overflow-y-auto rounded-lg border border-border">
             {tasks.map((i) => (
               <li key={i.name} className="flex items-center justify-between gap-3 px-4 py-3">
-                <div className="min-w-0"><div className="truncate text-sm font-medium text-foreground">{i.name}</div><div className="text-xs num-mono text-muted-foreground">{i.startDate.slice(0, 10)} → {i.endDate.slice(0, 10)}</div></div>
+                <div className="min-w-0"><div className="truncate text-sm font-medium text-foreground">{i.name}</div><div className="text-xs num-mono text-muted-foreground">{formatDateWithYear(i.startDate)} → {formatDateWithYear(i.endDate)}</div></div>
               </li>
             ))}
           </ul>
@@ -374,13 +375,13 @@ function AssignTaskDialog({ member, items, t, onClose, onAssign }: { member: Tea
       onOpenChange={(o) => { if (!o) setPending(null); }}
       tone="warning"
       title={t.outT}
-      description={member?.window ? t.outD(member.name, member.window.from, member.window.until) : ""}
+      description={member?.window ? t.outD(member.name, formatDateWithYear(member.window.from), formatDateWithYear(member.window.until)) : ""}
       cancelLabel={t.cancel}
       confirmLabel={t.assignAnyway}
       onConfirm={confirmAssign}
     >
       <ul className="space-y-1 rounded-lg border border-border bg-card p-3 text-sm">
-        {outside.map((i) => <li key={i.name} className="text-foreground">{i.name} <span className="text-muted-foreground">· {i.startDate.slice(0, 10)} → {i.endDate.slice(0, 10)}</span></li>)}
+        {outside.map((i) => <li key={i.name} className="text-foreground">{i.name} <span className="whitespace-nowrap text-muted-foreground">· {formatDateWithYear(i.startDate)} → {formatDateWithYear(i.endDate)}</span></li>)}
       </ul>
     </ConfirmDialog>
     </>

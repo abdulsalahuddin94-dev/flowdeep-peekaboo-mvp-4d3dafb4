@@ -1,3 +1,5 @@
+## 2026-11-18 — Team assign dialogs use DS date format (dd MMM, yyyy)
+
 ## 2026-11-18 — Seniority hidden from Employee Info
 - Removed the Seniority field from the Employee Details → Employee Info card so the grid shows nine fields in a clean 3×3 layout (Phone number, Email, National ID, Date of birth, Hiring date, Employee ID, Role, Department, Employment type). Seniority stays available in the employee add/edit form.
 - Verified in the preview on EMP-001: the label no longer appears, the other nine fields render with no gap, and there are no page errors.

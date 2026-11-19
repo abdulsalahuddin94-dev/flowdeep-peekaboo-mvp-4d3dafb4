@@ -1,3 +1,7 @@
+## 2026-11-19 — Leave summary cards removed from Capacity
+- Employee Details → Capacity: the three summary cards (Annual entitlement, Leave used, Days remaining) are gone from both the Capacity and Leave records subtabs. The tab now opens straight on the Capacity / Leave records switch, then the year selector and the table. Removed the now-unused KpiCard import, the vacationBalance import and the vacation value; the leave calculations themselves are untouched.
+- Verified in the preview on EMP-001: none of the three labels appear on either subtab, the Capacity table renders all 12 months with no leftover gap, and the typecheck passes.
+
 ## 2026-11-18 — Outside-allocation task list: name above dates, row separators
 
 ## 2026-11-18 — Dashboard open requests also use DS date format

@@ -4,9 +4,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useEmployees, monthRange, type Employee, type EmployeeTrip, type EmployeeLeave } from "@/lib/employees-store";
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { seedMilestones } from "@/lib/plan-seeds";
-import { employeeMonth, vacationBalance, averageUtilization } from "@/lib/employee-finance";
+import { employeeMonth, averageUtilization } from "@/lib/employee-finance";
 import { useProjects, useResourceRequests } from "@/lib/projects-store";
-import { KpiCard } from "@/components/KpiCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -84,7 +83,7 @@ function EmployeeDetails() {
  useEffect(() => setMounted(true), []);
  const projectLink = (name: string) => { const p = projects.find((v) => v.name === name); return p ? <Link to="/portfolio/$projectId" params={{ projectId: p.id }} className="text-accent hover:underline">{name}</Link> : name; };
  if (!employee) return <><Link to="/resources" search={{ tab: "people" }} className="mb-2 inline-flex items-center gap-2 text-sm text-breadcrumb-muted transition-colors hover:text-breadcrumb-hover"><ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t.employees}</Link><h1 className="mt-6 text-xl">{t.missing}</h1></>;
- const monthly = employeeMonth(employee, selectedMonth); const vacation = vacationBalance(employee, year);
+ const monthly = employeeMonth(employee, selectedMonth);
  const utilTone = monthly.effectiveUtilization > 100 ? "text-rag-red" : monthly.effectiveUtilization > 90 ? "text-rag-amber" : "text-accent";
  // Year view of the same number: the mean of the month's effective utilization across the hired months.
  const avgUtil = averageUtilization(employee, year);
@@ -246,7 +245,6 @@ function EmployeeDetails() {
     </> : <EmptyState art="coins" title={te.salaryT} description={te.salaryD} ctaLabel={t.setPlan} onCta={() => setPlanField("salary")} />}</EmptyRegion>
    </TabsContent>
    <TabsContent value="capacity" className="mt-0 space-y-8">
-    <div className="grid grid-cols-3 gap-3"><KpiCard label={t.entitlement} value={`${vacation.entitlement}d`} /><KpiCard label={t.leaveUsed} value={`${vacation.used}d`} /><KpiCard label={t.balance} value={`${vacation.remaining}d`} accent="teal" /></div>
     <Tabs value={capacityView} onValueChange={setCapacityView} className="space-y-6">
      <TabsList className="grid h-11 w-full grid-cols-2 gap-0 rounded-lg border border-border bg-[var(--field-bg-filled)] p-1">
       <TabsTrigger value="capacity" className="h-9 rounded-md border border-transparent bg-transparent px-4 text-xs text-muted-foreground data-[state=active]:border-accent/50 data-[state=active]:bg-accent/10 data-[state=active]:text-accent">{t.capacityTab}</TabsTrigger>

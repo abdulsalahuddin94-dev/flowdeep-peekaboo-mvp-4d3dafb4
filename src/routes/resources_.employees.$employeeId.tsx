@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useEmployees, monthRange, type Employee, type EmployeeTrip, type EmployeeLeave } from "@/lib/employees-store";
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { seedMilestones } from "@/lib/plan-seeds";
-import { employeeMonth, averageUtilization } from "@/lib/employee-finance";
+import { employeeMonth, averageUtilization, capacityOverrideMonths } from "@/lib/employee-finance";
 import { useProjects, useResourceRequests } from "@/lib/projects-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,11 @@ const H = {
   ar: { pageTitle: "بيانات الموظف", gender: "النوع", age: "العمر", years: "سنة", backToEmployees: "العودة إلى الموظفين", backToTeam: "العودة إلى الفريق", actions: "إجراءات الموظف", edit: "تعديل", activate: "تنشيط", deactivate: "إلغاء التنشيط", del: "حذف", active: "نشط", inactive: "غير نشط", sureToggle: "هل أنت متأكد؟" },
 };
 const th = H.en;
+const C = {
+ en: { overwriteCapacityT: "Overwrite existing capacity?", overwriteCapacityD: "Some selected months already have a capacity plan. Continuing will overwrite their capacity and working days.", affectedMonths: "Months that will be overwritten", overwrite: "Overwrite" },
+ ar: { overwriteCapacityT: "استبدال السعة الحالية؟", overwriteCapacityD: "بعض الشهور المختارة لديها خطة سعة بالفعل. بالمتابعة سيتم استبدال السعة وعدد أيام العمل في هذه الشهور.", affectedMonths: "الشهور التي سيتم استبدالها", overwrite: "استبدال" },
+};
+const tc = C.en;
 // Labels for the single period slot that sits under the tab line on every tab that carries one.
 const PL = { en: { workCalendar: "Work calendar", monthly: "Monthly", yearly: "Yearly", previous: "Previous", next: "Next", close: "Dismiss" }, ar: { workCalendar: "تقويم العمل", monthly: "شهري", yearly: "سنوي", previous: "السابق", next: "التالي", close: "إغلاق" } };
 const pl = PL.en;
@@ -76,13 +81,27 @@ function EmployeeDetails() {
  const [tab, setTab] = useState("overview"); const [capacityView, setCapacityView] = useState("capacity"); const [year, setYear] = useState("2026"); const [selectedMonth, setSelectedMonth] = useState("2026-10"); const [salaryMonth, setSalaryMonth] = useState<string | null>(null);
  // The work calendar's own period: which view and which month, driven from the shared slot under the tab line.
  const [calView, setCalView] = useState<"monthly" | "yearly">("monthly"); const [calMonth, setCalMonth] = useState(9); const [warnClosed, setWarnClosed] = useState(false); useEffect(() => setWarnClosed(false), [year]);
- const [planField, setPlanField] = useState<PlanField | null>(null); const [editMonth, setEditMonth] = useState<{ month: string; field: PlanField } | null>(null); const [tripOpen, setTripOpen] = useState(false); const [leaveOpen, setLeaveOpen] = useState(false); const [leaveDelete, setLeaveDelete] = useState<EmployeeLeave | null>(null);
+ const [planField, setPlanField] = useState<PlanField | null>(null); const [capacityOverwrite, setCapacityOverwrite] = useState<{ start: string; count: number; value: number; workingDays: number; months: string[] } | null>(null); const [editMonth, setEditMonth] = useState<{ month: string; field: PlanField } | null>(null); const [tripOpen, setTripOpen] = useState(false); const [leaveOpen, setLeaveOpen] = useState(false); const [leaveDelete, setLeaveDelete] = useState<EmployeeLeave | null>(null);
  const [taskQuery, setTaskQuery] = useState(""); const [taskProject, setTaskProject] = useState<string>(t.allProjects); const navigate = useNavigate(); const [deleteOpen, setDeleteOpen] = useState(false); const [toggleOpen, setToggleOpen] = useState(false);
  // Recharts generates different clip IDs on server vs client — render the donut only after mount.
  const [mounted, setMounted] = useState(false);
  useEffect(() => setMounted(true), []);
  const projectLink = (name: string) => { const p = projects.find((v) => v.name === name); return p ? <Link to="/portfolio/$projectId" params={{ projectId: p.id }} className="text-accent hover:underline">{name}</Link> : name; };
  if (!employee) return <><Link to="/resources" search={{ tab: "people" }} className="mb-2 inline-flex items-center gap-2 text-sm text-breadcrumb-muted transition-colors hover:text-breadcrumb-hover"><ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t.employees}</Link><h1 className="mt-6 text-xl">{t.missing}</h1></>;
+ const applyMonthlyPlan = (field: PlanField, start: string, count: number, value: number, workingDays?: number) => {
+  setMonthlyPlan(employee.id, start, count, field === "capacity" ? { capacity: value, workingDays } : { salary: value });
+  setPlanField(null);
+  toast.success(field === "salary" ? t.salaryPlanApplied : t.capacityPlanApplied, { description: `${monthLabel(start)} · ${count} ${count === 1 ? "month" : "months"}` });
+ };
+ const requestMonthlyPlan = (field: PlanField, start: string, count: number, value: number, workingDays?: number) => {
+  const months = field === "capacity" ? capacityOverrideMonths(employee, start, count) : [];
+  if (months.length) {
+   setPlanField(null);
+   setCapacityOverwrite({ start, count, value, workingDays: workingDays ?? 20, months });
+   return;
+  }
+  applyMonthlyPlan(field, start, count, value, workingDays);
+ };
  const monthly = employeeMonth(employee, selectedMonth);
  const utilTone = monthly.effectiveUtilization > 100 ? "text-rag-red" : monthly.effectiveUtilization > 90 ? "text-rag-amber" : "text-accent";
  // Year view of the same number: the mean of the month's effective utilization across the hired months.
@@ -308,7 +327,25 @@ function EmployeeDetails() {
     <DataTable headers={[t.project, t.allocation, t.cost]} rows={[...monthly.charges.map((a) => [projectLink(a.project), `${a.percent}%`, money(a.amount)]), [t.overhead, "—", money(monthly.overhead)], [t.total, "—", money(monthly.salary)]]} />
    </DialogContent>
   </Dialog>
-  <MonthlyPlanDialog employee={employee} field={planField} onClose={() => setPlanField(null)} defaultStart={selectedMonth} onApply={(field, start, count, value, workingDays) => { setMonthlyPlan(employee.id, start, count, field === "capacity" ? { capacity: value, workingDays } : { salary: value }); setPlanField(null); toast.success(field === "salary" ? t.salaryPlanApplied : t.capacityPlanApplied, { description: `${monthLabel(start)} · ${count} ${count === 1 ? "month" : "months"}` }); }} />
+  <MonthlyPlanDialog employee={employee} field={planField} onClose={() => setPlanField(null)} defaultStart={selectedMonth} onApply={requestMonthlyPlan} />
+  <ConfirmDialog
+   open={!!capacityOverwrite}
+   onOpenChange={(open) => { if (!open) setCapacityOverwrite(null); }}
+   tone="warning"
+   title={tc.overwriteCapacityT}
+   description={tc.overwriteCapacityD}
+   cancelLabel={t.cancel}
+   confirmLabel={tc.overwrite}
+   onConfirm={() => {
+    if (capacityOverwrite) applyMonthlyPlan("capacity", capacityOverwrite.start, capacityOverwrite.count, capacityOverwrite.value, capacityOverwrite.workingDays);
+    setCapacityOverwrite(null);
+   }}
+  >
+   {capacityOverwrite ? <div className="rounded-lg border border-border bg-card p-3 text-sm">
+    <p className="text-xs font-medium text-muted-foreground">{tc.affectedMonths}</p>
+    <p className="mt-2 leading-relaxed text-foreground">{capacityOverwrite.months.map(monthLabel).join(" · ")}</p>
+   </div> : null}
+  </ConfirmDialog>
   <MonthEditDialog employee={employee} edit={editMonth} onClose={() => setEditMonth(null)} onSave={(m, field, value) => { setMonthOverride(employee.id, m, { [field]: value }); setEditMonth(null); toast.success(t.monthUpdated, { description: monthLabel(m) }); }} />
   <LeaveDialog open={leaveOpen} onClose={() => setLeaveOpen(false)} onAdd={(leave) => { addLeave(employee.id, leave); setLeaveOpen(false); toast.success(t.leaveAdded, { description: leave.type === "Partial" ? t.partialOption : t.leaveOption }); }} />
   <ConfirmDialog

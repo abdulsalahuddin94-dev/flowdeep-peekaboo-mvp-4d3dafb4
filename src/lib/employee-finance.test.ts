@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import { strict as assert } from "node:assert";
-import { employeeMonth, vacationBalance, averageUtilization } from "./employee-finance";
+import { employeeMonth, vacationBalance, averageUtilization, capacityOverrideMonths } from "./employee-finance";
 import type { Employee } from "./employees-store";
 const employee: Employee = { id: "test", name: "Test", role: "Engineer", dept: "IT", email: "test@example.com", salary: 10000, capacity: 160, util: 60, employmentTypeId: "ET-1", joinedOn: "2026-01-01", projects: ["A"], tasks: [], allocations: [{ id: "a", project: "A", role: "Engineer", percent: 60, from: "2026-02", until: "2026-03" }], leave: [], trips: [], monthly: {}, vacationEntitlement: 24, demo: false };
 test("monthly salary shows its project charge and unassigned balance", () => { const m = employeeMonth(employee, "2026-02"); assert.equal(m.salary, 10000); assert.equal(m.charges[0]?.amount, 6000); assert.equal(m.overhead, 4000); });
@@ -46,4 +46,13 @@ test("average utilization is the mean of the year's months, idle months included
 test("average utilization ignores months before the employee was hired", () => {
   const late = { ...employee, joinedOn: "2026-11-01", allocations: [{ ...employee.allocations[0], from: "2026-11", until: "2026-12" }] };
   assert.equal(averageUtilization(late, "2026"), 60);
+});
+
+test("bulk capacity confirmation is limited to months with an existing capacity override", () => {
+  const e = { ...employee, monthly: { "2026-11": { capacity: 140 }, "2026-12": { salary: 12000 }, "2027-01": { capacity: 160 } } };
+  assert.deepEqual(capacityOverrideMonths(e, "2026-11", 4), ["2026-11", "2027-01"]);
+});
+
+test("base capacity alone does not require overwrite confirmation", () => {
+  assert.deepEqual(capacityOverrideMonths(employee, "2027-01", 12), []);
 });

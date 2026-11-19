@@ -1,3 +1,7 @@
+## 2026-11-19 — Capacity overwrite confirmation only for overlapping months
+- Employee Details → Capacity → Set capacity now saves immediately when the selected months have no explicit capacity overrides. A DS02 warning appears only when the range overlaps existing capacity values; it lists the affected months and offers Cancel / Overwrite. Salary-only monthly entries do not trigger the warning, and salary values remain intact when capacity is overwritten. English and Arabic copy added.
+- Added two regression tests for mixed/new monthly ranges. All 12 employee-finance tests and the typecheck pass. Browser-verified on EMP-001: new 2028 months saved without confirmation; the Aug 2026–Jul 2027 range warned only for Aug 2026; Cancel retained 80h; Overwrite applied 180h/21 working days while preserving salary. No browser errors.
+
 ## 2026-11-19 — Leave summary cards removed from Capacity
 - Employee Details → Capacity: the three summary cards (Annual entitlement, Leave used, Days remaining) are gone from both the Capacity and Leave records subtabs. The tab now opens straight on the Capacity / Leave records switch, then the year selector and the table. Removed the now-unused KpiCard import, the vacationBalance import and the vacation value; the leave calculations themselves are untouched.
 - Verified in the preview on EMP-001: none of the three labels appear on either subtab, the Capacity table renders all 12 months with no leftover gap, and the typecheck passes.

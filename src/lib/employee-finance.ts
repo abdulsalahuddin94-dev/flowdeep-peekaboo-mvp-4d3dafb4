@@ -1,4 +1,9 @@
-import type { Employee } from "./employees-store";
+import { monthRange, type Employee } from "./employees-store";
+
+/** Existing capacity overrides that a bulk capacity plan would replace. Salary-only months do not count. */
+export function capacityOverrideMonths(employee: Pick<Employee, "monthly">, startMonth: string, months: number) {
+  return monthRange(startMonth, months).filter((month) => employee.monthly[month]?.capacity !== undefined);
+}
 
 /** Working days used to prorate absence against monthly capacity. */
 const WORKING_DAYS_PER_MONTH = 22;

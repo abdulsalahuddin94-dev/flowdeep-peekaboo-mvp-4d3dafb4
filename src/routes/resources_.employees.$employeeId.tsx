@@ -197,8 +197,8 @@ function EmployeeDetails() {
       { label: th.gender, value: employee.gender ?? "—", tone: "text-accent", bar: false },
       { label: th.age, value: employee.birthDate ? `${Math.floor((Date.now() - new Date(employee.birthDate).getTime()) / 31557600000)} ${th.years}` : "—", tone: "text-accent", bar: false },
       { label: t.monthly, value: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(monthly.salary), tone: "text-accent", bar: false },
-      { label: t.capacity, value: `${monthly.availableCapacity}h / ${monthly.allocatedHours.toFixed(1)}h`, tone: utilTone, bar: false },
-      { label: t.utilization, value: `${monthly.effectiveUtilization}%`, tone: utilTone, bar: true },
+      { label: `${t.capacity} · ${monthLabel(selectedMonth)}`, value: `${monthly.availableCapacity}h / ${monthly.allocatedHours.toFixed(1)}h`, tone: utilTone, bar: false },
+      { label: `${t.utilization} · ${monthLabel(selectedMonth)}`, value: `${monthly.effectiveUtilization}%`, tone: utilTone, bar: true },
       { label: t.projects, value: String(employee.projects.length), tone: "text-accent", bar: false },
       { label: t.avgUtil, value: `${avgUtil}%`, tone: avgTone, bar: false },
      ].map((card) => <div key={card.label} className="rounded-lg bg-muted/30 px-4 py-3"><dt className="text-xs text-muted-foreground">{card.label}</dt>{card.bar ? <dd className="mt-1 flex h-5 items-center gap-3"><span className="flex h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted/40">{monthly.charges.map((a, j) => <span key={a.id} className={utilColors[j % utilColors.length]} style={{ width: `${a.percent / Math.max(100, monthly.utilization) * 100}%` }} />)}</span><span className={`shrink-0 text-sm font-semibold tabular-nums ${card.tone}`}>{card.value}</span></dd> : <dd className={`mt-1 truncate text-sm font-semibold tabular-nums ${card.tone}`}>{card.value}</dd>}</div>)}

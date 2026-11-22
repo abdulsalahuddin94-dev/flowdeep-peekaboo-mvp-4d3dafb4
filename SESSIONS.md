@@ -1,3 +1,6 @@
+## 2026-11-22 — Employee KPIs show selected month
+- Capacity / month and Utilization for this month cards now append the selected month (e.g. "· Oct 2026") so the period is explicit.
+
 ## 2026-11-22 — Employees list: Allocation naming
 - Employees table column renamed Utilization → Allocation (sum of Full 100% / Part 50% assignments); Avg utilization KPI renamed Avg allocation. Profile Utilization KPIs stay hour-based.
 

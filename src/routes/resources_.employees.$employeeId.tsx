@@ -243,27 +243,38 @@ function EmployeeDetails() {
    </TabsContent>
    <TabsContent value="salary" className="mt-0 space-y-6">
     <EmptyRegion id="employee-salary">{hasSalaryData ? <>
-     {mounted && monthly.salary > 0 && (<div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"><div className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm"><h3 className="mb-4 text-xs font-medium text-muted-foreground">{t.salarySplit}</h3><div className="grid items-center gap-6 sm:grid-cols-[220px_minmax(0,1fr)] lg:grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)]"><div className="relative mx-auto h-[220px] w-[220px] ">
-         <PieChart width={220} height={220}>
-          <Pie data={[...monthly.charges.map((a, i) => ({ name: a.project, value: a.amount, color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ name: t.overhead, value: monthly.overhead, color: donutOverheadColor }] : [])]} dataKey="value" nameKey="name" innerRadius={62} outerRadius={95} paddingAngle={3} stroke="none" isAnimationActive={false}>
+     <div className="grid items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+     {mounted && monthly.salary > 0 && (<aside className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm"><h3 className="mb-4 text-xs font-medium text-muted-foreground">{t.salarySplit} · {monthLabel(selectedMonth)}</h3><div className="relative mx-auto h-[200px] w-[200px]">
+         <PieChart width={200} height={200}>
+          <Pie data={[...monthly.charges.map((a, i) => ({ name: a.project, value: a.amount, color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ name: t.overhead, value: monthly.overhead, color: donutOverheadColor }] : [])]} dataKey="value" nameKey="name" innerRadius={56} outerRadius={86} paddingAngle={3} stroke="none" isAnimationActive={false}>
            {[...monthly.charges.map((a, i) => ({ color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ color: donutOverheadColor }] : [])].map((x, i) => <Cell key={i} fill={x.color} />)}
-          </Pie>
+           </Pie>
          </PieChart>
          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><span className="text-xs text-muted-foreground">{t.total}</span><span className="text-lg font-semibold tabular-nums text-foreground">{money(monthly.salary)}</span></div>
         </div>
-        <ul className="min-w-0 text-sm">{monthly.charges.map((a, i) => <li key={a.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border/50 py-2.5 last:border-b-0"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutColors[i % donutColors.length] }} /><span className="truncate text-foreground">{a.project}</span></div><span className="num-mono text-muted-foreground">{money(a.amount)}</span></li>)}{monthly.overhead > 0 && <li className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutOverheadColor }} /><span className="truncate text-muted-foreground">{t.overhead}</span></div><span className="num-mono text-muted-foreground">{money(monthly.overhead)}</span></li>}</ul></div></div><div className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm"><h3 className="mb-4 text-xs font-medium text-muted-foreground">{t.monthSummary} · {monthLabel(selectedMonth)}</h3><div className="grid gap-4 sm:grid-cols-2"><div className="rounded-xl border border-border/50 bg-muted/20 p-4"><div className="text-xs text-muted-foreground">{t.total}</div><div className="mt-2 text-xl font-semibold tabular-nums text-foreground">{money(monthly.salary)}</div></div><div className="rounded-xl border border-border/50 bg-muted/20 p-4"><div className="text-xs text-muted-foreground">{t.projectCost}</div><div className="mt-2 text-xl font-semibold tabular-nums text-foreground">{money(monthly.projectCost)}</div><div className="mt-1 text-xs text-muted-foreground">{monthly.salary ? Math.round((monthly.projectCost / monthly.salary) * 100) : 0}%</div></div><div className="rounded-xl border border-border/50 bg-muted/20 p-4"><div className="text-xs text-muted-foreground">{t.overhead}</div><div className="mt-2 text-xl font-semibold tabular-nums text-foreground">{money(monthly.overhead)}</div><div className="mt-1 text-xs text-muted-foreground">{monthly.salary ? Math.round((monthly.overhead / monthly.salary) * 100) : 0}%</div></div><div className="rounded-xl border border-border/50 bg-muted/20 p-4"><div className="text-xs text-muted-foreground">{t.utilization}</div><div className="mt-2 text-xl font-semibold tabular-nums text-foreground"><span className={monthly.effectiveUtilization > 100 ? "text-rag-red" : undefined}>{monthly.effectiveUtilization}%</span></div></div></div></div></div>)}
+        <ul className="mt-4 min-w-0 text-sm">{monthly.charges.map((a, i) => <li key={a.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border/50 py-2.5 last:border-b-0"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutColors[i % donutColors.length] }} /><span className="truncate text-foreground">{a.project}</span></div><span className="num-mono text-muted-foreground">{money(a.amount)}</span></li>)}{monthly.overhead > 0 && <li className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutOverheadColor }} /><span className="truncate text-muted-foreground">{t.overhead}</span></div><span className="num-mono text-muted-foreground">{money(monthly.overhead)}</span></li>}</ul>
+        <div className="mt-4 space-y-2 border-t border-border/50 pt-4 text-sm">
+         <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">{t.total}</span><span className="num-mono font-semibold text-foreground">{money(monthly.salary)}</span></div>
+         <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">{t.projectCost}</span><span className="num-mono text-foreground">{money(monthly.projectCost)} <span className="text-xs text-muted-foreground">({monthly.salary ? Math.round((monthly.projectCost / monthly.salary) * 100) : 0}%)</span></span></div>
+         <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">{t.overhead}</span><span className="num-mono text-foreground">{money(monthly.overhead)} <span className="text-xs text-muted-foreground">({monthly.salary ? Math.round((monthly.overhead / monthly.salary) * 100) : 0}%)</span></span></div>
+         <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">{t.utilization}</span><span className={`num-mono font-semibold ${monthly.effectiveUtilization > 100 ? "text-rag-red" : "text-foreground"}`}>{monthly.effectiveUtilization}%</span></div>
+        </div>
+        </aside>)}
+     <div className="min-w-0 space-y-6">
     <div className="flex items-center justify-end gap-3"><Button size="sm" variant="primary" onClick={() => setPlanField("salary")}><Plus className="mr-1 h-4 w-4" />{t.setPlan}</Button></div>
     <DataTable
      headers={[t.month, t.monthly, t.projectCost, t.overhead, ""]}
      onRowClick={(i) => { const m = months[i]; setSelectedMonth(m); setSalaryMonth(m); }}
      rows={months.map((m) => { const values = employeeMonth(employee, m); return [
-      <span className={m === selectedMonth ? "font-medium text-accent" : undefined}>{monthLabel(m)}</span>,
+       <span className={m === selectedMonth ? "font-medium text-accent" : undefined}>{monthLabel(m)}</span>,
       money(values.salary),
       money(values.projectCost),
       money(values.overhead),
       <EditMonthButton label={t.editSalary} onClick={() => setEditMonth({ month: m, field: "salary" })} />,
      ]; })}
     />
+    </div>
+    </div>
     </> : <EmptyState art="coins" title={te.salaryT} description={te.salaryD} ctaLabel={t.setPlan} onCta={() => setPlanField("salary")} />}</EmptyRegion>
    </TabsContent>
    <TabsContent value="capacity" className="mt-0 space-y-8">

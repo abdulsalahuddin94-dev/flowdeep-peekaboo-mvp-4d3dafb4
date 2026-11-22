@@ -98,6 +98,7 @@
 
 ## Current
 - [x] Employee Salary: compact donut/breakdown layout, current-month default and monthly navigator updating the chart; test, verify and log.
+- [x] Employee Salary option 4: salary table takes the main width with a ~360px sidebar card (donut + legend + month summary) on its left; verified in browser and logged.
 - [x] Team card Assign to task: allow selecting and assigning multiple tasks to the same member in one action; verify and log.
 - [x] Employment Types: add and verify Has employees, Project and Role filters in the shared drawer.
 - [x] Explain the “Filter by has employees design is missing” comment from the supplied screenshot; it concerns Employment Types with/without linked employees, not Requests. No implementation requested.

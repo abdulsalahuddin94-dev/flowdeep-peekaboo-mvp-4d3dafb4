@@ -1,3 +1,8 @@
+## 2026-11-22 — Salary chart spacing and monthly navigation
+- Centered the donut and salary breakdown in a compact responsive layout, keeping amounts beside their project names rather than at the far edge. Labels wrap and chart colors use theme tokens.
+- Salary now starts on the current month and its top navigator steps by month, including year boundaries. The donut, total and project charges follow that month's salary overrides; the yearly table follows the selected year. Financial calculations remain unchanged.
+- Added current-month, year-boundary and monthly salary-distribution regression tests.
+
 ## 2026-11-22 — Employee KPIs show selected month
 - Capacity / month and Utilization for this month cards now append the selected month (e.g. "· Oct 2026") so the period is explicit.
 

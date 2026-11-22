@@ -56,3 +56,11 @@ test("bulk capacity confirmation is limited to months with an existing capacity 
 test("base capacity alone does not require overwrite confirmation", () => {
   assert.deepEqual(capacityOverrideMonths(employee, "2027-01", 12), []);
 });
+
+test("salary distribution follows the selected month and its salary override", () => {
+  const e = { ...employee, monthly: { "2026-02": { salary: 12000 } } };
+  assert.equal(employeeMonth(e, "2026-02").charges[0]?.amount, 7200);
+  assert.equal(employeeMonth(e, "2026-02").overhead, 4800);
+  assert.equal(employeeMonth(e, "2026-03").charges[0]?.amount, 6000);
+  assert.equal(employeeMonth(e, "2026-03").overhead, 4000);
+});

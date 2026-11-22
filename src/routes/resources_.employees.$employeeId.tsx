@@ -5,6 +5,7 @@ import { useEmployees, monthRange, type Employee, type EmployeeTrip, type Employ
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { seedMilestones } from "@/lib/plan-seeds";
 import { employeeMonth, averageUtilization, capacityOverrideMonths } from "@/lib/employee-finance";
+import { currentEmployeeMonth, stepEmployeeMonth } from "@/lib/employee-period";
 import { useCalendars, useProjects, useResourceRequests } from "@/lib/projects-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,9 +69,8 @@ const money = (n: number) => new Intl.NumberFormat("en-US", { style: "currency",
 const monthLabel = (month: string) => new Date(`${month}-01T12:00:00`).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 const daysBetween = (from: string, until: string) => Math.max(1, Math.round((new Date(`${until}T00:00:00Z`).getTime() - new Date(`${from}T00:00:00Z`).getTime()) / 86400000) + 1);
 const utilColors = ["bg-accent", "bg-rag-blue", "bg-rag-green", "bg-rag-amber", "bg-accent-secondary"];
-// Hex fills for the SVG donut (CSS var fills don't resolve in recharts slices); matches the Financials donut palette.
-const donutColors = ["#A78BFA", "#60A5FA", "#51CAAD", "#FBBF24", "#D4A574"];
-const donutOverheadColor = "#64748B";
+const donutColors = ["var(--accent)", "var(--rag-blue)", "var(--rag-green)", "var(--rag-amber)", "var(--accent-secondary)"];
+const donutOverheadColor = "var(--muted-foreground)";
 function DataTable({ headers, rows, onRowClick }: { headers: ReactNode[]; rows: ReactNode[][]; onRowClick?: (index: number) => void }) {
   return <StyledTable className="[&_th]:whitespace-normal [&_th]:text-xs [&_td]:py-4"><StyledTableHeader><StyledTableHeaderRow>{headers.map((h, i) => <StyledTableHead key={i}>{h}</StyledTableHead>)}</StyledTableHeaderRow></StyledTableHeader><StyledTableBody>{rows.length ? rows.map((row, i) => <StyledTableRow key={i} onClick={onRowClick ? () => onRowClick(i) : undefined} className={onRowClick ? "cursor-pointer" : undefined}>{row.map((value, j) => <StyledTableCell key={j} className="whitespace-normal break-words text-sm">{value}</StyledTableCell>)}</StyledTableRow>) : <StyledTableRow><StyledTableCell colSpan={headers.length} className="py-8 text-center text-muted-foreground">{t.empty}</StyledTableCell></StyledTableRow>}</StyledTableBody></StyledTable>;
 }
@@ -85,7 +85,12 @@ function EmployeeDetails() {
  const [taskQuery, setTaskQuery] = useState(""); const [taskProject, setTaskProject] = useState<string>(t.allProjects); const navigate = useNavigate(); const [deleteOpen, setDeleteOpen] = useState(false); const [toggleOpen, setToggleOpen] = useState(false);
  // Recharts generates different clip IDs on server vs client — render the donut only after mount.
  const [mounted, setMounted] = useState(false);
- useEffect(() => setMounted(true), []);
+ useEffect(() => {
+  const currentMonth = currentEmployeeMonth();
+  setSelectedMonth(currentMonth);
+  setYear(currentMonth.slice(0, 4));
+  setMounted(true);
+ }, []);
  const projectLink = (name: string) => { const p = projects.find((v) => v.name === name); return p ? <Link to="/portfolio/$projectId" params={{ projectId: p.id }} className="text-accent hover:underline">{name}</Link> : name; };
  if (!employee) return <><Link to="/resources" search={{ tab: "people" }} className="mb-2 inline-flex items-center gap-2 text-sm text-breadcrumb-muted transition-colors hover:text-breadcrumb-hover"><ChevronLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />{t.employees}</Link><h1 className="mt-6 text-xl">{t.missing}</h1></>;
  const applyMonthlyPlan = (field: PlanField, start: string, count: number, value: number, workingDays?: number) => {
@@ -108,15 +113,21 @@ function EmployeeDetails() {
  const avgUtil = averageUtilization(employee, year);
  const avgTone = avgUtil > 100 ? "text-rag-red" : avgUtil > 90 ? "text-rag-amber" : "text-accent";
  const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
- const years = Array.from(new Set(["2025", "2026", "2027", employee.joinedOn.slice(0, 4), ...employee.allocations.flatMap((a) => [a.from.slice(0, 4), a.until.slice(0, 4)]).filter(Boolean)])).sort();
+ const years = Array.from(new Set(["2025", "2026", "2027", year, employee.joinedOn.slice(0, 4), ...Object.keys(employee.monthly).map((m) => m.slice(0, 4)), ...employee.allocations.flatMap((a) => [a.from.slice(0, 4), a.until.slice(0, 4)]).filter(Boolean)])).sort();
  // One period control, pinned to the same slot under the tab line: a month stepper on the work calendar, a year stepper on the dated registers.
  const showPeriod = tab === "allocation" || tab === "salary" || tab === "capacity" || tab === "trips";
  const yi = years.indexOf(year);
  const isCalMonth = tab === "allocation" && calView === "monthly";
- const periodLabel = isCalMonth ? new Date(Number(year), calMonth, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : year;
- const canPrev = isCalMonth ? yi > 0 || calMonth > 0 : yi > 0;
- const canNext = isCalMonth ? yi < years.length - 1 || calMonth < 11 : yi < years.length - 1;
+ const periodLabel = tab === "salary" ? monthLabel(selectedMonth) : isCalMonth ? new Date(Number(year), calMonth, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : year;
+ const canPrev = tab === "salary" || (isCalMonth ? yi > 0 || calMonth > 0 : yi > 0);
+ const canNext = tab === "salary" || (isCalMonth ? yi < years.length - 1 || calMonth < 11 : yi < years.length - 1);
  const stepPeriod = (dir: 1 | -1) => {
+  if (tab === "salary") {
+   const month = stepEmployeeMonth(selectedMonth, dir);
+   setSelectedMonth(month);
+   setYear(month.slice(0, 4));
+   return;
+  }
   if (isCalMonth) {
    const ny = yi + Math.floor((calMonth + dir) / 12);
    if (ny < 0 || ny >= years.length) return;
@@ -234,8 +245,8 @@ function EmployeeDetails() {
     <EmptyRegion id="employee-salary">{hasSalaryData ? <>
      {mounted && monthly.salary > 0 && (
       <div className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm">
-       <h3 className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground">{t.salarySplit}</h3>
-       <div className="grid items-center gap-8 sm:grid-cols-[220px_minmax(0,1fr)]">
+       <h3 className="mb-4 text-xs font-medium text-muted-foreground">{t.salarySplit}</h3>
+       <div className="mx-auto grid max-w-3xl items-center gap-6 md:grid-cols-[220px_minmax(0,1fr)]">
         <div className="relative mx-auto h-[220px] w-[220px] sm:mx-0">
          <PieChart width={220} height={220}>
           <Pie data={[...monthly.charges.map((a, i) => ({ name: a.project, value: a.amount, color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ name: t.overhead, value: monthly.overhead, color: donutOverheadColor }] : [])]} dataKey="value" nameKey="name" innerRadius={62} outerRadius={95} paddingAngle={3} stroke="none" isAnimationActive={false}>
@@ -244,9 +255,9 @@ function EmployeeDetails() {
          </PieChart>
          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><span className="text-xs text-muted-foreground">{t.total}</span><span className="text-lg font-semibold tabular-nums text-foreground">{money(monthly.salary)}</span></div>
         </div>
-        <ul className="space-y-3 text-sm">
-         {monthly.charges.map((a, i) => <li key={a.id} className="flex items-center justify-between gap-4"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutColors[i % donutColors.length] }} /><span className="truncate text-foreground">{a.project}</span></div><span className="num-mono shrink-0 text-muted-foreground">{money(a.amount)}</span></li>)}
-         {monthly.overhead > 0 && <li className="flex items-center justify-between gap-4"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutOverheadColor }} /><span className="truncate text-muted-foreground">{t.overhead}</span></div><span className="num-mono shrink-0 text-muted-foreground">{money(monthly.overhead)}</span></li>}
+        <ul className="min-w-0 space-y-3 text-sm">
+         {monthly.charges.map((a, i) => <li key={a.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-1 border-b border-border/50 py-3 last:border-b-0"><div className="flex min-w-0 items-start gap-2.5"><span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutColors[i % donutColors.length] }} /><span className="break-words text-foreground">{a.project}</span></div><span className="num-mono shrink-0 text-muted-foreground">{money(a.amount)}</span></li>)}
+         {monthly.overhead > 0 && <li className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 py-3"><div className="flex min-w-0 items-start gap-2.5"><span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutOverheadColor }} /><span className="break-words text-muted-foreground">{t.overhead}</span></div><span className="num-mono shrink-0 text-muted-foreground">{money(monthly.overhead)}</span></li>}
         </ul>
        </div>
       </div>

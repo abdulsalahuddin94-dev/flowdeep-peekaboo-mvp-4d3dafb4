@@ -97,6 +97,7 @@
 - [x] Employee profile: replace the lavender pill back button with the standard plain back link + breadcrumb used on other record pages; verify and log.
 
 ## Current
+- [x] Employee Salary: compact donut/breakdown layout, current-month default and monthly navigator updating the chart; test, verify and log.
 - [x] Team card Assign to task: allow selecting and assigning multiple tasks to the same member in one action; verify and log.
 - [x] Employment Types: add and verify Has employees, Project and Role filters in the shared drawer.
 - [x] Explain the “Filter by has employees design is missing” comment from the supplied screenshot; it concerns Employment Types with/without linked employees, not Requests. No implementation requested.

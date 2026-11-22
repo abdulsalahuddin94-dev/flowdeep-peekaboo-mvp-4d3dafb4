@@ -24,6 +24,7 @@
 - Salary and capacity are monthly values: the employee store keeps per-month overrides keyed by YYYY-MM over base salary/capacity, edited from the profile (bulk plan + single-month override), never collected at employee creation. Leave and business-trip/training days prorate the month's available capacity over 22 working days, and over-utilization is derived from assigned hours vs available capacity.
 
 - Employee detail navigation and panels share one Tabs root so selection and accessibility stay synchronized; keep layout changes independent of employee financial calculations.
+- Employee Salary uses a hydrated current-month default and month stepping tied to the existing employeeMonth calculation; keep its yearly table synchronized to the selected month's year so navigation and overrides agree.
 - Standalone record pages share RecordPageHeader for contextual list back links or project breadcrumbs and shared form CTA labels; retain full-width DS02 form surfaces so field contrast stays consistent without narrow popup-style width caps.
 - Project record breadcrumbs include a section link carrying the project tab and riskTab selection; this returns users to the correct register rather than the project overview.
 - Reuse the action creation form in ActionAddDialog for toolbar and linked-record quick adds; keep Action details standalone to avoid stacked edit/update dialogs.

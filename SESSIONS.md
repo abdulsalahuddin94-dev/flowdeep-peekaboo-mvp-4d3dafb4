@@ -275,4 +275,3 @@
 - 2026-11-17: Allocation-period warning now uses shared DS02 ConfirmDialog (warning tone).
 - 2026-11-22: Salary distribution legend now spans card width with share bars and percentages.
 - 2026-11-22: Salary tab: distribution card + month summary card side by side (option 1 trial).
-- 2026-11-22: Salary summary: removed duplicate Total tile and pie legend; colored values by chart color.

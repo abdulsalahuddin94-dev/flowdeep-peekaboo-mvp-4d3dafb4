@@ -246,7 +246,7 @@ function EmployeeDetails() {
      {mounted && monthly.salary > 0 && (
       <div className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm">
        <h3 className="mb-4 text-xs font-medium text-muted-foreground">{t.salarySplit}</h3>
-       <div className="mx-auto grid max-w-3xl items-center gap-6 md:grid-cols-[220px_minmax(0,1fr)]">
+       <div className="grid items-center gap-8 md:grid-cols-[220px_minmax(0,1fr)] md:gap-12">
         <div className="relative mx-auto h-[220px] w-[220px] sm:mx-0">
          <PieChart width={220} height={220}>
           <Pie data={[...monthly.charges.map((a, i) => ({ name: a.project, value: a.amount, color: donutColors[i % donutColors.length] })), ...(monthly.overhead > 0 ? [{ name: t.overhead, value: monthly.overhead, color: donutOverheadColor }] : [])]} dataKey="value" nameKey="name" innerRadius={62} outerRadius={95} paddingAngle={3} stroke="none" isAnimationActive={false}>
@@ -255,10 +255,7 @@ function EmployeeDetails() {
          </PieChart>
          <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><span className="text-xs text-muted-foreground">{t.total}</span><span className="text-lg font-semibold tabular-nums text-foreground">{money(monthly.salary)}</span></div>
         </div>
-        <ul className="min-w-0 space-y-3 text-sm">
-         {monthly.charges.map((a, i) => <li key={a.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-1 border-b border-border/50 py-3 last:border-b-0"><div className="flex min-w-0 items-start gap-2.5"><span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutColors[i % donutColors.length] }} /><span className="break-words text-foreground">{a.project}</span></div><span className="num-mono shrink-0 text-muted-foreground">{money(a.amount)}</span></li>)}
-         {monthly.overhead > 0 && <li className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 py-3"><div className="flex min-w-0 items-start gap-2.5"><span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutOverheadColor }} /><span className="break-words text-muted-foreground">{t.overhead}</span></div><span className="num-mono shrink-0 text-muted-foreground">{money(monthly.overhead)}</span></li>}
-        </ul>
+        <ul className="min-w-0 text-sm">{monthly.charges.map((a, i) => <li key={a.id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto_auto] items-center gap-4 border-b border-border/50 py-3 last:border-b-0"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutColors[i % donutColors.length] }} /><span className="truncate text-foreground">{a.project}</span></div><div className="h-2 w-full overflow-hidden rounded-full bg-muted/50"><div className="h-full rounded-full" style={{ width: `${monthly.salary ? (a.amount / monthly.salary) * 100 : 0}%`, backgroundColor: donutColors[i % donutColors.length] }} /></div><span className="num-mono w-12 text-end text-muted-foreground">{monthly.salary ? Math.round((a.amount / monthly.salary) * 100) : 0}%</span><span className="num-mono w-28 text-end text-foreground">{money(a.amount)}</span></li>)}{monthly.overhead > 0 && <li className="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto_auto] items-center gap-4 py-3"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: donutOverheadColor }} /><span className="truncate text-muted-foreground">{t.overhead}</span></div><div className="h-2 w-full overflow-hidden rounded-full bg-muted/50"><div className="h-full rounded-full" style={{ width: `${monthly.salary ? (monthly.overhead / monthly.salary) * 100 : 0}%`, backgroundColor: donutOverheadColor }} /></div><span className="num-mono w-12 text-end text-muted-foreground">{monthly.salary ? Math.round((monthly.overhead / monthly.salary) * 100) : 0}%</span><span className="num-mono w-28 text-end text-foreground">{money(monthly.overhead)}</span></li>}</ul>
        </div>
       </div>
      )}

@@ -273,3 +273,4 @@
 
 ## 2026-11-17 — Team demo: Sara full project, Mei Chen period (Oct–Nov 2026), Omar Haddad specific task; task-only members have no + assign button.
 - 2026-11-17: Allocation-period warning now uses shared DS02 ConfirmDialog (warning tone).
+- 2026-11-22: Salary distribution legend now spans card width with share bars and percentages.

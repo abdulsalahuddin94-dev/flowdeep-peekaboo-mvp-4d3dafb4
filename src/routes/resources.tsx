@@ -149,7 +149,7 @@ function ResourcesPage() {
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard label="Employees" value={pool.length} className="p-4" />
-        <KpiCard label="Avg utilization" value={`${avgUtilization}%`} accent={avgUtilization > 90 ? "amber" : "teal"} className="p-4" />
+        <KpiCard label="Avg allocation" value={`${avgUtilization}%`} accent={avgUtilization > 90 ? "amber" : "teal"} className="p-4" />
         <KpiCard label="Open requests" value={pendingCount} accent={pendingCount ? "amber" : undefined} className="p-4" />
         <KpiCard label="Capacity gap" value={`-${capacityGap}`} accent={capacityGap ? "red" : "green"} className="p-4" />
       </div>
@@ -457,7 +457,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
           <StyledTable wrapperClassName="">
             <StyledTableHeader><StyledTableHeaderRow>
               <StyledTableHead>Employee</StyledTableHead><StyledTableHead>Employee Number</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Employment type</StyledTableHead>
-              <StyledTableHead>Assigned Projects</StyledTableHead><StyledTableHead>Utilization</StyledTableHead>
+              <StyledTableHead>Assigned Projects</StyledTableHead><StyledTableHead>Allocation</StyledTableHead>
               <StyledTableHead className="w-32 text-center">Status</StyledTableHead>
             </StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>

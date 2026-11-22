@@ -1,3 +1,6 @@
+## 2026-11-22 — Employees list: Allocation naming
+- Employees table column renamed Utilization → Allocation (sum of Full 100% / Part 50% assignments); Avg utilization KPI renamed Avg allocation. Profile Utilization KPIs stay hour-based.
+
 ## 2026-11-22 — Employee work calendar
 - Add/Edit Employee has a required Work calendar picker (Organization → Calendars); Employee Info shows it.
 - Employee monthly work calendar uses that calendar's working days and holidays instead of a fixed Fri/Sat weekend; existing employees default to Egypt — Standard.

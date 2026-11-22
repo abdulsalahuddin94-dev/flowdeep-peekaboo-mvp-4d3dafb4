@@ -37,7 +37,7 @@ function Detail({ items }: { items: WorkEntry[] }) {
  * Period controls (title, Monthly/Yearly, month/year stepper) live in the page's fixed slot above this
  * section rather than here, so the date navigator never moves between tabs.
  */
-export function EmployeeWorkCalendar({ entries, leave, allocations, view, month, year, monthStats }: { entries: WorkEntry[]; leave: CalendarLeave[]; allocations: WorkAllocation[]; view: "monthly" | "yearly"; month: number; year: string; monthStats: (month: string) => MonthStats }) {
+export function EmployeeWorkCalendar({ workingDays = [0, 1, 2, 3, 4], holidays = [], entries, leave, allocations, view, month, year, monthStats }: { workingDays?: number[]; holidays?: { date: string; label: string }[]; entries: WorkEntry[]; leave: CalendarLeave[]; allocations: WorkAllocation[]; view: "monthly" | "yearly"; month: number; year: string; monthStats: (month: string) => MonthStats }) {
   const projects = useMemo(() => Array.from(new Set(entries.map((e) => e.project))), [entries]);
   const color = (p: string) => chipColors[Math.max(0, projects.indexOf(p)) % chipColors.length];
   const barColor = (p: string) => barColors[Math.max(0, projects.indexOf(p)) % barColors.length];
@@ -57,12 +57,12 @@ export function EmployeeWorkCalendar({ entries, leave, allocations, view, month,
       <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-muted/30" />{l.weekend}</span>
     </div>}
     <TooltipProvider delayDuration={100}>
-      {view === "monthly" ? <MonthGrid y={y} month={month} entries={entries} leave={leave} color={color} byProject={byProject} /> : <YearGrid y={y} entries={entries} projects={projects} barColor={barColor} monthStats={monthStats} />}
+      {view === "monthly" ? <MonthGrid workingDays={workingDays} holidays={holidays} y={y} month={month} entries={entries} leave={leave} color={color} byProject={byProject} /> : <YearGrid y={y} entries={entries} projects={projects} barColor={barColor} monthStats={monthStats} />}
     </TooltipProvider>
   </section>;
 }
 
-function MonthGrid({ y, month, entries, leave, color, byProject }: { y: number; month: number; entries: WorkEntry[]; leave: CalendarLeave[]; color: (p: string) => string; byProject: (l: WorkEntry[]) => { project: string; items: WorkEntry[] }[] }) {
+function MonthGrid({ workingDays, holidays, y, month, entries, leave, color, byProject }: { workingDays: number[]; holidays: { date: string; label: string }[]; y: number; month: number; entries: WorkEntry[]; leave: CalendarLeave[]; color: (p: string) => string; byProject: (l: WorkEntry[]) => { project: string; items: WorkEntry[] }[] }) {
   const first = new Date(y, month, 1); const days = new Date(y, month + 1, 0).getDate();
   const offset = (first.getDay() + 1) % 7; // week starts Saturday
   const cells: (number | null)[] = [...Array(offset).fill(null), ...Array.from({ length: days }, (_, i) => i + 1)];
@@ -73,11 +73,13 @@ function MonthGrid({ y, month, entries, leave, color, byProject }: { y: number; 
       {cells.map((d, i) => {
         if (!d) return <div key={i} className="min-h-24 border-b border-e border-border" />;
         const date = iso(new Date(y, month, d)); const dow = new Date(y, month, d).getDay();
-        const weekend = dow === 5 || dow === 6;
+        const holiday = holidays.find((h) => h.date === date);
+        const weekend = !workingDays.includes(dow) || !!holiday;
         const off = leave.find((v) => v.from <= date && date <= (v.until || v.from));
         const groups = weekend || off ? [] : byProject(entries.filter((e) => e.from <= date && date <= e.until));
         return <div key={i} className={cn("min-h-24 space-y-1.5 border-b border-e border-border p-2", weekend && "bg-muted/30")}>
           <div className="text-sm font-semibold">{d}</div>
+          {holiday && !off && <div className="truncate rounded-md bg-muted px-2 py-1 text-center text-xs text-muted-foreground">{holiday.label}</div>}
           {off && <div className="truncate rounded-md bg-muted px-2 py-1 text-center text-xs">{off.label}</div>}
           {groups.slice(0, 2).map((g) => <Tooltip key={g.project}><TooltipTrigger asChild><div className={cn("cursor-default truncate rounded-md px-2 py-1 text-center text-xs font-medium", color(g.project))}>{g.project}</div></TooltipTrigger><TooltipContent><Detail items={g.items} /></TooltipContent></Tooltip>)}
           {groups.length > 2 && <Tooltip><TooltipTrigger asChild><div className="cursor-default text-center text-xs text-muted-foreground">+{groups.length - 2} {l.more}</div></TooltipTrigger><TooltipContent><Detail items={groups.slice(2).flatMap((g) => g.items)} /></TooltipContent></Tooltip>}

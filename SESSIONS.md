@@ -1,3 +1,7 @@
+## 2026-11-22 — Employee work calendar
+- Add/Edit Employee has a required Work calendar picker (Organization → Calendars); Employee Info shows it.
+- Employee monthly work calendar uses that calendar's working days and holidays instead of a fixed Fri/Sat weekend; existing employees default to Egypt — Standard.
+
 ## 2026-11-19 — Capacity overwrite confirmation only for overlapping months
 - Employee Details → Capacity → Set capacity now saves immediately when the selected months have no explicit capacity overrides. A DS02 warning appears only when the range overlaps existing capacity values; it lists the affected months and offers Cancel / Overwrite. Salary-only monthly entries do not trigger the warning, and salary values remain intact when capacity is overwritten. English and Arabic copy added.
 - Added two regression tests for mixed/new monthly ranges. All 12 employee-finance tests and the typecheck pass. Browser-verified on EMP-001: new 2028 months saved without confirmation; the Aug 2026–Jul 2027 range warned only for Aug 2026; Cancel retained 80h; Overwrite applied 180h/21 working days while preserving salary. No browser errors.

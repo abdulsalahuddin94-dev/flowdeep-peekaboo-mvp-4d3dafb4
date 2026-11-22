@@ -5,7 +5,7 @@ import { useEmployees, monthRange, type Employee, type EmployeeTrip, type Employ
 import { PLAN_CACHE } from "@/lib/plan-cache";
 import { seedMilestones } from "@/lib/plan-seeds";
 import { employeeMonth, averageUtilization, capacityOverrideMonths } from "@/lib/employee-finance";
-import { useProjects, useResourceRequests } from "@/lib/projects-store";
+import { useCalendars, useProjects, useResourceRequests } from "@/lib/projects-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -144,12 +144,14 @@ function EmployeeDetails() {
    return items.filter((item) => item.kind === "Task" && item.startDate && item.endDate && !items.some((c) => c.parent === item.name) && item.assignee?.split(",").some((n) => n.trim() === employee.name)).map((item) => ({ project: p.name, milestone: item.parent ? milestoneOf(item.parent) : "—", task: item.name, from: item.startDate, until: item.endDate }));
  });
  employee.allocations.forEach((a) => { if (!workEntries.some((w) => w.project === a.project && w.from.slice(0, 4) <= a.until.slice(0, 4) && w.until.slice(0, 4) >= a.from.slice(0, 4))) { const [uy, um] = a.until.split("-").map(Number); workEntries.push({ project: a.project, milestone: "—", task: a.task ?? a.role, from: `${a.from}-01`, until: `${a.until}-${String(new Date(uy, um, 0).getDate()).padStart(2, "0")}` }); } });
+ const { calendars } = useCalendars();
+ const workCalendar = calendars.find((c) => c.id === (employee.calendarId ?? "cal-eg")) ?? calendars[0];
  const calendarLeave = employee.leave.map((v) => ({ from: v.from, until: v.until || v.from, label: v.type === "Partial" ? `${t.leaveAbsence} ${v.hours ?? ""}h` : t.leaveAbsence }));
  const tasks = [...scheduleTasks, ...assignmentTasks, ...requestTasks]; employee.tasks.forEach((task) => { if (!tasks.some((v) => v.task === task)) tasks.push({ task, project: "—", period: "—" }); });
  const uniqueTasks = tasks.filter((v, i) => tasks.findIndex((a) => a.task === v.task && a.project === v.project) === i);
  const taskProjects = Array.from(new Set(uniqueTasks.map((v) => v.project).filter((v) => v !== "—"))).sort();
  const visibleTasks = uniqueTasks.filter((v) => (taskProject === t.allProjects || v.project === taskProject) && v.task.toLowerCase().includes(taskQuery.trim().toLowerCase()));
- const profile: [string, string, typeof Phone][] = [[t.phone, employee.phone || "—", Phone], [t.email, employee.email, Mail], [t.nationalId, employee.nationalId || "—", IdCard], [t.birth, employee.birthDate ? formatDateWithYear(employee.birthDate) : "—", CalendarDays], [t.joined, formatDateWithYear(employee.joinedOn), CalendarDays], [t.id, employee.employeeNumber || employee.id, IdCard], [t.role, employee.role, Briefcase], [t.department, employee.dept, Building2], [t.type, employmentTypes.find((v) => v.id === employee.employmentTypeId)?.name ?? "—", Briefcase]];
+ const profile: [string, string, typeof Phone][] = [[t.phone, employee.phone || "—", Phone], [t.email, employee.email, Mail], [t.nationalId, employee.nationalId || "—", IdCard], [t.birth, employee.birthDate ? formatDateWithYear(employee.birthDate) : "—", CalendarDays], [t.joined, formatDateWithYear(employee.joinedOn), CalendarDays], [t.id, employee.employeeNumber || employee.id, IdCard], [t.role, employee.role, Briefcase], [t.department, employee.dept, Building2], [t.type, employmentTypes.find((v) => v.id === employee.employmentTypeId)?.name ?? "—", Briefcase], ["Work calendar", workCalendar?.name ?? "—", CalendarDays]];
  const hasEmployeeInfo = profile.some(([, value]) => value.trim() !== "" && value !== "—");
  const hasSalaryData = months.some((m) => employeeMonth(employee, m).salary > 0);
  const hasCapacityData = months.some((m) => employeeMonth(employee, m).capacity > 0);
@@ -220,7 +222,7 @@ function EmployeeDetails() {
     <EmptyRegion id="employee-info">{hasEmployeeInfo ? <section className="rounded-[20px] border border-border/50 bg-card p-6 shadow-sm"><dl className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">{profile.map(([label, value, Ic]) => <div key={label} className="flex min-w-0 items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-primary"><Ic className="h-5 w-5" /></span><div className="min-w-0"><dt className="text-sm text-muted-foreground">{label}</dt><dd className="mt-1 break-words text-sm font-semibold text-foreground">{value}</dd></div></div>)}</dl></section> : <EmptyState art="people" title={te.infoT} description={te.infoD} />}</EmptyRegion>
    </TabsContent>
     <TabsContent value="allocation" className="mt-0">
-     <EmptyRegion id="employee-allocation">{hasAllocation ? <EmployeeWorkCalendar entries={workEntries} leave={calendarLeave} allocations={employee.allocations} year={year} view={calView} month={calMonth} monthStats={(m) => employeeMonth(employee, m)} /> : <EmptyState art="calendar" title={te.allocationT} description={te.allocationD} />}</EmptyRegion>
+     <EmptyRegion id="employee-allocation">{hasAllocation ? <EmployeeWorkCalendar workingDays={workCalendar?.workingDays} holidays={workCalendar?.holidays} entries={workEntries} leave={calendarLeave} allocations={employee.allocations} year={year} view={calView} month={calMonth} monthStats={(m) => employeeMonth(employee, m)} /> : <EmptyState art="calendar" title={te.allocationT} description={te.allocationD} />}</EmptyRegion>
     </TabsContent>
    <TabsContent value="tasks" className="mt-0 space-y-5">
     <PageToolbar query={taskQuery} onQueryChange={setTaskQuery} placeholder={t.searchTasks} filterGroups={[{ key: "project", label: t.project, value: taskProject, onChange: setTaskProject, options: [{ value: t.allProjects, label: t.allProjects }, ...taskProjects.map((p) => ({ value: p, label: p }))] }]} />

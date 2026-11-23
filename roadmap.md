@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Prepare and verify Mei's November Calendar examples: Leave, Meeting, Trip and Holiday.
 - [x] Save baseline: drop the pre-save summary dialog, keep only the confirmation pop-up with the approval wording; verify end to end and log.
 - [x] Trips tab: heading into the pinned slot row beside the year stepper, duplicate in-body heading removed so the empty band above the table is gone; verify and log.
 - [x] Add trip drawer: Travelers as the shared multi-select dropdown at field width, body re-sectioned and spread across the drawer height.

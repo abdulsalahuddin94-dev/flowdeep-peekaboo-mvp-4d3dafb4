@@ -57,6 +57,21 @@ function seedTrips(i: number, project?: string): EmployeeTrip[] {
   ];
 }
 
+const MEI_NOVEMBER_LEAVE: EmployeeLeave[] = [
+  { id: "leave-mei-november", type: "Leave", from: "2026-11-10", until: "2026-11-12", days: 3, remark: "Annual leave" },
+  { id: "leave-mei-november-partial", type: "Partial", from: "2026-11-17", until: "2026-11-17", days: 0.25, hours: 2, remark: "Medical appointment" },
+];
+
+/** Upgrade only the requested demo profile; never reset existing employee edits. */
+export function addMeiCalendarExamples(employee: Employee): Employee {
+  if (employee.id !== "EMP-003" || !employee.demo) return employee;
+  return {
+    ...employee,
+    calendarId: !employee.calendarId || employee.calendarId === "cal-eg" ? "cal-mei-demo" : employee.calendarId,
+    leave: [...employee.leave, ...MEI_NOVEMBER_LEAVE.filter((example) => !employee.leave.some((leave) => leave.id === example.id))],
+  };
+}
+
 const initialEmployees: Employee[] = resources.map((r, i) => {
   const allocations: EmployeeAllocation[] = (seedAllocs[i] ?? []).map(([ref, percent, from, until, task], j) => ({ id: `seed-${i}-${j}`, project: projects.find((p) => p.id === ref)?.name ?? ref, role: r.role, percent, from, until, task }));
   const names = Array.from(new Set(allocations.map((a) => a.project)));
@@ -66,6 +81,7 @@ const initialEmployees: Employee[] = resources.map((r, i) => {
     shortName: r.name.split(" ")[0], phone: `+966 5${(i + 1) % 10} ${String(312 + i * 47).padStart(3, "0")} ${String(4821 + i * 613).slice(-4)}`,
     nationalId: String(1087654321 - i * 1234567), birthDate: `${1984 + (i * 3) % 14}-${String((i * 5) % 12 + 1).padStart(2, "0")}-${String((i * 7) % 27 + 1).padStart(2, "0")}`,
     gender: i % 3 === 1 ? "Female" : "Male", tags: [["Senior", "Certified"], ["Remote"], ["Certified"], ["Field"], ["Senior"], ["Part-time"], ["Remote", "Certified"], []][i] ?? [],
+    ...(i === 2 ? { calendarId: "cal-mei-demo" } : {}),
     monthly: seedMonthly(i, base),
     trips: seedTrips(i, names[0]),
     allocations,
@@ -74,6 +90,7 @@ const initialEmployees: Employee[] = resources.map((r, i) => {
       { id: `leave-${i}-2`, type: "Leave", from: "2026-09-14", until: "2026-09-14", days: 1, remark: "Sick day" },
       { id: `leave-${i}-3`, type: "Partial", from: "2026-10-20", until: "2026-10-20", days: 0.25, hours: 2, remark: "Medical appointment" },
       { id: `leave-${i}-4`, type: "Leave", from: "2026-12-06", until: "2026-12-10", days: 5 },
+      ...(i === 2 ? MEI_NOVEMBER_LEAVE : []),
     ] };
 });
 /** Demo Frontend Developer pool so a multi-person request can be filled in one go. */
@@ -102,7 +119,7 @@ export function employeeShortTitle(e: Pick<Employee, "role" | "seniority">): str
   const role = words.length > 1 ? words.map((w) => (/^[A-Z]{2,}$/.test(w) ? w : w[0].toUpperCase())).join("") : e.role;
   return [e.seniority ? SENIORITY_SHORT[e.seniority] ?? e.seniority : "", role].filter(Boolean).join(" ");
 }
-const defaults = { employees: initialEmployees, employmentTypes: types };
+const defaults = { employees: initialEmployees, employmentTypes: types, demoCalendarExamplesVersion: 1 };
 /** Demo seed rows, kept exported so tests can assert against them. */
 export const SEED_EMPLOYEES = initialEmployees;
 let state = defaults;
@@ -121,7 +138,16 @@ const storageKey = "pmo.employees.v13";
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;
-  try { const saved = JSON.parse(window.localStorage.getItem(storageKey) ?? "null"); if (saved && Array.isArray(saved.employees) && Array.isArray(saved.employmentTypes)) state = saved; } catch { /* Retain demo records if local storage is unavailable. */ }
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(storageKey) ?? "null");
+    if (saved && Array.isArray(saved.employees) && Array.isArray(saved.employmentTypes)) {
+      state = saved;
+      if (saved.demoCalendarExamplesVersion !== 1) {
+        state = { ...state, demoCalendarExamplesVersion: 1, employees: state.employees.map(addMeiCalendarExamples) };
+        window.localStorage.setItem(storageKey, JSON.stringify(state));
+      }
+    }
+  } catch { /* Retain demo records if local storage is unavailable. */ }
 }
 function subscribe(fn: () => void) { load(); listeners.add(fn); return () => { listeners.delete(fn); }; }
 function save(next: typeof defaults) { state = next; try { window.localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* Keep session data available. */ } listeners.forEach((fn) => fn()); }

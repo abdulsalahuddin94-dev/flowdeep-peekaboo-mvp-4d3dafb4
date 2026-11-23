@@ -1,3 +1,7 @@
+## 2026-11-23 — Mei November calendar examples
+- Mei (EMP-003): November leave on 10–12, partial leave (2h) on 17, attendance at Cutover readiness workshop on 20, existing Dubai trip on 1–7, and a clearly labelled demo company holiday on 26 in a dedicated calendar.
+- Existing saved demo employee data receives the leave/calendar examples once without resetting other profile data; subsequent edits/deletions remain intact.
+
 ## 2026-11-23 — Employee calendar, Actions tab, bulk capacity, employee dropdowns
 - Employee profile: "Projects & allocation" tab renamed Calendar; shows meetings and trips per day (monthly chips, yearly mini day grids) with legend; weekend shading removed, only work-calendar holidays highlighted.
 - Employee profile: new read-only Actions tab (before Trips) listing Action Tracker items owned by the employee.

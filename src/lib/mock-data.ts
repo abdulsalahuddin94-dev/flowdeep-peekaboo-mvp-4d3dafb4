@@ -208,6 +208,13 @@ export const workCalendars: WorkCalendar[] = [
       { date: "2026-12-25", label: "Christmas Day" },
     ],
   },
+  {
+    id: "cal-mei-demo",
+    name: "Mei — Demo calendar",
+    workingDays: [0, 1, 2, 3, 4],
+    hoursPerDay: 8,
+    holidays: [{ date: "2026-11-26", label: "Company holiday (demo)" }],
+  },
 ];
 
 export const orgTags = [

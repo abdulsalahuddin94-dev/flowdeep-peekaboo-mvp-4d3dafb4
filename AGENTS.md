@@ -17,6 +17,7 @@
 - Approval Current financial tables reuse the project CostBreakdownTable and RevenuePlanTable in explicit read-only mode; expansion stays available while all bookkeeping and plan mutations are hidden.
 
 - Keep employees and employment-type lookups in one persisted browser store with stable IDs, so list/detail navigation and lookup renames retain identity. Employee assignments stay read-only on the profile; allocations retain their project, period and task for monthly salary attribution.
+- Upgrade persisted demo examples with a one-time version marker and stable record IDs, never by resetting the employee store; preserve user edits and later deletions.
 - Employees filters reuse PageToolbar multi-groups with opt-in search and All-row visibility, so short searchable lists match the employee design without changing other modules.
 - Employment-type project filters derive membership from linked employees' projects and allocations; keep total employee counts independent of list filters so the employee popup stays consistent.
 - Request Period display uses actual start/end dates, not hour thresholds; only timed values or explicit recorded hours supply duration, so date-only records never invent work hours or calendar end dates.

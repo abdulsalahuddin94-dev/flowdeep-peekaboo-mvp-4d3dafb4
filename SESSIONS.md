@@ -1,3 +1,6 @@
+## 2026-11-23 — Project Trips: Travelers popup on click
+- The Travelers avatar stack is now a button: clicking it opens the standard people-list popup (title "Travelers", close ✕, one row per traveler with avatar, name, role and chevron) instead of showing a hover tooltip; a row navigates to that employee's profile.
+
 ## 2026-11-23 — Add trip as a full page
 - Project Trips "Add trip" now opens the standalone page /trips/new (RecordPageHeader breadcrumb Portfolio › Project › Trips), replacing the side drawer.
 - Dates come first; Travelers is disabled until travel dates are set and hides team members who already have a trip overlapping those dates.

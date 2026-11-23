@@ -9,8 +9,8 @@ import { matchAnySelected } from "@/components/ds/filters";
 import { EmptyState } from "@/components/ds/EmptyState";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Plus, Trash2 } from "@/lib/icons";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ChevronRight, Plus, Trash2 } from "@/lib/icons";
 import { dollars } from "@/lib/money";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
@@ -93,23 +93,42 @@ export function ProjectTripsTab({ project, projectId }: { project: string; proje
   </section>;
 }
 
-function TravelersCell({ travelers, employees }: { travelers: { id: string; name: string }[]; employees: { id: string; avatar?: string }[] }) {
-  const avatars = useMemo(() => new Map(employees.map((e) => [e.id, e.avatar])), [employees]);
+function TravelersCell({ travelers, employees }: { travelers: { id: string; name: string }[]; employees: { id: string; name: string; role: string; avatar?: string }[] }) {
+  const [open, setOpen] = useState(false);
+  const byId = useMemo(() => new Map(employees.map((e) => [e.id, e])), [employees]);
   const shown = travelers.slice(0, 4);
   const extra = travelers.length - shown.length;
-  return <Tooltip>
-    <TooltipTrigger asChild>
-      <div className="flex w-fit cursor-default items-center">
-        {shown.map((v, i) => <Avatar key={v.id} className={`h-7 w-7 ring-2 ring-card ${i > 0 ? "-ms-2" : ""}`}>
-          {avatars.get(v.id) ? <AvatarImage src={avatars.get(v.id)} alt={v.name} /> : null}
-          <AvatarFallback className="bg-accent-dim text-[10px] font-medium text-accent">{v.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}</AvatarFallback>
-        </Avatar>)}
-        {extra > 0 && <span className="-ms-2 flex h-7 min-w-7 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-medium text-muted-foreground ring-2 ring-card">+{extra}</span>}
-      </div>
-    </TooltipTrigger>
-    <TooltipContent className="flex flex-col gap-1 border border-border bg-popover p-3 text-popover-foreground shadow-md">
-      {travelers.map((v) => <Link key={v.id} to="/resources/employees/$employeeId" params={{ employeeId: v.id }} className="text-accent hover:underline">{v.name}</Link>)}
-    </TooltipContent>
-  </Tooltip>;
+  // Click, not hover: the stack is a button that opens the standard people-list popup.
+  return <>
+    <button type="button" onClick={() => setOpen(true)} aria-label={`${t.travelers} (${travelers.length})`}
+      className="flex w-fit cursor-pointer items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      {shown.map((v, i) => <Avatar key={v.id} className={`h-7 w-7 ring-2 ring-card ${i > 0 ? "-ms-2" : ""}`}>
+        {byId.get(v.id)?.avatar ? <AvatarImage src={byId.get(v.id)?.avatar} alt={v.name} /> : null}
+        <AvatarFallback className="bg-accent-dim text-[10px] font-medium text-accent">{v.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}</AvatarFallback>
+      </Avatar>)}
+      {extra > 0 && <span className="-ms-2 flex h-7 min-w-7 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-medium text-muted-foreground ring-2 ring-card">+{extra}</span>}
+    </button>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t.travelers}</DialogTitle>
+          <DialogDescription>{travelers.length}</DialogDescription>
+        </DialogHeader>
+        <div className="max-h-80 space-y-1 overflow-y-auto pe-1">
+          {travelers.map((v) => {
+            const e = byId.get(v.id);
+            return <Link key={v.id} to="/resources/employees/$employeeId" params={{ employeeId: v.id }} onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-secondary">
+              <Avatar className="h-9 w-9 shrink-0">{e?.avatar ? <AvatarImage src={e.avatar} alt={v.name} /> : null}<AvatarFallback className="bg-accent-dim text-xs font-medium text-accent">{v.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}</AvatarFallback></Avatar>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium text-foreground">{v.name}</div>
+                {e?.role && <div className="truncate text-xs text-muted-foreground">{e.role}</div>}
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground rtl:rotate-180" />
+            </Link>;
+          })}
+        </div>
+      </DialogContent>
+    </Dialog>
+  </>;
 }
 

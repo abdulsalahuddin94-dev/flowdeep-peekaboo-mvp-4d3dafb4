@@ -5,18 +5,18 @@ import { ChevronLeft, ChevronRight } from "@/lib/icons";
 import { useProjects } from "@/lib/projects-store";
 
 export const T = {
-  en: { save: "Save", saveUpdate: "Save Update", cancel: "Cancel", portfolio: "Portfolio", risk: "Risk register", issue: "Issues log", meeting: "Meetings", action: "Action Tracker", details: "Action details", back: "Back to", breadcrumb: "Breadcrumb" },
-  ar: { save: "حفظ", saveUpdate: "حفظ التحديث", cancel: "إلغاء", portfolio: "المحفظة", risk: "سجل المخاطر", issue: "سجل المشكلات", meeting: "الاجتماعات", action: "متابعة الإجراءات", details: "تفاصيل الإجراء", back: "العودة إلى", breadcrumb: "مسار التنقل" },
+  en: { save: "Save", saveUpdate: "Save Update", cancel: "Cancel", portfolio: "Portfolio", risk: "Risk register", issue: "Issues log", meeting: "Meetings", action: "Action Tracker", trip: "Trips", details: "Action details", back: "Back to", breadcrumb: "Breadcrumb" },
+  ar: { save: "حفظ", saveUpdate: "حفظ التحديث", cancel: "إلغاء", portfolio: "المحفظة", risk: "سجل المخاطر", issue: "سجل المشكلات", meeting: "الاجتماعات", action: "متابعة الإجراءات", trip: "الرحلات", details: "تفاصيل الإجراء", back: "العودة إلى", breadcrumb: "مسار التنقل" },
 };
 
-type Kind = "risk" | "issue" | "meeting" | "action";
+type Kind = "risk" | "issue" | "meeting" | "action" | "trip";
 
 export function RecordPageHeader({ kind, title, subtitle, back, actions }: {
   kind: Kind; title: string; subtitle?: string; back?: string; actions?: ReactNode;
 }) {
   const { projects } = useProjects();
   const t = T.en;
-  const fallback = kind === "issue" ? "/risks?tab=issues" : kind === "risk" ? "/risks?tab=register" : kind === "meeting" ? "/meetings" : "/action-tracker";
+  const fallback = kind === "issue" ? "/risks?tab=issues" : kind === "risk" ? "/risks?tab=register" : kind === "meeting" ? "/meetings" : kind === "trip" ? "/portfolio" : "/action-tracker";
   const destination = new URL(back?.startsWith("/") && !back.startsWith("//") ? back : fallback, "https://local.invalid");
   const segments = destination.pathname.split("/").filter(Boolean);
   const project = segments[0] === "portfolio" ? projects.find((p) => p.id === segments[1]) : undefined;
@@ -25,7 +25,7 @@ export function RecordPageHeader({ kind, title, subtitle, back, actions }: {
   const linkClass = "inline-flex items-center gap-2 text-sm text-breadcrumb-muted transition-colors hover:text-breadcrumb-hover";
   const target = segments[0] === "risks" ? "/risks" : segments[0] === "meetings" ? "/meetings" : segments[0] === "portfolio" ? "/portfolio" : "/action-tracker";
   const search = Object.fromEntries(destination.searchParams);
-  const projectSection = kind === "risk" || kind === "issue" ? "Risk & Issues" : kind === "meeting" ? "Meetings" : "Action Tracker";
+  const projectSection = kind === "risk" || kind === "issue" ? "Risk & Issues" : kind === "meeting" ? "Meetings" : kind === "trip" ? "Trips" : "Action Tracker";
   const sectionSearch = { ...search, tab: projectSection, ...(kind === "risk" || kind === "issue" ? { riskTab: kind === "risk" ? "register" : "issues" } : {}) };
   return (
     <>

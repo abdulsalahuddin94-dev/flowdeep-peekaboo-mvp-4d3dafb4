@@ -31,6 +31,7 @@ import { Route as PortfolioProjectIdRouteImport } from './routes/portfolio.$proj
 import { Route as PortfolioNewRouteImport } from './routes/portfolio.new'
 import { Route as RisksRiskIdRouteImport } from './routes/risks_.$riskId'
 import { Route as RisksNewRouteImport } from './routes/risks_.new'
+import { Route as TripsNewRouteImport } from './routes/trips.new'
 import { Route as PortfolioProjectIdEditRouteImport } from './routes/portfolio.$projectId_.edit'
 import { Route as ResourcesEmployeesEmployeeIdRouteImport } from './routes/resources_.employees.$employeeId'
 import { Route as ResourcesEmployeesNewRouteImport } from './routes/resources_.employees.new'
@@ -146,6 +147,11 @@ const RisksNewRoute = RisksNewRouteImport.update({
   path: '/risks/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TripsNewRoute = TripsNewRouteImport.update({
+  id: '/trips/new',
+  path: '/trips/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortfolioProjectIdEditRoute = PortfolioProjectIdEditRouteImport.update({
   id: '/portfolio/$projectId_/edit',
   path: '/portfolio/$projectId/edit',
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/portfolio/new': typeof PortfolioNewRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
   '/risks/new': typeof RisksNewRoute
+  '/trips/new': typeof TripsNewRoute
   '/portfolio/': typeof PortfolioIndexRoute
   '/portfolio/$projectId/edit': typeof PortfolioProjectIdEditRoute
   '/resources/employees/$employeeId': typeof ResourcesEmployeesEmployeeIdRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/portfolio/new': typeof PortfolioNewRoute
   '/risks/$riskId': typeof RisksRiskIdRoute
   '/risks/new': typeof RisksNewRoute
+  '/trips/new': typeof TripsNewRoute
   '/portfolio': typeof PortfolioIndexRoute
   '/portfolio/$projectId/edit': typeof PortfolioProjectIdEditRoute
   '/resources/employees/$employeeId': typeof ResourcesEmployeesEmployeeIdRoute
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/portfolio/new': typeof PortfolioNewRoute
   '/risks_/$riskId': typeof RisksRiskIdRoute
   '/risks_/new': typeof RisksNewRoute
+  '/trips/new': typeof TripsNewRoute
   '/portfolio/': typeof PortfolioIndexRoute
   '/portfolio/$projectId_/edit': typeof PortfolioProjectIdEditRoute
   '/resources_/employees/$employeeId': typeof ResourcesEmployeesEmployeeIdRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/portfolio/new'
     | '/risks/$riskId'
     | '/risks/new'
+    | '/trips/new'
     | '/portfolio/'
     | '/portfolio/$projectId/edit'
     | '/resources/employees/$employeeId'
@@ -296,6 +306,7 @@ export interface FileRouteTypes {
     | '/portfolio/new'
     | '/risks/$riskId'
     | '/risks/new'
+    | '/trips/new'
     | '/portfolio'
     | '/portfolio/$projectId/edit'
     | '/resources/employees/$employeeId'
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/portfolio/new'
     | '/risks_/$riskId'
     | '/risks_/new'
+    | '/trips/new'
     | '/portfolio/'
     | '/portfolio/$projectId_/edit'
     | '/resources_/employees/$employeeId'
@@ -351,6 +363,7 @@ export interface RootRouteChildren {
   PortfolioNewRoute: typeof PortfolioNewRoute
   RisksRiskIdRoute: typeof RisksRiskIdRoute
   RisksNewRoute: typeof RisksNewRoute
+  TripsNewRoute: typeof TripsNewRoute
   PortfolioIndexRoute: typeof PortfolioIndexRoute
   PortfolioProjectIdEditRoute: typeof PortfolioProjectIdEditRoute
   ResourcesEmployeesEmployeeIdRoute: typeof ResourcesEmployeesEmployeeIdRoute
@@ -513,6 +526,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RisksNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trips/new': {
+      id: '/trips/new'
+      path: '/trips/new'
+      fullPath: '/trips/new'
+      preLoaderRoute: typeof TripsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/portfolio/$projectId_/edit': {
       id: '/portfolio/$projectId_/edit'
       path: '/portfolio/$projectId/edit'
@@ -559,6 +579,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortfolioNewRoute: PortfolioNewRoute,
   RisksRiskIdRoute: RisksRiskIdRoute,
   RisksNewRoute: RisksNewRoute,
+  TripsNewRoute: TripsNewRoute,
   PortfolioIndexRoute: PortfolioIndexRoute,
   PortfolioProjectIdEditRoute: PortfolioProjectIdEditRoute,
   ResourcesEmployeesEmployeeIdRoute: ResourcesEmployeesEmployeeIdRoute,

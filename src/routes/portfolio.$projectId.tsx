@@ -1370,7 +1370,7 @@ function ProjectDetail() {
           <ProjectTeamTab project={project.name} projectId={project.id} pm={project.pm} items={milestones} onAssignTask={(tasks, m) => setMilestones((prev) => prev.map((x) => tasks.includes(x.name) ? { ...x, assignee: m.name, roles: [{ role: m.role, skill: "Mid", fte: m.employment === "Full time" ? 1 : 0.5 }] } as Milestone : x))} />
         </TabsContent>
         <TabsContent value="Trips" className="mt-5">
-          <ProjectTripsTab project={project.name} milestones={milestones.filter((m) => m.kind === "Milestone").map((m) => m.name)} />
+          <ProjectTripsTab project={project.name} projectId={project.id} />
         </TabsContent>
         <TabsContent value="Recent Activity" className="mt-5">
           <RecentActivityTab project={project.name} />

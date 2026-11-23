@@ -1,3 +1,6 @@
+## 2026-11-23 — Project Trips: search and filters
+- Project Trips tab now has the shared toolbar: search by destination (city/country) or purpose, and a Filter drawer with searchable multi-select groups for Country, City and Employee (travelers). City options follow the selected countries; a no-match empty state appears when nothing fits.
+
 ## 2026-11-23 — Employees list: Utilization shows the yearly average
 - Employees table column renamed Allocation → Utilization and now shows the yearly average utilization (assigned hours vs available capacity), the same formula as the profile's Yearly average utilization KPI; Avg allocation KPI renamed back to Avg utilization.
 - averageUtilization now excludes months with assigned hours but zero capacity, so the 999 sentinel no longer skews the yearly average; regression test added.

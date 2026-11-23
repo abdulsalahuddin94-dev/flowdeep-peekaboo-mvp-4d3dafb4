@@ -1,3 +1,7 @@
+## 2026-11-23 — Employees list: Utilization shows the yearly average
+- Employees table column renamed Allocation → Utilization and now shows the yearly average utilization (assigned hours vs available capacity), the same formula as the profile's Yearly average utilization KPI; Avg allocation KPI renamed back to Avg utilization.
+- averageUtilization now excludes months with assigned hours but zero capacity, so the 999 sentinel no longer skews the yearly average; regression test added.
+
 ## 2026-11-23 — Mei November calendar examples
 - Mei (EMP-003): November leave on 10–12, partial leave (2h) on 17, attendance at Cutover readiness workshop on 20, existing Dubai trip on 1–7, and a clearly labelled demo company holiday on 26 in a dedicated calendar.
 - Existing saved demo employee data receives the leave/calendar examples once without resetting other profile data; subsequent edits/deletions remain intact.

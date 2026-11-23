@@ -40,6 +40,10 @@ import { Upload, Plus, CheckCircle2, XCircle, Clock, AlertTriangle, UserCheck, C
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
 import { useEmployees, type Employee, SENIORITY_LEVELS, currentUtilization, periodUtilization, allocationPercent, monthRange, employeeShortTitle } from "@/lib/employees-store";
+import { averageUtilization } from "@/lib/employee-finance";
+
+/** Yearly average utilization (hours vs available capacity) — same formula as the employee profile KPI. */
+const yearlyUtilization = (r: Employee) => averageUtilization(r, String(new Date().getFullYear()));
 import { buildManpowerPlan, buildSkillDemand } from "@/lib/resource-demand";
 
 export const Route = createFileRoute("/resources")({
@@ -89,7 +93,7 @@ function ResourcesPage() {
   const { resourceRequests: requests, updateResourceRequest } = useResourceRequests();
 
   const pendingCount = requests.filter((r) => r.status === "Pending").length;
-  const avgUtilization = pool.length ? Math.round(pool.reduce((sum, r) => sum + currentUtilization(r.allocations), 0) / pool.length) : 0;
+  const avgUtilization = pool.length ? Math.round(pool.reduce((sum, r) => sum + Math.min(yearlyUtilization(r), 100), 0) / pool.length) : 0;
   const manpower = useMemo(() => buildManpowerPlan(requests, pool), [requests, pool]);
   const skillDemand = useMemo(() => buildSkillDemand(requests, pool), [requests, pool]);
   const capacityGap = manpower.reduce((sum, row) => sum + Math.max(0, row.demand - row.supply), 0);
@@ -151,7 +155,7 @@ function ResourcesPage() {
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard label="Employees" value={pool.length} className="p-4" />
-        <KpiCard label="Avg allocation" value={`${avgUtilization}%`} accent={avgUtilization > 90 ? "amber" : "teal"} className="p-4" />
+        <KpiCard label="Avg utilization" value={`${avgUtilization}%`} accent={avgUtilization > 90 ? "amber" : "teal"} className="p-4" />
         <KpiCard label="Open requests" value={pendingCount} accent={pendingCount ? "amber" : undefined} className="p-4" />
         <KpiCard label="Capacity gap" value={`-${capacityGap}`} accent={capacityGap ? "red" : "green"} className="p-4" />
       </div>
@@ -487,7 +491,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
             <StyledTableHeader><StyledTableHeaderRow>
               <StyledTableHead className="w-10"><Checkbox aria-label={c.selectAll} disabled={pagination.pageItems.length === 0} checked={allVisibleSelected ? true : visibleSelected > 0 ? "indeterminate" : false} onCheckedChange={(checked) => setSelectedIds((prev) => { const next = new Set(prev); for (const e of pagination.pageItems) { if (checked === true) next.add(e.id); else next.delete(e.id); } return next; })} /></StyledTableHead>
               <StyledTableHead>Employee</StyledTableHead><StyledTableHead>Employee Number</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Employment type</StyledTableHead>
-              <StyledTableHead>Assigned Projects</StyledTableHead><StyledTableHead>Allocation</StyledTableHead>
+              <StyledTableHead>Assigned Projects</StyledTableHead><StyledTableHead>Utilization</StyledTableHead>
               <StyledTableHead className="w-32 text-center">Status</StyledTableHead>
             </StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
@@ -498,7 +502,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
                     <StyledTableCell className="num-mono text-muted-foreground">{r.employeeNumber ? `#${r.employeeNumber}` : "—"}</StyledTableCell>
                     <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell>{employmentTypes.find((v) => v.id === r.employmentTypeId)?.name ?? "—"}</StyledTableCell>
                     <StyledTableCell className="text-center"><RelatedProjectsCount label={r.name} caption="Assigned Projects" projects={r.projects.map((name) => ({ id: projects.find((p) => p.name === name)?.id ?? "", name }))} /></StyledTableCell>
-                    {(() => { const u = currentUtilization(r.allocations); return <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(u, 100)} className={`h-1.5 ${u > 100 ? "[&>div]:bg-rag-red" : u > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${u > 100 ? "text-rag-red" : "text-foreground"}`}>{u}%</span></div></StyledTableCell>; })()}
+                    {(() => { const u = yearlyUtilization(r); return <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(u, 100)} className={`h-1.5 ${u > 100 ? "[&>div]:bg-rag-red" : u > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${u > 100 ? "text-rag-red" : "text-foreground"}`}>{u}%</span></div></StyledTableCell>; })()}
                     <StyledTableCell onClick={(e) => e.stopPropagation()}>
                       <TableRowActions
                         isActive={r.active !== false}

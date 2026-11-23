@@ -52,10 +52,13 @@ export function vacationBalance(employee: Employee, year: string) {
 /**
  * Mean monthly utilization across a year, averaged only over the months the employee
  * was already hired — months before joining are not idle time, they are not employment.
+ * Months with zero capacity but assigned hours are excluded too: utilization cannot be
+ * measured against a missing capacity, and the 999 sentinel would skew the average.
  */
 export function averageUtilization(employee: Employee, year: string) {
   const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
   const active = months.filter((m) => m >= employee.joinedOn.slice(0, 7));
-  if (!active.length) return 0;
-  return Math.round(active.reduce((sum, m) => sum + employeeMonth(employee, m).effectiveUtilization, 0) / active.length);
+  const measurable = active.map((m) => employeeMonth(employee, m)).filter((v) => !v.noCapacityWithHours);
+  if (!measurable.length) return 0;
+  return Math.round(measurable.reduce((sum, v) => sum + v.effectiveUtilization, 0) / measurable.length);
 }

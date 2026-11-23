@@ -48,6 +48,12 @@ test("average utilization ignores months before the employee was hired", () => {
   assert.equal(averageUtilization(late, "2026"), 60);
 });
 
+test("average utilization excludes months with assigned hours but no capacity", () => {
+  const e = { ...employee, monthly: { "2026-02": { capacity: 0 } } };
+  // Feb has 60% allocation against zero capacity (999 sentinel); without the exclusion the average would be ~83.
+  assert.equal(averageUtilization(e, "2026"), 5);
+});
+
 test("bulk capacity confirmation is limited to months with an existing capacity override", () => {
   const e = { ...employee, monthly: { "2026-11": { capacity: 140 }, "2026-12": { salary: 12000 }, "2027-01": { capacity: 160 } } };
   assert.deepEqual(capacityOverrideMonths(e, "2026-11", 4), ["2026-11", "2027-01"]);

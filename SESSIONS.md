@@ -288,3 +288,7 @@
 
 ## 2026-11-23 — Feb 2026 zero project charges (Mei)
 - Salary tab: months with assigned hours but 0 capacity charge $0 to projects, shown red with a tooltip. Mei Chen demo has Feb 2026 capacity 0.
+
+## 2026-11-23 — Employee date navigator picker + Calendar tab menu
+- PeriodStepper label opens a picker: month grid with in-popover year stepping/year list, or a year grid.
+- Employee Calendar tab has a chevron menu (Monthly Calendar / Yearly Calendar) replacing the Monthly/Yearly toggle.

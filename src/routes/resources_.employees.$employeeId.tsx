@@ -14,7 +14,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow } from "@/components/StyledTable";
-import { AlertTriangle, Phone, Mail, IdCard, CalendarDays, Briefcase, Building2, ChevronLeft, DeleteAction, MoreHorizontal, Pencil, Plus, Search, ToggleActive, Trash2, X } from "@/lib/icons";
+import { AlertTriangle, Phone, Mail, IdCard, CalendarDays, Briefcase, Building2, ChevronDown, ChevronLeft, DeleteAction, MoreHorizontal, Pencil, Plus, Search, ToggleActive, Trash2, X } from "@/lib/icons";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -32,7 +32,7 @@ import { EmployeeWorkCalendar, type WorkEntry, type CalendarEvent } from "@/comp
 import { PageToolbar } from "@/components/ds/PageToolbar";
 import { useMeetings } from "@/lib/meeting-store";
 import { useActions } from "@/lib/action-store";
-import { PeriodStepper, ViewToggle } from "@/components/PeriodStepper";
+import { PeriodStepper } from "@/components/PeriodStepper";
 import { employeeBackTarget } from "@/lib/employee-back";
 import { EmptyState } from "@/components/ds/EmptyState";
 import { EmptyRegion, useEmptyPreview } from "@/lib/empty-preview";
@@ -61,7 +61,7 @@ const C = {
 };
 const tc = C.en;
 // Labels for the single period slot that sits under the tab line on every tab that carries one.
-const PL = { en: { workCalendar: "Work calendar", monthly: "Monthly", yearly: "Yearly", previous: "Previous", next: "Next", close: "Dismiss" }, ar: { workCalendar: "تقويم العمل", monthly: "شهري", yearly: "سنوي", previous: "السابق", next: "التالي", close: "إغلاق" } };
+const PL = { en: { workCalendar: "Work calendar", monthlyCal: "Monthly Calendar", yearlyCal: "Yearly Calendar", monthly: "Monthly", yearly: "Yearly", previous: "Previous", next: "Next", close: "Dismiss" }, ar: { workCalendar: "تقويم العمل", monthlyCal: "التقويم الشهري", yearlyCal: "التقويم السنوي", monthly: "شهري", yearly: "سنوي", previous: "السابق", next: "التالي", close: "إغلاق" } };
 const pl = PL.en;
 const E = {
  en: { infoT: "No employee information yet", infoD: "Employee details will appear here once they are added.", salaryT: "No salary data yet", salaryD: "Set a monthly salary plan to see salary distribution and project charges.", capacityT: "No capacity data yet", capacityD: "Set a monthly capacity plan to track availability and utilization.", leaveT: "No leave records yet", leaveD: "Add annual, sick, unpaid or partial leave for this employee.", allocationT: "No project allocations yet", allocationD: "Assigned project work for this period will appear here.", tasksT: "No tasks assigned yet", tasksD: "Tasks assigned to this employee will appear here.", taskSearchD: "Try a different search term or clear your filters.", tripsT: "No trips yet", tripsD: "Business trips and training for this year will appear here." },
@@ -229,14 +229,22 @@ function EmployeeDetails() {
   </div>
   <Tabs value={tab} onValueChange={setTab} className="min-w-0 space-y-7">
    <div className="flex min-w-0 items-end justify-between gap-4 border-b border-border">
-    <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible border-b-0">{([["overview", t.overview], ["salary", t.salaryTab], ["capacity", t.capacityTab], ["allocation", t.allocation], ["tasks", t.tasks], ["actions", t.actionsTab], ["trips", t.tripsTab]] as const).map(([value, label]) => <TabsTrigger key={value} value={value} className="shrink-0 px-0">{label}</TabsTrigger>)}</TabsList>
+    <TabsList className="h-auto min-w-0 flex-wrap gap-x-6 gap-y-1 overflow-visible border-b-0">{([["overview", t.overview], ["salary", t.salaryTab], ["capacity", t.capacityTab], ["allocation", t.allocation], ["tasks", t.tasks], ["actions", t.actionsTab], ["trips", t.tripsTab]] as const).map(([value, label]) => value === "allocation" ? (
+     <DropdownMenu key={value}>
+      <DropdownMenuTrigger asChild>
+       <span className="group inline-flex"><TabsTrigger value={value} onMouseDown={(e) => e.preventDefault()} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") e.preventDefault(); }} className="shrink-0 gap-1.5 px-0">{label}<ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]:rotate-180" aria-hidden /></TabsTrigger></span>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="min-w-48">
+       {(["monthly", "yearly"] as const).map((v) => <DropdownMenuItem key={v} onSelect={() => { setCalView(v); setTab("allocation"); }} className={calView === v && tab === "allocation" ? "text-accent" : undefined}>{v === "monthly" ? pl.monthlyCal : pl.yearlyCal}</DropdownMenuItem>)}
+      </DropdownMenuContent>
+     </DropdownMenu>
+    ) : <TabsTrigger key={value} value={value} className="shrink-0 px-0">{label}</TabsTrigger>)}</TabsList>
    </div>
    {showPeriod && (
     <div className="flex min-h-9 items-center justify-between gap-3">
      {tab === "allocation" ? <h2 className="text-base font-semibold">{pl.workCalendar}</h2> : tab === "trips" ? <h2 className="text-base font-semibold">{t.tripsTab}</h2> : <span aria-hidden />}
      <div className="flex items-center gap-4">
-      {tab === "allocation" && <ViewToggle view={calView} onView={setCalView} labels={{ monthly: pl.monthly, yearly: pl.yearly }} />}
-      <PeriodStepper label={periodLabel} onPrev={() => stepPeriod(-1)} onNext={() => stepPeriod(1)} prevDisabled={!canPrev} nextDisabled={!canNext} prevLabel={pl.previous} nextLabel={pl.next} />
+      <PeriodStepper label={periodLabel} onPrev={() => stepPeriod(-1)} onNext={() => stepPeriod(1)} prevDisabled={!canPrev} nextDisabled={!canNext} prevLabel={pl.previous} nextLabel={pl.next} picker={tab === "salary" ? { mode: "month", years, year: selectedMonth.slice(0, 4), month: Number(selectedMonth.slice(5)) - 1, onSelect: (y, m) => { setSelectedMonth(`${y}-${String(m + 1).padStart(2, "0")}`); setYear(y); } } : isCalMonth ? { mode: "month", years, year, month: calMonth, onSelect: (y, m) => { setYear(y); setCalMonth(m); } } : { mode: "year", years, year, onSelect: (y) => { setYear(y); setSelectedMonth(`${y}-${selectedMonth.slice(5)}`); } }} />
      </div>
     </div>
    )}

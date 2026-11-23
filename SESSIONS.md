@@ -1,3 +1,6 @@
+## 2026-11-23 — Project Trips: compact Travelers column
+- Travelers no longer stack as a tall list of links; the cell now shows an overlapping avatar stack (photo or initials, up to 4) with a "+N" pill, and hovering opens a dark DS02 tooltip card listing all travelers as profile links. Rows stay one line tall regardless of traveler count.
+
 ## 2026-11-23 — Project Trips: search and filters
 - Project Trips tab now has the shared toolbar: search by destination (city/country) or purpose, and a Filter drawer with searchable multi-select groups for Country, City and Employee (travelers). City options follow the selected countries; a no-match empty state appears when nothing fits.
 

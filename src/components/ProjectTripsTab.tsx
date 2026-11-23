@@ -13,6 +13,8 @@ import { PageToolbar } from "@/components/ds/PageToolbar";
 import { matchAnySelected } from "@/components/ds/filters";
 import { EmptyState } from "@/components/ds/EmptyState";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Plus, Trash2 } from "@/lib/icons";
 import { dollars } from "@/lib/money";
 import { toast } from "@/lib/toast";
@@ -81,7 +83,7 @@ export function ProjectTripsTab({ project, milestones }: { project: string; mile
             <StyledTableCell><div className="font-medium">{trip.city}</div><div className="text-xs text-muted-foreground">{trip.country}</div></StyledTableCell>
             <StyledTableCell>{trip.purpose || "—"}</StyledTableCell>
             <StyledTableCell>{trip.milestone || <span className="text-muted-foreground">{t.none}</span>}</StyledTableCell>
-            <StyledTableCell><div className="flex flex-col gap-0.5">{travelers.map((v) => <Link key={v.id} to="/resources/employees/$employeeId" params={{ employeeId: v.id }} className="text-accent hover:underline">{v.name}</Link>)}</div></StyledTableCell>
+            <StyledTableCell><TravelersCell travelers={travelers} employees={employees} /></StyledTableCell>
             <StyledTableCell className="whitespace-nowrap">{formatDateWithYear(trip.from)} → {formatDateWithYear(trip.until)}</StyledTableCell>
             <StyledTableCell className="whitespace-nowrap">{formatDateWithYear(trip.workFrom)} → {formatDateWithYear(trip.workUntil)}</StyledTableCell>
             <StyledTableCell className="num-mono">{dollars(per)}</StyledTableCell>
@@ -94,6 +96,26 @@ export function ProjectTripsTab({ project, milestones }: { project: string; mile
     <TripForm open={open} onClose={() => setOpen(false)} team={team} milestones={milestones} onSave={(ids, trip) => { addProjectTrip(ids, { ...trip, project }); setOpen(false); toast.success(t.added, { description: `${trip.city} · ${ids.length} ${t.travelers.toLowerCase()}` }); }} />
     {del && <ConfirmDeleteDialog label="trip" onCancel={() => setDel(null)} onConfirm={() => { const g = trips.find((x) => x.key === del); if (g) removeTripGroup(project, g.trip.groupId ?? g.trip.id); toast.success(t.removed); setDel(null); }} />}
   </section>;
+}
+
+function TravelersCell({ travelers, employees }: { travelers: { id: string; name: string }[]; employees: { id: string; avatar?: string }[] }) {
+  const avatars = useMemo(() => new Map(employees.map((e) => [e.id, e.avatar])), [employees]);
+  const shown = travelers.slice(0, 4);
+  const extra = travelers.length - shown.length;
+  return <Tooltip>
+    <TooltipTrigger asChild>
+      <div className="flex w-fit cursor-default items-center">
+        {shown.map((v, i) => <Avatar key={v.id} className={`h-7 w-7 ring-2 ring-card ${i > 0 ? "-ms-2" : ""}`}>
+          {avatars.get(v.id) ? <AvatarImage src={avatars.get(v.id)} alt={v.name} /> : null}
+          <AvatarFallback className="bg-accent-dim text-[10px] font-medium text-accent">{v.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}</AvatarFallback>
+        </Avatar>)}
+        {extra > 0 && <span className="-ms-2 flex h-7 min-w-7 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-medium text-muted-foreground ring-2 ring-card">+{extra}</span>}
+      </div>
+    </TooltipTrigger>
+    <TooltipContent className="flex flex-col gap-1 border border-border bg-popover p-3 text-popover-foreground shadow-md">
+      {travelers.map((v) => <Link key={v.id} to="/resources/employees/$employeeId" params={{ employeeId: v.id }} className="text-accent hover:underline">{v.name}</Link>)}
+    </TooltipContent>
+  </Tooltip>;
 }
 
 type Errors = Partial<Record<"travelers" | "country" | "city" | "from" | "until" | "workFrom" | "workUntil", string>>;

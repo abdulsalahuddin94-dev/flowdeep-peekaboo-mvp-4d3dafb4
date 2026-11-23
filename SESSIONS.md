@@ -1,3 +1,9 @@
+## 2026-11-23 — Employee calendar, Actions tab, bulk capacity, employee dropdowns
+- Employee profile: "Projects & allocation" tab renamed Calendar; shows meetings and trips per day (monthly chips, yearly mini day grids) with legend; weekend shading removed, only work-calendar holidays highlighted.
+- Employee profile: new read-only Actions tab (before Trips) listing Action Tracker items owned by the employee.
+- Employees table: row/select-all checkboxes and a Set Capacity bulk button (disabled until selection) with overwrite confirmation.
+- Meeting attendees, Action owner: searchable dropdowns of Resources employees. Trip Country/City: dependent dropdowns (src/lib/locations.ts).
+
 ## 2026-11-22 — Salary chart spacing and monthly navigation
 - Centered the donut and salary breakdown in a compact responsive layout, keeping amounts beside their project names rather than at the far edge. Labels wrap and chart colors use theme tokens.
 - Salary now starts on the current month and its top navigator steps by month, including year boundaries. The donut, total and project charges follow that month's salary overrides; the yearly table follows the selected year. Financial calculations remain unchanged.

@@ -3,6 +3,7 @@ import { ChevronDown, X } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export interface MultiSelectOption {
@@ -26,6 +27,8 @@ interface MultiSelectFieldProps {
   /** Extra content rendered at the end of each dropdown option. */
   renderOptionMeta?: (o: MultiSelectOption) => React.ReactNode;
   emptyText?: string;
+  /** Opt-in search box at the top of the dropdown. */
+  searchable?: boolean;
 }
 
 /** DS02 multiple-selection field — chips with per-chip remove, "+N" overflow and clear-all. */
@@ -42,8 +45,11 @@ export function MultiSelectField({
   max,
   renderOptionMeta,
   emptyText,
+  searchable,
 }: MultiSelectFieldProps) {
   const [open, setOpen] = React.useState(false);
+  const [query, setQuery] = React.useState("");
+  const shown = options.filter((o) => o.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
   const selected = options.filter((o) => value.includes(o.value));
   const visible = selected.slice(0, maxVisible);
   const overflow = selected.length - visible.length;
@@ -54,7 +60,7 @@ export function MultiSelectField({
   }
 
   return (
-    <Popover open={open} onOpenChange={(o) => !disabled && setOpen(o)}>
+    <Popover open={open} onOpenChange={(o) => { if (disabled) return; setOpen(o); if (!o) setQuery(""); }}>
       <PopoverTrigger asChild>
         <button
           id={id}
@@ -125,9 +131,10 @@ export function MultiSelectField({
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-0">
+        {searchable ? <div className="border-b border-border p-2"><Input aria-label={placeholder} placeholder="Search…" value={query} onChange={(e) => setQuery(e.target.value)} /></div> : null}
         <div className="max-h-64 overflow-y-auto p-1">
-          {options.length === 0 && emptyText ? <p className="px-2 py-3 text-center text-xs text-muted-foreground">{emptyText}</p> : null}
-          {options.map((o) => {
+          {shown.length === 0 && emptyText ? <p className="px-2 py-3 text-center text-xs text-muted-foreground">{emptyText}</p> : null}
+          {shown.map((o) => {
             const blocked = !value.includes(o.value) && max != null && value.length >= max;
             return (
             <div

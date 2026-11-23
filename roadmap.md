@@ -113,9 +113,9 @@
 - [x] Rename Add role / Edit role to Add Assignee / Edit Assignee in the WBS menu, dialog title, table column and popup field; verify and log.
 - [x] Assign to task: allocation-period warning shown as a separate confirmation popup after Assign, with Cancel / Assign anyway; verify and log.
 - [x] WBS Request new role: reuse the Team request dialog with Specific task, the opening task and one employee locked; add Pick from the team instead, verify and log.
-- [ ] Employee page: rename Projects & allocation tab to Calendar; show meetings and trips; holidays only (no weekend shading).
-- [ ] Employee page: read-only Actions tab before Trips.
-- [ ] Employees table: row checkboxes + bulk Set Capacity button (disabled until selection).
-- [ ] Meeting form: attendees dropdown from Resources employees.
-- [ ] Action Tracker: Owner dropdown from Resources employees.
-- [ ] Trip creation: Country and City dropdowns.
+- [x] Employee page: rename Projects & allocation tab to Calendar; show meetings and trips; holidays only (no weekend shading).
+- [x] Employee page: read-only Actions tab before Trips.
+- [x] Employees table: row checkboxes + bulk Set Capacity button (disabled until selection).
+- [x] Meeting form: attendees dropdown from Resources employees.
+- [x] Action Tracker: Owner dropdown from Resources employees.
+- [x] Trip creation: Country and City dropdowns.

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
 import { MultiSelectField } from "@/components/ui/multi-select-field";
+import { LOCATIONS } from "@/lib/locations";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StyledTable, StyledTableBody, StyledTableCell, StyledTableHead, StyledTableHeader, StyledTableHeaderRow, StyledTableRow } from "@/components/StyledTable";
@@ -101,8 +102,8 @@ function TripForm({ open, onClose, team, milestones, onSave }: { open: boolean; 
           <Field label={t.milestone} htmlFor="pt-ms"><Select value={f.milestone || "__none"} onValueChange={(v) => set("milestone", v === "__none" ? "" : v)}><SelectTrigger id="pt-ms"><SelectValue>{f.milestone || t.none}</SelectValue></SelectTrigger><SelectContent><SelectItem value="__none">{t.none}</SelectItem>{milestones.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select></Field>
         </div>)}
         {section(t.destination, <div className="grid grid-cols-2 gap-3">
-          <Field label={t.country} htmlFor="pt-country" required error={errors.country}><Input id="pt-country" placeholder="e.g. Saudi Arabia" value={f.country} onChange={(e) => set("country", e.target.value)} /></Field>
-          <Field label={t.city} htmlFor="pt-city" required error={errors.city}><Input id="pt-city" placeholder="e.g. Riyadh" value={f.city} onChange={(e) => set("city", e.target.value)} /></Field>
+          <Field label={t.country} htmlFor="pt-country" required error={errors.country}><Select value={f.country} onValueChange={(country) => { if (country !== f.country) set("city", ""); set("country", country); }}><SelectTrigger id="pt-country" aria-invalid={!!errors.country}><SelectValue placeholder="Select country" /></SelectTrigger><SelectContent>{[...new Set([...Object.keys(LOCATIONS), ...(f.country ? [f.country] : [])])].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></Field>
+          <Field label={t.city} htmlFor="pt-city" required error={errors.city}><Select value={f.city} disabled={!f.country} onValueChange={(city) => set("city", city)}><SelectTrigger id="pt-city" aria-invalid={!!errors.city}><SelectValue placeholder="Select city" /></SelectTrigger><SelectContent>{[...new Set([...(LOCATIONS[f.country] ?? []), ...(f.city ? [f.city] : [])])].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></Field>
         </div>)}
         {section(t.dates, <div className="grid grid-cols-2 gap-3">
           {date("from", t.travelStart)}{date("until", t.travelEnd)}

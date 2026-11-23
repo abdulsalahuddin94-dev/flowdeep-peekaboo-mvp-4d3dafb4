@@ -57,7 +57,7 @@ const SEED: Meeting[] = [
     ],
   },
   {
-    id: "M-003", project: P, title: "Cutover readiness workshop", type: "Workshop", date: "2026-10-20", time: "13:00", location: "Workshop room B",
+    id: "M-003", project: P, title: "Cutover readiness workshop", type: "Workshop", date: "2026-11-20", time: "13:00", location: "Workshop room B",
     attendees: [
       { id: "at1", name: "John Smith", party: "Internal" },
       { id: "at2", name: "Omar Haddad", party: "External", organization: "SAP Partner" },

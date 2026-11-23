@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { EmployeeOwnerSelect } from "@/components/actions/EmployeePickers";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -155,7 +156,7 @@ export function ActionDetailsPage({ actionId, back }: { actionId: string; back?:
                     onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))} placeholder="What this action covers" />
                 </Field>
                 <div className="grid gap-4 sm:grid-cols-3">
-                  <Field label="Owner" htmlFor="act-owner"><Input id="act-owner" maxLength={80} value={draft.owner} onChange={(e) => setDraft((d) => ({ ...d, owner: e.target.value }))} /></Field>
+                  <Field label="Owner" htmlFor="act-owner"><EmployeeOwnerSelect id="act-owner" value={draft.owner} onChange={(owner) => setDraft((d) => ({ ...d, owner }))} /></Field>
                   <Field label={t.responsibility}>
                     <Select value={draft.responsibility} onValueChange={(v) => setDraft((d) => ({ ...d, responsibility: v as ActionResponsibility }))}>
                       <SelectTrigger aria-label={t.responsibility}><SelectValue /></SelectTrigger>

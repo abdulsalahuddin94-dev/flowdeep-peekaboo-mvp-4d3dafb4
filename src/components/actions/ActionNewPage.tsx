@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { EmployeeOwnerSelect } from "@/components/actions/EmployeePickers";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { FormDialog } from "@/components/ui/form-dialog";
@@ -165,7 +166,7 @@ export function ActionNewPage({ project, source, sourceRef, meetingName, meeting
 
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Owner" htmlFor="act-owner">
-              <Input id="act-owner" maxLength={80} value={d.owner} onChange={(e) => up({ owner: e.target.value })} />
+              <EmployeeOwnerSelect id="act-owner" value={d.owner} onChange={(owner) => up({ owner })} />
             </Field>
             <Field label={t.responsibility}>
               <Select value={d.responsibility} onValueChange={(v) => up({ responsibility: v as ActionResponsibility })}>

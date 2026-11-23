@@ -16,6 +16,8 @@ import { TablePagination, usePagination } from "@/components/TablePagination";
 import { TableRowActions } from "@/components/TableRowActions";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { capacityOverrideMonths } from "@/lib/employee-finance";
 import { ToggleActive } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { KpiCard } from "@/components/KpiCard";
@@ -404,6 +406,11 @@ function RequestSheet({ req, onClose }: { req: ResourceRequest | null; onClose: 
   );
 }
 
+const CAPACITY_T = {
+  en: { set: "Set Capacity", start: "Start month", months: "Number of months", hours: "Capacity (hours)", days: "Working days in month", apply: "Apply", cancel: "Cancel", success: "Capacity plan applied", overwrite: "Overwrite existing capacity?", overwriteD: "Some selected employees already have capacity in this range. Applying will overwrite it.", confirm: "Overwrite", selectAll: "Select all visible employees", select: "Select employee" },
+  ar: { set: "تحديد السعة", start: "شهر البداية", months: "عدد الأشهر", hours: "السعة (بالساعات)", days: "أيام العمل في الشهر", apply: "تطبيق", cancel: "إلغاء", success: "تم تطبيق خطة السعة", overwrite: "استبدال السعة الحالية؟", overwriteD: "بعض الموظفين المحددين لديهم سعة في هذه الفترة. سيتم استبدالها.", confirm: "استبدال", selectAll: "تحديد كل الموظفين الظاهرين", select: "تحديد الموظف" },
+};
+
 function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update: PoolResource[] | ((prev: PoolResource[]) => PoolResource[])) => void }) {
   const t = EMPLOYEE_FILTER_T.en;
   const [query, setQuery] = useState("");
@@ -411,7 +418,27 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
   const [seniority, setSeniority] = useState<string[]>([]);
   const [statuses, setStatuses] = useState<string[]>([]);
   const navigate = useNavigate();
-  const { employmentTypes } = useEmployees();
+  const { employmentTypes, setMonthlyPlan } = useEmployees();
+  const c = CAPACITY_T.en;
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const selectedEmployees = pool.filter((e) => selectedIds.has(e.id));
+  const [capacityOpen, setCapacityOpen] = useState(false);
+  const [overwriteOpen, setOverwriteOpen] = useState(false);
+  const [plan, setPlan] = useState({ start: "", months: "12", hours: "", days: "20" });
+  function openCapacityPlan() {
+    const now = new Date();
+    setPlan({ start: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`, months: "12", hours: String(selectedEmployees[0]?.capacity || ""), days: "20" });
+    setCapacityOpen(true);
+  }
+  function applyCapacityPlan() {
+    for (const e of selectedEmployees) setMonthlyPlan(e.id, plan.start, Number(plan.months), { capacity: Number(plan.hours), workingDays: Number(plan.days) });
+    setCapacityOpen(false); setOverwriteOpen(false); setSelectedIds(new Set());
+    toast.success(c.success);
+  }
+  function requestCapacityPlan() {
+    if (selectedEmployees.some((e) => capacityOverrideMonths(e, plan.start, Number(plan.months)).length > 0)) { setCapacityOpen(false); setOverwriteOpen(true); }
+    else applyCapacityPlan();
+  }
   const [employmentType, setEmploymentType] = useState<string[]>([]);
   const [projectNames, setProjectNames] = useState<string[]>([]);
   const [jobRolesSelected, setJobRolesSelected] = useState<string[]>([]);
@@ -442,10 +469,12 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
       .filter((r) => matchAnySelected(jobRolesSelected, [r.role]));
   }, [department, jobRolesSelected, pool, projectNames, query, seniority, statuses, employmentType]);
   const pagination = usePagination(filtered, 10);
+  const visibleSelected = pagination.pageItems.filter((e) => selectedIds.has(e.id)).length;
+  const allVisibleSelected = pagination.pageItems.length > 0 && visibleSelected === pagination.pageItems.length;
 
   return (
     <>
-      <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search employee, role or task…" filterGroups={[
+      <PageToolbar query={query} onQueryChange={setQuery} placeholder="Search employee, role or task…" trailing={<Button variant="outline" disabled={selectedEmployees.length === 0} onClick={openCapacityPlan}>{c.set}{selectedEmployees.length ? ` (${selectedEmployees.length})` : ""}</Button>} filterGroups={[
         { ...projectNameGroup(projectNames, setProjectNames, projectOptions), label: t.projects, searchable: true, showAll: true },
         { ...jobRoleGroup(jobRolesSelected, setJobRolesSelected, roleOptions), label: t.role, searchable: true, showAll: true },
         { key: "seniority", label: t.seniority, value: seniority, onChange: setSeniority, mode: "multi", searchable: true, showAll: true, options: [{ value: "all", label: t.allLevels }, ...SENIORITY_LEVELS.map((v) => ({ value: v, label: v }))] },
@@ -456,13 +485,15 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
       <EmptyRegion id="resources-capacity">
           <StyledTable wrapperClassName="">
             <StyledTableHeader><StyledTableHeaderRow>
+              <StyledTableHead className="w-10"><Checkbox aria-label={c.selectAll} disabled={pagination.pageItems.length === 0} checked={allVisibleSelected ? true : visibleSelected > 0 ? "indeterminate" : false} onCheckedChange={(checked) => setSelectedIds((prev) => { const next = new Set(prev); for (const e of pagination.pageItems) { if (checked === true) next.add(e.id); else next.delete(e.id); } return next; })} /></StyledTableHead>
               <StyledTableHead>Employee</StyledTableHead><StyledTableHead>Employee Number</StyledTableHead><StyledTableHead>Role</StyledTableHead><StyledTableHead>Employment type</StyledTableHead>
               <StyledTableHead>Assigned Projects</StyledTableHead><StyledTableHead>Allocation</StyledTableHead>
               <StyledTableHead className="w-32 text-center">Status</StyledTableHead>
             </StyledTableHeaderRow></StyledTableHeader>
             <StyledTableBody>
-              {pagination.pageItems.length === 0 ? <EmptyRow colSpan={7} /> : pagination.pageItems.map((r) => (
+              {pagination.pageItems.length === 0 ? <EmptyRow colSpan={8} /> : pagination.pageItems.map((r) => (
                   <StyledTableRow key={r.id} className={cn("group cursor-pointer", r.active === false && "opacity-60")} onClick={() => navigate({ to: "/resources/employees/$employeeId", params: { employeeId: r.id } })}>
+                    <StyledTableCell className="w-10" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}><Checkbox aria-label={`${c.select}: ${r.name}`} checked={selectedIds.has(r.id)} onCheckedChange={(checked) => setSelectedIds((prev) => { const next = new Set(prev); if (checked === true) next.add(r.id); else next.delete(r.id); return next; })} /></StyledTableCell>
                     <StyledTableCell className="font-medium text-foreground"><div className="flex items-center gap-2"><Avatar className="h-8 w-8">{r.avatar ? <AvatarImage src={r.avatar} alt={r.name} /> : null}<AvatarFallback className="bg-accent-dim text-[10px] text-accent">{r.name.split(" ").map((s) => s[0]).join("")}</AvatarFallback></Avatar><div className="min-w-0"><div className="truncate">{r.name}</div><div className="truncate text-xs font-normal text-muted-foreground">{r.dept}</div></div></div></StyledTableCell>
                     <StyledTableCell className="num-mono text-muted-foreground">{r.employeeNumber ? `#${r.employeeNumber}` : "—"}</StyledTableCell>
                     <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell>{employmentTypes.find((v) => v.id === r.employmentTypeId)?.name ?? "—"}</StyledTableCell>
@@ -482,6 +513,22 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
           </StyledTable>
       </EmptyRegion>
       <TablePagination {...pagination} itemLabel="employees" demoPages={1} />
+
+      <Dialog open={capacityOpen} onOpenChange={setCapacityOpen}>
+        <DialogContent className="max-w-md">
+          <form onSubmit={(e) => { e.preventDefault(); requestCapacityPlan(); }}>
+            <DialogHeader><DialogTitle>{c.set}</DialogTitle></DialogHeader>
+            <div className="my-4 grid grid-cols-2 gap-3">
+              <Field label={c.start} htmlFor="bulk-cap-start" required><Input id="bulk-cap-start" type="month" required value={plan.start} onChange={(e) => setPlan((p) => ({ ...p, start: e.target.value }))} /></Field>
+              <Field label={c.months} htmlFor="bulk-cap-months" required><Input id="bulk-cap-months" type="number" min={1} max={60} step={1} required value={plan.months} onChange={(e) => setPlan((p) => ({ ...p, months: e.target.value }))} /></Field>
+              <div className="col-span-2"><Field label={c.hours} htmlFor="bulk-cap-hours" required><Input id="bulk-cap-hours" type="number" min={1} step="any" placeholder="e.g. 160" required value={plan.hours} onChange={(e) => setPlan((p) => ({ ...p, hours: e.target.value }))} /></Field></div>
+              <div className="col-span-2"><Field label={c.days} htmlFor="bulk-cap-days" required><Input id="bulk-cap-days" type="number" min={1} max={31} step={1} required value={plan.days} onChange={(e) => setPlan((p) => ({ ...p, days: e.target.value }))} /></Field></div>
+            </div>
+            <DialogFooter><Button type="button" variant="outline" onClick={() => setCapacityOpen(false)}>{c.cancel}</Button><Button type="submit">{c.apply}</Button></DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <ConfirmDialog open={overwriteOpen} onOpenChange={setOverwriteOpen} tone="warning" title={c.overwrite} description={c.overwriteD} cancelLabel={c.cancel} confirmLabel={c.confirm} onConfirm={applyCapacityPlan} />
 
       <ConfirmDeleteDialog
         description="This employee will be removed from the resources pool."

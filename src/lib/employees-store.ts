@@ -46,6 +46,7 @@ function seedMonthly(i: number, base: number): Record<string, EmployeeMonthPlan>
   const plan: Record<string, EmployeeMonthPlan> = {};
   const raised = Math.round(base * 1.08);
   for (let m = 7; m <= 12; m++) plan[`2026-${String(m).padStart(2, "0")}`] = { salary: raised };
+  if (i === 2) plan["2026-02"] = { capacity: 0 };
   if (i % 3 === 0) plan["2026-08"] = { ...plan["2026-08"], capacity: 80 };
   return plan;
 }
@@ -68,6 +69,7 @@ export function addMeiCalendarExamples(employee: Employee): Employee {
   return {
     ...employee,
     calendarId: !employee.calendarId || employee.calendarId === "cal-eg" ? "cal-mei-demo" : employee.calendarId,
+    monthly: { ...employee.monthly, "2026-02": { ...employee.monthly?.["2026-02"], capacity: 0 } },
     leave: [...employee.leave, ...MEI_NOVEMBER_LEAVE.filter((example) => !employee.leave.some((leave) => leave.id === example.id))],
   };
 }
@@ -119,7 +121,7 @@ export function employeeShortTitle(e: Pick<Employee, "role" | "seniority">): str
   const role = words.length > 1 ? words.map((w) => (/^[A-Z]{2,}$/.test(w) ? w : w[0].toUpperCase())).join("") : e.role;
   return [e.seniority ? SENIORITY_SHORT[e.seniority] ?? e.seniority : "", role].filter(Boolean).join(" ");
 }
-const defaults = { employees: initialEmployees, employmentTypes: types, demoCalendarExamplesVersion: 1 };
+const defaults = { employees: initialEmployees, employmentTypes: types, demoCalendarExamplesVersion: 2 };
 /** Demo seed rows, kept exported so tests can assert against them. */
 export const SEED_EMPLOYEES = initialEmployees;
 let state = defaults;
@@ -142,8 +144,8 @@ function load() {
     const saved = JSON.parse(window.localStorage.getItem(storageKey) ?? "null");
     if (saved && Array.isArray(saved.employees) && Array.isArray(saved.employmentTypes)) {
       state = saved;
-      if (saved.demoCalendarExamplesVersion !== 1) {
-        state = { ...state, demoCalendarExamplesVersion: 1, employees: state.employees.map(addMeiCalendarExamples) };
+      if ((saved.demoCalendarExamplesVersion ?? 0) < 2) {
+        state = { ...state, demoCalendarExamplesVersion: 2, employees: state.employees.map(addMeiCalendarExamples) };
         window.localStorage.setItem(storageKey, JSON.stringify(state));
       }
     }

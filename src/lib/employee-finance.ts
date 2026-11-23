@@ -29,7 +29,8 @@ export function employeeMonth(employee: Employee, month: string) {
   const allocations = employee.allocations.filter((a) => (!a.from || a.from <= month) && (!a.until || a.until >= month));
   const utilization = allocations.reduce((sum, a) => sum + a.percent, 0);
   const denominator = Math.max(100, utilization);
-  const charges = allocations.map((a) => ({ ...a, amount: Math.round(salary * a.percent / denominator * 100) / 100 }));
+  // No capacity means assigned hours cannot be charged, so the project gets nothing that month.
+  const charges = allocations.map((a) => ({ ...a, amount: capacity > 0 ? Math.round(salary * a.percent / denominator * 100) / 100 : 0 }));
   const projectCost = Math.min(salary, charges.reduce((sum, a) => sum + a.amount, 0));
   // Leave and business trips/training reduce the hours available this month.
   const workingDays = override.workingDays ?? WORKING_DAYS_PER_MONTH;
@@ -37,9 +38,9 @@ export function employeeMonth(employee: Employee, month: string) {
     employee.leave.reduce((sum, l) => sum + (l.hours != null ? (l.from.startsWith(month) ? l.hours / 8 : 0) : overlapDays(l.from, l.until, month)), 0)
     + employee.trips.reduce((sum, t) => sum + overlapDays(t.from, t.until, month), 0));
   const availableCapacity = Math.round(capacity * (workingDays - absentDays) / workingDays * 10) / 10;
-  const allocatedHours = capacity * utilization / 100;
+  const allocatedHours = (capacity > 0 ? capacity : (employee.capacity || 0)) * utilization / 100;
   const effectiveUtilization = availableCapacity > 0 ? Math.round(allocatedHours / availableCapacity * 100) : (allocatedHours > 0 ? 999 : 0);
-  return { salary, capacity, workingDays, allocations, charges, projectCost, overhead: Math.max(0, salary - projectCost), utilization, allocatedHours, absentDays, availableCapacity, effectiveUtilization };
+  return { salary, capacity, workingDays, allocations, charges, projectCost, overhead: Math.max(0, salary - projectCost), utilization, allocatedHours, absentDays, availableCapacity, effectiveUtilization, noCapacityWithHours: capacity <= 0 && allocatedHours > 0 };
 }
 
 /** Leave days taken in the year (partial leave counts as hours / 8) against the annual entitlement. */

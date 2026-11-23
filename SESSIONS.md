@@ -285,3 +285,6 @@
 - 2026-11-17: Allocation-period warning now uses shared DS02 ConfirmDialog (warning tone).
 - 2026-11-22: Salary distribution legend now spans card width with share bars and percentages.
 - 2026-11-22: Salary tab: distribution card + month summary card side by side (option 1 trial).
+
+## 2026-11-23 — Feb 2026 zero project charges (Mei)
+- Salary tab: months with assigned hours but 0 capacity charge $0 to projects, shown red with a tooltip. Mei Chen demo has Feb 2026 capacity 0.

@@ -1,3 +1,6 @@
+## 2026-11-24 — Resources header CTAs scoped to Employees tab
+- The "Import Excel" and "Add Employee" header buttons on the Resources page now render only on the Employees tab; Requests, Utilization Heatmap, Manpower Planning and Skill Demand show no header actions.
+
 ## 2026-11-24 — Employee Trips table redesign
 - The Employee Details Trips tab table now matches the project Trips style: Country and City merged into one Destination column (city in bold, country muted below), and Travel Dates / Trip work dates stacked on two lines instead of an arrow-separated single line. Added EN/AR strings for the new Destination and Travel Dates headers.
 

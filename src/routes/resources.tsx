@@ -146,10 +146,12 @@ function ResourcesPage() {
         title="Resources"
         current={RES_TAB_LABELS[tab] ?? "Requests"}
         actions={
-          <>
-            <Button variant="outline" size="sm"><Upload className="mr-1 h-4 w-4" />Import Excel</Button>
-            <Button size="sm" variant="primary" onClick={() => navigate({ to: "/resources/employees/new" })}><Plus className="mr-1 h-4 w-4" />Add Employee</Button>
-          </>
+          tab === "people" ? (
+            <>
+              <Button variant="outline" size="sm"><Upload className="mr-1 h-4 w-4" />Import Excel</Button>
+              <Button size="sm" variant="primary" onClick={() => navigate({ to: "/resources/employees/new" })}><Plus className="mr-1 h-4 w-4" />Add Employee</Button>
+            </>
+          ) : undefined
         }
       />
 

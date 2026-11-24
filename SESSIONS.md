@@ -1,3 +1,6 @@
+## 2026-11-24 — Employee Trips table redesign
+- The Employee Details Trips tab table now matches the project Trips style: Country and City merged into one Destination column (city in bold, country muted below), and Travel Dates / Trip work dates stacked on two lines instead of an arrow-separated single line. Added EN/AR strings for the new Destination and Travel Dates headers.
+
 ## 2026-11-23 — Project Trips: Travelers popup on click
 - The Travelers avatar stack is now a button: clicking it opens the standard people-list popup (title "Travelers", close ✕, one row per traveler with avatar, name, role and chevron) instead of showing a hover tooltip; a row navigates to that employee's profile.
 

@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMe
 import { ChevronLeft, ChevronDown, Trash2, Upload } from "@/lib/icons";
 import { toast } from "@/lib/toast";
 import { departments } from "@/lib/mock-data";
-import { useCalendars, useJobRoles } from "@/lib/projects-store";
+import { useJobRoles } from "@/lib/projects-store";
 import { useEmployees, DEFAULT_MONTHLY_CAPACITY, SENIORITY_LEVELS } from "@/lib/employees-store";
 
 export const Route = createFileRoute("/resources_/employees/new")({
@@ -37,8 +37,8 @@ const T = {
 const TAG_OPTIONS = ["Key talent", "Remote", "Part-time", "Certified", "New hire", "Mentor"];
 const GENDERS = ["Male", "Female"];
 
-type Form = { name: string; shortName: string; employeeNumber: string; nationalId: string; phone: string; email: string; birthDate: string; gender: string; dept: string; role: string; seniority: string; employmentTypeId: string; calendarId: string; joinedOn: string; tags: string[]; avatar: string };
-const empty: Form = { name: "", shortName: "", employeeNumber: "", nationalId: "", phone: "", email: "", birthDate: "", gender: "", dept: "", role: "", seniority: "", employmentTypeId: "", calendarId: "", joinedOn: "", tags: [], avatar: "" };
+type Form = { name: string; shortName: string; employeeNumber: string; nationalId: string; phone: string; email: string; birthDate: string; gender: string; dept: string; role: string; seniority: string; employmentTypeId: string; joinedOn: string; tags: string[]; avatar: string };
+const empty: Form = { name: "", shortName: "", employeeNumber: "", nationalId: "", phone: "", email: "", birthDate: "", gender: "", dept: "", role: "", seniority: "", employmentTypeId: "", joinedOn: "", tags: [], avatar: "" };
 
 /** DS02 empty-image placeholder — grey disc with a light person silhouette. */
 function AvatarPlaceholder() {
@@ -59,14 +59,13 @@ function AddEmployeePage() {
   const navigate = useNavigate();
   const { edit } = Route.useSearch();
   const { jobRoles } = useJobRoles();
-  const { calendars } = useCalendars();
   const { employees, employmentTypes, setEmployees, updateEmployee } = useEmployees();
   const editing = edit ? employees.find((e) => e.id === edit) : undefined;
   const [f, setF] = useState<Form>(() => editing ? {
     name: editing.name, shortName: editing.shortName ?? "", employeeNumber: editing.employeeNumber ?? "",
     nationalId: editing.nationalId ?? "", phone: editing.phone ?? "", email: editing.email,
     birthDate: editing.birthDate ?? "", gender: editing.gender ?? "", dept: editing.dept, role: editing.role, seniority: editing.seniority ?? "",
-    employmentTypeId: editing.employmentTypeId, calendarId: editing.calendarId ?? "cal-eg", joinedOn: editing.joinedOn, tags: editing.tags ?? [], avatar: editing.avatar ?? "",
+    employmentTypeId: editing.employmentTypeId, joinedOn: editing.joinedOn, tags: editing.tags ?? [], avatar: editing.avatar ?? "",
   } : empty);
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const set = <K extends keyof Form>(k: K, v: Form[K]) => { setF((p) => ({ ...p, [k]: v })); setErrors((p) => ({ ...p, [k]: undefined })); };
@@ -93,13 +92,12 @@ function AddEmployeePage() {
       dept: f.dept ? undefined : req,
       role: f.role ? undefined : req,
       employmentTypeId: employmentTypes.some((v) => v.id === f.employmentTypeId && v.active) ? undefined : req,
-      calendarId: calendars.some((c) => c.id === f.calendarId) ? undefined : req,
     };
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
     const fields = {
       name: f.name.trim(), role: f.role, seniority: f.seniority || undefined, dept: f.dept, email: f.email.trim(),
-      employmentTypeId: f.employmentTypeId, calendarId: f.calendarId, joinedOn: f.joinedOn || new Date().toISOString().slice(0, 10),
+      employmentTypeId: f.employmentTypeId, calendarId: editing?.calendarId ?? "cal-eg", joinedOn: f.joinedOn || new Date().toISOString().slice(0, 10),
       shortName: f.shortName.trim(), employeeNumber: f.employeeNumber.trim(), nationalId: f.nationalId.trim() || undefined,
       phone: f.phone.trim(), birthDate: f.birthDate, gender: f.gender, tags: f.tags, avatar: f.avatar || undefined,
     };
@@ -184,9 +182,6 @@ function AddEmployeePage() {
           </Field>
           <Field label="Employment type" htmlFor="emp-type" error={errors.employmentTypeId} hint="Maintained in Organization → Employment types">
             <Select value={f.employmentTypeId} onValueChange={(v) => set("employmentTypeId", v)}><SelectTrigger id="emp-type"><SelectValue placeholder="Select employment type" /></SelectTrigger><SelectContent>{employmentTypes.filter((v) => v.active).map((v) => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}</SelectContent></Select>
-          </Field>
-          <Field label="Work calendar" htmlFor="emp-calendar" error={errors.calendarId} hint="Sets weekends and holidays · Organization → Calendars">
-            <Select value={f.calendarId} onValueChange={(v) => set("calendarId", v)}><SelectTrigger id="emp-calendar"><SelectValue placeholder="Select work calendar" /></SelectTrigger><SelectContent>{calendars.filter((c) => c.active !== false || c.id === f.calendarId).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select>
           </Field>
           <Field label="Hiring date" htmlFor="emp-hire" optional><Input id="emp-hire" type="date" value={f.joinedOn} onChange={(e) => set("joinedOn", e.target.value)} /></Field>
           <Field label="Tags" htmlFor="emp-tags" optional>

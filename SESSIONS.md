@@ -1,3 +1,6 @@
+## 2026-11-24 — Work calendar removed from Add Employee
+- The Add/Edit Employee form no longer shows the Work calendar picker; new employees default to the standard calendar ("cal-eg") and editing keeps the employee's existing calendar, so the profile Info card and work calendar views are unaffected.
+
 ## 2026-11-24 — Resources header CTAs scoped to Employees tab
 - The "Import Excel" and "Add Employee" header buttons on the Resources page now render only on the Employees tab; Requests, Utilization Heatmap, Manpower Planning and Skill Demand show no header actions.
 

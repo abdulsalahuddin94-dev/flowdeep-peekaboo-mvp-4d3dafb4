@@ -113,10 +113,10 @@ function EmployeeDetails() {
   applyMonthlyPlan(field, start, count, value, workingDays);
  };
  const monthly = employeeMonth(employee, selectedMonth);
- const utilTone = monthly.effectiveUtilization > 100 ? "text-rag-red" : monthly.effectiveUtilization > 90 ? "text-rag-amber" : "text-accent";
+ const utilTone = monthly.effectiveUtilization > 100 ? "text-rag-red" : monthly.effectiveUtilization > 80 ? "text-rag-amber" : "text-accent";
  // Year view of the same number: the mean of the month's effective utilization across the hired months.
  const avgUtil = averageUtilization(employee, year);
- const avgTone = avgUtil > 100 ? "text-rag-red" : avgUtil > 90 ? "text-rag-amber" : "text-accent";
+ const avgTone = avgUtil > 100 ? "text-rag-red" : avgUtil > 80 ? "text-rag-amber" : "text-accent";
  const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
  const years = Array.from(new Set(["2025", "2026", "2027", year, employee.joinedOn.slice(0, 4), ...Object.keys(employee.monthly).map((m) => m.slice(0, 4)), ...employee.allocations.flatMap((a) => [a.from.slice(0, 4), a.until.slice(0, 4)]).filter(Boolean)])).sort();
  // One period control, pinned to the same slot under the tab line: a month stepper on the work calendar, a year stepper on the dated registers.

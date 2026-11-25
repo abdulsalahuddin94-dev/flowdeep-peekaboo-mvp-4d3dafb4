@@ -157,7 +157,7 @@ function ResourcesPage() {
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard label="Employees" value={pool.length} className="p-4" />
-        <KpiCard label="Avg utilization" value={`${avgUtilization}%`} accent={avgUtilization > 90 ? "amber" : "teal"} className="p-4" />
+        <KpiCard label="Avg utilization" value={`${avgUtilization}%`} accent={avgUtilization > 80 ? "amber" : "teal"} className="p-4" />
         <KpiCard label="Open requests" value={pendingCount} accent={pendingCount ? "amber" : undefined} className="p-4" />
         <KpiCard label="Capacity gap" value={`-${capacityGap}`} accent={capacityGap ? "red" : "green"} className="p-4" />
       </div>
@@ -504,7 +504,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
                     <StyledTableCell className="num-mono text-muted-foreground">{r.employeeNumber ? `#${r.employeeNumber}` : "—"}</StyledTableCell>
                     <StyledTableCell>{r.role}</StyledTableCell><StyledTableCell>{employmentTypes.find((v) => v.id === r.employmentTypeId)?.name ?? "—"}</StyledTableCell>
                     <StyledTableCell className="text-center"><RelatedProjectsCount label={r.name} caption="Assigned Projects" projects={r.projects.map((name) => ({ id: projects.find((p) => p.name === name)?.id ?? "", name }))} /></StyledTableCell>
-                    {(() => { const u = yearlyUtilization(r); return <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(u, 100)} className={`h-1.5 ${u > 100 ? "[&>div]:bg-rag-red" : u > 90 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${u > 100 ? "text-rag-red" : "text-foreground"}`}>{u}%</span></div></StyledTableCell>; })()}
+                    {(() => { const u = yearlyUtilization(r); return <StyledTableCell className="w-48"><div className="flex items-center gap-2"><Progress value={Math.min(u, 100)} className={`h-1.5 ${u > 100 ? "[&>div]:bg-rag-red" : u > 80 ? "[&>div]:bg-rag-amber" : "[&>div]:bg-accent"}`} /><span className={`num-mono text-xs ${u > 100 ? "text-rag-red" : "text-foreground"}`}>{u}%</span></div></StyledTableCell>; })()}
                     <StyledTableCell onClick={(e) => e.stopPropagation()}>
                       <TableRowActions
                         isActive={r.active !== false}

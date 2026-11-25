@@ -1,3 +1,6 @@
+## 2026-11-25 — Utilization amber threshold unified at 80%
+- The amber "fully loaded" band now starts above 80% everywhere: the Employees table Utilization bar, the Avg utilization KPI card, and the employee profile monthly/yearly utilization cards all use >80 amber / >100 red, matching the request drawer and heatmap thresholds that already used 80.
+
 ## 2026-11-24 — Work calendar removed from Add Employee
 - The Add/Edit Employee form no longer shows the Work calendar picker; new employees default to the standard calendar ("cal-eg") and editing keeps the employee's existing calendar, so the profile Info card and work calendar views are unaffected.
 

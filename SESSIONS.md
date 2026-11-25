@@ -1,3 +1,6 @@
+## 2026-11-25 — Request-type labels set to the exact wording
+- The Team card pill and the Requests table now read exactly **Full Project** / **Specific task** / **Period of time** (only the first changed; "Full project" → "Full Project"). Arabic labels unchanged.
+
 ## 2026-11-25 — Team member cards show the request type
 - Each Team card now carries the request type pill next to the employment text: "Full project" (lavender), "Period of time" (amber), "Specific task" (blue), sourced from `TeamMember.coverage` in `src/components/ProjectTeamTab.tsx`.
 - `projectTeam()` records the coverage of the request that placed each person; when one person arrives through several requests the widest one wins (project > period > task). Tests added for both rules in `src/components/project-team.test.ts`.

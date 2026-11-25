@@ -1,7 +1,7 @@
 // ============= Full file contents =============
 
 import { useEffect, useMemo, useState } from "react";
-import { PartyPopper, Sun } from "@/lib/icons";
+import { PartyPopper, Umbrella } from "@/lib/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
@@ -66,7 +66,7 @@ export function EmployeeWorkCalendar({ workingDays = [0, 1, 2, 3, 4], holidays =
     {<div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
       {view === "monthly" && projects.map((p) => { const pct = percentOf(p); return <span key={p} className="inline-flex items-center gap-2"><span className={cn("h-3 w-3 rounded-full", color(p).split(" ")[0])} />{p}{pct > 0 && <span className="num-mono font-semibold text-foreground">{pct}%</span>}</span>; })}
       <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-accent" />{l.today}</span>
-      <span className="inline-flex items-center gap-2"><Sun className="h-4 w-4 text-rag-blue" />{l.leave}</span>
+      <span className="inline-flex items-center gap-2"><Umbrella className="h-4 w-4 text-rag-blue" />{l.leave}</span>
       <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-rag-blue/40" />{l.meeting}</span>
       <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-rag-amber/40" />{l.trip}</span>
       <span className="inline-flex items-center gap-2"><PartyPopper className="h-4 w-4 text-rag-green" />{l.holiday}</span>
@@ -95,7 +95,7 @@ function MonthGrid({ today, holidays, events, y, month, entries, leave, color, b
         return <div key={i} data-date={date} aria-current={isToday ? "date" : undefined} className={cn("min-w-0 min-h-24 space-y-1.5 border-b border-e border-border p-2", isToday && "bg-muted/30")}>
           <div className="flex h-7 items-center justify-between gap-1"><span className={cn("inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold", isToday && "bg-accent text-accent-foreground")}>{d}</span>{isToday && <span className="text-xs font-medium text-accent">{l.today}</span>}</div>
           {holiday && <Tooltip><TooltipTrigger asChild><div className="flex min-h-7 items-center gap-1.5 rounded-full border border-rag-green/30 bg-rag-green/10 px-2 py-1 text-xs text-rag-green"><PartyPopper className="h-4 w-4 shrink-0" /><span className="min-w-0 truncate">{l.holiday}</span></div></TooltipTrigger><TooltipContent>{l.holiday}: {holiday.label}</TooltipContent></Tooltip>}
-          {off && <Tooltip><TooltipTrigger asChild><div className="flex min-h-7 items-center gap-1.5 rounded-full border border-dashed border-rag-blue/50 bg-rag-blue/10 px-2 py-1 text-xs text-rag-blue"><Sun className="h-4 w-4 shrink-0" /><span className="min-w-0 truncate">{off.label}</span></div></TooltipTrigger><TooltipContent>{off.label}</TooltipContent></Tooltip>}
+          {off && <Tooltip><TooltipTrigger asChild><div className="flex min-h-7 items-center gap-1.5 rounded-full border border-dashed border-rag-blue/50 bg-rag-blue/10 px-2 py-1 text-xs text-rag-blue"><Umbrella className="h-4 w-4 shrink-0" /><span className="min-w-0 truncate">{off.label}</span></div></TooltipTrigger><TooltipContent>{off.label}</TooltipContent></Tooltip>}
           {groups.slice(0, 2).map((g) => <Tooltip key={g.project}><TooltipTrigger asChild><div className={cn("cursor-default truncate rounded-md px-2 py-1 text-center text-xs font-medium", color(g.project))}>{g.project}</div></TooltipTrigger><TooltipContent><Detail items={g.items} /></TooltipContent></Tooltip>)}
           <EventChips events={eventsOn(events, date)} />
           {groups.length > 2 && <Tooltip><TooltipTrigger asChild><div className="cursor-default text-center text-xs text-muted-foreground">+{groups.length - 2} {l.more}</div></TooltipTrigger><TooltipContent><Detail items={groups.slice(2).flatMap((g) => g.items)} /></TooltipContent></Tooltip>}
@@ -150,7 +150,7 @@ function MiniMonth({ today, leave, y, m, holidays, events }: { today: string; le
       const isToday = date === today;
       const cell = <div aria-current={isToday ? "date" : undefined} className={cn("flex h-9 flex-col items-center justify-center gap-0.5 rounded-md num-mono text-muted-foreground", isToday && "bg-muted/30 ring-1 ring-accent text-accent")}>
         <span>{d}</span>
-        {(holiday || off) && <span className="flex gap-0.5">{holiday && <PartyPopper className="h-3 w-3 text-rag-green" />}{off && <Sun className="h-3 w-3 text-rag-blue" />}</span>}
+        {(holiday || off) && <span className="flex gap-0.5">{holiday && <PartyPopper className="h-3 w-3 text-rag-green" />}{off && <Umbrella className="h-3 w-3 text-rag-blue" />}</span>}
         {ev.length > 0 && <span className="flex gap-0.5">{Array.from(new Set(ev.map((e) => e.kind))).map((k) => <span key={k} className={cn("h-1 w-1 rounded-full", k === "meeting" ? "bg-rag-blue" : "bg-rag-amber")} />)}</span>}
       </div>;
       if (!holiday && !off && !ev.length && !isToday) return <div key={i}>{cell}</div>;

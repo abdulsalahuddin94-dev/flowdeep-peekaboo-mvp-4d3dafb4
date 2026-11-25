@@ -1,3 +1,6 @@
+## 2026-11-25 — Leave marker changed from sun to umbrella
+- The Iconsax sun glyph used for leave reads as a snowflake at 12–16px, so leave now uses a hand-drawn umbrella mark (`Umbrella` in `src/lib/icons.tsx`, offline SVG so it never depends on a runtime icon fetch). Applied to the monthly leave pill, the legend and the yearly mini calendars; the holiday gift mark is unchanged. Verified on Mei Chen's November 2026 calendar.
+
 ## 2026-11-25 — Distinct employee calendar day markers
 - Reserved the former neutral day-cell shading for Today, with a lavender date marker and Today label. Holidays now use a green gift icon and outlined pill; leave uses a blue sun icon and dashed pill, including partial leave. Both remain independently visible when they coincide.
 - Applied matching markers to yearly mini calendars; checked Mei's existing November examples without changing staffing, capacity or leave data.

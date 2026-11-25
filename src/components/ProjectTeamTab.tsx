@@ -24,7 +24,7 @@ import { TableRowActions } from "@/components/TableRowActions";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { MultiSelectField } from "@/components/ui/multi-select-field";
 
-export type TeamMember = { name: string; role: string; employment: Employment; /** Allocation window from task/period requests; undefined = whole project. */ window?: { from: string; until: string }; /** Joined only for specific tasks — no extra task assignment. */ taskOnly?: boolean };
+export type TeamMember = { name: string; role: string; employment: Employment; /** What the request that placed them here was raised for. */ coverage: "project" | "task" | "period"; /** Allocation window from task/period requests; undefined = whole project. */ window?: { from: string; until: string }; /** Joined only for specific tasks — no extra task assignment. */ taskOnly?: boolean };
 const dayFrom = (d: string) => (d.length === 7 ? `${d}-01` : d.slice(0, 10));
 const dayUntil = (d: string) => (d.length === 7 ? `${d}-31` : d.slice(0, 10));
 /** Tasks whose dates fall outside the member's allocation window — a soft, non-blocking warning. */
@@ -35,20 +35,25 @@ export function tasksOutsideWindow(member: TeamMember, tasks: Item[]): Item[] {
 }
 type Item = { name: string; kind: string; startDate: string; endDate: string; assignee?: string; progress?: number };
 
+/** Widest coverage wins when one person arrives through several requests. */
+const COV_RANK = { task: 1, period: 2, project: 3 } as const;
+
 /** Team = people placed on the project by fulfilled requests (team or task). Partially filled requests already count their assignees. */
 export function projectTeam(project: string, requests: ResourceRequest[]): TeamMember[] {
   const map = new Map<string, TeamMember>();
   for (const r of requests) {
     if (r.project !== project || r.status === "Declined") continue;
     const employment = r.employment ?? employmentFromFte(r.fte);
+    const cov = requestCoverage(r);
     for (const name of requestAssignees(r)) {
       const prev = map.get(name);
-      const w = requestCoverage(r) === "project" ? undefined : { from: dayFrom(r.periodStart ?? r.from), until: dayUntil(r.periodEnd ?? r.until) };
-      const taskOnly = requestCoverage(r) === "task";
-      if (!prev) map.set(name, { name, role: r.role, employment, window: w, taskOnly });
+      const w = cov === "project" ? undefined : { from: dayFrom(r.periodStart ?? r.from), until: dayUntil(r.periodEnd ?? r.until) };
+      const taskOnly = cov === "task";
+      if (!prev) map.set(name, { name, role: r.role, employment, window: w, taskOnly, coverage: cov });
       else {
         if (employment === "Full time") prev.employment = "Full time";
         prev.taskOnly = prev.taskOnly && taskOnly;
+        if (COV_RANK[cov] > COV_RANK[prev.coverage]) prev.coverage = cov;
         prev.window = !prev.window || !w ? undefined : { from: w.from < prev.window.from ? w.from : prev.window.from, until: w.until > prev.window.until ? w.until : prev.window.until };
       }
     }
@@ -75,6 +80,12 @@ const T = {
 export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onAssignTask }: { project: string; projectId: string; pm: string; items: Item[]; lang?: "en" | "ar"; /** Assigning staff to tasks is not a plan change, so it works outside Change Plan. */ onAssignTask?: (tasks: string[], member: TeamMember) => void }) {
   const t = T[lang];
   const covLabel = { project: t.project, task: t.task, period: t.periodCol };
+  const covCard = { project: t.fullProject, task: t.forTask, period: t.period };
+  const covTone = {
+    project: "border-accent/40 bg-accent/10 text-accent",
+    task: "border-rag-blue/40 bg-rag-blue/10 text-rag-blue",
+    period: "border-rag-amber/40 bg-rag-amber/10 text-rag-amber",
+  };
   const { resourceRequests, addResourceRequest, updateResourceRequest, removeResourceRequest } = useResourceRequests();
   const [open, setOpen] = useState(false);
   const [tasksFor, setTasksFor] = useState<TeamMember | null>(null);
@@ -130,7 +141,10 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onA
                     <div className="truncate text-xs text-muted-foreground">{m.role}</div>
                   </div>
                 </div>
-                <div className="mt-4 text-xs text-muted-foreground">{m.employment}</div>
+                <div className="mt-4 flex items-center justify-between gap-2">
+                  <span className="text-xs text-muted-foreground">{m.employment}</span>
+                  <Pill label={covCard[m.coverage]} tone={covTone[m.coverage]} className="shrink-0 px-2.5 text-[11px]" />
+                </div>
               </>
             );
             return (

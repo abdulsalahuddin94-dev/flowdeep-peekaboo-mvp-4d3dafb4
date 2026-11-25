@@ -22,7 +22,7 @@ test("only fulfilled requests add the employee to the team", () => {
     { ...base, id: "1", project: "P", role: "QA", status: "Fulfilled", assignedTo: "Ann", employment: "Part time" },
     { ...base, id: "2", project: "P", role: "Dev", status: "Pending" },
   ]);
-  assert.deepEqual(team, [{ name: "Ann", role: "QA", employment: "Part time", taskOnly: false, window: undefined }]);
+  assert.deepEqual(team, [{ name: "Ann", role: "QA", employment: "Part time", coverage: "project", taskOnly: false, window: undefined }]);
 });
 
 test("partially filled multi-headcount request already adds its assignees to the team", () => {
@@ -30,8 +30,8 @@ test("partially filled multi-headcount request already adds its assignees to the
     { ...base, id: "1", project: "P", role: "QA", status: "Pending", quantity: 3, assignees: ["Ann", "Bob"], employment: "Full time" },
   ]);
   assert.deepEqual(team, [
-    { name: "Ann", role: "QA", employment: "Full time", taskOnly: false, window: undefined },
-    { name: "Bob", role: "QA", employment: "Full time", taskOnly: false, window: undefined },
+    { name: "Ann", role: "QA", employment: "Full time", coverage: "project", taskOnly: false, window: undefined },
+    { name: "Bob", role: "QA", employment: "Full time", coverage: "project", taskOnly: false, window: undefined },
   ]);
 });
 
@@ -48,6 +48,25 @@ test("Request for column reads task, project or period", () => {
   assert.equal(requestCoverage(taskReq), "task");
   assert.equal(requestCoverage(projectReq), "project");
   assert.equal(requestCoverage(periodReq), "period");
+});
+
+test("member card coverage follows the request that placed them", () => {
+  const team = projectTeam("P", [
+    { ...base, id: "1", project: "P", role: "QA", status: "Fulfilled", assignedTo: "Ann", employment: "Full time", coverage: "period", from: "2026-01-01", until: "2026-03-01" },
+    { ...base, id: "2", project: "P", role: "QA", status: "Fulfilled", assignedTo: "Bob", employment: "Full time", scope: "task", task: "T" },
+  ]);
+  assert.equal(team.find((m) => m.name === "Ann")?.coverage, "period");
+  assert.equal(team.find((m) => m.name === "Bob")?.coverage, "task");
+});
+
+test("widest coverage wins when one person arrives through several requests", () => {
+  const team = projectTeam("P", [
+    { ...base, id: "1", project: "P", role: "QA", status: "Fulfilled", assignedTo: "Ann", employment: "Full time", scope: "task", task: "T" },
+    { ...base, id: "2", project: "P", role: "QA", status: "Fulfilled", assignedTo: "Ann", employment: "Full time", coverage: "project" },
+  ]);
+  assert.equal(team.length, 1);
+  assert.equal(team[0]?.coverage, "project");
+  assert.equal(team[0]?.taskOnly, false);
 });
 
 test("Team empty state waits on Resources while a request is open", () => {

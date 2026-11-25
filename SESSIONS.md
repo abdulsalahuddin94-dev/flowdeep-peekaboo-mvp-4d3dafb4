@@ -1,3 +1,7 @@
+## 2026-11-25 — Team member cards show the request type
+- Each Team card now carries the request type pill next to the employment text: "Full project" (lavender), "Period of time" (amber), "Specific task" (blue), sourced from `TeamMember.coverage` in `src/components/ProjectTeamTab.tsx`.
+- `projectTeam()` records the coverage of the request that placed each person; when one person arrives through several requests the widest one wins (project > period > task). Tests added for both rules in `src/components/project-team.test.ts`.
+
 ## 2026-11-25 — Calendar day overflow ("+N more")
 - Employee monthly calendar caps each day at 3 items; extras open a Google-style day popover (weekday, date, close, holiday tag, timed meetings, trips, projects with hover details).
 - Demo meetings added for Mei Chen on 3, 18 and 24 Nov 2026.

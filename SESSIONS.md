@@ -1,3 +1,7 @@
+## 2026-11-25 — Project Trips table + Edit trip
+- Trips table: traveler count as a number (opens travelers popup), travel/work dates stacked, round Edit + Delete actions.
+- New /trips/$tripId/edit reuses TripFormPage prefilled; updateTripGroup rewrites each traveler's linked record (added/removed travelers handled).
+
 ## 2026-11-25 — Request-type labels set to the exact wording
 - The Team card pill and the Requests table now read exactly **Full Project** / **Specific task** / **Period of time** (only the first changed; "Full project" → "Full Project"). Arabic labels unchanged.
 

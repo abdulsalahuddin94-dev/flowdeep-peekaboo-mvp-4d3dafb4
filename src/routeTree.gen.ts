@@ -35,6 +35,7 @@ import { Route as TripsNewRouteImport } from './routes/trips.new'
 import { Route as PortfolioProjectIdEditRouteImport } from './routes/portfolio.$projectId_.edit'
 import { Route as ResourcesEmployeesEmployeeIdRouteImport } from './routes/resources_.employees.$employeeId'
 import { Route as ResourcesEmployeesNewRouteImport } from './routes/resources_.employees.new'
+import { Route as TripsTripIdEditRouteImport } from './routes/trips.$tripId.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -168,6 +169,11 @@ const ResourcesEmployeesNewRoute = ResourcesEmployeesNewRouteImport.update({
   path: '/resources/employees/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TripsTripIdEditRoute = TripsTripIdEditRouteImport.update({
+  id: '/trips/$tripId/edit',
+  path: '/trips/$tripId/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/portfolio/$projectId/edit': typeof PortfolioProjectIdEditRoute
   '/resources/employees/$employeeId': typeof ResourcesEmployeesEmployeeIdRoute
   '/resources/employees/new': typeof ResourcesEmployeesNewRoute
+  '/trips/$tripId/edit': typeof TripsTripIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -224,6 +231,7 @@ export interface FileRoutesByTo {
   '/portfolio/$projectId/edit': typeof PortfolioProjectIdEditRoute
   '/resources/employees/$employeeId': typeof ResourcesEmployeesEmployeeIdRoute
   '/resources/employees/new': typeof ResourcesEmployeesNewRoute
+  '/trips/$tripId/edit': typeof TripsTripIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/portfolio/$projectId_/edit': typeof PortfolioProjectIdEditRoute
   '/resources_/employees/$employeeId': typeof ResourcesEmployeesEmployeeIdRoute
   '/resources_/employees/new': typeof ResourcesEmployeesNewRoute
+  '/trips/$tripId/edit': typeof TripsTripIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -283,6 +292,7 @@ export interface FileRouteTypes {
     | '/portfolio/$projectId/edit'
     | '/resources/employees/$employeeId'
     | '/resources/employees/new'
+    | '/trips/$tripId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/portfolio/$projectId/edit'
     | '/resources/employees/$employeeId'
     | '/resources/employees/new'
+    | '/trips/$tripId/edit'
   id:
     | '__root__'
     | '/'
@@ -339,6 +350,7 @@ export interface FileRouteTypes {
     | '/portfolio/$projectId_/edit'
     | '/resources_/employees/$employeeId'
     | '/resources_/employees/new'
+    | '/trips/$tripId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -368,6 +380,7 @@ export interface RootRouteChildren {
   PortfolioProjectIdEditRoute: typeof PortfolioProjectIdEditRoute
   ResourcesEmployeesEmployeeIdRoute: typeof ResourcesEmployeesEmployeeIdRoute
   ResourcesEmployeesNewRoute: typeof ResourcesEmployeesNewRoute
+  TripsTripIdEditRoute: typeof TripsTripIdEditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -554,6 +567,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResourcesEmployeesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trips/$tripId/edit': {
+      id: '/trips/$tripId/edit'
+      path: '/trips/$tripId/edit'
+      fullPath: '/trips/$tripId/edit'
+      preLoaderRoute: typeof TripsTripIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -584,6 +604,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortfolioProjectIdEditRoute: PortfolioProjectIdEditRoute,
   ResourcesEmployeesEmployeeIdRoute: ResourcesEmployeesEmployeeIdRoute,
   ResourcesEmployeesNewRoute: ResourcesEmployeesNewRoute,
+  TripsTripIdEditRoute: TripsTripIdEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

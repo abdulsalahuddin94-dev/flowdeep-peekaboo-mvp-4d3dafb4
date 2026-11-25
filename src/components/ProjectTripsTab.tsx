@@ -10,14 +10,14 @@ import { EmptyState } from "@/components/ds/EmptyState";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronRight, Plus, Trash2 } from "@/lib/icons";
+import { ChevronRight, Pencil, Plus, Trash2 } from "@/lib/icons";
 import { dollars } from "@/lib/money";
 import { toast } from "@/lib/toast";
 import { formatDateWithYear } from "@/lib/date-format";
 
 export const T = {
-  en: { title: "Trips", add: "Add trip", destination: "Destination", purpose: "Purpose", milestone: "Linked milestone", none: "Not linked", travelers: "Travelers", travel: "Travel", work: "Trip work", perTraveler: "Cost / traveler", total: "Total cost", country: "Country", city: "City", travelStart: "Travel start date", travelEnd: "Travel end date", workStart: "Trip work start date", workEnd: "Trip work end date", tickets: "Tickets cost", visa: "Visa cost", perDiem: "Per diem cost", cancel: "Cancel", save: "Save", searchPeople: "Search team members", emptyTitle: "No trips yet", emptyDesc: "Plan a business trip for project team members and link it to a milestone.", added: "Trip added", removed: "Trip removed", selected: "selected", noTeam: "No team members assigned to this project", purposeHint: "e.g. Client requirements workshop", tripDetails: "Trip details", dates: "Dates", costs: "Costs", searchTrips: "Search destination or purpose…", employee: "Employee", allCountries: "All countries", allCities: "All cities", allEmployees: "All employees", noMatch: "No trips match your search or filters" },
-  ar: { title: "الرحلات", add: "إضافة رحلة", destination: "الوجهة", purpose: "الغرض", milestone: "المرحلة المرتبطة", none: "غير مرتبطة", travelers: "المسافرون", travel: "السفر", work: "العمل في الرحلة", perTraveler: "التكلفة / مسافر", total: "إجمالي التكلفة", country: "الدولة", city: "المدينة", travelStart: "تاريخ بداية السفر", travelEnd: "تاريخ نهاية السفر", workStart: "تاريخ بداية العمل", workEnd: "تاريخ نهاية العمل", tickets: "تكلفة التذاكر", visa: "تكلفة التأشيرة", perDiem: "البدل اليومي", cancel: "إلغاء", save: "حفظ", searchPeople: "ابحث في أعضاء الفريق", emptyTitle: "لا توجد رحلات", emptyDesc: "خطط لرحلة عمل لأعضاء فريق المشروع واربطها بمرحلة.", added: "تمت إضافة الرحلة", removed: "تم حذف الرحلة", selected: "محدد", noTeam: "لا يوجد أعضاء فريق في هذا المشروع", purposeHint: "مثال: ورشة متطلبات مع العميل", tripDetails: "تفاصيل الرحلة", dates: "التواريخ", costs: "التكاليف", searchTrips: "ابحث بالوجهة أو الغرض…", employee: "الموظف", allCountries: "كل الدول", allCities: "كل المدن", allEmployees: "كل الموظفين", noMatch: "لا توجد رحلات مطابقة للبحث أو الفلاتر" },
+  en: { title: "Trips", add: "Add trip", edit: "Edit trip", destination: "Destination", purpose: "Purpose", milestone: "Linked milestone", none: "Not linked", travelers: "Travelers", travel: "Travel", work: "Trip work", perTraveler: "Cost / traveler", total: "Total cost", country: "Country", city: "City", travelStart: "Travel start date", travelEnd: "Travel end date", workStart: "Trip work start date", workEnd: "Trip work end date", tickets: "Tickets cost", visa: "Visa cost", perDiem: "Per diem cost", cancel: "Cancel", save: "Save", searchPeople: "Search team members", emptyTitle: "No trips yet", emptyDesc: "Plan a business trip for project team members and link it to a milestone.", added: "Trip added", removed: "Trip removed", selected: "selected", noTeam: "No team members assigned to this project", purposeHint: "e.g. Client requirements workshop", tripDetails: "Trip details", dates: "Dates", costs: "Costs", searchTrips: "Search destination or purpose…", employee: "Employee", allCountries: "All countries", allCities: "All cities", allEmployees: "All employees", noMatch: "No trips match your search or filters" },
+  ar: { title: "الرحلات", add: "إضافة رحلة", edit: "تعديل الرحلة", destination: "الوجهة", purpose: "الغرض", milestone: "المرحلة المرتبطة", none: "غير مرتبطة", travelers: "المسافرون", travel: "السفر", work: "العمل في الرحلة", perTraveler: "التكلفة / مسافر", total: "إجمالي التكلفة", country: "الدولة", city: "المدينة", travelStart: "تاريخ بداية السفر", travelEnd: "تاريخ نهاية السفر", workStart: "تاريخ بداية العمل", workEnd: "تاريخ نهاية العمل", tickets: "تكلفة التذاكر", visa: "تكلفة التأشيرة", perDiem: "البدل اليومي", cancel: "إلغاء", save: "حفظ", searchPeople: "ابحث في أعضاء الفريق", emptyTitle: "لا توجد رحلات", emptyDesc: "خطط لرحلة عمل لأعضاء فريق المشروع واربطها بمرحلة.", added: "تمت إضافة الرحلة", removed: "تم حذف الرحلة", selected: "محدد", noTeam: "لا يوجد أعضاء فريق في هذا المشروع", purposeHint: "مثال: ورشة متطلبات مع العميل", tripDetails: "تفاصيل الرحلة", dates: "التواريخ", costs: "التكاليف", searchTrips: "ابحث بالوجهة أو الغرض…", employee: "الموظف", allCountries: "كل الدول", allCities: "كل المدن", allEmployees: "كل الموظفين", noMatch: "لا توجد رحلات مطابقة للبحث أو الفلاتر" },
 };
 const t = T.en;
 export const daysBetween = (a: string, b: string) => Math.max(1, Math.round((new Date(`${b}T00:00:00Z`).getTime() - new Date(`${a}T00:00:00Z`).getTime()) / 86400000) + 1);
@@ -80,11 +80,11 @@ export function ProjectTripsTab({ project, projectId }: { project: string; proje
             <StyledTableCell>{trip.purpose || "—"}</StyledTableCell>
             <StyledTableCell>{trip.milestone || <span className="text-muted-foreground">{t.none}</span>}</StyledTableCell>
             <StyledTableCell><TravelersCell travelers={travelers} employees={employees} /></StyledTableCell>
-            <StyledTableCell className="whitespace-nowrap">{formatDateWithYear(trip.from)} → {formatDateWithYear(trip.until)}</StyledTableCell>
-            <StyledTableCell className="whitespace-nowrap">{formatDateWithYear(trip.workFrom)} → {formatDateWithYear(trip.workUntil)}</StyledTableCell>
+            <StyledTableCell className="whitespace-nowrap"><div>{formatDateWithYear(trip.from)}</div><div>{formatDateWithYear(trip.until)}</div></StyledTableCell>
+            <StyledTableCell className="whitespace-nowrap"><div>{formatDateWithYear(trip.workFrom)}</div><div>{formatDateWithYear(trip.workUntil)}</div></StyledTableCell>
             <StyledTableCell className="num-mono">{dollars(per)}</StyledTableCell>
             <StyledTableCell className="num-mono font-medium">{dollars(per * travelers.length)}</StyledTableCell>
-            <StyledTableCell><Button size="icon" variant="dangerOutline" data-ds-size="auto" aria-label={t.removed} className="h-9 w-9 rounded-full" onClick={() => setDel(key)}><Trash2 className="h-4 w-4" /></Button></StyledTableCell>
+            <StyledTableCell><div className="flex items-center justify-end gap-2"><Button size="icon" variant="outline" data-ds-size="auto" aria-label={t.edit} className="h-9 w-9 rounded-full" onClick={() => navigate({ to: "/trips/$tripId/edit", params: { tripId: key }, search: { project: projectId, back } })}><Pencil className="h-4 w-4" /></Button><Button size="icon" variant="dangerOutline" data-ds-size="auto" aria-label={t.removed} className="h-9 w-9 rounded-full" onClick={() => setDel(key)}><Trash2 className="h-4 w-4" /></Button></div></StyledTableCell>
           </StyledTableRow>;
         })}</StyledTableBody>
       </StyledTable>}
@@ -96,17 +96,11 @@ export function ProjectTripsTab({ project, projectId }: { project: string; proje
 function TravelersCell({ travelers, employees }: { travelers: { id: string; name: string }[]; employees: { id: string; name: string; role: string; avatar?: string }[] }) {
   const [open, setOpen] = useState(false);
   const byId = useMemo(() => new Map(employees.map((e) => [e.id, e])), [employees]);
-  const shown = travelers.slice(0, 4);
-  const extra = travelers.length - shown.length;
   // Click, not hover: the stack is a button that opens the standard people-list popup.
   return <>
     <button type="button" onClick={() => setOpen(true)} aria-label={`${t.travelers} (${travelers.length})`}
       className="flex w-fit cursor-pointer items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
-      {shown.map((v, i) => <Avatar key={v.id} className={`h-7 w-7 ring-2 ring-card ${i > 0 ? "-ms-2" : ""}`}>
-        {byId.get(v.id)?.avatar ? <AvatarImage src={byId.get(v.id)?.avatar} alt={v.name} /> : null}
-        <AvatarFallback className="bg-accent-dim text-[10px] font-medium text-accent">{v.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}</AvatarFallback>
-      </Avatar>)}
-      {extra > 0 && <span className="-ms-2 flex h-7 min-w-7 items-center justify-center rounded-full bg-muted px-1 text-[10px] font-medium text-muted-foreground ring-2 ring-card">+{extra}</span>}
+      <span className="num-mono text-sm text-foreground underline-offset-4 hover:underline">{travelers.length}</span>
     </button>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-md">

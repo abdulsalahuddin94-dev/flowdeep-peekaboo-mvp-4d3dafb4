@@ -201,6 +201,18 @@ export function useEmployees() {
       const groupId = `tripgrp-${crypto.randomUUID()}`;
       travelerIds.forEach((id) => updateEmployee(id, (e) => ({ trips: [...e.trips, { ...trip, groupId, id: `trip-${crypto.randomUUID()}` }] })));
     },
+    /** Editing a project trip rewrites every traveler's linked record; removed travelers lose it, new ones gain it. */
+    updateTripGroup: (project: string, groupId: string, travelerIds: string[], trip: Omit<EmployeeTrip, "id" | "groupId">) =>
+      state.employees.forEach((e) => {
+        const has = e.trips.some((t) => (t.groupId ?? t.id) === groupId && t.project === project);
+        const keep = travelerIds.includes(e.id);
+        if (!has && !keep) return;
+        updateEmployee(e.id, (x) => {
+          const old = x.trips.find((t) => (t.groupId ?? t.id) === groupId && t.project === project);
+          const rest = x.trips.filter((t) => !((t.groupId ?? t.id) === groupId && t.project === project));
+          return { trips: keep ? [...rest, { ...trip, groupId, id: old?.id ?? `trip-${crypto.randomUUID()}` }] : rest };
+        });
+      }),
     removeTripGroup: (project: string, groupId: string) =>
       state.employees.forEach((e) => { if (e.trips.some((t) => (t.groupId ?? t.id) === groupId && t.project === project)) updateEmployee(e.id, (x) => ({ trips: x.trips.filter((t) => !((t.groupId ?? t.id) === groupId && t.project === project)) })); }),
     removeTrip: (id: string, tripId: string) =>

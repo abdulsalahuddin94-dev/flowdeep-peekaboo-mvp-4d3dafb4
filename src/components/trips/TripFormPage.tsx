@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useEmployees, type EmployeeTrip } from "@/lib/employees-store";
 import { useProjects } from "@/lib/projects-store";
 import { PLAN_CACHE } from "@/lib/plan-cache";
@@ -15,16 +15,16 @@ import { LOCATIONS } from "@/lib/locations";
 import { dollars } from "@/lib/money";
 import { toast } from "@/lib/toast";
 
-const t = { ...tripT.en, pickDatesFirst: "Set the travel dates first", travelersHint: "Only team members without another trip in these dates are listed." };
+const t = { ...tripT.en, edit: "Edit trip", updated: "Trip updated", notFound: "Trip not found", pickDatesFirst: "Set the travel dates first", travelersHint: "Only team members without another trip in these dates are listed." };
 
 /** Overlapping inclusive date ranges (YYYY-MM-DD strings compare lexically). */
 export const overlaps = (a1: string, a2: string, b1: string, b2: string) => a1 <= b2 && b1 <= a2;
 
 type Errors = Partial<Record<"travelers" | "country" | "city" | "from" | "until" | "workFrom" | "workUntil", string>>;
 
-export function TripFormPage({ projectId, back }: { projectId?: string; back?: string }) {
+export function TripFormPage({ projectId, back, tripId }: { projectId?: string; back?: string; tripId?: string }) {
   const { projects } = useProjects();
-  const { employees, addProjectTrip } = useEmployees();
+  const { employees, addProjectTrip, updateTripGroup } = useEmployees();
   const goBack = useBackNav();
   const project = projects.find((p) => p.id === projectId);
   const backUrl = back ?? (project ? `/portfolio/${project.id}?tab=Trips` : undefined);
@@ -38,15 +38,26 @@ export function TripFormPage({ projectId, back }: { projectId?: string; back?: s
 
   const empty = { country: "", city: "", purpose: "", milestone: "", from: "", until: "", workFrom: "", workUntil: "", ticketsCost: "", visaCost: "", perDiemCost: "" };
   const [f, setF] = useState(empty); const [ids, setIds] = useState<string[]>([]); const [errors, setErrors] = useState<Errors>({});
+  const inTrip = (x: EmployeeTrip) => !!tripId && (x.groupId ?? x.id) === tripId && x.project === project?.name;
+  const original = tripId ? employees.flatMap((e) => e.trips.filter(inTrip).map((x) => ({ e, x }))) : [];
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    if (loaded || !original.length) return;
+    const x = original[0]!.x;
+    setF({ country: x.country, city: x.city, purpose: x.purpose ?? "", milestone: x.milestone ?? "", from: x.from, until: x.until, workFrom: x.workFrom, workUntil: x.workUntil, ticketsCost: String(x.ticketsCost || ""), visaCost: String(x.visaCost || ""), perDiemCost: String(x.perDiemCost || "") });
+    setIds(original.map((o) => o.e.id)); setLoaded(true);
+  }, [loaded, original]);
   const set = (k: keyof typeof empty, v: string) => { setF((p) => ({ ...p, [k]: v })); setErrors((e) => ({ ...e, [k]: undefined })); };
 
   const datesReady = !!f.from && !!f.until && f.until >= f.from;
   // Travelers already on another trip during these travel dates are hidden so nobody is double-booked.
   const available = useMemo(() => !project || !datesReady ? [] : employees.filter((e) => e.active !== false && e.projects.includes(project.name)
-    && !e.trips.some((x) => overlaps(f.from, f.until, x.from, x.until))), [employees, project, datesReady, f.from, f.until]);
+    && !e.trips.some((x) => !inTrip(x) && overlaps(f.from, f.until, x.from, x.until))), [employees, project, datesReady, f.from, f.until]);
   const selected = ids.filter((id) => available.some((e) => e.id === id));
 
-  if (!project) return <RecordPageHeader kind="trip" back={back} title={t.add} subtitle="Project not found" />;
+  const title = tripId ? t.edit : t.add;
+  if (!project) return <RecordPageHeader kind="trip" back={back} title={title} subtitle="Project not found" />;
+  if (tripId && !original.length && !loaded) return <RecordPageHeader kind="trip" back={backUrl} title={title} subtitle={t.notFound} />;
 
   function submit() {
     const next: Errors = {
@@ -60,8 +71,8 @@ export function TripFormPage({ projectId, back }: { projectId?: string; back?: s
     };
     setErrors(next); if (Object.values(next).some(Boolean) || !project) return;
     const trip: Omit<EmployeeTrip, "id" | "groupId"> = { project: project.name, country: f.country, city: f.city, purpose: f.purpose.trim() || undefined, milestone: f.milestone || undefined, from: f.from, until: f.until, workFrom: f.workFrom, workUntil: f.workUntil, days: daysBetween(f.from, f.until), ticketsCost: Number(f.ticketsCost) || 0, visaCost: Number(f.visaCost) || 0, perDiemCost: Number(f.perDiemCost) || 0 };
-    addProjectTrip(selected, trip);
-    toast.success(t.added, { description: `${trip.city} · ${selected.length} ${t.travelers.toLowerCase()}` });
+    if (tripId) updateTripGroup(project.name, tripId, selected, trip); else addProjectTrip(selected, trip);
+    toast.success(tripId ? t.updated : t.added, { description: `${trip.city} · ${selected.length} ${t.travelers.toLowerCase()}` });
     goBack(backUrl, fallback);
   }
 
@@ -71,7 +82,7 @@ export function TripFormPage({ projectId, back }: { projectId?: string; back?: s
   const section = (title: string, body: ReactNode) => <section className="space-y-3"><h3 className="text-sm font-semibold">{title}</h3>{body}</section>;
 
   return <>
-    <RecordPageHeader kind="trip" back={backUrl} title={t.add} subtitle={`Project: ${project.name}`} />
+    <RecordPageHeader kind="trip" back={backUrl} title={title} subtitle={`Project: ${project.name}`} />
     <div className="glass-card w-full p-6">
       <div className="space-y-6">
         {section(t.dates, <div className="grid gap-4 sm:grid-cols-2">

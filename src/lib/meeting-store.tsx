@@ -64,6 +64,13 @@ const SEED: Meeting[] = [
       { id: "at2", name: "Omar Haddad", party: "External", organization: "SAP Partner" },
     ],
   },
+  { id: "M-004", project: P, title: "Dubai site kickoff", type: "Progress meeting", date: "2026-11-03", time: "09:00", location: "Teams", attendees: [{ id: "EMP-003", name: "Mei Chen", party: "Internal" }, { id: "at1", name: "John Smith", party: "Internal" }] },
+  { id: "M-005", project: "Security Hardening 2026", title: "Threat model review", type: "Workshop", date: "2026-11-03", time: "14:30", location: "Teams", attendees: [{ id: "EMP-003", name: "Mei Chen", party: "Internal" }, { id: "at1", name: "John Smith", party: "Internal" }] },
+  { id: "M-006", project: P, title: "Daily standup", type: "Progress meeting", date: "2026-11-18", time: "09:30", location: "Teams", attendees: [{ id: "EMP-003", name: "Mei Chen", party: "Internal" }, { id: "at1", name: "John Smith", party: "Internal" }] },
+  { id: "M-007", project: "Security Hardening 2026", title: "Pen-test findings walkthrough", type: "Workshop", date: "2026-11-18", time: "11:00", location: "Teams", attendees: [{ id: "EMP-003", name: "Mei Chen", party: "Internal" }, { id: "at1", name: "John Smith", party: "Internal" }] },
+  { id: "M-008", project: P, title: "Data migration sync", type: "Progress meeting", date: "2026-11-18", time: "15:00", location: "Teams", attendees: [{ id: "EMP-003", name: "Mei Chen", party: "Internal" }, { id: "at1", name: "John Smith", party: "Internal" }] },
+  { id: "M-009", project: P, title: "Daily standup", type: "Progress meeting", date: "2026-11-24", time: "09:30", location: "Teams", attendees: [{ id: "EMP-003", name: "Mei Chen", party: "Internal" }, { id: "at1", name: "John Smith", party: "Internal" }] },
+  { id: "M-010", project: "Security Hardening 2026", title: "Access review sign-off", type: "Steering committee", date: "2026-11-24", time: "13:00", location: "Teams", attendees: [{ id: "EMP-003", name: "Mei Chen", party: "Internal" }, { id: "at1", name: "John Smith", party: "Internal" }] },
 ];
 
 let state: Meeting[] = SEED;

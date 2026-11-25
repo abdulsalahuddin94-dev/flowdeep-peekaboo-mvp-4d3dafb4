@@ -1,3 +1,7 @@
+## 2026-11-25 — Calendar day overflow ("+N more")
+- Employee monthly calendar caps each day at 3 items; extras open a Google-style day popover (weekday, date, close, holiday tag, timed meetings, trips, projects with hover details).
+- Demo meetings added for Mei Chen on 3, 18 and 24 Nov 2026.
+
 ## 2026-11-25 — Leave marker changed from sun to umbrella
 - The Iconsax sun glyph used for leave reads as a snowflake at 12–16px, so leave now uses a hand-drawn umbrella mark (`Umbrella` in `src/lib/icons.tsx`, offline SVG so it never depends on a runtime icon fetch). Applied to the monthly leave pill, the legend and the yearly mini calendars; the holiday gift mark is unchanged. Verified on Mei Chen's November 2026 calendar.
 

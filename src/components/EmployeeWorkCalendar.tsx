@@ -1,14 +1,15 @@
 // ============= Full file contents =============
 
-import { useEffect, useMemo, useState } from "react";
-import { PartyPopper, Umbrella } from "@/lib/icons";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { PartyPopper, Umbrella, X } from "@/lib/icons";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 /** One dated piece of work for the employee: a task inside a project milestone. */
 export type WorkEntry = { project: string; milestone: string; task: string; from: string; until: string };
 /** Meetings and trips the employee takes part in, shown as labelled chips per day. */
-export type CalendarEvent = { id: string; kind: "meeting" | "trip"; label: string; from: string; until: string };
+export type CalendarEvent = { id: string; kind: "meeting" | "trip"; label: string; from: string; until: string; time?: string };
 export type CalendarLeave = { from: string; until: string; label: string };
 /** Allocation span — supplies each project's share shown next to its name. */
 export type WorkAllocation = { project: string; percent: number; from: string; until: string };
@@ -94,15 +95,56 @@ function MonthGrid({ today, holidays, events, y, month, entries, leave, color, b
         const isToday = date === today;
         return <div key={i} data-date={date} aria-current={isToday ? "date" : undefined} className={cn("min-w-0 min-h-24 space-y-1.5 border-b border-e border-border p-2", isToday && "bg-muted/30")}>
           <div className="flex h-7 items-center justify-between gap-1"><span className={cn("inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold", isToday && "bg-accent text-accent-foreground")}>{d}</span>{isToday && <span className="text-xs font-medium text-accent">{l.today}</span>}</div>
-          {holiday && <Tooltip><TooltipTrigger asChild><div className="flex min-h-7 items-center gap-1.5 rounded-full border border-rag-green/30 bg-rag-green/10 px-2 py-1 text-xs text-rag-green"><PartyPopper className="h-4 w-4 shrink-0" /><span className="min-w-0 truncate">{l.holiday}</span></div></TooltipTrigger><TooltipContent>{l.holiday}: {holiday.label}</TooltipContent></Tooltip>}
-          {off && <Tooltip><TooltipTrigger asChild><div className="flex min-h-7 items-center gap-1.5 rounded-full border border-dashed border-rag-blue/50 bg-rag-blue/10 px-2 py-1 text-xs text-rag-blue"><Umbrella className="h-4 w-4 shrink-0" /><span className="min-w-0 truncate">{off.label}</span></div></TooltipTrigger><TooltipContent>{off.label}</TooltipContent></Tooltip>}
-          {groups.slice(0, 2).map((g) => <Tooltip key={g.project}><TooltipTrigger asChild><div className={cn("cursor-default truncate rounded-md px-2 py-1 text-center text-xs font-medium", color(g.project))}>{g.project}</div></TooltipTrigger><TooltipContent><Detail items={g.items} /></TooltipContent></Tooltip>)}
-          <EventChips events={eventsOn(events, date)} />
-          {groups.length > 2 && <Tooltip><TooltipTrigger asChild><div className="cursor-default text-center text-xs text-muted-foreground">+{groups.length - 2} {l.more}</div></TooltipTrigger><TooltipContent><Detail items={groups.slice(2).flatMap((g) => g.items)} /></TooltipContent></Tooltip>}
+          <DayItems date={date} d={d} isToday={isToday} holiday={holiday} off={off} events={eventsOn(events, date)} groups={groups} color={color} />
         </div>;
       })}
     </div>
   </div>;
+}
+
+const MAX_VISIBLE = 3;
+const dotColor = { meeting: "bg-rag-blue", trip: "bg-rag-amber" } as const;
+const fmtTime = (t?: string) => {
+  if (!t) return "";
+  const [h = 0, m = 0] = t.split(":").map(Number);
+  return `${h % 12 || 12}${m ? `:${String(m).padStart(2, "0")}` : ""}${h < 12 ? "am" : "pm"}`;
+};
+
+/** Caps each day at MAX_VISIBLE items so busy days keep the grid even; the rest open in a Google-style day popover. */
+function DayItems({ date, d, isToday, holiday, off, events, groups, color }: { date: string; d: number; isToday: boolean; holiday?: { date: string; label: string }; off?: CalendarLeave; events: CalendarEvent[]; groups: { project: string; items: WorkEntry[] }[]; color: (p: string) => string }) {
+  const [open, setOpen] = useState(false);
+  const trips = events.filter((e) => e.kind === "trip");
+  const meetings = events.filter((e) => e.kind === "meeting").sort((a, b) => (a.time ?? "99").localeCompare(b.time ?? "99"));
+  const chips: { key: string; node: ReactNode; row: ReactNode }[] = [
+    ...(off ? [{ key: "leave", node: <Tooltip><TooltipTrigger asChild><div className="flex min-h-7 items-center gap-1.5 rounded-full border border-dashed border-rag-blue/50 bg-rag-blue/10 px-2 py-1 text-xs text-rag-blue"><Umbrella className="h-4 w-4 shrink-0" /><span className="min-w-0 truncate">{off.label}</span></div></TooltipTrigger><TooltipContent>{off.label}</TooltipContent></Tooltip>, row: <><Umbrella className="h-4 w-4 shrink-0 text-rag-blue" /><span className="truncate">{off.label}</span></> }] : []),
+    ...trips.map((e) => ({ key: e.id, node: <EventChips events={[e]} />, row: <><span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", dotColor.trip)} /><span className="truncate">{e.label}</span></> })),
+    ...meetings.map((e) => ({ key: e.id, node: <EventChips events={[e]} />, row: <><span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", dotColor.meeting)} />{e.time && <span className="num-mono shrink-0 text-muted-foreground">{fmtTime(e.time)}</span>}<span className="truncate font-medium">{e.label}</span></> })),
+    ...groups.map((g) => ({ key: g.project, node: <Tooltip><TooltipTrigger asChild><div className={cn("cursor-default truncate rounded-md px-2 py-1 text-center text-xs font-medium", color(g.project))}>{g.project}</div></TooltipTrigger><TooltipContent><Detail items={g.items} /></TooltipContent></Tooltip>, row: <Tooltip><TooltipTrigger asChild><span className="flex min-w-0 flex-1 cursor-default items-center gap-2"><span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", color(g.project).split(" ")[0])} /><span className="truncate">{g.project}</span></span></TooltipTrigger><TooltipContent side="right"><Detail items={g.items} /></TooltipContent></Tooltip> })),
+  ];
+  const holidayChip = holiday && <Tooltip><TooltipTrigger asChild><div className="flex min-h-7 items-center gap-1.5 rounded-full border border-rag-green/30 bg-rag-green/10 px-2 py-1 text-xs text-rag-green"><PartyPopper className="h-4 w-4 shrink-0" /><span className="min-w-0 truncate">{l.holiday}</span></div></TooltipTrigger><TooltipContent>{l.holiday}: {holiday.label}</TooltipContent></Tooltip>;
+  const room = MAX_VISIBLE - (holiday ? 1 : 0);
+  const overflow = chips.length > room;
+  const visible = overflow ? chips.slice(0, room - 1) : chips;
+  const hidden = chips.length - visible.length;
+  const weekday = new Date(`${date}T00:00:00`).toLocaleDateString("en-US", { weekday: "short" });
+  return <>
+    {holidayChip}
+    {visible.map((c) => <div key={c.key}>{c.node}</div>)}
+    {overflow && <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild><button type="button" className="w-full rounded-md px-2 py-0.5 text-start text-xs font-medium text-muted-foreground hover:bg-muted/40 hover:text-foreground">+{hidden} {l.more}</button></PopoverTrigger>
+      <PopoverContent align="center" side="top" className="w-72 rounded-2xl p-4">
+        <div className="relative flex flex-col items-center gap-1 pb-3">
+          <span className="text-xs font-medium text-muted-foreground">{weekday}</span>
+          <span className={cn("inline-flex h-11 w-11 items-center justify-center rounded-full text-lg font-semibold", isToday ? "bg-accent text-accent-foreground" : "bg-muted")}>{d}</span>
+          <button type="button" aria-label="Close" onClick={() => setOpen(false)} className="absolute end-0 top-0 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"><X className="h-4 w-4" /></button>
+        </div>
+        {holiday && <div className="mb-2 inline-flex h-7 items-center gap-1.5 rounded-full bg-rag-green/10 px-3 text-xs text-rag-green"><PartyPopper className="h-4 w-4" />{holiday.label}</div>}
+        <div className="max-h-72 space-y-1 overflow-y-auto">
+          {chips.map((c) => <div key={c.key} className="flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/40">{c.row}</div>)}
+        </div>
+      </PopoverContent>
+    </Popover>}
+  </>;
 }
 
 function YearGrid({ today, leave, holidays, events, y, entries, projects, barColor, monthStats }: { today: string; leave: CalendarLeave[]; holidays: { date: string; label: string }[]; events: CalendarEvent[]; y: number; entries: WorkEntry[]; projects: string[]; barColor: (p: string) => string; monthStats: (month: string) => MonthStats }) {

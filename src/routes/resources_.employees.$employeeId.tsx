@@ -177,7 +177,7 @@ function EmployeeDetails() {
  const allocationEnd = calView === "yearly" ? `${year}-12-31` : `${allocationMonth}-31`;
  const owns = (v: string) => { const n = v.trim().toLowerCase(); return n === employee.name.trim().toLowerCase() || n === employee.id.toLowerCase(); };
  const calendarEvents: CalendarEvent[] = [
-  ...meetings.filter((m) => m.attendees.some((a) => owns(a.id) || owns(a.name))).map((m) => ({ id: `meeting-${m.id}`, kind: "meeting" as const, label: m.title, from: m.date, until: m.date })),
+  ...meetings.filter((m) => m.attendees.some((a) => owns(a.id) || owns(a.name))).map((m) => ({ id: `meeting-${m.id}`, kind: "meeting" as const, label: m.title, from: m.date, until: m.date, ...(m.time ? { time: m.time } : {}) })),
   ...employee.trips.map((trip) => ({ id: `trip-${trip.id}`, kind: "trip" as const, label: [trip.city, trip.country].filter(Boolean).join(", ") || trip.purpose || "Trip", from: trip.from, until: trip.until || trip.from })),
  ];
  const employeeActions = actions.filter((a) => owns(a.owner));

@@ -1,3 +1,7 @@
+## 2026-11-25 — Distinct employee calendar day markers
+- Reserved the former neutral day-cell shading for Today, with a lavender date marker and Today label. Holidays now use a green gift icon and outlined pill; leave uses a blue sun icon and dashed pill, including partial leave. Both remain independently visible when they coincide.
+- Applied matching markers to yearly mini calendars; checked Mei's existing November examples without changing staffing, capacity or leave data.
+
 ## 2026-11-25 — Utilization amber threshold unified at 80%
 - The amber "fully loaded" band now starts above 80% everywhere: the Employees table Utilization bar, the Avg utilization KPI card, and the employee profile monthly/yearly utilization cards all use >80 amber / >100 red, matching the request drawer and heatmap thresholds that already used 80.
 

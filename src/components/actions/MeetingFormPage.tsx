@@ -16,7 +16,7 @@ import { useMeetingTypes } from "@/lib/meeting-types-store";
 import { useMeetings, type Meeting } from "@/lib/meeting-store";
 import { ActionRowsEditor, emptyActionRow, filledActionRows, actionRowsValid, cleanActionRows, type ActionRow } from "@/components/actions/ActionTracker";
 import { LinkedActions } from "@/components/actions/ActionList";
-import { EmployeeAttendeesSelect } from "@/components/actions/EmployeePickers";
+import { MeetingAttendeesField } from "@/components/actions/MeetingAttendeesField";
 import { useBackNav } from "@/lib/record-pages";
 
 /**
@@ -123,7 +123,7 @@ export function MeetingFormPage({ meetingId, lockedProject, back }: { meetingId?
             </Field>
           </div>
 
-          <Field label="Attendees" htmlFor="meeting-attendees"><EmployeeAttendeesSelect attendees={d.attendees} onChange={(attendees) => up({ attendees })} /></Field>
+          <MeetingAttendeesField attendees={d.attendees} onChange={(attendees) => up({ attendees })} />
 
           <Field label="Agenda / notes (optional)" htmlFor="mt-notes">
             <Textarea id="mt-notes" maxLength={1000} value={d.notes} onChange={(e) => up({ notes: e.target.value })} placeholder="Agenda, decisions, or minutes" />

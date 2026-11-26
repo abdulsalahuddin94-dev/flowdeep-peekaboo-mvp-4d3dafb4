@@ -1,3 +1,6 @@
+## 2026-11-26 — Meeting attendee type and organization
+- Creation/editing now shares a left-to-right Type → Attendees row. Internal uses the employee multiselect; External uses free-text attendee name and Organization beside it, with an add control and removable attendee pills. Switching type retains both groups and existing meeting records.
+
 ## 2026-11-26 — Compact Team card period
 - Replaced the separate From / To block with one small line under name and role, within the avatar-height header; card footprint returns to its original size. Same-day requests show one date; multi-day requests show a range; timed or explicitly recorded duration appears after a dot. Existing date tooltip retains full details. Allocation windows remain unchanged.
 

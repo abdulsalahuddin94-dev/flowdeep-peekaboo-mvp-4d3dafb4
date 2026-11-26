@@ -1293,6 +1293,8 @@ function ProjectDetail() {
                 toast.error("📖 View Only — Click 'Change Plan' to edit");
                 return;
               }
+              const target = milestones.find((m) => m.name === name);
+              if (target && taskDateBlocked(target, allEmployees)) { setReplacement(""); setDateBlock({ task: name, assignee: target.assignee ?? "" }); return; }
               setCtxDialog({ mode: "edit", name });
             }}
             onDeleteItem={(name) => {

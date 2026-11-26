@@ -1,3 +1,13 @@
+export function compactRequestPeriod(from: string, until: string, durationHours?: number, lang: "en" | "ar" = "en") {
+  const period = requestPeriod(from, until, durationHours);
+  const date = (value: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    return new Intl.DateTimeFormat(lang === "ar" ? "ar-EG" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
+  };
+  const dates = (period.lines[0] === period.lines[1] || period.lines[1] === period.duration ? period.lines.slice(0, 1) : period.lines).map(date).join(" → ");
+  return `${dates}${period.duration ? ` · ${period.duration}` : ""}`;
+}
+
 /** Dates determine the display shape; recorded work hours never determine the end date. */
 export function requestPeriod(from: string, until: string, durationHours?: number) {
   const datePart = (value: string) => value.match(/^\d{4}-\d{2}-\d{2}/)?.[0] ?? value;

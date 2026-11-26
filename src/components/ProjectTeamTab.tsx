@@ -25,7 +25,7 @@ import { TableRowActions } from "@/components/TableRowActions";
 import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
 import { MultiSelectField } from "@/components/ui/multi-select-field";
 
-export type TeamMember = { name: string; role: string; employment: Employment; /** What the request that placed them here was raised for. */ coverage: "project" | "task" | "period"; /** Allocation window from task/period requests; undefined = whole project. */ window?: { from: string; until: string }; /** Joined only for specific tasks — no extra task assignment. */ taskOnly?: boolean };
+export type TeamMember = { name: string; role: string; employment: Employment; /** What the request that placed them here was raised for. */ coverage: "project" | "task" | "period"; /** Allocation window from task/period requests; undefined = whole project. */ window?: { from: string; until: string }; displayPeriod?: { from: string; until: string; durationHours?: number | undefined }; /** Joined only for specific tasks — no extra task assignment. */ taskOnly?: boolean };
 const dayFrom = (d: string) => (d.length === 7 ? `${d}-01` : d.slice(0, 10));
 const dayUntil = (d: string) => (d.length === 7 ? `${d}-31` : d.slice(0, 10));
 /** Tasks whose dates fall outside the member's allocation window — a soft, non-blocking warning. */
@@ -50,12 +50,22 @@ export function projectTeam(project: string, requests: ResourceRequest[]): TeamM
       const prev = map.get(name);
       const w = cov === "project" ? undefined : { from: dayFrom(r.periodStart ?? r.from), until: dayUntil(r.periodEnd ?? r.until) };
       const taskOnly = cov === "task";
-      if (!prev) map.set(name, { name, role: r.role, employment, window: w, taskOnly, coverage: cov });
+      const displayPeriod = cov === "project" ? undefined : { from: r.periodStart ?? r.from, until: r.periodEnd ?? r.until, durationHours: r.durationHours };
+      if (!prev) map.set(name, { name, role: r.role, employment, window: w, taskOnly, coverage: cov, ...(displayPeriod ? { displayPeriod } : {}) });
       else {
         if (employment === "Full time") prev.employment = "Full time";
         prev.taskOnly = prev.taskOnly && taskOnly;
         if (COV_RANK[cov] > COV_RANK[prev.coverage]) prev.coverage = cov;
         prev.window = !prev.window || !w ? undefined : { from: w.from < prev.window.from ? w.from : prev.window.from, until: w.until > prev.window.until ? w.until : prev.window.until };
+        if (prev.coverage === "project") delete prev.displayPeriod;
+        else if (displayPeriod) {
+          const earlier = prev.displayPeriod;
+          prev.displayPeriod = earlier ? {
+            from: earlier.from < displayPeriod.from ? earlier.from : displayPeriod.from,
+            until: earlier.until > displayPeriod.until ? earlier.until : displayPeriod.until,
+            durationHours: earlier.durationHours !== undefined && displayPeriod.durationHours !== undefined ? earlier.durationHours + displayPeriod.durationHours : undefined,
+          } : displayPeriod;
+        }
       }
     }
   }
@@ -137,27 +147,16 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onA
               <>
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12 shrink-0">{emp?.avatar ? <AvatarImage src={emp.avatar} alt={m.name} /> : null}<AvatarFallback className="bg-accent-dim text-sm font-medium text-accent">{m.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}</AvatarFallback></Avatar>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="truncate font-medium text-foreground">{m.name}</div>
                     <div className="truncate text-xs text-muted-foreground">{m.role}</div>
+                    {m.coverage !== "project" && m.displayPeriod && <RequestPeriod {...m.displayPeriod} lang={lang} compact />}
                   </div>
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-2">
                   <span className="text-xs text-muted-foreground">{m.employment}</span>
                   <Pill label={covCard[m.coverage]} tone={covTone[m.coverage]} className="shrink-0 px-2.5 text-[11px]" />
                 </div>
-                {m.coverage !== "project" && m.window && (
-                  <dl className="mt-3 grid grid-cols-2 gap-x-3 text-xs">
-                    <div className="min-w-0 space-y-1">
-                      <dt className="text-muted-foreground">{t.fromD}</dt>
-                      <dd className="num-mono text-foreground">{formatDateWithYear(m.window.from)}</dd>
-                    </div>
-                    <div className="min-w-0 space-y-1">
-                      <dt className="text-muted-foreground">{t.untilD}</dt>
-                      <dd className="num-mono text-foreground">{formatDateWithYear(m.window.until)}</dd>
-                    </div>
-                  </dl>
-                )}
               </>
             );
             return (

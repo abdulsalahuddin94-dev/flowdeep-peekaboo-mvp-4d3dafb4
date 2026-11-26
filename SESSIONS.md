@@ -1,3 +1,6 @@
+## 2026-11-26 — Compact Team card period
+- Replaced the separate From / To block with one small line under name and role, within the avatar-height header; card footprint returns to its original size. Same-day requests show one date; multi-day requests show a range; timed or explicitly recorded duration appears after a dot. Existing date tooltip retains full details. Allocation windows remain unchanged.
+
 ## 2026-11-26 — Team card request dates
 - Specific task and Period of time member cards show bilingual From / To dates from the existing request-derived allocation window; Full Project cards stay unchanged. Status/task controls remain aligned across each row.
 

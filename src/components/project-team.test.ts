@@ -59,6 +59,12 @@ test("member card coverage follows the request that placed them", () => {
   assert.equal(team.find((m) => m.name === "Bob")?.coverage, "task");
 });
 
+test("team card keeps precise same-day times and hours separate from allocation dates", () => {
+  const team = projectTeam("P", [{ ...base, id: "timed", project: "P", role: "QA", status: "Fulfilled", assignedTo: "Ann", scope: "task", task: "T", from: "2026-07-07", until: "2026-07-07", periodStart: "2026-07-07T09:00:00", periodEnd: "2026-07-07T14:30:00", durationHours: 5.5 }]);
+  assert.deepEqual(team[0]?.window, { from: "2026-07-07", until: "2026-07-07" });
+  assert.deepEqual(team[0]?.displayPeriod, { from: "2026-07-07T09:00:00", until: "2026-07-07T14:30:00", durationHours: 5.5 });
+});
+
 test("widest coverage wins when one person arrives through several requests", () => {
   const team = projectTeam("P", [
     { ...base, id: "1", project: "P", role: "QA", status: "Fulfilled", assignedTo: "Ann", employment: "Full time", scope: "task", task: "T" },

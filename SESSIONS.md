@@ -1,3 +1,6 @@
+## 2026-11-26 — Locked task dates also in Change Plan
+- Opening a completed task whose assignee is inactive in Change Plan shows the blocking "Task dates are locked" popup first.
+
 ## 2026-11-26 — Employee deactivate / delete rules
 - Deactivate lists in-progress/upcoming assignments; inactive and deleted employees are hidden from resource pickers, team assignment and fulfilment.
 - Delete is blocked while the employee has in-progress or upcoming tasks, project roles, trips or meetings; otherwise a soft delete keeps their name on history.

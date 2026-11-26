@@ -17,7 +17,16 @@ export function requestPeriod(from: string, until: string, durationHours?: numbe
   const elapsed = timed ? (Date.parse(until) - Date.parse(from)) / 3_600_000 : undefined;
   const hours = durationHours ?? elapsed;
   const minutes = hours !== undefined && Number.isFinite(hours) && hours >= 0 ? Math.round(hours * 60) : undefined;
-  const duration = minutes === undefined ? undefined : [Math.floor(minutes / 60) ? `${Math.floor(minutes / 60)}h` : "", minutes % 60 ? `${minutes % 60}m` : ""].filter(Boolean).join(" ") || "0h";
+  const duration = minutes === undefined ? undefined : formatWorkDuration(minutes);
   const sameDay = /^\d{4}-\d{2}-\d{2}$/.test(start) && start === end;
   return { lines: sameDay ? [start, ...(duration ? [duration] : [])] : start === end ? [start] : [start, end], duration, from, until };
+}
+
+/** Recorded work hours read as days once a full 24h day is reached: 3h, 5h 30m, 2d, 3d 4h. */
+export function formatWorkDuration(minutes: number) {
+  const days = Math.floor(minutes / 1440);
+  const rest = minutes % 1440;
+  const hours = Math.floor(rest / 60);
+  const mins = rest % 60;
+  return [days ? `${days}d` : "", hours ? `${hours}h` : "", mins ? `${mins}m` : ""].filter(Boolean).join(" ") || "0h";
 }

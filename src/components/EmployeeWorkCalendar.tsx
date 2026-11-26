@@ -67,7 +67,7 @@ export function EmployeeWorkCalendar({ workingDays = [0, 1, 2, 3, 4], holidays =
     {<div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
       {view === "monthly" && projects.map((p) => { const pct = percentOf(p); return <span key={p} className="inline-flex items-center gap-2"><span className={cn("h-3 w-3 rounded-full", color(p).split(" ")[0])} />{p}{pct > 0 && <span className="num-mono font-semibold text-foreground">{pct}%</span>}</span>; })}
       <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-accent" />{l.today}</span>
-      <span className="inline-flex items-center gap-2"><Umbrella className="h-4 w-4 text-rag-blue" />{l.leave}</span>
+      <span className="inline-flex items-center gap-2"><Umbrella className="h-4 w-4 text-rag-rose" />{l.leave}</span>
       <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-rag-blue/40" />{l.meeting}</span>
       <span className="inline-flex items-center gap-2"><span className="h-3 w-3 rounded-full bg-rag-amber/40" />{l.trip}</span>
       <span className="inline-flex items-center gap-2"><PartyPopper className="h-4 w-4 text-rag-green" />{l.holiday}</span>
@@ -116,7 +116,7 @@ function DayItems({ date, d, isToday, holiday, off, events, groups, color }: { d
   const trips = events.filter((e) => e.kind === "trip");
   const meetings = events.filter((e) => e.kind === "meeting").sort((a, b) => (a.time ?? "99").localeCompare(b.time ?? "99"));
   const chips: { key: string; node: ReactNode; row: ReactNode }[] = [
-    ...(off ? [{ key: "leave", node: <Tooltip><TooltipTrigger asChild><div className="flex min-h-7 items-center gap-1.5 rounded-full border border-dashed border-rag-blue/50 bg-rag-blue/10 px-2 py-1 text-xs text-rag-blue"><Umbrella className="h-4 w-4 shrink-0" /><span className="min-w-0 truncate">{off.label}</span></div></TooltipTrigger><TooltipContent>{off.label}</TooltipContent></Tooltip>, row: <><Umbrella className="h-4 w-4 shrink-0 text-rag-blue" /><span className="truncate">{off.label}</span></> }] : []),
+    ...(off ? [{ key: "leave", node: <Tooltip><TooltipTrigger asChild><div className="flex min-h-7 items-center gap-1.5 rounded-full border border-dashed border-rag-rose/50 bg-rag-rose/10 px-2 py-1 text-xs text-rag-rose"><Umbrella className="h-4 w-4 shrink-0" /><span className="min-w-0 truncate">{off.label}</span></div></TooltipTrigger><TooltipContent>{off.label}</TooltipContent></Tooltip>, row: <><Umbrella className="h-4 w-4 shrink-0 text-rag-rose" /><span className="truncate">{off.label}</span></> }] : []),
     ...trips.map((e) => ({ key: e.id, node: <EventChips events={[e]} />, row: <><span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", dotColor.trip)} /><span className="truncate">{e.label}</span></> })),
     ...meetings.map((e) => ({ key: e.id, node: <EventChips events={[e]} />, row: <><span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", dotColor.meeting)} />{e.time && <span className="num-mono shrink-0 text-muted-foreground">{fmtTime(e.time)}</span>}<span className="truncate font-medium">{e.label}</span></> })),
     ...groups.map((g) => ({ key: g.project, node: <Tooltip><TooltipTrigger asChild><div className={cn("cursor-default truncate rounded-md px-2 py-1 text-center text-xs font-medium", color(g.project))}>{g.project}</div></TooltipTrigger><TooltipContent><Detail items={g.items} /></TooltipContent></Tooltip>, row: <Tooltip><TooltipTrigger asChild><span className="flex min-w-0 flex-1 cursor-default items-center gap-2"><span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", color(g.project).split(" ")[0])} /><span className="truncate">{g.project}</span></span></TooltipTrigger><TooltipContent side="right"><Detail items={g.items} /></TooltipContent></Tooltip> })),
@@ -192,7 +192,7 @@ function MiniMonth({ today, leave, y, m, holidays, events }: { today: string; le
       const isToday = date === today;
       const cell = <div aria-current={isToday ? "date" : undefined} className={cn("flex h-9 flex-col items-center justify-center gap-0.5 rounded-md num-mono text-muted-foreground", isToday && "bg-muted/30 ring-1 ring-accent text-accent")}>
         <span>{d}</span>
-        {(holiday || off) && <span className="flex gap-0.5">{holiday && <PartyPopper className="h-3 w-3 text-rag-green" />}{off && <Umbrella className="h-3 w-3 text-rag-blue" />}</span>}
+        {(holiday || off) && <span className="flex gap-0.5">{holiday && <PartyPopper className="h-3 w-3 text-rag-green" />}{off && <Umbrella className="h-3 w-3 text-rag-rose" />}</span>}
         {ev.length > 0 && <span className="flex gap-0.5">{Array.from(new Set(ev.map((e) => e.kind))).map((k) => <span key={k} className={cn("h-1 w-1 rounded-full", k === "meeting" ? "bg-rag-blue" : "bg-rag-amber")} />)}</span>}
       </div>;
       if (!holiday && !off && !ev.length && !isToday) return <div key={i}>{cell}</div>;

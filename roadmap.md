@@ -121,3 +121,4 @@
 - [x] Action Tracker: Owner dropdown from Resources employees.
 - [x] Trip creation: Country and City dropdowns.
 - [x] Write a Figma-ready summary of all changes from 2026-11-25 to 2026-11-26
+- [x] Team card / request period: cover every time case (hours in one day, 2-3 days + hours, days only)

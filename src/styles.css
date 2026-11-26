@@ -150,6 +150,19 @@
   --p-red-900: #300302;                      /* Red BG         · Red 900 */
   --p-red-950: #1c0201;
 
+  /* Color · Rose (absence / leave marker — deliberately away from project blue) */
+  --p-rose-50:  #fff1f2;
+  --p-rose-100: #ffe4e6;
+  --p-rose-200: #fecdd3;
+  --p-rose-300: #fda4af;
+  --p-rose-400: #fb7185;
+  --p-rose-500: #f43f5e;
+  --p-rose-600: #e11d48;
+  --p-rose-700: #be123c;
+  --p-rose-800: #9f1239;
+  --p-rose-900: #881337;
+  --p-rose-950: #4c0519;
+
   /* Color · Info / Blue (Blue 50 → 900) */
   --p-blue-50:  #dbeaff;                     /* Info Lighter · Blue 50  */
   --p-blue-100: #bee2ff;
@@ -431,6 +444,7 @@
   --rag-blue:  var(--p-blue-600);
   --rag-grey:  var(--p-slate-500);
   --rag-teal:  var(--p-teal-600);
+  --rag-rose:  var(--p-rose-600);
 
   /* Chart palette (shared across recharts / SVG visualisations) */
   --chart-1: var(--p-amber-500);
@@ -553,6 +567,7 @@
   --rag-blue:  var(--p-blue-600);
   --rag-grey:  var(--p-slate-500);
   --rag-teal:  var(--p-teal-600);
+  --rag-rose:  var(--p-rose-400);
 
   /* Chart palette — dark */
   --chart-1: var(--p-amber-500);
@@ -667,6 +682,7 @@
   --color-rag-blue:  var(--rag-blue);
   --color-rag-grey:  var(--rag-grey);
   --color-rag-teal:  var(--rag-teal);
+  --color-rag-rose:  var(--rag-rose);
 
   --color-role-exec:     var(--p-lavender-200);
   --color-role-director: var(--p-blue-500);

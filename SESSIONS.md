@@ -1,3 +1,10 @@
+## 2026-11-26 — Leave marker moves to rose
+- The leave umbrella, its legend entry and the yearly minimonth marker now use a new rose token (--color-rag-rose, rose-400 dark / rose-600 light) instead of blue, so absence no longer reads like the blue Security Hardening project bar. Meetings keep the blue dot.
+
+## 2026-11-26 — Every recorded-time case on Team cards
+- formatWorkDuration renders recorded hours as days once a full day is reached: 45m, 3h, 5h 30m, 2d, 3d 4h. The compact card line therefore covers hours in one day, whole days, and days + hours.
+- Three fulfilled ERP requests (RR-40/41/42, Rana Saleh, Tariq Nasser, Mona Adel) demonstrate the cases: 3 Nov 2026 · 3h, 9 Nov → 10 Nov · 2d, 16 Nov → 18 Nov · 3d 4h.
+
 ## 2026-11-26 — Attendee composer keeps its add button and shows an attendee bar
 - The add "+" now sits on the composer row for both Internal and External, so a meeting can start with an external guest and still gain internal people without losing them. Internal picks one employee from a searchable list; External types a name and organization. Every added person lands in the bar under the row — lavender pill for internal, teal for external — each removable on its own, and the bar shows a placeholder while empty. Duplicate names cannot be added.
 

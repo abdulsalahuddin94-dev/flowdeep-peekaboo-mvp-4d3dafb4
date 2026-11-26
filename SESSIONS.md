@@ -1,3 +1,6 @@
+## 2026-11-26 — Team card request dates
+- Specific task and Period of time member cards show bilingual From / To dates from the existing request-derived allocation window; Full Project cards stay unchanged. Status/task controls remain aligned across each row.
+
 ## 2026-11-26 — Locked task dates also in Change Plan
 - Opening a completed task whose assignee is inactive in Change Plan shows the blocking "Task dates are locked" popup first.
 

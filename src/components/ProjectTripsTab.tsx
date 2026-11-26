@@ -1,3 +1,4 @@
+import { guardDeletedEmployee } from "@/components/EmployeeLifecycle";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useBackParam } from "@/lib/record-pages";
@@ -111,7 +112,7 @@ function TravelersCell({ travelers, employees }: { travelers: { id: string; name
         <div className="max-h-80 space-y-1 overflow-y-auto pe-1">
           {travelers.map((v) => {
             const e = byId.get(v.id);
-            return <Link key={v.id} to="/resources/employees/$employeeId" params={{ employeeId: v.id }} onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-secondary">
+            return <Link key={v.id} to="/resources/employees/$employeeId" params={{ employeeId: v.id }} onClick={(ev) => { guardDeletedEmployee(e, ev); setOpen(false); }} className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-secondary">
               <Avatar className="h-9 w-9 shrink-0">{e?.avatar ? <AvatarImage src={e.avatar} alt={v.name} /> : null}<AvatarFallback className="bg-accent-dim text-xs font-medium text-accent">{v.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}</AvatarFallback></Avatar>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-foreground">{v.name}</div>

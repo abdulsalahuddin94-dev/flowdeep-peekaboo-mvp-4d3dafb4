@@ -1,3 +1,9 @@
+## 2026-11-26 — Employee deactivate / delete rules
+- Deactivate lists in-progress/upcoming assignments; inactive and deleted employees are hidden from resource pickers, team assignment and fulfilment.
+- Delete is blocked while the employee has in-progress or upcoming tasks, project roles, trips or meetings; otherwise a soft delete keeps their name on history.
+- Clicking a deleted employee anywhere opens a "deleted employee" notice instead of the profile.
+- Completed tasks whose assignee is inactive have their dates locked until the employee is activated or the task reassigned (blocking popup).
+
 ## 2026-11-25 — Project Trips table + Edit trip
 - Trips table: traveler count as a number (opens travelers popup), travel/work dates stacked, round Edit + Delete actions.
 - New /trips/$tripId/edit reuses TripFormPage prefilled; updateTripGroup rewrites each traveler's linked record (added/removed travelers handled).

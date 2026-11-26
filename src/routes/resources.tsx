@@ -1,3 +1,5 @@
+import { useEmployeeLifecycle, guardDeletedEmployee } from "@/components/EmployeeLifecycle";
+import { isEmployeeAvailable } from "@/lib/employee-links";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
@@ -319,7 +321,7 @@ function AssignedSection({ req }: { req: ResourceRequest }) {
           return (
             <li key={n}>
               <button type="button" onMouseEnter={() => setActive(n)} onFocus={() => setActive(n)}
-                onClick={() => emp && navigate({ to: "/resources/employees/$employeeId", params: { employeeId: emp.id } })}
+                onClick={(ev) => emp && !guardDeletedEmployee(emp, ev) && navigate({ to: "/resources/employees/$employeeId", params: { employeeId: emp.id } })}
                 className={`flex w-full items-center gap-3 rounded-md px-2 py-2 text-start transition-colors hover:bg-muted/60 ${n === cur && names.length > 1 ? "bg-muted/60" : ""}`}>
                 <Avatar className="h-9 w-9">
                   {emp?.avatar && <AvatarImage src={emp.avatar} alt={n} />}
@@ -462,11 +464,10 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
     }
     return Array.from(seen.values()).sort((a, b) => a.localeCompare(b));
   }, [jobRoles, pool]);
-  const [pendingToggle, setPendingToggle] = useState<{ id: string; name: string; active: boolean } | null>(null);
-  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
+  const lifecycle = useEmployeeLifecycle();
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return pool.filter((r) => !q || r.name.toLowerCase().includes(q) || r.role.toLowerCase().includes(q) || r.tasks.some((t) => t.toLowerCase().includes(q)))
+    return pool.filter((r) => !r.deleted).filter((r) => !q || r.name.toLowerCase().includes(q) || r.role.toLowerCase().includes(q) || r.tasks.some((t) => t.toLowerCase().includes(q)))
       .filter((r) => matchAnySelected(department, [r.dept]))
       .filter((r) => matchAnySelected(seniority, [r.seniority ?? ""]))
       .filter((r) => matchAnySelected(statuses, [r.active === false ? "inactive" : "active"]))
@@ -509,8 +510,8 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
                       <TableRowActions
                         isActive={r.active !== false}
                         onEdit={() => navigate({ to: "/resources/employees/new", search: { edit: r.id } })}
-                        onToggleActive={() => setPendingToggle({ id: r.id, name: r.name, active: r.active !== false })}
-                        onDelete={() => setPendingDelete({ id: r.id, name: r.name })}
+                        onToggleActive={() => lifecycle.requestToggle(r)}
+                        onDelete={() => lifecycle.requestDelete(r)}
                       />
                     </StyledTableCell>
                   </StyledTableRow>
@@ -536,33 +537,7 @@ function PeopleTable({ pool, setPool }: { pool: PoolResource[]; setPool: (update
       </Dialog>
       <ConfirmDialog open={overwriteOpen} onOpenChange={setOverwriteOpen} tone="warning" title={c.overwrite} description={c.overwriteD} cancelLabel={c.cancel} confirmLabel={c.confirm} onConfirm={applyCapacityPlan} />
 
-      <ConfirmDeleteDialog
-        description="This employee will be removed from the resources pool."
-        label={pendingDelete?.name}
-        onCancel={() => setPendingDelete(null)}
-        onConfirm={() => {
-          if (!pendingDelete) return;
-          setPool((prev) => prev.filter((x) => x.id !== pendingDelete.id));
-          toast.done("Employee", "deleted");
-          setPendingDelete(null);
-        }}
-      />
-      <ConfirmDialog
-        open={!!pendingToggle}
-        onOpenChange={(o) => !o && setPendingToggle(null)}
-        tone={pendingToggle?.active ? "warning" : "success"}
-        icon={({ className }) => <ToggleActive className={cn(className, pendingToggle?.active ? "" : "-scale-x-100")} />}
-        title={`${pendingToggle?.active ? "Deactivate" : "Activate"} "${pendingToggle?.name ?? ""}"?`}
-        description={`Are you sure you want to ${pendingToggle?.active ? "deactivate" : "activate"} this employee?`}
-        cancelLabel="Cancel"
-        confirmLabel={pendingToggle?.active ? "Deactivate" : "Activate"}
-        onConfirm={() => {
-          if (!pendingToggle) return;
-          setPool((prev) => prev.map((x) => x.id === pendingToggle.id ? { ...x, active: !pendingToggle.active } : x));
-          toast.done("Employee", pendingToggle.active ? "deactivated" : "activated");
-          setPendingToggle(null);
-        }}
-      />
+      {lifecycle.dialogs}
     </>
   );
 }
@@ -640,7 +615,7 @@ function FulfillDialog({
   const tone = (v: number) => v > 100 ? "text-rag-red" : v > 80 ? "text-rag-amber" : "text-rag-green";
   const remaining = Math.max(1, requestQuantity(req) - requestAssignees(req).length);
   const sameRole = (r: PoolResource) => r.role.trim().toLowerCase() === req.role.trim().toLowerCase();
-  const candidates = pool.filter((r) => r.active !== false && sameRole(r) && !requestAssignees(req).includes(r.name));
+  const candidates = pool.filter((r) => isEmployeeAvailable(r) && sameRole(r) && !requestAssignees(req).includes(r.name));
   const [focusName, setFocusName] = useState<string | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const focused = pool.find((r) => r.name === (focusName && names.includes(focusName) ? focusName : names[names.length - 1]));

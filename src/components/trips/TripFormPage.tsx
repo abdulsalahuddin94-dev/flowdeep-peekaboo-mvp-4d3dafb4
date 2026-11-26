@@ -51,7 +51,7 @@ export function TripFormPage({ projectId, back, tripId }: { projectId?: string; 
 
   const datesReady = !!f.from && !!f.until && f.until >= f.from;
   // Travelers already on another trip during these travel dates are hidden so nobody is double-booked.
-  const available = useMemo(() => !project || !datesReady ? [] : employees.filter((e) => e.active !== false && e.projects.includes(project.name)
+  const available = useMemo(() => !project || !datesReady ? [] : employees.filter((e) => e.active !== false && !e.deleted && e.projects.includes(project.name)
     && !e.trips.some((x) => !inTrip(x) && overlaps(f.from, f.until, x.from, x.until))), [employees, project, datesReady, f.from, f.until]);
   const selected = ids.filter((id) => available.some((e) => e.id === id));
 

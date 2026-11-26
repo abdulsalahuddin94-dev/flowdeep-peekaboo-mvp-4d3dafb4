@@ -16,6 +16,7 @@ import { ProjectsProvider } from "@/lib/projects-store";
 import { EmptyPreviewProvider } from "@/lib/empty-preview";
 import { FinanceLinksProvider } from "@/lib/finance-links";
 import { supabase } from "@/integrations/supabase/client";
+import { DeletedEmployeeNotice } from "@/components/EmployeeLifecycle";
 
 function NotFoundComponent() {
   return (
@@ -115,6 +116,7 @@ function RootComponent() {
             </div>
           </SidebarProvider>
         <Toaster theme="dark" position="top-right" />
+        <DeletedEmployeeNotice />
       </TooltipProvider>
       </EmptyPreviewProvider>
       </FinanceLinksProvider>

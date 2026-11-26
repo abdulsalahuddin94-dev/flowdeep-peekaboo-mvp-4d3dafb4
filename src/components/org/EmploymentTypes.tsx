@@ -39,9 +39,9 @@ export function EmploymentTypesTab() {
   const [editing, setEditing] = useState<EmploymentType | null>(null); const [open, setOpen] = useState(false); const [name, setName] = useState(""); const [desc, setDesc] = useState("");
   const [confirmation, setConfirmation] = useState<{ entry: EmploymentType; kind: "delete" | "toggle" } | null>(null);
   const [listing, setListing] = useState<EmploymentType | null>(null);
-  const listed = listing ? employees.filter((e) => e.employmentTypeId === listing.id) : [];
+  const listed = listing ? employees.filter((e) => !e.deleted && e.employmentTypeId === listing.id) : [];
   const [error, setError] = useState("");
-  const count = (id: string) => employees.filter((e) => e.employmentTypeId === id).length;
+  const count = (id: string) => employees.filter((e) => !e.deleted && e.employmentTypeId === id).length;
   const projectNames = [...new Set([...projects.map((p) => p.name), ...employees.flatMap((e) => [...e.projects, ...e.allocations.map((a) => a.project)])])].sort();
   const roles = [...new Set([...jobRoles.map((r) => r.title), ...employees.map((e) => e.role)])].sort();
   const pager = usePagination(employmentTypes.filter((v) => (v.name.toLowerCase().includes(query.toLowerCase()) || (v.description ?? "").toLowerCase().includes(query.toLowerCase())) && matchStatus(status, v.active) && matchesEmploymentTypeEmployees(v.id, employees, presence, selectedProjects, selectedRoles)));

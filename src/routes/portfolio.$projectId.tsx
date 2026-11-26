@@ -112,6 +112,9 @@ import { ProjectTripsTab } from "@/components/ProjectTripsTab";
 import { ProjectTeamTab, projectTeam } from "@/components/ProjectTeamTab";
 import { seedMilestones, initialCostEntries, initialRevEntries } from "@/lib/plan-seeds";
 import { CollapseAllToggle } from "@/components/CollapseAllToggle";
+import { useEmployees } from "@/lib/employees-store";
+import { isEmployeeAvailable, taskDateBlocked } from "@/lib/employee-links";
+import { Select as BlockSelect, SelectContent as BlockSelectContent, SelectItem as BlockSelectItem, SelectTrigger as BlockSelectTrigger, SelectValue as BlockSelectValue } from "@/components/ui/select";
 import { money, toDollarInput, fromDollarInput } from "@/lib/money";
 
 const PLANNING_STAGES = [
@@ -313,6 +316,10 @@ function ProjectDetail() {
   // Cross-tab navigation: clicking a milestone-linked cost/revenue row jumps to
   // the Project Schedule tab and flashes that milestone row in the WBS.
   const [scheduleHighlight, setScheduleHighlight] = useState<string | null>(null);
+  const { employees: allEmployees, updateEmployee: updateEmp } = useEmployees();
+  /** Finished task whose assignee was deactivated: dates stay locked until the person is restored or replaced. */
+  const [dateBlock, setDateBlock] = useState<{ task: string; assignee: string } | null>(null);
+  const [replacement, setReplacement] = useState("");
   useLogListChanges(milestones, { project: project.name, kind: "Schedule", by: approvalUser.name, ref: "WBS", key: (m) => m.name, label: (m) => m.name, noun: "Schedule item" });
   useLogListChanges(changeRequests, { project: project.name, kind: "Schedule", by: approvalUser.name, ref: "Change", key: (c) => String((c as { id?: string }).id ?? JSON.stringify(c)), label: (c) => String((c as { title?: string }).title ?? "Change request"), noun: "Change request" });
   const goToMilestone = useCallback(
@@ -1129,6 +1136,29 @@ function ProjectDetail() {
               📖 Baseline locked — press <kbd className="rounded border border-border bg-secondary/40 px-1">E</kbd> or click Change Plan to edit
             </div>
           )}
+          {dateBlock && (() => {
+            const emp = allEmployees.find((e) => e.name === dateBlock.assignee);
+            const options = projectTeam(project.name, resourceRequests).filter((m) => m.name !== dateBlock.assignee && allEmployees.some((e) => e.name === m.name && isEmployeeAvailable(e)));
+            return (
+              <ConfirmDialog open onOpenChange={(o) => !o && setDateBlock(null)} tone="warning" cancelLabel="Cancel"
+                title="Task dates are locked"
+                description={`"${dateBlock.task}" is complete and its assignee ${dateBlock.assignee} is ${emp?.deleted ? "deleted" : "inactive"}. Activate the employee or reassign the task to someone else before changing its dates.`}
+                confirmLabel="Reassign task"
+                onConfirm={() => {
+                  if (!replacement) { toast.error("Choose an employee to reassign the task to"); return; }
+                  setMilestones((prev) => prev.map((m) => (m.name === dateBlock.task ? { ...m, assignee: replacement } as Milestone : m)));
+                  toast.success(`${dateBlock.task} reassigned to ${replacement}`); setDateBlock(null);
+                }}>
+                <div className="space-y-3">
+                  <BlockSelect value={replacement} onValueChange={setReplacement}>
+                    <BlockSelectTrigger aria-label="Reassign to"><BlockSelectValue placeholder="Reassign to…" /></BlockSelectTrigger>
+                    <BlockSelectContent>{options.length ? options.map((m) => <BlockSelectItem key={m.name} value={m.name}>{m.name} · {m.role}</BlockSelectItem>) : <div className="px-3 py-2 text-xs text-muted-foreground">No active team members</div>}</BlockSelectContent>
+                  </BlockSelect>
+                  {emp && !emp.deleted && <Button type="button" variant="outline" className="w-full" onClick={() => { updateEmp(emp.id, { active: true }); toast.done("Employee", "activated"); setDateBlock(null); }}>Activate {emp.name}</Button>}
+                </div>
+              </ConfirmDialog>
+            );
+          })()}
           <ProjectSchedule
             calendar={projectCalendar}
             items={useMemo(() => {
@@ -1140,7 +1170,7 @@ function ProjectDetail() {
               return computeDerivedSchedule(milestones, resourceRequests);
             }, [milestones, resourceRequests, isViewingCurrent, selectedBaselineVersion, projectBaselineVersions])}
             resourceList={resourcePool}
-            teamMembers={projectTeam(project.name, resourceRequests)}
+            teamMembers={projectTeam(project.name, resourceRequests).filter((m) => { const e = allEmployees.find((x) => x.name === m.name); return !e || isEmployeeAvailable(e); })}
             restricted={!isEditingAllowed}
             jobRoles={jobRoles.map((r) => r.title)}
             onProgressClick={(name, kind) => {
@@ -1161,6 +1191,11 @@ function ProjectDetail() {
               const isProgressOnly = keys.length > 0 && keys.every((k) => k === "progress" || k === "approvalStatus");
               if (!isEditingAllowed && !isAssigneeOnly && !isProgressOnly) {
                 toast.error("Locked — click 'Change Plan' to edit");
+                return;
+              }
+              const current = milestones.find((m) => m.name === name);
+              if (current && ("startDate" in patch || "endDate" in patch) && taskDateBlocked(current, allEmployees)) {
+                setReplacement(""); setDateBlock({ task: name, assignee: current.assignee ?? "" });
                 return;
               }
               setMilestones((prev) => prev.map((m) => (m.name === name ? { ...m, ...patch } as Milestone : m)));

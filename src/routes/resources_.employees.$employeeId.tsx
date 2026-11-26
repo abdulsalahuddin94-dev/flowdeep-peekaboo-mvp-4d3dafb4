@@ -25,7 +25,7 @@ import { formatDateWithYear } from "@/lib/date-format";
 import { Cell, Pie, PieChart } from "recharts";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { ConfirmDeleteDialog } from "@/components/ConfirmDeleteDialog";
+import { useEmployeeLifecycle } from "@/components/EmployeeLifecycle";
 import { PageHeader } from "@/components/PageHeader";
 import { cn } from "@/lib/utils";
 import { EmployeeWorkCalendar, type WorkEntry, type CalendarEvent } from "@/components/EmployeeWorkCalendar";
@@ -86,7 +86,7 @@ function EmployeeDetails() {
  // The work calendar's own period: which view and which month, driven from the shared slot under the tab line.
  const [calView, setCalView] = useState<"monthly" | "yearly">("monthly"); const [calMonth, setCalMonth] = useState(9); const [warnClosed, setWarnClosed] = useState(false); useEffect(() => setWarnClosed(false), [year]);
  const [planField, setPlanField] = useState<PlanField | null>(null); const [capacityOverwrite, setCapacityOverwrite] = useState<{ start: string; count: number; value: number; workingDays: number; months: string[] } | null>(null); const [editMonth, setEditMonth] = useState<{ month: string; field: PlanField } | null>(null); const [tripOpen, setTripOpen] = useState(false); const [leaveOpen, setLeaveOpen] = useState(false); const [leaveDelete, setLeaveDelete] = useState<EmployeeLeave | null>(null);
- const [taskQuery, setTaskQuery] = useState(""); const [taskProject, setTaskProject] = useState<string>(t.allProjects); const navigate = useNavigate(); const [deleteOpen, setDeleteOpen] = useState(false); const [toggleOpen, setToggleOpen] = useState(false);
+ const [taskQuery, setTaskQuery] = useState(""); const [taskProject, setTaskProject] = useState<string>(t.allProjects); const navigate = useNavigate(); const lifecycle = useEmployeeLifecycle(() => navigate({ to: "/resources", search: { tab: "people" } }));
  // Recharts generates different clip IDs on server vs client — render the donut only after mount.
  const [mounted, setMounted] = useState(false);
  useEffect(() => {
@@ -195,8 +195,8 @@ function EmployeeDetails() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
        <DropdownMenuItem onClick={() => navigate({ to: "/resources/employees/new", search: { edit: employee.id } })}><Pencil size={14} className="mr-2" />{th.edit}</DropdownMenuItem>
-       <DropdownMenuItem onClick={() => setToggleOpen(true)}><ToggleActive size={14} className="mr-2" />{employee.active !== false ? th.deactivate : th.activate}</DropdownMenuItem>
-       <DropdownMenuItem className="text-rag-red focus:text-rag-red" onClick={() => setDeleteOpen(true)}><DeleteAction size={14} className="mr-2" />{th.del}</DropdownMenuItem>
+       <DropdownMenuItem onClick={() => lifecycle.requestToggle(employee)}><ToggleActive size={14} className="mr-2" />{employee.active !== false ? th.deactivate : th.activate}</DropdownMenuItem>
+       <DropdownMenuItem className="text-rag-red focus:text-rag-red" onClick={() => lifecycle.requestDelete(employee)}><DeleteAction size={14} className="mr-2" />{th.del}</DropdownMenuItem>
       </DropdownMenuContent>
      </DropdownMenu>
     }
@@ -375,23 +375,7 @@ function EmployeeDetails() {
   </ConfirmDialog>
   <MonthEditDialog employee={employee} edit={editMonth} onClose={() => setEditMonth(null)} onSave={(m, field, value) => { setMonthOverride(employee.id, m, { [field]: value }); setEditMonth(null); toast.success(t.monthUpdated, { description: monthLabel(m) }); }} />
   <LeaveDialog open={leaveOpen} onClose={() => setLeaveOpen(false)} onAdd={(leave) => { addLeave(employee.id, leave); setLeaveOpen(false); toast.success(t.leaveAdded, { description: leave.type === "Partial" ? t.partialOption : t.leaveOption }); }} />
-  <ConfirmDialog
-   open={toggleOpen}
-   onOpenChange={setToggleOpen}
-   tone={employee.active !== false ? "warning" : "success"}
-   icon={({ className }) => <ToggleActive className={cn(className, employee.active !== false ? "" : "-scale-x-100")} />}
-   title={`${employee.active !== false ? th.deactivate : th.activate} "${employee.name}"?`}
-   description={th.sureToggle}
-   cancelLabel={t.cancel}
-   confirmLabel={employee.active !== false ? th.deactivate : th.activate}
-   onConfirm={() => { updateEmployee(employee.id, { active: employee.active === false }); toast.done("Employee", employee.active !== false ? "deactivated" : "activated"); setToggleOpen(false); }}
-  />
-  <ConfirmDeleteDialog
-   label={deleteOpen ? employee.name : undefined}
-   description="This employee will be removed from the resources pool."
-   onCancel={() => setDeleteOpen(false)}
-   onConfirm={() => { setEmployees((prev) => prev.filter((x) => x.id !== employee.id)); toast.done("Employee", "deleted"); setDeleteOpen(false); navigate({ to: "/resources", search: { tab: "people" } }); }}
-  />
+  {lifecycle.dialogs}
   <ConfirmDialog
    open={!!leaveDelete}
    onOpenChange={(o) => { if (!o) setLeaveDelete(null); }}

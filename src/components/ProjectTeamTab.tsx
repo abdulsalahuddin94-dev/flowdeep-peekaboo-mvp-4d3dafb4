@@ -1,3 +1,4 @@
+import { guardDeletedEmployee } from "@/components/EmployeeLifecycle";
 import { formatDateWithYear } from "@/lib/date-format";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useMemo, useState } from "react";
@@ -149,7 +150,7 @@ export function ProjectTeamTab({ project, projectId, pm, items, lang = "en", onA
             );
             return (
               <div key={m.name} className="flex flex-col rounded-lg border border-border bg-card p-4 text-start transition-colors hover:border-primary/60">
-                {emp ? <Link to="/resources/employees/$employeeId" params={{ employeeId: emp.id }} search={{ from: "team", projectId }} className="block">{body}</Link> : <div>{body}</div>}
+                {emp ? <Link to="/resources/employees/$employeeId" params={{ employeeId: emp.id }} search={{ from: "team", projectId }} onClick={(ev) => guardDeletedEmployee(emp, ev)} className="block">{body}</Link> : <div>{body}</div>}
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <StatusPill isActive={working} label={working ? t.active : t.inactive} />
                   <div className="flex items-center gap-1">

@@ -9,7 +9,7 @@
 - Keep schedule column auto-fit measurements aligned with rendered cell content and adapt widths to the table viewport; this preserves readable compact layouts and existing detail navigation.
 - Navigate linked-action counts through the project route's tab and actionRef search parameters, with a removable Action Tracker filter, so project and portfolio registers share the same destination.
 - Meeting type options come from the Organization lookup store, persisted like other local master data; renames propagate to meeting records and unavailable types remain readable on existing meetings.
-- Meeting attendee fields share one composer for create/edit: Internal uses employee selection, External uses free-text name and organization; switching the composer type preserves both groups in the existing attendee array.
+- Meeting attendee fields share one composer for create/edit: Type picks Internal (single employee pick) or External (free-text name and organization), the add "+" is always present on the row, and a persistent bar below lists every added attendee; switching type never drops the other group.
 - Route project approvals (milestone gates and change requests) to the un-nested approval review page; keep calendar approvals in the drawer because they are organization-wide rather than project-plan reviews.
 
 - Basic-info edits made during Change Plan are diffed against a snapshot taken on entry and sent with the change request under the "Info · " label prefix, so approvals cover the whole plan change.

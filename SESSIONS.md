@@ -1,3 +1,6 @@
+## 2026-11-26 — Attendee composer keeps its add button and shows an attendee bar
+- The add "+" now sits on the composer row for both Internal and External, so a meeting can start with an external guest and still gain internal people without losing them. Internal picks one employee from a searchable list; External types a name and organization. Every added person lands in the bar under the row — lavender pill for internal, teal for external — each removable on its own, and the bar shows a placeholder while empty. Duplicate names cannot be added.
+
 ## 2026-11-26 — Meeting attendee type and organization
 - Creation/editing now shares a left-to-right Type → Attendees row. Internal uses the employee multiselect; External uses free-text attendee name and Organization beside it, with an add control and removable attendee pills. Switching type retains both groups and existing meeting records.
 

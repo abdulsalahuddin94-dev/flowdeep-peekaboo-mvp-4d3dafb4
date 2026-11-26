@@ -352,3 +352,6 @@
 ## 2026-11-23 — Employee date navigator picker + Calendar tab menu
 - PeriodStepper label opens a picker: month grid with in-popover year stepping/year list, or a year grid.
 - Employee Calendar tab has a chevron menu (Monthly Calendar / Yearly Calendar) replacing the Monthly/Yearly toggle.
+
+## 2026-11-26 — Larger calendar day numbers
+- Employee monthly work calendar day numbers: text-sm → text-base, circle 28→32px.

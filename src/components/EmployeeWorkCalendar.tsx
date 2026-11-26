@@ -94,7 +94,7 @@ function MonthGrid({ today, holidays, events, y, month, entries, leave, color, b
         const groups = holiday || off ? [] : byProject(entries.filter((e) => e.from <= date && date <= e.until));
         const isToday = date === today;
         return <div key={i} data-date={date} aria-current={isToday ? "date" : undefined} className={cn("min-w-0 min-h-24 space-y-1.5 border-b border-e border-border p-2", isToday && "bg-muted/30")}>
-          <div className="flex h-7 items-center justify-between gap-1"><span className={cn("inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold", isToday && "bg-accent text-accent-foreground")}>{d}</span>{isToday && <span className="text-xs font-medium text-accent">{l.today}</span>}</div>
+          <div className="flex h-8 items-center justify-between gap-1"><span className={cn("inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base font-semibold", isToday && "bg-accent text-accent-foreground")}>{d}</span>{isToday && <span className="text-xs font-medium text-accent">{l.today}</span>}</div>
           <DayItems date={date} d={d} isToday={isToday} holiday={holiday} off={off} events={eventsOn(events, date)} groups={groups} color={color} />
         </div>;
       })}
